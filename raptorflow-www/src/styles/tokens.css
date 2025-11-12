@@ -1,0 +1,25 @@
+:root {
+  /* RaptorFlow core */
+  --rf-bg: #0B0B0E;             /* deep noir */
+  --rf-card: #121217;
+  --rf-ink: #ECEDEE;
+  --rf-subtle: #B7BDC7;
+
+  /* Your palette */
+  --rf-mineshaft: #2D2D2D;      /* Mineshaft */
+  --rf-akaroa:   #D7C9AE;       /* Akaroa accent */
+
+  /* Accents */
+  --rf-accent: #8B7CF9;         /* CTA / focus */
+  --rf-accent-2: #34D399;       /* success */
+  --rf-warn: #F59E0B;
+
+  /* FX */
+  --rf-glass: rgba(255,255,255,.06);
+  --rf-ring:  rgba(139,124,249,.45);
+  --rf-shadow: 0 10px 30px rgba(0,0,0,.35);
+
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+}
+

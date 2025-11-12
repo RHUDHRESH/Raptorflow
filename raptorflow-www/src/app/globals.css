@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "../styles/tokens.css";
+
+@layer base {
+  :root {
+    --background: var(--rf-bg);
+    --foreground: var(--rf-ink);
+    --card: var(--rf-card);
+    --card-foreground: var(--rf-ink);
+    --popover: var(--rf-card);
+    --popover-foreground: var(--rf-ink);
+    --primary: var(--rf-accent);
+    --primary-foreground: var(--rf-ink);
+    --secondary: var(--rf-mineshaft);
+    --secondary-foreground: var(--rf-ink);
+    --muted: var(--rf-mineshaft);
+    --muted-foreground: var(--rf-subtle);
+    --accent: var(--rf-mineshaft);
+    --accent-foreground: var(--rf-ink);
+    --destructive: var(--rf-warn);
+    --destructive-foreground: var(--rf-ink);
+    --border: var(--rf-mineshaft);
+    --input: var(--rf-mineshaft);
+    --ring: var(--rf-ring);
+    --radius: var(--radius-xl);
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
