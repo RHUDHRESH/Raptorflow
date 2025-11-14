@@ -1,4 +1,3 @@
-// Root page - show marketing site
 import { LiquidMetalBackground } from "@/components/liquid-metal-background/LiquidMetalBackground";
 import { FloatingNavbar } from "@/components/floating-navbar/FloatingNavbar";
 import { HeroHeader } from "@/components/hero/HeroHeader";
@@ -14,7 +13,7 @@ import { BottomCTA } from "@/components/cta/BottomCTA";
 import { Footer } from "@/components/footer/Footer";
 import { cn } from "@/lib/utils";
 
-export default function Home() {
+export default function MarketingPage() {
   return (
     <main className="relative min-h-screen">
       <LiquidMetalBackground />
@@ -56,3 +55,4 @@ export default function Home() {
     </main>
   );
 }
+

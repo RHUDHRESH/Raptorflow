@@ -1,25 +1,39 @@
 :root {
-  /* RaptorFlow core */
-  --rf-bg: #0B0B0E;             /* deep noir */
-  --rf-card: #121217;
-  --rf-ink: #ECEDEE;
-  --rf-subtle: #B7BDC7;
+  /* RaptorFlow Core - Monochrome Base */
+  --rf-bg: #FFFFFF;              /* Clean White */
+  --rf-card: #F0F2F5;            /* Cloud Gray */
+  --rf-ink: #0B0B0E;             /* Near Black */
+  --rf-subtle: #4D536D;          /* Slate Gray */
+  --rf-muted: #B7BDC7;           /* Light Gray */
 
-  /* Your palette */
-  --rf-mineshaft: #2D2D2D;      /* Mineshaft */
-  --rf-akaroa:   #D7C9AE;       /* Akaroa accent */
+  /* Primary Brand Colors */
+  --rf-primary: #28295A;         /* Deep Indigo */
+  --rf-accent: #51BAFF;          /* Sky Blue */
+  --rf-accent-2: #09BE99;        /* Emerald Green (success) */
 
-  /* Accents */
-  --rf-accent: #8B7CF9;         /* CTA / focus */
-  --rf-accent-2: #34D399;       /* success */
-  --rf-warn: #F59E0B;
+  /* Status Colors */
+  --rf-success: #09BE99;         /* Emerald */
+  --rf-warn: #F59E0B;            /* Amber */
+  --rf-error: #EF4444;           /* Crimson */
 
-  /* FX */
+  /* Neutral Grays */
+  --rf-slate: #4D536D;            /* Slate Gray */
+  --rf-cloud: #F0F2F5;            /* Cloud Gray */
+
+  /* Effects */
   --rf-glass: rgba(255,255,255,.06);
-  --rf-ring:  rgba(139,124,249,.45);
-  --rf-shadow: 0 10px 30px rgba(0,0,0,.35);
+  --rf-ring: rgba(81,186,255,.45); /* Sky Blue ring */
+  --rf-shadow: 0 4px 12px rgba(0,0,0,.08);
+  --rf-shadow-lg: 0 10px 30px rgba(0,0,0,.12);
 
+  /* Border Radius */
+  --radius: 6px;
+  --radius-lg: 12px;
   --radius-xl: 18px;
   --radius-2xl: 24px;
+
+  /* Typography */
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 

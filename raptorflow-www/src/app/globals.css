@@ -6,34 +6,59 @@
 
 @layer base {
   :root {
+    /* shadcn/ui compatibility */
     --background: var(--rf-bg);
     --foreground: var(--rf-ink);
     --card: var(--rf-card);
     --card-foreground: var(--rf-ink);
-    --popover: var(--rf-card);
+    --popover: var(--rf-bg);
     --popover-foreground: var(--rf-ink);
-    --primary: var(--rf-accent);
-    --primary-foreground: var(--rf-ink);
-    --secondary: var(--rf-mineshaft);
+    --primary: var(--rf-primary);
+    --primary-foreground: #FFFFFF;
+    --secondary: var(--rf-cloud);
     --secondary-foreground: var(--rf-ink);
-    --muted: var(--rf-mineshaft);
+    --muted: var(--rf-cloud);
     --muted-foreground: var(--rf-subtle);
-    --accent: var(--rf-mineshaft);
-    --accent-foreground: var(--rf-ink);
-    --destructive: var(--rf-warn);
-    --destructive-foreground: var(--rf-ink);
-    --border: var(--rf-mineshaft);
-    --input: var(--rf-mineshaft);
+    --accent: var(--rf-accent);
+    --accent-foreground: #FFFFFF;
+    --destructive: var(--rf-error);
+    --destructive-foreground: #FFFFFF;
+    --border: var(--rf-cloud);
+    --input: var(--rf-cloud);
     --ring: var(--rf-ring);
-    --radius: var(--radius-xl);
+    --radius: var(--radius);
   }
 
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-size: 17px; /* Blueprint: 17-18px base */
+    line-height: 1.5;
+    letter-spacing: -0.01em; /* Slight tracking for Inter */
+  }
+  
+  h1 {
+    font-size: 40px; /* Blueprint: 40-48px */
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  
+  h2 {
+    font-size: 32px; /* Blueprint: 28-36px */
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  
+  h3 {
+    font-size: 24px; /* Blueprint: 22-26px */
+    font-weight: 600;
+    line-height: 1.4;
   }
 }
 
