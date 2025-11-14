@@ -4,10 +4,10 @@ import React from 'react';
 import { Check, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useGroundwork } from '@/components/groundwork/GroundworkProvider';
+import { GroundworkProvider, useGroundwork } from '@/components/groundwork/GroundworkProvider';
 import Link from 'next/link';
 
-export default function GroundworkCompletePage() {
+function GroundworkCompleteContent() {
   const { state } = useGroundwork();
 
   // Count completed sections
@@ -133,6 +133,14 @@ export default function GroundworkCompletePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function GroundworkCompletePage() {
+  return (
+    <GroundworkProvider>
+      <GroundworkCompleteContent />
+    </GroundworkProvider>
   );
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TextRotate } from "@/components/system/TextRotate";
 import { Badge } from "@/components/ui/badge";
@@ -36,9 +37,12 @@ export function HeroHeader() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
           <Button
             size="lg"
+            asChild
             className="bg-rf-accent hover:bg-rf-accent/90 text-white px-8 py-6 text-lg rounded-xl shadow-lg"
           >
-            {COPY.hero.ctaPrimary}
+            <Link href="/groundwork">
+              {COPY.hero.ctaPrimary}
+            </Link>
           </Button>
           <Button
             size="lg"

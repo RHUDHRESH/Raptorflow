@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useGroundwork } from './GroundworkProvider';
 import { SECTIONS } from '@/lib/groundwork/config';
-import { SectionId } from '@/lib/groundwork/types';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -45,7 +44,7 @@ export function SectionActions() {
   const canComplete = sectionState.data !== null;
 
   return (
-    <div className="sticky bottom-0 border-t border-rf-cloud bg-rf-bg p-6 mt-8">
+    <div className="sticky bottom-0 border-t border-rf-cloud bg-rf-bg p-6">
       <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           {hasPrevious && (

@@ -39,6 +39,7 @@ export function LocationPicker({ value, onChange, className }: LocationPickerPro
   // Load Google Maps API
   useEffect(() => {
     if (typeof window === 'undefined') {
+      setIsLoading(false);
       return;
     }
 
@@ -72,7 +73,7 @@ export function LocationPicker({ value, onChange, className }: LocationPickerPro
 
   // Initialize map
   useEffect(() => {
-    if (!mapRef.current || !window.google || map) return;
+    if (typeof window === 'undefined' || !mapRef.current || !window.google || map) return;
 
     const newMap = new window.google.maps.Map(mapRef.current, {
       center: value
@@ -124,7 +125,7 @@ export function LocationPicker({ value, onChange, className }: LocationPickerPro
 
   // Initialize autocomplete
   useEffect(() => {
-    if (!searchInputRef.current || !window.google || autocomplete) return;
+    if (typeof window === 'undefined' || !searchInputRef.current || !window.google || autocomplete) return;
 
     const newAutocomplete = new window.google.maps.places.Autocomplete(
       searchInputRef.current,
@@ -156,11 +157,11 @@ export function LocationPicker({ value, onChange, className }: LocationPickerPro
     });
 
     setAutocomplete(newAutocomplete);
-  }, [searchInputRef, window.google, autocomplete, map, onChange]);
+  }, [searchInputRef, autocomplete, map, onChange]);
 
   // Update marker when value changes
   useEffect(() => {
-    if (!map || !value) {
+    if (typeof window === 'undefined' || !window.google || !map || !value) {
       if (marker) {
         marker.setMap(null);
         setMarker(null);
