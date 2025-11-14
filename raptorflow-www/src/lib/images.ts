@@ -3,6 +3,10 @@ export const IMAGES = {
     src: "/assets/hero/raptorflow-hero-01.avif",
     alt: "Founder dashboard with planned Moves",
   },
+  heroBackground: {
+    src: "/assets/hero/hero_background.png",
+    alt: "Hero background with cinematic gradient",
+  },
   icpCrowd: {
     src: "/assets/icp-crowd/crowd-01.webp",
     alt: "Audience crowd with spotlighted personas",

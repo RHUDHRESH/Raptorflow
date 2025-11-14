@@ -30,24 +30,47 @@ export function MobileSheet() {
           <Link
             href="#features"
             onClick={() => setOpen(false)}
-            className="text-rf-subtle hover:text-rf-ink transition-colors"
+            className="text-rf-subtle hover:text-rf-ink transition-colors py-2"
           >
             Features
           </Link>
           <Link
+            href="#how-it-works"
+            onClick={() => setOpen(false)}
+            className="text-rf-subtle hover:text-rf-ink transition-colors py-2"
+          >
+            How It Works
+          </Link>
+          <Link
             href="#pricing"
             onClick={() => setOpen(false)}
-            className="text-rf-subtle hover:text-rf-ink transition-colors"
+            className="text-rf-subtle hover:text-rf-ink transition-colors py-2"
           >
             Pricing
           </Link>
-          <Button
-            variant="default"
-            className="bg-rf-accent hover:bg-rf-accent/90 mt-4"
+          <Link
+            href="/docs"
             onClick={() => setOpen(false)}
+            className="text-rf-subtle hover:text-rf-ink transition-colors py-2"
           >
-            Get started
-          </Button>
+            Docs
+          </Link>
+          <div className="pt-4 space-y-3 border-t border-rf-mineshaft/50 mt-4">
+            <Button
+              variant="ghost"
+              className="w-full text-rf-subtle hover:text-rf-ink"
+              onClick={() => setOpen(false)}
+            >
+              Login
+            </Button>
+            <Button
+              variant="default"
+              className="bg-rf-accent hover:bg-rf-accent/90 w-full"
+              onClick={() => setOpen(false)}
+            >
+              Sign Up
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

@@ -1,11 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import { SpotLight } from "@/components/system/SpotLight";
+import { useState } from "react";
 import { COPY } from "@/lib/copy";
-import { IMAGES } from "@/lib/images";
 import { Section } from "@/components/system/Section";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -14,71 +13,91 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
-const personas = [
-  {
-    id: "proof-driven",
-    name: "Proof-Driven",
-    tags: ["Proof-driven", "Hates fluff", "Needs examples"],
-    tone: "Direct, evidence-based",
-    channels: ["LinkedIn", "Twitter", "Email"],
-    contentAngles: ["Case studies", "Data-driven insights", "Before/after comparisons"],
-    examples: ["Show ROI metrics", "Share customer testimonials", "Display concrete results"],
-  },
-  {
-    id: "visionary",
-    name: "Visionary",
-    tags: ["Big picture", "Future-focused", "Inspirational"],
-    tone: "Aspirational, forward-thinking",
-    channels: ["LinkedIn", "Medium", "YouTube"],
-    contentAngles: ["Industry trends", "Future predictions", "Vision statements"],
-    examples: ["Industry forecasts", "Thought leadership", "Strategic insights"],
-  },
-  {
-    id: "practical",
-    name: "Practical",
-    tags: ["Step-by-step", "Actionable", "How-to"],
-    tone: "Clear, instructional",
-    channels: ["Blog", "YouTube", "Email"],
-    contentAngles: ["Tutorials", "Guides", "Best practices"],
-    examples: ["Step-by-step guides", "Tool recommendations", "Process breakdowns"],
-  },
-];
+import { Brain } from "lucide-react";
 
 export function PersonaGrid() {
-  return (
-    <Section className="py-16 relative">
-      <h2 className="text-3xl sm:text-4xl font-bold text-center text-rf-ink mb-4">
-        {COPY.icp.title}
-      </h2>
-      <p className="text-center text-rf-subtle mb-12">{COPY.icp.subtitle}</p>
+  const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
 
-      <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-rf-mineshaft/50 mb-8">
-        <Image
-          src={IMAGES.icpCrowd.src}
-          alt={IMAGES.icpCrowd.alt}
-          fill
-          className="object-cover"
-        />
-        <div className="absolute inset-0">
-          <SpotLight className="opacity-50" />
+  return (
+    <Section className="py-16 lg:py-24 relative">
+      <div className="text-center mb-12 space-y-4">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-rf-ink">
+          {COPY.icp.title}
+        </h2>
+        <p className="text-lg sm:text-xl text-rf-subtle max-w-3xl mx-auto">
+          {COPY.icp.subheading}
+        </p>
+      </div>
+
+      {/* Visual representation: Crowd to Personas */}
+      <div className="relative mb-12 max-w-5xl mx-auto">
+        {/* Left: Blurred crowd representation */}
+        <div className="relative h-64 rounded-2xl overflow-hidden border border-rf-mineshaft/50 bg-gradient-to-r from-rf-card/50 via-rf-card/30 to-transparent">
+          {/* Abstract crowd silhouette effect */}
+          <div className="absolute inset-0 flex items-center justify-start px-8">
+            <div className="flex gap-2">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "w-12 h-12 rounded-full bg-rf-mineshaft/40 blur-sm",
+                    "opacity-60"
+                  )}
+                  style={{
+                    transform: `translateY(${Math.sin(i) * 10}px)`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Middle: Spotlight beam with icon */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="relative z-10">
+              <div className="w-16 h-16 rounded-full bg-rf-accent/20 border border-rf-accent/30 flex items-center justify-center backdrop-blur-sm">
+                <Brain className="w-8 h-8 text-rf-accent" />
+              </div>
+              {/* Beam effect */}
+              <div className="absolute inset-0 -z-10">
+                <div className="w-full h-1 bg-gradient-to-r from-transparent via-rf-accent/30 to-transparent" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {personas.map((persona) => (
+      {/* Persona Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
+        {COPY.icp.personas.map((persona) => (
           <Dialog key={persona.id}>
             <DialogTrigger asChild>
-              <Card className="bg-rf-card/50 border-rf-mineshaft/50 backdrop-blur-sm cursor-pointer hover:bg-rf-card/70 transition-all">
+              <Card
+                className={cn(
+                  "bg-rf-card/50 border-rf-mineshaft/50 backdrop-blur-sm cursor-pointer",
+                  "hover:bg-rf-card/70 hover:border-rf-accent/30 transition-all duration-300",
+                  "hover:shadow-rf hover:-translate-y-1 rounded-2xl",
+                  "group"
+                )}
+              >
                 <CardHeader>
-                  <CardTitle className="text-rf-ink">{persona.name}</CardTitle>
+                  {/* Avatar circle */}
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rf-accent/20 to-rf-accent/10 border border-rf-accent/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <span className="text-2xl font-bold text-rf-accent">
+                      {persona.name.split(" ")[1]?.[0] || persona.name[0]}
+                    </span>
+                  </div>
+                  <CardTitle className="text-rf-ink text-xl">{persona.name}</CardTitle>
+                  <p className="text-sm text-rf-subtle mt-1">{persona.role}</p>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {persona.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="bg-rf-mineshaft/50 text-rf-subtle">
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="bg-rf-mineshaft/50 text-rf-subtle border-rf-mineshaft/50 text-xs"
+                      >
                         {tag}
                       </Badge>
                     ))}
@@ -90,39 +109,27 @@ export function PersonaGrid() {
               <DialogHeader>
                 <DialogTitle className="text-rf-ink text-2xl">{persona.name}</DialogTitle>
                 <DialogDescription className="text-rf-subtle">
-                  Detailed strategy for {persona.name.toLowerCase()} personas
+                  {persona.role}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-6 mt-4">
                 <div>
-                  <h4 className="text-sm font-semibold text-rf-ink mb-2">Tone</h4>
-                  <p className="text-rf-subtle">{persona.tone}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-rf-ink mb-2">Channels</h4>
+                  <h4 className="text-sm font-semibold text-rf-ink mb-2">Tags</h4>
                   <div className="flex flex-wrap gap-2">
-                    {persona.channels.map((channel) => (
-                      <Badge key={channel} variant="outline" className="border-rf-mineshaft text-rf-subtle">
-                        {channel}
+                    {persona.tags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant="outline"
+                        className="border-rf-mineshaft text-rf-subtle"
+                      >
+                        {tag}
                       </Badge>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-rf-ink mb-2">Content Angles</h4>
-                  <ul className="list-disc list-inside text-rf-subtle space-y-1">
-                    {persona.contentAngles.map((angle) => (
-                      <li key={angle}>{angle}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-rf-ink mb-2">Examples</h4>
-                  <ul className="list-disc list-inside text-rf-subtle space-y-1">
-                    {persona.examples.map((example) => (
-                      <li key={example}>{example}</li>
-                    ))}
-                  </ul>
+                  <h4 className="text-sm font-semibold text-rf-ink mb-2">Strategy</h4>
+                  <p className="text-rf-subtle leading-relaxed">{persona.description}</p>
                 </div>
               </div>
             </DialogContent>
@@ -132,4 +139,3 @@ export function PersonaGrid() {
     </Section>
   );
 }
-
