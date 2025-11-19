@@ -1,0 +1,59 @@
+:root {
+  /* RaptorFlow Core - Monochrome Base */
+  --rf-bg: #FFFFFF;              /* Clean White */
+  --rf-card: #F0F2F5;            /* Cloud Gray */
+  --rf-ink: #0B0B0E;             /* Near Black */
+  --rf-subtle: #4D536D;          /* Slate Gray */
+  --rf-muted: #B7BDC7;           /* Light Gray */
+
+  /* Primary Brand Colors */
+  --rf-primary: #28295A;         /* Deep Indigo */
+  --rf-accent: #51BAFF;          /* Sky Blue */
+  --rf-accent-2: #09BE99;        /* Emerald Green (success) */
+
+  /* Status Colors */
+  --rf-success: #09BE99;         /* Emerald */
+  --rf-warn: #F59E0B;            /* Amber */
+  --rf-error: #EF4444;           /* Crimson */
+
+  /* Neutral Grays */
+  --rf-slate: #4D536D;            /* Slate Gray */
+  --rf-cloud: #F0F2F5;            /* Cloud Gray */
+
+  /* Effects */
+  --rf-glass: rgba(255,255,255,.06);
+  --rf-ring: rgba(81,186,255,.45); /* Sky Blue ring */
+  --rf-shadow: 0 4px 12px rgba(0,0,0,.08);
+  --rf-shadow-lg: 0 10px 30px rgba(0,0,0,.12);
+
+  /* Border Radius */
+  --radius: 6px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+
+  /* Typography */
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* shadcn/ui compatibility variables */
+  --border: hsl(214.3 31.8% 91.4%);
+  --input: hsl(214.3 31.8% 91.4%);
+  --ring: hsl(222.2 84% 4.9%);
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+}
