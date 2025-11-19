@@ -48,7 +48,7 @@ function GroundworkCompleteContent() {
           </div>
           <h1 className="text-4xl font-bold text-rf-ink mb-3">Groundwork Complete</h1>
           <p className="text-lg text-rf-subtle">
-            Your strategic foundation is set. Let's build your marketing strategy.
+            Your strategic foundation is set. Let&apos;s build your marketing strategy.
           </p>
         </div>
 

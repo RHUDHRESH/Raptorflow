@@ -26,7 +26,7 @@ export function Testimonial() {
             <div className="space-y-4">
               <Quote className="w-8 h-8 text-rf-accent/50" />
               <blockquote className="text-lg sm:text-xl text-rf-ink leading-relaxed">
-                "{COPY.testimonial.quote}"
+                &ldquo;{COPY.testimonial.quote}&rdquo;
               </blockquote>
               <div className="pt-4 border-t border-rf-mineshaft/30">
                 <p className="text-rf-ink font-semibold">{COPY.testimonial.author}</p>

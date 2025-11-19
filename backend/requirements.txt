@@ -8,8 +8,9 @@ supabase==2.8.0
 psycopg2-binary==2.9.10
 
 # AI & Agents
-langgraph==0.2.0
+langgraph>=0.2.55
 langchain==0.3.0
+langchain-core>=0.3.0
 openai==1.54.0
 
 # Utilities

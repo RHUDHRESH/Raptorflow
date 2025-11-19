@@ -27,13 +27,13 @@ export function PricingTable() {
             className={cn(
               "bg-rf-card/50 border-rf-mineshaft/50 backdrop-blur-sm rounded-2xl",
               "hover:shadow-rf transition-all duration-300",
-              plan.recommended
+              "recommended" in plan && plan.recommended
                 ? "border-rf-accent/50 ring-2 ring-rf-accent/20 md:-mt-4 md:mb-4"
                 : ""
             )}
           >
             <CardHeader>
-              {plan.recommended && (
+              {"recommended" in plan && plan.recommended && (
                 <Badge className="bg-rf-accent/20 text-rf-accent border-rf-accent/30 w-fit mb-2">
                   Recommended
                 </Badge>
@@ -58,7 +58,7 @@ export function PricingTable() {
               <Button
                 className={cn(
                   "w-full",
-                  plan.recommended
+                  "recommended" in plan && plan.recommended
                     ? "bg-rf-accent hover:bg-rf-accent/90 text-white"
                     : "bg-rf-mineshaft hover:bg-rf-mineshaft/80 text-rf-ink"
                 )}

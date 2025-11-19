@@ -16,7 +16,7 @@ export function HeroHeader() {
         {/* Badge */}
         <div className="flex justify-center mb-6">
           <Badge className="bg-rf-card/50 border-rf-mineshaft/50 text-rf-subtle px-4 py-1.5 text-sm font-normal backdrop-blur-sm">
-            <TextRotate phrases={COPY.hero.badge} interval={3000} />
+            <TextRotate phrases={[...COPY.hero.badge]} interval={3000} />
           </Badge>
         </div>
 
@@ -94,7 +94,7 @@ export function HeroHeader() {
 
               {/* Today's Focus */}
               <div className="space-y-2 pt-4 border-t border-rf-mineshaft/30">
-                <h3 className="text-sm font-semibold text-rf-ink/80">Today's focus</h3>
+                <h3 className="text-sm font-semibold text-rf-ink/80">Today&apos;s focus</h3>
                 <div className="space-y-2">
                   {["Announce shipping update", "Post case study snippet", "Engage with 3 prospects"].map(
                     (task, idx) => (
