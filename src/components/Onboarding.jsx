@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ArrowRight, Sparkles, Search, Check, Loader2, AlertTriangle, ChevronDown, X } from 'lucide-react';
 import MarketPositionSnapshot from './MarketPositionSnapshot';
 import CohortsBuilder from './CohortsBuilder';
+import { getVertexAIUrl, TASK_TYPES } from '../utils/vertexAI';
 
 const GOOGLE_MAPS_API_KEY =
   import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
@@ -93,16 +94,10 @@ const FALLBACK_FOLLOW_UPS = [
 ];
 
 const generateVertexAIQuestions = async (answers) => {
-  const apiKey = import.meta.env.VITE_VERTEX_AI_API_KEY || "";
-  const endpoint = import.meta.env.VITE_VERTEX_AI_ENDPOINT || "us-central1-aiplatform.googleapis.com";
-  const model = import.meta.env.VITE_VERTEX_AI_MODEL || "gemini-2.5-flash";
-
-  // If no API key, skip immediately
-  if (!apiKey || apiKey.trim() === '') {
-    throw new Error("Vertex AI API key not configured");
-  }
-
-  const url = `https://${endpoint}/v1/publishers/google/models/${model}:generateContent?key=${apiKey}`;
+  // Use general purpose model for onboarding question generation
+  // For faster responses, could use TASK_TYPES.CREATIVE_FAST
+  // For higher quality, could use TASK_TYPES.CREATIVE_REASONING
+  const url = getVertexAIUrl(TASK_TYPES.GENERAL_PURPOSE);
   let contextString = "Here is the client's onboarding intake so far:\n\n";
 
   INITIAL_QUESTIONS.forEach(q => {
@@ -784,7 +779,7 @@ const ProcessingScreen = ({ onSkip }) => (
       <Loader2 className="animate-spin text-black" size={48} aria-hidden="true" />
       <div className="text-center space-y-2">
         <p className="font-serif text-2xl italic">Analyzing your inputs...</p>
-        <p className="font-sans text-[10px] uppercase tracking-widest text-neutral-400">Using Vertex AI Gemini to detect strategy gaps</p>
+        <p className="font-sans text-[10px] uppercase tracking-widest text-neutral-400">Using AI to detect strategy gaps and generate follow-ups</p>
       </div>
       {onSkip && (
         <button
