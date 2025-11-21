@@ -15,15 +15,14 @@ const settingsTabs = [
 ]
 
 const PLAN_LIMITS = {
-  bubtle: { cohorts: 1, moves: 10, price: '$0' },
-  ascent: { cohorts: 3, moves: 50, price: '$29' },
-  glide: { cohorts: 6, moves: 150, price: '$79' },
-  soar: { cohorts: 9, moves: 500, price: '$199' },
+  ascent: { cohorts: 3, moves: 1, price: '$29', tier: 1 },
+  glide: { cohorts: 6, moves: 3, price: '$79', tier: 2 },
+  soar: { cohorts: 9, moves: 10, price: '$199', tier: 3 },
 }
 
 const getUserPlan = () => {
   const plan = getSecureLocalStorage('userPlan')
-  return plan || 'bubtle'
+  return plan || 'ascent'
 }
 
 export default function Settings() {
@@ -66,7 +65,7 @@ export default function Settings() {
   }, [preferences])
 
   const currentPlan = getUserPlan().toLowerCase()
-  const currentPlanData = PLAN_LIMITS[currentPlan] || PLAN_LIMITS.bubtle
+  const currentPlanData = PLAN_LIMITS[currentPlan] || PLAN_LIMITS.ascent
 
   const handlePreferenceChange = (field, value) => {
     // Sanitize the value before updating state
@@ -297,15 +296,28 @@ export default function Settings() {
               {/* Available Plans */}
               <div>
                 <h3 className="font-serif text-2xl text-neutral-900 mb-6">Available Plans</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[
-                    { name: 'Bubtle', key: 'bubtle', tier: 1 },
-                    { name: 'Ascent', key: 'ascent', tier: 2 },
-                    { name: 'Glide', key: 'glide', tier: 3 },
-                    { name: 'Soar', key: 'soar', tier: 4 },
+                    { name: 'Ascent', key: 'ascent' },
+                    { name: 'Glide', key: 'glide' },
+                    { name: 'Soar', key: 'soar' },
                   ].map((plan) => {
                     const planData = PLAN_LIMITS[plan.key]
                     const isCurrent = currentPlan === plan.key
+                    const currentPlanTier = currentPlanData?.tier || 1
+                    const planTier = planData.tier
+                    const isUpgrade = planTier > currentPlanTier
+                    const isDowngrade = planTier < currentPlanTier
+                    
+                    let buttonText = 'Select Plan'
+                    if (isCurrent) {
+                      buttonText = 'Current Plan'
+                    } else if (isUpgrade) {
+                      buttonText = 'Upgrade'
+                    } else if (isDowngrade) {
+                      buttonText = 'Downgrade'
+                    }
+                    
                     return (
                       <div
                         key={plan.name}
@@ -330,7 +342,7 @@ export default function Settings() {
                               <span className="text-sm font-normal text-neutral-500">/mo</span>
                             </p>
                             <p className="font-sans text-xs text-neutral-500 uppercase tracking-[0.2em]">
-                              Tier {plan.tier}
+                              Tier {planData.tier}
                             </p>
                           </div>
                           <div className="space-y-2 py-4 border-t border-neutral-200">
@@ -347,7 +359,7 @@ export default function Settings() {
                             disabled={isCurrent}
                             onClick={() => {
                               if (!isCurrent) {
-                                localStorage.setItem('userPlan', plan.key)
+                                setSecureLocalStorage('userPlan', plan.key)
                                 alert(`Plan changed to ${plan.name}. Please refresh the page.`)
                               }
                             }}
@@ -357,7 +369,7 @@ export default function Settings() {
                                 : 'border-neutral-900 text-neutral-900 hover:bg-neutral-900 hover:text-white'
                             }`}
                           >
-                            {isCurrent ? 'Current Plan' : 'Select Plan'}
+                            {buttonText}
                           </button>
                         </div>
                       </div>

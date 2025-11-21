@@ -1,31 +1,33 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Validate environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Get environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing Supabase environment variables. Please check your .env file.'
-  );
-}
+// Create Supabase client with fallback values if env vars are missing
+// This prevents the app from crashing, but auth won't work until env vars are set
+export const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+      db: {
+        schema: 'public',
+      },
+      global: {
+        headers: {
+          'x-application-name': 'raptorflow',
+        },
+      },
+    })
+  : null;
 
-// Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-  db: {
-    schema: 'public',
-  },
-  global: {
-    headers: {
-      'x-application-name': 'raptorflow',
-    },
-  },
-});
+// Helper to check if Supabase is configured
+export const isSupabaseConfigured = () => {
+  return !!supabase && !!supabaseUrl && !!supabaseAnonKey;
+};
 
 // Type-safe database types (generated from Supabase)
 export type Json =

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,7 +10,16 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
-  // Show loading state while checking authentication
+  // Check for OAuth callback in URL and wait a bit for auth state to update
+  useEffect(() => {
+    // If there's an OAuth callback in the URL hash, give it time to process
+    if (window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('error'))) {
+      // The auth state change listener will handle this
+      return;
+    }
+  }, []);
+
+  // Show loading state while checking authentication (especially important for OAuth callbacks)
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">

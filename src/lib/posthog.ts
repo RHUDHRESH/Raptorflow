@@ -4,6 +4,14 @@ const posthogKey = import.meta.env.VITE_POSTHOG_KEY;
 const posthogHost = import.meta.env.VITE_POSTHOG_HOST || 'https://app.posthog.com';
 const environment = import.meta.env.VITE_ENVIRONMENT || 'development';
 
+// Track initialization state
+let isInitialized = false;
+
+// Helper function to check if PostHog is ready
+const isPostHogReady = (): boolean => {
+  return isInitialized && typeof window !== 'undefined' && posthogKey && typeof posthog !== 'undefined';
+};
+
 // Initialize PostHog
 export const initPostHog = () => {
   if (!posthogKey) {
@@ -13,41 +21,46 @@ export const initPostHog = () => {
 
   // Only initialize in browser environment
   if (typeof window !== 'undefined') {
-    posthog.init(posthogKey, {
-      api_host: posthogHost,
+    try {
+      posthog.init(posthogKey, {
+        api_host: posthogHost,
 
-      // Privacy and compliance
-      opt_out_capturing_by_default: false,
-      respect_dnt: true,
+        // Privacy and compliance
+        opt_out_capturing_by_default: false,
+        respect_dnt: true,
 
-      // Session recording
-      disable_session_recording: environment === 'development',
+        // Session recording
+        disable_session_recording: environment === 'development',
 
-      // Autocapture
-      autocapture: true,
-      capture_pageview: true,
-      capture_pageleave: true,
+        // Autocapture
+        autocapture: true,
+        capture_pageview: true,
+        capture_pageleave: true,
 
-      // Performance
-      loaded: (posthog) => {
-        if (environment === 'development') {
-          posthog.debug();
-        }
-      },
+        // Performance
+        loaded: (posthog) => {
+          isInitialized = true;
+          if (environment === 'development') {
+            posthog.debug();
+          }
+        },
 
-      // Cookie configuration
-      persistence: 'localStorage+cookie',
-      cookie_expiration: 365,
+        // Cookie configuration
+        persistence: 'localStorage+cookie',
+        cookie_expiration: 365,
 
-      // Custom properties
-      property_blacklist: ['password', 'token', 'api_key'],
-    });
+        // Custom properties
+        property_blacklist: ['password', 'token', 'api_key'],
+      });
 
-    // Set environment as a super property
-    posthog.register({
-      environment,
-      app_version: '1.0.0',
-    });
+      // Set environment as a super property
+      posthog.register({
+        environment,
+        app_version: '1.0.0',
+      });
+    } catch (error) {
+      console.error('Failed to initialize PostHog:', error);
+    }
   }
 
   return posthog;
@@ -57,102 +70,147 @@ export const initPostHog = () => {
 export const analytics = {
   // Track page views
   trackPageView: (pageName: string, properties?: Record<string, any>) => {
-    if (posthog.__loaded) {
-      posthog.capture('$pageview', {
-        page_name: pageName,
-        ...properties,
-      });
+    if (isPostHogReady()) {
+      try {
+        posthog.capture('$pageview', {
+          page_name: pageName,
+          ...properties,
+        });
+      } catch (error) {
+        console.error('PostHog trackPageView error:', error);
+      }
     }
   },
 
   // Track custom events
   trackEvent: (eventName: string, properties?: Record<string, any>) => {
-    if (posthog.__loaded) {
-      posthog.capture(eventName, properties);
+    if (isPostHogReady()) {
+      try {
+        posthog.capture(eventName, properties);
+      } catch (error) {
+        console.error('PostHog trackEvent error:', error);
+      }
     }
   },
 
   // Track campaign actions
   trackCampaignAction: (action: string, campaignId: string, properties?: Record<string, any>) => {
-    if (posthog.__loaded) {
-      posthog.capture('campaign_action', {
-        action,
-        campaign_id: campaignId,
-        ...properties,
-      });
+    if (isPostHogReady()) {
+      try {
+        posthog.capture('campaign_action', {
+          action,
+          campaign_id: campaignId,
+          ...properties,
+        });
+      } catch (error) {
+        console.error('PostHog trackCampaignAction error:', error);
+      }
     }
   },
 
   // Track OODA loop iterations
   trackOODAIteration: (loopId: string, phase: 'observe' | 'orient' | 'decide' | 'act', properties?: Record<string, any>) => {
-    if (posthog.__loaded) {
-      posthog.capture('ooda_iteration', {
-        loop_id: loopId,
-        phase,
-        ...properties,
-      });
+    if (isPostHogReady()) {
+      try {
+        posthog.capture('ooda_iteration', {
+          loop_id: loopId,
+          phase,
+          ...properties,
+        });
+      } catch (error) {
+        console.error('PostHog trackOODAIteration error:', error);
+      }
     }
   },
 
   // Track maneuver selection
   trackManeuverSelection: (maneuverId: string, maneuverName: string, properties?: Record<string, any>) => {
-    if (posthog.__loaded) {
-      posthog.capture('maneuver_selected', {
-        maneuver_id: maneuverId,
-        maneuver_name: maneuverName,
-        ...properties,
-      });
+    if (isPostHogReady()) {
+      try {
+        posthog.capture('maneuver_selected', {
+          maneuver_id: maneuverId,
+          maneuver_name: maneuverName,
+          ...properties,
+        });
+      } catch (error) {
+        console.error('PostHog trackManeuverSelection error:', error);
+      }
     }
   },
 
   // Track capability unlock
   trackCapabilityUnlock: (capabilityId: string, capabilityName: string, properties?: Record<string, any>) => {
-    if (posthog.__loaded) {
-      posthog.capture('capability_unlocked', {
-        capability_id: capabilityId,
-        capability_name: capabilityName,
-        ...properties,
-      });
+    if (isPostHogReady()) {
+      try {
+        posthog.capture('capability_unlocked', {
+          capability_id: capabilityId,
+          capability_name: capabilityName,
+          ...properties,
+        });
+      } catch (error) {
+        console.error('PostHog trackCapabilityUnlock error:', error);
+      }
     }
   },
 
   // Identify user
   identify: (userId: string, properties?: Record<string, any>) => {
-    if (posthog.__loaded) {
-      posthog.identify(userId, properties);
+    if (isPostHogReady()) {
+      try {
+        posthog.identify(userId, properties);
+      } catch (error) {
+        console.error('PostHog identify error:', error);
+      }
     }
   },
 
   // Reset identity (on logout)
   reset: () => {
-    if (posthog.__loaded) {
-      posthog.reset();
+    if (isPostHogReady()) {
+      try {
+        posthog.reset();
+      } catch (error) {
+        console.error('PostHog reset error:', error);
+      }
     }
   },
 
   // Set user properties
   setUserProperties: (properties: Record<string, any>) => {
-    if (posthog.__loaded) {
-      posthog.people.set(properties);
+    if (isPostHogReady()) {
+      try {
+        posthog.people.set(properties);
+      } catch (error) {
+        console.error('PostHog setUserProperties error:', error);
+      }
     }
   },
 
   // Track feature flags
   isFeatureEnabled: (flagKey: string): boolean => {
-    if (posthog.__loaded) {
-      return posthog.isFeatureEnabled(flagKey) || false;
+    if (isPostHogReady()) {
+      try {
+        return posthog.isFeatureEnabled(flagKey) || false;
+      } catch (error) {
+        console.error('PostHog isFeatureEnabled error:', error);
+        return false;
+      }
     }
     return false;
   },
 
   // Track errors
   trackError: (error: Error, context?: Record<string, any>) => {
-    if (posthog.__loaded) {
-      posthog.capture('error', {
-        error_message: error.message,
-        error_stack: error.stack,
-        ...context,
-      });
+    if (isPostHogReady()) {
+      try {
+        posthog.capture('error', {
+          error_message: error.message,
+          error_stack: error.stack,
+          ...context,
+        });
+      } catch (err) {
+        console.error('PostHog trackError error:', err);
+      }
     }
   },
 };

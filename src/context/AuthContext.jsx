@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { sanitizeInput, sanitizeEmail, getSecureLocalStorage, setSecureLocalStorage } from '../utils/sanitize';
+import { sanitizeInput, sanitizeEmail } from '../utils/sanitize';
 import { validateEmail, validatePassword } from '../utils/validation';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
@@ -19,36 +20,116 @@ export const AuthProvider = ({ children }) => {
 
   // Check for existing session on mount
   useEffect(() => {
-    checkAuth();
+    if (!isSupabaseConfigured() || !supabase) {
+      console.warn('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
+      setLoading(false);
+      return;
+    }
+
+    // Check for OAuth callback in URL hash
+    const handleOAuthCallback = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        if (session?.user) {
+          const userData = {
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+            avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+          };
+          setUser(userData);
+          setLoading(false);
+          
+          // Clear OAuth callback from URL
+          if (window.location.hash) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        }
+      } catch (err) {
+        console.error('Error handling OAuth callback:', err);
+        setLoading(false);
+      }
+    };
+
+    // Check for OAuth callback first
+    if (window.location.hash.includes('access_token') || window.location.hash.includes('error')) {
+      handleOAuthCallback();
+    } else {
+      checkAuth();
+    }
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            const userData = {
+              id: session.user.id,
+              email: session.user.email,
+              name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+              avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+            };
+            setUser(userData);
+            
+            // Clear OAuth callback from URL if present
+            if (window.location.hash) {
+              window.history.replaceState(null, '', window.location.pathname);
+            }
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
   }, []);
 
-  const checkAuth = () => {
-    try {
-      const storedUser = getSecureLocalStorage('auth_user');
-      const storedToken = getSecureLocalStorage('auth_token');
-      const sessionExpiry = getSecureLocalStorage('auth_expiry');
+  const checkAuth = async () => {
+    if (!isSupabaseConfigured() || !supabase) {
+      setLoading(false);
+      return;
+    }
 
-      if (storedUser && storedToken && sessionExpiry) {
-        const now = new Date().getTime();
-        if (now < sessionExpiry) {
-          setUser(storedUser);
-        } else {
-          // Session expired
-          clearAuth();
-        }
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Error checking auth:', sessionError);
+        setUser(null);
+        return;
+      }
+
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+          avatar_url: session.user.user_metadata?.avatar_url,
+        });
+      } else {
+        setUser(null);
       }
     } catch (err) {
       console.error('Error checking auth:', err);
-      clearAuth();
+      setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const clearAuth = () => {
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_expiry');
+  const clearAuth = async () => {
+    if (isSupabaseConfigured() && supabase) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
   };
 
@@ -56,6 +137,10 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       setLoading(true);
+
+      if (!isSupabaseConfigured() || !supabase) {
+        throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
+      }
 
       // Validate inputs
       const emailValidation = validateEmail(email);
@@ -71,43 +156,64 @@ export const AuthProvider = ({ children }) => {
       // Sanitize inputs
       const sanitizedEmail = sanitizeEmail(email);
 
-      // In a real application, this would make an API call
-      // For now, we'll implement a simple localStorage-based auth
-      const storedUsers = getSecureLocalStorage('users') || [];
-      const userAccount = storedUsers.find(u => u.email === sanitizedEmail);
-
-      if (!userAccount) {
-        throw new Error('Invalid email or password');
-      }
-
-      // In production, you would verify the hashed password
-      // This is a simplified version for demonstration
-      if (userAccount.password !== password) {
-        throw new Error('Invalid email or password');
-      }
-
-      // Create session
-      const userData = {
-        id: userAccount.id,
+      // Sign in with Supabase
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: sanitizedEmail,
-        name: sanitizeInput(userAccount.name),
-      };
+        password: password,
+      });
 
-      // Generate a simple token (in production, use JWT from backend)
-      const token = btoa(JSON.stringify({ userId: userData.id, timestamp: Date.now() }));
+      if (signInError) {
+        throw new Error(signInError.message || 'Invalid email or password');
+      }
 
-      // Set session expiry (24 hours)
-      const expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
+      if (data?.user) {
+        const userData = {
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'User',
+          avatar_url: data.user.user_metadata?.avatar_url,
+        };
+        setUser(userData);
+        setLoading(false);
+        return { success: true, user: userData };
+      }
 
-      // Store auth data
-      setSecureLocalStorage('auth_user', userData);
-      setSecureLocalStorage('auth_token', token);
-      setSecureLocalStorage('auth_expiry', expiryTime);
-
-      setUser(userData);
+      throw new Error('Login failed');
+    } catch (err) {
+      setError(err.message);
       setLoading(false);
+      return { success: false, error: err.message };
+    }
+  };
 
-      return { success: true, user: userData };
+  const loginWithGoogle = async () => {
+    try {
+      setError(null);
+      setLoading(true);
+
+      if (!isSupabaseConfigured() || !supabase) {
+        throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
+      }
+
+      // Redirect to Google OAuth
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (oauthError) {
+        // Provide more helpful error messages
+        if (oauthError.message?.includes('provider is not enabled') || oauthError.message?.includes('Unsupported provider')) {
+          throw new Error('Google OAuth is not enabled in your Supabase project. Please enable it in the Supabase Dashboard under Authentication > Providers > Google.');
+        }
+        throw new Error(oauthError.message || 'Failed to sign in with Google');
+      }
+
+      // The redirect will happen automatically
+      // The auth state change listener will handle setting the user
+      return { success: true };
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -119,6 +225,10 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       setLoading(true);
+
+      if (!isSupabaseConfigured() || !supabase) {
+        throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
+      }
 
       // Validate inputs
       const emailValidation = validateEmail(email);
@@ -143,32 +253,34 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Name must be at least 2 characters');
       }
 
-      // Check if user already exists
-      const storedUsers = getSecureLocalStorage('users') || [];
-      const existingUser = storedUsers.find(u => u.email === sanitizedEmail);
+      // Sign up with Supabase
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: sanitizedEmail,
+        password: password,
+        options: {
+          data: {
+            full_name: sanitizedName,
+          },
+        },
+      });
 
-      if (existingUser) {
-        throw new Error('An account with this email already exists');
+      if (signUpError) {
+        throw new Error(signUpError.message || 'Registration failed');
       }
 
-      // Create new user
-      const newUser = {
-        id: Date.now().toString(),
-        name: sanitizedName,
-        email: sanitizedEmail,
-        password: password, // In production, hash the password before storing
-        createdAt: new Date().toISOString(),
-      };
+      if (data?.user) {
+        // Auto-login after registration if email confirmation is not required
+        const userData = {
+          id: data.user.id,
+          email: data.user.email,
+          name: sanitizedName,
+        };
+        setUser(userData);
+        setLoading(false);
+        return { success: true, user: userData };
+      }
 
-      // Store user
-      storedUsers.push(newUser);
-      setSecureLocalStorage('users', storedUsers);
-
-      // Auto-login after registration
-      const loginResult = await login(sanitizedEmail, password);
-
-      setLoading(false);
-      return loginResult;
+      throw new Error('Registration failed');
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -176,17 +288,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    clearAuth();
+  const logout = async () => {
+    await clearAuth();
     setError(null);
   };
 
-  const updateProfile = (updates) => {
+  const updateProfile = async (updates) => {
     try {
+      setError(null);
+
+      if (!isSupabaseConfigured() || !supabase) {
+        throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
+      }
+
       const sanitizedUpdates = {};
 
       if (updates.name) {
-        sanitizedUpdates.name = sanitizeInput(updates.name.trim());
+        sanitizedUpdates.full_name = sanitizeInput(updates.name.trim());
       }
 
       if (updates.email) {
@@ -197,15 +315,47 @@ export const AuthProvider = ({ children }) => {
         sanitizedUpdates.email = sanitizeEmail(updates.email);
       }
 
-      const updatedUser = { ...user, ...sanitizedUpdates };
-      setUser(updatedUser);
-      setSecureLocalStorage('auth_user', updatedUser);
+      // Update user metadata in Supabase
+      const { data, error: updateError } = await supabase.auth.updateUser({
+        data: sanitizedUpdates,
+      });
 
-      return { success: true, user: updatedUser };
+      if (updateError) {
+        throw new Error(updateError.message || 'Failed to update profile');
+      }
+
+      if (data?.user) {
+        const updatedUser = {
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.user_metadata?.full_name || user?.name || 'User',
+          avatar_url: data.user.user_metadata?.avatar_url,
+        };
+        setUser(updatedUser);
+        return { success: true, user: updatedUser };
+      }
+
+      throw new Error('Profile update failed');
     } catch (err) {
       setError(err.message);
       return { success: false, error: err.message };
     }
+  };
+
+  // DEV ONLY: Skip login for development
+  const skipLoginDev = () => {
+    if (import.meta.env.DEV) {
+      const devUser = {
+        id: 'dev-user-123',
+        email: 'dev@raptorflow.local',
+        name: 'Dev User',
+        avatar_url: null,
+      };
+      setUser(devUser);
+      setLoading(false);
+      return { success: true, user: devUser };
+    }
+    return { success: false, error: 'Skip login is only available in development mode' };
   };
 
   const value = {
@@ -213,9 +363,11 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     login,
+    loginWithGoogle,
     register,
     logout,
     updateProfile,
+    skipLoginDev,
     isAuthenticated: !!user,
   };
 

@@ -8,7 +8,11 @@
  * @returns {Object} - { isValid: boolean, error: string }
  */
 export const validateEmail = (email) => {
-  if (!email || typeof email !== 'string') {
+  if (email === null || email === undefined) {
+    return { isValid: false, error: 'Email is required' };
+  }
+
+  if (typeof email !== 'string') {
     return { isValid: false, error: 'Email is required' };
   }
 
@@ -17,13 +21,16 @@ export const validateEmail = (email) => {
     return { isValid: false, error: 'Email is required' };
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(trimmed)) {
-    return { isValid: false, error: 'Invalid email format' };
-  }
-
   if (trimmed.length > 254) {
     return { isValid: false, error: 'Email is too long' };
+  }
+
+  const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+  const hasConsecutiveDots = /(\.\.)/.test(trimmed);
+  const asciiOnly = [...trimmed].every(char => char.charCodeAt(0) <= 127);
+
+  if (!asciiOnly || hasConsecutiveDots || !emailRegex.test(trimmed)) {
+    return { isValid: false, error: 'Invalid email format' };
   }
 
   return { isValid: true, error: null };
@@ -35,8 +42,16 @@ export const validateEmail = (email) => {
  * @returns {Object} - { isValid: boolean, error: string, strength: string }
  */
 export const validatePassword = (password) => {
-  if (!password || typeof password !== 'string') {
+  if (password === null || password === undefined) {
     return { isValid: false, error: 'Password is required', strength: 'none' };
+  }
+
+  if (typeof password !== 'string') {
+    return { isValid: false, error: 'Password is required', strength: 'none' };
+  }
+
+  if (password.length === 0) {
+    return { isValid: false, error: 'Password must be at least 8 characters', strength: 'weak' };
   }
 
   if (password.length < 8) {
@@ -50,7 +65,7 @@ export const validatePassword = (password) => {
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
   const hasNumbers = /\d/.test(password);
-  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+  const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
 
   const criteriaMet = [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar].filter(Boolean).length;
 
@@ -76,11 +91,15 @@ export const validatePassword = (password) => {
  * @returns {Object} - { isValid: boolean, error: string }
  */
 export const validateRequired = (value, fieldName = 'Field', minLength = 1, maxLength = 255) => {
-  if (!value || typeof value !== 'string') {
+  if (value === null || value === undefined || typeof value !== 'string') {
     return { isValid: false, error: `${fieldName} is required` };
   }
 
   const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return { isValid: false, error: `${fieldName} is required` };
+  }
+
   if (trimmed.length < minLength) {
     return { isValid: false, error: `${fieldName} must be at least ${minLength} characters` };
   }
@@ -108,6 +127,7 @@ export const validatePhone = (phone) => {
   }
 
   // Allow various phone formats: +1-234-567-8900, (234) 567-8900, 234-567-8900, etc.
+  // eslint-disable-next-line no-useless-escape
   const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
   if (!phoneRegex.test(trimmed)) {
     return { isValid: false, error: 'Invalid phone number format' };
@@ -165,6 +185,77 @@ export const validateTextArea = (value, fieldName = 'Field', maxLength = 5000) =
 };
 
 /**
+ * Validates username format and length
+ */
+export const validateUsername = (username) => {
+  if (username === null || username === undefined) {
+    return { isValid: false, error: 'Username is required' };
+  }
+
+  if (typeof username !== 'string') {
+    return { isValid: false, error: 'Username is required' };
+  }
+
+  const trimmed = username.trim();
+  if (trimmed.length === 0) {
+    return { isValid: false, error: 'Username is required' };
+  }
+
+  if (trimmed.length < 3) {
+    return { isValid: false, error: 'Username must be at least 3 characters' };
+  }
+
+  if (trimmed.length > 30) {
+    return { isValid: false, error: 'Username cannot exceed 30 characters' };
+  }
+
+  if (!/^[A-Za-z0-9_-]+$/.test(trimmed)) {
+    return { isValid: false, error: 'Username can only include letters, numbers, hyphens, and underscores' };
+  }
+
+  return { isValid: true, error: null };
+};
+
+/**
+ * Validates generic string length
+ */
+export const validateLength = (value, minLength = 0, maxLength = Infinity, fieldName = 'Field') => {
+  if (typeof value !== 'string') {
+    return { isValid: false, error: `${fieldName} is required` };
+  }
+
+  const length = value.length;
+
+  if (length < minLength) {
+    return { isValid: false, error: `${fieldName} must be at least ${minLength} characters` };
+  }
+
+  if (length > maxLength) {
+    return { isValid: false, error: `${fieldName} cannot exceed ${maxLength} characters` };
+  }
+
+  return { isValid: true, error: null };
+};
+
+/**
+ * Validates that two fields match
+ */
+export const validateMatch = (value, compareValue, fieldName = 'Field') => {
+  const first = value === null || value === undefined ? '' : value;
+  const second = compareValue === null || compareValue === undefined ? '' : compareValue;
+
+  if (first === '' && second === '') {
+    return { isValid: true, error: null };
+  }
+
+  if (first === second) {
+    return { isValid: true, error: null };
+  }
+
+  return { isValid: false, error: `${fieldName}s do not match` };
+};
+
+/**
  * Validates a form object with multiple fields
  * @param {Object} formData - Form data object
  * @param {Object} rules - Validation rules object
@@ -185,6 +276,9 @@ export const validateForm = (formData, rules) => {
       case 'password':
         result = validatePassword(value);
         break;
+      case 'username':
+        result = validateUsername(value);
+        break;
       case 'required':
         result = validateRequired(value, rule.label, rule.minLength, rule.maxLength);
         break;
@@ -196,6 +290,12 @@ export const validateForm = (formData, rules) => {
         break;
       case 'textarea':
         result = validateTextArea(value, rule.label, rule.maxLength);
+        break;
+      case 'length':
+        result = validateLength(value, rule.minLength, rule.maxLength, rule.label);
+        break;
+      case 'match':
+        result = validateMatch(value, formData[rule.matchField], rule.label);
         break;
       default:
         break;
@@ -228,9 +328,12 @@ export default {
   validateEmail,
   validatePassword,
   validateRequired,
+  validateUsername,
   validatePhone,
   validateURL,
   validateTextArea,
+  validateLength,
+  validateMatch,
   validateForm,
   validatePasswordMatch,
 };

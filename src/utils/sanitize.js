@@ -1,5 +1,14 @@
 import DOMPurify from 'isomorphic-dompurify';
 
+const decodeEntities = (value) =>
+  value
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x2F;/g, '/');
+
 /**
  * Sanitizes user input to prevent XSS attacks
  * @param {string} dirty - The unsanitized input string
@@ -7,18 +16,27 @@ import DOMPurify from 'isomorphic-dompurify';
  * @returns {string} - The sanitized string
  */
 export const sanitizeInput = (dirty, options = {}) => {
-  if (typeof dirty !== 'string') {
-    return dirty;
+  if (dirty === null || dirty === undefined) {
+    return '';
   }
 
+  const stringValue = typeof dirty === 'string' ? dirty : String(dirty);
+
   const defaultConfig = {
-    ALLOWED_TAGS: [], // Strip all HTML tags by default
+    ALLOWED_TAGS: [],
     ALLOWED_ATTR: [],
-    KEEP_CONTENT: true, // Keep text content when stripping tags
+    KEEP_CONTENT: true,
     ...options,
   };
 
-  return DOMPurify.sanitize(dirty, defaultConfig);
+  let sanitized = DOMPurify.sanitize(stringValue, defaultConfig);
+
+  if (!sanitized && /<[^>]+>/.test(stringValue)) {
+    sanitized = stringValue.replace(/<[^>]*>/g, '');
+  }
+
+  const decoded = decodeEntities(sanitized);
+  return decoded.replace(/javascript:/gi, '').replace(/data:/gi, '');
 };
 
 /**
@@ -27,13 +45,17 @@ export const sanitizeInput = (dirty, options = {}) => {
  * @returns {string} - The sanitized HTML string
  */
 export const sanitizeHTML = (dirty) => {
+  if (dirty === null || dirty === undefined) {
+    return '';
+  }
+
   if (typeof dirty !== 'string') {
-    return dirty;
+    return sanitizeInput(String(dirty));
   }
 
   const config = {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span'],
-    ALLOWED_ATTR: ['href', 'target', 'rel'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'title'],
     ALLOW_DATA_ATTR: false,
   };
 
@@ -45,24 +67,32 @@ export const sanitizeHTML = (dirty) => {
  * @param {Object} obj - The object to sanitize
  * @returns {Object} - The sanitized object
  */
-export const sanitizeObject = (obj) => {
-  if (typeof obj !== 'object' || obj === null) {
+export const sanitizeObject = (obj, seen = new WeakSet()) => {
+  if (obj === null) {
+    return null;
+  }
+
+  if (typeof obj === 'string') {
+    return sanitizeInput(obj);
+  }
+
+  if (typeof obj !== 'object') {
     return obj;
   }
 
+  if (seen.has(obj)) {
+    return obj;
+  }
+
+  seen.add(obj);
+
   if (Array.isArray(obj)) {
-    return obj.map(item => sanitizeObject(item));
+    return obj.map(item => sanitizeObject(item, seen));
   }
 
   const sanitized = {};
   for (const [key, value] of Object.entries(obj)) {
-    if (typeof value === 'string') {
-      sanitized[key] = sanitizeInput(value);
-    } else if (typeof value === 'object' && value !== null) {
-      sanitized[key] = sanitizeObject(value);
-    } else {
-      sanitized[key] = value;
-    }
+    sanitized[key] = sanitizeObject(value, seen);
   }
 
   return sanitized;
@@ -74,14 +104,17 @@ export const sanitizeObject = (obj) => {
  * @returns {string|null} - The sanitized email or null if invalid
  */
 export const sanitizeEmail = (email) => {
-  if (typeof email !== 'string') {
-    return null;
+  if (email === null || email === undefined) {
+    return '';
   }
 
-  const sanitized = sanitizeInput(email.trim().toLowerCase());
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const normalized = sanitizeInput(typeof email === 'string' ? email : String(email)).trim().toLowerCase();
+  if (normalized.length === 0) {
+    return '';
+  }
 
-  return emailRegex.test(sanitized) ? sanitized : null;
+  const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+  return emailRegex.test(normalized) ? normalized : '';
 };
 
 /**
@@ -92,9 +125,12 @@ export const sanitizeEmail = (email) => {
 export const setSecureLocalStorage = (key, value) => {
   try {
     const sanitizedKey = sanitizeInput(key);
-    let sanitizedValue = value;
+    if (!sanitizedKey) return;
 
-    if (typeof value === 'string') {
+    let sanitizedValue = value;
+    if (value === undefined) {
+      sanitizedValue = null;
+    } else if (typeof value === 'string') {
       sanitizedValue = sanitizeInput(value);
     } else if (typeof value === 'object' && value !== null) {
       sanitizedValue = sanitizeObject(value);
@@ -111,27 +147,39 @@ export const setSecureLocalStorage = (key, value) => {
  * @param {string} key - The localStorage key
  * @returns {any} - The sanitized value or null
  */
-export const getSecureLocalStorage = (key) => {
+export const getSecureLocalStorage = (key, defaultValue = null) => {
   try {
     const sanitizedKey = sanitizeInput(key);
-    const item = localStorage.getItem(sanitizedKey);
+    if (!sanitizedKey) return defaultValue;
 
+    const item = localStorage.getItem(sanitizedKey);
     if (!item) {
+      return defaultValue;
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(item);
+    } catch {
+      return defaultValue;
+    }
+
+    if (parsed === null) {
       return null;
     }
 
-    const parsed = JSON.parse(item);
-
     if (typeof parsed === 'string') {
       return sanitizeInput(parsed);
-    } else if (typeof parsed === 'object' && parsed !== null) {
+    }
+
+    if (typeof parsed === 'object') {
       return sanitizeObject(parsed);
     }
 
     return parsed;
   } catch (error) {
     console.error('Error getting secure localStorage:', error);
-    return null;
+    return defaultValue;
   }
 };
 

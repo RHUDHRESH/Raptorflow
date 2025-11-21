@@ -607,7 +607,7 @@ const Step5ReviewRefine = ({ draftCohort, onComplete, onBack, userPreferences })
   const [newTrigger, setNewTrigger] = useState('');
 
   const updateField = (path, value) => {
-    setIcp(prev => {
+    setCohort(prev => {
       const keys = path.split('.');
       const updated = { ...prev };
       let current = updated;
@@ -622,7 +622,7 @@ const Step5ReviewRefine = ({ draftCohort, onComplete, onBack, userPreferences })
 
   const addArrayItem = (path, value) => {
     if (!value.trim()) return;
-    setIcp(prev => {
+    setCohort(prev => {
       const keys = path.split('.');
       const updated = { ...prev };
       let current = updated;
@@ -636,7 +636,7 @@ const Step5ReviewRefine = ({ draftCohort, onComplete, onBack, userPreferences })
   };
 
   const removeArrayItem = (path, index) => {
-    setIcp(prev => {
+    setCohort(prev => {
       const keys = path.split('.');
       const updated = { ...prev };
       let current = updated;
@@ -1699,4 +1699,3 @@ export default function CohortsBuilder({ onClose, onboardingData }) {
     </div>
   );
 }
-
