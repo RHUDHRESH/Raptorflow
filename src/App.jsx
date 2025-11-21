@@ -1,5 +1,9 @@
 import { Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
+import Login from './pages/Login'
+import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Moves from './pages/Moves'
 import MoveDetail from './pages/MoveDetail'
@@ -23,30 +27,155 @@ import Settings from './pages/Settings'
 
 function App() {
   return (
-    <Layout>
+    <AuthProvider>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/moves" element={<Moves />} />
-        <Route path="/moves/war-room" element={<WarRoom />} />
-        <Route path="/moves/library" element={<MoveLibrary />} />
-        <Route path="/moves/:id" element={<MoveDetail />} />
-        <Route path="/quests" element={<Quests />} />
-        <Route path="/tech-tree" element={<TechTree />} />
-        <Route path="/today" element={<Today />} />
-        <Route path="/daily-sweep" element={<DailySweep />} />
-        <Route path="/onboarding" element={<OnboardingWizard />} />
-        <Route path="/strategy" element={<Strategy />} />
-        <Route path="/strategy/wizard" element={<StrategyWizard />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/review" element={<WeeklyReview />} />
-        <Route path="/cohorts" element={<CohortsManager />} />
-        <Route path="/cohorts/:id/moves" element={<CohortsMoves />} />
-        <Route path="/support" element={<Support />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/account" element={<Account />} />
-        <Route path="/settings" element={<Settings />} />
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* Protected Routes */}
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Layout>
+              <Dashboard />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/moves" element={
+          <ProtectedRoute>
+            <Layout>
+              <Moves />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/moves/war-room" element={
+          <ProtectedRoute>
+            <Layout>
+              <WarRoom />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/moves/library" element={
+          <ProtectedRoute>
+            <Layout>
+              <MoveLibrary />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/moves/:id" element={
+          <ProtectedRoute>
+            <Layout>
+              <MoveDetail />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/quests" element={
+          <ProtectedRoute>
+            <Layout>
+              <Quests />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/tech-tree" element={
+          <ProtectedRoute>
+            <Layout>
+              <TechTree />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/today" element={
+          <ProtectedRoute>
+            <Layout>
+              <Today />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/daily-sweep" element={
+          <ProtectedRoute>
+            <Layout>
+              <DailySweep />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/onboarding" element={
+          <ProtectedRoute>
+            <Layout>
+              <OnboardingWizard />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/strategy" element={
+          <ProtectedRoute>
+            <Layout>
+              <Strategy />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/strategy/wizard" element={
+          <ProtectedRoute>
+            <Layout>
+              <StrategyWizard />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/analytics" element={
+          <ProtectedRoute>
+            <Layout>
+              <Analytics />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/review" element={
+          <ProtectedRoute>
+            <Layout>
+              <WeeklyReview />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/cohorts" element={
+          <ProtectedRoute>
+            <Layout>
+              <CohortsManager />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/cohorts/:id/moves" element={
+          <ProtectedRoute>
+            <Layout>
+              <CohortsMoves />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/support" element={
+          <ProtectedRoute>
+            <Layout>
+              <Support />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/history" element={
+          <ProtectedRoute>
+            <Layout>
+              <History />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/account" element={
+          <ProtectedRoute>
+            <Layout>
+              <Account />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <Layout>
+              <Settings />
+            </Layout>
+          </ProtectedRoute>
+        } />
       </Routes>
-    </Layout>
+    </AuthProvider>
   )
 }
 

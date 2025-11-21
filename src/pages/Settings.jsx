@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Settings as SettingsIcon, Bell, Shield, Palette, Globe, Database, Download, Upload, Trash2, Sparkles, ArrowRight, Check, X, CreditCard } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Onboarding from '../components/Onboarding'
+import { sanitizeInput, setSecureLocalStorage, getSecureLocalStorage } from '../utils/sanitize'
 
 const settingsTabs = [
   { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -21,7 +22,8 @@ const PLAN_LIMITS = {
 }
 
 const getUserPlan = () => {
-  return localStorage.getItem('userPlan') || 'bubtle'
+  const plan = getSecureLocalStorage('userPlan')
+  return plan || 'bubtle'
 }
 
 export default function Settings() {
@@ -40,8 +42,37 @@ export default function Settings() {
     timezone: 'UTC',
   })
 
+  // Load preferences from secure localStorage on mount
+  useEffect(() => {
+    const savedNotifications = getSecureLocalStorage('userNotifications')
+    if (savedNotifications) {
+      setNotifications(savedNotifications)
+    }
+
+    const savedPreferences = getSecureLocalStorage('userPreferences')
+    if (savedPreferences) {
+      setPreferences(savedPreferences)
+    }
+  }, [])
+
+  // Save notifications when they change
+  useEffect(() => {
+    setSecureLocalStorage('userNotifications', notifications)
+  }, [notifications])
+
+  // Save preferences when they change
+  useEffect(() => {
+    setSecureLocalStorage('userPreferences', preferences)
+  }, [preferences])
+
   const currentPlan = getUserPlan().toLowerCase()
   const currentPlanData = PLAN_LIMITS[currentPlan] || PLAN_LIMITS.bubtle
+
+  const handlePreferenceChange = (field, value) => {
+    // Sanitize the value before updating state
+    const sanitizedValue = sanitizeInput(value)
+    setPreferences(prev => ({ ...prev, [field]: sanitizedValue }))
+  }
 
   return (
     <>
@@ -190,7 +221,7 @@ export default function Settings() {
                 </label>
                 <select
                   value={preferences.theme}
-                  onChange={(e) => setPreferences({ ...preferences, theme: e.target.value })}
+                  onChange={(e) => handlePreferenceChange('theme', e.target.value)}
                   className="w-full px-0 py-3 border-b border-neutral-200 bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-lg appearance-none"
                 >
                   <option value="light">Light</option>
@@ -205,7 +236,7 @@ export default function Settings() {
                 </label>
                 <select
                   value={preferences.language}
-                  onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
+                  onChange={(e) => handlePreferenceChange('language', e.target.value)}
                   className="w-full px-0 py-3 border-b border-neutral-200 bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-lg appearance-none"
                 >
                   <option value="en">English</option>
@@ -220,7 +251,7 @@ export default function Settings() {
                 </label>
                 <select
                   value={preferences.timezone}
-                  onChange={(e) => setPreferences({ ...preferences, timezone: e.target.value })}
+                  onChange={(e) => handlePreferenceChange('timezone', e.target.value)}
                   className="w-full px-0 py-3 border-b border-neutral-200 bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-lg appearance-none"
                 >
                   <option value="UTC">UTC</option>
