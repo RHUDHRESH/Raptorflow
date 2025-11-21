@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ArrowRight, Sparkles, Search, Check, Loader2, AlertTriangle, ChevronDown, X } from 'lucide-react';
 import MarketPositionSnapshot from './MarketPositionSnapshot';
 import CohortsBuilder from './CohortsBuilder';
+import { getVertexAIUrl, TASK_TYPES } from '../utils/vertexAI';
 
 const GOOGLE_MAPS_API_KEY =
   import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
@@ -92,15 +93,11 @@ const FALLBACK_FOLLOW_UPS = [
   }
 ];
 
-const generateGeminiQuestions = async (answers) => {
-  const apiKey = "";
-  
-  // If no API key, skip immediately
-  if (!apiKey || apiKey.trim() === '') {
-    throw new Error("API key not configured");
-  }
-  
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+const generateVertexAIQuestions = async (answers) => {
+  // Use general purpose model for onboarding question generation
+  // For faster responses, could use TASK_TYPES.CREATIVE_FAST
+  // For higher quality, could use TASK_TYPES.CREATIVE_REASONING
+  const url = getVertexAIUrl(TASK_TYPES.GENERAL_PURPOSE);
   let contextString = "Here is the client's onboarding intake so far:\n\n";
 
   INITIAL_QUESTIONS.forEach(q => {
@@ -171,7 +168,7 @@ const generateGeminiQuestions = async (answers) => {
       if (!jsonText) throw new Error("No content generated");
       return JSON.parse(jsonText);
     } catch (error) {
-      console.warn(`Gemini Attempt ${i + 1} failed:`, error);
+      console.warn(`Vertex AI Attempt ${i + 1} failed:`, error);
       if (i === delays.length - 1) throw error; 
       await new Promise(resolve => setTimeout(resolve, delays[i]));
     }
@@ -291,18 +288,28 @@ const ManualLocationFallback = ({ onLocationSelect, initialValue }) => {
       </div>
       <div className="space-y-4">
         <div className="relative">
-          <label className="text-xs uppercase tracking-[0.3em] text-neutral-500">Address or Region</label>
+          <label htmlFor="location-address-input" className="text-xs uppercase tracking-[0.3em] text-neutral-500">Address or Region</label>
           <input
+            id="location-address-input"
             type="text"
             className="mt-2 w-full rounded-2xl border border-neutral-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-neutral-900"
             placeholder="e.g., Paris, France"
             value={manualAddress}
             onChange={(e) => setManualAddress(e.target.value)}
+            aria-label="Enter your business location address or region"
+            aria-describedby="location-help-text"
+            aria-autocomplete="list"
+            aria-controls={suggestions.length > 0 ? "location-suggestions" : undefined}
           />
           {(isSearching || suggestions.length > 0 || manualAddress.length >= 3) && (
-            <div className="absolute left-0 right-0 top-[92%] z-10 mt-2 overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl">
+            <div
+              id="location-suggestions"
+              className="absolute left-0 right-0 top-[92%] z-10 mt-2 overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl"
+              role="listbox"
+              aria-label="Location suggestions"
+            >
               {isSearching && (
-                <div className="px-4 py-3 text-xs uppercase tracking-[0.3em] text-neutral-400">
+                <div className="px-4 py-3 text-xs uppercase tracking-[0.3em] text-neutral-400" role="status" aria-live="polite">
                   searching...
                 </div>
               )}
@@ -316,6 +323,8 @@ const ManualLocationFallback = ({ onLocationSelect, initialValue }) => {
                       key={suggestion.label}
                       onClick={() => handleSuggestionClick(suggestion)}
                       className="block w-full px-4 py-3 text-left text-sm text-neutral-800 hover:bg-neutral-50"
+                      role="option"
+                      aria-label={`Select location: ${suggestion.label}`}
                     >
                       {suggestion.label}
                     </button>
@@ -396,6 +405,23 @@ const InteractiveMap = ({ onLocationSelect, initialValue }) => {
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [authWarning, setAuthWarning] = useState(false);
   const [mapError, setMapError] = useState('');
+
+  // Memoize map styles to prevent recreation on every render
+  const mapStyles = useMemo(() => [
+    { "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
+    { "elementType": "labels.icon", "stylers": [{ "visibility": "off" }] },
+    { "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
+    { "elementType": "labels.text.stroke", "stylers": [{ "color": "#f5f5f5" }] },
+    { "featureType": "administrative.land_parcel", "elementType": "labels.text.fill", "stylers": [{ "color": "#bdbdbd" }] },
+    { "featureType": "poi", "elementType": "geometry", "stylers": [{ "color": "#eeeeee" }] },
+    { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
+    { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#ffffff" }] },
+    { "featureType": "road.arterial", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
+    { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#dadada" }] },
+    { "featureType": "road.highway", "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
+    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#e9e9e9" }] },
+    { "featureType": "water", "elementType": "labels.text.fill", "stylers": [{ "color": "#9e9e9e" }] }
+  ], []);
   
   useEffect(() => {
     window.gm_authFailure = () => {
@@ -440,21 +466,6 @@ const InteractiveMap = ({ onLocationSelect, initialValue }) => {
     if (!scriptLoaded || !mapRef.current || !window.google) return;
     try {
         const indiaCenter = { lat: 20.5937, lng: 78.9629 };
-        const mapStyles = [
-          { "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
-          { "elementType": "labels.icon", "stylers": [{ "visibility": "off" }] },
-          { "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
-          { "elementType": "labels.text.stroke", "stylers": [{ "color": "#f5f5f5" }] },
-          { "featureType": "administrative.land_parcel", "elementType": "labels.text.fill", "stylers": [{ "color": "#bdbdbd" }] },
-          { "featureType": "poi", "elementType": "geometry", "stylers": [{ "color": "#eeeeee" }] },
-          { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
-          { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#ffffff" }] },
-          { "featureType": "road.arterial", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
-          { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#dadada" }] },
-          { "featureType": "road.highway", "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
-          { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#e9e9e9" }] },
-          { "featureType": "water", "elementType": "labels.text.fill", "stylers": [{ "color": "#9e9e9e" }] }
-        ];
         const map = new window.google.maps.Map(mapRef.current, {
           center: initialValue?.lat ? { lat: Number(initialValue.lat), lng: Number(initialValue.lng) } : indiaCenter,
           zoom: initialValue?.lat ? 10 : 5,
@@ -505,7 +516,7 @@ const InteractiveMap = ({ onLocationSelect, initialValue }) => {
     } catch (e) {
         console.error("Map Init Error:", e);
     }
-  }, [scriptLoaded, initialValue, onLocationSelect]);
+  }, [scriptLoaded, initialValue, onLocationSelect, mapStyles]);
 
   useEffect(() => {
     if (!initialValue || !markerObj.current || !mapObj.current) return
@@ -572,6 +583,7 @@ const InteractiveMap = ({ onLocationSelect, initialValue }) => {
 // Custom Dropdown Component with styled menu
 const CustomDropdown = ({ value, options, onChange, placeholder = "Select an option" }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -593,6 +605,43 @@ const CustomDropdown = ({ value, options, onChange, placeholder = "Select an opt
   const handleSelect = (option) => {
     onChange(option);
     setIsOpen(false);
+    setFocusedIndex(-1);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!isOpen) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        setIsOpen(true);
+        setFocusedIndex(0);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'Escape':
+        e.preventDefault();
+        setIsOpen(false);
+        setFocusedIndex(-1);
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedIndex((prev) => (prev < options.length - 1 ? prev + 1 : 0));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedIndex((prev) => (prev > 0 ? prev - 1 : options.length - 1));
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (focusedIndex >= 0) {
+          handleSelect(options[focusedIndex]);
+        }
+        break;
+      default:
+        break;
+    }
   };
 
   const displayValue = value || placeholder;
@@ -603,32 +652,48 @@ const CustomDropdown = ({ value, options, onChange, placeholder = "Select an opt
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={handleKeyDown}
         className={`w-full bg-white/50 backdrop-blur-sm border border-neutral-200 rounded-lg px-6 py-4 pr-10 text-lg font-serif italic transition-all appearance-none cursor-pointer shadow-sm text-left flex items-center justify-between ${
           isPlaceholder ? 'text-neutral-400' : 'text-neutral-900'
         } hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black ${
           isOpen ? 'border-black ring-2 ring-black' : ''
         }`}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label={`Select option: ${displayValue}`}
       >
         <span>{displayValue}</span>
-        <ChevronDown 
-          size={18} 
+        <ChevronDown
+          size={18}
           className={`text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          aria-hidden="true"
         />
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden" style={{ animation: 'dropdownFadeIn 0.15s ease-out' }}>
+        <div
+          className="absolute z-50 w-full mt-2 bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden"
+          style={{ animation: 'dropdownFadeIn 0.15s ease-out' }}
+          role="listbox"
+          aria-label="Options"
+        >
           <div className="py-2">
             {options.map((option, idx) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => handleSelect(option)}
+                onKeyDown={handleKeyDown}
                 className={`w-full px-6 py-3 text-left text-lg font-serif italic transition-colors ${
                   value === option
                     ? 'bg-neutral-100 text-neutral-900 font-medium'
+                    : idx === focusedIndex
+                    ? 'bg-neutral-100 text-neutral-900'
                     : 'text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900'
                 } ${idx === 0 ? 'rounded-t-lg' : ''} ${idx === options.length - 1 ? 'rounded-b-lg' : ''}`}
+                role="option"
+                aria-selected={value === option}
+                tabIndex={-1}
               >
                 {option}
               </button>
@@ -682,20 +747,27 @@ const MultiInputStep = ({ question, answers, onChange }) => {
 const StandardInput = ({ question, value, onChange, onBlur }) => {
   return (
     <div className="group animate-in fade-in slide-in-from-bottom-12 duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col items-center text-center w-full z-10 max-w-4xl">
-      <label className="block font-sans text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400 mb-8 group-focus-within:text-black transition-colors duration-700">
+      <label
+        htmlFor={`input-${question.id}`}
+        className="block font-sans text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400 mb-8 group-focus-within:text-black transition-colors duration-700"
+      >
         {question.title}
       </label>
-      <p className="font-serif text-4xl md:text-6xl text-black mb-16 leading-[1.1] tracking-tight antialiased">
+      <p className="font-serif text-4xl md:text-6xl text-black mb-16 leading-[1.1] tracking-tight antialiased" id={`question-${question.id}`}>
         {question.prompt}
       </p>
       <div className="relative w-full max-w-2xl">
         <textarea
+          id={`input-${question.id}`}
           autoFocus={true}
           value={value || ''}
           onChange={(e) => onChange(question.id, e.target.value)}
           onBlur={() => onBlur && onBlur(question.id)}
           placeholder={question.placeholder}
           className="w-full bg-transparent border-b border-neutral-200 text-2xl md:text-3xl text-neutral-900 py-8 focus:outline-none focus:border-neutral-900 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] placeholder:text-neutral-200 placeholder:font-light font-serif italic resize-none h-40 text-center leading-relaxed selection:bg-black selection:text-white"
+          aria-labelledby={`question-${question.id}`}
+          aria-describedby={`label-${question.id}`}
+          aria-required={question.required || false}
         />
       </div>
     </div>
@@ -703,16 +775,17 @@ const StandardInput = ({ question, value, onChange, onBlur }) => {
 };
 
 const ProcessingScreen = ({ onSkip }) => (
-   <div className="flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-1000">
-      <Loader2 className="animate-spin text-black" size={48} />
+   <div className="flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-1000" role="status" aria-live="polite">
+      <Loader2 className="animate-spin text-black" size={48} aria-hidden="true" />
       <div className="text-center space-y-2">
         <p className="font-serif text-2xl italic">Analyzing your inputs...</p>
-        <p className="font-sans text-[10px] uppercase tracking-widest text-neutral-400">Using Gemini 2.5 Flash to detect strategy gaps</p>
+        <p className="font-sans text-[10px] uppercase tracking-widest text-neutral-400">Using AI to detect strategy gaps and generate follow-ups</p>
       </div>
       {onSkip && (
         <button
           onClick={onSkip}
           className="mt-8 font-sans text-[10px] font-bold uppercase tracking-widest border-b border-transparent hover:border-black transition-all duration-500 pb-1 text-neutral-400 hover:text-black"
+          aria-label="Skip AI analysis and continue to next step"
         >
           Skip analysis
         </button>
@@ -723,14 +796,15 @@ const ProcessingScreen = ({ onSkip }) => (
 const ProgressBar = ({ current, total }) => {
   const progress = ((current + 1) / total) * 100;
   return (
-    <div className="fixed bottom-0 left-0 w-full z-50 bg-white pt-4 pb-0">
+    <div className="fixed bottom-0 left-0 w-full z-50 bg-white pt-4 pb-0" role="progressbar" aria-valuenow={current + 1} aria-valuemin={1} aria-valuemax={total} aria-label={`Onboarding progress: step ${current + 1} of ${total}`}>
        <div className="flex justify-between items-end px-8 pb-2 text-xs font-sans font-bold text-black uppercase tracking-widest">
-          <span>{current + 1} / {total}</span>
+          <span aria-hidden="true">{current + 1} / {total}</span>
        </div>
        <div className="h-3 bg-neutral-200 w-full">
-          <div 
-            className="h-full bg-black transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]" 
+          <div
+            className="h-full bg-black transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]"
             style={{ width: `${progress}%` }}
+            aria-hidden="true"
           ></div>
        </div>
     </div>
@@ -746,7 +820,24 @@ export default function Onboarding({ onClose }) {
   
   const currentQuestion = questions[currentStepIndex];
   const mainScrollRef = useRef(null);
-  
+
+  // Keyboard navigation support
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Only handle keyboard shortcuts if we're in input or followup mode
+      if (status !== 'input' && status !== 'followup') return;
+
+      // Escape to close
+      if (e.key === 'Escape' && onClose) {
+        e.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [status, onClose]);
+
   const handleAnswer = (id, value) => {
     setAnswers(prev => ({ ...prev, [id]: value }));
   };
@@ -766,8 +857,8 @@ export default function Onboarding({ onClose }) {
     
     try {
       // Wrap the API call in a race with timeout
-      const aiQuestionsPromise = generateGeminiQuestions(answers);
-      const timeoutPromise = new Promise((_, reject) => 
+      const aiQuestionsPromise = generateVertexAIQuestions(answers);
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("Request timeout")), 8000)
       );
       
@@ -930,11 +1021,13 @@ export default function Onboarding({ onClose }) {
     <div className="fixed inset-0 z-[100] flex h-screen w-screen bg-white text-neutral-900 overflow-hidden font-sans selection:bg-black selection:text-white">
       <GrainOverlay />
       {onClose && (
-        <button 
+        <button
           className="absolute top-8 left-8 z-50 p-2 text-neutral-400 hover:text-black transition-colors hover:bg-neutral-100"
-          onClick={onClose} 
+          onClick={onClose}
+          aria-label="Close onboarding"
+          title="Close onboarding"
         >
-          <X size={24} />
+          <X size={24} aria-hidden="true" />
         </button>
       )}
       <div ref={mainScrollRef} className="flex-grow flex flex-col justify-center items-center px-6 md:px-8 relative z-10">
@@ -952,22 +1045,25 @@ export default function Onboarding({ onClose }) {
            {renderInput()}
            {status !== 'analyzing' && status !== 'complete' && status !== 'market-position' && (
              <div className="mt-24 flex items-center space-x-12 animate-in fade-in duration-1000 delay-300 ease-out">
-                <button 
+                <button
                     onClick={prevStep}
                     disabled={currentStepIndex === 0}
                     className={`font-sans text-[10px] font-bold uppercase tracking-widest border-b border-transparent hover:border-black transition-all duration-500 pb-1 ${currentStepIndex === 0 ? 'opacity-0 cursor-default' : 'text-neutral-400 hover:text-black'}`}
+                    aria-label="Go to previous question"
+                    aria-disabled={currentStepIndex === 0}
                 >
                     Back
                 </button>
-                <button 
+                <button
                     onClick={nextStep}
                     className="group relative bg-black text-white px-12 py-5 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20"
+                    aria-label={currentQuestion && currentQuestion.id === 'q7' ? 'Analyze responses with AI' : (currentStepIndex === questions.length - 1 ? 'Finish onboarding' : 'Continue to next question')}
                 >
                     <div className="relative z-10 flex items-center space-x-4">
                         <span className="font-sans text-xs font-bold tracking-widest uppercase">
                             {currentQuestion && currentQuestion.id === 'q7' ? 'Analyze' : (currentStepIndex === questions.length - 1 ? 'Finish' : 'Next')}
                         </span>
-                        {currentQuestion && currentQuestion.id === 'q7' ? <Sparkles size={14} /> : <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" />}
+                        {currentQuestion && currentQuestion.id === 'q7' ? <Sparkles size={14} aria-hidden="true" /> : <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" aria-hidden="true" />}
                     </div>
                     <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
                 </button>
