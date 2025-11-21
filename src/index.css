@@ -4,39 +4,16 @@
 
 /* Custom Properties for Theme */
 :root {
-  /* Color Palette - Fashion House Style */
-  --color-primary-50: #faf8f5;
-  --color-primary-100: #f5f1ea;
-  --color-primary-200: #e8ddd0;
-  --color-primary-300: #d4c2ab;
-  --color-primary-400: #b89d7f;
-  --color-primary-500: #9d7f5a;
-  --color-primary-600: #7d6548;
-  --color-primary-700: #5f4d3a;
-  --color-primary-800: #42362a;
-  --color-primary-900: #2a2119;
-  
-  --color-accent-50: #fef7f0;
-  --color-accent-100: #fdeee0;
-  --color-accent-200: #fbd9c0;
-  --color-accent-300: #f8be96;
-  --color-accent-400: #f49a66;
-  --color-accent-500: #f1783d;
-  --color-accent-600: #e25d1f;
-  --color-accent-700: #bb4817;
-  --color-accent-800: #963a1a;
-  --color-accent-900: #793218;
-  
-  --color-neutral-50: #fafafa;
-  --color-neutral-100: #f5f5f5;
-  --color-neutral-200: #e5e5e5;
-  --color-neutral-300: #d4d4d4;
-  --color-neutral-400: #a3a3a3;
-  --color-neutral-500: #737373;
-  --color-neutral-600: #525252;
-  --color-neutral-700: #404040;
-  --color-neutral-800: #262626;
-  --color-neutral-900: #171717;
+  --ink: #0c0c0c;
+  --porcelain: #f8f5f1;
+  --champagne: #e9dcc7;
+  --sable: #332e2a;
+  --oxblood: #6b2b2d;
+  --veil: rgba(12, 12, 12, 0.05);
+  --neutral-100: #f4f0eb;
+  --neutral-300: #dcd2c4;
+  --neutral-500: #9a8c7a;
+  --neutral-700: #564d45;
 }
 
 @keyframes fadeIn {
@@ -64,14 +41,137 @@
   100% { background-position: 1000px 0; }
 }
 
+/* RaptorFlow Animation Keyframes */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Global Animation Classes - 180ms transitions */
+.transition-all {
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-colors {
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-opacity {
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-transform {
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Micro-interactions */
+.hover-lift {
+  transition: transform 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-scale {
+  transition: transform 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* Smooth focus transitions */
+input:focus,
+textarea:focus,
+select:focus {
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Button press animation */
+button:active {
+  transform: scale(0.98);
+  transition: transform 100ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Custom scrollbar styling for horizontal scrolls */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d4 #f5f5f5;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a3a3a3;
+}
+
+@keyframes slide-in-from-bottom {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-in-from-top {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInFromTop {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes dropdownFadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(-8px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes zoom-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 @layer base {
   * {
     @apply border-neutral-200;
   }
   
   body {
-    @apply bg-neutral-50 text-neutral-900 font-sans antialiased;
+    @apply bg-[var(--porcelain)] text-[var(--ink)] font-sans antialiased;
     font-feature-settings: 'kern' 1, 'liga' 1;
+    background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.8), transparent 50%), radial-gradient(circle at 80% 0%, rgba(233,220,199,0.4), transparent 55%);
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -89,11 +189,122 @@
   }
   
   .glass {
-    @apply bg-white/80 backdrop-blur-xl border border-neutral-200/50;
+    @apply bg-white border border-neutral-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] backdrop-blur-xl;
   }
   
   .glass-dark {
-    @apply bg-neutral-900/80 backdrop-blur-xl border border-neutral-800/50;
+    @apply bg-neutral-900 text-white border border-neutral-800/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)];
+  }
+  
+  .runway-card {
+    @apply border-2 border-neutral-200 bg-white px-10 py-10 shadow-[0_4px_12px_var(--veil)];
+  }
+  
+  .micro-label {
+    @apply text-[10px] font-mono uppercase tracking-[0.4em] text-neutral-500;
+  }
+  
+  .serif-display {
+    @apply font-display text-neutral-900;
+  }
+  
+  .editorial-badge {
+    @apply px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] border border-neutral-200;
+  }
+  
+  .editorial-badge-primary {
+    @apply editorial-badge bg-black text-white border-black;
+  }
+  
+  .editorial-badge-secondary {
+    @apply editorial-badge bg-neutral-100 text-neutral-900;
+  }
+  
+  .editorial-button {
+    @apply border border-neutral-900 px-8 py-3 text-[10px] font-mono uppercase tracking-[0.3em] transition-all;
+  }
+  
+  .editorial-button-primary {
+    @apply editorial-button bg-black text-white hover:bg-neutral-800;
+  }
+  
+  .editorial-button-secondary {
+    @apply editorial-button bg-white text-neutral-900 hover:bg-neutral-100;
+  }
+  
+  .editorial-heading {
+    @apply font-serif text-4xl md:text-6xl text-black leading-[1.1] tracking-tight antialiased;
+  }
+  
+  .editorial-label {
+    @apply font-sans text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400;
+  }
+  
+  .animate-in {
+    animation: fade-in 0.6s ease-out;
+  }
+  
+  .fade-in {
+    animation: fade-in 0.6s ease-out;
+  }
+  
+  .slide-in-from-bottom-8 {
+    animation: slide-in-from-bottom 0.8s ease-out;
+  }
+  
+  .slide-in-from-bottom-12 {
+    animation: slide-in-from-bottom 1.2s ease-out;
+  }
+  
+  .slide-in-from-top-4 {
+    animation: slide-in-from-top 0.4s ease-out;
+  }
+  
+  .zoom-in-95 {
+    animation: zoom-in 0.6s ease-out;
+  }
+  
+  .clear {
+    clear: both;
+  }
+
+  .checkBox {
+    display: block;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255, 255, 255, 0);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0px 0px 0px 2px #0c0c0c;
+  }
+
+  .checkBox div {
+    width: 48px;
+    height: 48px;
+    background-color: #0c0c0c;
+    top: -42px;
+    left: -42px;
+    position: absolute;
+    transform: rotateZ(45deg);
+    z-index: 100;
+    transition: 300ms ease;
+  }
+
+  .checkBox input[type=checkbox]:checked + div {
+    left: -8px;
+    top: -8px;
+  }
+
+  .checkBox input[type=checkbox] {
+    position: absolute;
+    left: 50px;
+    visibility: hidden;
+  }
+
+  .transition {
+    transition: 300ms ease;
   }
 }
 
@@ -120,3 +331,36 @@ html {
   @apply bg-neutral-400;
 }
 
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Custom scrollbar styling for horizontal scrolls */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d4 #f5f5f5;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a3a3a3;
+}

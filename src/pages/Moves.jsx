@@ -28,20 +28,33 @@ export default function Moves() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="runway-card flex flex-col gap-6 p-8 md:flex-row md:items-center md:justify-between"
       >
         <div>
-          <h1 className="text-4xl font-display font-bold mb-2">Moves</h1>
-          <p className="text-neutral-600">Track and manage your strategic moves</p>
+          <p className="micro-label mb-2">Runway Plays</p>
+          <h1 className="font-serif text-4xl md:text-6xl text-black leading-[1.1] tracking-tight antialiased mb-2">
+            Moves in Motion
+          </h1>
+          <p className="font-sans text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400">
+            Live capsules & edits
+          </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl font-medium hover:bg-primary-700 transition-colors shadow-lg shadow-primary-600/20"
-        >
-          <Plus className="w-5 h-5" />
-          New Move
-        </motion.button>
+        <div className="flex gap-3">
+          <Link
+            to="/moves/war-room"
+            className="inline-flex items-center gap-2 border border-neutral-900 px-6 py-3 text-[10px] font-mono uppercase tracking-[0.3em] text-neutral-900 hover:bg-neutral-900 hover:text-white transition-colors"
+          >
+            <Target className="w-4 h-4" />
+            War Room
+          </Link>
+          <Link
+            to="/moves/library"
+            className="inline-flex items-center gap-2 border border-neutral-200 px-6 py-3 text-[10px] font-mono uppercase tracking-[0.3em] text-neutral-600 hover:border-neutral-900 hover:text-neutral-900 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Library
+          </Link>
+        </div>
       </motion.div>
 
       {/* Filters */}
@@ -53,7 +66,7 @@ export default function Moves() {
             placeholder="Search moves..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full border-b-2 border-neutral-200 bg-transparent py-4 pl-12 pr-4 focus:outline-none focus:border-neutral-900 transition-all font-serif text-lg"
           />
         </div>
         <div className="relative">
@@ -61,7 +74,7 @@ export default function Moves() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="pl-12 pr-8 py-3 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none"
+            className="appearance-none border-b-2 border-neutral-200 bg-transparent py-4 pl-12 pr-8 focus:outline-none focus:border-neutral-900 transition-all font-serif text-lg"
           >
             <option value="all">All Status</option>
             <option value="on-track">On Track</option>
@@ -82,27 +95,27 @@ export default function Moves() {
           >
             <Link
               to={`/moves/${move.id}`}
-              className="block glass rounded-2xl p-6 hover:shadow-xl transition-all group"
+              className="block runway-card p-6 hover:shadow-xl transition-all group"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-neutral-900 mb-2 group-hover:text-primary-600 transition-colors">
+                  <h3 className="text-xl font-bold text-neutral-900 mb-2 group-hover:text-neutral-700 transition-colors">
                     {move.name}
                   </h3>
                   <div className="flex items-center gap-2">
                     <span className={cn(
-                      "px-2 py-1 text-xs font-medium rounded-lg",
+                      "px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] border",
                       move.status === 'on-track' 
-                        ? "bg-green-100 text-green-700" 
+                        ? "bg-green-50 text-green-900 border-green-200" 
                         : move.status === 'at-risk'
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-blue-100 text-blue-700"
+                        ? "bg-yellow-50 text-yellow-900 border-yellow-200"
+                        : "bg-blue-50 text-blue-900 border-blue-200"
                     )}>
                       {move.status === 'on-track' ? 'On Track' : move.status === 'at-risk' ? 'At Risk' : 'Completed'}
                     </span>
                   </div>
                 </div>
-                <Target className="w-8 h-8 text-primary-500" />
+                <Target className="w-8 h-8 text-neutral-700" />
               </div>
 
               <div className="mb-4">
@@ -115,7 +128,7 @@ export default function Moves() {
                     initial={{ width: 0 }}
                     animate={{ width: `${move.progress}%` }}
                     transition={{ duration: 1, delay: index * 0.1 }}
-                    className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full"
+                    className="h-full bg-gradient-to-r from-neutral-700 to-neutral-900 rounded-full"
                   />
                 </div>
               </div>
@@ -125,7 +138,7 @@ export default function Moves() {
                   <Clock className="w-4 h-4" />
                   {move.dueDate}
                 </div>
-                <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-neutral-900 group-hover:translate-x-1 transition-all" />
               </div>
             </Link>
           </motion.div>

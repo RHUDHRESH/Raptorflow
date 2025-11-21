@@ -1,0 +1,987 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { ArrowRight, Sparkles, Search, Check, Loader2, AlertTriangle, ChevronDown, X } from 'lucide-react';
+import MarketPositionSnapshot from './MarketPositionSnapshot';
+import ICPBuilder from './ICPBuilder';
+
+const GOOGLE_MAPS_API_KEY =
+  import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
+  'AIzaSyGT2XWp6X7UJLZ1EkL3mxV4m7Gx4nv6wU';
+
+const INITIAL_QUESTIONS = [
+  {
+    id: 'q1',
+    section: '01',
+    category: 'Basics',
+    title: 'What You Do',
+    type: 'text',
+    prompt: 'In simple words, what does your business do?',
+    placeholder: 'e.g. "We build websites for small local shops" or "We sell a SaaS tool..."'
+  },
+  {
+    id: 'q2',
+    section: '01',
+    category: 'Basics',
+    title: 'The Offer',
+    type: 'text',
+    prompt: 'What do you actually sell, and what do people usually pay?',
+    placeholder: 'Product/Service? One-time or Monthly? Rough price range?'
+  },
+  {
+    id: 'q3',
+    section: '02',
+    category: 'Origin',
+    title: 'Why',
+    type: 'text',
+    prompt: 'Why did you start this business?',
+    placeholder: 'A few lines about what pushed you to do this.'
+  },
+  {
+    id: 'q4',
+    section: '02',
+    category: 'Customers',
+    title: 'Best Fit',
+    type: 'text',
+    prompt: 'Who are your best customers?',
+    placeholder: 'Think of 2-3 examples. What business? What size? Who do you deal with?'
+  },
+  {
+    id: 'q5',
+    section: '02',
+    category: 'Customers',
+    title: 'Bad Fit',
+    type: 'text',
+    prompt: 'Who is usually not a good fit for you?',
+    placeholder: 'Early stage? Low budget? Daily calls? Who do you avoid?'
+  },
+  {
+    id: 'q6',
+    section: '03',
+    category: 'Location',
+    title: 'Coordinates',
+    type: 'map',
+    prompt: 'Where is your business based, or where are most of your customers?',
+    placeholder: 'Search for a city or drop a pin.'
+  },
+  {
+    id: 'q7',
+    section: '04',
+    category: 'Reality',
+    title: 'Snapshot',
+    type: 'multi',
+    prompt: "Let's look at where things stand right now.",
+    fields: [
+      { id: 'q7a', label: 'How do new customers find you right now?', placeholder: 'Referrals, Ads, Cold Email...' },
+      { id: 'q7b', label: 'How much time can you spend on marketing weekly?', type: 'select', options: ['~2 hours', '3-5 hours', '6-10 hours', '10+ hours / Team'] },
+      { id: 'q7c', label: 'If things go well in 3 months, what happens?', placeholder: 'e.g. "Book 5 calls/mo" or "Close 3 clients"' }
+    ]
+  }
+];
+
+const FALLBACK_FOLLOW_UPS = [
+  {
+    category: 'Clarification',
+    title: 'Focus',
+    prompt: 'You mentioned a few different types of customers. For the next 3 months, which one do you want to focus on first?',
+    placeholder: 'Pick one and describe it in a bit more detail.'
+  },
+  {
+    category: 'Differentiation',
+    title: 'The Edge',
+    prompt: 'When someone chooses you instead of someone else, what do they usually say they liked about you?',
+    placeholder: 'Why did they pick you over the other option?'
+  }
+];
+
+const generateGeminiQuestions = async (answers) => {
+  const apiKey = "";
+  
+  // If no API key, skip immediately
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error("API key not configured");
+  }
+  
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+  let contextString = "Here is the client's onboarding intake so far:\n\n";
+
+  INITIAL_QUESTIONS.forEach(q => {
+    if (q.type === 'multi') {
+      q.fields.forEach(field => {
+        const ans = answers[field.id] || "Not answered";
+        contextString += `Question: ${field.label}\nAnswer: ${ans}\n\n`;
+      });
+    } else if (q.type === 'map') {
+       const loc = answers[q.id];
+       const locStr = loc ? (loc.address || `${loc.lat}, ${loc.lng}`) : "Not provided";
+       contextString += `Question: ${q.prompt}\nAnswer: ${locStr}\n\n`;
+    } else {
+      const ans = answers[q.id] || "Not answered";
+      contextString += `Question: ${q.prompt}\nAnswer: ${ans}\n\n`;
+    }
+  });
+
+  const systemInstruction = `
+    You are an expert brand strategist reviewing a new client's intake form.
+    Your goal is to identify 1-3 critical gaps, vague statements, or areas that need specific clarification to build a marketing strategy.
+    
+    Tone: Professional, "Normal Human", concise, slightly editorial. Not robotic.
+    
+    Task: Generate 1 to 3 follow-up questions based on their answers.
+    - If they were vague about their customer, ask for specifics.
+    - If they didn't mention constraints, ask about them.
+    - If they didn't mention competitors, ask who they lose deals to.
+    
+    Return strictly a JSON array of objects. No markdown formatting.
+  `;
+
+  const payload = {
+    contents: [{
+      parts: [{ text: contextString + "\n\n" + systemInstruction }]
+    }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "ARRAY",
+        items: {
+          type: "OBJECT",
+          properties: {
+            category: { type: "STRING" },
+            title: { type: "STRING" },
+            prompt: { type: "STRING" },
+            placeholder: { type: "STRING" }
+          },
+          required: ["category", "title", "prompt", "placeholder"]
+        }
+      }
+    }
+  };
+
+  const delays = [1000, 2000, 4000, 8000, 16000];
+  
+  for (let i = 0; i < delays.length; i++) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error(`API Error: ${response.status}`);
+      const data = await response.json();
+      const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!jsonText) throw new Error("No content generated");
+      return JSON.parse(jsonText);
+    } catch (error) {
+      console.warn(`Gemini Attempt ${i + 1} failed:`, error);
+      if (i === delays.length - 1) throw error; 
+      await new Promise(resolve => setTimeout(resolve, delays[i]));
+    }
+  }
+};
+
+const loadGoogleMapsScript = (apiKey, onLoad, onError) => {
+  if (!apiKey) {
+    onError?.('missing-key')
+    return
+  }
+  if (window.google && window.google.maps) {
+    onLoad?.();
+    return;
+  }
+  if (document.getElementById('google-maps-script')) {
+     const checkInterval = setInterval(() => {
+        if (window.google && window.google.maps) {
+           clearInterval(checkInterval);
+           onLoad?.();
+        }
+     }, 500);
+     return; 
+  }
+  const script = document.createElement('script');
+  script.id = 'google-maps-script';
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+  script.async = true;
+  script.defer = true;
+  script.onload = onLoad;
+  script.onerror = () => onError?.('script-error');
+  document.head.appendChild(script);
+};
+
+const GrainOverlay = () => (
+  <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.03] mix-blend-multiply" 
+       style={{ 
+         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")` 
+       }}>
+  </div>
+);
+
+const curatedCities = [
+  { label: 'Hyderabad, Telangana, India', lat: '17.3850', lon: '78.4867' },
+  { label: 'Bengaluru, Karnataka, India', lat: '12.9716', lon: '77.5946' },
+  { label: 'Mumbai, Maharashtra, India', lat: '19.0760', lon: '72.8777' },
+  { label: 'Chennai, Tamil Nadu, India', lat: '13.0827', lon: '80.2707' },
+  { label: 'Delhi, India', lat: '28.6139', lon: '77.2090' }
+]
+
+const ManualLocationFallback = ({ onLocationSelect, initialValue }) => {
+  const [manualAddress, setManualAddress] = useState(initialValue?.address || '')
+  const [manualLat, setManualLat] = useState(initialValue?.lat || '')
+  const [manualLng, setManualLng] = useState(initialValue?.lng || '')
+  const [suggestions, setSuggestions] = useState([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+
+  useEffect(() => {
+    onLocationSelect({
+      address: manualAddress,
+      lat: manualLat || undefined,
+      lng: manualLng || undefined
+    })
+  }, [manualAddress, manualLat, manualLng, onLocationSelect])
+
+  useEffect(() => {
+    if (!manualAddress || manualAddress.length < 3) {
+      setSuggestions([])
+      return
+    }
+    const controller = new AbortController()
+    const timeout = setTimeout(async () => {
+      setIsSearching(true)
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(manualAddress)}&limit=5`,
+          { signal: controller.signal, headers: { 'Accept-Language': 'en' } }
+        )
+        if (response.ok) {
+          const data = await response.json()
+          setSuggestions(
+            data.map((item) => ({
+              label: item.display_name,
+              lat: item.lat,
+              lon: item.lon
+            }))
+          )
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Location search failed', error)
+        }
+      } finally {
+        setIsSearching(false)
+      }
+    }, 350)
+    return () => {
+      controller.abort()
+      clearTimeout(timeout)
+    }
+  }, [manualAddress])
+
+  const handleSuggestionClick = (suggestion) => {
+    setManualAddress(suggestion.label)
+    setManualLat(suggestion.lat)
+    setManualLng(suggestion.lon)
+    setSuggestions([])
+  }
+
+  return (
+    <div className="w-full max-w-xl space-y-6 rounded-3xl border border-neutral-200 bg-white/70 p-6 text-left">
+      <div>
+        <p className="text-sm uppercase tracking-[0.4em] text-neutral-500">Location</p>
+        <p className="font-display text-2xl text-neutral-900">Manual Entry</p>
+        <p className="text-sm text-neutral-500">Describe where you operate—we will geocode it later.</p>
+      </div>
+      <div className="space-y-4">
+        <div className="relative">
+          <label className="text-xs uppercase tracking-[0.3em] text-neutral-500">Address or Region</label>
+          <input
+            type="text"
+            className="mt-2 w-full rounded-2xl border border-neutral-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+            placeholder="e.g., Paris, France"
+            value={manualAddress}
+            onChange={(e) => setManualAddress(e.target.value)}
+          />
+          {(isSearching || suggestions.length > 0 || manualAddress.length >= 3) && (
+            <div className="absolute left-0 right-0 top-[92%] z-10 mt-2 overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl">
+              {isSearching && (
+                <div className="px-4 py-3 text-xs uppercase tracking-[0.3em] text-neutral-400">
+                  searching...
+                </div>
+              )}
+              {!isSearching && suggestions.length > 0 && (
+                <>
+                  <div className="px-4 pt-3 text-[10px] uppercase tracking-[0.4em] text-neutral-400">
+                    Matches
+                  </div>
+                  {suggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.label}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="block w-full px-4 py-3 text-left text-sm text-neutral-800 hover:bg-neutral-50"
+                    >
+                      {suggestion.label}
+                    </button>
+                  ))}
+                </>
+              )}
+              {!isSearching && suggestions.length === 0 && manualAddress.length >= 3 && (
+                <>
+                  <div className="px-4 pt-3 text-[10px] uppercase tracking-[0.4em] text-neutral-400">
+                    Try These
+                  </div>
+                  {curatedCities
+                    .filter((city) =>
+                      city.label.toLowerCase().includes(manualAddress.toLowerCase())
+                    )
+                    .concat(
+                      curatedCities.slice(0, 2)
+                    )
+                    .slice(0, 5)
+                    .map((city) => (
+                      <button
+                        key={city.label}
+                        onClick={() => handleSuggestionClick(city)}
+                        className="block w-full px-4 py-3 text-left text-sm text-neutral-800 hover:bg-neutral-50"
+                      >
+                        {city.label}
+                      </button>
+                    ))}
+                  <div className="px-4 py-3 text-xs text-neutral-500">
+                    No exact matches; press Enter to keep your custom location.
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => setAdvancedOpen(!advancedOpen)}
+          className="text-xs uppercase tracking-[0.3em] text-neutral-500 hover:text-neutral-900"
+        >
+          {advancedOpen ? 'Hide advanced coordinates' : 'Show advanced coordinates'}
+        </button>
+        {advancedOpen && (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs uppercase tracking-[0.3em] text-neutral-500">Latitude</label>
+              <input
+                type="number"
+                className="mt-2 w-full rounded-2xl border border-neutral-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                placeholder="48.8566"
+                value={manualLat}
+                onChange={(e) => setManualLat(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-xs uppercase tracking-[0.3em] text-neutral-500">Longitude</label>
+              <input
+                type="number"
+                className="mt-2 w-full rounded-2xl border border-neutral-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                placeholder="2.3522"
+                value={manualLng}
+                onChange={(e) => setManualLng(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const InteractiveMap = ({ onLocationSelect, initialValue }) => {
+  const mapRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const mapObj = useRef(null);
+  const markerObj = useRef(null);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [authWarning, setAuthWarning] = useState(false);
+  const [mapError, setMapError] = useState('');
+  
+  useEffect(() => {
+    window.gm_authFailure = () => {
+      console.warn("Google Maps API Key Warning - Map may be degraded");
+      setAuthWarning(true);
+      setMapError('Authentication failed for Google Maps API key.');
+    };
+
+    if (!GOOGLE_MAPS_API_KEY) {
+      setMapError('Google Maps API key missing. Add VITE_GOOGLE_MAPS_API_KEY to your .env file.');
+      setAuthWarning(true);
+      return;
+    }
+
+    loadGoogleMapsScript(
+      GOOGLE_MAPS_API_KEY,
+      () => {
+        if (
+          window.google &&
+          window.google.maps &&
+          typeof window.google.maps.Map === "function"
+        ) {
+          setScriptLoaded(true);
+        } else {
+          console.error("Google Maps failed to initialize.");
+          setAuthWarning(true);
+          setMapError('Google Maps failed to initialize. Please verify your API key permissions.');
+        }
+      },
+      (reason) => {
+        setAuthWarning(true);
+        setMapError(
+          reason === 'missing-key'
+            ? 'Google Maps API key missing. Add VITE_GOOGLE_MAPS_API_KEY to your .env file.'
+            : 'Unable to load Google Maps. Check your network connection or API key.'
+        );
+      }
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!scriptLoaded || !mapRef.current || !window.google) return;
+    try {
+        const indiaCenter = { lat: 20.5937, lng: 78.9629 };
+        const mapStyles = [
+          { "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
+          { "elementType": "labels.icon", "stylers": [{ "visibility": "off" }] },
+          { "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
+          { "elementType": "labels.text.stroke", "stylers": [{ "color": "#f5f5f5" }] },
+          { "featureType": "administrative.land_parcel", "elementType": "labels.text.fill", "stylers": [{ "color": "#bdbdbd" }] },
+          { "featureType": "poi", "elementType": "geometry", "stylers": [{ "color": "#eeeeee" }] },
+          { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
+          { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#ffffff" }] },
+          { "featureType": "road.arterial", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
+          { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#dadada" }] },
+          { "featureType": "road.highway", "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
+          { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#e9e9e9" }] },
+          { "featureType": "water", "elementType": "labels.text.fill", "stylers": [{ "color": "#9e9e9e" }] }
+        ];
+        const map = new window.google.maps.Map(mapRef.current, {
+          center: initialValue?.lat ? { lat: Number(initialValue.lat), lng: Number(initialValue.lng) } : indiaCenter,
+          zoom: initialValue?.lat ? 10 : 5,
+          styles: mapStyles,
+          disableDefaultUI: true,
+          zoomControl: true,
+        });
+        const marker = new window.google.maps.Marker({
+          map: map,
+          draggable: true,
+          animation: window.google.maps.Animation.DROP,
+        });
+        if (searchInputRef.current) {
+            const searchBox = new window.google.maps.places.SearchBox(searchInputRef.current);
+            searchBox.setOptions({
+              componentRestrictions: { country: 'in' }
+            });
+            map.addListener('bounds_changed', () => {
+              searchBox.setBounds(map.getBounds());
+            });
+            searchBox.addListener('places_changed', () => {
+              const places = searchBox.getPlaces();
+              if (places.length === 0) return;
+              const place = places[0];
+              if (!place.geometry || !place.geometry.location) return;
+              map.setCenter(place.geometry.location);
+              map.setZoom(12);
+              marker.setPosition(place.geometry.location);
+              marker.setVisible(true);
+              onLocationSelect({
+                address: place.formatted_address,
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng()
+              });
+            });
+        }
+        map.addListener('click', (e) => {
+          marker.setPosition(e.latLng);
+          marker.setVisible(true);
+          onLocationSelect({
+            lat: e.latLng.lat(),
+            lng: e.latLng.lng(),
+            address: `Pinned Location (${e.latLng.lat().toFixed(4)}, ${e.latLng.lng().toFixed(4)})`
+          });
+        });
+        mapObj.current = map;
+        markerObj.current = marker;
+    } catch (e) {
+        console.error("Map Init Error:", e);
+    }
+  }, [scriptLoaded, initialValue, onLocationSelect]);
+
+  useEffect(() => {
+    if (!initialValue || !markerObj.current || !mapObj.current) return
+    const position = {
+      lat: Number(initialValue.lat),
+      lng: Number(initialValue.lng),
+    }
+    markerObj.current.setPosition(position)
+    markerObj.current.setVisible(true)
+    mapObj.current.setCenter(position)
+    mapObj.current.setZoom(10)
+  }, [initialValue])
+
+  if (mapError) {
+    return (
+      <ManualLocationFallback
+        onLocationSelect={onLocationSelect}
+        initialValue={initialValue}
+      />
+    )
+  }
+
+  return (
+    <div className="w-full flex flex-col items-center space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+      <div className="relative w-full max-w-xl z-20">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
+        <input 
+          ref={searchInputRef}
+          type="text" 
+          placeholder="Search for your city..." 
+          className="w-full bg-white border border-neutral-200 rounded-full py-4 pl-12 pr-6 text-neutral-800 shadow-xl shadow-neutral-200/50 focus:outline-none focus:ring-2 focus:ring-black transition-all font-sans text-sm"
+        />
+      </div>
+      <div className="w-full h-[40vh] md:h-[50vh] bg-neutral-100 relative border border-neutral-200 overflow-hidden shadow-inner">
+         {(authWarning || mapError) && (
+            <div className="absolute top-0 left-0 right-0 bg-amber-100/90 text-amber-800 text-[10px] uppercase font-bold py-2 text-center z-30 flex items-center justify-center space-x-2 backdrop-blur-sm">
+               <AlertTriangle size={12} />
+               <span>{mapError || 'Maps API issue - functionality limited'}</span>
+            </div>
+         )}
+         <div ref={mapRef} className="w-full h-full" />
+         {!scriptLoaded && !mapError && (
+           <div className="absolute inset-0 flex items-center justify-center text-neutral-400 text-xs font-mono z-0">
+             INITIALIZING SATELLITE UPLINK...
+           </div>
+         )}
+         {mapError && (
+           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 text-neutral-500 text-sm font-medium">
+             <p>{mapError}</p>
+             <p className="mt-2 text-xs text-neutral-400">You can still describe your location manually.</p>
+           </div>
+         )}
+      </div>
+      {initialValue && initialValue.address && (
+        <div className="flex items-center space-x-2 text-green-600 bg-green-50 px-4 py-2 border border-green-100">
+           <Check size={14} />
+           <span className="text-[10px] font-mono uppercase tracking-[0.2em]">Location Locked</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Custom Dropdown Component with styled menu
+const CustomDropdown = ({ value, options, onChange, placeholder = "Select an option" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const handleSelect = (option) => {
+    onChange(option);
+    setIsOpen(false);
+  };
+
+  const displayValue = value || placeholder;
+  const isPlaceholder = !value;
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full bg-white/50 backdrop-blur-sm border border-neutral-200 rounded-lg px-6 py-4 pr-10 text-lg font-serif italic transition-all appearance-none cursor-pointer shadow-sm text-left flex items-center justify-between ${
+          isPlaceholder ? 'text-neutral-400' : 'text-neutral-900'
+        } hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black ${
+          isOpen ? 'border-black ring-2 ring-black' : ''
+        }`}
+      >
+        <span>{displayValue}</span>
+        <ChevronDown 
+          size={18} 
+          className={`text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-2 bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden" style={{ animation: 'dropdownFadeIn 0.15s ease-out' }}>
+          <div className="py-2">
+            {options.map((option, idx) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => handleSelect(option)}
+                className={`w-full px-6 py-3 text-left text-lg font-serif italic transition-colors ${
+                  value === option
+                    ? 'bg-neutral-100 text-neutral-900 font-medium'
+                    : 'text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900'
+                } ${idx === 0 ? 'rounded-t-lg' : ''} ${idx === options.length - 1 ? 'rounded-b-lg' : ''}`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MultiInputStep = ({ question, answers, onChange }) => {
+  return (
+    <div className="w-full max-w-6xl animate-in fade-in slide-in-from-bottom-12 duration-1000 ease-out">
+      <p className="font-serif text-3xl md:text-5xl text-black mb-24 leading-tight text-center">
+        {question.prompt}
+      </p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 w-full">
+        {question.fields.map((field, idx) => (
+          <div key={field.id} className="flex flex-col items-center space-y-6 group w-full">
+             <label className="font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 group-focus-within:text-black transition-colors text-center">
+               {field.label}
+             </label>
+             {field.type === 'select' ? (
+                <CustomDropdown
+                  value={answers[field.id] || ''}
+                  options={field.options}
+                  onChange={(value) => onChange(field.id, value)}
+                  placeholder="Select an option"
+                />
+             ) : (
+                <textarea
+                  value={answers[field.id] || ''}
+                  onChange={(e) => onChange(field.id, e.target.value)}
+                  placeholder={field.placeholder}
+                  rows={1}
+                  className="w-full bg-transparent border-b border-neutral-200 py-4 text-xl font-serif italic text-neutral-900 focus:outline-none focus:border-black transition-all placeholder:text-neutral-300 text-center resize-none min-h-[60px]"
+                  onInput={(e) => {
+                      e.target.style.height = 'auto';
+                      e.target.style.height = e.target.scrollHeight + 'px';
+                  }}
+                />
+             )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const StandardInput = ({ question, value, onChange, onBlur }) => {
+  return (
+    <div className="group animate-in fade-in slide-in-from-bottom-12 duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col items-center text-center w-full z-10 max-w-4xl">
+      <label className="block font-sans text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400 mb-8 group-focus-within:text-black transition-colors duration-700">
+        {question.title}
+      </label>
+      <p className="font-serif text-4xl md:text-6xl text-black mb-16 leading-[1.1] tracking-tight antialiased">
+        {question.prompt}
+      </p>
+      <div className="relative w-full max-w-2xl">
+        <textarea
+          autoFocus={true}
+          value={value || ''}
+          onChange={(e) => onChange(question.id, e.target.value)}
+          onBlur={() => onBlur && onBlur(question.id)}
+          placeholder={question.placeholder}
+          className="w-full bg-transparent border-b border-neutral-200 text-2xl md:text-3xl text-neutral-900 py-8 focus:outline-none focus:border-neutral-900 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] placeholder:text-neutral-200 placeholder:font-light font-serif italic resize-none h-40 text-center leading-relaxed selection:bg-black selection:text-white"
+        />
+      </div>
+    </div>
+  );
+};
+
+const ProcessingScreen = ({ onSkip }) => (
+   <div className="flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-1000">
+      <Loader2 className="animate-spin text-black" size={48} />
+      <div className="text-center space-y-2">
+        <p className="font-serif text-2xl italic">Analyzing your inputs...</p>
+        <p className="font-sans text-[10px] uppercase tracking-widest text-neutral-400">Using Gemini 2.5 Flash to detect strategy gaps</p>
+      </div>
+      {onSkip && (
+        <button
+          onClick={onSkip}
+          className="mt-8 font-sans text-[10px] font-bold uppercase tracking-widest border-b border-transparent hover:border-black transition-all duration-500 pb-1 text-neutral-400 hover:text-black"
+        >
+          Skip analysis
+        </button>
+      )}
+   </div>
+);
+
+const ProgressBar = ({ current, total }) => {
+  const progress = ((current + 1) / total) * 100;
+  return (
+    <div className="fixed bottom-0 left-0 w-full z-50 bg-white pt-4 pb-0">
+       <div className="flex justify-between items-end px-8 pb-2 text-xs font-sans font-bold text-black uppercase tracking-widest">
+          <span>{current + 1} / {total}</span>
+       </div>
+       <div className="h-3 bg-neutral-200 w-full">
+          <div 
+            className="h-full bg-black transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]" 
+            style={{ width: `${progress}%` }}
+          ></div>
+       </div>
+    </div>
+  );
+};
+
+export default function Onboarding({ onClose }) {
+  const [questions, setQuestions] = useState(INITIAL_QUESTIONS);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [status, setStatus] = useState('input');
+  const [showICPBuilder, setShowICPBuilder] = useState(false); 
+  
+  const currentQuestion = questions[currentStepIndex];
+  const mainScrollRef = useRef(null);
+  
+  const handleAnswer = (id, value) => {
+    setAnswers(prev => ({ ...prev, [id]: value }));
+  };
+
+  const skipToMarketPosition = () => {
+    setStatus('market-position');
+  };
+
+  const runAIAnalysis = async () => {
+    setStatus('analyzing');
+    
+    // Add a shorter timeout - if analysis takes too long, skip to market position
+    const timeoutId = setTimeout(() => {
+      console.warn("AI analysis timeout - proceeding to market position");
+      setStatus('market-position');
+    }, 10000); // 10 second timeout
+    
+    try {
+      // Wrap the API call in a race with timeout
+      const aiQuestionsPromise = generateGeminiQuestions(answers);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Request timeout")), 8000)
+      );
+      
+      const aiQuestions = await Promise.race([aiQuestionsPromise, timeoutPromise]);
+      clearTimeout(timeoutId);
+      
+      if (aiQuestions && aiQuestions.length > 0) {
+        const processedQuestions = aiQuestions.map((q, idx) => ({
+          id: `ai_${Date.now()}_${idx}`,
+          section: 'AI CHECK',
+          category: q.category,
+          title: q.title,
+          type: 'text',
+          prompt: q.prompt,
+          placeholder: q.placeholder
+        }));
+        setQuestions(prev => [...prev, ...processedQuestions]);
+        setStatus('followup');
+        setCurrentStepIndex(prev => prev + 1);
+      } else {
+        // No AI questions generated, go straight to market position
+        clearTimeout(timeoutId);
+        setStatus('market-position');
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      console.error("AI Generation failed, proceeding to market position:", error);
+      // Skip AI questions and go straight to market position
+      setStatus('market-position');
+    }
+  };
+
+  const nextStep = () => {
+    // Special handling for q7 - triggers AI analysis
+    if (currentQuestion && currentQuestion.id === 'q7') {
+       runAIAnalysis();
+       return;
+    }
+    // Check if we're at the last question (index equals last index)
+    if (currentStepIndex < questions.length - 1) {
+      // Move to next question
+      setCurrentStepIndex(prev => prev + 1);
+      if (mainScrollRef.current) mainScrollRef.current.scrollTop = 0;
+    } else {
+       // We're on the last question, so next click should go to market position
+       setStatus('market-position');
+       if (mainScrollRef.current) mainScrollRef.current.scrollTop = 0;
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex(prev => prev - 1);
+    }
+  };
+
+  const handleMarketPositionComplete = (marketData) => {
+    // Store market position data in answers
+    setAnswers(prev => ({
+      ...prev,
+      market_position: marketData
+    }));
+    // Move to complete status
+    setStatus('complete');
+  };
+
+  const handleMarketPositionBack = () => {
+    // Go back to last question
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex(questions.length - 1);
+      setStatus('input');
+    }
+  };
+
+  const renderInput = () => {
+    if (status === 'analyzing') return <ProcessingScreen onSkip={skipToMarketPosition} />;
+    if (status === 'market-position') {
+      return (
+        <MarketPositionSnapshot
+          answers={answers}
+          onComplete={handleMarketPositionComplete}
+          onBack={handleMarketPositionBack}
+        />
+      );
+    }
+    if (status === 'complete') return (
+      <div className="text-center animate-in zoom-in-95 duration-1000 flex flex-col items-center">
+        <h1 className="font-serif text-6xl mb-6">All Set.</h1>
+        <p className="text-neutral-500 font-sans uppercase tracking-widest text-xs mb-12">Protocol Complete</p>
+        <button 
+            onClick={() => {
+              console.log("Submitting data:", answers);
+              // Launch ICP Builder instead of closing
+              setShowICPBuilder(true);
+            }} 
+            className="group relative bg-black text-white px-16 py-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20"
+        >
+            <div className="relative z-10 flex items-center space-x-4">
+                <span className="font-sans text-xs font-bold tracking-widest uppercase">
+                    Let's Go
+                </span>
+                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" />
+            </div>
+            <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
+        </button>
+      </div>
+    );
+
+    // Safety check - if no current question, transition to market position
+    if (!currentQuestion) {
+      // This shouldn't happen, but if it does, go to market position
+      if (status === 'input' || status === 'followup') {
+        setStatus('market-position');
+        return null;
+      }
+    }
+
+    switch (currentQuestion.type) {
+      case 'map':
+        return (
+          <InteractiveMap 
+            onLocationSelect={(loc) => handleAnswer(currentQuestion.id, loc)} 
+            initialValue={answers[currentQuestion.id]}
+          />
+        );
+      case 'multi':
+        return (
+          <MultiInputStep 
+             question={currentQuestion} 
+             answers={answers} 
+             onChange={handleAnswer} 
+          />
+        );
+      default:
+        return (
+          <StandardInput 
+             key={currentQuestion.id} 
+             question={currentQuestion}
+             value={answers[currentQuestion.id]}
+             onChange={handleAnswer}
+          />
+        );
+    }
+  };
+
+  // Show ICP Builder if triggered
+  if (showICPBuilder) {
+    return (
+      <ICPBuilder 
+        onClose={() => {
+          setShowICPBuilder(false);
+          onClose && onClose();
+        }} 
+        onboardingData={{ answers }}
+      />
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex h-screen w-screen bg-white text-neutral-900 overflow-hidden font-sans selection:bg-black selection:text-white">
+      <GrainOverlay />
+      {onClose && (
+        <button 
+          className="absolute top-8 left-8 z-50 p-2 text-neutral-400 hover:text-black transition-colors hover:bg-neutral-100"
+          onClick={onClose} 
+        >
+          <X size={24} />
+        </button>
+      )}
+      <div ref={mainScrollRef} className="flex-grow flex flex-col justify-center items-center px-6 md:px-8 relative z-10">
+        <div className="w-full flex flex-col items-center pb-12 max-w-7xl">
+           {status !== 'analyzing' && status !== 'complete' && status !== 'market-position' && currentQuestion && (
+             <div className="flex items-center space-x-4 mb-12 animate-in fade-in duration-1000 slide-in-from-top-4 ease-[cubic-bezier(0.22,1,0.36,1)]">
+                <span className="font-sans font-bold text-[9px] text-white bg-black px-2 py-1 tracking-widest">
+                  {currentQuestion.section}
+                </span>
+                <span className="font-sans font-bold text-[10px] uppercase tracking-[0.2em] text-neutral-400">
+                  {currentQuestion.category}
+                </span>
+             </div>
+           )}
+           {renderInput()}
+           {status !== 'analyzing' && status !== 'complete' && status !== 'market-position' && (
+             <div className="mt-24 flex items-center space-x-12 animate-in fade-in duration-1000 delay-300 ease-out">
+                <button 
+                    onClick={prevStep}
+                    disabled={currentStepIndex === 0}
+                    className={`font-sans text-[10px] font-bold uppercase tracking-widest border-b border-transparent hover:border-black transition-all duration-500 pb-1 ${currentStepIndex === 0 ? 'opacity-0 cursor-default' : 'text-neutral-400 hover:text-black'}`}
+                >
+                    Back
+                </button>
+                <button 
+                    onClick={nextStep}
+                    className="group relative bg-black text-white px-12 py-5 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20"
+                >
+                    <div className="relative z-10 flex items-center space-x-4">
+                        <span className="font-sans text-xs font-bold tracking-widest uppercase">
+                            {currentQuestion && currentQuestion.id === 'q7' ? 'Analyze' : (currentStepIndex === questions.length - 1 ? 'Finish' : 'Next')}
+                        </span>
+                        {currentQuestion && currentQuestion.id === 'q7' ? <Sparkles size={14} /> : <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" />}
+                    </div>
+                    <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
+                </button>
+             </div>
+           )}
+        </div>
+      </div>
+      {status !== 'complete' && status !== 'market-position' && (
+         <ProgressBar 
+           current={currentStepIndex} 
+           total={questions.length} 
+         />
+      )}
+    </div>
+  );
+}
+

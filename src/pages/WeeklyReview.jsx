@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, Scale, Tweak, X, CheckCircle2, TrendingUp, AlertCircle } from 'lucide-react'
+import { Clock, Scale, Wrench, X, CheckCircle2, TrendingUp, AlertCircle } from 'lucide-react'
 import { cn } from '../utils/cn'
 
 const moves = [
@@ -57,34 +57,32 @@ export default function WeeklyReview() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-12 text-white"
+        className="runway-card relative overflow-hidden p-10 text-neutral-900"
       >
-        <div className="relative z-10">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center">
-              <Clock className="w-8 h-8" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-display font-bold mb-2">Weekly Review</h1>
-              <p className="text-neutral-300 text-lg">
-                Review your moves and make strategic decisions
-              </p>
-            </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-neutral-50 to-white" />
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="w-16 h-16 rounded-full border border-neutral-200 bg-white flex items-center justify-center">
+            <Clock className="w-8 h-8 text-neutral-900" />
+          </div>
+          <div>
+            <p className="micro-label">Editorial Recap</p>
+            <h1 className="text-4xl font-display">Scale · Tweak · Retire</h1>
+            <p className="text-sm tracking-[0.3em] uppercase text-neutral-500">
+              Ceremony for every move in the lineup
+            </p>
           </div>
         </div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-accent-500/20 rounded-full blur-3xl" />
       </motion.div>
 
       {/* Instructions */}
-      <div className="glass rounded-2xl p-6 bg-primary-50 border-primary-200">
+      <div className="runway-card p-6 bg-white">
         <div className="flex items-start gap-4">
-          <AlertCircle className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
+          <AlertCircle className="w-6 h-6 text-neutral-900 flex-shrink-0 mt-1" />
           <div>
-            <h3 className="font-bold text-neutral-900 mb-2">Review Process</h3>
+            <h3 className="font-bold text-neutral-900 mb-2">Recap Ritual</h3>
             <p className="text-neutral-700">
-              For each move, review the metrics and decide: <strong>Scale</strong> (double down), 
-              <strong> Tweak</strong> (adjust approach), or <strong>Kill</strong> (stop and redirect resources).
+              For each move, study the spread and decide: <strong>Scale</strong> (double down), 
+              <strong> Tweak</strong> (restyle), or <strong>Retire</strong> (archive the effort).
             </p>
           </div>
         </div>
@@ -102,7 +100,7 @@ export default function WeeklyReview() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="glass rounded-2xl p-8"
+              className="runway-card p-8"
             >
               {/* Move Header */}
               <div className="flex items-start justify-between mb-6">
@@ -144,7 +142,7 @@ export default function WeeklyReview() {
                     initial={{ width: 0 }}
                     animate={{ width: `${move.progress}%` }}
                     transition={{ duration: 1, delay: index * 0.2 }}
-                    className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full"
+                    className="h-full bg-gradient-to-r from-neutral-700 to-neutral-900 rounded-full"
                   />
                 </div>
               </div>
@@ -153,8 +151,8 @@ export default function WeeklyReview() {
               <div className="grid grid-cols-3 gap-4 mb-6">
                 {[
                   { id: 'scale', label: 'Scale', icon: TrendingUp, color: 'green' },
-                  { id: 'tweak', label: 'Tweak', icon: Scale, color: 'yellow' },
-                  { id: 'kill', label: 'Kill', icon: X, color: 'red' },
+                  { id: 'tweak', label: 'Tweak', icon: Wrench, color: 'yellow' },
+                  { id: 'kill', label: 'Retire', icon: X, color: 'red' },
                 ].map((option) => {
                   const Icon = option.icon
                   const isSelected = decision === option.id
@@ -192,7 +190,7 @@ export default function WeeklyReview() {
                   placeholder="Add your thoughts and reasoning for this decision..."
                   value={notes}
                   onChange={(e) => setReviewNotes({ ...reviewNotes, [move.id]: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
                 />
               </div>
             </motion.div>
@@ -214,7 +212,7 @@ export default function WeeklyReview() {
           className={cn(
             "flex items-center gap-2 px-8 py-4 rounded-xl font-semibold transition-all",
             Object.keys(selectedMoves).length === moves.length
-              ? "bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-600/20"
+              ? "bg-neutral-900 text-white hover:bg-neutral-800 shadow-lg shadow-neutral-900/20"
               : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
           )}
         >

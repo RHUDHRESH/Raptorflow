@@ -32,32 +32,41 @@ export default function Dashboard() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-12 text-white"
+        className="runway-card relative overflow-hidden p-10 text-neutral-900"
       >
-        <div className="relative z-10">
-          <h1 className="text-5xl font-display font-bold mb-4">Welcome Back</h1>
-          <p className="text-xl text-neutral-300 mb-8 max-w-2xl">
-            Your strategy execution platform. Track moves, review progress, and optimize your path to success.
-          </p>
-          <div className="flex gap-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-neutral-50 to-white" />
+        <div className="relative z-10 space-y-6">
+          <div className="flex items-center gap-3">
+            <span className="micro-label tracking-[0.5em]">Runway Dispatch</span>
+            <span className="h-px w-16 bg-neutral-200" />
+            <span className="text-xs uppercase tracking-[0.3em] text-neutral-400">Issue 10</span>
+          </div>
+          <div className="space-y-6">
+            <h1 className="font-serif text-4xl md:text-6xl text-black leading-[1.1] tracking-tight antialiased">
+              Today's edit is ready.
+            </h1>
+            <p className="font-sans text-base text-neutral-600 max-w-2xl leading-relaxed">
+              Curated signals from every move, ritual, and review. Glide into the session with the
+              confidence of a cover story.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
             <Link
               to="/strategy/wizard"
-              className="flex items-center gap-2 px-6 py-3 bg-white text-neutral-900 rounded-xl font-medium hover:bg-neutral-100 transition-colors"
+              className="inline-flex items-center gap-3 border border-neutral-900 px-6 py-3 text-[10px] font-mono uppercase tracking-[0.3em] text-neutral-900 hover:bg-neutral-900 hover:text-white transition-all"
             >
-              <Sparkles className="w-5 h-5" />
-              Start Strategy Wizard
+              <Sparkles className="w-4 h-4" />
+              Begin Strategy Edit
             </Link>
             <Link
               to="/review"
-              className="flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-xl font-medium hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-3 border border-neutral-200 px-6 py-3 text-[10px] font-mono uppercase tracking-[0.3em] text-neutral-600 hover:border-neutral-900 hover:text-neutral-900 transition-all"
             >
-              <Clock className="w-5 h-5" />
-              Weekly Review
+              <Clock className="w-4 h-4" />
+              Editorial Recap
             </Link>
           </div>
         </div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-accent-500/20 rounded-full blur-3xl" />
       </motion.div>
 
       {/* Stats */}
@@ -70,31 +79,31 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="glass rounded-2xl p-6 hover:shadow-xl transition-shadow"
+              className="runway-card p-6 transition-shadow hover:shadow-xl"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className={cn(
-                  "w-12 h-12 rounded-xl flex items-center justify-center",
-                  stat.color === 'primary' ? "bg-primary-100 text-primary-600" : "bg-accent-100 text-accent-600"
-                )}>
-                  <Icon className="w-6 h-6" />
+              <div className="flex items-center justify-between mb-5">
+                <div className="w-12 h-12 border-2 border-neutral-200 bg-white flex items-center justify-center text-neutral-900">
+                  <Icon className="w-5 h-5" />
                 </div>
-                <span className="text-sm font-medium text-green-600">{stat.change}</span>
+                <span className="text-xs uppercase tracking-[0.3em] text-green-600">{stat.change}</span>
               </div>
-              <div className="text-3xl font-bold text-neutral-900 mb-1">{stat.value}</div>
-              <div className="text-sm text-neutral-600">{stat.label}</div>
+              <div className="text-3xl font-display text-neutral-900 mb-1">{stat.value}</div>
+              <div className="text-xs uppercase tracking-[0.3em] text-neutral-500">{stat.label}</div>
             </motion.div>
           )
         })}
       </div>
 
       {/* Recent Moves */}
-      <div className="glass rounded-2xl p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-display font-bold">Recent Moves</h2>
+      <div className="runway-card p-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <p className="micro-label mb-2">Movement Log</p>
+            <h2 className="font-serif text-3xl md:text-4xl text-neutral-900 leading-tight">Recent Moves</h2>
+          </div>
           <Link
             to="/moves"
-            className="flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium"
+            className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-neutral-600 hover:text-neutral-900"
           >
             View All
             <ArrowRight className="w-4 h-4" />
@@ -107,16 +116,16 @@ export default function Dashboard() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="flex items-center justify-between p-4 rounded-xl border border-neutral-200 hover:bg-neutral-50 transition-colors"
+              className="flex items-center justify-between border-b-2 border-neutral-200 p-6 hover:bg-neutral-50 transition-colors"
             >
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h3 className="font-semibold text-neutral-900">{move.name}</h3>
                   <span className={cn(
-                    "px-2 py-1 text-xs font-medium rounded-lg",
+                    "px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] border",
                     move.status === 'on-track' 
-                      ? "bg-green-100 text-green-700" 
-                      : "bg-yellow-100 text-yellow-700"
+                      ? "bg-green-50 text-green-900 border-green-200" 
+                      : "bg-yellow-50 text-yellow-900 border-yellow-200"
                   )}>
                     {move.status === 'on-track' ? 'On Track' : 'At Risk'}
                   </span>
@@ -126,7 +135,7 @@ export default function Dashboard() {
                     initial={{ width: 0 }}
                     animate={{ width: `${move.progress}%` }}
                     transition={{ duration: 1, delay: index * 0.2 }}
-                    className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full"
+                    className="h-full bg-gradient-to-r from-neutral-700 to-neutral-900 rounded-full"
                   />
                 </div>
               </div>

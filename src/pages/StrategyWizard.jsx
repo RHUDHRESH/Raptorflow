@@ -71,9 +71,9 @@ export default function StrategyWizard() {
                   <div className={cn(
                     "w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all",
                     currentStep > step.id
-                      ? "bg-primary-600 border-primary-600 text-white"
+                      ? "bg-neutral-900 border-neutral-900 text-white"
                       : currentStep === step.id
-                      ? "border-primary-600 bg-white text-primary-600"
+                      ? "border-neutral-900 bg-white text-neutral-900"
                       : "border-neutral-300 bg-white text-neutral-400"
                   )}>
                     {currentStep > step.id ? (
@@ -94,7 +94,7 @@ export default function StrategyWizard() {
                 {index < steps.length - 1 && (
                   <div className={cn(
                     "flex-1 h-0.5 mx-4 transition-colors",
-                    currentStep > step.id ? "bg-primary-600" : "bg-neutral-300"
+                    currentStep > step.id ? "bg-neutral-900" : "bg-neutral-300"
                   )} />
                 )}
               </div>
@@ -108,10 +108,10 @@ export default function StrategyWizard() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
-          className="glass rounded-2xl p-12"
+          className="runway-card p-12"
         >
           <div className="text-center mb-8">
-            <div className="w-20 h-20 rounded-2xl bg-primary-100 text-primary-600 flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 rounded-2xl bg-neutral-100 text-neutral-900 flex items-center justify-center mx-auto mb-4">
               <Icon className="w-10 h-10" />
             </div>
             <h2 className="text-3xl font-display font-bold mb-2">{currentStepData.title}</h2>
@@ -125,7 +125,7 @@ export default function StrategyWizard() {
                 placeholder="Describe your business, industry, current situation, and goals..."
                 value={formData.businessContext}
                 onChange={(e) => setFormData({ ...formData, businessContext: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
               />
             )}
             {currentStep === 2 && (
@@ -134,7 +134,7 @@ export default function StrategyWizard() {
                 placeholder="Describe your ideal customer profile, their pain points, and how you serve them..."
                 value={formData.targetMarket}
                 onChange={(e) => setFormData({ ...formData, targetMarket: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
               />
             )}
             {currentStep === 3 && (
@@ -143,7 +143,7 @@ export default function StrategyWizard() {
                 placeholder="What makes your solution unique? What value do you provide that competitors don't?"
                 value={formData.valueProposition}
                 onChange={(e) => setFormData({ ...formData, valueProposition: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
               />
             )}
             {currentStep === 4 && (
@@ -152,7 +152,7 @@ export default function StrategyWizard() {
                 placeholder="What metrics will you track? How will you measure success?"
                 value={formData.successMetrics}
                 onChange={(e) => setFormData({ ...formData, successMetrics: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
               />
             )}
           </div>
@@ -174,7 +174,7 @@ export default function StrategyWizard() {
             </button>
             <button
               onClick={handleNext}
-              className="flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl font-medium hover:bg-primary-700 transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-neutral-900 text-white rounded-xl font-medium hover:bg-neutral-800 transition-colors"
             >
               {currentStep === steps.length ? 'Complete' : 'Next'}
               <ArrowRight className="w-5 h-5" />

@@ -50,8 +50,8 @@ export default function History() {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'move': return 'bg-primary-100 text-primary-700'
-      case 'review': return 'bg-accent-100 text-accent-700'
+      case 'move': return 'bg-neutral-100 text-neutral-900'
+      case 'review': return 'bg-neutral-100 text-neutral-900'
       case 'strategy': return 'bg-green-100 text-green-700'
       case 'icp': return 'bg-blue-100 text-blue-700'
       default: return 'bg-neutral-100 text-neutral-700'
@@ -64,23 +64,21 @@ export default function History() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 p-12 text-white"
+        className="runway-card relative overflow-hidden p-10 text-neutral-900"
       >
-        <div className="relative z-10">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center">
-              <FileText className="w-8 h-8" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-display font-bold mb-2">History</h1>
-              <p className="text-neutral-300 text-lg">
-                Track all your activities and changes
-              </p>
-            </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-neutral-50 to-white" />
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="w-16 h-16 rounded-full border border-neutral-200 bg-white flex items-center justify-center">
+            <FileText className="w-8 h-8 text-neutral-900" />
+          </div>
+          <div>
+            <p className="micro-label">Archive Ledger</p>
+            <h1 className="text-4xl font-display">Document the Runs</h1>
+            <p className="text-sm uppercase tracking-[0.3em] text-neutral-500">
+              Every move logged like a runway note
+            </p>
           </div>
         </div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-accent-500/20 rounded-full blur-3xl" />
       </motion.div>
 
       {/* Filters */}
@@ -92,7 +90,7 @@ export default function History() {
             placeholder="Search history..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full pl-12 pr-4 py-3 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900"
           />
         </div>
         <div className="relative">
@@ -100,7 +98,7 @@ export default function History() {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="pl-12 pr-8 py-3 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none"
+            className="pl-12 pr-8 py-3 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900 appearance-none"
           >
             <option value="all">All Types</option>
             <option value="move">Moves</option>
@@ -112,7 +110,7 @@ export default function History() {
       </div>
 
       {/* History Timeline */}
-      <div className="glass rounded-2xl p-8">
+      <div className="runway-card p-8">
         <div className="space-y-6">
           {filteredItems.map((item, index) => (
             <motion.div
@@ -151,7 +149,7 @@ export default function History() {
                     <div className="text-xs text-neutral-500">2 days ago</div>
                   </div>
                 </div>
-                <button className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium mt-2">
+                <button className="flex items-center gap-2 text-sm text-neutral-900 hover:text-neutral-800 font-medium mt-2">
                   View Details
                   <ArrowRight className="w-4 h-4" />
                 </button>

@@ -39,23 +39,26 @@ export default function Analytics() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent-600 via-accent-700 to-primary-600 p-12 text-white"
+        className="runway-card relative overflow-hidden p-10 text-neutral-900"
       >
-        <div className="relative z-10">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center">
-              <TrendingUp className="w-8 h-8" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-neutral-50 to-white" />
+        <div className="relative z-10 flex items-center gap-6">
+          <div className="w-16 h-16 rounded-full border border-neutral-200 bg-white flex items-center justify-center">
+            <TrendingUp className="w-7 h-7 text-neutral-900" />
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="micro-label tracking-[0.5em]">Insights Studio</span>
+              <span className="h-px w-16 bg-neutral-200" />
             </div>
-            <div>
-              <h1 className="text-4xl font-display font-bold mb-2">Analytics</h1>
-              <p className="text-accent-100 text-lg">
-                Data-driven insights and actionable optimizations
-              </p>
-            </div>
+            <h1 className="font-serif text-4xl md:text-6xl text-black leading-[1.1] tracking-tight antialiased">
+              Read the Pulse
+            </h1>
+            <p className="font-sans text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400">
+              Couture analytics for every move and ritual
+            </p>
           </div>
         </div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl" />
       </motion.div>
 
       {/* Key Metrics */}
@@ -73,10 +76,10 @@ export default function Analytics() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="glass rounded-2xl p-6 hover:shadow-xl transition-shadow"
+              className="runway-card p-6 hover:shadow-xl transition-shadow"
             >
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-accent-100 text-accent-600 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center">
                   <Icon className="w-6 h-6" />
                 </div>
                 <span className="text-sm font-medium text-green-600">{metric.change}</span>
@@ -89,10 +92,13 @@ export default function Analytics() {
       </div>
 
       {/* AI Recommendations */}
-      <div className="glass rounded-2xl p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <Zap className="w-6 h-6 text-accent-600" />
-          <h2 className="text-2xl font-display font-bold">AI Recommendations</h2>
+      <div className="runway-card p-8">
+        <div className="flex items-center gap-3 mb-2">
+          <Zap className="w-6 h-6 text-neutral-900" />
+          <div>
+            <p className="micro-label mb-1">Editor’s Picks</p>
+            <h2 className="text-2xl font-display font-bold">AI Recommendations</h2>
+          </div>
         </div>
         <div className="space-y-4">
           {insights.map((insight, index) => (
@@ -104,8 +110,8 @@ export default function Analytics() {
               className={cn(
                 "p-6 rounded-xl border-2 transition-all cursor-pointer",
                 selectedInsight === insight.id
-                  ? "border-primary-500 bg-primary-50"
-                  : "border-neutral-200 hover:border-primary-300 hover:bg-neutral-50"
+                  ? "border-neutral-900 bg-neutral-50"
+                  : "border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50"
               )}
               onClick={() => setSelectedInsight(selectedInsight === insight.id ? null : insight.id)}
             >
@@ -131,7 +137,7 @@ export default function Analytics() {
                   animate={{ opacity: 1, height: 'auto' }}
                   className="mt-4 pt-4 border-t border-neutral-200"
                 >
-                  <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                  <button className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors">
                     {insight.action}
                     <ArrowRight className="w-4 h-4" />
                   </button>
@@ -144,13 +150,13 @@ export default function Analytics() {
 
       {/* Charts Placeholder */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass rounded-2xl p-8">
+        <div className="runway-card p-8">
           <h3 className="text-xl font-bold mb-4">Move Progress Over Time</h3>
           <div className="h-64 flex items-center justify-center text-neutral-400">
             Chart visualization would go here
           </div>
         </div>
-        <div className="glass rounded-2xl p-8">
+        <div className="runway-card p-8">
           <h3 className="text-xl font-bold mb-4">Completion Rate by Category</h3>
           <div className="h-64 flex items-center justify-center text-neutral-400">
             Chart visualization would go here

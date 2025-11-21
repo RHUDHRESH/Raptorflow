@@ -1,103 +1,41 @@
-import { Link, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { 
-  LayoutDashboard, 
-  Target, 
-  TrendingUp, 
-  Users, 
-  FileText, 
-  Clock,
-  HelpCircle,
-  Sparkles
-} from 'lucide-react'
-import { cn } from '../utils/cn'
+import { Sidebar, SidebarInset, SidebarProvider } from './ui/sidebar'
+import { Separator } from './ui/separator'
+import { AppSidebar } from './app-sidebar'
+import { SidebarTrigger } from './ui/sidebar'
+import { useLocation } from 'react-router-dom'
+import { useState } from 'react'
 
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Moves', href: '/moves', icon: Target },
-  { name: 'Strategy', href: '/strategy', icon: Sparkles },
-  { name: 'Analytics', href: '/analytics', icon: TrendingUp },
-  { name: 'Weekly Review', href: '/review', icon: Clock },
-  { name: 'ICPs', href: '/icps', icon: Users },
-  { name: 'Support', href: '/support', icon: HelpCircle },
-  { name: 'History', href: '/history', icon: FileText },
-]
+const getPageTitle = (pathname) => {
+  if (pathname === '/') return 'Dashboard'
+  const parts = pathname.split('/').filter(Boolean)
+  const lastPart = parts[parts.length - 1]
+  return lastPart.charAt(0).toUpperCase() + lastPart.slice(1).replace(/-/g, ' ')
+}
 
 export default function Layout({ children }) {
   const location = useLocation()
+  const pageTitle = getPageTitle(location.pathname)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/30 to-neutral-50">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-white/80 backdrop-blur-xl border-r border-neutral-200/50 z-50">
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="p-6 border-b border-neutral-200/50">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3"
-            >
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-display font-bold text-neutral-900">Raptorflow</h1>
-                <p className="text-xs text-neutral-500">Strategy Execution</p>
-              </div>
-            </motion.div>
+    <SidebarProvider open={sidebarOpen} setOpen={setSidebarOpen} animate={true}>
+      <Sidebar>
+        <AppSidebar />
+      </Sidebar>
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-neutral-200 bg-white px-4 md:hidden">
+          <SidebarTrigger className="-ml-1 rounded-full border border-neutral-200 p-2" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <div>
+            <p className="micro-label tracking-[0.5em]">Scene</p>
+            <h1 className="text-lg font-display text-neutral-900">{pageTitle}</h1>
           </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {navigation.map((item, index) => {
-              const isActive = location.pathname === item.href || 
-                (item.href !== '/' && location.pathname.startsWith(item.href))
-              const Icon = item.icon
-
-              return (
-                <motion.div
-                  key={item.name}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Link
-                    to={item.href}
-                    className={cn(
-                      "group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
-                      isActive
-                        ? "bg-primary-600 text-white shadow-lg shadow-primary-600/20"
-                        : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
-                    )}
-                  >
-                    <Icon className={cn(
-                      "w-5 h-5 transition-transform group-hover:scale-110",
-                      isActive ? "text-white" : "text-neutral-400"
-                    )} />
-                    <span>{item.name}</span>
-                  </Link>
-                </motion.div>
-              )
-            })}
-          </nav>
-
-          {/* Footer */}
-          <div className="p-4 border-t border-neutral-200/50">
-            <div className="text-xs text-neutral-500 text-center">
-              <p>Raptorflow v1.0</p>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="ml-64 min-h-screen">
-        <div className="p-8">
-          {children}
-        </div>
-      </main>
-    </div>
+        </header>
+        <main className="relative flex-1 min-h-[calc(100vh-4rem)] bg-white px-6 pb-16 pt-8 md:min-h-screen md:px-12 md:pt-12">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.7),transparent_45%)]" />
+          <div className="relative space-y-12 max-w-7xl mx-auto">{children}</div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
-
