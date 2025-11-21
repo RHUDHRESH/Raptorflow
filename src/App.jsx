@@ -13,7 +13,7 @@ import Quests from './pages/Quests'
 import TechTree from './pages/TechTree'
 import Today from './pages/Today'
 import DailySweep from './pages/DailySweep'
-import OnboardingWizard from './pages/OnboardingWizard'
+import Onboarding from './components/Onboarding'
 import Strategy from './pages/Strategy'
 import StrategyWizard from './pages/StrategyWizard'
 import Analytics from './pages/Analytics'
@@ -99,9 +99,7 @@ function App() {
         } />
         <Route path="/onboarding" element={
           <ProtectedRoute>
-            <Layout>
-              <OnboardingWizard />
-            </Layout>
+            <Onboarding onClose={() => window.location.href = '/'} />
           </ProtectedRoute>
         } />
         <Route path="/strategy" element={
