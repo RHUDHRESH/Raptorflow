@@ -1,0 +1,326 @@
+================================================================================
+                    RAPTORFLOW ARCHITECTURE OVERVIEW
+================================================================================
+
+CURRENT STATE (Frontend-Only)
+════════════════════════════════════════════════════════════════════════════════
+
+    ┌──────────────────────────────────────────────────────────────────────┐
+    │                                                                        │
+    │                         CLIENT BROWSER                                │
+    │                                                                        │
+    │  ┌────────────────────────────────────────────────────────────────┐  │
+    │  │                      REACT SPA (Vite)                          │  │
+    │  │                                                                 │  │
+    │  │  ┌─────────────────────────────────────────────────────────┐  │  │
+    │  │  │            PAGES (22 routes)                            │  │  │
+    │  │  ├─────────────────────────────────────────────────────────┤  │  │
+    │  │  │ • Dashboard         • Moves          • WarRoom           │  │  │
+    │  │  │ • Move Detail       • MoveLibrary    • TechTree          │  │  │
+    │  │  │ • Strategy          • StrategyWiz    • Analytics         │  │  │
+    │  │  │ • WeeklyReview      • DailySweep     • Onboarding        │  │  │
+    │  │  │ • ICPManager        • Cohorts        • Account/Settings  │  │  │
+    │  │  │ • History           • Support        • and more...       │  │  │
+    │  │  └─────────────────────────────────────────────────────────┘  │  │
+    │  │                            ↑                                    │  │
+    │  │                   React Router v7.9                             │  │
+    │  │                            ↓                                    │  │
+    │  │  ┌─────────────────────────────────────────────────────────┐  │  │
+    │  │  │            COMPONENTS                                   │  │  │
+    │  │  ├─────────────────────────────────────────────────────────┤  │  │
+    │  │  │ • Move Cards (160 LOC)                                  │  │  │
+    │  │  │ • TechTreeVisualization (345 LOC - DAG rendering)       │  │  │
+    │  │  │ • ICP/Cohort Builders (1700+ LOC each)                 │  │  │
+    │  │  │ • Sidebar, Layouts, UI Components                       │  │  │
+    │  │  │ • Modal dialogs, forms, tables                          │  │  │
+    │  │  │ Total: 15,078 LOC                                       │  │  │
+    │  │  └─────────────────────────────────────────────────────────┘  │  │
+    │  │                            ↑                                    │  │
+    │  │                       useState hooks                            │  │
+    │  │                            ↓                                    │  │
+    │  │  ┌─────────────────────────────────────────────────────────┐  │  │
+    │  │  │            STATE MANAGEMENT                             │  │  │
+    │  │  ├─────────────────────────────────────────────────────────┤  │  │
+    │  │  │ • Mock Data Generators (moveSystemTypes.js)             │  │  │
+    │  │  │ • LocalStorage (onboardingData, cohorts, prefs)         │  │  │
+    │  │  │ • React Hooks (useState, useEffect, useParams)          │  │  │
+    │  │  │ • NO: Real database, API calls, or real-time updates   │  │  │
+    │  │  └─────────────────────────────────────────────────────────┘  │  │
+    │  │                            ↓                                    │  │
+    │  │  ┌─────────────────────────────────────────────────────────┐  │  │
+    │  │  │            STYLING & ANIMATIONS                         │  │  │
+    │  │  ├─────────────────────────────────────────────────────────┤  │  │
+    │  │  │ • Tailwind CSS (primary, accent, neutral colors)        │  │  │
+    │  │  │ • Framer Motion (180ms transitions, keyframes)          │  │  │
+    │  │  │ • PostCSS + Autoprefixer                                │  │  │
+    │  │  │ • Fashion-house design aesthetic                        │  │  │
+    │  │  └─────────────────────────────────────────────────────────┘  │  │
+    │  │                                                                 │  │
+    │  │  EXTERNAL CALLS:                                               │  │
+    │  │  • Google Maps API (hardcoded key) ⚠️ SECURITY ISSUE         │  │
+    │  │  • Google Gemini API (empty, expects env var)                │  │
+    │  │                                                                 │  │
+    │  └────────────────────────────────────────────────────────────────┘  │
+    │                                                                        │
+    └──────────────────────────────────────────────────────────────────────┘
+             |
+             |  npm run dev (port 3000)
+             |  or
+             |  npm run build → /dist
+             |
+             v
+        VITE DEV SERVER / VERCEL
+
+
+════════════════════════════════════════════════════════════════════════════════
+
+TARGET STATE (After Refactoring to New Stack)
+════════════════════════════════════════════════════════════════════════════════
+
+                              VERCEL
+        ┌─────────────────────────────────────────────────────┐
+        │                                                       │
+        │  Frontend (Vite Build → /dist)                       │
+        │  ├── All React pages & components (unchanged)        │
+        │  ├── Integrated Supabase SDK                         │
+        │  ├── PostHog analytics tracking                      │
+        │  └── Service layer connected to backend              │
+        │                                                       │
+        └───────────┬───────────────────────────────────────────┘
+                    │
+                    │  HTTP/WebSocket
+                    │
+        ┌───────────v───────────────────────────────────────────┐
+        │              SUPABASE (PostgreSQL)                     │
+        │                                                         │
+        │  ┌─────────────────────────────────────────────────┐  │
+        │  │  TABLES:                                        │  │
+        │  │  • maneuver_types (15+ templates)               │  │
+        │  │  • capability_nodes (40+ tech tree nodes)       │  │
+        │  │  • moves (core execution entities)              │  │
+        │  │  • sprints (time-boxed windows)                 │  │
+        │  │  • lines_of_operation (strategic groupings)     │  │
+        │  │  • move_anomalies (AI-detected issues)          │  │
+        │  │  • move_logs (daily tracking)                   │  │
+        │  │  • workspace_members (multi-tenancy)            │  │
+        │  │  • auth.users (Supabase Auth)                   │  │
+        │  └─────────────────────────────────────────────────┘  │
+        │                                                         │
+        │  FEATURES:                                              │
+        │  • Row Level Security (RLS) policies                   │
+        │  • Realtime subscriptions (WebSocket)                  │
+        │  • Automatic backups                                   │
+        │  • Built-in auth integration                           │
+        │                                                         │
+        └─────────────────┬──────────────────────────────────────┘
+                          │
+        ┌─────────────────┴──────────────────────────────────────┐
+        │                                                         │
+        v                                                         v
+        
+    ┌──────────────────────────┐               ┌───────────────────────┐
+    │  POSTHOG ANALYTICS       │               │  GCP SERVICES         │
+    │  ─────────────────────    │               │  ─────────────────────│
+    │  • Event tracking         │               │  • Cloud Storage      │
+    │  • User identification    │               │  • Cloud Logging      │
+    │  • Session recording      │               │  • Error Reporting    │
+    │  • Funnel analysis        │               │  • Performance Mon.   │
+    │  • A/B testing            │               │                       │
+    └──────────────────────────┘               └───────────────────────┘
+
+
+════════════════════════════════════════════════════════════════════════════════
+
+COMPONENT ARCHITECTURE
+════════════════════════════════════════════════════════════════════════════════
+
+Frontend Layer:
+  Layout.jsx (41 LOC)
+    ├── AppSidebar (168 LOC)
+    │   └── Nav links to 22 routes
+    └── Page Components
+        ├── Dashboard (KPIs, recent moves)
+        ├── Moves (grid with filters)
+        ├── MoveDetail (OODA tracking, tabs)
+        ├── WarRoom (sprint planning, drag-drop)
+        ├── TechTree (DAG visualization)
+        ├── ICP/Cohorts Manager (tag system)
+        ├── Analytics (AI insights)
+        └── ... 15 more pages
+
+Service Layer (TO BE IMPLEMENTED):
+  move-service.ts
+    ├── getManeuverTypes()
+    ├── getMoves()
+    ├── createMove()
+    ├── updateMoveStatus()
+    ├── getMoveAnomalies()
+    ├── logMoveExecution()
+    └── ... all CRUD ops
+
+  tech-tree-service.ts
+    ├── canUnlockNode()
+    ├── checkCriteria()
+    └── getUnlockableNodes()
+
+  auth-service.ts
+    ├── signup()
+    ├── signin()
+    ├── logout()
+    └── resetPassword()
+
+  user-service.ts
+    ├── getProfile()
+    ├── updateProfile()
+    └── getPreferences()
+
+Data Models (READY):
+  src/types/move-system.ts
+    ├── ManeuverType, CapabilityNode, Move, Sprint
+    ├── MoveAnomaly, MoveLog, LineOfOperation
+    └── Database row types (snake_case conversion)
+
+Database:
+  Supabase PostgreSQL
+    └── 001_move_system_schema.sql
+        ├── 8 core tables
+        ├── 10+ performance indexes
+        ├── Foreign key constraints
+        ├── JSONB flexible fields
+        └── Auto-timestamp triggers
+
+
+════════════════════════════════════════════════════════════════════════════════
+
+DATA FLOW (After Implementation)
+════════════════════════════════════════════════════════════════════════════════
+
+USER INTERACTION:
+  Browser Click
+      ↓
+  React Event Handler
+      ↓
+  Service Layer Call (e.g., moveService.createMove())
+      ↓
+  Supabase Client API
+      ↓
+  PostgreSQL Database
+      ↓
+  Response (with realtime update)
+      ↓
+  PostHog Analytics (trackUserAction)
+      ↓
+  Update UI
+      ↓
+  Display in Browser
+
+
+REALTIME FEATURES:
+  Move Updated → Supabase Trigger → Notification → All Connected Clients
+  Tech Tree Node Unlocked → Auto-detect → All Subscribers Notified
+  Anomaly Detected → Create Alert → User Dashboard Update
+
+
+════════════════════════════════════════════════════════════════════════════════
+
+SECURITY ARCHITECTURE (Target)
+════════════════════════════════════════════════════════════════════════════════
+
+Client (Vercel):
+  └── All requests signed with JWT token
+
+Network:
+  └── HTTPS/TLS encryption in transit
+
+Database (Supabase):
+  └── Row Level Security (RLS)
+      ├── Users can see moves in their workspace
+      ├── Moves scoped to workspace_id
+      ├── Anomalies visible only to move owner/workspace
+      └── Admin-only tables have strict policies
+
+Authentication:
+  ├── Supabase Auth (built-in)
+  ├── JWT tokens (signed by Supabase)
+  └── Refresh tokens (secure, httpOnly)
+
+API Security:
+  ├── Rate limiting (Vercel default)
+  ├── CORS configuration
+  ├── Input validation
+  └── Error messages (no data leakage)
+
+Monitoring:
+  ├── GCP Error Reporting
+  ├── PostHog anomaly detection
+  └── Vercel performance alerts
+
+
+════════════════════════════════════════════════════════════════════════════════
+
+MIGRATION PROGRESS TRACKING
+════════════════════════════════════════════════════════════════════════════════
+
+Phase 1: Configuration      [████────────────────] Week 1   (Setup)
+Phase 2: Backend           [████████████──────────] Week 2-3 (Core Logic)
+Phase 3: Real-time         [██████────────────────] Week 3-4 (Features)
+Phase 4: Analytics         [██────────────────────] Week 4   (Observability)
+Phase 5: Testing           [────────────────────────] Week 5   (Quality)
+Phase 6: Deployment        [────────────────────────] Week 6   (Launch)
+
+Overall Progress: ███████░░░░░░░░░░░░░░░░ 30% Complete
+
+
+════════════════════════════════════════════════════════════════════════════════
+
+DEPLOYMENT ARCHITECTURE
+════════════════════════════════════════════════════════════════════════════════
+
+Local Development:
+  npm run dev
+    └── Vite dev server on localhost:3000
+        ├── Hot module reload enabled
+        └── Mock data generators active
+
+Staging:
+  Vercel Preview Deployment
+    ├── Connected to staging Supabase project
+    ├── PostHog staging environment
+    └── Full testing environment
+
+Production:
+  Vercel Production Deployment
+    ├── Optimized Vite build
+    ├── Production Supabase project (backups enabled)
+    ├── CDN caching (Vercel Edge Network)
+    ├── Monitoring active (PostHog + GCP)
+    └── Automatic SSL/TLS
+
+
+════════════════════════════════════════════════════════════════════════════════
+
+ESTIMATED CODE CHANGES
+════════════════════════════════════════════════════════════════════════════════
+
+Files to Create:
+  ✓ .env.example                           (50 lines)
+  ✓ src/lib/supabase/client.ts             (15 lines)
+  ✓ src/lib/analytics/posthog.ts           (20 lines)
+  ✓ src/lib/services/auth-service.ts       (80 lines)
+  ✓ src/lib/services/user-service.ts       (50 lines)
+  ✓ src/hooks/useAuth.ts                   (40 lines)
+  ✓ src/hooks/useRealtimeMoves.ts          (40 lines)
+  ✓ vercel.json                            (30 lines)
+  ✓ scripts/seed-database.ts               (100 lines)
+
+Files to Modify:
+  ✓ package.json                           (add 4 dependencies)
+  ✓ src/main.jsx                           (add PostHog init)
+  ✓ src/App.jsx                            (add auth wrapper)
+  ✓ src/lib/services/move-service.ts       (implement all methods)
+  ✓ ~20-30 page components                 (replace mock data with service calls)
+
+Total Estimated Code Lines: ~2,000 new/modified
+Total Estimated Time: 4-6 weeks
+
+════════════════════════════════════════════════════════════════════════════════
