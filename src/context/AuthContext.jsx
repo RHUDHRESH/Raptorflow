@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
+<<<<<<< Updated upstream
     // Check for OAuth callback in URL hash
     const handleOAuthCallback = async () => {
       try {
@@ -59,10 +60,14 @@ export const AuthProvider = ({ children }) => {
     } else {
       checkAuth();
     }
+=======
+    checkAuth();
+>>>>>>> Stashed changes
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+<<<<<<< Updated upstream
         console.log('Auth state changed:', event, session?.user?.email);
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session?.user) {
@@ -78,6 +83,16 @@ export const AuthProvider = ({ children }) => {
             if (window.location.hash) {
               window.history.replaceState(null, '', window.location.pathname);
             }
+=======
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            setUser({
+              id: session.user.id,
+              email: session.user.email,
+              name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+              avatar_url: session.user.user_metadata?.avatar_url,
+            });
+>>>>>>> Stashed changes
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);

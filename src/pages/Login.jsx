@@ -12,7 +12,11 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
+<<<<<<< Updated upstream
   const { login, loginWithGoogle, skipLoginDev, loading, error: authError, isAuthenticated } = useAuth();
+=======
+  const { login, loginWithGoogle, loading, error: authError } = useAuth();
+>>>>>>> Stashed changes
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,6 +65,7 @@ const Login = () => {
     // OAuth redirect will happen automatically
   };
 
+<<<<<<< Updated upstream
   const handleSkipLogin = () => {
     setErrors({});
     const result = skipLoginDev();
@@ -71,6 +76,8 @@ const Login = () => {
     }
   };
 
+=======
+>>>>>>> Stashed changes
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4">
       <div className="max-w-md w-full space-y-8">
@@ -209,6 +216,7 @@ const Login = () => {
           </div>
         </div>
 
+<<<<<<< Updated upstream
         {/* DEV ONLY: Skip Login Button */}
         {import.meta.env.DEV && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -225,6 +233,8 @@ const Login = () => {
           </div>
         )}
 
+=======
+>>>>>>> Stashed changes
         {/* Info Note */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm text-blue-800">
