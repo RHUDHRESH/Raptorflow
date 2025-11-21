@@ -68,6 +68,7 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         console.log('Auth state changed:', event, session?.user?.email);
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session?.user) {
@@ -84,6 +85,8 @@ export const AuthProvider = ({ children }) => {
               window.history.replaceState(null, '', window.location.pathname);
             }
 =======
+=======
+>>>>>>> Stashed changes
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session?.user) {
             setUser({
@@ -92,6 +95,9 @@ export const AuthProvider = ({ children }) => {
               name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
               avatar_url: session.user.user_metadata?.avatar_url,
             });
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
           }
         } else if (event === 'SIGNED_OUT') {

@@ -13,7 +13,11 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   const { login, loginWithGoogle, skipLoginDev, loading, error: authError, isAuthenticated } = useAuth();
+=======
+  const { login, loginWithGoogle, loading, error: authError } = useAuth();
+>>>>>>> Stashed changes
 =======
   const { login, loginWithGoogle, loading, error: authError } = useAuth();
 >>>>>>> Stashed changes
@@ -66,6 +70,7 @@ const Login = () => {
   };
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   const handleSkipLogin = () => {
     setErrors({});
     const result = skipLoginDev();
@@ -76,6 +81,8 @@ const Login = () => {
     }
   };
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   return (
@@ -217,6 +224,7 @@ const Login = () => {
         </div>
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         {/* DEV ONLY: Skip Login Button */}
         {import.meta.env.DEV && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -233,6 +241,8 @@ const Login = () => {
           </div>
         )}
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         {/* Info Note */}
