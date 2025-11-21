@@ -28,7 +28,7 @@ const mockQuests = [
   createQuest({
     id: 'quest-2',
     name: 'Build First Lead Magnet',
-    objective: 'Capture 100 emails from ICP: Startup Founders',
+    objective: 'Capture 100 emails from cohort: Startup Founders',
     prerequisite_node_ids: ['icp-definition'],
     recommended_move_ids: ['asset-forge'],
     reward_node_id: 'lead-magnet',

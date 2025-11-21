@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowRight, Sparkles, Search, Check, Loader2, AlertTriangle, ChevronDown, X } from 'lucide-react';
 import MarketPositionSnapshot from './MarketPositionSnapshot';
-import ICPBuilder from './ICPBuilder';
+import CohortsBuilder from './CohortsBuilder';
 
 const GOOGLE_MAPS_API_KEY =
   import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
@@ -742,7 +742,7 @@ export default function Onboarding({ onClose }) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [status, setStatus] = useState('input');
-  const [showICPBuilder, setShowICPBuilder] = useState(false); 
+  const [showCohortsBuilder, setShowCohortsBuilder] = useState(false); 
   
   const currentQuestion = questions[currentStepIndex];
   const mainScrollRef = useRef(null);
@@ -860,8 +860,8 @@ export default function Onboarding({ onClose }) {
         <button 
             onClick={() => {
               console.log("Submitting data:", answers);
-              // Launch ICP Builder instead of closing
-              setShowICPBuilder(true);
+              // Launch Cohorts Builder instead of closing
+              setShowCohortsBuilder(true);
             }} 
             className="group relative bg-black text-white px-16 py-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20"
         >
@@ -913,12 +913,12 @@ export default function Onboarding({ onClose }) {
     }
   };
 
-  // Show ICP Builder if triggered
-  if (showICPBuilder) {
+  // Show Cohorts Builder if triggered
+  if (showCohortsBuilder) {
     return (
-      <ICPBuilder 
+      <CohortsBuilder 
         onClose={() => {
-          setShowICPBuilder(false);
+          setShowCohortsBuilder(false);
           onClose && onClose();
         }} 
         onboardingData={{ answers }}

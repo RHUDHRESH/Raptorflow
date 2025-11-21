@@ -8,7 +8,7 @@ export default function DroppableSprintLane({
   sprint, 
   moves = [], 
   maneuverTypes = [], 
-  icps = [],
+  cohorts = [],
   onMoveClick 
 }) {
   const { setNodeRef, isOver } = useDroppable({
@@ -88,14 +88,14 @@ export default function DroppableSprintLane({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {moves.map((move) => {
             const maneuverType = maneuverTypes.find(mt => mt.id === move.maneuver_type_id)
-            const icp = icps.find(i => i.id === move.primary_icp_id)
+            const cohort = cohorts.find(c => c.id === move.primary_cohort_id)
             
             return (
               <MoveCard
                 key={move.id}
                 move={move}
                 maneuverType={maneuverType}
-                icp={icp}
+                cohort={cohort}
                 onClick={onMoveClick}
               />
             )

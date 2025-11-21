@@ -13,7 +13,7 @@ import {
 import { cn } from '../../utils/cn'
 import { MoveStatus, Posture } from '../../utils/moveSystemTypes'
 
-export default function MoveCard({ move, maneuverType, icp, compact = false, onClick }) {
+export default function MoveCard({ move, maneuverType, cohort, compact = false, onClick }) {
   const getStatusColor = (status) => {
     if (status === MoveStatus.COMPLETE) return 'bg-green-50 text-green-900 border-green-200'
     if (status === MoveStatus.KILLED) return 'bg-red-50 text-red-900 border-red-200'
@@ -84,13 +84,13 @@ export default function MoveCard({ move, maneuverType, icp, compact = false, onC
         )} />
       </div>
 
-      {/* ICP Chip */}
-      {icp && (
+      {/* Cohort Chip */}
+      {cohort && (
         <div className="flex items-center gap-2 mb-3">
           <div className="w-6 h-6 rounded-full bg-neutral-200 flex items-center justify-center">
             <Users className="w-3 h-3 text-neutral-700" />
           </div>
-          <span className="text-xs text-neutral-600 truncate">{icp.name}</span>
+          <span className="text-xs text-neutral-600 truncate">{cohort.name}</span>
         </div>
       )}
 

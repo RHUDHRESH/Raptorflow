@@ -75,7 +75,7 @@ const mockMoves = [
   })
 ]
 
-const mockICPs = [
+const mockCohorts = [
   { id: 1, name: 'Enterprise CTOs' },
   { id: 2, name: 'E-commerce Founders' }
 ]
@@ -88,7 +88,7 @@ const mockAnomalies = [
     anomaly_type: 'Tone_Clash',
     severity: 3,
     message: 'Tone Clash: Proposed meme post in Authority Sprint violates Safety Seeker profile – blocked.',
-    resolution: 'Content adjusted to match ICP tone guidelines'
+    resolution: 'Content adjusted to match cohort tone guidelines'
   },
   {
     id: 'anomaly-2',
@@ -113,7 +113,7 @@ export default function WarRoom() {
   const [sprints, setSprints] = useState(mockSprints)
   const [moves, setMoves] = useState(mockMoves)
   const [maneuverTypes] = useState(generateMockManeuverTypes())
-  const [icps] = useState(mockICPs)
+  const [cohorts] = useState(mockCohorts)
   const [anomalies, setAnomalies] = useState(mockAnomalies)
   const [insights, setInsights] = useState(mockInsights)
   const [selectedLoo, setSelectedLoo] = useState('all')
@@ -206,7 +206,7 @@ export default function WarRoom() {
               sprint={currentSprint}
               moves={sprintMoves}
               maneuverTypes={maneuverTypes}
-              icps={icps}
+              cohorts={cohorts}
               onMoveClick={(move) => {
                 // Navigate to move detail
                 window.location.href = `/moves/${move.id}`

@@ -3,7 +3,7 @@ import { Calendar, TrendingUp, AlertCircle } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import MoveCard from './MoveCard'
 
-export default function SprintLane({ sprint, moves = [], maneuverTypes = [], icps = [], onMoveClick }) {
+export default function SprintLane({ sprint, moves = [], maneuverTypes = [], cohorts = [], onMoveClick }) {
   const capacityPercent = sprint.capacity_budget > 0 
     ? Math.min((sprint.current_load / sprint.capacity_budget) * 100, 100)
     : 0
@@ -75,14 +75,14 @@ export default function SprintLane({ sprint, moves = [], maneuverTypes = [], icp
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {moves.map((move) => {
             const maneuverType = maneuverTypes.find(mt => mt.id === move.maneuver_type_id)
-            const icp = icps.find(i => i.id === move.primary_icp_id)
+            const cohort = cohorts.find(c => c.id === move.primary_cohort_id)
             
             return (
               <MoveCard
                 key={move.id}
                 move={move}
                 maneuverType={maneuverType}
-                icp={icp}
+                cohort={cohort}
                 onClick={onMoveClick}
               />
             )

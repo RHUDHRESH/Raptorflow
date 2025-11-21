@@ -14,10 +14,10 @@ const settingsTabs = [
 ]
 
 const PLAN_LIMITS = {
-  bubtle: { icps: 1, moves: 10, price: '$0' },
-  ascent: { icps: 3, moves: 50, price: '$29' },
-  glide: { icps: 6, moves: 150, price: '$79' },
-  soar: { icps: 9, moves: 500, price: '$199' },
+  bubtle: { cohorts: 1, moves: 10, price: '$0' },
+  ascent: { cohorts: 3, moves: 50, price: '$29' },
+  glide: { cohorts: 6, moves: 150, price: '$79' },
+  soar: { cohorts: 9, moves: 500, price: '$199' },
 }
 
 const getUserPlan = () => {
@@ -247,14 +247,14 @@ export default function Settings() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold">{currentPlanData.icps} ICPs</div>
+                    <div className="text-2xl font-bold">{currentPlanData.cohorts} cohorts</div>
                     <div className="text-sm text-neutral-300">Limit</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-neutral-700">
                   <div>
-                    <p className="text-xs text-neutral-400 uppercase tracking-[0.2em] mb-1">ICP Profiles</p>
-                    <p className="text-lg font-semibold">{currentPlanData.icps}</p>
+                    <p className="text-xs text-neutral-400 uppercase tracking-[0.2em] mb-1">Cohort Profiles</p>
+                    <p className="text-lg font-semibold">{currentPlanData.cohorts}</p>
                   </div>
                   <div>
                     <p className="text-xs text-neutral-400 uppercase tracking-[0.2em] mb-1">Moves</p>
@@ -305,7 +305,7 @@ export default function Settings() {
                           <div className="space-y-2 py-4 border-t border-neutral-200">
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-neutral-600">Cohort Profiles</span>
-                              <span className="font-semibold text-neutral-900">{planData.icps}</span>
+                              <span className="font-semibold text-neutral-900">{planData.cohorts}</span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-neutral-600">Moves</span>

@@ -41,7 +41,7 @@ const navigationItems = [
   { title: "Strategy Atelier", icon: Sparkles, url: "/strategy" },
   { title: "Insights Studio", icon: TrendingUp, url: "/analytics" },
   { title: "Editorial Recap", icon: Clock, url: "/review" },
-  { title: "Audience Archive", icon: Users, url: "/icps" },
+  { title: "Audience Archive", icon: Users, url: "/cohorts" },
   { title: "Archive Ledger", icon: FileText, url: "/history" },
 ]
 

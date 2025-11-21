@@ -41,7 +41,7 @@ const mockMove = {
   current_day: 5,
   ooda_config: {
     observe_sources: ['GA', 'CRM', 'LI'],
-    orient_rules: 'ICP is high-motivation but high-risk aversion. Center of Gravity = LinkedIn + security communities. Season = Planting → accept longer runway, lower intensity.',
+    orient_rules: 'Cohort is high-motivation but high-risk aversion. Center of Gravity = LinkedIn + security communities. Season = Planting → accept longer runway, lower intensity.',
     decide_logic: 'If CTR < 1%, switch creative. If engagement > 5%, double down.',
     act_tasks: [
       { day: 1, task: "Publish 'Big Risk' whitepaper", channel: 'LinkedIn', status: 'complete' },
@@ -164,7 +164,7 @@ export default function MoveDetail() {
             <p className="text-sm font-medium text-neutral-900">{move.line_of_operation_name}</p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Primary ICP</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Primary Cohort</p>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-neutral-200 flex items-center justify-center">
                 <Users className="w-3 h-3 text-neutral-700" />

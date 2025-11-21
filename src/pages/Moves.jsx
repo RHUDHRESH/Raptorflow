@@ -7,7 +7,7 @@ import { cn } from '../utils/cn'
 const moves = [
   { id: 1, name: 'Launch Product Beta', status: 'on-track', progress: 75, dueDate: '2025-12-15' },
   { id: 2, name: 'Acquire 100 Customers', status: 'at-risk', progress: 45, dueDate: '2025-12-20' },
-  { id: 3, name: 'Build ICP Database', status: 'on-track', progress: 90, dueDate: '2025-12-10' },
+  { id: 3, name: 'Build Cohorts Database', status: 'on-track', progress: 90, dueDate: '2025-12-10' },
   { id: 4, name: 'Implement Analytics Dashboard', status: 'on-track', progress: 60, dueDate: '2025-12-25' },
   { id: 5, name: 'Weekly Review Process', status: 'completed', progress: 100, dueDate: '2025-12-05' },
 ]
