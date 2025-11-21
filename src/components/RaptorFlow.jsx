@@ -6,7 +6,8 @@ import { ArrowRight, Sparkles, Search, Check, Loader2, AlertTriangle, ChevronDow
 
 // --- CONFIGURATION ---
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyGT2XWp6X7UJLZ1EkL3mxV4m7Gx4nv6wU";
+// Use environment variable for Google Maps API key
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
 
 

@@ -1,9 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, Mail, Building, Calendar, MapPin, Phone, Edit2, Save, X } from 'lucide-react'
-import { useState } from 'react'
+import { User, Mail, Building, Calendar, MapPin, Phone, Edit2, Save, X, AlertCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { sanitizeInput, setSecureLocalStorage, getSecureLocalStorage } from '../utils/sanitize'
+import { validateEmail, validatePhone, validateRequired, validateTextArea } from '../utils/validation'
 
 export default function Account() {
   const [isEditing, setIsEditing] = useState(false)
+  const [errors, setErrors] = useState({})
   const [profile, setProfile] = useState({
     name: 'John Doe',
     email: 'john.doe@example.com',
@@ -14,15 +17,77 @@ export default function Account() {
     joinedDate: 'January 2024',
     bio: 'Strategic thinker with a passion for execution and results.',
   })
+  const [originalProfile, setOriginalProfile] = useState(profile)
+
+  // Load profile from secure localStorage on mount
+  useEffect(() => {
+    const savedProfile = getSecureLocalStorage('userProfile')
+    if (savedProfile) {
+      setProfile(savedProfile)
+      setOriginalProfile(savedProfile)
+    }
+  }, [])
+
+  const handleChange = (field, value) => {
+    // Sanitize input on change
+    const sanitizedValue = sanitizeInput(value)
+    setProfile(prev => ({ ...prev, [field]: sanitizedValue }))
+
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: null }))
+    }
+  }
+
+  const validateProfile = () => {
+    const newErrors = {}
+
+    // Validate name
+    const nameValidation = validateRequired(profile.name, 'Name', 2, 100)
+    if (!nameValidation.isValid) {
+      newErrors.name = nameValidation.error
+    }
+
+    // Validate email
+    const emailValidation = validateEmail(profile.email)
+    if (!emailValidation.isValid) {
+      newErrors.email = emailValidation.error
+    }
+
+    // Validate phone (optional)
+    const phoneValidation = validatePhone(profile.phone)
+    if (!phoneValidation.isValid) {
+      newErrors.phone = phoneValidation.error
+    }
+
+    // Validate bio
+    const bioValidation = validateTextArea(profile.bio, 'Bio', 500)
+    if (!bioValidation.isValid) {
+      newErrors.bio = bioValidation.error
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSave = () => {
+    // Validate before saving
+    if (!validateProfile()) {
+      return
+    }
+
+    // Save to secure localStorage
+    setSecureLocalStorage('userProfile', profile)
+    setOriginalProfile(profile)
     setIsEditing(false)
-    // Here you would typically save to backend
+    setErrors({})
   }
 
   const handleCancel = () => {
+    // Reset to original values
+    setProfile(originalProfile)
     setIsEditing(false)
-    // Reset to original values if needed
+    setErrors({})
   }
 
   return (
@@ -133,12 +198,17 @@ export default function Account() {
                   Full Name
                 </label>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={profile.name}
-                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                    className="w-full px-0 py-1.5 border-b border-neutral-200 bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base"
-                  />
+                  <>
+                    <input
+                      type="text"
+                      value={profile.name}
+                      onChange={(e) => handleChange('name', e.target.value)}
+                      className={`w-full px-0 py-1.5 border-b ${errors.name ? 'border-red-500' : 'border-neutral-200'} bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base`}
+                    />
+                    {errors.name && (
+                      <p className="text-xs text-red-600 mt-1">{errors.name}</p>
+                    )}
+                  </>
                 ) : (
                   <p className="font-serif text-base text-neutral-900">{profile.name}</p>
                 )}
@@ -150,12 +220,17 @@ export default function Account() {
                   Email
                 </label>
                 {isEditing ? (
-                  <input
-                    type="email"
-                    value={profile.email}
-                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                    className="w-full px-0 py-1.5 border-b border-neutral-200 bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base"
-                  />
+                  <>
+                    <input
+                      type="email"
+                      value={profile.email}
+                      onChange={(e) => handleChange('email', e.target.value)}
+                      className={`w-full px-0 py-1.5 border-b ${errors.email ? 'border-red-500' : 'border-neutral-200'} bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base`}
+                    />
+                    {errors.email && (
+                      <p className="text-xs text-red-600 mt-1">{errors.email}</p>
+                    )}
+                  </>
                 ) : (
                   <div className="flex items-center gap-2">
                     <Mail className="w-3.5 h-3.5 text-neutral-400" />
@@ -173,7 +248,7 @@ export default function Account() {
                   <input
                     type="text"
                     value={profile.company}
-                    onChange={(e) => setProfile({ ...profile, company: e.target.value })}
+                    onChange={(e) => handleChange('company', e.target.value)}
                     className="w-full px-0 py-1.5 border-b border-neutral-200 bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base"
                   />
                 ) : (
@@ -193,7 +268,7 @@ export default function Account() {
                   <input
                     type="text"
                     value={profile.role}
-                    onChange={(e) => setProfile({ ...profile, role: e.target.value })}
+                    onChange={(e) => handleChange('role', e.target.value)}
                     className="w-full px-0 py-1.5 border-b border-neutral-200 bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base"
                   />
                 ) : (
@@ -207,12 +282,17 @@ export default function Account() {
                   Phone
                 </label>
                 {isEditing ? (
-                  <input
-                    type="tel"
-                    value={profile.phone}
-                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                    className="w-full px-0 py-1.5 border-b border-neutral-200 bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base"
-                  />
+                  <>
+                    <input
+                      type="tel"
+                      value={profile.phone}
+                      onChange={(e) => handleChange('phone', e.target.value)}
+                      className={`w-full px-0 py-1.5 border-b ${errors.phone ? 'border-red-500' : 'border-neutral-200'} bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base`}
+                    />
+                    {errors.phone && (
+                      <p className="text-xs text-red-600 mt-1">{errors.phone}</p>
+                    )}
+                  </>
                 ) : (
                   <div className="flex items-center gap-2">
                     <Phone className="w-3.5 h-3.5 text-neutral-400" />
@@ -230,7 +310,7 @@ export default function Account() {
                   <input
                     type="text"
                     value={profile.location}
-                    onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                    onChange={(e) => handleChange('location', e.target.value)}
                     className="w-full px-0 py-1.5 border-b border-neutral-200 bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base"
                   />
                 ) : (
@@ -247,12 +327,17 @@ export default function Account() {
                   Bio
                 </label>
                 {isEditing ? (
-                  <textarea
-                    rows={2}
-                    value={profile.bio}
-                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                    className="w-full px-0 py-1.5 border-b border-neutral-200 bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base resize-none"
-                  />
+                  <>
+                    <textarea
+                      rows={2}
+                      value={profile.bio}
+                      onChange={(e) => handleChange('bio', e.target.value)}
+                      className={`w-full px-0 py-1.5 border-b ${errors.bio ? 'border-red-500' : 'border-neutral-200'} bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base resize-none`}
+                    />
+                    {errors.bio && (
+                      <p className="text-xs text-red-600 mt-1">{errors.bio}</p>
+                    )}
+                  </>
                 ) : (
                   <p className="font-serif text-base text-neutral-900 leading-relaxed">{profile.bio}</p>
                 )}
