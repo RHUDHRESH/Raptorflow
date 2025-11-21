@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ArrowRight, Sparkles, Search, Check, Loader2, AlertTriangle, ChevronDown, X } from 'lucide-react';
+import { ArrowRight, Sparkles, Search, Check, Loader2, AlertTriangle, ChevronDown, X, Brain, Users, Target } from 'lucide-react';
+import { motion } from 'framer-motion';
 import MarketPositionSnapshot from './MarketPositionSnapshot';
 import CohortsBuilder from './CohortsBuilder';
 import { getVertexAIUrl, TASK_TYPES } from '../utils/vertexAI';
@@ -92,6 +93,177 @@ const FALLBACK_FOLLOW_UPS = [
     placeholder: 'Why did they pick you over the other option?'
   }
 ];
+
+// AI-powered answer suggestions
+const generateAnswerSuggestions = async (question, partialAnswer, answers) => {
+  try {
+    const url = getVertexAIUrl(TASK_TYPES.CREATIVE_FAST);
+    const context = Object.keys(answers).length > 0
+      ? `Based on previous answers:\n${JSON.stringify(answers, null, 2)}\n\n`
+      : '';
+
+    const systemInstruction = `You are a helpful business strategist. The user is answering: "${question.prompt}". ${partialAnswer ? `They've started with: "${partialAnswer}".` : ''} Provide 2-3 concise, specific suggestions to help them complete their answer. Keep suggestions under 50 words each.`;
+
+    const payload = {
+      contents: [{ parts: [{ text: context + systemInstruction }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "ARRAY",
+          items: { type: "STRING" }
+        },
+        maxOutputTokens: 500,
+        temperature: 0.7
+      }
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) return [];
+    const data = await response.json();
+    const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!jsonText) return [];
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.warn('Answer suggestions failed:', error);
+    return [];
+  }
+};
+
+// AI-powered ICP generation from onboarding data
+const generateICPFromAnswers = async (answers) => {
+  try {
+    const url = getVertexAIUrl(TASK_TYPES.CREATIVE_REASONING);
+
+    let contextString = "Analyze the following business onboarding data and generate an Ideal Customer Profile (ICP):\n\n";
+    INITIAL_QUESTIONS.forEach(q => {
+      if (q.type === 'multi') {
+        q.fields.forEach(field => {
+          const ans = answers[field.id] || "Not answered";
+          contextString += `${field.label}: ${ans}\n`;
+        });
+      } else if (q.type === 'map') {
+        const loc = answers[q.id];
+        const locStr = loc ? (loc.address || `${loc.lat}, ${loc.lng}`) : "Not provided";
+        contextString += `${q.prompt}: ${locStr}\n`;
+      } else {
+        const ans = answers[q.id] || "Not answered";
+        contextString += `${q.prompt}: ${ans}\n`;
+      }
+    });
+
+    const systemInstruction = `
+    Based on this business data, generate 1-3 detailed Ideal Customer Profiles (ICPs).
+    Each ICP should include:
+    - Name/Label for the cohort
+    - Industry and company size
+    - Key characteristics and behaviors
+    - Pain points they're trying to solve
+    - Why they're a good fit
+
+    Return as a JSON array of cohort objects.
+    `;
+
+    const payload = {
+      contents: [{ parts: [{ text: contextString + systemInstruction }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              name: { type: "STRING" },
+              industry: { type: "STRING" },
+              companySize: { type: "STRING" },
+              characteristics: { type: "ARRAY", items: { type: "STRING" } },
+              painPoints: { type: "ARRAY", items: { type: "STRING" } },
+              whyGoodFit: { type: "STRING" }
+            }
+          }
+        },
+        maxOutputTokens: 2000,
+        temperature: 0.8
+      }
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error(`ICP generation failed: ${response.status}`);
+    const data = await response.json();
+    const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!jsonText) throw new Error("No ICP content generated");
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.error('ICP generation failed:', error);
+    return [];
+  }
+};
+
+// AI-powered competitive positioning insights
+const generatePositioningInsights = async (answers) => {
+  try {
+    const url = getVertexAIUrl(TASK_TYPES.REASONING);
+
+    const businessDescription = answers['q1'] || '';
+    const positioning = answers['q6'] || answers.market_position?.positioning || '';
+
+    const systemInstruction = `
+    Analyze this business and provide strategic positioning insights:
+    Business: ${businessDescription}
+    Current Positioning: ${positioning}
+
+    Provide:
+    1. Key differentiators (3-5 points)
+    2. Competitive advantages
+    3. Positioning gaps or opportunities
+    4. Market positioning strategy recommendations
+
+    Be specific, actionable, and concise.
+    `;
+
+    const payload = {
+      contents: [{ parts: [{ text: systemInstruction }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            differentiators: { type: "ARRAY", items: { type: "STRING" } },
+            advantages: { type: "ARRAY", items: { type: "STRING" } },
+            gaps: { type: "ARRAY", items: { type: "STRING" } },
+            recommendations: { type: "ARRAY", items: { type: "STRING" } }
+          }
+        },
+        maxOutputTokens: 1500,
+        temperature: 0.7
+      }
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error(`Positioning insights failed: ${response.status}`);
+    const data = await response.json();
+    const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!jsonText) throw new Error("No insights generated");
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.error('Positioning insights failed:', error);
+    return null;
+  }
+};
 
 const generateVertexAIQuestions = async (answers) => {
   // Use general purpose model for onboarding question generation
@@ -744,7 +916,7 @@ const MultiInputStep = ({ question, answers, onChange }) => {
   );
 };
 
-const StandardInput = ({ question, value, onChange, onBlur }) => {
+const StandardInput = ({ question, value, onChange, onBlur, aiSuggestions, loadingSuggestions, showSuggestions, onApplySuggestion }) => {
   return (
     <div className="group animate-in fade-in slide-in-from-bottom-12 duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col items-center text-center w-full z-10 max-w-4xl">
       <label
@@ -756,7 +928,7 @@ const StandardInput = ({ question, value, onChange, onBlur }) => {
       <p className="font-serif text-4xl md:text-6xl text-black mb-16 leading-[1.1] tracking-tight antialiased" id={`question-${question.id}`}>
         {question.prompt}
       </p>
-      <div className="relative w-full max-w-2xl">
+      <div className="relative w-full max-w-2xl space-y-6">
         <textarea
           id={`input-${question.id}`}
           autoFocus={true}
@@ -769,17 +941,73 @@ const StandardInput = ({ question, value, onChange, onBlur }) => {
           aria-describedby={`label-${question.id}`}
           aria-required={question.required || false}
         />
+
+        {/* AI Suggestions */}
+        {(loadingSuggestions || (showSuggestions && aiSuggestions.length > 0)) && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-2xl space-y-3"
+          >
+            <div className="flex items-center gap-2 justify-center">
+              <Sparkles className="w-4 h-4 text-neutral-400" />
+              <p className="text-xs uppercase tracking-widest text-neutral-400 font-bold">
+                AI Suggestions
+              </p>
+            </div>
+
+            {loadingSuggestions && (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 animate-spin text-neutral-400" />
+              </div>
+            )}
+
+            {!loadingSuggestions && showSuggestions && aiSuggestions.map((suggestion, idx) => (
+              <button
+                key={idx}
+                onClick={() => onApplySuggestion(suggestion)}
+                className="w-full p-4 text-left bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-lg transition-all duration-200 group/suggestion"
+              >
+                <p className="text-sm text-neutral-700 group-hover/suggestion:text-neutral-900 font-serif italic">
+                  "{suggestion}"
+                </p>
+                <p className="text-xs text-neutral-400 mt-2 uppercase tracking-wider font-sans font-bold">
+                  Click to apply
+                </p>
+              </button>
+            ))}
+          </motion.div>
+        )}
       </div>
     </div>
   );
 };
 
 const ProcessingScreen = ({ onSkip }) => (
-   <div className="flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-1000" role="status" aria-live="polite">
-      <Loader2 className="animate-spin text-black" size={48} aria-hidden="true" />
-      <div className="text-center space-y-2">
-        <p className="font-serif text-2xl italic">Analyzing your inputs...</p>
-        <p className="font-sans text-[10px] uppercase tracking-widest text-neutral-400">Using AI to detect strategy gaps and generate follow-ups</p>
+   <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-1000" role="status" aria-live="polite">
+      <Loader2 className="animate-spin text-black" size={56} aria-hidden="true" />
+      <div className="text-center space-y-4 max-w-2xl">
+        <p className="font-serif text-3xl italic">Analyzing your business...</p>
+        <div className="space-y-3">
+          <p className="font-sans text-xs uppercase tracking-widest text-neutral-400">Running AI Analysis</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <div className="runway-card p-4 text-center">
+              <Brain className="w-6 h-6 mx-auto mb-2 text-neutral-600" />
+              <p className="text-xs font-bold uppercase tracking-wider text-neutral-700">Strategy Gaps</p>
+              <p className="text-[10px] text-neutral-500 mt-1">Identifying missing insights</p>
+            </div>
+            <div className="runway-card p-4 text-center">
+              <Users className="w-6 h-6 mx-auto mb-2 text-neutral-600" />
+              <p className="text-xs font-bold uppercase tracking-wider text-neutral-700">ICP Generation</p>
+              <p className="text-[10px] text-neutral-500 mt-1">Creating ideal customer profiles</p>
+            </div>
+            <div className="runway-card p-4 text-center">
+              <Target className="w-6 h-6 mx-auto mb-2 text-neutral-600" />
+              <p className="text-xs font-bold uppercase tracking-wider text-neutral-700">Positioning</p>
+              <p className="text-[10px] text-neutral-500 mt-1">Analyzing market position</p>
+            </div>
+          </div>
+        </div>
       </div>
       {onSkip && (
         <button
@@ -816,10 +1044,18 @@ export default function Onboarding({ onClose }) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [status, setStatus] = useState('input');
-  const [showCohortsBuilder, setShowCohortsBuilder] = useState(false); 
-  
+  const [showCohortsBuilder, setShowCohortsBuilder] = useState(false);
+
+  // AI-powered features state
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [generatedICPs, setGeneratedICPs] = useState([]);
+  const [positioningInsights, setPositioningInsights] = useState(null);
+  const [showAISuggestions, setShowAISuggestions] = useState(false);
+
   const currentQuestion = questions[currentStepIndex];
   const mainScrollRef = useRef(null);
+  const suggestionTimeoutRef = useRef(null);
 
   // Keyboard navigation support
   useEffect(() => {
@@ -840,6 +1076,37 @@ export default function Onboarding({ onClose }) {
 
   const handleAnswer = (id, value) => {
     setAnswers(prev => ({ ...prev, [id]: value }));
+
+    // Trigger AI suggestions after user pauses typing (debounced)
+    if (currentQuestion && (currentQuestion.type === 'text' || currentQuestion.type === 'textarea')) {
+      if (suggestionTimeoutRef.current) {
+        clearTimeout(suggestionTimeoutRef.current);
+      }
+
+      // Only fetch suggestions if user has typed at least 10 characters
+      if (value && value.length >= 10) {
+        suggestionTimeoutRef.current = setTimeout(async () => {
+          setLoadingSuggestions(true);
+          const suggestions = await generateAnswerSuggestions(currentQuestion, value, answers);
+          setAiSuggestions(suggestions);
+          setLoadingSuggestions(false);
+          if (suggestions.length > 0) {
+            setShowAISuggestions(true);
+          }
+        }, 2000); // Wait 2 seconds after user stops typing
+      } else {
+        setAiSuggestions([]);
+        setShowAISuggestions(false);
+      }
+    }
+  };
+
+  const applySuggestion = (suggestion) => {
+    if (currentQuestion) {
+      setAnswers(prev => ({ ...prev, [currentQuestion.id]: suggestion }));
+      setShowAISuggestions(false);
+      setAiSuggestions([]);
+    }
   };
 
   const skipToMarketPosition = () => {
@@ -848,23 +1115,42 @@ export default function Onboarding({ onClose }) {
 
   const runAIAnalysis = async () => {
     setStatus('analyzing');
-    
+
     // Add a shorter timeout - if analysis takes too long, skip to market position
     const timeoutId = setTimeout(() => {
       console.warn("AI analysis timeout - proceeding to market position");
       setStatus('market-position');
-    }, 10000); // 10 second timeout
-    
+    }, 15000); // 15 second timeout for multiple AI operations
+
     try {
-      // Wrap the API call in a race with timeout
-      const aiQuestionsPromise = generateVertexAIQuestions(answers);
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Request timeout")), 8000)
-      );
-      
-      const aiQuestions = await Promise.race([aiQuestionsPromise, timeoutPromise]);
+      // Run multiple AI analyses in parallel
+      const [aiQuestions, icps, insights] = await Promise.all([
+        generateVertexAIQuestions(answers).catch(err => {
+          console.warn("AI questions failed:", err);
+          return [];
+        }),
+        generateICPFromAnswers(answers).catch(err => {
+          console.warn("ICP generation failed:", err);
+          return [];
+        }),
+        generatePositioningInsights(answers).catch(err => {
+          console.warn("Positioning insights failed:", err);
+          return null;
+        })
+      ]);
+
       clearTimeout(timeoutId);
-      
+
+      // Store generated ICPs and insights
+      if (icps && icps.length > 0) {
+        setGeneratedICPs(icps);
+        console.log("Generated ICPs:", icps);
+      }
+      if (insights) {
+        setPositioningInsights(insights);
+        console.log("Positioning insights:", insights);
+      }
+
       if (aiQuestions && aiQuestions.length > 0) {
         const processedQuestions = aiQuestions.map((q, idx) => ({
           id: `ai_${Date.now()}_${idx}`,
@@ -994,11 +1280,15 @@ export default function Onboarding({ onClose }) {
         );
       default:
         return (
-          <StandardInput 
-             key={currentQuestion.id} 
+          <StandardInput
+             key={currentQuestion.id}
              question={currentQuestion}
              value={answers[currentQuestion.id]}
              onChange={handleAnswer}
+             aiSuggestions={aiSuggestions}
+             loadingSuggestions={loadingSuggestions}
+             showSuggestions={showAISuggestions}
+             onApplySuggestion={applySuggestion}
           />
         );
     }
@@ -1007,12 +1297,16 @@ export default function Onboarding({ onClose }) {
   // Show Cohorts Builder if triggered
   if (showCohortsBuilder) {
     return (
-      <CohortsBuilder 
+      <CohortsBuilder
         onClose={() => {
           setShowCohortsBuilder(false);
           onClose && onClose();
-        }} 
-        onboardingData={{ answers }}
+        }}
+        onboardingData={{
+          answers,
+          aiGeneratedICPs: generatedICPs,
+          positioningInsights: positioningInsights
+        }}
       />
     );
   }
