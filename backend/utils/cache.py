@@ -6,8 +6,10 @@ import json
 import hashlib
 from typing import Any, Optional
 import redis.asyncio as redis
-from config.settings import settings
+from backend.config.settings import get_settings
 import structlog
+
+settings = get_settings()
 
 logger = structlog.get_logger()
 
@@ -115,9 +117,14 @@ class CacheClient:
 
 
 # Global cache instance
+<<<<<<< HEAD
+cache = CacheClient()
+redis_cache = cache  # Alias for backward compatibility
+=======
 redis_cache = CacheClient()
 # Legacy alias for backward compatibility
 cache = redis_cache
+>>>>>>> main
 
 
 # Convenience functions for specific cache types
