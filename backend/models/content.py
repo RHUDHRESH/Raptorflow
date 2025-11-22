@@ -5,8 +5,85 @@ These models define the structure for content requests and responses.
 
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Literal, Any
-from uuid import UUID
+from uuid import UUID, uuid4
 from datetime import datetime
+
+
+class ContentMetadata(BaseModel):
+    """Metadata shared across generated content assets."""
+
+    status: Literal["draft", "review", "approved", "rejected", "published"] = "draft"
+    reviewer: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    correlation_id: Optional[str] = None
+
+
+class BlogRequest(BaseModel):
+    """Request schema for blog generation."""
+
+    workspace_id: UUID
+    persona_id: Optional[UUID] = None
+    topic: str
+    outline: List[str] = Field(default_factory=list)
+    keywords: List[str] = Field(default_factory=list)
+    tone: Optional[str] = None
+    target_length: Optional[int] = Field(None, description="Desired word count")
+    brand_voice: Optional[str] = None
+    include_cta: bool = True
+    correlation_id: Optional[str] = None
+
+
+class BlogResponse(BaseModel):
+    """Response for blog generation requests."""
+
+    blog_id: UUID
+    title: str
+    meta_description: Optional[str] = None
+    body: str
+    outline: List[str] = Field(default_factory=list)
+    seo_keywords: List[str] = Field(default_factory=list)
+    hooks: List[str] = Field(default_factory=list)
+    metadata: ContentMetadata = Field(default_factory=ContentMetadata)
+
+
+class EmailRequest(BaseModel):
+    """Request schema for email/sequence generation."""
+
+    workspace_id: UUID
+    persona_id: Optional[UUID] = None
+    sequence_name: Optional[str] = None
+    product_offer: Optional[str] = None
+    goal: Optional[str] = Field(None, description="Objective for the sequence (demo, signup, upsell)")
+    tone: Optional[str] = None
+    number_of_emails: int = Field(default=3, ge=1, le=7)
+    personalization_hints: List[str] = Field(default_factory=list)
+    brand_voice: Optional[str] = None
+    correlation_id: Optional[str] = None
+
+
+class EmailMessage(BaseModel):
+    """Single email message with subject/body."""
+
+    subject: str
+    preheader: Optional[str] = None
+    body: str
+    cta: Optional[str] = None
+    personalization_tokens: Dict[str, str] = Field(default_factory=dict)
+
+
+class SocialPostRequest(BaseModel):
+    """Request schema for social post generation."""
+
+    workspace_id: UUID
+    persona_id: Optional[UUID] = None
+    platform: Literal["linkedin", "twitter", "instagram", "facebook", "tiktok", "youtube", "threads"]
+    topic: str
+    angle: Optional[str] = None
+    hashtags: List[str] = Field(default_factory=list)
+    character_limit: Optional[int] = None
+    include_visual_directions: bool = True
+    brand_voice: Optional[str] = None
+    correlation_id: Optional[str] = None
 
 
 class ContentRequest(BaseModel):
@@ -72,15 +149,31 @@ class ContentRequest(BaseModel):
 
 class ContentVariant(BaseModel):
     """A single variant of generated content."""
-    variant_id: str = Field(..., description="Unique identifier for this variant")
-    text: str = Field(..., description="The generated content")
+
+    variant_id: str = Field(default_factory=lambda: str(uuid4()), description="Unique identifier for this variant")
+    format: Optional[str] = Field(default=None, description="Content format (blog, email_body, social_post, etc.)")
+    content: str = Field(..., alias="text", description="The generated content body")
     headline: Optional[str] = Field(None, description="Title or subject line")
-    quality_score: float = Field(ge=0.0, le=1.0, description="AI-assessed quality score")
+    summary: Optional[str] = None
+    word_count: Optional[int] = None
+    readability_score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    quality_score: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="AI-assessed quality score")
     reasoning: Optional[str] = Field(None, description="Why this approach was chosen")
+    seo_keywords: List[str] = Field(default_factory=list)
+    hashtags: List[str] = Field(default_factory=list)
+    platform_specific_attributes: Dict[str, Any] = Field(default_factory=dict)
     estimated_performance: Optional[Dict[str, Any]] = Field(
-        None, 
-        description="Predicted metrics (engagement, clicks, etc.)"
+        None,
+        description="Predicted metrics (engagement, clicks, etc.)",
     )
+
+    class Config:
+        populate_by_name = True
+
+    @property
+    def text(self) -> str:
+        """Alias for backward compatibility with earlier models."""
+        return self.content
 
 
 class Hook(BaseModel):
