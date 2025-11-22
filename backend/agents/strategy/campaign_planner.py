@@ -324,6 +324,244 @@ Return JSON:
             "content_themes": ["Value proposition", "Social proof"]
         }
 
+    async def generate_30_60_90_plan(
+        self,
+        move_request: MoveRequest,
+        icps: List[ICPProfile],
+        market_insights: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Generates explicit 30/60/90-day marketing plan.
+
+        Each period (30/60/90 days) includes:
+        - Campaign phases (moves)
+        - Deliverables (content, campaigns, assets)
+        - Success metrics (KPIs)
+        - Required resources (team, budget, tools)
+
+        Args:
+            move_request: Campaign requirements
+            icps: Target ICPs with persona data
+            market_insights: Optional market research data
+
+        Returns:
+            Structured 30/60/90 plan with detailed breakdowns
+        """
+        correlation_id = get_correlation_id()
+        logger.info(
+            "Generating 30/60/90-day plan",
+            goal=move_request.goal,
+            correlation_id=correlation_id
+        )
+
+        # Build ICP context
+        icp_summaries = "\n".join([
+            f"- {icp.name}: {icp.executive_summary[:200]}\n  Pain Points: {', '.join(icp.pain_points[:3])}"
+            for icp in icps[:3]
+        ])
+
+        insights_summary = ""
+        if market_insights:
+            insights_summary = f"\n\nMarket Insights:\n{market_insights.get('answer', 'N/A')[:300]}"
+
+        prompt = f"""
+You are a strategic campaign planner creating a 30/60/90-day marketing plan.
+
+CAMPAIGN GOAL: {move_request.goal}
+CHANNELS: {', '.join(move_request.channels)}
+BUDGET: {move_request.budget or 'Not specified'}
+
+TARGET ICPs:
+{icp_summaries}
+{insights_summary}
+
+Create a detailed 30/60/90-day plan following this structure:
+
+**First 30 Days** (Foundation & Quick Wins):
+- Focus: Build foundation, create core assets, generate early momentum
+- Phase name and objectives
+- Key deliverables (content, campaigns, assets)
+- Success metrics/KPIs
+- Required resources (team, budget breakdown, tools)
+
+**Days 31-60** (Scale & Optimize):
+- Focus: Scale what's working, optimize based on data
+- Phase name and objectives
+- Key deliverables
+- Success metrics/KPIs
+- Required resources
+
+**Days 61-90** (Maximize & Prepare for Next):
+- Focus: Maximize impact, prepare for sustainability
+- Phase name and objectives
+- Key deliverables
+- Success metrics/KPIs
+- Required resources
+
+Return JSON:
+{{
+    "plan_summary": "2-3 sentence overview of the 90-day journey",
+    "first_30_days": {{
+        "phase_name": "Foundation Phase",
+        "focus": "What we're focusing on",
+        "objectives": ["objective 1", "objective 2"],
+        "deliverables": [
+            {{
+                "type": "blog_post|email|social_campaign|landing_page|video|webinar",
+                "description": "What this deliverable is",
+                "quantity": 5,
+                "due_week": 2
+            }}
+        ],
+        "campaigns": [
+            {{
+                "name": "Campaign name",
+                "description": "Brief description",
+                "channels": ["linkedin", "email"],
+                "duration_days": 14
+            }}
+        ],
+        "success_metrics": [
+            {{
+                "metric": "KPI name",
+                "target": "Target value",
+                "measurement_method": "How we measure this"
+            }}
+        ],
+        "required_resources": {{
+            "team": ["Content creator", "Social media manager"],
+            "budget_allocation": "$X for ads, $Y for tools",
+            "tools": ["Tool 1", "Tool 2"]
+        }}
+    }},
+    "days_31_60": {{
+        "phase_name": "Scale Phase",
+        "focus": "What we're focusing on",
+        "objectives": ["objective 1", "objective 2"],
+        "deliverables": [...],
+        "campaigns": [...],
+        "success_metrics": [...],
+        "required_resources": {{...}}
+    }},
+    "days_61_90": {{
+        "phase_name": "Maximize Phase",
+        "focus": "What we're focusing on",
+        "objectives": ["objective 1", "objective 2"],
+        "deliverables": [...],
+        "campaigns": [...],
+        "success_metrics": [...],
+        "required_resources": {{...}}
+    }},
+    "milestones": [
+        {{
+            "day": 30,
+            "milestone": "What should be achieved",
+            "decision_point": "What to evaluate/decide"
+        }}
+    ],
+    "dependencies": ["Dependency 1", "Dependency 2"],
+    "risks": ["Risk 1", "Risk 2"]
+}}
+"""
+
+        try:
+            messages = [
+                {
+                    "role": "system",
+                    "content": MASTER_SUPERVISOR_SYSTEM_PROMPT + "\nYou create detailed 30/60/90-day marketing plans."
+                },
+                {"role": "user", "content": prompt}
+            ]
+
+            response = await openai_client.chat_completion(
+                messages=messages,
+                temperature=0.6,
+                max_tokens=3500,
+                response_format={"type": "json_object"}
+            )
+
+            import json
+            plan = json.loads(response)
+
+            # Add metadata
+            plan["workspace_id"] = str(move_request.workspace_id)
+            plan["goal"] = move_request.goal
+            plan["channels"] = move_request.channels
+            plan["target_cohort_ids"] = [str(cid) for cid in move_request.target_cohort_ids]
+            plan["created_at"] = datetime.utcnow().isoformat()
+
+            logger.info(
+                "30/60/90-day plan generated",
+                total_deliverables=sum([
+                    len(plan.get("first_30_days", {}).get("deliverables", [])),
+                    len(plan.get("days_31_60", {}).get("deliverables", [])),
+                    len(plan.get("days_61_90", {}).get("deliverables", []))
+                ]),
+                correlation_id=correlation_id
+            )
+
+            return plan
+
+        except Exception as e:
+            logger.error(f"30/60/90 plan generation failed: {e}")
+            return self._fallback_30_60_90_plan(move_request)
+
+    def _fallback_30_60_90_plan(self, move_request: MoveRequest) -> Dict[str, Any]:
+        """Fallback 30/60/90 plan if LLM fails."""
+        return {
+            "plan_summary": f"90-day plan for {move_request.goal}",
+            "first_30_days": {
+                "phase_name": "Foundation",
+                "focus": "Build core assets and foundation",
+                "objectives": ["Create core content", "Launch initial campaigns"],
+                "deliverables": [
+                    {
+                        "type": "blog_post",
+                        "description": "Core content pieces",
+                        "quantity": 4,
+                        "due_week": 2
+                    }
+                ],
+                "campaigns": [],
+                "success_metrics": [
+                    {
+                        "metric": "Content published",
+                        "target": "4 pieces",
+                        "measurement_method": "Count"
+                    }
+                ],
+                "required_resources": {
+                    "team": ["Content creator"],
+                    "budget_allocation": "To be determined",
+                    "tools": ["CMS", "Analytics"]
+                }
+            },
+            "days_31_60": {
+                "phase_name": "Scale",
+                "focus": "Scale successful initiatives",
+                "objectives": ["Increase reach"],
+                "deliverables": [],
+                "campaigns": [],
+                "success_metrics": [],
+                "required_resources": {}
+            },
+            "days_61_90": {
+                "phase_name": "Optimize",
+                "focus": "Optimize and prepare for next quarter",
+                "objectives": ["Maximize ROI"],
+                "deliverables": [],
+                "campaigns": [],
+                "success_metrics": [],
+                "required_resources": {}
+            },
+            "milestones": [
+                {"day": 30, "milestone": "Foundation complete", "decision_point": "Evaluate initial results"}
+            ],
+            "dependencies": [],
+            "risks": ["Plan generation failed - using fallback"],
+            "error": True
+        }
+
 
 # Global instance
 campaign_planner = CampaignPlannerAgent()
