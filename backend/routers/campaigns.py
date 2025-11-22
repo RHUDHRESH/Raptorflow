@@ -64,35 +64,49 @@ async def create_campaign(
         }
         
         move_record = await supabase_client.insert("moves", move_data)
-        
+
         logger.info("Campaign created", move_id=move_record["id"], correlation_id=correlation_id)
-        return MoveResponse(**move_record)
-        
+
+        return {
+            **MoveResponse(**move_record).dict(),
+            "correlation_id": correlation_id
+        }
+
     except Exception as e:
         logger.error(f"Failed to create campaign: {e}", correlation_id=correlation_id)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 
-@router.get("/{move_id}", response_model=MoveResponse, summary="Get Campaign", tags=["Campaigns"])
+@router.get("/{move_id}", response_model=dict, summary="Get Campaign", tags=["Campaigns"])
 async def get_campaign(
     move_id: UUID,
     auth: Annotated[dict, Depends(get_current_user_and_workspace)]
 ):
     """Retrieves a specific campaign."""
     workspace_id = auth["workspace_id"]
-    
+    correlation_id = generate_correlation_id()
+
     move = await supabase_client.fetch_one(
         "moves",
         {"id": str(move_id), "workspace_id": str(workspace_id)}
     )
-    
+
     if not move:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
-    
-    return MoveResponse(**move)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Campaign not found"
+        )
+
+    return {
+        **MoveResponse(**move).dict(),
+        "correlation_id": correlation_id
+    }
 
 
-@router.get("/{move_id}/tasks/today", response_model=list[Task], summary="Get Today's Tasks", tags=["Campaigns"])
+@router.get("/{move_id}/tasks/today", response_model=dict, summary="Get Today's Tasks", tags=["Campaigns"])
 async def get_todays_tasks(
     move_id: UUID,
     auth: Annotated[dict, Depends(get_current_user_and_workspace)]
@@ -100,7 +114,7 @@ async def get_todays_tasks(
     """Retrieves today's tasks for a campaign."""
     workspace_id = auth["workspace_id"]
     correlation_id = generate_correlation_id()
-    
+
     try:
         tasks = await scheduler_agent.generate_daily_checklist(
             workspace_id,
@@ -108,12 +122,20 @@ async def get_todays_tasks(
             datetime.now(),
             correlation_id
         )
-        
-        return tasks
-        
+
+        return {
+            "move_id": str(move_id),
+            "tasks": tasks,
+            "date": datetime.now().isoformat(),
+            "correlation_id": correlation_id
+        }
+
     except Exception as e:
         logger.error(f"Failed to get tasks: {e}", correlation_id=correlation_id)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 
 @router.put("/{move_id}/task/{task_id}/complete", summary="Mark Task Complete", tags=["Campaigns"])
@@ -124,31 +146,51 @@ async def complete_task(
 ):
     """Marks a task as complete."""
     workspace_id = auth["workspace_id"]
-    
+    correlation_id = generate_correlation_id()
+
     try:
         await supabase_client.update(
             "tasks",
             {"id": str(task_id), "move_id": str(move_id)},
-            {"status": "completed", "updated_at": datetime.utcnow().isoformat()}
+            {"status": "completed", "completed_at": datetime.utcnow().isoformat(), "updated_at": datetime.utcnow().isoformat()}
         )
-        
-        return {"status": "success", "message": "Task marked complete"}
-        
+
+        logger.info("Task marked complete",
+                   task_id=task_id,
+                   move_id=move_id,
+                   correlation_id=correlation_id)
+
+        return {
+            "status": "success",
+            "message": "Task marked complete",
+            "task_id": str(task_id),
+            "correlation_id": correlation_id
+        }
+
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        logger.error(f"Failed to complete task: {e}", correlation_id=correlation_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 
-@router.get("/", response_model=list[MoveResponse], summary="List Campaigns", tags=["Campaigns"])
+@router.get("/", response_model=dict, summary="List Campaigns", tags=["Campaigns"])
 async def list_campaigns(auth: Annotated[dict, Depends(get_current_user_and_workspace)]):
     """Lists all campaigns for the workspace."""
     workspace_id = auth["workspace_id"]
-    
+    correlation_id = generate_correlation_id()
+
     moves = await supabase_client.fetch_all(
         "moves",
         {"workspace_id": str(workspace_id)}
     )
-    
-    return [MoveResponse(**m) for m in moves]
+
+    return {
+        "campaigns": [MoveResponse(**m).dict() for m in moves],
+        "total": len(moves),
+        "correlation_id": correlation_id
+    }
 
 
 
