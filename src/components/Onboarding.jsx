@@ -1057,11 +1057,9 @@ export default function Onboarding({ onClose }) {
       // Store generated ICPs and insights
       if (icps && icps.length > 0) {
         setGeneratedICPs(icps);
-        console.log("Generated ICPs:", icps);
       }
       if (insights) {
         setPositioningInsights(insights);
-        console.log("Positioning insights:", insights);
       }
 
       if (aiQuestions && aiQuestions.length > 0) {
@@ -1147,10 +1145,8 @@ export default function Onboarding({ onClose }) {
       <div className="text-center animate-in zoom-in-95 duration-1000 flex flex-col items-center">
         <h1 className="font-serif text-6xl mb-6">All Set.</h1>
         <p className="text-neutral-500 font-sans uppercase tracking-widest text-xs mb-12">Protocol Complete</p>
-        <button 
+        <button
             onClick={async () => {
-              console.log("Submitting data:", answers);
-              
               // Save onboarding data to Supabase
               if (user) {
                 try {

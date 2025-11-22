@@ -120,12 +120,11 @@ export const supportService = {
     triggersDefensiveMove: boolean;
     suggestedAction?: string;
   }> {
+    // TODO: Implement AI integration
     // This would call AI to analyze the feedback and:
     // 1. Extract pain/desire tags
     // 2. Match to existing cohorts
     // 3. Determine if defensive move needed
-    // For now, return placeholder
-    console.log('extractIntelligence called - AI integration needed');
     return {
       extractedTags: [],
       relatedCohortIds: [],
@@ -262,8 +261,7 @@ export const supportService = {
       timestamp: string;
     }>
   ): Promise<SupportFeedback[]> {
-    // This would integrate with Zendesk, Intercom, etc.
-    console.log(`Import from ${source} - integration needed`);
+    // TODO: Implement integration with Zendesk, Intercom, etc.
     return [];
   }
 };

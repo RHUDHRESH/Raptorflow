@@ -18,7 +18,6 @@ export default function Footer() {
       return
     }
 
-    console.log('Newsletter subscription:', sanitizeInput(email))
     setSubscribed(true)
     setEmail('')
     setError('')

@@ -28,15 +28,13 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
     // Check for OAuth callback in URL hash
     const handleOAuthCallback = async () => {
       if (!supabase) return;
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
-        
+
         if (session?.user) {
           const userData = {
             id: session.user.id,
@@ -46,7 +44,7 @@ export const AuthProvider = ({ children }) => {
           };
           setUser(userData);
           setLoading(false);
-          
+
           // Clear OAuth callback from URL
           if (window.location.hash) {
             window.history.replaceState(null, '', window.location.pathname);
@@ -64,19 +62,10 @@ export const AuthProvider = ({ children }) => {
     } else {
       checkAuth();
     }
-=======
-    checkAuth();
->>>>>>> Stashed changes
-=======
-    checkAuth();
->>>>>>> Stashed changes
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        console.log('Auth state changed:', event, session?.user?.email);
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session?.user) {
             const userData = {
@@ -86,10 +75,10 @@ export const AuthProvider = ({ children }) => {
               avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
             };
             setUser(userData);
-            
+
             // Fetch subscription and onboarding status
             await fetchUserStatus(session.user.id);
-            
+
             // Clear OAuth callback from URL if present
             if (window.location.hash) {
               window.history.replaceState(null, '', window.location.pathname);
@@ -99,24 +88,6 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
           setSubscription(null);
           setOnboardingCompleted(false);
-=======
-=======
->>>>>>> Stashed changes
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          if (session?.user) {
-            setUser({
-              id: session.user.id,
-              email: session.user.email,
-              name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-              avatar_url: session.user.user_metadata?.avatar_url,
-            });
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         }
         setLoading(false);
       }
@@ -137,7 +108,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
+
       if (sessionError) {
         console.error('Error checking auth:', sessionError);
         setUser(null);
@@ -145,32 +116,16 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (session?.user) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
         const userData = {
-=======
-        setUser({
->>>>>>> Stashed changes
-=======
-        setUser({
->>>>>>> Stashed changes
           id: session.user.id,
           email: session.user.email,
           name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
           avatar_url: session.user.user_metadata?.avatar_url,
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
         };
         setUser(userData);
-        
+
         // Fetch subscription and onboarding status
         await fetchUserStatus(session.user.id);
-=======
-        });
->>>>>>> Stashed changes
-=======
-        });
->>>>>>> Stashed changes
       } else {
         setUser(null);
       }
@@ -182,11 +137,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
   const fetchUserStatus = async (userId) => {
     if (!supabase) return;
-    
+
     try {
       // Fetch user profile for onboarding status
       const { data: profile, error: profileError } = await supabase
@@ -194,11 +147,11 @@ export const AuthProvider = ({ children }) => {
         .select('onboarding_completed, onboarding_skipped')
         .eq('id', userId)
         .single();
-      
+
       if (!profileError && profile) {
         setOnboardingCompleted(profile.onboarding_completed || profile.onboarding_skipped);
       }
-      
+
       // Fetch subscription
       const { data: subscriptionData, error: subError } = await supabase
         .from('subscriptions')
@@ -208,7 +161,7 @@ export const AuthProvider = ({ children }) => {
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
-      
+
       if (!subError && subscriptionData) {
         setSubscription(subscriptionData);
       } else {
@@ -220,10 +173,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
   const clearAuth = async () => {
     if (isSupabaseConfigured() && supabase) {
       await supabase.auth.signOut();
@@ -274,16 +223,10 @@ export const AuthProvider = ({ children }) => {
           avatar_url: data.user.user_metadata?.avatar_url,
         };
         setUser(userData);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        
+
         // Fetch subscription and onboarding status
         await fetchUserStatus(data.user.id);
-        
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
         setLoading(false);
         return { success: true, user: userData };
       }
@@ -386,16 +329,10 @@ export const AuthProvider = ({ children }) => {
           name: sanitizedName,
         };
         setUser(userData);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        
+
         // Fetch subscription and onboarding status
         await fetchUserStatus(data.user.id);
-        
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
         setLoading(false);
         return { success: true, user: userData };
       }
@@ -464,18 +401,18 @@ export const AuthProvider = ({ children }) => {
 
   const markOnboardingComplete = async () => {
     if (!user || !supabase) return { success: false, error: 'No user authenticated' };
-    
+
     try {
       const { error } = await supabase
         .from('user_profiles')
         .update({ onboarding_completed: true })
         .eq('id', user.id);
-      
+
       if (error) {
         console.error('Error marking onboarding complete:', error);
         return { success: false, error: error.message };
       }
-      
+
       setOnboardingCompleted(true);
       return { success: true };
     } catch (err) {
