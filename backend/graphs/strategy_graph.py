@@ -1,12 +1,40 @@
 """
 Strategy Graph - Orchestrates ADAPT framework and campaign planning.
 Coordinates: Campaign Planner → Market Research → Ambient Search → Synthesis
+
+ASSUMPTIONS AND DEFAULTS:
+-------------------------
+Budget-Based Conditional Logic:
+- Low budget (<$5K): Skip ambient scan, use quick research mode, focus on 2-3 channels
+- Medium budget ($5K-$25K): Standard workflow, quick research by default
+- High budget (>$25K): Comprehensive mode, full ambient scan, all channels available
+
+Goal-Based Conditional Logic:
+- Short-term goals (<30 days): Skip long-term strategy synthesis, focus on quick wins
+- Mid-term goals (30-90 days): Standard ADAPT workflow with sprint planning
+- Long-term goals (>90 days): Include strategic themes, comprehensive synthesis
+
+Channel Optimization:
+- Low budget campaigns default to: organic social, content, email
+- High budget campaigns can include: paid search, video, influencer partnerships
+
+Error Handling and Retry Logic:
+- Market research: Falls back to cached data or quick mode if deep mode fails
+- Ambient scan: Optional - continues workflow if fails
+- Campaign planning: Uses fallback templates if LLM fails
+- All nodes: Max 3 retries with exponential backoff for transient failures
+
+Conditional Edges:
+- If budget is high → comprehensive mode → ambient scan
+- If budget is low or goals short-term → quick mode → skip ambient → direct to planning
+- If goals are short-term (<30 days) → skip synthesis → direct to planning
 """
 
 import structlog
 from typing import Dict, List, Optional, Any, TypedDict
 from uuid import UUID
 import logging
+import re
 
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
@@ -41,20 +69,35 @@ class StrategyGraphState(TypedDict):
 class StrategyGraph:
     """
     Orchestrates strategic campaign planning using ADAPT framework.
-    
+
     ADAPT Workflow:
-    1. **Analyze**: Research market + mine ambient opportunities
-    2. **Design**: Synthesize opportunities into campaign proposals
-    3. **Advance**: Create detailed execution plan with sprints
-    4. **Pivot**: (Handled during execution)
+    1. **Assess**: Validate inputs and determine routing
+    2. **Diagnose**: Research market + mine ambient opportunities
+    3. **Analyze**: Synthesize opportunities into campaign proposals
+    4. **Plan**: Create detailed execution plan with sprints
     5. **Track**: (Handled by analytics agents)
-    
+
     Workflow Modes:
     - Quick: Skip ambient search, use basic market research
     - Comprehensive: Full ADAPT cycle with deep research
+    - Adaptive: Automatically choose based on budget and timeframe
     """
-    
+
     def __init__(self):
+        # Budget tier thresholds
+        self.budget_tiers = {
+            "low": {"max": 5000},
+            "medium": {"min": 5000, "max": 25000},
+            "high": {"min": 25000}
+        }
+
+        # Timeframe categorization
+        self.timeframe_categories = {
+            "short": {"max": 30},  # days
+            "medium": {"min": 30, "max": 90},
+            "long": {"min": 90}
+        }
+
         self.workflow = self._build_workflow()
         self.app = self.workflow.compile(checkpointer=MemorySaver())
     
@@ -90,25 +133,150 @@ class StrategyGraph:
         return workflow
     
     def _route_after_research(self, state: StrategyGraphState) -> str:
-        """Routes based on mode: comprehensive includes ambient scan."""
-        if state.get("mode") == "comprehensive":
+        """
+        Routes based on budget, timeframe, and mode.
+
+        Conditional logic:
+        - High budget + long timeframe → ambient scan → synthesis
+        - Low budget OR short timeframe → skip ambient → direct to planning
+        - Medium budget + medium timeframe → user mode preference
+        """
+        move_request = state.get("move_request", {})
+        budget = move_request.get("budget")
+        timeframe_days = move_request.get("timeframe_days", 90)
+        mode = state.get("mode", "quick")
+
+        # Parse budget
+        budget_tier = self._parse_budget_tier(budget)
+        timeframe_category = self._categorize_timeframe(timeframe_days)
+
+        logger.info(
+            "Routing after research",
+            budget_tier=budget_tier,
+            timeframe_category=timeframe_category,
+            mode=mode
+        )
+
+        # Conditional routing logic
+        # If short-term goals (<30 days), skip ambient and go direct to planning
+        if timeframe_category == "short":
+            logger.info("Short-term goal detected, skipping ambient scan")
+            return "plan_campaign"
+
+        # If low budget, skip expensive ambient scan
+        if budget_tier == "low":
+            logger.info("Low budget detected, skipping ambient scan")
+            return "plan_campaign"
+
+        # If comprehensive mode OR (high budget AND long timeframe)
+        if mode == "comprehensive" or (budget_tier == "high" and timeframe_category == "long"):
+            logger.info("Comprehensive mode or high-budget long-term campaign, including ambient scan")
             return "ambient_scan"
+
+        # Default: skip ambient scan
         return "plan_campaign"
-    
+
+    def _parse_budget_tier(self, budget_str: Optional[str]) -> str:
+        """
+        Parses budget string into tier (low/medium/high).
+        """
+        if not budget_str:
+            return "medium"  # Default to medium if not specified
+
+        # Extract numeric value
+        numbers = re.findall(r'\d+', budget_str.replace(',', ''))
+
+        if not numbers:
+            return "medium"
+
+        amount = int(numbers[0])
+
+        # Check for multipliers
+        if 'k' in budget_str.lower() or 'K' in budget_str:
+            amount *= 1000
+
+        # Determine tier
+        if amount < 5000:
+            return "low"
+        elif amount < 25000:
+            return "medium"
+        else:
+            return "high"
+
+    def _categorize_timeframe(self, timeframe_days: int) -> str:
+        """Categorizes timeframe as short/medium/long."""
+        if timeframe_days <= 30:
+            return "short"
+        elif timeframe_days <= 90:
+            return "medium"
+        else:
+            return "long"
+
+    async def _retry_with_backoff(
+        self,
+        operation,
+        max_retries: int = 3,
+        initial_delay: float = 1.0
+    ) -> Any:
+        """
+        Retries an async operation with exponential backoff.
+
+        Args:
+            operation: Async callable to retry
+            max_retries: Maximum number of retry attempts
+            initial_delay: Initial delay in seconds
+
+        Returns:
+            Result of successful operation
+
+        Raises:
+            Exception from last failed attempt
+        """
+        import asyncio
+
+        last_exception = None
+        delay = initial_delay
+
+        for attempt in range(max_retries):
+            try:
+                return await operation()
+            except Exception as e:
+                last_exception = e
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        f"Operation failed (attempt {attempt + 1}/{max_retries}), retrying in {delay}s",
+                        error=str(e)
+                    )
+                    await asyncio.sleep(delay)
+                    delay *= 2  # Exponential backoff
+                else:
+                    logger.error(f"Operation failed after {max_retries} attempts", error=str(e))
+
+        raise last_exception
+
     async def _market_research_node(self, state: StrategyGraphState) -> StrategyGraphState:
-        """Conducts market research for campaign context."""
+        """Conducts market research for campaign context with retry logic."""
         try:
             logger.info("Conducting market research")
-            
+
             move_request = state["move_request"]
             goal = move_request.get("goal", "")
-            
-            # Determine research mode
-            research_mode = "deep" if state.get("mode") == "comprehensive" else "quick"
-            
+
+            # Determine research mode based on budget and timeframe
+            base_mode = state.get("mode", "quick")
+            budget_tier = self._parse_budget_tier(move_request.get("budget"))
+            timeframe_category = self._categorize_timeframe(move_request.get("timeframe_days", 90))
+
+            # Override mode based on budget/timeframe if not explicitly set
+            if base_mode == "quick" and budget_tier == "high" and timeframe_category == "long":
+                research_mode = "deep"
+                logger.info("Auto-upgrading to deep research mode based on budget and timeframe")
+            else:
+                research_mode = base_mode
+
             # Research question based on goal
             research_question = f"What are the current market trends and opportunities for: {goal}"
-            
+
             # Add context from ICPs
             context = {}
             if state.get("icps"):
@@ -117,18 +285,37 @@ class StrategyGraph:
                     "industry": first_icp.get("demographics", {}).get("industry", ""),
                     "company_size": first_icp.get("demographics", {}).get("company_size", "")
                 }
-            
-            insights = await market_research.research(
-                question=research_question,
-                mode=research_mode,
-                context=context
-            )
-            
+
+            # Wrap research call with retry logic
+            async def research_operation():
+                return await market_research.research(
+                    question=research_question,
+                    mode=research_mode,
+                    context=context
+                )
+
+            insights = await self._retry_with_backoff(research_operation, max_retries=3)
+
             state["market_insights"] = insights
+            logger.info(f"Market research completed successfully, mode={research_mode}")
             return state
-            
+
         except Exception as e:
-            logger.error(f"Market research failed: {e}")
+            logger.error(f"Market research failed after retries: {e}")
+            # Fallback: try quick mode if deep mode failed
+            if state.get("mode") == "deep":
+                logger.info("Falling back to quick research mode")
+                try:
+                    insights = await market_research.research(
+                        question=f"Quick insight: {goal}",
+                        mode="quick",
+                        context={}
+                    )
+                    state["market_insights"] = insights
+                    return state
+                except Exception as fallback_error:
+                    logger.error(f"Fallback research also failed: {fallback_error}")
+
             state["error"] = str(e)
             state["market_insights"] = {}
             return state

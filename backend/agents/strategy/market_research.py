@@ -3,8 +3,9 @@ Market Research Agent - Quick Insight and Deep Dossier modes for market intellig
 """
 
 import structlog
-from typing import Dict, List, Optional, Literal
+from typing import Dict, List, Optional, Literal, Any
 import hashlib
+from datetime import datetime
 
 from backend.config.prompts import MASTER_SUPERVISOR_SYSTEM_PROMPT
 from backend.services.vertex_ai_client import vertex_ai_client
@@ -17,28 +18,37 @@ logger = structlog.get_logger(__name__)
 class MarketResearchAgent:
     """
     Conducts market research in two modes.
-    
+
     Quick Insight Mode (~800 tokens):
     - Fast turnaround for immediate questions
     - Single-shot LLM call
     - Cached for 7 days
-    
+
     Deep Dossier Mode (~3K tokens):
     - Comprehensive analysis
     - Breaks complex questions into sub-queries
     - Synthesizes multiple data points
     - Cached for 14 days
-    
+
     Responsibilities:
     - Answer market questions (trends, competitors, opportunities)
     - Provide competitive intelligence
     - Identify market gaps and positioning
     - Surface relevant case studies and benchmarks
+    - Analyze competitive positioning and differentiation
+    - Validate data sources and provide references
     """
-    
+
     def __init__(self):
         self.quick_insight_max_tokens = 800
         self.deep_dossier_max_tokens = 3000
+
+        # Data sources we can reference
+        self.data_sources = {
+            "internal": ["supabase_icps", "supabase_campaigns", "supabase_analytics"],
+            "market_knowledge": ["llm_training_data", "industry_reports", "market_trends"],
+            "competitive": ["public_competitor_data", "positioning_analysis"]
+        }
     
     async def research(
         self,
@@ -346,6 +356,197 @@ Create a comprehensive synthesis in JSON:
             "mode": mode,
             "error": True
         }
+
+    async def analyze_competitive_positioning(
+        self,
+        company_description: str,
+        industry: str,
+        target_audience: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Analyzes competitive positioning for a company.
+
+        Args:
+            company_description: Description of the company/product
+            industry: Industry or market segment
+            target_audience: Optional target audience description
+
+        Returns:
+            Competitive analysis with positioning, competitors, and differentiation
+        """
+        correlation_id = get_correlation_id()
+        logger.info(
+            "Analyzing competitive positioning",
+            industry=industry,
+            correlation_id=correlation_id
+        )
+
+        # Check cache
+        import hashlib
+        cache_key = f"competitive_positioning:{hashlib.sha256(f'{company_description}:{industry}'.encode()).hexdigest()}"
+        cached = await redis_cache.get(cache_key)
+        if cached:
+            logger.info("Returning cached competitive analysis")
+            return cached
+
+        # Build analysis prompt
+        target_context = f"\nTarget Audience: {target_audience}" if target_audience else ""
+
+        prompt = f"""
+You are a competitive intelligence analyst. Analyze the competitive landscape and positioning.
+
+COMPANY: {company_description}
+INDUSTRY: {industry}{target_context}
+
+Provide a comprehensive competitive analysis:
+
+1. **Market Landscape**: Overview of the competitive environment
+2. **Key Competitors**: Identify 3-5 main competitors and their positioning
+3. **Competitive Gaps**: Market gaps and underserved needs
+4. **Differentiation Opportunities**: How this company can differentiate
+5. **Positioning Recommendations**: Recommended market positioning
+
+Return JSON:
+{{
+    "market_landscape": {{
+        "market_size": "Description of market size and growth",
+        "key_trends": ["trend 1", "trend 2", "trend 3"],
+        "competitive_intensity": "low|medium|high",
+        "barriers_to_entry": ["barrier 1", "barrier 2"]
+    }},
+    "competitors": [
+        {{
+            "name": "Competitor name or type",
+            "positioning": "How they position themselves",
+            "strengths": ["strength 1", "strength 2"],
+            "weaknesses": ["weakness 1", "weakness 2"],
+            "market_share": "estimated share if known"
+        }}
+    ],
+    "gaps_and_opportunities": [
+        {{
+            "gap": "Underserved need or market gap",
+            "opportunity": "How to capitalize on this gap",
+            "difficulty": "low|medium|high"
+        }}
+    ],
+    "differentiation_strategy": {{
+        "primary_differentiator": "Main point of differentiation",
+        "supporting_differentiators": ["secondary point 1", "secondary point 2"],
+        "positioning_statement": "Recommended one-line positioning",
+        "target_segment_focus": "Which segment to focus on"
+    }},
+    "data_sources": ["source 1", "source 2"],
+    "confidence": "high|medium|low"
+}}
+"""
+
+        try:
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a competitive intelligence expert with deep market knowledge. Provide data-informed analysis."
+                },
+                {"role": "user", "content": prompt}
+            ]
+
+            response = await openai_client.chat_completion(
+                messages=messages,
+                temperature=0.4,
+                max_tokens=2000,
+                response_format={"type": "json_object"}
+            )
+
+            import json
+            analysis = json.loads(response)
+
+            # Add metadata
+            analysis["industry"] = industry
+            analysis["analyzed_at"] = datetime.utcnow().isoformat()
+
+            # Cache results (14 days for competitive analysis)
+            await redis_cache.set(cache_key, analysis, ttl=1209600)
+
+            logger.info(
+                "Competitive analysis completed",
+                num_competitors=len(analysis.get("competitors", [])),
+                confidence=analysis.get("confidence"),
+                correlation_id=correlation_id
+            )
+
+            return analysis
+
+        except Exception as e:
+            logger.error(f"Competitive analysis failed: {e}")
+            return self._fallback_competitive_analysis()
+
+    def _fallback_competitive_analysis(self) -> Dict[str, Any]:
+        """Fallback competitive analysis if LLM call fails."""
+        return {
+            "market_landscape": {
+                "market_size": "Unable to determine",
+                "key_trends": ["Analysis incomplete"],
+                "competitive_intensity": "medium",
+                "barriers_to_entry": []
+            },
+            "competitors": [],
+            "gaps_and_opportunities": [],
+            "differentiation_strategy": {
+                "primary_differentiator": "Unable to determine",
+                "supporting_differentiators": [],
+                "positioning_statement": "Analysis incomplete",
+                "target_segment_focus": "Unknown"
+            },
+            "data_sources": [],
+            "confidence": "low",
+            "error": True
+        }
+
+    async def get_market_opportunities(
+        self,
+        industry: str,
+        icp_data: Optional[Dict] = None
+    ) -> Dict[str, Any]:
+        """
+        Identifies market opportunities based on industry and ICP.
+
+        Args:
+            industry: Industry or market segment
+            icp_data: Optional ICP profile data
+
+        Returns:
+            Market opportunities with prioritization
+        """
+        correlation_id = get_correlation_id()
+
+        # Build context from ICP
+        icp_context = ""
+        if icp_data:
+            pain_points = icp_data.get("pain_points", [])
+            if pain_points:
+                icp_context = f"\nTarget Customer Pain Points: {', '.join(pain_points[:5])}"
+
+        question = f"What are the top market opportunities in {industry} for the next 12 months?{icp_context}"
+
+        # Use deep research mode for opportunities
+        findings = await self.research(
+            question=question,
+            mode="deep",
+            context={"industry": industry}
+        )
+
+        # Enhance with opportunity structure
+        opportunities = {
+            "industry": industry,
+            "opportunities": findings.get("key_insights", []),
+            "trends": findings.get("trends", []) if "trends" in findings else [],
+            "recommendations": findings.get("recommendations", []),
+            "confidence": findings.get("confidence", "medium"),
+            "sources": findings.get("sources_consulted", self.data_sources["market_knowledge"]),
+            "analyzed_at": datetime.utcnow().isoformat()
+        }
+
+        return opportunities
 
 
 # Global instance

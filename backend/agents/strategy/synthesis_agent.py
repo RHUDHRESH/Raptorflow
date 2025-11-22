@@ -17,28 +17,45 @@ logger = structlog.get_logger(__name__)
 class SynthesisAgent:
     """
     Synthesizes insights into actionable campaign ideas.
-    
+
     Takes:
     - Ambient discoveries (quick wins)
     - ICP tags and profiles
     - Market research insights
-    
+    - Competitive positioning data
+
     Produces:
     - Concrete campaign proposals with rationale
     - Mini-plans (channels, assets, timeline)
     - Priority scores
     - Risk assessments
-    
+    - Strategic themes and narratives
+    - Executive summaries for stakeholders
+
     Responsibilities:
     - Convert opportunities into campaigns
     - Recommend channels and content mix
     - Estimate effort and resource needs
     - Provide strategic rationale
+    - Identify overarching strategic themes
+    - Generate executive-level strategy summaries
     """
-    
+
     def __init__(self):
         self.effort_levels = ["low", "medium", "high"]
         self.confidence_levels = ["low", "medium", "high"]
+
+        # Strategic theme categories
+        self.theme_categories = [
+            "Thought Leadership",
+            "Market Education",
+            "Community Building",
+            "Product Innovation",
+            "Customer Success",
+            "Competitive Differentiation",
+            "Brand Awareness",
+            "Demand Generation"
+        ]
     
     async def synthesize_campaign_idea(
         self,
@@ -330,6 +347,250 @@ Key Insights:
             "confidence": "low",
             "priority_score": 5.0,
             "error": "Synthesis failed, using fallback"
+        }
+
+    async def synthesize_comprehensive_strategy(
+        self,
+        market_research: Dict[str, Any],
+        icps: List[Dict],
+        competitive_analysis: Optional[Dict] = None,
+        campaign_goal: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Synthesizes ALL research data into a coherent marketing strategy.
+
+        This is the primary synthesis method that combines:
+        - Market research insights
+        - ICP profiles and pain points
+        - Competitive positioning
+        - Campaign goals
+
+        Into:
+        - Strategic themes
+        - High-level narrative
+        - Executive summary
+        - Recommended approach
+
+        Args:
+            market_research: Market research findings
+            icps: List of ICP profiles
+            competitive_analysis: Optional competitive positioning data
+            campaign_goal: Optional specific campaign goal
+
+        Returns:
+            Comprehensive strategy with themes, narrative, and executive summary
+        """
+        correlation_id = get_correlation_id()
+        logger.info(
+            "Synthesizing comprehensive strategy",
+            num_icps=len(icps),
+            has_competitive_data=bool(competitive_analysis),
+            correlation_id=correlation_id
+        )
+
+        # Build context from all inputs
+        market_context = self._build_market_context(market_research)
+        icp_context = self._build_icp_context(icps)
+        competitive_context = self._build_competitive_context(competitive_analysis) if competitive_analysis else ""
+        goal_context = f"\nCampaign Goal: {campaign_goal}" if campaign_goal else ""
+
+        prompt = f"""
+You are a strategic marketing advisor synthesizing research into an executive-level strategy.
+
+MARKET RESEARCH INSIGHTS:
+{market_context}
+
+TARGET CUSTOMER PROFILES (ICPs):
+{icp_context}
+{competitive_context}
+{goal_context}
+
+Your task: Synthesize this research into a coherent marketing strategy that will resonate with stakeholders.
+
+Provide:
+
+1. **Executive Summary** (3-4 paragraphs):
+   - Current market situation and opportunity
+   - Target audience and their needs
+   - Recommended strategic approach
+   - Expected outcomes and success metrics
+
+2. **Strategic Themes** (3-5 overarching themes):
+   - Identify the key strategic pillars that should guide all marketing
+   - For each theme: name, rationale, how it connects to customer needs
+
+3. **Strategic Narrative** (The "Why"):
+   - The compelling story that ties everything together
+   - Why this strategy makes sense given market conditions
+   - How it positions the company for success
+
+4. **Recommended Approach**:
+   - High-level marketing approach (channels, tactics, timing)
+   - Key differentiators to emphasize
+   - Success metrics and KPIs
+
+5. **Strategic Priorities**:
+   - Top 3 priorities for immediate action
+   - What to avoid or deprioritize
+
+Return JSON:
+{{
+    "executive_summary": {{
+        "market_situation": "2-3 sentences on market opportunity",
+        "target_audience": "Who we're targeting and why",
+        "strategic_approach": "Our recommended approach",
+        "expected_outcomes": "What success looks like"
+    }},
+    "strategic_themes": [
+        {{
+            "theme_name": "Theme name (e.g., Thought Leadership)",
+            "category": "One of: {', '.join(self.theme_categories)}",
+            "rationale": "Why this theme matters",
+            "customer_connection": "How this addresses customer needs",
+            "key_messages": ["message 1", "message 2"]
+        }}
+    ],
+    "strategic_narrative": {{
+        "why_now": "Why this strategy makes sense now",
+        "positioning_angle": "How we position ourselves",
+        "story_arc": "The narrative journey we'll take customers on",
+        "emotional_hook": "The emotional appeal"
+    }},
+    "recommended_approach": {{
+        "primary_channels": ["channel 1", "channel 2"],
+        "content_strategy": "High-level content approach",
+        "differentiation_focus": ["differentiator 1", "differentiator 2"],
+        "success_metrics": ["KPI 1", "KPI 2", "KPI 3"],
+        "timeline_approach": "Burst/Sustained/Always-on"
+    }},
+    "strategic_priorities": {{
+        "do_first": ["priority 1", "priority 2", "priority 3"],
+        "avoid_or_deprioritize": ["what not to do 1", "what not to do 2"]
+    }},
+    "confidence": "high|medium|low",
+    "key_assumptions": ["assumption 1", "assumption 2"]
+}}
+"""
+
+        try:
+            messages = [
+                {
+                    "role": "system",
+                    "content": MASTER_SUPERVISOR_SYSTEM_PROMPT + "\nYou are a strategic marketing advisor creating executive-level strategy."
+                },
+                {"role": "user", "content": prompt}
+            ]
+
+            response = await openai_client.chat_completion(
+                messages=messages,
+                temperature=0.6,
+                max_tokens=3000,
+                response_format={"type": "json_object"}
+            )
+
+            import json
+            strategy = json.loads(response)
+
+            # Add metadata
+            strategy["synthesized_at"] = datetime.utcnow().isoformat()
+            strategy["inputs"] = {
+                "market_research_mode": market_research.get("mode", "unknown"),
+                "num_icps": len(icps),
+                "has_competitive_analysis": bool(competitive_analysis)
+            }
+
+            logger.info(
+                "Comprehensive strategy synthesized",
+                num_themes=len(strategy.get("strategic_themes", [])),
+                confidence=strategy.get("confidence"),
+                correlation_id=correlation_id
+            )
+
+            return strategy
+
+        except Exception as e:
+            logger.error(f"Comprehensive strategy synthesis failed: {e}")
+            return self._fallback_comprehensive_strategy()
+
+    def _build_market_context(self, market_research: Dict) -> str:
+        """Builds market context string from research."""
+        if not market_research:
+            return "No market research available"
+
+        context_parts = []
+
+        if market_research.get("answer"):
+            context_parts.append(f"Key Finding: {market_research['answer']}")
+
+        if market_research.get("key_insights"):
+            insights = "\n- ".join(market_research["key_insights"][:5])
+            context_parts.append(f"\nKey Insights:\n- {insights}")
+
+        if market_research.get("trends"):
+            trends = "\n- ".join(market_research["trends"][:3])
+            context_parts.append(f"\nMarket Trends:\n- {trends}")
+
+        if market_research.get("opportunities"):
+            opps = "\n- ".join(market_research["opportunities"][:3])
+            context_parts.append(f"\nOpportunities:\n- {opps}")
+
+        return "\n".join(context_parts) if context_parts else "Market research data available"
+
+    def _build_competitive_context(self, competitive_analysis: Dict) -> str:
+        """Builds competitive context string."""
+        if not competitive_analysis:
+            return ""
+
+        context = "\n\nCOMPETITIVE LANDSCAPE:"
+
+        landscape = competitive_analysis.get("market_landscape", {})
+        if landscape:
+            context += f"\nMarket Intensity: {landscape.get('competitive_intensity', 'unknown')}"
+
+        competitors = competitive_analysis.get("competitors", [])
+        if competitors:
+            comp_summary = "\n".join([
+                f"- {c.get('name', 'Competitor')}: {c.get('positioning', 'N/A')}"
+                for c in competitors[:3]
+            ])
+            context += f"\n\nKey Competitors:\n{comp_summary}"
+
+        diff_strategy = competitive_analysis.get("differentiation_strategy", {})
+        if diff_strategy:
+            context += f"\n\nDifferentiation Opportunity: {diff_strategy.get('primary_differentiator', 'N/A')}"
+
+        return context
+
+    def _fallback_comprehensive_strategy(self) -> Dict[str, Any]:
+        """Fallback strategy if synthesis fails."""
+        return {
+            "executive_summary": {
+                "market_situation": "Unable to synthesize market research",
+                "target_audience": "Analysis incomplete",
+                "strategic_approach": "Default approach recommended",
+                "expected_outcomes": "Unable to determine"
+            },
+            "strategic_themes": [],
+            "strategic_narrative": {
+                "why_now": "Unable to determine",
+                "positioning_angle": "Analysis incomplete",
+                "story_arc": "Unable to synthesize",
+                "emotional_hook": "Unknown"
+            },
+            "recommended_approach": {
+                "primary_channels": ["linkedin", "email"],
+                "content_strategy": "Content-first approach",
+                "differentiation_focus": [],
+                "success_metrics": ["Engagement", "Reach"],
+                "timeline_approach": "Sustained"
+            },
+            "strategic_priorities": {
+                "do_first": ["Complete research", "Define ICPs"],
+                "avoid_or_deprioritize": []
+            },
+            "confidence": "low",
+            "key_assumptions": ["Synthesis failed - using defaults"],
+            "error": True
         }
 
 
