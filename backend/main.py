@@ -81,10 +81,6 @@ app = FastAPI(
             "description": "Dynamic onboarding questionnaire and profile building"
         },
         {
-            "name": "Customer Intelligence",
-            "description": "ICP building and customer research"
-        },
-        {
             "name": "Strategy",
             "description": "ADAPT framework and campaign planning"
         },
@@ -295,7 +291,6 @@ async def root():
 # Import and include routers
 from backend.routers import (
     onboarding,
-    customer_intelligence,
     strategy,
     campaigns,
     content,
@@ -305,7 +300,6 @@ from backend.routers import (
 )
 
 app.include_router(onboarding.router, prefix="/api/v1/onboarding", tags=["Onboarding"])
-app.include_router(customer_intelligence.router, prefix="/api/v1/customer-intelligence", tags=["Customer Intelligence"])
 app.include_router(strategy.router, prefix="/api/v1/strategy", tags=["Strategy"])
 app.include_router(campaigns.router, prefix="/api/v1/campaigns", tags=["Campaigns"])
 app.include_router(content.router, prefix="/api/v1/content", tags=["Content"])
