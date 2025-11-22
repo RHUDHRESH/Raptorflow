@@ -163,9 +163,8 @@ export const quickWinsService = {
     newsItems: Array<{ title: string; summary: string; url: string }>,
     cohorts: Array<{ id: string; tags: string[] }>
   ): Promise<QuickWin[]> {
+    // TODO: Implement AI integration
     // This would call your AI service to analyze news and match to cohorts
-    // For now, return empty array - implement with AI integration
-    console.log('generateFromNews called - AI integration needed');
     return [];
   },
 
@@ -176,9 +175,8 @@ export const quickWinsService = {
     searchQuery: string,
     cohorts: Array<{ id: string; tags: string[] }>
   ): Promise<QuickWin[]> {
+    // TODO: Implement AI integration
     // This would search internal assets and suggest opportunities
-    // For now, return empty array - implement with AI integration
-    console.log('generateFromInternalAssets called - AI integration needed');
     return [];
   },
 

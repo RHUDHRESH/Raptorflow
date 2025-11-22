@@ -1198,7 +1198,6 @@ export default function RaptorFlow({ onClose }) {
         <button 
 
             onClick={() => {
-              console.log("Submitting data:", answers);
               if (onClose) onClose();
             }} 
 
