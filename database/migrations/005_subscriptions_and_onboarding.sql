@@ -278,3 +278,4 @@ GRANT EXECUTE ON FUNCTION public.has_completed_onboarding(UUID) TO authenticated
 -- SELECT * FROM public.user_profiles;
 
 
+

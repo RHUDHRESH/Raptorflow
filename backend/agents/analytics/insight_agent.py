@@ -244,3 +244,4 @@ Suggest the best pivot with rationale. Output as JSON:
 insight_agent = InsightAgent()
 
 
+

@@ -183,3 +183,4 @@ async def get_learnings(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
+
