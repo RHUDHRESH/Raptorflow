@@ -19,6 +19,8 @@ from backend.models.onboarding import (
 )
 
 from backend.models.persona import (
+    TAG_OPTIONS,
+    TagWithConfidence,
     ICPProfile,
     ICPRequest,
     ICPResponse,
@@ -27,6 +29,12 @@ from backend.models.persona import (
     Psychographics,
     Communication,
     PersonaNarrative,
+    PersonaNarrativeRequest,
+    PersonaNarrativeResponse,
+    TagEnrichmentRequest,
+    TagEnrichmentResponse,
+    PainPointMiningRequest,
+    PainPointMiningResponse,
 )
 
 from backend.models.campaign import (
@@ -47,7 +55,10 @@ from backend.models.content import (
     BlogRequest,
     BlogResponse,
     EmailRequest,
+    EmailMessage,
+    EmailResponse,
     SocialPostRequest,
+    SocialPostResponse,
     ContentRequest,
     ContentResponse,
     ContentVariant,
@@ -59,7 +70,15 @@ from backend.models.content import (
     AssetMetadata,
     BrandVoiceProfile,
     ContentMetadata,
-    EmailMessage,
+)
+
+from backend.models.agent_state import (
+    BaseAgentState,
+    ResearchState,
+    ContentState,
+    StrategyState,
+    ExecutionState,
+    AnalyticsState,
 )
 
 __all__ = [
@@ -79,6 +98,8 @@ __all__ = [
     "AgencyProfile",
     "StylePreferences",
     # Persona
+    "TAG_OPTIONS",
+    "TagWithConfidence",
     "ICPProfile",
     "ICPRequest",
     "ICPResponse",
@@ -87,6 +108,12 @@ __all__ = [
     "Psychographics",
     "Communication",
     "PersonaNarrative",
+    "PersonaNarrativeRequest",
+    "PersonaNarrativeResponse",
+    "TagEnrichmentRequest",
+    "TagEnrichmentResponse",
+    "PainPointMiningRequest",
+    "PainPointMiningResponse",
     # Campaign
     "MoveRequest",
     "MoveResponse",
@@ -103,7 +130,10 @@ __all__ = [
     "BlogRequest",
     "BlogResponse",
     "EmailRequest",
+    "EmailMessage",
+    "EmailResponse",
     "SocialPostRequest",
+    "SocialPostResponse",
     "ContentRequest",
     "ContentResponse",
     "ContentVariant",
@@ -115,5 +145,11 @@ __all__ = [
     "AssetMetadata",
     "BrandVoiceProfile",
     "ContentMetadata",
-    "EmailMessage",
+    # Agent State
+    "BaseAgentState",
+    "ResearchState",
+    "ContentState",
+    "StrategyState",
+    "ExecutionState",
+    "AnalyticsState",
 ]
