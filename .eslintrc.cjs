@@ -27,10 +27,10 @@ module.exports = {
     "react/react-in-jsx-scope": "off",
     "react/jsx-uses-react": "off",
     "react-refresh/only-export-components": "off",
-    "react/prop-types": "off",
     "react/no-unescaped-entities": "off",
-    "react-hooks/exhaustive-deps": "off",
-    "no-unused-vars": "off",
+    "react/prop-types": "warn",
+    "react-hooks/exhaustive-deps": "warn",
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
   },
   ignorePatterns: [
     "dist",

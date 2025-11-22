@@ -1636,8 +1636,6 @@ export default function CohortsBuilder({ onClose, onboardingData }) {
   };
 
   const handleFinalizeComplete = (savedCohort) => {
-    console.log('Cohort saved:', savedCohort);
-    
     // Check if we're at limit after saving
     const newCount = getCurrentCohortsCount();
     const limit = getCohortsLimit();

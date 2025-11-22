@@ -302,9 +302,8 @@ export const workspaceService = {
     email: string,
     role: UserWorkspace['role']
   ): Promise<void> {
-    // This would send an email invitation
-    // For now, just log
-    console.log(`Invite sent to ${email} for workspace ${workspaceId} with role ${role}`);
+    // TODO: Implement email invitation service
+    // This would send an email invitation to ${email} for workspace ${workspaceId} with role ${role}
     // Implement with email service (Supabase Auth or external)
   }
 };
