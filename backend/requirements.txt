@@ -105,3 +105,7 @@ shortuuid>=1.0.12
 # Date/Time
 pytz>=2024.1
 
+# Language Analysis & NLP
+language-tool-python>=2.7.1
+textstat>=0.7.3
+
