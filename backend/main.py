@@ -33,31 +33,59 @@ security = HTTPBearer()
 async def lifespan(app: FastAPI):
     """
     Lifespan context manager to handle startup and shutdown events.
+
+    Initializes:
+    - Redis connections (cache and queue)
+    - Master Orchestrator with domain supervisors
+    - Agent hierarchy
     """
     # Startup
     logger.info(f"Starting {settings.APP_NAME} in {settings.ENVIRONMENT} mode")
     logger.info("Initializing Redis connections...")
-    
+
     try:
-        # Test Redis connections
-        await redis_cache.redis_client.ping()
+        # Initialize and test Redis cache connection
+        await redis_cache.connect()
         logger.info("✓ Redis cache connection established")
     except Exception as e:
         logger.error(f"✗ Redis cache connection failed: {e}")
-    
+
     try:
+        # Initialize and test Redis queue connection
         await redis_queue.redis_client.ping()
         logger.info("✓ Redis queue connection established")
     except Exception as e:
         logger.error(f"✗ Redis queue connection failed: {e}")
-    
+
+    # Initialize Master Orchestrator and domain supervisors
+    logger.info("Initializing Master Orchestrator and supervisors...")
+    try:
+        from backend.agents.supervisor import master_orchestrator
+
+        # TODO: In future iterations, register actual domain supervisor instances:
+        # from backend.agents.onboarding.supervisor import onboarding_supervisor
+        # from backend.agents.research.supervisor import research_supervisor
+        # etc.
+        # master_orchestrator.register_agent("onboarding", onboarding_supervisor)
+        # master_orchestrator.register_agent("research", research_supervisor)
+        # ...
+
+        # Store orchestrator in app state for access in endpoints
+        app.state.master_orchestrator = master_orchestrator
+
+        logger.info("✓ Master Orchestrator initialized")
+        logger.info(f"  Available supervisors: {list(master_orchestrator.supervisor_metadata.keys())}")
+    except Exception as e:
+        logger.error(f"✗ Master Orchestrator initialization failed: {e}")
+        # Non-fatal: app can still start, but orchestration won't work
+
     logger.info(f"✓ {settings.APP_NAME} startup complete")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down...")
-    await redis_cache.close()
+    await redis_cache.disconnect()
     await redis_queue.close()
     logger.info("✓ Cleanup complete")
 
@@ -248,7 +276,7 @@ async def health_check():
     except Exception as e:
         logger.error(f"Redis health check failed: {e}")
         redis_status = "unhealthy"
-    
+
     return {
         "status": "healthy" if redis_status == "healthy" else "degraded",
         "environment": settings.ENVIRONMENT,
@@ -258,6 +286,49 @@ async def health_check():
             "supabase": "connected",  # Could add actual check
         }
     }
+
+
+# Supervisor health check endpoint
+@app.get("/health/supervisors", tags=["System"])
+async def supervisors_health_check(request: Request):
+    """
+    Supervisor health check endpoint.
+
+    Returns the status of the Master Orchestrator and all domain supervisors,
+    including their registered sub-agents.
+
+    This endpoint is useful for:
+    - Monitoring which supervisors are loaded and available
+    - Debugging agent registration issues
+    - Understanding the agent hierarchy structure
+    - Verifying ADAPT stage configuration
+
+    Returns:
+        Dict containing:
+        - master_orchestrator: Status and registered supervisor count
+        - supervisors: Details for each domain supervisor including:
+            - description: What the supervisor does
+            - capabilities: List of capabilities
+            - stage: ADAPT stage (if applicable)
+            - registered: Whether supervisor instance is registered
+            - sub_agents: List of registered sub-agent names
+    """
+    try:
+        orchestrator = request.app.state.master_orchestrator
+        health = orchestrator.get_supervisor_health()
+
+        return {
+            "status": "healthy",
+            "timestamp": time.time(),
+            **health
+        }
+    except Exception as e:
+        logger.error(f"Supervisor health check failed: {e}")
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": time.time()
+        }
 
 
 # Root endpoint
