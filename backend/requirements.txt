@@ -83,9 +83,10 @@ ruff>=0.2.1
 mypy>=1.8.0
 types-redis>=4.6.0.20240106
 
-# Vector DB (optional for semantic search)
-# chromadb>=0.4.22
-# pinecone-client>=3.0.2
+# Vector DB & Embeddings (for semantic search and memory system)
+chromadb>=0.4.22
+sentence-transformers>=2.2.2
+torch>=2.0.0  # Required for sentence-transformers
 
 # Rate Limiting
 slowapi>=0.1.9
