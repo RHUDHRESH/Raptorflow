@@ -148,3 +148,54 @@ async def get_cached_content(content_id: str) -> Optional[Any]:
     """Get cached content"""
     return await cache.get("content", content_id)
 
+
+class RedisCache:
+    """
+    Convenience wrapper for redis cache with simplified API.
+    Used by content agents for caching generated content.
+    """
+
+    async def get(self, key: str) -> Optional[Any]:
+        """Get value from cache using full key"""
+        if not cache.redis:
+            return None
+        try:
+            value = await cache.redis.get(f"raptorflow:{key}")
+            if value:
+                return json.loads(value)
+            return None
+        except Exception as e:
+            logger.warning("Redis get failed", key=key, error=str(e))
+            return None
+
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+        """Set value in cache with optional TTL"""
+        if not cache.redis:
+            return False
+        try:
+            serialized = json.dumps(value)
+            full_key = f"raptorflow:{key}"
+            if ttl:
+                await cache.redis.setex(full_key, ttl, serialized)
+            else:
+                await cache.redis.set(full_key, serialized)
+            return True
+        except Exception as e:
+            logger.warning("Redis set failed", key=key, error=str(e))
+            return False
+
+    async def delete(self, key: str) -> bool:
+        """Delete value from cache"""
+        if not cache.redis:
+            return False
+        try:
+            await cache.redis.delete(f"raptorflow:{key}")
+            return True
+        except Exception as e:
+            logger.warning("Redis delete failed", key=key, error=str(e))
+            return False
+
+
+# Global redis_cache instance for content agents
+redis_cache = RedisCache()
+
