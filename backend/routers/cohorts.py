@@ -3,7 +3,7 @@ Cohorts Router - API endpoints for ICP/cohort creation and management.
 """
 
 import structlog
-from typing import Annotated, Optional
+from typing import Annotated, Optional, Dict, Any
 from uuid import UUID
 from datetime import datetime
 
@@ -14,12 +14,22 @@ from backend.main import get_current_user_and_workspace
 from backend.services.vertex_ai_client import vertex_ai_client
 from backend.services.supabase_client import supabase_client
 from backend.utils.correlation import generate_correlation_id
+from backend.graphs.customer_intelligence_graph import customer_intelligence_graph
 
 router = APIRouter()
 logger = structlog.get_logger(__name__)
 
 
 # --- Request/Response Models ---
+class ICPRequest(BaseModel):
+    """Request to create an ICP/cohort."""
+    nickname: str
+    role: Optional[str] = None
+    pain_point: Optional[str] = None
+    known_attributes: Dict[str, Any] = {}
+    depth: str = "quick"  # "quick" or "deep"
+
+
 class CohortGenerateRequest(BaseModel):
     """Request to generate a cohort from business inputs."""
     businessDescription: str
@@ -279,6 +289,66 @@ Return as valid JSON:
         )
 
 
+@router.post("/create", response_model=dict, summary="Create ICP/Cohort", tags=["Cohorts"])
+async def create_icp(
+    request: ICPRequest,
+    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
+):
+    """
+    Creates a complete ICP/cohort using the Customer Intelligence Graph.
+    Calls the research supervisor to build ICP with tags, narrative, pain points, and psychographics.
+    """
+    workspace_id = auth["workspace_id"]
+    correlation_id = generate_correlation_id()
+    logger.info("Creating ICP via customer intelligence graph",
+                nickname=request.nickname,
+                correlation_id=correlation_id)
+
+    try:
+        # Build persona input from request
+        persona_input = {
+            "nickname": request.nickname,
+            "role": request.role,
+            "pain_point": request.pain_point,
+            **request.known_attributes
+        }
+
+        # Call customer intelligence graph
+        result = await customer_intelligence_graph.create_icp(
+            workspace_id=workspace_id,
+            persona_input=persona_input,
+            depth=request.depth
+        )
+
+        if not result.get("success"):
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=result.get("error", "Failed to create ICP")
+            )
+
+        logger.info("ICP created successfully",
+                   icp_id=result["icp"].get("id"),
+                   correlation_id=correlation_id)
+
+        return {
+            "status": "success",
+            "icp": result["icp"],
+            "narrative": result["narrative"],
+            "pain_points": result["pain_points"],
+            "triggers": result["triggers"],
+            "correlation_id": correlation_id
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to create ICP: {e}", correlation_id=correlation_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
 @router.post("/", response_model=CohortResponse, summary="Save Cohort", tags=["Cohorts"])
 async def create_cohort(
     cohort_data: CohortData,
@@ -287,7 +357,7 @@ async def create_cohort(
     """Saves a cohort to the database."""
     workspace_id = auth["workspace_id"]
     user_id = auth["user_id"]
-    
+
     try:
         cohort_record = {
             "workspace_id": str(workspace_id),
@@ -297,11 +367,11 @@ async def create_cohort(
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat()
         }
-        
+
         saved = await supabase_client.insert("cohorts", cohort_record)
-        
+
         return CohortResponse(**saved)
-        
+
     except Exception as e:
         logger.error(f"Failed to save cohort: {e}")
         raise HTTPException(
@@ -310,17 +380,28 @@ async def create_cohort(
         )
 
 
-@router.get("/", response_model=list[CohortResponse], summary="List Cohorts", tags=["Cohorts"])
+@router.get("/list", response_model=list[CohortResponse], summary="List Cohorts", tags=["Cohorts"])
 async def list_cohorts(auth: Annotated[dict, Depends(get_current_user_and_workspace)]):
-    """Lists all cohorts for the workspace."""
+    """Fetches all cohort entries from Supabase for the workspace."""
     workspace_id = auth["workspace_id"]
-    
-    cohorts = await supabase_client.fetch_all(
-        "cohorts",
-        {"workspace_id": str(workspace_id)}
-    )
-    
-    return [CohortResponse(**c) for c in cohorts]
+    correlation_id = generate_correlation_id()
+    logger.info("Fetching cohorts list", workspace_id=workspace_id, correlation_id=correlation_id)
+
+    try:
+        cohorts = await supabase_client.fetch_all(
+            "cohorts",
+            {"workspace_id": str(workspace_id)}
+        )
+
+        logger.info(f"Retrieved {len(cohorts)} cohorts", correlation_id=correlation_id)
+        return [CohortResponse(**c) for c in cohorts]
+
+    except Exception as e:
+        logger.error(f"Failed to fetch cohorts: {e}", correlation_id=correlation_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 
 @router.get("/{cohort_id}", response_model=CohortResponse, summary="Get Cohort", tags=["Cohorts"])
@@ -330,19 +411,82 @@ async def get_cohort(
 ):
     """Retrieves a specific cohort."""
     workspace_id = auth["workspace_id"]
-    
+
     cohort = await supabase_client.fetch_one(
         "cohorts",
         {"id": str(cohort_id), "workspace_id": str(workspace_id)}
     )
-    
+
     if not cohort:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cohort not found"
         )
-    
+
     return CohortResponse(**cohort)
+
+
+@router.post("/{cohort_id}/enrich", response_model=dict, summary="Enrich Cohort with Psychographic Tags", tags=["Cohorts"])
+async def enrich_cohort(
+    cohort_id: UUID,
+    depth: str = "deep",
+    auth: Annotated[dict, Depends(get_current_user_and_workspace)] = None
+):
+    """
+    Calls the Tag Assignment Agent to add additional psychographic tags to an existing cohort.
+    Enriches with deeper pain points, behavioral triggers, and psychographic insights.
+    """
+    workspace_id = auth["workspace_id"]
+    correlation_id = generate_correlation_id()
+    logger.info("Enriching cohort",
+                cohort_id=cohort_id,
+                depth=depth,
+                correlation_id=correlation_id)
+
+    try:
+        # Verify cohort exists and belongs to workspace
+        cohort = await supabase_client.fetch_one(
+            "cohorts",
+            {"id": str(cohort_id), "workspace_id": str(workspace_id)}
+        )
+
+        if not cohort:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Cohort not found"
+            )
+
+        # Call customer intelligence graph to enrich existing ICP
+        result = await customer_intelligence_graph.enrich_existing_icp(
+            icp_id=cohort_id,
+            depth=depth
+        )
+
+        if not result.get("success"):
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=result.get("error", "Failed to enrich cohort")
+            )
+
+        logger.info("Cohort enriched successfully",
+                   cohort_id=cohort_id,
+                   correlation_id=correlation_id)
+
+        return {
+            "status": "success",
+            "cohort_id": str(cohort_id),
+            "enriched_icp": result["icp"],
+            "correlation_id": correlation_id
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to enrich cohort: {e}", correlation_id=correlation_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 
 @router.delete("/{cohort_id}", summary="Delete Cohort", tags=["Cohorts"])

@@ -8,7 +8,7 @@ import asyncio
 
 from backend.models.persona import ICPProfile
 from backend.config.settings import get_settings
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 from backend.utils.cache import redis_cache
 
 logger = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ Extract 5-7 specific triggers from the pain points above. Return as a JSON array
                 {"role": "user", "content": trigger_prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.5,
                 response_format={"type": "json_object"}
@@ -165,7 +165,7 @@ Be specific and actionable. Focus on:
                 {"role": "user", "content": prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.6,
                 response_format={"type": "json_object"}
@@ -231,7 +231,7 @@ Be realistic - pain points should sound like real complaints from forums and rev
                 {"role": "user", "content": prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.7,
                 response_format={"type": "json_object"}

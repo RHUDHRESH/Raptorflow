@@ -85,43 +85,62 @@ async def generate_strategy(
         
         # Store in database
         strategy_record = await supabase_client.insert("global_strategies", strategy_data)
-        
+
         logger.info("Strategy generated", strategy_id=strategy_record["id"], correlation_id=correlation_id)
-        return StrategyResponse(**strategy_record)
-        
+
+        return {
+            **StrategyResponse(**strategy_record).dict(),
+            "correlation_id": correlation_id
+        }
+
     except Exception as e:
         logger.error(f"Failed to generate strategy: {e}", correlation_id=correlation_id)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 
-@router.get("/{strategy_id}", response_model=StrategyResponse, summary="Get Strategy", tags=["Strategy"])
+@router.get("/{strategy_id}", response_model=dict, summary="Get Strategy", tags=["Strategy"])
 async def get_strategy(
     strategy_id: UUID,
     auth: Annotated[dict, Depends(get_current_user_and_workspace)]
 ):
     """Retrieves a specific strategy."""
     workspace_id = auth["workspace_id"]
-    
+    correlation_id = generate_correlation_id()
+
     strategy = await supabase_client.fetch_one(
         "global_strategies",
         {"id": str(strategy_id), "workspace_id": str(workspace_id)}
     )
-    
+
     if not strategy:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Strategy not found")
-    
-    return StrategyResponse(**strategy)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Strategy not found"
+        )
+
+    return {
+        **StrategyResponse(**strategy).dict(),
+        "correlation_id": correlation_id
+    }
 
 
-@router.get("/", response_model=list[StrategyResponse], summary="List Strategies", tags=["Strategy"])
+@router.get("/", response_model=dict, summary="List Strategies", tags=["Strategy"])
 async def list_strategies(auth: Annotated[dict, Depends(get_current_user_and_workspace)]):
     """Lists all strategies for the workspace."""
     workspace_id = auth["workspace_id"]
-    
+    correlation_id = generate_correlation_id()
+
     strategies = await supabase_client.fetch_all(
         "global_strategies",
         {"workspace_id": str(workspace_id)}
     )
-    
-    return [StrategyResponse(**s) for s in strategies]
+
+    return {
+        "strategies": [StrategyResponse(**s).dict() for s in strategies],
+        "total": len(strategies),
+        "correlation_id": correlation_id
+    }
 
