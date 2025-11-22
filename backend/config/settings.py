@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     SUPABASE_URL: str
     SUPABASE_SERVICE_KEY: str  # Service role key for backend operations
     SUPABASE_ANON_KEY: str  # Public anon key
+    SUPABASE_JWT_SECRET: str  # JWT secret for token verification
     
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
