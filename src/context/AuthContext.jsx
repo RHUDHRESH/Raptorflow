@@ -17,6 +17,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [subscription, setSubscription] = useState(null);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
   // Check for existing session on mount
   useEffect(() => {
@@ -26,9 +28,9 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-<<<<<<< Updated upstream
     // Check for OAuth callback in URL hash
     const handleOAuthCallback = async () => {
+      if (!supabase) return;
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
@@ -60,15 +62,10 @@ export const AuthProvider = ({ children }) => {
     } else {
       checkAuth();
     }
-=======
-    checkAuth();
->>>>>>> Stashed changes
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
         console.log('Auth state changed:', event, session?.user?.email);
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session?.user) {
@@ -80,28 +77,18 @@ export const AuthProvider = ({ children }) => {
             };
             setUser(userData);
             
+            // Fetch subscription and onboarding status
+            await fetchUserStatus(session.user.id);
+            
             // Clear OAuth callback from URL if present
             if (window.location.hash) {
               window.history.replaceState(null, '', window.location.pathname);
             }
-=======
-=======
->>>>>>> Stashed changes
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          if (session?.user) {
-            setUser({
-              id: session.user.id,
-              email: session.user.email,
-              name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-              avatar_url: session.user.user_metadata?.avatar_url,
-            });
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
+          setSubscription(null);
+          setOnboardingCompleted(false);
         }
         setLoading(false);
       }
@@ -130,12 +117,16 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (session?.user) {
-        setUser({
+        const userData = {
           id: session.user.id,
           email: session.user.email,
           name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
           avatar_url: session.user.user_metadata?.avatar_url,
-        });
+        };
+        setUser(userData);
+        
+        // Fetch subscription and onboarding status
+        await fetchUserStatus(session.user.id);
       } else {
         setUser(null);
       }
@@ -147,11 +138,49 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const fetchUserStatus = async (userId) => {
+    if (!supabase) return;
+    
+    try {
+      // Fetch user profile for onboarding status
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('onboarding_completed, onboarding_skipped')
+        .eq('id', userId)
+        .single();
+      
+      if (!profileError && profile) {
+        setOnboardingCompleted(profile.onboarding_completed || profile.onboarding_skipped);
+      }
+      
+      // Fetch subscription
+      const { data: subscriptionData, error: subError } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', userId)
+        .in('status', ['active', 'trialing'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (!subError && subscriptionData) {
+        setSubscription(subscriptionData);
+      } else {
+        // If no subscription found, user might be on free plan
+        setSubscription({ plan: 'free', status: 'active' });
+      }
+    } catch (err) {
+      console.error('Error fetching user status:', err);
+    }
+  };
+
   const clearAuth = async () => {
     if (isSupabaseConfigured() && supabase) {
       await supabase.auth.signOut();
     }
     setUser(null);
+    setSubscription(null);
+    setOnboardingCompleted(false);
   };
 
   const login = async (email, password) => {
@@ -195,6 +224,10 @@ export const AuthProvider = ({ children }) => {
           avatar_url: data.user.user_metadata?.avatar_url,
         };
         setUser(userData);
+        
+        // Fetch subscription and onboarding status
+        await fetchUserStatus(data.user.id);
+        
         setLoading(false);
         return { success: true, user: userData };
       }
@@ -297,6 +330,10 @@ export const AuthProvider = ({ children }) => {
           name: sanitizedName,
         };
         setUser(userData);
+        
+        // Fetch subscription and onboarding status
+        await fetchUserStatus(data.user.id);
+        
         setLoading(false);
         return { success: true, user: userData };
       }
@@ -363,6 +400,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const markOnboardingComplete = async () => {
+    if (!user || !supabase) return { success: false, error: 'No user authenticated' };
+    
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ onboarding_completed: true })
+        .eq('id', user.id);
+      
+      if (error) {
+        console.error('Error marking onboarding complete:', error);
+        return { success: false, error: error.message };
+      }
+      
+      setOnboardingCompleted(true);
+      return { success: true };
+    } catch (err) {
+      console.error('Error marking onboarding complete:', err);
+      return { success: false, error: err.message };
+    }
+  };
+
   // DEV ONLY: Skip login for development
   const skipLoginDev = () => {
     if (import.meta.env.DEV) {
@@ -383,11 +442,14 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     error,
+    subscription,
+    onboardingCompleted,
     login,
     loginWithGoogle,
     register,
     logout,
     updateProfile,
+    markOnboardingComplete,
     skipLoginDev,
     isAuthenticated: !!user,
   };

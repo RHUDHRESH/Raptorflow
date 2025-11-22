@@ -5,9 +5,10 @@ import { useAuth } from '../context/AuthContext';
 /**
  * ProtectedRoute component that requires authentication
  * Redirects to login page if user is not authenticated
+ * Redirects to onboarding if user hasn't completed onboarding
  */
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+const ProtectedRoute = ({ children, requireOnboarding = true }) => {
+  const { isAuthenticated, loading, onboardingCompleted, subscription } = useAuth();
   const location = useLocation();
 
   // Check for OAuth callback in URL and wait a bit for auth state to update
@@ -37,7 +38,16 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // User is authenticated, render the children
+  // Check if user needs to complete onboarding
+  // Only redirect to onboarding if:
+  // 1. Onboarding is required for this route (requireOnboarding = true)
+  // 2. User hasn't completed onboarding
+  // 3. User is not already on the onboarding page
+  if (requireOnboarding && !onboardingCompleted && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" state={{ from: location }} replace />;
+  }
+
+  // User is authenticated and has completed onboarding (or onboarding not required), render the children
   return children;
 };
 

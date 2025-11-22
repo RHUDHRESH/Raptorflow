@@ -7,56 +7,100 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#fdfaf6',
-          100: '#f8f5f0',
-          200: '#f1ece4',
-          300: '#e7e2d8',
-          400: '#d8d2c7',
-          500: '#bcb5af',
-          600: '#8f8983',
-          700: '#5f5b56',
-          800: '#3c3935',
-          900: '#211f1d',
-        },
-        accent: {
-          50: '#fefbf8',
-          100: '#f9f3ea',
-          200: '#f1e4d1',
-          300: '#e8d2b6',
-          400: '#d2b38c',
-          500: '#b48f63',
-          600: '#8c6c47',
-          700: '#624a2f',
-          800: '#3e2e1d',
-          900: '#1d140c',
-        },
-        neutral: {
+        // Monochrome System - RaptorFlow Editorial
+        black: '#000000',
+        white: '#FFFFFF',
+        ink: '#0c0c0c',
+        cream: {
+          DEFAULT: '#fdfcf9',
           50: '#fdfcf9',
-          100: '#f7f5f0',
-          200: '#efede5',
-          300: '#dedbd1',
-          400: '#c7c3ba',
-          500: '#a7a399',
-          600: '#7d7a72',
-          700: '#56534b',
-          800: '#36332c',
-          900: '#1d1b17',
-        }
+        },
+        
+        // Oxblood Accent - 5% usage only
+        oxblood: {
+          DEFAULT: '#6b2b2d',
+          light: '#8f3739',
+          dark: '#4a1d1e',
+        },
+        
+        // Grayscale Hierarchy
+        gray: {
+          50: '#fafafa',
+          100: '#f5f5f5',
+          200: '#e5e5e5',
+          300: '#d4d4d4',
+          400: '#a3a3a3',
+          500: '#737373',
+          600: '#525252',
+          700: '#404040',
+          800: '#262626',
+          900: '#171717',
+        },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        serif: ['Playfair Display', 'Georgia', 'serif'],
-        display: ['Playfair Display', 'serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['GFS Didot', 'Didot', 'Bodoni Moda', 'Georgia', 'serif'],
+        display: ['GFS Didot', 'Didot', 'serif'],
+        mono: ['JetBrains Mono', 'Consolas', 'monospace'],
+      },
+      fontSize: {
+        'xs': ['0.75rem', { lineHeight: '1.5' }],      // 12px
+        'sm': ['0.875rem', { lineHeight: '1.5' }],     // 14px
+        'base': ['1rem', { lineHeight: '1.5' }],       // 16px
+        'lg': ['1.125rem', { lineHeight: '1.5' }],     // 18px
+        'xl': ['1.25rem', { lineHeight: '1.4' }],      // 20px
+        '2xl': ['1.5rem', { lineHeight: '1.3' }],      // 24px
+        '3xl': ['1.875rem', { lineHeight: '1.2' }],    // 30px
+        '4xl': ['2.25rem', { lineHeight: '1.1' }],     // 36px
+        '5xl': ['3rem', { lineHeight: '1' }],          // 48px
+        '6xl': ['3.75rem', { lineHeight: '1' }],       // 60px
+        '7xl': ['4rem', { lineHeight: '0.95' }],       // 64px
+      },
+      spacing: {
+        // 8px grid system (4px base)
+        '0.5': '2px',
+        '1': '4px',
+        '2': '8px',
+        '3': '12px',
+        '4': '16px',
+        '5': '20px',
+        '6': '24px',
+        '7': '28px',
+        '8': '32px',
+        '10': '40px',
+        '12': '48px',
+        '16': '64px',
+        '20': '80px',
+        '24': '96px',
+      },
+      borderRadius: {
+        'none': '0',
+        'sm': '2px',
+        DEFAULT: '4px',
+        'md': '4px',
+        'lg': '6px',
+        'full': '9999px',
+      },
+      transitionDuration: {
+        '100': '100ms',
+        '150': '150ms',
+        '180': '180ms',
+        '200': '200ms',
+        '300': '300ms',
+        '400': '400ms',
+      },
+      transitionTimingFunction: {
+        'luxury': 'cubic-bezier(0.4, 0, 0.2, 1)',
+        'editorial': 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
       animation: {
-        'fade-in': 'fadeIn 0.6s ease-out',
-        'fade-in-up': 'fadeInUp 0.6s ease-out',
-        'slide-in-right': 'slideInRight 0.5s ease-out',
-        'scale-in': 'scaleIn 0.4s ease-out',
+        'fade-in': 'fadeIn 300ms ease-out',
+        'fade-in-up': 'fadeInUp 300ms ease-out',
+        'slide-in-right': 'slideInRight 300ms ease-out',
+        'scale-in': 'scaleIn 180ms ease-out',
         'shimmer': 'shimmer 2s infinite',
         'spin': 'spin 1s linear infinite',
+        'press': 'press 100ms ease-out',
       },
       keyframes: {
         fadeIn: {
@@ -64,20 +108,25 @@ export default {
           '100%': { opacity: '1' },
         },
         fadeInUp: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '0%': { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         slideInRight: {
-          '0%': { opacity: '0', transform: 'translateX(-20px)' },
+          '0%': { opacity: '0', transform: 'translateX(-12px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
         },
         scaleIn: {
-          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '0%': { opacity: '0', transform: 'scale(0.96)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
         shimmer: {
           '0%': { backgroundPosition: '-1000px 0' },
           '100%': { backgroundPosition: '1000px 0' },
+        },
+        press: {
+          '0%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(0.98)' },
+          '100%': { transform: 'scale(1)' },
         },
       },
     },

@@ -31,7 +31,10 @@ const SidebarProvider = ({
   )
 }
 
-const Sidebar = ({ children, open, setOpen, animate, ...props }) => {
+const DESKTOP_SIDEBAR_WIDTH = 272
+const DESKTOP_SIDEBAR_COLLAPSED_WIDTH = 88
+
+const Sidebar = ({ children, open, setOpen, animate }) => {
   return (
     <SidebarProvider open={open} setOpen={setOpen} animate={animate}>
       {children}
@@ -41,25 +44,17 @@ const Sidebar = ({ children, open, setOpen, animate, ...props }) => {
 Sidebar.displayName = "Sidebar"
 
 const DesktopSidebar = React.forwardRef(({ className, children, ...props }, ref) => {
-  const { open, setOpen, animate } = useSidebar()
-  
   return (
-    <motion.aside
+    <aside
       ref={ref}
       className={cn(
-        "fixed left-0 top-0 z-50 h-screen border-r border-neutral-200 bg-white hidden md:flex md:flex-col flex-shrink-0 overflow-hidden",
+        "fixed left-0 top-0 z-50 h-screen border-r border-white/10 bg-black hidden md:flex md:flex-col flex-shrink-0 overflow-hidden",
         className
       )}
-      animate={{
-        width: animate ? (open ? "256px" : "64px") : "64px",
-      }}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
       {...props}
     >
       {children}
-    </motion.aside>
+    </aside>
   )
 })
 DesktopSidebar.displayName = "DesktopSidebar"
@@ -72,15 +67,16 @@ const MobileSidebar = React.forwardRef(({ className, children, ...props }, ref) 
       <div
         ref={ref}
         className={cn(
-          "h-16 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-white border-b border-neutral-200 w-full z-50"
+          "h-16 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-white border-b border-black/10 w-full z-50"
         )}
         {...props}
       >
         <div className="flex justify-end z-20 w-full">
           <Menu
-            className="text-neutral-800 cursor-pointer"
+            className="text-black cursor-pointer"
             onClick={() => setOpen(!open)}
             size={24}
+            strokeWidth={1.5}
           />
         </div>
       </div>
@@ -92,7 +88,7 @@ const MobileSidebar = React.forwardRef(({ className, children, ...props }, ref) 
             exit={{ x: "-100%", opacity: 0 }}
             transition={{
               duration: 0.3,
-              ease: "easeInOut",
+              ease: [0.4, 0, 0.2, 1],
             }}
             className={cn(
               "fixed h-full w-full inset-0 bg-white p-10 z-[100] flex flex-col justify-between md:hidden",
@@ -100,10 +96,10 @@ const MobileSidebar = React.forwardRef(({ className, children, ...props }, ref) 
             )}
           >
             <div
-              className="absolute right-10 top-10 z-50 text-neutral-800 cursor-pointer"
+              className="absolute right-10 top-10 z-50 text-black cursor-pointer"
               onClick={() => setOpen(false)}
             >
-              <X size={24} />
+              <X size={24} strokeWidth={1.5} />
             </div>
             {children}
           </motion.div>
@@ -117,7 +113,7 @@ MobileSidebar.displayName = "MobileSidebar"
 const SidebarHeader = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex shrink-0 items-center gap-2 border-b px-2 py-3", className)}
+    className={cn("flex shrink-0 items-center gap-2 border-b border-white/10 px-6 py-4", className)}
     {...props}
   />
 ))
@@ -126,7 +122,7 @@ SidebarHeader.displayName = "SidebarHeader"
 const SidebarContent = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex-1 overflow-y-auto overflow-x-hidden p-2 scrollbar-hide", className)}
+    className={cn("flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide", className)}
     {...props}
   />
 ))
@@ -153,7 +149,7 @@ SidebarGroupContent.displayName = "SidebarGroupContent"
 const SidebarMenu = React.forwardRef(({ className, ...props }, ref) => (
   <nav
     ref={ref}
-    className={cn("space-y-0.5 list-none", className)}
+    className={cn("space-y-1 list-none", className)}
     {...props}
   />
 ))
@@ -166,10 +162,10 @@ SidebarMenuItem.displayName = "SidebarMenuItem"
 
 const SidebarMenuButton = React.forwardRef(
   ({ className, variant, asChild = false, isActive, children, ...props }, ref) => {
-    const baseClasses = "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 disabled:pointer-events-none disabled:opacity-50"
+    const baseClasses = "flex items-center gap-3 rounded px-3 py-2.5 text-sm font-medium transition-all duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:pointer-events-none disabled:opacity-50"
     const variantClasses = isActive 
-      ? "bg-neutral-900 text-white hover:bg-neutral-800" 
-      : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+      ? "bg-white text-black" 
+      : "text-white/70 hover:bg-white/10 hover:text-white"
     
     if (asChild && React.isValidElement(children)) {
       const existingClassName = children.props?.className || ""
@@ -194,28 +190,35 @@ const SidebarMenuButton = React.forwardRef(
 SidebarMenuButton.displayName = "SidebarMenuButton"
 
 const SidebarInset = React.forwardRef(({ className, ...props }, ref) => {
-  const { open, animate } = useSidebar()
-  const [isMobile, setIsMobile] = React.useState(false)
+  const { open } = useSidebar()
+  const [isMobile, setIsMobile] = React.useState(() => {
+    if (typeof window === "undefined") return false
+    return window.innerWidth < 768
+  })
   
   React.useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    const checkMobile = () => {
+      if (typeof window === "undefined") return
+      setIsMobile(window.innerWidth < 768)
+    }
     checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
   }, [])
+
+  const insetMargin = isMobile ? 0 : (open ? DESKTOP_SIDEBAR_WIDTH : DESKTOP_SIDEBAR_COLLAPSED_WIDTH)
   
   return (
-    <motion.div
+    <div
       ref={ref}
       className={cn(
-        "flex flex-col min-h-screen transition-all duration-200 ease-in-out",
+        "flex flex-col min-h-screen transition-[margin-left] duration-300 ease-out",
         isMobile && "ml-0",
         className
       )}
-      animate={!isMobile ? {
-        marginLeft: animate ? (open ? "256px" : "64px") : "64px",
-      } : {}}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
+      style={{
+        marginLeft: insetMargin,
+      }}
       {...props}
     />
   )
@@ -230,7 +233,7 @@ const SidebarTrigger = React.forwardRef(({ className, ...props }, ref) => {
       ref={ref}
       onClick={() => setOpen(!open)}
       className={cn(
-        "inline-flex items-center justify-center rounded-md p-2 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 transition-colors",
+        "inline-flex items-center justify-center rounded p-2 text-black hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black transition-colors duration-180",
         className
       )}
       {...props}
@@ -253,7 +256,7 @@ const SidebarInput = React.forwardRef(({ className, ...props }, ref) => (
   <input
     ref={ref}
     className={cn(
-      "flex h-9 w-full rounded-md border border-neutral-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 disabled:cursor-not-allowed disabled:opacity-50",
+      "flex h-9 w-full rounded border border-black/20 bg-white px-3 py-1 text-sm transition-all duration-180 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:opacity-50",
       className
     )}
     {...props}
@@ -264,7 +267,7 @@ SidebarInput.displayName = "SidebarInput"
 const SidebarRail = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("absolute right-0 top-0 h-full w-px bg-neutral-200", className)}
+    className={cn("absolute right-0 top-0 h-full w-px bg-white/10", className)}
     {...props}
   />
 ))
@@ -287,5 +290,6 @@ export {
   SidebarRail,
   SidebarTrigger,
   useSidebar,
+  DESKTOP_SIDEBAR_WIDTH,
+  DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
 }
-

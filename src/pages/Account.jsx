@@ -7,6 +7,7 @@ import { validateEmail, validatePhone, validateRequired, validateTextArea } from
 export default function Account() {
   const [isEditing, setIsEditing] = useState(false)
   const [errors, setErrors] = useState({})
+  const [touched, setTouched] = useState({})
   const [profile, setProfile] = useState({
     name: 'John Doe',
     email: 'john.doe@example.com',
@@ -33,8 +34,43 @@ export default function Account() {
     const sanitizedValue = sanitizeInput(value)
     setProfile(prev => ({ ...prev, [field]: sanitizedValue }))
 
-    // Clear error for this field
+    // Clear error for this field when user is typing
     if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: null }))
+    }
+  }
+
+  const handleBlur = (field) => {
+    // Mark field as touched
+    setTouched(prev => ({ ...prev, [field]: true }))
+    
+    // Validate only this field
+    validateField(field)
+  }
+
+  const validateField = (field) => {
+    let validation = { isValid: true, error: '' }
+
+    switch (field) {
+      case 'name':
+        validation = validateRequired(profile.name, 'Name', 2, 100)
+        break
+      case 'email':
+        validation = validateEmail(profile.email)
+        break
+      case 'phone':
+        validation = validatePhone(profile.phone)
+        break
+      case 'bio':
+        validation = validateTextArea(profile.bio, 'Bio', 500)
+        break
+      default:
+        break
+    }
+
+    if (!validation.isValid) {
+      setErrors(prev => ({ ...prev, [field]: validation.error }))
+    } else {
       setErrors(prev => ({ ...prev, [field]: null }))
     }
   }
@@ -67,6 +103,8 @@ export default function Account() {
     }
 
     setErrors(newErrors)
+    // Mark all fields as touched on submit attempt
+    setTouched({ name: true, email: true, phone: true, bio: true })
     return Object.keys(newErrors).length === 0
   }
 
@@ -81,6 +119,7 @@ export default function Account() {
     setOriginalProfile(profile)
     setIsEditing(false)
     setErrors({})
+    setTouched({})
   }
 
   const handleCancel = () => {
@@ -88,6 +127,7 @@ export default function Account() {
     setProfile(originalProfile)
     setIsEditing(false)
     setErrors({})
+    setTouched({})
   }
 
   return (
@@ -203,9 +243,10 @@ export default function Account() {
                       type="text"
                       value={profile.name}
                       onChange={(e) => handleChange('name', e.target.value)}
-                      className={`w-full px-0 py-1.5 border-b ${errors.name ? 'border-red-500' : 'border-neutral-200'} bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base`}
+                      onBlur={() => handleBlur('name')}
+                      className={`w-full px-0 py-1.5 border-b ${touched.name && errors.name ? 'border-red-500' : 'border-neutral-200'} bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base`}
                     />
-                    {errors.name && (
+                    {touched.name && errors.name && (
                       <p className="text-xs text-red-600 mt-1">{errors.name}</p>
                     )}
                   </>
@@ -225,9 +266,10 @@ export default function Account() {
                       type="email"
                       value={profile.email}
                       onChange={(e) => handleChange('email', e.target.value)}
-                      className={`w-full px-0 py-1.5 border-b ${errors.email ? 'border-red-500' : 'border-neutral-200'} bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base`}
+                      onBlur={() => handleBlur('email')}
+                      className={`w-full px-0 py-1.5 border-b ${touched.email && errors.email ? 'border-red-500' : 'border-neutral-200'} bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base`}
                     />
-                    {errors.email && (
+                    {touched.email && errors.email && (
                       <p className="text-xs text-red-600 mt-1">{errors.email}</p>
                     )}
                   </>
@@ -287,9 +329,10 @@ export default function Account() {
                       type="tel"
                       value={profile.phone}
                       onChange={(e) => handleChange('phone', e.target.value)}
-                      className={`w-full px-0 py-1.5 border-b ${errors.phone ? 'border-red-500' : 'border-neutral-200'} bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base`}
+                      onBlur={() => handleBlur('phone')}
+                      className={`w-full px-0 py-1.5 border-b ${touched.phone && errors.phone ? 'border-red-500' : 'border-neutral-200'} bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base`}
                     />
-                    {errors.phone && (
+                    {touched.phone && errors.phone && (
                       <p className="text-xs text-red-600 mt-1">{errors.phone}</p>
                     )}
                   </>
@@ -332,9 +375,10 @@ export default function Account() {
                       rows={2}
                       value={profile.bio}
                       onChange={(e) => handleChange('bio', e.target.value)}
-                      className={`w-full px-0 py-1.5 border-b ${errors.bio ? 'border-red-500' : 'border-neutral-200'} bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base resize-none`}
+                      onBlur={() => handleBlur('bio')}
+                      className={`w-full px-0 py-1.5 border-b ${touched.bio && errors.bio ? 'border-red-500' : 'border-neutral-200'} bg-transparent focus:outline-none focus:border-neutral-900 transition-all font-serif text-base resize-none`}
                     />
-                    {errors.bio && (
+                    {touched.bio && errors.bio && (
                       <p className="text-xs text-red-600 mt-1">{errors.bio}</p>
                     )}
                   </>

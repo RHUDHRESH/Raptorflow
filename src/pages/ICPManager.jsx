@@ -106,6 +106,7 @@ export default function CohortsManager() {
   const [showCohortsBuilder, setShowCohortsBuilder] = useState(false)
   const [selectedCohort, setSelectedCohort] = useState(null)
   const [cohortTags, setCohortTags] = useState({}) // Map of cohort ID to tags
+  const [showLimitModal, setShowLimitModal] = useState(false)
 
   const userPlan = getUserPlan();
   const cohortsLimit = getCohortsLimit();
@@ -128,7 +129,7 @@ export default function CohortsManager() {
 
   const handleCreateClick = () => {
     if (!canCreateCohort) {
-      alert(`You've reached your ${planName} plan limit of ${cohortsLimit} cohorts. Upgrade to ${userPlan === 'ascent' ? 'Glide' : 'Soar'} to create more.`);
+      setShowLimitModal(true);
       return;
     }
     setShowCohortsBuilder(true);
@@ -150,6 +151,59 @@ export default function CohortsManager() {
           onboardingData={{}}
         />
       )}
+      {/* Limit Reached Modal */}
+      <AnimatePresence>
+        {showLimitModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowLimitModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white border-2 border-black rounded-lg shadow-xl max-w-md w-full p-8"
+            >
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-full bg-red-50 border-2 border-red-200 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h2 className="font-serif text-2xl text-black mb-1">Limit Reached</h2>
+                  <p className="font-sans text-sm text-neutral-600">Cohort Creation Limit</p>
+                </div>
+              </div>
+              <div className="space-y-4 mb-6">
+                <p className="font-sans text-base text-neutral-900">
+                  You've reached your <strong>{planName}</strong> plan limit of <strong>{cohortsLimit} cohorts</strong>.
+                </p>
+                <p className="font-sans text-sm text-neutral-600">
+                  Upgrade to <strong>{userPlan === 'ascent' ? 'Glide' : 'Soar'}</strong> to create more cohorts and unlock additional features.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLimitModal(false)}
+                  className="flex-1 border-2 border-black text-black px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] hover:bg-black hover:text-white transition-colors"
+                >
+                  Close
+                </button>
+                <Link
+                  to="/settings?tab=pricing"
+                  onClick={() => setShowLimitModal(false)}
+                  className="flex-1 bg-black text-white px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] hover:bg-neutral-800 transition-colors text-center"
+                >
+                  Upgrade Plan
+                </Link>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="space-y-8 animate-fade-in">
       {/* Hero Section */}
       <motion.div
@@ -192,16 +246,6 @@ export default function CohortsManager() {
               </div>
             </div>
           </div>
-          {!canCreateCohort && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-              <div className="flex items-center gap-2 text-red-900">
-                <AlertCircle className="w-5 h-5" />
-                <p className="text-sm font-medium">
-                  Limit reached. Upgrade to {userPlan === 'ascent' ? 'Glide' : 'Soar'} to create more cohorts.
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       </motion.div>
 

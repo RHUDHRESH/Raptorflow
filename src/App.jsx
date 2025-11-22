@@ -2,6 +2,8 @@ import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
+import ErrorBoundary from './components/ErrorBoundary'
+import { ToastProvider } from './components/Toast'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
@@ -16,8 +18,8 @@ import DailySweep from './pages/DailySweep'
 import Onboarding from './components/Onboarding'
 import Strategy from './pages/Strategy'
 import StrategyWizard from './pages/StrategyWizard'
+import StrategyWizardEnhanced from './pages/StrategyWizardEnhanced'
 import Analytics from './pages/Analytics'
-import WeeklyReview from './pages/WeeklyReview'
 import CohortsManager from './pages/CohortsManager'
 import CohortsMoves from './pages/CohortsMoves'
 import Support from './pages/Support'
@@ -27,8 +29,10 @@ import Settings from './pages/Settings'
 
 function App() {
   return (
-    <AuthProvider>
-      <Routes>
+    <ErrorBoundary name="AppRoot">
+      <ToastProvider>
+        <AuthProvider>
+          <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -98,7 +102,7 @@ function App() {
           </ProtectedRoute>
         } />
         <Route path="/onboarding" element={
-          <ProtectedRoute>
+          <ProtectedRoute requireOnboarding={false}>
             <Onboarding onClose={() => window.location.href = '/'} />
           </ProtectedRoute>
         } />
@@ -111,6 +115,11 @@ function App() {
         } />
         <Route path="/strategy/wizard" element={
           <ProtectedRoute>
+            <StrategyWizardEnhanced />
+          </ProtectedRoute>
+        } />
+        <Route path="/strategy/wizard-basic" element={
+          <ProtectedRoute>
             <Layout>
               <StrategyWizard />
             </Layout>
@@ -120,13 +129,6 @@ function App() {
           <ProtectedRoute>
             <Layout>
               <Analytics />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/review" element={
-          <ProtectedRoute>
-            <Layout>
-              <WeeklyReview />
             </Layout>
           </ProtectedRoute>
         } />
@@ -173,7 +175,9 @@ function App() {
           </ProtectedRoute>
         } />
       </Routes>
-    </AuthProvider>
+        </AuthProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   )
 }
 

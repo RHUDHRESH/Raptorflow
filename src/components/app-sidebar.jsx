@@ -28,140 +28,196 @@ import {
   SidebarMenuItem,
   SidebarRail,
   useSidebar,
+  DESKTOP_SIDEBAR_WIDTH,
+  DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
 } from "./ui/sidebar"
+import { Tooltip, TooltipProvider } from "./ui/tooltip"
 import { cn } from "../utils/cn"
 
 const navigationItems = [
-  { title: "Runway Dispatch", icon: LayoutDashboard, url: "/" },
+  { title: "Command Center", icon: LayoutDashboard, url: "/" },
   { title: "War Room", icon: Target, url: "/moves/war-room" },
-  { title: "Moves & Maneuvers", icon: Library, url: "/moves/library" },
-  { title: "Quests & Tech Tree", icon: Network, url: "/quests" },
+  { title: "Move Library", icon: Library, url: "/moves/library" },
+  { title: "Tech Tree", icon: Network, url: "/quests" },
   { title: "Daily Ops", icon: Calendar, url: "/today" },
   { title: "Daily Sweep", icon: Zap, url: "/daily-sweep" },
   { title: "Strategy Atelier", icon: Sparkles, url: "/strategy" },
-  { title: "Insights Studio", icon: TrendingUp, url: "/analytics" },
-  { title: "Editorial Recap", icon: Clock, url: "/review" },
-  { title: "Audience Archive", icon: Users, url: "/cohorts" },
-  { title: "Archive Ledger", icon: FileText, url: "/history" },
+  { title: "Performance", icon: TrendingUp, url: "/analytics" },
+  { title: "Cohorts", icon: Users, url: "/cohorts" },
+  { title: "Archive", icon: FileText, url: "/history" },
 ]
 
 const settingsItems = [
-  { title: "Studio Controls", icon: Settings, url: "/settings" },
-  { title: "Portrait", icon: User, url: "/account" },
-  { title: "Concierge Desk", icon: HelpCircle, url: "/support" },
+  { title: "Settings", icon: Settings, url: "/settings" },
+  { title: "Account", icon: User, url: "/account" },
+  { title: "Support", icon: HelpCircle, url: "/support" },
 ]
 
 const SidebarContentInner = () => {
   const location = useLocation()
-  const { open, animate } = useSidebar()
+  const { open } = useSidebar()
+
+  const renderNavItem = (item, isSystem = false) => {
+    const Icon = item.icon
+    const isActive =
+      location.pathname === item.url ||
+      (item.url !== "/" && location.pathname.startsWith(item.url))
+
+    const itemContent = (
+      <div className="relative w-full">
+        {/* Active left border */}
+        {isActive && open && (
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: 2 }}
+            transition={{ duration: 0.18 }}
+            className="absolute left-0 top-0 bottom-0 z-10 bg-white rounded-r-sm"
+          />
+        )}
+        
+        <Link
+          to={item.url}
+          className={cn(
+            "flex items-center h-10 w-full relative transition-all duration-180 ease-out cursor-pointer",
+            "hover:bg-white/10",
+            isActive && "bg-white/[0.15]",
+            !open && "justify-center px-0",
+            open && "px-6"
+          )}
+        >
+          {Icon && (
+            <Icon 
+              className="flex-shrink-0"
+              size={open ? 18 : 20}
+              strokeWidth={1.5}
+              style={{
+                color: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.7)",
+                marginRight: open ? "12px" : "0",
+              }}
+            />
+          )}
+          
+          {open && (
+            <span
+              className="whitespace-nowrap flex-shrink-0 text-sm font-medium"
+              style={{
+                letterSpacing: "0.02em",
+                color: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.7)",
+              }}
+            >
+              {item.title}
+            </span>
+          )}
+        </Link>
+      </div>
+    )
+
+    if (!open) {
+      return (
+        <Tooltip content={item.title}>
+          {itemContent}
+        </Tooltip>
+      )
+    }
+
+    return itemContent
+  }
 
   return (
-    <>
-      <SidebarHeader className="px-4 pt-8 pb-6">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-900">
-              <LayoutDashboard className="h-4 w-4" />
-            </div>
+    <TooltipProvider>
+      <div className="flex flex-col h-full">
+        <SidebarHeader className="px-0 pt-8 pb-0 border-b-0 flex-shrink-0">
+          <div 
+            className={cn(
+              "flex items-center w-full h-12",
+              open ? "px-6 justify-start" : "justify-center"
+            )}
+          >
+            <span 
+              className="font-serif font-bold text-white leading-none"
+              style={{
+                fontSize: open ? "28px" : "24px",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              {open ? "RaptorFlow" : "RF"}
+            </span>
+          </div>
+        </SidebarHeader>
+        
+        <SidebarContent className="px-0 flex flex-col flex-1 min-h-0 pt-8">
+          {/* Primary Navigation Section */}
+          <SidebarGroup className="flex-1 min-h-0 overflow-y-auto">
             {open && (
-              <div>
-                <p className="font-display text-xl text-neutral-900">Raptorflow</p>
+              <div className="mb-4 px-6">
+                <span className="text-xs font-mono font-medium uppercase tracking-widest text-white/30">
+                  Workspace
+                </span>
               </div>
             )}
-          </div>
-        </div>
-      </SidebarHeader>
-      <SidebarContent className="px-3 flex flex-col">
-        <SidebarGroup className="space-y-1 flex-1">
-          <SidebarMenu className="space-y-1.5">
-            {navigationItems.map((item) => {
-              const Icon = item.icon
-              const isActive =
-                location.pathname === item.url ||
-                (item.url !== "/" && location.pathname.startsWith(item.url))
-
-              return (
+            
+            <SidebarMenu className="space-y-1">
+              {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <Link
-                    to={item.url}
-                    className={cn(
-                      "flex items-center rounded-2xl border border-transparent px-3 py-2 text-[13px] font-medium uppercase tracking-[0.2em] transition-all duration-200",
-                      isActive
-                        ? "border-neutral-900 bg-neutral-900 text-white"
-                        : "text-neutral-500 hover:border-neutral-200 hover:bg-white hover:text-neutral-900",
-                      !open && "justify-center"
-                    )}
-                  >
-                    {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
-                    <motion.span
-                      className="whitespace-nowrap overflow-hidden"
-                      animate={{
-                        opacity: animate ? (open ? 1 : 0) : 0,
-                        width: animate ? (open ? "auto" : "0px") : "0px",
-                        marginLeft: animate ? (open ? "12px" : "0px") : "0px",
-                      }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {item.title}
-                    </motion.span>
-                  </Link>
+                  {renderNavItem(item, false)}
                 </SidebarMenuItem>
-              )
-            })}
-          </SidebarMenu>
-        </SidebarGroup>
-        <SidebarGroup className="space-y-1 mt-auto pt-4 border-t border-neutral-200">
-          <SidebarMenu className="space-y-1.5">
-            {settingsItems.map((item) => {
-              const Icon = item.icon
-              const isActive =
-                location.pathname === item.url ||
-                (item.url !== "/" && location.pathname.startsWith(item.url))
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
 
-              return (
+          {/* Divider */}
+          <div 
+            className={cn(
+              "flex-shrink-0 h-px bg-white/10 my-4",
+              open ? "mx-6" : "mx-3"
+            )}
+          />
+
+          {/* System Controls Section */}
+          <SidebarGroup className="flex-shrink-0 pb-6">
+            {open && (
+              <div className="mb-4 px-6">
+                <span className="text-xs font-mono font-medium uppercase tracking-widest text-white/30">
+                  System
+                </span>
+              </div>
+            )}
+            
+            <SidebarMenu className="space-y-1">
+              {settingsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <Link
-                    to={item.url}
-                    className={cn(
-                      "flex items-center rounded-2xl border border-transparent px-3 py-2 text-[13px] font-medium uppercase tracking-[0.2em] transition-all duration-200",
-                      isActive
-                        ? "border-neutral-900 bg-neutral-900 text-white"
-                        : "text-neutral-500 hover:border-neutral-200 hover:bg-white hover:text-neutral-900",
-                      !open && "justify-center"
-                    )}
-                  >
-                    {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
-                    <motion.span
-                      className="whitespace-nowrap overflow-hidden"
-                      animate={{
-                        opacity: animate ? (open ? 1 : 0) : 0,
-                        width: animate ? (open ? "auto" : "0px") : "0px",
-                        marginLeft: animate ? (open ? "12px" : "0px") : "0px",
-                      }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {item.title}
-                    </motion.span>
-                  </Link>
+                  {renderNavItem(item, true)}
                 </SidebarMenuItem>
-              )
-            })}
-          </SidebarMenu>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarRail />
-    </>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarRail />
+      </div>
+    </TooltipProvider>
   )
 }
 
 export function AppSidebar({ ...props }) {
+  const { open } = useSidebar()
+  const sidebarWidth = open ? DESKTOP_SIDEBAR_WIDTH : DESKTOP_SIDEBAR_COLLAPSED_WIDTH
+
   return (
     <>
-      <DesktopSidebar {...props} className="border-r border-neutral-200/70 bg-white/90 backdrop-blur-2xl">
+      <DesktopSidebar
+        {...props}
+        className="border-r border-white/10 bg-black"
+        style={{
+          width: sidebarWidth,
+          transition: "width 240ms ease-out",
+        }}
+      >
         <SidebarContentInner />
       </DesktopSidebar>
-      <MobileSidebar {...props} className="bg-white/95">
-        <SidebarContentInner />
+      <MobileSidebar {...props} className="bg-white">
+        <div className="text-black">
+          <SidebarContentInner />
+        </div>
       </MobileSidebar>
     </>
   )

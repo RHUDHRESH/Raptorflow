@@ -4,11 +4,10 @@ const decodeEntities = (value) =>
   value
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
-    .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&#x2F;/g, '/');
-
+    .replace(/&#x2F;/g, '/')
+    .replace(/&amp;/g, '&');
 /**
  * Sanitizes user input to prevent XSS attacks
  * @param {string} dirty - The unsanitized input string

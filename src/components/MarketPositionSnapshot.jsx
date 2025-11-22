@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Info, Check } from 'lucide-react';
+import { ArrowRight, Info, Check, Loader2, ChevronLeft } from 'lucide-react';
+import PropTypes from 'prop-types';
+import { 
+  generateMarketAlternatives, 
+  generatePriceOptions, 
+  generateServiceOptions, 
+  generateSpecializationOptions,
+  generatePriceReasoning,
+  generateServiceReasoning
+} from '../lib/ai';
 
 // Pre-defined alternative positions on the map
 const ALTERNATIVES = [
@@ -35,14 +44,35 @@ const SPECIALIZATION_OPTIONS = [
   { value: 'niche', label: 'Built for a specific type of customer' },
 ];
 
+// Validation helpers
+const isValidAnswers = (answers) => {
+  return answers && typeof answers === 'object';
+};
+
+const isValidPosition = (value) => {
+  return typeof value === 'number' && value >= -2 && value <= 2;
+};
+
+const clampPosition = (value, min = -2, max = 2) => {
+  return Math.max(min, Math.min(max, value));
+};
+
 // Calculate initial position from answers
 const calculateInitialPosition = (answers) => {
   // Default to center
   let pricePos = 0;
   let servicePos = 0;
   
-  // Try to infer from q2 (The Offer) - price and service level hints
-  const offerText = answers.q2?.toLowerCase() || '';
+  // Validate answers object
+  if (!isValidAnswers(answers)) {
+    console.warn('Invalid answers provided to calculateInitialPosition');
+    return { pricePos, servicePos };
+  }
+  
+  // Safely access q2 with fallback
+  const offerText = (answers?.q2 && typeof answers.q2 === 'string') 
+    ? answers.q2.toLowerCase() 
+    : '';
   
   // Price hints
   if (offerText.includes('cheap') || offerText.includes('affordable') || offerText.includes('low cost')) {
@@ -64,13 +94,19 @@ const calculateInitialPosition = (answers) => {
     servicePos = 1;
   }
   
-  // Check q7c (time spent) for service level hints
-  const timeText = answers.q7c?.toLowerCase() || '';
+  // Safely access q7c with fallback
+  const timeText = (answers?.q7c && typeof answers.q7c === 'string')
+    ? answers.q7c.toLowerCase()
+    : '';
   if (timeText.includes('team') || timeText.includes('10+')) {
     servicePos = Math.max(servicePos, 1);
   }
   
-  return { pricePos, servicePos };
+  // Clamp values to valid range
+  return { 
+    pricePos: clampPosition(pricePos), 
+    servicePos: clampPosition(servicePos) 
+  };
 };
 
 // Convert position to pixel coordinates on map (SVG coordinates)
@@ -88,7 +124,7 @@ const positionToPixels = (x, y, scaleMultiplier = 1) => {
 };
 
 const MarketPositionSnapshot = ({ answers, onComplete, onBack }) => {
-  const [stage, setStage] = useState('intro'); // intro, animating, map-ready, price, service, specialization, complete
+  const [stage, setStage] = useState('loading'); // loading, intro, animating, map-ready, price, service, specialization, complete
   const [pricePosition, setPricePosition] = useState(0);
   const [servicePosition, setServicePosition] = useState(0);
   const [specialization, setSpecialization] = useState('medium');
@@ -96,7 +132,18 @@ const MarketPositionSnapshot = ({ answers, onComplete, onBack }) => {
   const [priceConfirmed, setPriceConfirmed] = useState(false);
   const [serviceConfirmed, setServiceConfirmed] = useState(false);
   const [hoveredAlternative, setHoveredAlternative] = useState(null);
+  const [error, setError] = useState(null);
+  const [isCompleting, setIsCompleting] = useState(false);
   const mapRef = useRef(null);
+  
+  // AI-generated options state
+  const [alternatives, setAlternatives] = useState(ALTERNATIVES); // Start with fallback
+  const [priceOptions, setPriceOptions] = useState(PRICE_OPTIONS);
+  const [serviceOptions, setServiceOptions] = useState(SERVICE_OPTIONS);
+  const [specializationOptions, setSpecializationOptions] = useState(SPECIALIZATION_OPTIONS);
+  const [priceReasoning, setPriceReasoning] = useState('');
+  const [serviceReasoning, setServiceReasoning] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
   
   // Fixed SVG dimensions (matches viewBox)
   const SVG_WIDTH = 600;
@@ -104,10 +151,52 @@ const MarketPositionSnapshot = ({ answers, onComplete, onBack }) => {
   
   // Calculate initial position from answers
   useEffect(() => {
-    const initial = calculateInitialPosition(answers);
-    setPricePosition(initial.pricePos);
-    setServicePosition(initial.servicePos);
-  }, []);
+    try {
+      const initial = calculateInitialPosition(answers);
+      setPricePosition(clampPosition(initial.pricePos));
+      setServicePosition(clampPosition(initial.servicePos));
+    } catch (err) {
+      console.error('Error calculating initial position:', err);
+      setError('Failed to calculate your market position. Using defaults.');
+      // Use safe defaults
+      setPricePosition(0);
+      setServicePosition(0);
+    }
+  }, [answers]);
+  
+  // Generate AI options on mount
+  useEffect(() => {
+    const generateAllOptions = async () => {
+      setIsGenerating(true);
+      try {
+        // Generate alternatives first (needed for other generations)
+        const generatedAlternatives = await generateMarketAlternatives(answers);
+        setAlternatives(generatedAlternatives);
+        
+        // Generate other options in parallel
+        const [genPriceOptions, genServiceOptions, genSpecializationOptions] = await Promise.all([
+          generatePriceOptions(answers, generatedAlternatives),
+          generateServiceOptions(answers),
+          generateSpecializationOptions(answers)
+        ]);
+        
+        setPriceOptions(genPriceOptions);
+        setServiceOptions(genServiceOptions);
+        setSpecializationOptions(genSpecializationOptions);
+        
+        // Move to intro stage after generation
+        setStage('intro');
+      } catch (error) {
+        console.error('Failed to generate market positioning options:', error);
+        // Still allow user to proceed with fallback values
+        setStage('intro');
+      } finally {
+        setIsGenerating(false);
+      }
+    };
+    
+    generateAllOptions();
+  }, [answers]);
   
   // Animation sequence
   useEffect(() => {
@@ -135,46 +224,93 @@ const MarketPositionSnapshot = ({ answers, onComplete, onBack }) => {
     setStage('animating');
   };
 
-  const handleMapNext = () => {
+  const handleMapNext = async () => {
+    // Generate initial price reasoning when entering price stage
+    const reasoning = await generatePriceReasoning(answers, pricePosition, alternatives);
+    setPriceReasoning(reasoning);
     setStage('price');
   };
 
   const handlePriceChange = (value) => {
-    setPricePosition(value);
+    if (!isValidPosition(value)) {
+      console.warn('Invalid price position:', value);
+      return;
+    }
+    setPricePosition(clampPosition(value));
     setPriceConfirmed(false); // Reset confirmation when changed
   };
 
-  const handlePriceConfirm = () => {
+  const handlePriceConfirm = async () => {
     setPriceConfirmed(true);
+    // Generate AI reasoning for price position
+    const reasoning = await generatePriceReasoning(answers, pricePosition, alternatives);
+    setPriceReasoning(reasoning);
     setTimeout(() => setStage('service'), 500);
   };
 
   const handleServiceChange = (value) => {
-    setServicePosition(value);
+    if (!isValidPosition(value)) {
+      console.warn('Invalid service position:', value);
+      return;
+    }
+    setServicePosition(clampPosition(value));
     setServiceConfirmed(false); // Reset confirmation when changed
   };
 
-  const handleServiceConfirm = () => {
+  const handleServiceConfirm = async () => {
     setServiceConfirmed(true);
+    // Generate AI reasoning for service position
+    const reasoning = await generateServiceReasoning(answers, servicePosition);
+    setServiceReasoning(reasoning);
     setTimeout(() => setStage('specialization'), 500);
   };
 
   const handleSpecializationChange = (value) => {
+    const validValues = ['broad', 'medium', 'niche'];
+    if (!validValues.includes(value)) {
+      console.warn('Invalid specialization value:', value);
+      return;
+    }
     setSpecialization(value);
   };
 
-  const handleComplete = () => {
-    // Extract primary alternatives from answers (simplified - could be enhanced with AI)
-    const primaryAlternatives = ['DIY tools', 'Freelancers / cheap agencies', 'Full-service agencies'];
+  const handleBackNavigation = () => {
+    // Navigate back based on current stage
+    if (stage === 'map-ready') {
+      setStage('intro');
+    } else if (stage === 'price') {
+      setStage('map-ready');
+    } else if (stage === 'service') {
+      setStage('price');
+    } else if (stage === 'specialization') {
+      setStage('service');
+    }
+  };
+
+  const handleComplete = async () => {
+    if (isCompleting) return; // Prevent double-submission
     
-    const marketData = {
-      price_position: pricePosition,
-      service_position: servicePosition,
-      specialisation_level: specialization,
-      primary_alternatives: primaryAlternatives,
-    };
-    
-    onComplete(marketData);
+    try {
+      setIsCompleting(true);
+      setError(null);
+      
+      // Extract primary alternatives from answers (simplified - could be enhanced with AI)
+      const primaryAlternatives = ['DIY tools', 'Freelancers / cheap agencies', 'Full-service agencies'];
+      
+      const marketData = {
+        price_position: clampPosition(pricePosition),
+        service_position: clampPosition(servicePosition),
+        specialisation_level: specialization,
+        primary_alternatives: primaryAlternatives,
+      };
+      
+      await onComplete(marketData);
+    } catch (err) {
+      console.error('Error completing market position:', err);
+      setError('Failed to save your market position. Please try again.');
+    } finally {
+      setIsCompleting(false);
+    }
   };
 
   // Get reasoning for price position
@@ -217,6 +353,21 @@ const MarketPositionSnapshot = ({ answers, onComplete, onBack }) => {
     
     return `${serviceLabel}, ${priceLabel}, ${specLabel}`;
   };
+  
+  // Render loading state while generating AI options
+  if (stage === 'loading') {
+    return (
+      <div className="w-full max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in duration-1000">
+        <Loader2 className="animate-spin text-black mb-6" size={48} />
+        <div className="text-center space-y-2">
+          <p className="font-serif text-2xl italic">Analyzing your market position...</p>
+          <p className="font-sans text-[10px] uppercase tracking-widest text-neutral-400">
+            Generating personalized alternatives and options
+          </p>
+        </div>
+      </div>
+    );
+  }
   
   // Render intro state
   if (stage === 'intro') {
@@ -369,7 +520,7 @@ const MarketPositionSnapshot = ({ answers, onComplete, onBack }) => {
             </motion.g>
             
             {/* Alternatives - smooth staggered entrance with luxe styling */}
-            {ALTERNATIVES.map((alt, idx) => {
+            {alternatives.map((alt, idx) => {
               const pos = positionToPixels(alt.x, alt.y, 1.2);
               return (
                 <motion.g 
@@ -578,7 +729,7 @@ const MarketPositionSnapshot = ({ answers, onComplete, onBack }) => {
             </text>
             
             {/* Alternatives - luxe styling */}
-            {ALTERNATIVES.map((alt) => {
+            {alternatives.map((alt) => {
               const pos = positionToPixels(alt.x, alt.y, 1.2);
               const isHovered = hoveredAlternative === alt.id;
               return (
@@ -677,7 +828,644 @@ const MarketPositionSnapshot = ({ answers, onComplete, onBack }) => {
           </svg>
         </div>
         
-        {/* Next Button */}
+        {/* Navigation Buttons */}
+        <div className="flex justify-between items-center">
+          <button
+            onClick={handleBackNavigation}
+            className="group flex items-center space-x-2 font-sans text-[10px] font-bold uppercase tracking-widest border-b border-transparent hover:border-black transition-all duration-500 pb-1 text-neutral-400 hover:text-black"
+          >
+            <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform duration-500" />
+            <span>Back</span>
+          </button>
+          <button
+            onClick={handleMapNext}
+            className="group relative bg-black text-white px-16 py-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20"
+          >
+            <div className="relative z-10 flex items-center space-x-4">
+              <span className="font-sans text-xs font-bold tracking-widest uppercase">Next</span>
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" />
+            </div>
+            <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  // Render interactive map with controls overlay
+  const renderMapWithControls = () => (
+    <div className="w-full max-w-7xl mx-auto space-y-8">
+      {/* Map Container - Always visible */}
+      <div className="relative w-full" style={{ height: '600px' }} ref={mapRef}>
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 800 700"
+          className="border-2 border-neutral-300 rounded-3xl bg-gradient-to-br from-white via-neutral-50 to-white shadow-2xl"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <defs>
+            <pattern id="grid-interactive" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e8e8e8" strokeWidth="0.5" />
+            </pattern>
+            <linearGradient id="quadrant1-int" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#f0f9ff" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#e0f2fe" stopOpacity="0.1" />
+            </linearGradient>
+            <linearGradient id="quadrant2-int" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#fde68a" stopOpacity="0.1" />
+            </linearGradient>
+            <filter id="glow-int">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          
+          <rect width="100%" height="100%" fill="url(#grid-interactive)" />
+          <rect x="400" y="0" width="400" height="350" fill="url(#quadrant1-int)" />
+          <rect x="0" y="0" width="400" height="350" fill="url(#quadrant2-int)" />
+          
+          {/* Axes */}
+          <path d="M 80 350 L 720 350" stroke="#000" strokeWidth="3" fill="none" opacity="0.8" />
+          <path d="M 400 80 L 400 620" stroke="#000" strokeWidth="3" fill="none" opacity="0.8" />
+          
+          {/* Axis labels */}
+          <text x="80" y="380" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+            More affordable
+          </text>
+          <text x="720" y="380" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500" textAnchor="end">
+            More expensive
+          </text>
+          <text x="385" y="65" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+            Done-for-you / high support
+          </text>
+          <text x="385" y="655" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+            Self-serve / DIY
+          </text>
+          
+          {/* Alternatives */}
+          {ALTERNATIVES.map((alt) => {
+            const pos = positionToPixels(alt.x, alt.y, 1.2);
+            const isHovered = hoveredAlternative === alt.id;
+            return (
+              <g 
+                key={alt.id}
+                onMouseEnter={() => setHoveredAlternative(alt.id)}
+                onMouseLeave={() => setHoveredAlternative(null)}
+                style={{ cursor: 'pointer' }}
+              >
+                {isHovered && (
+                  <circle cx={pos.x} cy={pos.y} r="32" fill="#000" opacity="0.08" />
+                )}
+                <circle 
+                  cx={pos.x} 
+                  cy={pos.y} 
+                  r={isHovered ? "9" : "7"} 
+                  fill={isHovered ? "#2a2a2a" : "#8a8a8a"} 
+                  opacity={isHovered ? "1" : "0.8"}
+                />
+                <rect 
+                  x={pos.x - 65} 
+                  y={isHovered ? pos.y - 34 : pos.y - 32} 
+                  width="130" 
+                  height={isHovered ? "22" : "20"} 
+                  rx="6" 
+                  fill={isHovered ? "#000" : "rgba(255,255,255,0.95)"}
+                  stroke={isHovered ? "#000" : "#e5e5e5"}
+                  strokeWidth={isHovered ? "1.5" : "1"}
+                />
+                <text 
+                  x={pos.x} 
+                  y={isHovered ? pos.y - 19 : pos.y - 17} 
+                  fontSize={isHovered ? "11" : "10"} 
+                  fill={isHovered ? "#fff" : "#4a4a4a"} 
+                  fontFamily="system-ui" 
+                  textAnchor="middle" 
+                  fontWeight={isHovered ? "500" : "400"}
+                >
+                  {alt.label}
+                </text>
+              </g>
+            );
+          })}
+          
+          {/* User dot - ANIMATED when position changes */}
+          <motion.g
+            animate={{ 
+              x: userPixelPos.x - 400, 
+              y: userPixelPos.y - 350 
+            }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 200, 
+              damping: 25,
+              duration: 0.6 
+            }}
+          >
+            <circle 
+              cx={400} 
+              cy={350} 
+              r="22" 
+              fill="#000" 
+              filter="url(#glow-int)"
+            />
+            <circle cx={400} cy={350} r="18" fill="#000" />
+            <circle cx={400} cy={350} r="14" fill="#fff" />
+            <text 
+              x={400} 
+              y={310} 
+              fontSize="13" 
+              fill="#000" 
+              fontFamily="system-ui" 
+              textAnchor="middle" 
+              fontWeight="700"
+              letterSpacing="1.5px"
+            >
+              YOU
+            </text>
+          </motion.g>
+        </svg>
+      </div>
+
+      {/* Controls overlay - Changes based on stage */}
+      <AnimatePresence mode="wait">
+        {stage === 'price' && (
+          <motion.div
+            key="price"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+            className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 w-full max-w-4xl mx-auto"
+          >
+            <div className="bg-white border-2 border-neutral-300 rounded-2xl p-8 space-y-6 shadow-lg w-full">
+              <label className="block font-sans text-base md:text-lg font-bold uppercase tracking-widest text-neutral-800 text-center">
+                How does your pricing compare to most alternatives?
+              </label>
+              
+              <div className="flex flex-wrap gap-3 justify-center">
+                {PRICE_OPTIONS.map((option, idx) => (
+                  <motion.button
+                    key={option.value}
+                    onClick={() => handlePriceChange(option.value)}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.05, type: "spring", stiffness: 200 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`px-6 py-3 rounded-lg border-2 transition-all font-sans text-sm font-medium ${
+                      pricePosition === option.value
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-neutral-700 border-neutral-300 hover:border-black'
+                    }`}
+                  >
+                    {option.label}
+                  </motion.button>
+                ))}
+              </div>
+              
+              <div className="text-center">
+                <p className="font-sans text-sm text-neutral-600">
+                  <span className="font-bold">Why we chose this:</span> {priceReasoning || 'Based on your offer description, we placed you at this price point relative to typical alternatives in your market.'}
+                </p>
+              </div>
+              
+              <div className="flex justify-center pt-2">
+                <button
+                  onClick={handlePriceConfirm}
+                  className="group relative bg-black text-white px-10 py-4 overflow-hidden transition-all duration-500 hover:shadow-xl"
+                >
+                  <div className="relative z-10 flex items-center space-x-2">
+                    <span className="font-sans text-xs font-bold tracking-widest uppercase">Confirm & Continue</span>
+                    <Check size={14} />
+                  </div>
+                  <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+        
+        {stage === 'service' && (
+          <motion.div
+            key="service"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-6"
+          >
+            <div className="bg-white border-2 border-neutral-300 rounded-2xl p-8 space-y-6 shadow-lg">
+              <label className="block font-sans text-base md:text-lg font-bold uppercase tracking-widest text-neutral-800 text-center">
+                How hands-on are you compared to alternatives?
+              </label>
+              
+              <div className="flex flex-wrap gap-3 justify-center">
+                {serviceOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleServiceChange(option.value)}
+                    className={`px-6 py-3 rounded-lg border-2 transition-all font-sans text-sm font-medium ${
+                      servicePosition === option.value
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-neutral-700 border-neutral-300 hover:border-black'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="text-center">
+                <p className="font-sans text-sm text-neutral-600">
+                  <span className="font-bold">Why we chose this:</span> {serviceReasoning || 'Based on your offer description, we placed you at this service level relative to typical alternatives in your market.'}
+                </p>
+              </div>
+              
+              <div className="flex justify-center pt-2">
+                <button
+                  onClick={handleServiceConfirm}
+                  className="group relative bg-black text-white px-10 py-4 overflow-hidden transition-all duration-500 hover:shadow-xl"
+                >
+                  <div className="relative z-10 flex items-center space-x-2">
+                    <span className="font-sans text-xs font-bold tracking-widest uppercase">Confirm & Continue</span>
+                    <Check size={14} />
+                  </div>
+                  <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+        
+        {stage === 'specialization' && (
+          <motion.div
+            key="specialization"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-6"
+          >
+            <div className="bg-white border-2 border-neutral-300 rounded-2xl p-8 space-y-6 shadow-lg">
+              <label className="block font-sans text-base md:text-lg font-bold uppercase tracking-widest text-neutral-800 text-center">
+                How specialised is your offer?
+              </label>
+              
+              <div className="flex flex-wrap gap-3 justify-center">
+                {specializationOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleSpecializationChange(option.value)}
+                    className={`px-6 py-3 rounded-lg border-2 transition-all font-sans text-sm font-medium ${
+                      specialization === option.value
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-neutral-700 border-neutral-300 hover:border-black'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="text-center">
+                <p className="font-sans text-base text-neutral-800">
+                  <span className="font-bold">Got it — we'll treat you as a </span>
+                  <span className="font-bold text-black">{getPositionLabel()}</span>
+                  <span className="font-bold"> option.</span>
+                </p>
+              </div>
+              
+              <div className="flex justify-between items-center pt-2">
+                <button
+                  onClick={handleBackNavigation}
+                  className="group flex items-center space-x-2 font-sans text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-black transition-colors"
+                >
+                  <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform duration-500" />
+                  <span>Back</span>
+                </button>
+                <button
+                  onClick={handleComplete}
+                  className="group relative bg-black text-white px-10 py-4 overflow-hidden transition-all duration-500 hover:shadow-xl"
+                >
+                  <div className="relative z-10 flex items-center space-x-2">
+                    <span className="font-sans text-xs font-bold tracking-widest uppercase">Complete</span>
+                    <ArrowRight size={14} />
+                  </div>
+                  <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+
+  // Render the appropriate stage
+  if (stage === 'intro') {
+    return (
+      <div className="w-full max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-1000">
+        <div className="text-center space-y-8">
+          <h1 className="font-serif text-5xl md:text-6xl text-black leading-tight">
+            Here's how you compare in the market
+          </h1>
+          <p className="font-sans text-lg text-neutral-600 max-w-2xl mx-auto">
+            Based on what you just told us, this is where you sit compared to common alternatives. You can adjust it.
+          </p>
+          <button
+            onClick={handleShowMe}
+            className="group relative bg-black text-white px-16 py-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20 mt-8"
+          >
+            <div className="relative z-10 flex items-center space-x-4">
+              <span className="font-sans text-xs font-bold tracking-widest uppercase">
+                Show me
+              </span>
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" />
+            </div>
+            <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  if (stage === 'animating') {
+    return (
+      <motion.div 
+        className="w-full max-w-7xl mx-auto space-y-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+      >
+        <div className="relative w-full" style={{ height: '700px' }} ref={mapRef}>
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 800 700"
+            className="border-2 border-neutral-300 rounded-3xl bg-gradient-to-br from-white via-neutral-50 to-white shadow-2xl"
+            preserveAspectRatio="xMidYMid meet"
+          >
+            <defs>
+              <pattern id="grid-large-anim" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e8e8e8" strokeWidth="0.5" />
+              </pattern>
+              <linearGradient id="quadrant1-anim" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#f0f9ff" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#e0f2fe" stopOpacity="0.1" />
+              </linearGradient>
+              <linearGradient id="quadrant2-anim" x1="100%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#fde68a" stopOpacity="0.1" />
+              </linearGradient>
+              <filter id="glow-anim">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            
+            <rect width="100%" height="100%" fill="url(#grid-large-anim)" />
+            <rect x="400" y="0" width="400" height="350" fill="url(#quadrant1-anim)" />
+            <rect x="0" y="0" width="400" height="350" fill="url(#quadrant2-anim)" />
+            
+            <motion.path
+              d="M 80 350 L 720 350"
+              stroke="#000"
+              strokeWidth="3"
+              fill="none"
+              opacity="0.8"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            />
+            <motion.path
+              d="M 400 80 L 400 620"
+              stroke="#000"
+              strokeWidth="3"
+              fill="none"
+              opacity="0.8"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            />
+            
+            <motion.g
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
+            >
+              <text x="80" y="380" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+                More affordable
+              </text>
+              <text x="720" y="380" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500" textAnchor="end">
+                More expensive
+              </text>
+              <text x="385" y="65" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+                Done-for-you / high support
+              </text>
+              <text x="385" y="655" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+                Self-serve / DIY
+              </text>
+            </motion.g>
+            
+            {ALTERNATIVES.map((alt, idx) => {
+              const pos = positionToPixels(alt.x, alt.y, 1.2);
+              return (
+                <motion.g 
+                  key={alt.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ 
+                    delay: 0.8 + idx * 0.1,
+                    duration: 0.5,
+                    ease: [0.22, 1, 0.36, 1]
+                  }}
+                >
+                  <circle cx={pos.x} cy={pos.y} r="7" fill="#8a8a8a" opacity="0.8" />
+                  <rect 
+                    x={pos.x - 65} 
+                    y={pos.y - 32} 
+                    width="130" 
+                    height="20" 
+                    rx="6" 
+                    fill="rgba(255,255,255,0.95)"
+                    stroke="#e5e5e5"
+                    strokeWidth="1"
+                  />
+                  <text 
+                    x={pos.x} 
+                    y={pos.y - 17} 
+                    fontSize="10" 
+                    fill="#4a4a4a" 
+                    fontFamily="system-ui" 
+                    textAnchor="middle" 
+                    fontWeight="400"
+                  >
+                    {alt.label}
+                  </text>
+                </motion.g>
+              );
+            })}
+            
+            <motion.g
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ 
+                delay: 1.3,
+                type: "spring",
+                stiffness: 300,
+                damping: 20
+              }}
+            >
+              <circle cx={userPixelPos.x} cy={userPixelPos.y} r="18" fill="#000" filter="url(#glow-anim)" />
+              <circle cx={userPixelPos.x} cy={userPixelPos.y} r="15" fill="#000" />
+              <circle cx={userPixelPos.x} cy={userPixelPos.y} r="12" fill="#fff" />
+              <motion.text 
+                x={userPixelPos.x} 
+                y={userPixelPos.y - 35} 
+                fontSize="12" 
+                fill="#000" 
+                fontFamily="system-ui" 
+                textAnchor="middle" 
+                fontWeight="600"
+                letterSpacing="1.5px"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.5, duration: 0.4 }}
+              >
+                YOU
+              </motion.text>
+            </motion.g>
+          </svg>
+        </div>
+      </motion.div>
+    );
+  }
+  
+  if (stage === 'map-ready') {
+    return (
+      <div className="w-full max-w-7xl mx-auto space-y-8">
+        <div className="relative w-full" style={{ height: '700px' }} ref={mapRef}>
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 800 700"
+            className="border-2 border-neutral-300 rounded-3xl bg-gradient-to-br from-white via-neutral-50 to-white shadow-2xl"
+            preserveAspectRatio="xMidYMid meet"
+          >
+            <defs>
+              <pattern id="grid-large" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e8e8e8" strokeWidth="0.5" />
+              </pattern>
+              <linearGradient id="quadrant1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#f0f9ff" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#e0f2fe" stopOpacity="0.1" />
+              </linearGradient>
+              <linearGradient id="quadrant2" x1="100%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#fde68a" stopOpacity="0.1" />
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            
+            <rect width="100%" height="100%" fill="url(#grid-large)" />
+            <rect x="400" y="0" width="400" height="350" fill="url(#quadrant1)" />
+            <rect x="0" y="0" width="400" height="350" fill="url(#quadrant2)" />
+            
+            <path d="M 80 350 L 720 350" stroke="#000" strokeWidth="3" fill="none" opacity="0.8" />
+            <path d="M 400 80 L 400 620" stroke="#000" strokeWidth="3" fill="none" opacity="0.8" />
+            
+            <text x="80" y="380" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+              More affordable
+            </text>
+            <text x="720" y="380" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500" textAnchor="end">
+              More expensive
+            </text>
+            <text x="385" y="65" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+              Done-for-you / high support
+            </text>
+            <text x="385" y="655" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+              Self-serve / DIY
+            </text>
+            
+            {ALTERNATIVES.map((alt) => {
+              const pos = positionToPixels(alt.x, alt.y, 1.2);
+              const isHovered = hoveredAlternative === alt.id;
+              return (
+                <g 
+                  key={alt.id}
+                  onMouseEnter={() => setHoveredAlternative(alt.id)}
+                  onMouseLeave={() => setHoveredAlternative(null)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {isHovered && (
+                    <circle cx={pos.x} cy={pos.y} r="32" fill="#000" opacity="0.08" />
+                  )}
+                  <circle 
+                    cx={pos.x} 
+                    cy={pos.y} 
+                    r={isHovered ? "9" : "7"} 
+                    fill={isHovered ? "#2a2a2a" : "#8a8a8a"} 
+                    opacity={isHovered ? "1" : "0.8"}
+                  />
+                  <rect 
+                    x={pos.x - 65} 
+                    y={isHovered ? pos.y - 34 : pos.y - 32} 
+                    width="130" 
+                    height={isHovered ? "22" : "20"} 
+                    rx="6" 
+                    fill={isHovered ? "#000" : "rgba(255,255,255,0.95)"}
+                    stroke={isHovered ? "#000" : "#e5e5e5"}
+                    strokeWidth={isHovered ? "1.5" : "1"}
+                  />
+                  <text 
+                    x={pos.x} 
+                    y={isHovered ? pos.y - 19 : pos.y - 17} 
+                    fontSize={isHovered ? "11" : "10"} 
+                    fill={isHovered ? "#fff" : "#4a4a4a"} 
+                    fontFamily="system-ui" 
+                    textAnchor="middle" 
+                    fontWeight={isHovered ? "500" : "400"}
+                  >
+                    {alt.label}
+                  </text>
+                </g>
+              );
+            })}
+            
+            <g>
+              <circle cx={userPixelPos.x} cy={userPixelPos.y} r="18" fill="#000" filter="url(#glow)" />
+              <circle cx={userPixelPos.x} cy={userPixelPos.y} r="15" fill="#000" />
+              <circle cx={userPixelPos.x} cy={userPixelPos.y} r="12" fill="#fff" />
+              <text 
+                x={userPixelPos.x} 
+                y={userPixelPos.y - 35} 
+                fontSize="12" 
+                fill="#000" 
+                fontFamily="system-ui" 
+                textAnchor="middle" 
+                fontWeight="600"
+                letterSpacing="1.5px"
+              >
+                YOU
+              </text>
+            </g>
+          </svg>
+        </div>
+        
         <div className="flex justify-center">
           <button
             onClick={handleMapNext}
@@ -694,219 +1482,714 @@ const MarketPositionSnapshot = ({ answers, onComplete, onBack }) => {
     );
   }
   
-  return (
-    <div className="w-full max-w-7xl mx-auto space-y-12">
-      {/* Price Control Step - Map hidden to focus on one thing at a time */}
-      {stage === 'price' && (
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="flex flex-col items-center justify-center min-h-[60vh] space-y-8"
-        >
-          {/* Price Options - Centered */}
-          <div className="space-y-6 text-center">
-            <label className="block font-sans text-base md:text-lg font-bold uppercase tracking-widest text-neutral-700">
-              How does your pricing compare to most alternatives?
-            </label>
-            <div className="flex flex-wrap gap-3 justify-center">
-              {PRICE_OPTIONS.map((option, idx) => (
-                <motion.button
-                  key={option.value}
-                  onClick={() => handlePriceChange(option.value)}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: idx * 0.05, type: "spring", stiffness: 200 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`px-6 py-3 rounded-lg border transition-all font-sans text-sm ${
-                    pricePosition === option.value
-                      ? 'bg-black text-white border-black'
-                      : 'bg-white text-neutral-700 border-neutral-300 hover:border-black'
-                  }`}
-                >
-                  {option.label}
-                </motion.button>
-              ))}
+  // For price, service, and specialization stages
+  if (stage === 'price' || stage === 'service' || stage === 'specialization') {
+    return renderMapWithControls();
+  }
+  
+  return null;
+};
+
+MarketPositionSnapshot.propTypes = {
+  answers: PropTypes.object.isRequired,
+  onComplete: PropTypes.func.isRequired,
+  onBack: PropTypes.func
+};
+
+export default MarketPositionSnapshot; 
+                cx={userPixelPos.x} 
+                cy={userPixelPos.y} 
+                r="15" 
+                fill="#000"
+              />
+              <circle 
+                cx={userPixelPos.x} 
+                cy={userPixelPos.y} 
+                r="12" 
+                fill="#fff"
+              />
+              <text 
+                x={userPixelPos.x} 
+                y={userPixelPos.y - 35} 
+                fontSize="12" 
+                fill="#000" 
+                fontFamily="system-ui, -apple-system, sans-serif" 
+                textAnchor="middle" 
+                fontWeight="600"
+                letterSpacing="1.5px"
+              >
+                YOU
+              </text>
+            </g>
+          </svg>
+        </div>
+        
+        {/* Navigation Buttons */}
+        <div className="flex justify-between items-center">
+          <button
+            onClick={handleBackNavigation}
+            className="group flex items-center space-x-2 font-sans text-[10px] font-bold uppercase tracking-widest border-b border-transparent hover:border-black transition-all duration-500 pb-1 text-neutral-400 hover:text-black"
+          >
+            <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform duration-500" />
+            <span>Back</span>
+          </button>
+          <button
+            onClick={handleMapNext}
+            className="group relative bg-black text-white px-16 py-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20"
+          >
+            <div className="relative z-10 flex items-center space-x-4">
+              <span className="font-sans text-xs font-bold tracking-widest uppercase">Next</span>
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" />
             </div>
-          </div>
+            <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  // Render interactive map with controls overlay
+  const renderMapWithControls = () => (
+    <div className="w-full max-w-7xl mx-auto space-y-8">
+      {/* Map Container - Always visible */}
+      <div className="relative w-full" style={{ height: '600px' }} ref={mapRef}>
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 800 700"
+          className="border-2 border-neutral-300 rounded-3xl bg-gradient-to-br from-white via-neutral-50 to-white shadow-2xl"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <defs>
+            <pattern id="grid-interactive" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e8e8e8" strokeWidth="0.5" />
+            </pattern>
+            <linearGradient id="quadrant1-int" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#f0f9ff" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#e0f2fe" stopOpacity="0.1" />
+            </linearGradient>
+            <linearGradient id="quadrant2-int" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#fde68a" stopOpacity="0.1" />
+            </linearGradient>
+            <filter id="glow-int">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
           
-          {/* Reasoning - Free floating, no box */}
+          <rect width="100%" height="100%" fill="url(#grid-interactive)" />
+          <rect x="400" y="0" width="400" height="350" fill="url(#quadrant1-int)" />
+          <rect x="0" y="0" width="400" height="350" fill="url(#quadrant2-int)" />
+          
+          {/* Axes */}
+          <path d="M 80 350 L 720 350" stroke="#000" strokeWidth="3" fill="none" opacity="0.8" />
+          <path d="M 400 80 L 400 620" stroke="#000" strokeWidth="3" fill="none" opacity="0.8" />
+          
+          {/* Axis labels */}
+          <text x="80" y="380" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+            More affordable
+          </text>
+          <text x="720" y="380" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500" textAnchor="end">
+            More expensive
+          </text>
+          <text x="385" y="65" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+            Done-for-you / high support
+          </text>
+          <text x="385" y="655" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+            Self-serve / DIY
+          </text>
+          
+          {/* Alternatives */}
+          {ALTERNATIVES.map((alt) => {
+            const pos = positionToPixels(alt.x, alt.y, 1.2);
+            const isHovered = hoveredAlternative === alt.id;
+            return (
+              <g 
+                key={alt.id}
+                onMouseEnter={() => setHoveredAlternative(alt.id)}
+                onMouseLeave={() => setHoveredAlternative(null)}
+                style={{ cursor: 'pointer' }}
+              >
+                {isHovered && (
+                  <circle cx={pos.x} cy={pos.y} r="32" fill="#000" opacity="0.08" />
+                )}
+                <circle 
+                  cx={pos.x} 
+                  cy={pos.y} 
+                  r={isHovered ? "9" : "7"} 
+                  fill={isHovered ? "#2a2a2a" : "#8a8a8a"} 
+                  opacity={isHovered ? "1" : "0.8"}
+                />
+                <rect 
+                  x={pos.x - 65} 
+                  y={isHovered ? pos.y - 34 : pos.y - 32} 
+                  width="130" 
+                  height={isHovered ? "22" : "20"} 
+                  rx="6" 
+                  fill={isHovered ? "#000" : "rgba(255,255,255,0.95)"}
+                  stroke={isHovered ? "#000" : "#e5e5e5"}
+                  strokeWidth={isHovered ? "1.5" : "1"}
+                />
+                <text 
+                  x={pos.x} 
+                  y={isHovered ? pos.y - 19 : pos.y - 17} 
+                  fontSize={isHovered ? "11" : "10"} 
+                  fill={isHovered ? "#fff" : "#4a4a4a"} 
+                  fontFamily="system-ui" 
+                  textAnchor="middle" 
+                  fontWeight={isHovered ? "500" : "400"}
+                >
+                  {alt.label}
+                </text>
+              </g>
+            );
+          })}
+          
+          {/* User dot - ANIMATED when position changes */}
+          <motion.g
+            animate={{ 
+              x: userPixelPos.x - 400, 
+              y: userPixelPos.y - 350 
+            }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 200, 
+              damping: 25,
+              duration: 0.6 
+            }}
+          >
+            <circle 
+              cx={400} 
+              cy={350} 
+              r="22" 
+              fill="#000" 
+              filter="url(#glow-int)"
+            />
+            <circle cx={400} cy={350} r="18" fill="#000" />
+            <circle cx={400} cy={350} r="14" fill="#fff" />
+            <text 
+              x={400} 
+              y={310} 
+              fontSize="13" 
+              fill="#000" 
+              fontFamily="system-ui" 
+              textAnchor="middle" 
+              fontWeight="700"
+              letterSpacing="1.5px"
+            >
+              YOU
+            </text>
+          </motion.g>
+        </svg>
+      </div>
+
+      {/* Controls overlay - Changes based on stage */}
+      <AnimatePresence mode="wait">
+        {stage === 'price' && (
           <motion.div
+            key="price"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="text-center max-w-2xl"
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+            className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 w-full max-w-4xl mx-auto"
           >
-            <p className="font-sans text-sm text-neutral-600">
-              <span className="font-bold">Why we chose this:</span> {getPriceReasoning()}
-            </p>
-          </motion.div>
-          
-          {/* Confirm button - below reasoning */}
-          {!priceConfirmed && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
-              className="flex flex-col items-center gap-3 pt-4"
-            >
-              <motion.button
-                onClick={handlePriceConfirm}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95, rotate: [0, -2, 2, -2, 0] }}
-                className="group relative bg-black text-white px-8 py-3 overflow-hidden transition-all duration-500 hover:shadow-xl hover:shadow-neutral-500/20"
-              >
-                <motion.div 
-                  className="relative z-10 flex items-center space-x-2"
-                  initial={false}
-                  animate={{ x: [0, -2, 2, 0] }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <span className="font-sans text-xs font-bold tracking-widest uppercase">This is correct</span>
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Check size={12} />
-                  </motion.div>
-                </motion.div>
-                <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
-              </motion.button>
+            <div className="bg-white border-2 border-neutral-300 rounded-2xl p-8 space-y-6 shadow-lg w-full">
+              <label className="block font-sans text-base md:text-lg font-bold uppercase tracking-widest text-neutral-800 text-center">
+                How does your pricing compare to most alternatives?
+              </label>
               
-              {/* "or adjust above" text - below button */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-                className="text-center"
-              >
-                <span className="font-sans text-xs text-neutral-500">or adjust above</span>
-              </motion.div>
-            </motion.div>
-          )}
-        </motion.div>
-      )}
-      
-      {/* Service Control Step */}
-      {stage === 'service' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="space-y-6"
-        >
-          <div className="space-y-4">
-            <label className="block font-sans text-sm font-bold uppercase tracking-widest text-neutral-700">
-              How hands-on are you compared to alternatives?
-            </label>
-            <div className="flex flex-wrap gap-3">
-              {SERVICE_OPTIONS.map((option) => (
+              <div className="flex flex-wrap gap-3 justify-center">
+                {PRICE_OPTIONS.map((option, idx) => (
+                  <motion.button
+                    key={option.value}
+                    onClick={() => handlePriceChange(option.value)}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.05, type: "spring", stiffness: 200 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`px-6 py-3 rounded-lg border-2 transition-all font-sans text-sm font-medium ${
+                      pricePosition === option.value
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-neutral-700 border-neutral-300 hover:border-black'
+                    }`}
+                  >
+                    {option.label}
+                  </motion.button>
+                ))}
+              </div>
+              
+              <div className="text-center">
+                <p className="font-sans text-sm text-neutral-600">
+                  <span className="font-bold">Why we chose this:</span> {priceReasoning || 'Based on your offer description, we placed you at this price point relative to typical alternatives in your market.'}
+                </p>
+              </div>
+              
+              <div className="flex justify-center pt-2">
                 <button
-                  key={option.value}
-                  onClick={() => handleServiceChange(option.value)}
-                  className={`px-6 py-3 rounded-lg border transition-all font-sans text-sm ${
-                    servicePosition === option.value
-                      ? 'bg-black text-white border-black'
-                      : 'bg-white text-neutral-700 border-neutral-300 hover:border-black'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          {/* Reasoning */}
-          <div className="bg-neutral-50 border border-neutral-200 rounded-2xl p-6 space-y-4">
-            <p className="font-sans text-sm text-neutral-600">
-              <span className="font-bold">Why we chose this:</span> {getServiceReasoning()}
-            </p>
-            {!serviceConfirmed && (
-              <div className="flex items-center gap-4 pt-2">
-                <button
-                  onClick={handleServiceConfirm}
-                  className="group relative bg-black text-white px-8 py-3 overflow-hidden transition-all duration-500 hover:shadow-xl hover:shadow-neutral-500/20"
+                  onClick={handlePriceConfirm}
+                  className="group relative bg-black text-white px-10 py-4 overflow-hidden transition-all duration-500 hover:shadow-xl"
                 >
                   <div className="relative z-10 flex items-center space-x-2">
-                    <span className="font-sans text-xs font-bold tracking-widest uppercase">This is correct</span>
-                    <Check size={12} />
+                    <span className="font-sans text-xs font-bold tracking-widest uppercase">Confirm & Continue</span>
+                    <Check size={14} />
                   </div>
                   <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                 </button>
-                <span className="font-sans text-xs text-neutral-500">or adjust above</span>
               </div>
-            )}
-          </div>
-        </motion.div>
-      )}
-      
-      {/* Specialization Step */}
-      {stage === 'specialization' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="space-y-6"
-        >
-          <div className="space-y-4">
-            <label className="block font-sans text-sm font-bold uppercase tracking-widest text-neutral-700">
-              How specialised is your offer?
-            </label>
-            <div className="flex flex-wrap gap-3">
-              {SPECIALIZATION_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleSpecializationChange(option.value)}
-                  className={`px-6 py-3 rounded-lg border transition-all font-sans text-sm ${
-                    specialization === option.value
-                      ? 'bg-black text-white border-black'
-                      : 'bg-white text-neutral-700 border-neutral-300 hover:border-black'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
             </div>
-          </div>
-          
-          {/* Final Summary */}
-          <div className="bg-neutral-50 border border-neutral-200 rounded-2xl p-6 space-y-4">
-            <p className="font-sans text-sm text-neutral-600">
-              <span className="font-bold">Got it — we'll treat you as a </span>
-              <span className="font-bold text-black">{getPositionLabel()}</span>
-              <span className="font-bold"> option.</span>
-            </p>
-            
-            {/* Action Buttons */}
-            <div className="flex items-center justify-between pt-4">
-              {onBack && (
+          </motion.div>
+        )}
+        
+        {stage === 'service' && (
+          <motion.div
+            key="service"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-6"
+          >
+            <div className="bg-white border-2 border-neutral-300 rounded-2xl p-8 space-y-6 shadow-lg">
+              <label className="block font-sans text-base md:text-lg font-bold uppercase tracking-widest text-neutral-800 text-center">
+                How hands-on are you compared to alternatives?
+              </label>
+              
+              <div className="flex flex-wrap gap-3 justify-center">
+                {serviceOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleServiceChange(option.value)}
+                    className={`px-6 py-3 rounded-lg border-2 transition-all font-sans text-sm font-medium ${
+                      servicePosition === option.value
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-neutral-700 border-neutral-300 hover:border-black'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="text-center">
+                <p className="font-sans text-sm text-neutral-600">
+                  <span className="font-bold">Why we chose this:</span> {serviceReasoning || 'Based on your offer description, we placed you at this service level relative to typical alternatives in your market.'}
+                </p>
+              </div>
+              
+              <div className="flex justify-center pt-2">
                 <button
-                  onClick={() => setStage('service')}
-                  className="font-sans text-[10px] font-bold uppercase tracking-widest border-b border-transparent hover:border-black transition-all duration-500 pb-1 text-neutral-400 hover:text-black"
+                  onClick={handleServiceConfirm}
+                  className="group relative bg-black text-white px-10 py-4 overflow-hidden transition-all duration-500 hover:shadow-xl"
                 >
-                  Back
+                  <div className="relative z-10 flex items-center space-x-2">
+                    <span className="font-sans text-xs font-bold tracking-widest uppercase">Confirm & Continue</span>
+                    <Check size={14} />
+                  </div>
+                  <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                 </button>
-              )}
-              <button
-                onClick={handleComplete}
-                className="group relative bg-black text-white px-16 py-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20 ml-auto"
-              >
-                <div className="relative z-10 flex items-center space-x-4">
-                  <span className="font-sans text-xs font-bold tracking-widest uppercase">
-                    This looks right
-                  </span>
-                  <Check size={14} className="group-hover:scale-110 transition-transform duration-500" />
-                </div>
-                <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
-              </button>
+              </div>
             </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+        
+        {stage === 'specialization' && (
+          <motion.div
+            key="specialization"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-6"
+          >
+            <div className="bg-white border-2 border-neutral-300 rounded-2xl p-8 space-y-6 shadow-lg">
+              <label className="block font-sans text-base md:text-lg font-bold uppercase tracking-widest text-neutral-800 text-center">
+                How specialised is your offer?
+              </label>
+              
+              <div className="flex flex-wrap gap-3 justify-center">
+                {specializationOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleSpecializationChange(option.value)}
+                    className={`px-6 py-3 rounded-lg border-2 transition-all font-sans text-sm font-medium ${
+                      specialization === option.value
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-neutral-700 border-neutral-300 hover:border-black'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="text-center">
+                <p className="font-sans text-base text-neutral-800">
+                  <span className="font-bold">Got it — we'll treat you as a </span>
+                  <span className="font-bold text-black">{getPositionLabel()}</span>
+                  <span className="font-bold"> option.</span>
+                </p>
+              </div>
+              
+              <div className="flex justify-between items-center pt-2">
+                <button
+                  onClick={handleBackNavigation}
+                  className="group flex items-center space-x-2 font-sans text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-black transition-colors"
+                >
+                  <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform duration-500" />
+                  <span>Back</span>
+                </button>
+                <button
+                  onClick={handleComplete}
+                  className="group relative bg-black text-white px-10 py-4 overflow-hidden transition-all duration-500 hover:shadow-xl"
+                >
+                  <div className="relative z-10 flex items-center space-x-2">
+                    <span className="font-sans text-xs font-bold tracking-widest uppercase">Complete</span>
+                    <ArrowRight size={14} />
+                  </div>
+                  <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
+
+  // Render the appropriate stage
+  if (stage === 'intro') {
+    return (
+      <div className="w-full max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-1000">
+        <div className="text-center space-y-8">
+          <h1 className="font-serif text-5xl md:text-6xl text-black leading-tight">
+            Here's how you compare in the market
+          </h1>
+          <p className="font-sans text-lg text-neutral-600 max-w-2xl mx-auto">
+            Based on what you just told us, this is where you sit compared to common alternatives. You can adjust it.
+          </p>
+          <button
+            onClick={handleShowMe}
+            className="group relative bg-black text-white px-16 py-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20 mt-8"
+          >
+            <div className="relative z-10 flex items-center space-x-4">
+              <span className="font-sans text-xs font-bold tracking-widest uppercase">
+                Show me
+              </span>
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" />
+            </div>
+            <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  if (stage === 'animating') {
+    return (
+      <motion.div 
+        className="w-full max-w-7xl mx-auto space-y-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+      >
+        <div className="relative w-full" style={{ height: '700px' }} ref={mapRef}>
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 800 700"
+            className="border-2 border-neutral-300 rounded-3xl bg-gradient-to-br from-white via-neutral-50 to-white shadow-2xl"
+            preserveAspectRatio="xMidYMid meet"
+          >
+            <defs>
+              <pattern id="grid-large-anim" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e8e8e8" strokeWidth="0.5" />
+              </pattern>
+              <linearGradient id="quadrant1-anim" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#f0f9ff" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#e0f2fe" stopOpacity="0.1" />
+              </linearGradient>
+              <linearGradient id="quadrant2-anim" x1="100%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#fde68a" stopOpacity="0.1" />
+              </linearGradient>
+              <filter id="glow-anim">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            
+            <rect width="100%" height="100%" fill="url(#grid-large-anim)" />
+            <rect x="400" y="0" width="400" height="350" fill="url(#quadrant1-anim)" />
+            <rect x="0" y="0" width="400" height="350" fill="url(#quadrant2-anim)" />
+            
+            <motion.path
+              d="M 80 350 L 720 350"
+              stroke="#000"
+              strokeWidth="3"
+              fill="none"
+              opacity="0.8"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            />
+            <motion.path
+              d="M 400 80 L 400 620"
+              stroke="#000"
+              strokeWidth="3"
+              fill="none"
+              opacity="0.8"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            />
+            
+            <motion.g
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
+            >
+              <text x="80" y="380" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+                More affordable
+              </text>
+              <text x="720" y="380" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500" textAnchor="end">
+                More expensive
+              </text>
+              <text x="385" y="65" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+                Done-for-you / high support
+              </text>
+              <text x="385" y="655" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+                Self-serve / DIY
+              </text>
+            </motion.g>
+            
+            {ALTERNATIVES.map((alt, idx) => {
+              const pos = positionToPixels(alt.x, alt.y, 1.2);
+              return (
+                <motion.g 
+                  key={alt.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ 
+                    delay: 0.8 + idx * 0.1,
+                    duration: 0.5,
+                    ease: [0.22, 1, 0.36, 1]
+                  }}
+                >
+                  <circle cx={pos.x} cy={pos.y} r="7" fill="#8a8a8a" opacity="0.8" />
+                  <rect 
+                    x={pos.x - 65} 
+                    y={pos.y - 32} 
+                    width="130" 
+                    height="20" 
+                    rx="6" 
+                    fill="rgba(255,255,255,0.95)"
+                    stroke="#e5e5e5"
+                    strokeWidth="1"
+                  />
+                  <text 
+                    x={pos.x} 
+                    y={pos.y - 17} 
+                    fontSize="10" 
+                    fill="#4a4a4a" 
+                    fontFamily="system-ui" 
+                    textAnchor="middle" 
+                    fontWeight="400"
+                  >
+                    {alt.label}
+                  </text>
+                </motion.g>
+              );
+            })}
+            
+            <motion.g
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ 
+                delay: 1.3,
+                type: "spring",
+                stiffness: 300,
+                damping: 20
+              }}
+            >
+              <circle cx={userPixelPos.x} cy={userPixelPos.y} r="18" fill="#000" filter="url(#glow-anim)" />
+              <circle cx={userPixelPos.x} cy={userPixelPos.y} r="15" fill="#000" />
+              <circle cx={userPixelPos.x} cy={userPixelPos.y} r="12" fill="#fff" />
+              <motion.text 
+                x={userPixelPos.x} 
+                y={userPixelPos.y - 35} 
+                fontSize="12" 
+                fill="#000" 
+                fontFamily="system-ui" 
+                textAnchor="middle" 
+                fontWeight="600"
+                letterSpacing="1.5px"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.5, duration: 0.4 }}
+              >
+                YOU
+              </motion.text>
+            </motion.g>
+          </svg>
+        </div>
+      </motion.div>
+    );
+  }
+  
+  if (stage === 'map-ready') {
+    return (
+      <div className="w-full max-w-7xl mx-auto space-y-8">
+        <div className="relative w-full" style={{ height: '700px' }} ref={mapRef}>
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 800 700"
+            className="border-2 border-neutral-300 rounded-3xl bg-gradient-to-br from-white via-neutral-50 to-white shadow-2xl"
+            preserveAspectRatio="xMidYMid meet"
+          >
+            <defs>
+              <pattern id="grid-large" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e8e8e8" strokeWidth="0.5" />
+              </pattern>
+              <linearGradient id="quadrant1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#f0f9ff" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#e0f2fe" stopOpacity="0.1" />
+              </linearGradient>
+              <linearGradient id="quadrant2" x1="100%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#fde68a" stopOpacity="0.1" />
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            
+            <rect width="100%" height="100%" fill="url(#grid-large)" />
+            <rect x="400" y="0" width="400" height="350" fill="url(#quadrant1)" />
+            <rect x="0" y="0" width="400" height="350" fill="url(#quadrant2)" />
+            
+            <path d="M 80 350 L 720 350" stroke="#000" strokeWidth="3" fill="none" opacity="0.8" />
+            <path d="M 400 80 L 400 620" stroke="#000" strokeWidth="3" fill="none" opacity="0.8" />
+            
+            <text x="80" y="380" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+              More affordable
+            </text>
+            <text x="720" y="380" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500" textAnchor="end">
+              More expensive
+            </text>
+            <text x="385" y="65" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+              Done-for-you / high support
+            </text>
+            <text x="385" y="655" fontSize="12" fill="#1a1a1a" fontFamily="system-ui" fontWeight="500">
+              Self-serve / DIY
+            </text>
+            
+            {ALTERNATIVES.map((alt) => {
+              const pos = positionToPixels(alt.x, alt.y, 1.2);
+              const isHovered = hoveredAlternative === alt.id;
+              return (
+                <g 
+                  key={alt.id}
+                  onMouseEnter={() => setHoveredAlternative(alt.id)}
+                  onMouseLeave={() => setHoveredAlternative(null)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {isHovered && (
+                    <circle cx={pos.x} cy={pos.y} r="32" fill="#000" opacity="0.08" />
+                  )}
+                  <circle 
+                    cx={pos.x} 
+                    cy={pos.y} 
+                    r={isHovered ? "9" : "7"} 
+                    fill={isHovered ? "#2a2a2a" : "#8a8a8a"} 
+                    opacity={isHovered ? "1" : "0.8"}
+                  />
+                  <rect 
+                    x={pos.x - 65} 
+                    y={isHovered ? pos.y - 34 : pos.y - 32} 
+                    width="130" 
+                    height={isHovered ? "22" : "20"} 
+                    rx="6" 
+                    fill={isHovered ? "#000" : "rgba(255,255,255,0.95)"}
+                    stroke={isHovered ? "#000" : "#e5e5e5"}
+                    strokeWidth={isHovered ? "1.5" : "1"}
+                  />
+                  <text 
+                    x={pos.x} 
+                    y={isHovered ? pos.y - 19 : pos.y - 17} 
+                    fontSize={isHovered ? "11" : "10"} 
+                    fill={isHovered ? "#fff" : "#4a4a4a"} 
+                    fontFamily="system-ui" 
+                    textAnchor="middle" 
+                    fontWeight={isHovered ? "500" : "400"}
+                  >
+                    {alt.label}
+                  </text>
+                </g>
+              );
+            })}
+            
+            <g>
+              <circle cx={userPixelPos.x} cy={userPixelPos.y} r="18" fill="#000" filter="url(#glow)" />
+              <circle cx={userPixelPos.x} cy={userPixelPos.y} r="15" fill="#000" />
+              <circle cx={userPixelPos.x} cy={userPixelPos.y} r="12" fill="#fff" />
+              <text 
+                x={userPixelPos.x} 
+                y={userPixelPos.y - 35} 
+                fontSize="12" 
+                fill="#000" 
+                fontFamily="system-ui" 
+                textAnchor="middle" 
+                fontWeight="600"
+                letterSpacing="1.5px"
+              >
+                YOU
+              </text>
+            </g>
+          </svg>
+        </div>
+        
+        <div className="flex justify-center">
+          <button
+            onClick={handleMapNext}
+            className="group relative bg-black text-white px-16 py-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20"
+          >
+            <div className="relative z-10 flex items-center space-x-4">
+              <span className="font-sans text-xs font-bold tracking-widest uppercase">Next</span>
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" />
+            </div>
+            <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  // For price, service, and specialization stages
+  if (stage === 'price' || stage === 'service' || stage === 'specialization') {
+    return renderMapWithControls();
+  }
+  
+  return null;
+};
+
+MarketPositionSnapshot.propTypes = {
+  answers: PropTypes.object.isRequired,
+  onComplete: PropTypes.func.isRequired,
+  onBack: PropTypes.func
 };
 
 export default MarketPositionSnapshot;
-

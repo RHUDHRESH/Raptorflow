@@ -43,7 +43,7 @@ const CollapsibleTrigger = React.forwardRef(({ className, asChild = false, child
       ref={ref}
       type="button"
       onClick={() => onOpenChange(!open)}
-      className={className}
+      className={cn("transition-all duration-180", className)}
       {...props}
     >
       {children}
@@ -60,7 +60,7 @@ const CollapsibleContent = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <div
       ref={ref}
-      className={cn("overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out", className)}
+      className={cn("overflow-hidden animate-in", className)}
       {...props}
     />
   )
@@ -68,4 +68,3 @@ const CollapsibleContent = React.forwardRef(({ className, ...props }, ref) => {
 CollapsibleContent.displayName = "CollapsibleContent"
 
 export { Collapsible, CollapsibleContent, CollapsibleTrigger }
-

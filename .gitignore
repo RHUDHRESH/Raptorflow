@@ -50,4 +50,28 @@ coverage
 # Build artifacts
 build
 out
+dist/
+dist-ssr/
+
+# Temporary files
+todo
+todo.md
+*.tmp
+*.temp
+
+# Python (backend)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Backend specific
+backend/.env
+backend/*.egg-info/
+backend/.pytest_cache/
 

@@ -1,9 +1,32 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ArrowRight, Sparkles, Search, Check, Loader2, AlertTriangle, ChevronDown, X, Brain, Users, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+
+// Fix for Leaflet default marker
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
 import MarketPositionSnapshot from './MarketPositionSnapshot';
 import CohortsBuilder from './CohortsBuilder';
-import { getVertexAIUrl, TASK_TYPES } from '../utils/vertexAI';
+import { 
+  generateAnswerSuggestions, 
+  generateICPFromAnswers, 
+  generatePositioningInsights, 
+  generateVertexAIQuestions 
+} from '../lib/ai';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 const GOOGLE_MAPS_API_KEY =
   import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
@@ -93,259 +116,6 @@ const FALLBACK_FOLLOW_UPS = [
     placeholder: 'Why did they pick you over the other option?'
   }
 ];
-
-// AI-powered answer suggestions
-const generateAnswerSuggestions = async (question, partialAnswer, answers) => {
-  try {
-    const url = getVertexAIUrl(TASK_TYPES.CREATIVE_FAST);
-    const context = Object.keys(answers).length > 0
-      ? `Based on previous answers:\n${JSON.stringify(answers, null, 2)}\n\n`
-      : '';
-
-    const systemInstruction = `You are a helpful business strategist. The user is answering: "${question.prompt}". ${partialAnswer ? `They've started with: "${partialAnswer}".` : ''} Provide 2-3 concise, specific suggestions to help them complete their answer. Keep suggestions under 50 words each.`;
-
-    const payload = {
-      contents: [{ parts: [{ text: context + systemInstruction }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "ARRAY",
-          items: { type: "STRING" }
-        },
-        maxOutputTokens: 500,
-        temperature: 0.7
-      }
-    };
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) return [];
-    const data = await response.json();
-    const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!jsonText) return [];
-    return JSON.parse(jsonText);
-  } catch (error) {
-    console.warn('Answer suggestions failed:', error);
-    return [];
-  }
-};
-
-// AI-powered ICP generation from onboarding data
-const generateICPFromAnswers = async (answers) => {
-  try {
-    const url = getVertexAIUrl(TASK_TYPES.CREATIVE_REASONING);
-
-    let contextString = "Analyze the following business onboarding data and generate an Ideal Customer Profile (ICP):\n\n";
-    INITIAL_QUESTIONS.forEach(q => {
-      if (q.type === 'multi') {
-        q.fields.forEach(field => {
-          const ans = answers[field.id] || "Not answered";
-          contextString += `${field.label}: ${ans}\n`;
-        });
-      } else if (q.type === 'map') {
-        const loc = answers[q.id];
-        const locStr = loc ? (loc.address || `${loc.lat}, ${loc.lng}`) : "Not provided";
-        contextString += `${q.prompt}: ${locStr}\n`;
-      } else {
-        const ans = answers[q.id] || "Not answered";
-        contextString += `${q.prompt}: ${ans}\n`;
-      }
-    });
-
-    const systemInstruction = `
-    Based on this business data, generate 1-3 detailed Ideal Customer Profiles (ICPs).
-    Each ICP should include:
-    - Name/Label for the cohort
-    - Industry and company size
-    - Key characteristics and behaviors
-    - Pain points they're trying to solve
-    - Why they're a good fit
-
-    Return as a JSON array of cohort objects.
-    `;
-
-    const payload = {
-      contents: [{ parts: [{ text: contextString + systemInstruction }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "ARRAY",
-          items: {
-            type: "OBJECT",
-            properties: {
-              name: { type: "STRING" },
-              industry: { type: "STRING" },
-              companySize: { type: "STRING" },
-              characteristics: { type: "ARRAY", items: { type: "STRING" } },
-              painPoints: { type: "ARRAY", items: { type: "STRING" } },
-              whyGoodFit: { type: "STRING" }
-            }
-          }
-        },
-        maxOutputTokens: 2000,
-        temperature: 0.8
-      }
-    };
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) throw new Error(`ICP generation failed: ${response.status}`);
-    const data = await response.json();
-    const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!jsonText) throw new Error("No ICP content generated");
-    return JSON.parse(jsonText);
-  } catch (error) {
-    console.error('ICP generation failed:', error);
-    return [];
-  }
-};
-
-// AI-powered competitive positioning insights
-const generatePositioningInsights = async (answers) => {
-  try {
-    const url = getVertexAIUrl(TASK_TYPES.REASONING);
-
-    const businessDescription = answers['q1'] || '';
-    const positioning = answers['q6'] || answers.market_position?.positioning || '';
-
-    const systemInstruction = `
-    Analyze this business and provide strategic positioning insights:
-    Business: ${businessDescription}
-    Current Positioning: ${positioning}
-
-    Provide:
-    1. Key differentiators (3-5 points)
-    2. Competitive advantages
-    3. Positioning gaps or opportunities
-    4. Market positioning strategy recommendations
-
-    Be specific, actionable, and concise.
-    `;
-
-    const payload = {
-      contents: [{ parts: [{ text: systemInstruction }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "OBJECT",
-          properties: {
-            differentiators: { type: "ARRAY", items: { type: "STRING" } },
-            advantages: { type: "ARRAY", items: { type: "STRING" } },
-            gaps: { type: "ARRAY", items: { type: "STRING" } },
-            recommendations: { type: "ARRAY", items: { type: "STRING" } }
-          }
-        },
-        maxOutputTokens: 1500,
-        temperature: 0.7
-      }
-    };
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) throw new Error(`Positioning insights failed: ${response.status}`);
-    const data = await response.json();
-    const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!jsonText) throw new Error("No insights generated");
-    return JSON.parse(jsonText);
-  } catch (error) {
-    console.error('Positioning insights failed:', error);
-    return null;
-  }
-};
-
-const generateVertexAIQuestions = async (answers) => {
-  // Use general purpose model for onboarding question generation
-  // For faster responses, could use TASK_TYPES.CREATIVE_FAST
-  // For higher quality, could use TASK_TYPES.CREATIVE_REASONING
-  const url = getVertexAIUrl(TASK_TYPES.GENERAL_PURPOSE);
-  let contextString = "Here is the client's onboarding intake so far:\n\n";
-
-  INITIAL_QUESTIONS.forEach(q => {
-    if (q.type === 'multi') {
-      q.fields.forEach(field => {
-        const ans = answers[field.id] || "Not answered";
-        contextString += `Question: ${field.label}\nAnswer: ${ans}\n\n`;
-      });
-    } else if (q.type === 'map') {
-       const loc = answers[q.id];
-       const locStr = loc ? (loc.address || `${loc.lat}, ${loc.lng}`) : "Not provided";
-       contextString += `Question: ${q.prompt}\nAnswer: ${locStr}\n\n`;
-    } else {
-      const ans = answers[q.id] || "Not answered";
-      contextString += `Question: ${q.prompt}\nAnswer: ${ans}\n\n`;
-    }
-  });
-
-  const systemInstruction = `
-    You are an expert brand strategist reviewing a new client's intake form.
-    Your goal is to identify 1-3 critical gaps, vague statements, or areas that need specific clarification to build a marketing strategy.
-    
-    Tone: Professional, "Normal Human", concise, slightly editorial. Not robotic.
-    
-    Task: Generate 1 to 3 follow-up questions based on their answers.
-    - If they were vague about their customer, ask for specifics.
-    - If they didn't mention constraints, ask about them.
-    - If they didn't mention competitors, ask who they lose deals to.
-    
-    Return strictly a JSON array of objects. No markdown formatting.
-  `;
-
-  const payload = {
-    contents: [{
-      parts: [{ text: contextString + "\n\n" + systemInstruction }]
-    }],
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: "ARRAY",
-        items: {
-          type: "OBJECT",
-          properties: {
-            category: { type: "STRING" },
-            title: { type: "STRING" },
-            prompt: { type: "STRING" },
-            placeholder: { type: "STRING" }
-          },
-          required: ["category", "title", "prompt", "placeholder"]
-        }
-      }
-    }
-  };
-
-  const delays = [1000, 2000, 4000, 8000, 16000];
-  
-  for (let i = 0; i < delays.length; i++) {
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!response.ok) throw new Error(`API Error: ${response.status}`);
-      const data = await response.json();
-      const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      if (!jsonText) throw new Error("No content generated");
-      return JSON.parse(jsonText);
-    } catch (error) {
-      console.warn(`Vertex AI Attempt ${i + 1} failed:`, error);
-      if (i === delays.length - 1) throw error; 
-      await new Promise(resolve => setTimeout(resolve, delays[i]));
-    }
-  }
-};
 
 const loadGoogleMapsScript = (apiKey, onLoad, onError) => {
   if (!apiKey) {
@@ -569,6 +339,150 @@ const ManualLocationFallback = ({ onLocationSelect, initialValue }) => {
   )
 }
 
+const LeafletMap = ({ onLocationSelect, initialValue, error }) => {
+  const [searchQuery, setSearchQuery] = useState(initialValue?.address || '');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [position, setPosition] = useState(
+    initialValue?.lat 
+      ? { lat: Number(initialValue.lat), lng: Number(initialValue.lng) } 
+      : null
+  );
+
+  // Default center (India)
+  const defaultCenter = { lat: 20.5937, lng: 78.9629 };
+  const center = position || defaultCenter;
+  const zoom = position ? 12 : 4;
+
+  // Component to handle map clicks
+  const MapEvents = () => {
+    useMapEvents({
+      click(e) {
+        const newPos = { lat: e.latlng.lat, lng: e.latlng.lng };
+        setPosition(newPos);
+        onLocationSelect({
+          lat: newPos.lat,
+          lng: newPos.lng,
+          address: `Pinned Location (${newPos.lat.toFixed(4)}, ${newPos.lng.toFixed(4)})`
+        });
+      },
+    });
+    return null;
+  };
+
+  // Component to update map view when position changes
+  const MapUpdater = ({ center, zoom }) => {
+    const map = useMap();
+    useEffect(() => {
+      map.setView(center, zoom);
+    }, [center, zoom, map]);
+    return null;
+  };
+
+  const handleSearch = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+  };
+
+  // Effect for search debounce
+  useEffect(() => {
+    if (!searchQuery || searchQuery.length < 3) {
+      setSearchResults([]);
+      return;
+    }
+    
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearching(true);
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`
+        );
+        if (response.ok) {
+            const data = await response.json();
+            setSearchResults(data);
+        }
+      } catch (err) {
+        console.error("Search failed", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const selectResult = (result) => {
+    const newPos = { lat: parseFloat(result.lat), lng: parseFloat(result.lon) };
+    setPosition(newPos);
+    setSearchQuery(result.display_name);
+    setSearchResults([]);
+    onLocationSelect({
+      address: result.display_name,
+      lat: newPos.lat,
+      lng: newPos.lng
+    });
+  };
+
+  return (
+    <div className="w-full flex flex-col items-center space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+      <div className="relative w-full max-w-xl z-20">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
+        <input 
+          type="text" 
+          value={searchQuery}
+          onChange={handleSearch}
+          placeholder="Search for your city..." 
+          className="w-full bg-white border border-neutral-200 rounded-full py-4 pl-12 pr-6 text-neutral-800 shadow-xl shadow-neutral-200/50 focus:outline-none focus:ring-2 focus:ring-black transition-all font-sans text-sm"
+        />
+        {searchResults.length > 0 && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-neutral-100 overflow-hidden z-50 max-h-60 overflow-y-auto">
+             {searchResults.map((result, idx) => (
+               <button
+                 key={idx}
+                 onClick={() => selectResult(result)}
+                 className="w-full text-left px-4 py-3 hover:bg-neutral-50 text-xs text-neutral-700 border-b border-neutral-50 last:border-0 truncate"
+               >
+                 {result.display_name}
+               </button>
+             ))}
+          </div>
+        )}
+      </div>
+
+      <div className="w-full h-[40vh] md:h-[50vh] bg-neutral-100 relative border border-neutral-200 overflow-hidden shadow-inner rounded-xl z-0">
+         {error && (
+            <div className="absolute top-0 left-0 right-0 bg-amber-50/90 text-amber-800 text-[10px] uppercase font-bold py-2 text-center z-[400] flex items-center justify-center space-x-2 backdrop-blur-sm">
+               <AlertTriangle size={12} />
+               <span>Google Maps unavailable - switched to OpenStreetMap</span>
+            </div>
+         )}
+         
+         <MapContainer 
+           center={center} 
+           zoom={zoom} 
+           style={{ height: '100%', width: '100%' }}
+           zoomControl={false}
+         >
+           <TileLayer
+             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+           />
+           {position && <Marker position={position} />}
+           <MapEvents />
+           <MapUpdater center={center} zoom={zoom} />
+         </MapContainer>
+      </div>
+      
+      {position && (
+        <div className="flex items-center space-x-2 text-green-600 bg-green-50 px-4 py-2 border border-green-100 rounded-full">
+           <Check size={14} />
+           <span className="text-[10px] font-mono uppercase tracking-[0.2em]">Location Locked</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const InteractiveMap = ({ onLocationSelect, initialValue }) => {
   const mapRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -599,10 +513,12 @@ const InteractiveMap = ({ onLocationSelect, initialValue }) => {
     window.gm_authFailure = () => {
       console.warn("Google Maps API Key Warning - Map may be degraded");
       setAuthWarning(true);
-      setMapError('Authentication failed for Google Maps API key.');
+      // If auth fails, switch to Leaflet fallback
+      setMapError('Authentication failed for Google Maps API key. Switching to fallback.');
     };
 
     if (!GOOGLE_MAPS_API_KEY) {
+      // If no key is present, immediately switch to fallback
       setMapError('Google Maps API key missing. Add VITE_GOOGLE_MAPS_API_KEY to your .env file.');
       setAuthWarning(true);
       return;
@@ -702,11 +618,13 @@ const InteractiveMap = ({ onLocationSelect, initialValue }) => {
     mapObj.current.setZoom(10)
   }, [initialValue])
 
+  // Fallback to Leaflet if Google Maps fails or key is missing
   if (mapError) {
     return (
-      <ManualLocationFallback
+      <LeafletMap
         onLocationSelect={onLocationSelect}
         initialValue={initialValue}
+        error={mapError}
       />
     )
   }
@@ -723,7 +641,7 @@ const InteractiveMap = ({ onLocationSelect, initialValue }) => {
         />
       </div>
       <div className="w-full h-[40vh] md:h-[50vh] bg-neutral-100 relative border border-neutral-200 overflow-hidden shadow-inner">
-         {(authWarning || mapError) && (
+         {(authWarning) && (
             <div className="absolute top-0 left-0 right-0 bg-amber-100/90 text-amber-800 text-[10px] uppercase font-bold py-2 text-center z-30 flex items-center justify-center space-x-2 backdrop-blur-sm">
                <AlertTriangle size={12} />
                <span>{mapError || 'Maps API issue - functionality limited'}</span>
@@ -733,12 +651,6 @@ const InteractiveMap = ({ onLocationSelect, initialValue }) => {
          {!scriptLoaded && !mapError && (
            <div className="absolute inset-0 flex items-center justify-center text-neutral-400 text-xs font-mono z-0">
              INITIALIZING SATELLITE UPLINK...
-           </div>
-         )}
-         {mapError && (
-           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 text-neutral-500 text-sm font-medium">
-             <p>{mapError}</p>
-             <p className="mt-2 text-xs text-neutral-400">You can still describe your location manually.</p>
            </div>
          )}
       </div>
@@ -1052,6 +964,7 @@ export default function Onboarding({ onClose }) {
   const [generatedICPs, setGeneratedICPs] = useState([]);
   const [positioningInsights, setPositioningInsights] = useState(null);
   const [showAISuggestions, setShowAISuggestions] = useState(false);
+  const { user } = useAuth();
 
   const currentQuestion = questions[currentStepIndex];
   const mainScrollRef = useRef(null);
@@ -1125,7 +1038,7 @@ export default function Onboarding({ onClose }) {
     try {
       // Run multiple AI analyses in parallel
       const [aiQuestions, icps, insights] = await Promise.all([
-        generateVertexAIQuestions(answers).catch(err => {
+        generateVertexAIQuestions(answers, INITIAL_QUESTIONS).catch(err => {
           console.warn("AI questions failed:", err);
           return [];
         }),
@@ -1235,8 +1148,42 @@ export default function Onboarding({ onClose }) {
         <h1 className="font-serif text-6xl mb-6">All Set.</h1>
         <p className="text-neutral-500 font-sans uppercase tracking-widest text-xs mb-12">Protocol Complete</p>
         <button 
-            onClick={() => {
+            onClick={async () => {
               console.log("Submitting data:", answers);
+              
+              // Save onboarding data to Supabase
+              if (user) {
+                try {
+                  const { error } = await supabase
+                    .from('onboarding_responses')
+                    .upsert([
+                      { 
+                        user_id: user.id, 
+                        answers, 
+                        generated_icps: generatedICPs, 
+                        positioning_insights: positioningInsights,
+                        completed_at: new Date().toISOString(),
+                        progress_percentage: 100,
+                        updated_at: new Date().toISOString()
+                      }
+                    ]);
+                  
+                  if (error) {
+                    console.warn('Failed to save onboarding responses to Supabase:', error);
+                    // Optional: save to localStorage as backup
+                    localStorage.setItem('onboarding_backup', JSON.stringify({ answers, generatedICPs, positioningInsights }));
+                  } else {
+                    // Mark onboarding as complete in user profile
+                    await supabase
+                      .from('user_profiles')
+                      .update({ onboarding_completed: true })
+                      .eq('id', user.id);
+                  }
+                } catch (err) {
+                  console.error('Error saving onboarding:', err);
+                }
+              }
+
               // Launch Cohorts Builder instead of closing
               setShowCohortsBuilder(true);
             }} 
@@ -1273,9 +1220,9 @@ export default function Onboarding({ onClose }) {
       case 'multi':
         return (
           <MultiInputStep 
-             question={currentQuestion} 
-             answers={answers} 
-             onChange={handleAnswer} 
+            question={currentQuestion} 
+            answers={answers} 
+            onChange={handleAnswer} 
           />
         );
       default:

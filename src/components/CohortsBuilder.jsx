@@ -26,6 +26,9 @@ import {
   BarChart3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { generateCohortFromInputs, computePsychographics } from '../lib/services/cohorts-api';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 // Hat icons representing different archetypes
 const HAT_ICONS = [
@@ -89,18 +92,32 @@ const Step1Launch = ({ onNext, userProfile, existingCohorts, userPlan, cohortsLi
   return (
     <div className="w-full max-w-4xl mx-auto text-center animate-in fade-in slide-in-from-bottom-12 duration-1000">
       <div className="mb-12">
-        <Target className="w-16 h-16 mx-auto mb-6 text-neutral-900" />
-        <h1 className="font-serif text-5xl md:text-6xl mb-6 text-neutral-900">Create Your Ideal Customer Profile</h1>
-        <p className="text-lg text-neutral-600 max-w-2xl mx-auto mb-8">
+        {/* Enhanced Icon with Gradient Background */}
+        <div className="relative inline-block mb-8">
+          <div className="icon-gradient-bg w-24 h-24 rounded-full flex items-center justify-center icon-glow">
+            <Target className="w-12 h-12 text-neutral-900" />
+          </div>
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-neutral-900/5 to-transparent pointer-events-none"></div>
+        </div>
+        
+        {/* Enhanced Typography */}
+        <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl mb-6 gradient-text text-shadow-subtle leading-tight tracking-tighter">
+          Create Your Ideal Customer Profile
+        </h1>
+        <p className="text-lg md:text-xl text-neutral-600 max-w-2xl mx-auto mb-10 leading-relaxed">
           A cohort is a detailed description of an ideal-fit company for your product or service. 
           Think of it as your perfect customer—the type of business that gets the most value from what you offer.
         </p>
-        <div className="runway-card p-6 max-w-xl mx-auto text-left mb-6">
+        
+        {/* Glassmorphism Example Card */}
+        <div className="glass-card p-6 max-w-xl mx-auto text-left mb-6 rounded-2xl transform hover:scale-[1.02] transition-transform duration-300">
           <div className="flex items-start gap-3">
-            <Lightbulb className="w-5 h-5 text-neutral-500 mt-0.5 flex-shrink-0" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/20 to-amber-600/20 flex items-center justify-center flex-shrink-0">
+              <Lightbulb className="w-5 h-5 text-amber-600" />
+            </div>
             <div>
-              <p className="text-sm font-medium text-neutral-900 mb-1">Example</p>
-              <p className="text-sm text-neutral-600">
+              <p className="text-sm font-bold text-neutral-900 mb-2 tracking-tight">Example</p>
+              <p className="text-sm text-neutral-700 leading-relaxed">
                 "Mid-market SaaS companies (50–200 employees, $5–25M revenue) with mature customer success teams, 
                 seeking efficiency and data-driven solutions."
               </p>
@@ -108,20 +125,23 @@ const Step1Launch = ({ onNext, userProfile, existingCohorts, userPlan, cohortsLi
           </div>
         </div>
         
-        {/* Plan Info */}
-        <div className="runway-card p-6 max-w-xl mx-auto mb-6">
+        {/* Glassmorphism Plan Info Card */}
+        <div className="glass-card p-6 max-w-xl mx-auto mb-6 rounded-2xl">
           <div className="flex items-center justify-between mb-4">
             <div className="text-left">
-              <p className="text-sm font-medium text-neutral-900">Current Plan: <span className="font-bold">{planName}</span></p>
-              <p className="text-xs text-neutral-500 mt-1">Cohorts Limit: {cohortsLimit}</p>
+              <p className="text-sm font-semibold text-neutral-900 tracking-tight">
+                Current Plan: <span className="font-bold gradient-text">{planName}</span>
+              </p>
+              <p className="text-xs text-neutral-500 mt-1.5 tracking-wide">Cohorts Limit: {cohortsLimit}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm font-medium text-neutral-900">
+              <p className="text-sm font-semibold text-neutral-900 tracking-tight">
                 {currentCohortsCount} / {cohortsLimit} cohorts
               </p>
-              <div className="w-32 h-2 bg-neutral-200 rounded-full mt-2 overflow-hidden">
+              {/* Modern Progress Bar */}
+              <div className="w-32 h-3 bg-gradient-to-r from-neutral-100 to-neutral-200 rounded-full mt-2 overflow-hidden shadow-inner">
                 <div 
-                  className="h-full bg-black transition-all duration-500"
+                  className="h-full progress-gradient rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${(currentCohortsCount / cohortsLimit) * 100}%` }}
                 />
               </div>
@@ -130,12 +150,14 @@ const Step1Launch = ({ onNext, userProfile, existingCohorts, userPlan, cohortsLi
         </div>
 
         {!canCreate && (
-          <div className="runway-card p-6 max-w-xl mx-auto mb-6 border-2 border-red-200 bg-red-50">
+          <div className="glass-card p-6 max-w-xl mx-auto mb-6 border-2 border-red-300/50 bg-red-50/80 rounded-2xl backdrop-blur-xl">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
               <div className="text-left">
-                <p className="text-sm font-bold text-red-900 mb-1">Cohorts Limit Reached</p>
-                <p className="text-sm text-red-700">
+                <p className="text-sm font-bold text-red-900 mb-1 tracking-tight">Cohorts Limit Reached</p>
+                <p className="text-sm text-red-700 leading-relaxed">
                   You've reached your {planName} plan limit of {cohortsLimit} cohorts. 
                   Upgrade to {userPlan === 'ascent' ? 'Glide' : 'Soar'} to create more cohorts.
                 </p>
@@ -146,17 +168,18 @@ const Step1Launch = ({ onNext, userProfile, existingCohorts, userPlan, cohortsLi
       </div>
       
       {existingCohorts && existingCohorts.length > 0 && (
-        <div className="mb-8 text-sm text-neutral-500">
+        <div className="mb-8 text-sm text-neutral-500 font-medium tracking-wide">
           You have {existingCohorts.length} existing cohort{existingCohorts.length !== 1 ? 's' : ''} in your account.
         </div>
       )}
       
+      {/* Enhanced Button */}
       <button
         onClick={onNext}
         disabled={!canCreate}
-        className={`group relative px-16 py-6 overflow-hidden transition-all duration-500 ${
+        className={`group relative px-16 py-6 overflow-hidden rounded-xl ${
           canCreate 
-            ? 'bg-black text-white hover:shadow-2xl hover:shadow-neutral-500/20' 
+            ? 'button-enhanced text-white' 
             : 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
         }`}
       >
@@ -167,7 +190,7 @@ const Step1Launch = ({ onNext, userProfile, existingCohorts, userPlan, cohortsLi
           {canCreate && <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" />}
         </div>
         {canCreate && (
-          <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-neutral-900 to-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
         )}
       </button>
     </div>
@@ -386,92 +409,61 @@ const Step3AIInputs = ({ onSubmit, initialData }) => {
 
 // Step 4: AI Analysis & Draft Generation
 const Step4AIGeneration = ({ inputs, onComplete, onBack }) => {
-  const [status, setStatus] = useState('analyzing'); // 'analyzing' | 'draft'
+  const [status, setStatus] = useState('analyzing'); // 'analyzing' | 'draft' | 'error'
   const [draftCohort, setDraftCohort] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Simulate AI analysis
+    // Real AI analysis
     const analyzeData = async () => {
       setStatus('analyzing');
+      setError(null);
       
-      // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      try {
+        // Generate cohort using Vertex AI via our service
+        const generated = await generateCohortFromInputs(inputs);
+        
+        // Ensure we have valid data structures (fallback for AI quirks)
+        const sanitized = {
+            ...generated,
+            demographics: generated.demographics || { companySize: 'Unknown', industry: 'Unknown', revenue: 'Unknown', location: 'Unknown' },
+            psychographics: generated.psychographics || { values: [], decisionStyle: '', priorities: [] },
+            painPoints: generated.painPoints || [],
+            goals: generated.goals || [],
+            behavioralTriggers: generated.behavioralTriggers || [],
+            communication: generated.communication || { channels: [], tone: '', format: '' }
+        };
 
-      // Extract insights from onboarding data
-      const businessDesc = inputs.businessDescription || '';
-      const productDesc = inputs.productDescription || '';
-      const bestCustomers = inputs.topCustomers || inputs.targetMarket || '';
-      const location = inputs.location || 'Global';
-      
-      // Parse company size from best customers description
-      let companySize = '51-200';
-      if (bestCustomers.toLowerCase().includes('small') || bestCustomers.toLowerCase().includes('startup')) {
-        companySize = '1-50';
-      } else if (bestCustomers.toLowerCase().includes('enterprise') || bestCustomers.toLowerCase().includes('large')) {
-        companySize = '500+';
+        setDraftCohort(sanitized);
+        setStatus('draft');
+      } catch (err) {
+        console.error("AI Generation Error:", err);
+        setError("Failed to generate cohort. Please try again or build manually.");
+        setStatus('error');
       }
-
-      // Parse industry
-      let industry = 'Technology';
-      const industries = ['SaaS', 'E-commerce', 'Healthcare', 'Finance', 'Education', 'Manufacturing', 'Retail'];
-      for (const ind of industries) {
-        if (businessDesc.toLowerCase().includes(ind.toLowerCase()) || bestCustomers.toLowerCase().includes(ind.toLowerCase())) {
-          industry = ind;
-          break;
-        }
-      }
-
-      // Generate draft cohort based on inputs
-      const generated = {
-        name: 'AI-Generated cohort',
-        executiveSummary: `${bestCustomers || 'Mid-market companies'} (${companySize} employees) in ${industry} seeking ${inputs.valueProposition || 'efficiency and data-driven solutions'}.`,
-        demographics: {
-          companySize: companySize,
-          industry: industry,
-          revenue: companySize === '1-50' ? '$1M-$5M' : companySize === '51-200' ? '$5M-$25M' : '$25M-$100M',
-          location: location,
-        },
-        buyerRole: bestCustomers.toLowerCase().includes('founder') ? 'Founder/CEO' : 
-                   bestCustomers.toLowerCase().includes('cto') ? 'CTO' :
-                   bestCustomers.toLowerCase().includes('cmo') ? 'CMO' :
-                   'VP or Director',
-        psychographics: {
-          values: ['Efficiency', 'Data-driven decisions', 'Innovation'],
-          decisionStyle: 'Analytical and methodical',
-          priorities: ['Cost savings', 'Scalability', 'Integration'],
-        },
-        painPoints: [
-          businessDesc ? `Challenges related to ${businessDesc.split(' ').slice(0, 3).join(' ')}` : 'Manual processes slowing growth',
-          'Lack of visibility into operations',
-          'Difficulty scaling efficiently'
-        ],
-        goals: [
-          inputs.goals || 'Streamline operations',
-          'Improve team productivity',
-          'Scale without proportional cost increase'
-        ],
-        behavioralTriggers: [
-          'Recent funding round',
-          'New leadership hire',
-          'Rapid team growth',
-          'Expansion into new markets'
-        ],
-        communication: {
-          channels: inputs.currentMarketing ? inputs.currentMarketing.split(',').map(c => c.trim()) : ['Email', 'LinkedIn', 'Content Marketing'],
-          tone: 'Professional, data-focused',
-          format: 'Case studies, whitepapers'
-        },
-        budget: '$50k-$200k annually',
-        timeline: '3-6 months',
-        decisionStructure: 'Buying committee with VP-level approval'
-      };
-
-      setDraftCohort(generated);
-      setStatus('draft');
     };
 
     analyzeData();
   }, [inputs]);
+
+  if (status === 'error') {
+      return (
+        <div className="w-full max-w-3xl mx-auto text-center animate-in fade-in duration-1000">
+          <AlertCircle className="text-red-500 mx-auto mb-6" size={48} />
+          <div className="space-y-4">
+            <p className="font-serif text-2xl italic text-red-900">Generation Failed</p>
+            <p className="text-neutral-600">
+              {error}
+            </p>
+            <div className="flex justify-center gap-4">
+                <button onClick={onBack} className="px-6 py-2 border border-black rounded-lg hover:bg-neutral-50">
+                    Go Back
+                </button>
+            </div>
+          </div>
+        </div>
+      );
+  }
 
   if (status === 'analyzing') {
     return (
@@ -1226,34 +1218,30 @@ const Step7Psychographics = ({ cohort, onComplete, onBack }) => {
   const [isComputing, setIsComputing] = useState(true);
 
   useEffect(() => {
-    // Simulate psychographic computation
-    const computePsychographics = async () => {
+    // Real psychographic computation
+    const computeData = async () => {
       setIsComputing(true);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Compute psychographics based on cohort data
-      const computed = {
-        values: cohort.psychographics?.values || ['Efficiency', 'Innovation'],
-        decisionStyle: cohort.psychographics?.decisionStyle || 'Analytical and methodical',
-        personalityTraits: ['Research-oriented', 'Risk-aware', 'Data-driven'],
-        interests: ['Industry reports', 'Case studies', 'Technical documentation'],
-        painPsychology: {
-          primaryFear: 'Inefficiency and wasted resources',
-          motivation: 'Achieving operational excellence',
-          emotionalDriver: 'Desire for control and predictability'
-        },
-        contentPreferences: {
-          format: cohort.communication?.format || 'Whitepapers and case studies',
-          tone: cohort.communication?.tone || 'Professional and data-focused',
-          channels: cohort.communication?.channels || ['Email', 'LinkedIn']
-        }
-      };
-
-      setComputedPsychographics(computed);
-      setIsComputing(false);
+      
+      try {
+          const computed = await computePsychographics(cohort);
+          setComputedPsychographics(computed);
+      } catch (err) {
+          console.error("Psychographics Error:", err);
+          // Fallback to basic structure if AI fails
+          setComputedPsychographics({
+            values: cohort.psychographics?.values || [],
+            decisionStyle: cohort.psychographics?.decisionStyle || '',
+            personalityTraits: [],
+            interests: [],
+            painPsychology: { primaryFear: '', motivation: '', emotionalDriver: '' },
+            contentPreferences: { format: '', tone: '', channels: [] }
+          });
+      } finally {
+          setIsComputing(false);
+      }
     };
 
-    computePsychographics();
+    computeData();
   }, [cohort]);
 
   if (isComputing) {
@@ -1361,6 +1349,7 @@ const Step8Finalize = ({ cohort, onComplete, onClose }) => {
   const [cohortName, setCohortName] = useState(cohort.name || '');
   const [fitScore, setFitScore] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     // Calculate fit score (mock calculation)
@@ -1396,35 +1385,74 @@ const Step8Finalize = ({ cohort, onComplete, onClose }) => {
     }
 
     setIsSaving(true);
-    // Simulate save
-    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Save to memory/user preferences
-    const savedCohort = {
-      ...cohort,
-      name: cohortName,
-      fitScore,
-      createdAt: new Date().toISOString(),
-      id: Date.now()
-    };
+    try {
+      // Save to Supabase
+      const { data, error } = await supabase
+        .from('cohorts')
+        .insert([
+          {
+            user_id: user?.id,
+            name: cohortName,
+            data: {
+                ...cohort,
+                fitScore
+            },
+            created_at: new Date().toISOString()
+          }
+        ])
+        .select();
 
-    // Store in localStorage (would be API call in production)
-    const existingCohorts = JSON.parse(localStorage.getItem('cohorts') || '[]');
-    existingCohorts.push(savedCohort);
-    localStorage.setItem('cohorts', JSON.stringify(existingCohorts));
+      if (error) throw error;
 
-    // Update user preferences
-    const preferences = JSON.parse(localStorage.getItem('userPreferences') || '{}');
-    if (!preferences.preferredMode) {
-      preferences.preferredMode = 'ai'; // or 'manual'
+      // Also save to localStorage for fallback/cache
+      const savedCohort = {
+        ...cohort,
+        name: cohortName,
+        fitScore,
+        createdAt: new Date().toISOString(),
+        id: data[0]?.id || Date.now(), // Use DB ID if available
+        is_synced: true
+      };
+
+      const existingCohorts = JSON.parse(localStorage.getItem('cohorts') || '[]');
+      existingCohorts.push(savedCohort);
+      localStorage.setItem('cohorts', JSON.stringify(existingCohorts));
+
+      // Update user preferences
+      const preferences = JSON.parse(localStorage.getItem('userPreferences') || '{}');
+      if (!preferences.preferredMode) {
+        preferences.preferredMode = 'ai';
+      }
+      if (cohort.demographics?.industry && !preferences.commonIndustries?.includes(cohort.demographics.industry)) {
+        preferences.commonIndustries = [...(preferences.commonIndustries || []), cohort.demographics.industry];
+      }
+      localStorage.setItem('userPreferences', JSON.stringify(preferences));
+
+      setIsSaving(false);
+      onComplete(savedCohort);
+
+    } catch (err) {
+      console.error("Error saving cohort:", err);
+      alert("Failed to save cohort to cloud. Saving locally instead.");
+      
+      // Fallback to local storage only
+      const savedCohort = {
+        ...cohort,
+        name: cohortName,
+        fitScore,
+        createdAt: new Date().toISOString(),
+        id: Date.now(),
+        is_synced: false
+      };
+
+      const existingCohorts = JSON.parse(localStorage.getItem('cohorts') || '[]');
+      existingCohorts.push(savedCohort);
+      localStorage.setItem('cohorts', JSON.stringify(existingCohorts));
+      
+      setIsSaving(false);
+      onComplete(savedCohort);
     }
-    if (cohort.demographics?.industry && !preferences.commonIndustries?.includes(cohort.demographics.industry)) {
-      preferences.commonIndustries = [...(preferences.commonIndustries || []), cohort.demographics.industry];
-    }
-    localStorage.setItem('userPreferences', JSON.stringify(preferences));
-
-    setIsSaving(false);
-    onComplete(savedCohort);
   };
 
   return (
@@ -1683,11 +1711,16 @@ export default function CohortsBuilder({ onClose, onboardingData }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex h-screen w-screen bg-white text-neutral-900 overflow-hidden font-sans selection:bg-black selection:text-white">
+    <div className="fixed inset-0 z-[100] flex h-screen w-screen radial-gradient-bg text-neutral-900 overflow-hidden font-sans selection:bg-black selection:text-white">
       <GrainOverlay />
+      {/* Floating Orbs for Visual Interest */}
+      <div className="floating-orb w-96 h-96 bg-neutral-400 absolute top-20 -left-48" style={{ animationDelay: '0s' }}></div>
+      <div className="floating-orb w-80 h-80 bg-neutral-300 absolute bottom-20 -right-40" style={{ animationDelay: '2s' }}></div>
+      <div className="floating-orb w-64 h-64 bg-neutral-200 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ animationDelay: '4s' }}></div>
+      
       {onClose && (
         <button 
-          className="absolute top-8 left-8 z-50 p-2 text-neutral-400 hover:text-black transition-colors hover:bg-neutral-100"
+          className="absolute top-8 left-8 z-50 p-2 text-neutral-400 hover:text-black transition-colors hover:bg-neutral-100 rounded-lg"
           onClick={onClose} 
         >
           <X size={24} />
