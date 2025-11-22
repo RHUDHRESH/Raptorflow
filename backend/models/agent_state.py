@@ -241,6 +241,8 @@ class ResearchState(BaseAgentState):
         icp: Generated ICP profile with demographics/psychographics
         persona_narrative: Storytelling narrative for the persona
         tags: Enriched tags from tag assignment agents
+        past_successes: Memory references to similar successful ICPs
+        preferences: User/workspace preferences for ICP generation
     """
 
     icp_request: Optional[ICPRequest] = Field(
@@ -258,6 +260,14 @@ class ResearchState(BaseAgentState):
     tags: List[str] = Field(
         default_factory=list,
         description="Enriched tags from tag assignment agents",
+    )
+    past_successes: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Memory references to similar successful ICPs from agent memory",
+    )
+    preferences: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="User/workspace preferences for ICP generation (e.g., preferred detail level, industry focus)",
     )
 
 
@@ -283,6 +293,8 @@ class ContentState(BaseAgentState):
         generated_assets: List of generated content variants
         brand_voice: Brand voice profile to apply
         approval_status: Content approval status (draft|review|approved|rejected)
+        past_successes: Memory of high-performing content for same ICP/topic
+        preferences: Content generation preferences (tone, style, length)
     """
 
     content_type: Optional[str] = Field(
@@ -312,6 +324,14 @@ class ContentState(BaseAgentState):
     approval_status: Optional[str] = Field(
         default="draft",
         description="Content approval status: draft|review|approved|rejected",
+    )
+    past_successes: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Memory of high-performing content (hooks, blog structures) for same ICP/topic",
+    )
+    preferences: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Content generation preferences (tone, style, length, formatting)",
     )
 
 
