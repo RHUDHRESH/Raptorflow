@@ -69,7 +69,23 @@ class HookGeneratorAgent:
             "ad_opener": "Craft attention-grabbing ad openers for social/display ads (15-20 words max).",
             "cta": "Generate compelling calls-to-action (3-5 words, action-oriented)."
         }
-        
+
+        # Hook styles for variety
+        hook_styles = [
+            "curiosity - create intrigue and make them want to learn more",
+            "pain-agitate-solve - highlight pain point, intensify it, hint at solution",
+            "statistic-driven - use compelling data or numbers to grab attention",
+            "storytelling - start with a relatable scenario or mini-story",
+            "urgency - create FOMO or time-sensitive motivation",
+            "social_proof - leverage authority or popularity",
+            "benefit - lead with the clear outcome or transformation",
+            "question - pose a thought-provoking question",
+            "contrarian - challenge common assumptions",
+            "specific - use ultra-specific details that create credibility"
+        ]
+
+        styles_str = "\n".join([f"{i+1}. {style}" for i, style in enumerate(hook_styles)])
+
         prompt = f"""You are a world-class copywriter generating {hook_type}s for:
 
 **Topic**: {topic}
@@ -83,20 +99,26 @@ class HookGeneratorAgent:
 
 **Tone**: {tone}
 
-Generate {count} unique, high-quality {hook_type}s. For each hook:
-1. Make it resonate emotionally with the target's pain points or goals
-2. Use powerful, active language
-3. Be concise and memorable
-4. Score it 0.0-1.0 for effectiveness
-5. Explain why it works
+**Hook Styles to Use** (use a variety, don't repeat the same style):
+{styles_str}
+
+Generate {count} unique, high-quality {hook_type}s using DIFFERENT styles from the list above. For each hook:
+1. Use a different style/approach for variety
+2. Make it resonate emotionally with the target's pain points or goals
+3. Use powerful, active language
+4. Be concise and memorable
+5. Score it 0.0-1.0 for predicted engagement/effectiveness
+6. Specify which hook_type it uses (curiosity, pain_agitate_solve, statistic, storytelling, etc.)
+7. Explain why it works
 
 Output as JSON array:
 [
   {{
     "text": "Your hook here",
+    "hook_type": "curiosity",
     "score": 0.95,
     "rationale": "Why this works for the audience",
-    "sentiment": "positive/neutral/negative"
+    "sentiment": "positive"
   }}
 ]
 """

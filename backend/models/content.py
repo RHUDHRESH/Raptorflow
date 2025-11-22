@@ -179,9 +179,22 @@ class ContentVariant(BaseModel):
 class Hook(BaseModel):
     """A hook/tagline/subject line."""
     text: str
-    hook_type: Literal["curiosity", "urgency", "social_proof", "benefit", "question", "stat", "other"]
-    score: float = Field(ge=0.0, le=1.0, description="Resonance score")
+    hook_type: Literal[
+        "curiosity",
+        "pain_agitate_solve",
+        "statistic",
+        "storytelling",
+        "urgency",
+        "social_proof",
+        "benefit",
+        "question",
+        "contrarian",
+        "specific",
+        "other"
+    ] = "other"
+    score: float = Field(ge=0.0, le=1.0, description="Predicted engagement score")
     rationale: Optional[str] = None
+    sentiment: Optional[Literal["positive", "neutral", "negative"]] = "positive"
 
 
 class ContentResponse(BaseModel):
