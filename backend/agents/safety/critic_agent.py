@@ -7,6 +7,7 @@ import json
 import structlog
 from typing import Dict, Any, List, Optional
 from uuid import UUID
+from datetime import datetime
 
 from backend.services.vertex_ai_client import vertex_ai_client
 from backend.utils.correlation import get_correlation_id
