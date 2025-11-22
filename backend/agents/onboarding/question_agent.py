@@ -7,7 +7,7 @@ import logging
 
 from backend.config.settings import get_settings
 from backend.config.prompts import ONBOARDING_SUPERVISOR_SYSTEM_PROMPT
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -157,7 +157,7 @@ Respond in JSON format:
                 {"role": "user", "content": prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.7,
                 response_format={"type": "json_object"}

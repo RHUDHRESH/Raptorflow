@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Literal
 import hashlib
 
 from backend.config.prompts import MASTER_SUPERVISOR_SYSTEM_PROMPT
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 from backend.utils.correlation import get_correlation_id
 from backend.utils.cache import redis_cache
 
@@ -135,7 +135,7 @@ Format as JSON:
                 {"role": "user", "content": prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.4,
                 max_tokens=self.quick_insight_max_tokens,
@@ -198,7 +198,7 @@ Return JSON:
                 {"role": "user", "content": prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.3,
                 response_format={"type": "json_object"}
@@ -243,7 +243,7 @@ Provide focused insights in JSON:
                 {"role": "user", "content": prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.4,
                 max_tokens=600,
@@ -297,7 +297,7 @@ Create a comprehensive synthesis in JSON:
                 {"role": "user", "content": prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.5,
                 max_tokens=self.deep_dossier_max_tokens,

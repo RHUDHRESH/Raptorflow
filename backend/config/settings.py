@@ -30,8 +30,8 @@ class Settings(BaseSettings):
         "https://*.vercel.app"
     ]
     
-    # OpenAI
-    OPENAI_API_KEY: str
+    # OpenAI (Legacy - Optional fallback when ENABLE_OPENAI_FALLBACK is True)
+    OPENAI_API_KEY: Optional[str] = None
     OPENAI_MODEL: str = "gpt-4-turbo-preview"
     OPENAI_MAX_TOKENS: int = 4096
     OPENAI_TEMPERATURE: float = 0.7
@@ -111,6 +111,7 @@ class Settings(BaseSettings):
     ENABLE_AMBIENT_SEARCH: bool = True
     ENABLE_WEB_SCRAPING: bool = True
     ENABLE_SOCIAL_POSTING: bool = False  # Disabled by default for safety
+    ENABLE_OPENAI_FALLBACK: bool = False  # Use OpenAI as fallback if Vertex AI fails (requires OPENAI_API_KEY)
     
     class Config:
         env_file = ".env"

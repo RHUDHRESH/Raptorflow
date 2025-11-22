@@ -8,7 +8,7 @@ import logging
 
 from backend.models.persona import ICPProfile
 from backend.config.settings import get_settings
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -68,7 +68,7 @@ Write the narrative now (2-3 paragraphs only):
                 {"role": "user", "content": narrative_prompt}
             ]
             
-            narrative = await openai_client.chat_completion(
+            narrative = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.8  # Higher temperature for more creative narratives
             )
@@ -114,7 +114,7 @@ Return ONLY the name, nothing else:
                 {"role": "user", "content": prompt}
             ]
             
-            name = await openai_client.chat_completion(
+            name = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.9
             )
