@@ -115,36 +115,38 @@ class CacheClient:
 
 
 # Global cache instance
-cache = CacheClient()
+redis_cache = CacheClient()
+# Legacy alias for backward compatibility
+cache = redis_cache
 
 
 # Convenience functions for specific cache types
 async def cache_research(query: str, result: Any) -> bool:
     """Cache research results for 7 days"""
-    return await cache.set("research", query, result, settings.CACHE_TTL_RESEARCH)
+    return await redis_cache.set("research", query, result, settings.CACHE_TTL_RESEARCH)
 
 
 async def get_cached_research(query: str) -> Optional[Any]:
     """Get cached research results"""
-    return await cache.get("research", query)
+    return await redis_cache.get("research", query)
 
 
 async def cache_persona(icp_id: str, persona: Any) -> bool:
     """Cache persona data for 30 days"""
-    return await cache.set("persona", icp_id, persona, settings.CACHE_TTL_PERSONA)
+    return await redis_cache.set("persona", icp_id, persona, settings.CACHE_TTL_PERSONA)
 
 
 async def get_cached_persona(icp_id: str) -> Optional[Any]:
     """Get cached persona data"""
-    return await cache.get("persona", icp_id)
+    return await redis_cache.get("persona", icp_id)
 
 
 async def cache_content(content_id: str, content: Any) -> bool:
     """Cache generated content for 24 hours"""
-    return await cache.set("content", content_id, content, settings.CACHE_TTL_CONTENT)
+    return await redis_cache.set("content", content_id, content, settings.CACHE_TTL_CONTENT)
 
 
 async def get_cached_content(content_id: str) -> Optional[Any]:
     """Get cached content"""
-    return await cache.get("content", content_id)
+    return await redis_cache.get("content", content_id)
 
