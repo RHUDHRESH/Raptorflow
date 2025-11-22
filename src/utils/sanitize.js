@@ -5,16 +5,22 @@ const decodeEntities = (value) =>
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&#x2F;/g, '/')
     .replace(/&amp;/g, '&');
 =======
+=======
+>>>>>>> Stashed changes
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&#x2F;/g, '/');
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 /**
  * Sanitizes user input to prevent XSS attacks

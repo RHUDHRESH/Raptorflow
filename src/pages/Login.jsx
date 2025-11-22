@@ -13,7 +13,11 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   const { login, loginWithGoogle, skipLoginDev, loading, error: authError, isAuthenticated } = useAuth();
+=======
+  const { login, loginWithGoogle, loading, error: authError } = useAuth();
+>>>>>>> Stashed changes
 =======
   const { login, loginWithGoogle, loading, error: authError } = useAuth();
 >>>>>>> Stashed changes
@@ -56,6 +60,7 @@ const Login = () => {
     if (!result.success) {
       setErrors({ submit: result.error });
     }
+<<<<<<< Updated upstream
   };
 
   const handleSkipLogin = () => {
@@ -74,6 +79,8 @@ const Login = () => {
     if (!result.success) {
       setErrors({ submit: result.error });
     }
+=======
+>>>>>>> Stashed changes
     // OAuth redirect will happen automatically
   };
 
@@ -89,12 +96,16 @@ const Login = () => {
         <div className="card p-12">
 =======
         <div className="bg-white rounded-2xl shadow-xl p-8">
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
           {/* Google OAuth Button */}
           <button
             type="button"
             onClick={handleGoogleLogin}
             disabled={loading}
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
             className="btn-secondary w-full justify-center mb-6"
           >
@@ -104,6 +115,8 @@ const Login = () => {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
 =======
+=======
+>>>>>>> Stashed changes
             className="w-full flex items-center justify-center gap-3 py-3 px-4 border-2 border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mb-6"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -123,11 +136,15 @@ const Login = () => {
                 fill="#EA4335"
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             </svg>
             Continue with Google
           </button>
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
@@ -136,12 +153,17 @@ const Login = () => {
             <div className="relative flex justify-center text-sm">
               <span className="px-3 bg-white text-gray-500 font-sans text-micro">Or continue with email</span>
 =======
+=======
+>>>>>>> Stashed changes
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             </div>
           </div>
@@ -236,6 +258,7 @@ const Login = () => {
         </div>
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         {/* DEV ONLY: Skip Login Button */}
         {import.meta.env.DEV && (
           <div className="card p-4">
@@ -255,6 +278,11 @@ const Login = () => {
         {/* Info Note */}
         <div className="card p-4">
           <p className="text-caption">
+=======
+        {/* Info Note */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
+>>>>>>> Stashed changes
 =======
         {/* Info Note */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
