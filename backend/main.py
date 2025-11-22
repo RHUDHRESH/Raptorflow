@@ -181,42 +181,29 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Security(secu
     Verify JWT token from Supabase and extract user info.
     Returns dict with user_id and workspace_id.
     """
+    from backend.utils.auth import verify_jwt_token, get_user_workspace
+
     token = credentials.credentials
-    
+
     try:
-        # In production, verify JWT with Supabase
-        # For now, we'll implement a basic check
-        # TODO: Implement proper JWT verification using python-jose
-        
-        # Placeholder: Extract user_id from token (implement actual JWT decode)
-        # from jose import jwt
-        # payload = jwt.decode(token, settings.SUPABASE_JWT_SECRET, algorithms=["HS256"])
-        # user_id = payload.get("sub")
-        
-        # For development, accept any token and use a default user
-        if settings.ENVIRONMENT == "development":
-            user_id = "00000000-0000-0000-0000-000000000000"  # Default dev user
-        else:
-            # Implement proper JWT verification
-            raise HTTPException(
-                status_code=401,
-                detail="Token verification not yet implemented for production"
-            )
-        
-        # Fetch workspace_id for user
-        workspace_id = await supabase_client.get_user_workspace_id(user_id)
-        
+        # Verify JWT using production-ready implementation
+        token_data = await verify_jwt_token(token)
+        user_id = token_data["user_id"]
+
+        # Resolve workspace for user
+        workspace_id = await get_user_workspace(user_id)
+
         if not workspace_id:
             raise HTTPException(
                 status_code=404,
                 detail="No workspace found for user"
             )
-        
+
         return {
             "user_id": user_id,
-            "workspace_id": workspace_id
+            "workspace_id": str(workspace_id)
         }
-    
+
     except HTTPException:
         raise
     except Exception as e:

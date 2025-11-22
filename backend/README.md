@@ -147,7 +147,7 @@ curl -X POST http://localhost:8000/api/v1/onboarding/start \
 - **Core Infrastructure**:
   - FastAPI app with middleware
   - CORS configuration
-  - JWT authentication (placeholder)
+  - JWT authentication with Supabase ✅
   - Correlation ID tracking
   - Redis caching & task queue
   - Supabase integration
@@ -162,7 +162,6 @@ curl -X POST http://localhost:8000/api/v1/onboarding/start \
 - Safety agents (critic, guardian)
 - Additional routers (strategy, campaigns, content, analytics)
 - Social platform integrations
-- Proper JWT verification
 - Docker containerization
 - Deployment scripts
 
