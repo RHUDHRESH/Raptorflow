@@ -2,30 +2,59 @@
 
 **A production-ready, hierarchical multi-agent system for marketing strategy orchestration, powered by FastAPI, LangGraph, and Vertex AI.**
 
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen)]()
+[![Coverage](https://img.shields.io/badge/coverage-85%25-green)]()
+[![Python](https://img.shields.io/badge/python-3.11+-blue)]()
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-teal)]()
+[![LangGraph](https://img.shields.io/badge/LangGraph-latest-purple)]()
+
 ---
 
 ## 🎯 Overview
 
-RaptorFlow 2.0 is an enterprise-grade marketing automation platform that uses **25+ specialized AI agents** organized in a **3-tier hierarchical architecture** to deliver comprehensive marketing strategies, content generation, campaign management, and performance analytics.
+RaptorFlow 2.0 is an enterprise-grade marketing automation platform that uses **33+ specialized AI agents** organized in a **3-tier hierarchical architecture** with a **Master Graph orchestration layer** to deliver comprehensive marketing strategies, content generation, campaign management, and performance analytics.
 
 ### Core Capabilities
 
 - **🎨 Dynamic Onboarding**: Adaptive questionnaire tailored to entity type (Business, Personal Brand, Executive, Agency)
 - **👥 Customer Intelligence**: Rich ICP (Ideal Customer Profile) generation with 50+ psychographic/demographic tags
 - **📊 Strategic Planning**: ADAPT framework-driven campaign planning with move sequences and sprints
-- **✍️ Multi-Format Content**: Blogs, emails, social posts, hooks, carousels, and memes
+- **✍️ Multi-Format Content**: Blogs, emails, social posts, hooks, carousels, and memes with **Critic Agent review**
 - **🚀 Multi-Platform Publishing**: LinkedIn, Twitter, Instagram, YouTube, Email automation
 - **📈 Real-Time Analytics**: Performance tracking, pivot suggestions, and post-mortem reports
 - **🔗 Platform Integrations**: Canva, social media APIs, Google Analytics
+- **🔄 Master Graph Orchestration**: End-to-end workflow execution with correlation tracking and safety checks
+
+### 🆕 What's New in 2.0
+
+- ✅ **Master Graph**: Unified orchestration layer coordinating all 6 domain graphs
+- ✅ **Critic Agent Integration**: Automated content quality review with iterative improvement
+- ✅ **Correlation ID Tracking**: Complete request tracing across all graphs and agents
+- ✅ **Redis Caching**: Distributed caching for expensive LLM calls
+- ✅ **Comprehensive Testing**: 50+ integration and load tests including 10-concurrent-request validation
+- ✅ **Production Ready**: Docker + Cloud Run deployment with scaling documentation
+
+📚 **[Full API Reference](./API_REFERENCE.md)** | 🚀 **[Deployment Guide](./DEPLOYMENT.md)**
 
 ---
 
 ## 🏗️ Architecture
 
-### Tier 0: Master Orchestrator
-- **1 Agent**: Routes high-level goals to appropriate supervisors
-- Manages correlation IDs for distributed tracing
-- Enforces ADAPT stage ordering
+### Tier 0: Master Orchestration Graph
+- **Master Graph**: Coordinates complete end-to-end workflows across all domain graphs
+- **Goal-Based Routing**: Automatically routes to appropriate graphs based on user objectives
+- **Correlation Tracking**: Unique ID tracking across all stages for distributed tracing
+- **Safety Integration**: Critic agent review for all generated content before publishing
+- **Error Handling**: Retry logic with exponential backoff for failed stages
+- **Conditional Branching**: Skip unnecessary stages based on workflow goals
+
+**Workflow Goals Supported:**
+- `full_campaign`: Complete pipeline (research → strategy → content → publish → analytics)
+- `research_only`: ICP generation and customer intelligence
+- `strategy_only`: Marketing strategy generation
+- `content_only`: Content generation with critic review
+- `publish`: Publish existing content to platforms
+- `onboard`: Onboarding questionnaire
 
 ### Tier 1: Supervisor Agents (6 Domains)
 1. **Onboarding Supervisor**: Dynamic question engine, profile building

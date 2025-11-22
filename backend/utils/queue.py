@@ -192,5 +192,7 @@ class TaskQueue:
 
 
 # Global queue instance
-queue = TaskQueue()
+redis_queue = TaskQueue()
+# Legacy alias for backward compatibility
+queue = redis_queue
 

@@ -39,14 +39,14 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing Redis connections...")
     
     try:
-        # Test Redis connections
-        await redis_cache.redis_client.ping()
+        # Initialize Redis connections
+        await redis_cache.connect()
         logger.info("✓ Redis cache connection established")
     except Exception as e:
         logger.error(f"✗ Redis cache connection failed: {e}")
-    
+
     try:
-        await redis_queue.redis_client.ping()
+        await redis_queue.connect()
         logger.info("✓ Redis queue connection established")
     except Exception as e:
         logger.error(f"✗ Redis queue connection failed: {e}")
@@ -57,8 +57,8 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     logger.info("Shutting down...")
-    await redis_cache.close()
-    await redis_queue.close()
+    await redis_cache.disconnect()
+    await redis_queue.disconnect()
     logger.info("✓ Cleanup complete")
 
 
@@ -103,6 +103,10 @@ app = FastAPI(
         {
             "name": "Cohorts",
             "description": "ICP/cohort generation and management"
+        },
+        {
+            "name": "Orchestration",
+            "description": "Master workflow orchestration across all domain graphs"
         }
     ]
 )
@@ -242,8 +246,10 @@ async def health_check():
     """
     try:
         # Check Redis connections
-        await redis_cache.redis_client.ping()
-        await redis_queue.redis_client.ping()
+        if redis_cache.redis:
+            await redis_cache.redis.ping()
+        if redis_queue.redis:
+            await redis_queue.redis.ping()
         redis_status = "healthy"
     except Exception as e:
         logger.error(f"Redis health check failed: {e}")
@@ -284,8 +290,10 @@ from backend.routers import (
     analytics,
     integrations,
     cohorts,
+    orchestration,
 )
 
+app.include_router(orchestration.router, prefix="/api/v1", tags=["Orchestration"])
 app.include_router(onboarding.router, prefix="/api/v1/onboarding", tags=["Onboarding"])
 app.include_router(strategy.router, prefix="/api/v1/strategy", tags=["Strategy"])
 app.include_router(campaigns.router, prefix="/api/v1/campaigns", tags=["Campaigns"])
