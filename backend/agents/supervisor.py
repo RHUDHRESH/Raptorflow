@@ -10,7 +10,7 @@ import logging
 
 from backend.config.settings import get_settings
 from backend.config.prompts import MASTER_SUPERVISOR_SYSTEM_PROMPT
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 from backend.utils.correlation import get_correlation_id
 
 logger = logging.getLogger(__name__)
@@ -122,7 +122,7 @@ Respond in JSON format:
         ]
         
         try:
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.3,  # Lower temperature for more deterministic routing
                 response_format={"type": "json_object"}
@@ -333,7 +333,7 @@ Provide a concise, user-friendly summary of what was accomplished and what comes
                 {"role": "user", "content": summary_prompt}
             ]
             
-            summary = await openai_client.chat_completion(messages=messages, temperature=0.5)
+            summary = await vertex_ai_client.chat_completion(messages=messages, temperature=0.5)
             aggregated["summary"] = summary
             
         except Exception as e:

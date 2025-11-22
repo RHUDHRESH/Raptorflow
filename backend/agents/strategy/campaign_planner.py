@@ -9,7 +9,7 @@ from uuid import UUID, uuid4
 from datetime import datetime, timedelta
 
 from backend.config.prompts import MASTER_SUPERVISOR_SYSTEM_PROMPT
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 from backend.models.campaign import (
     MoveRequest, MoveResponse, Task, Sprint, LineOfOperation, 
     MoveMetrics
@@ -200,7 +200,7 @@ Return JSON:
                 {"role": "user", "content": prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.7,
                 response_format={"type": "json_object"}
