@@ -12,6 +12,7 @@ from backend.config.settings import settings
 from backend.utils.cache import redis_cache
 from backend.utils.queue import redis_queue
 from backend.utils.logging_config import setup_logging
+from backend.middleware.rate_limiter import RateLimitMiddleware
 
 # Setup structured logging
 setup_logging()
@@ -96,6 +97,23 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+# Rate limiting middleware
+# Configurable limits based on environment
+requests_per_minute = 100 if settings.ENVIRONMENT == "production" else 1000
+requests_per_hour = 1000 if settings.ENVIRONMENT == "production" else 10000
+
+app.add_middleware(
+    RateLimitMiddleware,
+    requests_per_minute=requests_per_minute,
+    requests_per_hour=requests_per_hour
+)
+
+logger.info(
+    "Rate limiting enabled",
+    requests_per_minute=requests_per_minute,
+    requests_per_hour=requests_per_hour
 )
 
 # Import routers
