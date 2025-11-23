@@ -36,11 +36,17 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 # Copy application code
 COPY backend/ ./backend/
 
+# Create data directory for ChromaDB and other persistent data
+RUN mkdir -p /app/data/chromadb
+
 # Create non-root user
 RUN useradd -m -u 1000 raptorflow && \
     chown -R raptorflow:raptorflow /app
 
 USER raptorflow
+
+# Volume for persistent data
+VOLUME ["/app/data"]
 
 # Expose port
 EXPOSE 8000

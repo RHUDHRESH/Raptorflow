@@ -1,3 +1,23 @@
+"""
+RaptorFlow 2.0 - Main FastAPI application
+Enterprise Multi-Agent Marketing OS
+"""
+
+from contextlib import asynccontextmanager
+import structlog
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from backend.config.settings import settings
+from backend.utils.cache import redis_cache
+from backend.utils.queue import redis_queue
+from backend.utils.logging_config import setup_logging
+
+# Setup structured logging
+setup_logging()
+logger = structlog.get_logger(__name__)
+
+
 # Lifespan context manager for startup and shutdown
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -57,3 +77,93 @@ async def lifespan(app: FastAPI):
     await redis_cache.disconnect()
     await redis_queue.disconnect()
     logger.info("✓ Cleanup complete")
+
+
+# Create FastAPI app
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description="Enterprise Multi-Agent Marketing OS",
+    lifespan=lifespan
+)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify exact origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Import routers
+from backend.routers import (
+    onboarding,
+    cohorts,
+    strategy,
+    integrations,
+    analytics,
+    campaigns,
+    content,
+    orchestration
+)
+from backend.routers import memory  # New memory router
+
+# Register API routers
+app.include_router(onboarding.router, prefix="/api/v1/onboarding", tags=["Onboarding"])
+app.include_router(cohorts.router, prefix="/api/v1/cohorts", tags=["Cohorts"])
+app.include_router(strategy.router, prefix="/api/v1/strategy", tags=["Strategy"])
+app.include_router(integrations.router, prefix="/api/v1/integrations", tags=["Integrations"])
+app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytics"])
+app.include_router(campaigns.router, prefix="/api/v1/campaigns", tags=["Campaigns"])
+app.include_router(content.router, prefix="/api/v1/content", tags=["Content"])
+app.include_router(orchestration.router, prefix="/api/v1", tags=["Orchestration"])
+app.include_router(memory.router, prefix="/api/v1", tags=["Memory"])  # New semantic memory endpoints
+
+
+@app.get("/")
+async def root():
+    """Root endpoint - API health check."""
+    return {
+        "app": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "status": "operational",
+        "environment": settings.ENVIRONMENT
+    }
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring."""
+    health_status = {
+        "status": "healthy",
+        "app": settings.APP_NAME,
+        "version": settings.APP_VERSION
+    }
+
+    # Check Redis connections
+    try:
+        await redis_cache.ping()
+        health_status["redis_cache"] = "connected"
+    except Exception:
+        health_status["redis_cache"] = "disconnected"
+        health_status["status"] = "degraded"
+
+    try:
+        await redis_queue.ping()
+        health_status["redis_queue"] = "connected"
+    except Exception:
+        health_status["redis_queue"] = "disconnected"
+        health_status["status"] = "degraded"
+
+    return health_status
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "backend.main:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.DEBUG
+    )
