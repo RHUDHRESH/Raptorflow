@@ -5,7 +5,7 @@ Cohorts Router - API endpoints for ICP/cohort creation and management.
 import structlog
 from typing import Annotated, Optional, Dict, Any
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -364,8 +364,8 @@ async def create_cohort(
             "user_id": str(user_id),
             "name": cohort_data.name,
             "data": cohort_data.dict(),
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
         }
 
         saved = await supabase_client.insert("cohorts", cohort_record)

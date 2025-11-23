@@ -6,7 +6,7 @@ Coordinates metrics collection, insight generation, and reporting.
 import structlog
 from typing import Dict, List, Optional, Any, TypedDict, Literal
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
@@ -491,7 +491,7 @@ Platform Coverage: {len(metrics.get('platform_metrics', {}))} platforms analyzed
                 "move_status": move_data.get("status"),
                 "workspace_id": state["workspace_id"],
                 "analysis_period_days": state.get("time_period_days", 30),
-                "analyzed_at": datetime.utcnow().isoformat(),
+                "analyzed_at": datetime.now(timezone.utc).isoformat(),
                 "correlation_id": correlation_id,
                 "metrics": metrics,
                 "insights": insights,
@@ -538,7 +538,7 @@ Platform Coverage: {len(metrics.get('platform_metrics', {}))} platforms analyzed
                     "workspace_id": state["workspace_id"],
                     "move_id": state["move_id"],
                     "report": report,
-                    "generated_at": datetime.utcnow().isoformat()
+                    "generated_at": datetime.now(timezone.utc).isoformat()
                 })
             except Exception as db_error:
                 # Table might not exist yet - log but don't fail

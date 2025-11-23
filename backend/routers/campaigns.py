@@ -5,7 +5,7 @@ Campaigns Router - API endpoints for campaign/move creation, tasks, and tracking
 import structlog
 from typing import Annotated
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -55,12 +55,12 @@ async def create_campaign(
             "name": request.name,
             "goal": request.goal,
             "status": "planning",
-            "start_date": datetime.utcnow().isoformat(),
+            "start_date": datetime.now(timezone.utc).isoformat(),
             "target_cohort_ids": [str(cid) for cid in request.target_cohort_ids],
             "channels": request.channels,
             "lines_of_operation": campaign_plan.get("lines_of_operation", []) if campaign_plan else [],
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
         }
         
         move_record = await supabase_client.insert("moves", move_data)
@@ -152,7 +152,7 @@ async def complete_task(
         await supabase_client.update(
             "tasks",
             {"id": str(task_id), "move_id": str(move_id)},
-            {"status": "completed", "completed_at": datetime.utcnow().isoformat(), "updated_at": datetime.utcnow().isoformat()}
+            {"status": "completed", "completed_at": datetime.now(timezone.utc).isoformat(), "updated_at": datetime.now(timezone.utc).isoformat()}
         )
 
         logger.info("Task marked complete",

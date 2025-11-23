@@ -52,7 +52,7 @@ await conv_memory.remember(
     value={
         "role": "user",
         "content": "Help me create a campaign",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     },
     workspace_id=UUID("..."),
     ttl=3600  # 1 hour
@@ -76,7 +76,7 @@ results = await conv_memory.search(
 import json
 from typing import Any, Dict, List, Optional
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 import redis.asyncio as redis
 from redis.asyncio import ConnectionPool
 import structlog
@@ -199,7 +199,7 @@ class ConversationMemory(BaseMemory):
 
             # Add timestamp if not present
             if "timestamp" not in message:
-                message["timestamp"] = datetime.utcnow().isoformat()
+                message["timestamp"] = datetime.now(timezone.utc).isoformat()
 
             # Merge metadata if provided
             if metadata:

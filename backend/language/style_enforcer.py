@@ -6,7 +6,7 @@ Ensures content adheres to brand voice, tone, and style guidelines.
 import re
 import structlog
 from typing import Dict, Any, List, Optional, Set
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 logger = structlog.get_logger(__name__)
@@ -139,7 +139,7 @@ class StyleEnforcer:
             correlation_id=correlation_id
         )
 
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         violations = []
 
         # Run all style checks
@@ -159,7 +159,7 @@ class StyleEnforcer:
             vtype = violation.violation_type.value
             violations_by_type[vtype] = violations_by_type.get(vtype, 0) + 1
 
-        duration_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+        duration_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
         result = {
             "total_violations": total_violations,

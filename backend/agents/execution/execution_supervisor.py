@@ -6,7 +6,7 @@ Manages publishing tasks, delegates to platform-specific agents, and tracks stat
 import structlog
 from typing import Dict, Any, List, Optional, Literal
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 
 from backend.agents.base_agent import BaseSupervisor
 from backend.agents.execution.linkedin_agent import linkedin_agent
@@ -287,7 +287,7 @@ class ExecutionSupervisor(BaseSupervisor):
                 "platform": scheduled_post["platform"],
                 "scheduled_time": scheduled_post["scheduled_time"],
                 "status": "scheduled",
-                "created_at": datetime.utcnow().isoformat()
+                "created_at": datetime.now(timezone.utc).isoformat()
             })
 
         return {
@@ -435,7 +435,7 @@ class ExecutionSupervisor(BaseSupervisor):
                 "channels": channels,
                 "results": results,
                 "status": "completed",
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "correlation_id": correlation_id
             })
             logger.info("Publishing job created", job_id=job_id, correlation_id=correlation_id)

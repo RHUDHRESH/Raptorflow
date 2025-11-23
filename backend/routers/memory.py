@@ -5,7 +5,7 @@ Memory Router - API endpoints for semantic memory and context management.
 import structlog
 from typing import Annotated, Optional, List, Dict, Any
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel, Field
@@ -148,7 +148,7 @@ async def store_context(
             context_id=context_id,
             workspace_id=str(workspace_id),
             context_type=request.context_type,
-            stored_at=datetime.utcnow().isoformat(),
+            stored_at=datetime.now(timezone.utc).isoformat(),
             message="Context stored successfully"
         )
 

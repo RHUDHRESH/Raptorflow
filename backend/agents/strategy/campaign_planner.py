@@ -6,7 +6,7 @@ Implements ADAPT framework for strategic campaign planning.
 import structlog
 from typing import Dict, List, Optional, Any
 from uuid import UUID, uuid4
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 from backend.config.prompts import MASTER_SUPERVISOR_SYSTEM_PROMPT
 from backend.services.vertex_ai_client import vertex_ai_client
@@ -109,8 +109,8 @@ class CampaignPlannerAgent:
             name=strategic_plan.get("move_name", move_request.name),
             goal=move_request.goal,
             status="planning",
-            start_date=datetime.utcnow(),
-            end_date=datetime.utcnow() + timedelta(days=move_request.timeframe_days),
+            start_date=datetime.now(timezone.utc),
+            end_date=datetime.now(timezone.utc) + timedelta(days=move_request.timeframe_days),
             target_cohort_ids=move_request.target_cohort_ids,
             channels=move_request.channels,
             lines_of_operation=loos,
@@ -249,7 +249,7 @@ Return JSON:
         Builds sprints with tasks based on phases.
         """
         all_sprints = []
-        current_date = datetime.utcnow()
+        current_date = datetime.now(timezone.utc)
         
         phases = strategic_plan.get("phases", [])
         
@@ -488,7 +488,7 @@ Return JSON:
             plan["goal"] = move_request.goal
             plan["channels"] = move_request.channels
             plan["target_cohort_ids"] = [str(cid) for cid in move_request.target_cohort_ids]
-            plan["created_at"] = datetime.utcnow().isoformat()
+            plan["created_at"] = datetime.now(timezone.utc).isoformat()
 
             logger.info(
                 "30/60/90-day plan generated",

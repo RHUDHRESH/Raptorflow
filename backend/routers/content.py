@@ -6,7 +6,7 @@ Supports multi-format content creation with critic review.
 import structlog
 from typing import Annotated, Optional
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -81,8 +81,8 @@ async def generate_blog(
             "quality_score": quality_score,
             "status": "draft",
             "brand_voice": request.brand_voice,
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
         }
 
         content_record = await supabase_client.insert("assets", content_data)
@@ -162,8 +162,8 @@ async def generate_email(
             "goal": request.goal,
             "status": "draft",
             "brand_voice": request.brand_voice,
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
         }
 
         content_record = await supabase_client.insert("assets", content_data)
@@ -247,8 +247,8 @@ async def generate_social(
             "visual_directions": final_state.get("visual_directions") if request.include_visual_directions else None,
             "status": "draft",
             "brand_voice": request.brand_voice,
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
         }
 
         content_record = await supabase_client.insert("assets", content_data)
@@ -333,7 +333,7 @@ async def review_content(
         await supabase_client.update(
             "assets",
             {"id": str(content_id)},
-            {"metadata": {"review": review}, "updated_at": datetime.utcnow().isoformat()}
+            {"metadata": {"review": review}, "updated_at": datetime.now(timezone.utc).isoformat()}
         )
         
         return {"review": review}
@@ -400,7 +400,7 @@ async def approve_content(
                         {
                             "metadata": {"review": review},
                             "status": "review",
-                            "updated_at": datetime.utcnow().isoformat()
+                            "updated_at": datetime.now(timezone.utc).isoformat()
                         }
                     )
 
@@ -425,8 +425,8 @@ async def approve_content(
                 "status": new_status,
                 "feedback": request.feedback,
                 "reviewed_by": auth.get("user_id"),
-                "reviewed_at": datetime.utcnow().isoformat(),
-                "updated_at": datetime.utcnow().isoformat()
+                "reviewed_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
             }
         )
 

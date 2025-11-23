@@ -6,7 +6,7 @@ Validates move existence, collects metrics, generates insights, and produces rep
 import structlog
 from typing import Dict, Any, Optional
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from backend.agents.analytics.metrics_collector_agent import metrics_collector_agent
 from backend.agents.analytics.insight_agent import insight_agent
@@ -136,7 +136,7 @@ class AnalyticsSupervisor:
             "move_name": move.get("name"),
             "move_status": move.get("status"),
             "analysis_period_days": time_period_days,
-            "analyzed_at": datetime.utcnow().isoformat(),
+            "analyzed_at": datetime.now(timezone.utc).isoformat(),
             "metrics": metrics,
             "insights": insights_result.get("insights", []),
             "anomalies": insights_result.get("anomalies", []),
@@ -428,7 +428,7 @@ Platform Coverage: {len(metrics.get('platform_metrics', {}))} platforms analyzed
             "health_score": health_score,
             "status": self._get_status_label(health_score),
             "last_24h_metrics": aggregated,
-            "checked_at": datetime.utcnow().isoformat()
+            "checked_at": datetime.now(timezone.utc).isoformat()
         }
 
     def _calculate_health_score(self, metrics: Dict[str, Any]) -> int:

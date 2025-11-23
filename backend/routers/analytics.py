@@ -5,7 +5,7 @@ Analytics Router - API endpoints for metrics collection and insights.
 import structlog
 from typing import Annotated, Optional
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -67,7 +67,7 @@ async def collect_metrics(
             workspace_id=workspace_id,
             move_id=move_id,
             metrics=metrics,
-            collected_at=datetime.utcnow().isoformat()
+            collected_at=datetime.now(timezone.utc).isoformat()
         )
         
     except Exception as e:
@@ -217,7 +217,7 @@ async def generate_post_mortem(
             "workspace_id": str(workspace_id),
             "move_id": str(move_id),
             "report": report,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "correlation_id": correlation_id
         }
 
@@ -230,7 +230,7 @@ async def generate_post_mortem(
             await supabase_client.update(
                 "moves",
                 {"id": str(move_id), "workspace_id": str(workspace_id)},
-                {"post_mortem": report, "updated_at": datetime.utcnow().isoformat()}
+                {"post_mortem": report, "updated_at": datetime.now(timezone.utc).isoformat()}
             )
 
         logger.info("Post-mortem generated and stored successfully",

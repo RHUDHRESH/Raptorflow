@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
@@ -66,7 +66,7 @@ class MemoryEntry:
         self.metadata = metadata or {}
         self.performance_metrics = performance_metrics or {}
         self.user_feedback = user_feedback
-        self.timestamp = timestamp or datetime.utcnow()
+        self.timestamp = timestamp or datetime.now(timezone.utc)
         self.correlation_id = correlation_id or get_correlation_id()
 
     def to_dict(self) -> Dict[str, Any]:

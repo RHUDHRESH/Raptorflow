@@ -7,7 +7,7 @@ import operator
 import structlog
 from typing import Annotated, List, Dict, Optional, Literal, TypedDict
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from langchain_core.messages import BaseMessage
 from langgraph.graph import StateGraph, END
@@ -207,7 +207,7 @@ async def make_decision_node(state: SafetyGraphState) -> SafetyGraphState:
         try:
             update_data = {
                 "status": approval_status,
-                "reviewed_at": datetime.utcnow().isoformat(),
+                "reviewed_at": datetime.now(timezone.utc).isoformat(),
                 "overall_quality_score": critic_score / 100.0,  # Normalize to 0-1
             }
 

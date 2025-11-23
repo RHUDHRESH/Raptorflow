@@ -7,7 +7,7 @@ import asyncio
 import re
 import structlog
 from typing import Dict, Any, List, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 logger = structlog.get_logger(__name__)
@@ -150,7 +150,7 @@ class GrammarOrchestrator:
             correlation_id=correlation_id
         )
 
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         # Run all engines in parallel
         tasks = [
@@ -189,7 +189,7 @@ class GrammarOrchestrator:
         # Generate auto-fixes for top issues
         auto_fixes = self._generate_auto_fixes(content, prioritized_issues[:10])
 
-        duration_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+        duration_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
         result = {
             "total_issues": len(prioritized_issues),

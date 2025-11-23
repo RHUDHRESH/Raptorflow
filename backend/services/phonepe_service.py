@@ -8,7 +8,7 @@ import base64
 import json
 import uuid
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional, Tuple
 import httpx
 
@@ -275,7 +275,7 @@ class PhonePeService:
                     payment_method=data.get("paymentInstrument", {}).get("type"),
                     response_code=data.get("responseCode"),
                     response_message=data.get("responseMessage"),
-                    transaction_time=datetime.utcnow()
+                    transaction_time=datetime.now(timezone.utc)
                 ), None
             else:
                 error_msg = response_data.get("message", "Status check failed")
@@ -329,7 +329,7 @@ class PhonePeService:
         Returns:
             Tuple of (period_start, period_end)
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         if billing_period == "monthly":
             period_end = now + timedelta(days=30)

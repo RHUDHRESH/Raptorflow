@@ -18,7 +18,7 @@ import json
 import re
 import structlog
 import textstat
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from uuid import UUID
 
@@ -229,7 +229,7 @@ class CriticAgent:
                 "content_type": content_type,
                 "models_used": ["gemini-reasoning", "claude-creative"],
                 "similar_critiques": len(past_critiques),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "correlation_id": correlation_id
             }
 
@@ -592,7 +592,7 @@ Output as JSON following this exact structure:
                     dim: data["score"]
                     for dim, data in critique.get("dimensions", {}).items()
                 },
-                "created_at": datetime.utcnow().isoformat()
+                "created_at": datetime.now(timezone.utc).isoformat()
             }
 
             await self.db.insert("content_critiques", critique_record)
@@ -615,7 +615,7 @@ Output as JSON following this exact structure:
             "optional_improvements": [],
             "critique_metadata": {
                 "error": error,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }
 
@@ -656,7 +656,7 @@ Output as JSON following this exact structure:
                 # Store in memory for learning
                 self.language_analysis_history.append({
                     "content_type": content_type,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "overall_score": language_analysis.get("overall_score"),
                     "correlation_id": correlation_id
                 })
@@ -710,7 +710,7 @@ Output as JSON following this exact structure:
             "strengths": critique.get("optional_improvements", []),
             "improvements": critique["priority_fixes"],
             "content_type": content_type,
-            "reviewed_at": datetime.utcnow().isoformat(),
+            "reviewed_at": datetime.now(timezone.utc).isoformat(),
             "rationale": f"Overall score: {critique['overall_score']}/100"
         }
 

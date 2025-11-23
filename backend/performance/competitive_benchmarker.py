@@ -14,7 +14,7 @@ Provides data-driven recommendations based on what's working for competitors.
 """
 
 from typing import Any, Dict, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import re
 import asyncio
 import structlog
@@ -85,7 +85,7 @@ class CompetitiveBenchmarker:
             cache_key = f"{competitor_name}_{platform}"
             if cache_key in self.cache:
                 cached_data = self.cache[cache_key]
-                if datetime.utcnow() - cached_data["timestamp"] < self.cache_ttl:
+                if datetime.now(timezone.utc) - cached_data["timestamp"] < self.cache_ttl:
                     logger.info("Returning cached competitor analysis", competitor=competitor_name)
                     return cached_data["data"]
 
@@ -123,14 +123,14 @@ class CompetitiveBenchmarker:
                 "weaknesses": swot["weaknesses"],
                 "opportunities": swot["opportunities"],
                 "threats": swot["threats"],
-                "analyzed_at": datetime.utcnow().isoformat(),
+                "analyzed_at": datetime.now(timezone.utc).isoformat(),
                 "sample_count": len(content_samples)
             }
 
             # Cache results
             self.cache[cache_key] = {
                 "data": result,
-                "timestamp": datetime.utcnow()
+                "timestamp": datetime.now(timezone.utc)
             }
 
             logger.info("Competitor analysis complete", competitor=competitor_name)
@@ -211,7 +211,7 @@ class CompetitiveBenchmarker:
                 "recommendations": recommendations,
                 "competitive_advantages": position.get("advantages", []),
                 "areas_to_improve": position.get("improvements_needed", []),
-                "compared_at": datetime.utcnow().isoformat()
+                "compared_at": datetime.now(timezone.utc).isoformat()
             }
 
             return result
@@ -281,7 +281,7 @@ class CompetitiveBenchmarker:
                     "Case studies consistently get highest engagement",
                     "Tuesday and Thursday posts perform 30% better"
                 ],
-                "tracked_at": datetime.utcnow().isoformat()
+                "tracked_at": datetime.now(timezone.utc).isoformat()
             }
 
             return trends

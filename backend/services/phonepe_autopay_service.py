@@ -5,7 +5,7 @@ Handles recurring payment subscriptions using PhonePe Python SDK.
 
 import logging
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional, Tuple
 
 from phonepe_sdk.autopay.autopay_client import AutopayClient
@@ -109,7 +109,7 @@ class PhonePeAutopayService:
         Returns:
             Tuple of (start_date, end_date)
         """
-        start_date = datetime.utcnow()
+        start_date = datetime.now(timezone.utc)
 
         if billing_period == "monthly":
             end_date = start_date + timedelta(days=30)

@@ -7,7 +7,7 @@ import structlog
 import os
 from typing import Annotated, Optional
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -191,7 +191,7 @@ async def oauth_callback(
             "expires_in": token_data.get("expires_in"),
             "status": "active",
             "metadata": token_data,
-            "connected_at": datetime.utcnow().isoformat()
+            "connected_at": datetime.now(timezone.utc).isoformat()
         }
 
         # Check if integration already exists
@@ -279,7 +279,7 @@ async def connect_platform(
             "account_id": request.account_id,
             "status": "active",
             "metadata": request.metadata,
-            "connected_at": datetime.utcnow().isoformat()
+            "connected_at": datetime.now(timezone.utc).isoformat()
         }
         
         if existing:

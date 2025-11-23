@@ -26,23 +26,14 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-# Simple auth dependency
-async def get_current_user(authorization: str = Header(None)) -> Dict[str, str]:
-    """Get current authenticated user from token."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    # In production, verify JWT and extract user info
-    return {
-        "user_id": "00000000-0000-0000-0000-000000000000",
-        "workspace_id": "00000000-0000-0000-0000-000000000000"
-    }
+# Import proper auth dependency
+from backend.utils.auth import get_current_user_and_workspace
 
 
 @router.post("/checkout/create", response_model=CreateAutopayCheckoutResponse)
 async def create_autopay_checkout(
     request: CreateAutopayCheckoutRequest,
-    auth: Dict[str, str] = Depends(get_current_user)
+    auth: Dict[str, str] = Depends(get_current_user_and_workspace)
 ):
     """
     Create a new autopay checkout session for recurring subscription.
@@ -97,7 +88,7 @@ async def create_autopay_checkout(
         }
 
         # Insert into autopay_subscriptions table
-        # await supabase_client.insert("autopay_subscriptions", subscription_data)
+        await supabase_client.insert("autopay_subscriptions", subscription_data)
 
         return CreateAutopayCheckoutResponse(
             authorization_url=subscription_response.authorization_url,
@@ -116,7 +107,7 @@ async def create_autopay_checkout(
 @router.get("/subscription/status/{merchant_subscription_id}", response_model=Dict[str, Any])
 async def get_autopay_subscription_status(
     merchant_subscription_id: str,
-    auth: Dict[str, str] = Depends(get_current_user)
+    auth: Dict[str, str] = Depends(get_current_user_and_workspace)
 ):
     """
     Check status of an autopay subscription.
@@ -162,7 +153,7 @@ async def get_autopay_subscription_status(
 @router.post("/subscription/cancel", response_model=Dict[str, Any])
 async def cancel_autopay_subscription(
     request: CancelAutopayRequest,
-    auth: Dict[str, str] = Depends(get_current_user)
+    auth: Dict[str, str] = Depends(get_current_user_and_workspace)
 ):
     """
     Cancel an active autopay subscription.
@@ -188,15 +179,15 @@ async def cancel_autopay_subscription(
             raise HTTPException(status_code=400, detail=error or "Cancellation failed")
 
         # Update subscription status in database
-        # await supabase_client.update(
-        #     "autopay_subscriptions",
-        #     {"merchant_subscription_id": request.merchant_subscription_id},
-        #     {
-        #         "status": "cancelled",
-        #         "cancelled_at": "now()",
-        #         "cancellation_reason": request.reason
-        #     }
-        # )
+        await supabase_client.update(
+            "autopay_subscriptions",
+            {"merchant_subscription_id": request.merchant_subscription_id},
+            {
+                "status": "cancelled",
+                "cancelled_at": "now()",
+                "cancellation_reason": request.reason
+            }
+        )
 
         return {
             "message": "Autopay subscription cancelled successfully",
@@ -215,7 +206,7 @@ async def cancel_autopay_subscription(
 @router.post("/subscription/pause", response_model=Dict[str, Any])
 async def pause_autopay_subscription(
     request: PauseAutopayRequest,
-    auth: Dict[str, str] = Depends(get_current_user)
+    auth: Dict[str, str] = Depends(get_current_user_and_workspace)
 ):
     """
     Pause an active autopay subscription.
@@ -241,15 +232,15 @@ async def pause_autopay_subscription(
             raise HTTPException(status_code=400, detail=error or "Pause failed")
 
         # Update subscription status in database
-        # await supabase_client.update(
-        #     "autopay_subscriptions",
-        #     {"merchant_subscription_id": request.merchant_subscription_id},
-        #     {
-        #         "status": "paused",
-        #         "paused_at": "now()",
-        #         "pause_reason": request.reason
-        #     }
-        # )
+        await supabase_client.update(
+            "autopay_subscriptions",
+            {"merchant_subscription_id": request.merchant_subscription_id},
+            {
+                "status": "paused",
+                "paused_at": "now()",
+                "pause_reason": request.reason
+            }
+        )
 
         return {
             "message": "Autopay subscription paused successfully",
@@ -268,7 +259,7 @@ async def pause_autopay_subscription(
 @router.post("/subscription/resume", response_model=Dict[str, Any])
 async def resume_autopay_subscription(
     request: ResumeAutopayRequest,
-    auth: Dict[str, str] = Depends(get_current_user)
+    auth: Dict[str, str] = Depends(get_current_user_and_workspace)
 ):
     """
     Resume a paused autopay subscription.
@@ -294,14 +285,14 @@ async def resume_autopay_subscription(
             raise HTTPException(status_code=400, detail=error or "Resume failed")
 
         # Update subscription status in database
-        # await supabase_client.update(
-        #     "autopay_subscriptions",
-        #     {"merchant_subscription_id": request.merchant_subscription_id},
-        #     {
-        #         "status": "active",
-        #         "resumed_at": "now()"
-        #     }
-        # )
+        await supabase_client.update(
+            "autopay_subscriptions",
+            {"merchant_subscription_id": request.merchant_subscription_id},
+            {
+                "status": "active",
+                "resumed_at": "now()"
+            }
+        )
 
         return {
             "message": "Autopay subscription resumed successfully",
@@ -328,6 +319,12 @@ async def autopay_webhook(request: Request):
     try:
         # Get webhook payload
         payload_data = await request.json()
+
+        # TODO: Verify webhook signature for security
+        # x_verify_header = request.headers.get("X-VERIFY")
+        # if not phonepe_autopay_service.verify_webhook_signature(payload_data, x_verify_header):
+        #     logger.warning("Invalid webhook signature")
+        #     raise HTTPException(status_code=401, detail="Invalid signature")
 
         # Extract event data
         event_type = payload_data.get("eventType")
@@ -363,7 +360,7 @@ async def autopay_webhook(request: Request):
 
 @router.get("/subscriptions", response_model=Dict[str, Any])
 async def get_user_subscriptions(
-    auth: Dict[str, str] = Depends(get_current_user)
+    auth: Dict[str, str] = Depends(get_current_user_and_workspace)
 ):
     """
     Get all autopay subscriptions for the authenticated user.
@@ -397,15 +394,15 @@ async def _activate_autopay_subscription(webhook_data: Dict[str, Any]):
         subscription_id = webhook_data.get("subscriptionId")
 
         # Update subscription status in database
-        # await supabase_client.update(
-        #     "autopay_subscriptions",
-        #     {"merchant_subscription_id": merchant_subscription_id},
-        #     {
-        #         "status": "active",
-        #         "subscription_id": subscription_id,
-        #         "activated_at": "now()"
-        #     }
-        # )
+        await supabase_client.update(
+            "autopay_subscriptions",
+            {"merchant_subscription_id": merchant_subscription_id},
+            {
+                "status": "active",
+                "subscription_id": subscription_id,
+                "activated_at": "now()"
+            }
+        )
 
         logger.info(f"Autopay subscription {merchant_subscription_id} activated")
 
@@ -421,15 +418,15 @@ async def _process_autopay_payment_success(webhook_data: Dict[str, Any]):
         amount = webhook_data.get("amount")
 
         # Record payment in database
-        # payment_data = {
-        #     "merchant_subscription_id": merchant_subscription_id,
-        #     "payment_id": payment_id,
-        #     "amount": amount,
-        #     "currency": "INR",
-        #     "status": "success",
-        #     "payment_date": "now()"
-        # }
-        # await supabase_client.insert("autopay_payments", payment_data)
+        payment_data = {
+            "merchant_subscription_id": merchant_subscription_id,
+            "payment_id": payment_id,
+            "amount": amount,
+            "currency": "INR",
+            "status": "success",
+            "payment_date": "now()"
+        }
+        await supabase_client.insert("autopay_payments", payment_data)
 
         logger.info(f"Autopay payment {payment_id} succeeded for subscription {merchant_subscription_id}")
 
@@ -445,14 +442,14 @@ async def _process_autopay_payment_failure(webhook_data: Dict[str, Any]):
         failure_reason = webhook_data.get("failureReason")
 
         # Record failed payment in database
-        # payment_data = {
-        #     "merchant_subscription_id": merchant_subscription_id,
-        #     "payment_id": payment_id,
-        #     "status": "failed",
-        #     "failure_reason": failure_reason,
-        #     "payment_date": "now()"
-        # }
-        # await supabase_client.insert("autopay_payments", payment_data)
+        payment_data = {
+            "merchant_subscription_id": merchant_subscription_id,
+            "payment_id": payment_id,
+            "status": "failed",
+            "failure_reason": failure_reason,
+            "payment_date": "now()"
+        }
+        await supabase_client.insert("autopay_payments", payment_data)
 
         logger.warning(f"Autopay payment {payment_id} failed for subscription {merchant_subscription_id}: {failure_reason}")
 
@@ -466,14 +463,14 @@ async def _process_autopay_cancellation(webhook_data: Dict[str, Any]):
         merchant_subscription_id = webhook_data.get("merchantSubscriptionId")
 
         # Update subscription status in database
-        # await supabase_client.update(
-        #     "autopay_subscriptions",
-        #     {"merchant_subscription_id": merchant_subscription_id},
-        #     {
-        #         "status": "cancelled",
-        #         "cancelled_at": "now()"
-        #     }
-        # )
+        await supabase_client.update(
+            "autopay_subscriptions",
+            {"merchant_subscription_id": merchant_subscription_id},
+            {
+                "status": "cancelled",
+                "cancelled_at": "now()"
+            }
+        )
 
         logger.info(f"Autopay subscription {merchant_subscription_id} cancelled via webhook")
 

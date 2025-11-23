@@ -6,7 +6,7 @@ Handles email campaigns, tracking, and deliverability.
 import structlog
 from typing import Dict, Any, Optional, List
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from backend.services.social.email import email_service
 from backend.models.content import ContentVariant
@@ -98,7 +98,7 @@ class EmailAgent:
             body = body.replace("Hi there", f"Hi {to_name}")
         
         # If scheduled, queue the task
-        if schedule_time and schedule_time > datetime.utcnow():
+        if schedule_time and schedule_time > datetime.now(timezone.utc):
             await redis_queue.enqueue(
                 task_name="send_email",
                 payload={
@@ -142,7 +142,7 @@ class EmailAgent:
             return {
                 "status": "sent",
                 "message_id": result.get("message_id"),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
             
         except Exception as e:

@@ -24,7 +24,7 @@ import json
 import structlog
 from typing import Dict, Any, List, Optional
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 from backend.services.vertex_ai_client import vertex_ai_client
 from backend.services.supabase_client import supabase_client
@@ -384,7 +384,7 @@ class GuardianAgent:
                     "total_violations": len(all_violations),
                     "critical_violations": len(critical_violations),
                     "high_violations": len(high_violations),
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "correlation_id": correlation_id
                 }
             }
@@ -935,7 +935,7 @@ class GuardianAgent:
             "recommended_actions": [],
             "metadata": {
                 "error": error,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }
 

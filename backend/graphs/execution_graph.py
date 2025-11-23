@@ -7,7 +7,7 @@ import operator
 import structlog
 from typing import Annotated, List, Dict, Optional, Literal, TypedDict
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from langchain_core.messages import BaseMessage
 from langgraph.graph import StateGraph, END
@@ -235,7 +235,7 @@ async def publish_node(state: ExecutionGraphState) -> ExecutionGraphState:
         {"id": str(content_id)},
         {
             "status": "published",
-            "published_at": datetime.utcnow().isoformat()
+            "published_at": datetime.now(timezone.utc).isoformat()
         }
     )
 
@@ -288,7 +288,7 @@ async def handle_rejection_node(state: ExecutionGraphState) -> ExecutionGraphSta
         {"id": str(content_id)},
         {
             "status": "rejected",
-            "reviewed_at": datetime.utcnow().isoformat(),
+            "reviewed_at": datetime.now(timezone.utc).isoformat(),
             "critique": rejection_reasons
         }
     )

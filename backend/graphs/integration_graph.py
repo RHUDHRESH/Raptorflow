@@ -130,7 +130,7 @@ async def store_asset_node(state: IntegrationGraphState) -> IntegrationGraphStat
         "source_tool": "ai_generated",
         "metadata": {
             "quality_report": quality_report,
-            "generated_at": datetime.utcnow().isoformat()
+            "generated_at": datetime.now(timezone.utc).isoformat()
         }
     })
     

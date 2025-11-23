@@ -4,7 +4,7 @@ Ambient Search Agent - Runs daily background scans for timely opportunities.
 
 import structlog
 from typing import Dict, List, Optional, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from uuid import UUID, uuid4
 
 from backend.config.prompts import MASTER_SUPERVISOR_SYSTEM_PROMPT
@@ -150,7 +150,7 @@ Return JSON:
             # Add metadata
             for opp in opportunities:
                 opp["source"] = "external_scan"
-                opp["discovered_at"] = datetime.utcnow().isoformat()
+                opp["discovered_at"] = datetime.now(timezone.utc).isoformat()
             
             return opportunities
             
@@ -224,7 +224,7 @@ Return JSON:
             
             for opp in opportunities:
                 opp["source"] = "internal_signals"
-                opp["discovered_at"] = datetime.utcnow().isoformat()
+                opp["discovered_at"] = datetime.now(timezone.utc).isoformat()
             
             return opportunities
             
@@ -313,7 +313,7 @@ Return JSON:
                     "campaign_angle": opp.get("campaign_angle", ""),
                     "expires_at": opp.get("expires_at"),
                     "status": "new",
-                    "discovered_at": opp.get("discovered_at", datetime.utcnow().isoformat())
+                    "discovered_at": opp.get("discovered_at", datetime.now(timezone.utc).isoformat())
                 }
                 
                 await supabase_client.insert("quick_wins", quick_win_data)
@@ -337,7 +337,7 @@ Return JSON:
             )
             
             # Filter non-expired
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             active = [
                 opp for opp in opportunities
                 if not opp.get("expires_at") or 

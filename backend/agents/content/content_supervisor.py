@@ -7,7 +7,7 @@ import asyncio
 import structlog
 from typing import Dict, Any, List, Optional
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 
 from backend.agents.base_agent import BaseSupervisor
 from backend.agents.content.hook_generator import hook_generator_agent
@@ -519,7 +519,7 @@ class ContentSupervisor(BaseSupervisor):
             "status": "draft",
             "reviewed_by": None,
             "reviewed_at": None,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "published_at": None,
             "correlation_id": correlation_id
         }

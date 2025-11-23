@@ -7,7 +7,7 @@ import operator
 import structlog
 from typing import Annotated, List, Dict, Tuple, Literal, TypedDict, Optional
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 
 from langchain_core.messages import BaseMessage
 from langgraph.graph import StateGraph, END
@@ -389,7 +389,7 @@ async def save_content_node(state: ContentGraphState) -> ContentGraphState:
         critique=critique if not safety_passed else None,
         suggestions_for_improvement=suggestions if not safety_passed else [],
         status=status,
-        generated_at=datetime.utcnow()
+        generated_at=datetime.now(timezone.utc)
     )
     
     # Save to Supabase

@@ -59,7 +59,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import structlog
@@ -203,8 +203,8 @@ class MemoryManager:
                 "success_score": success_score,
                 "feedback": json.dumps(feedback) if feedback else None,
                 "tags": tags or [],
-                "created_at": datetime.utcnow().isoformat(),
-                "updated_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
             }
 
             # Store in database
@@ -416,7 +416,7 @@ class MemoryManager:
             # Prepare updates
             updates = {
                 "feedback": json.dumps(merged_feedback),
-                "updated_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
             }
 
             if new_success_score is not None:
