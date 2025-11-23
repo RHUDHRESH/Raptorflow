@@ -70,7 +70,13 @@ class Settings(BaseSettings):
     
     # Canva
     CANVA_API_KEY: Optional[str] = None
-    
+
+    # PhonePe Payment Gateway
+    PHONEPE_MERCHANT_ID: Optional[str] = None
+    PHONEPE_SALT_KEY: Optional[str] = None
+    PHONEPE_SALT_INDEX: int = 1
+    PHONEPE_ENABLED: bool = True
+
     # Google Cloud / Vertex AI
     GOOGLE_CLOUD_PROJECT: Optional[str] = None
     GOOGLE_CLOUD_LOCATION: str = "us-central1"

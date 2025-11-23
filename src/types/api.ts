@@ -533,3 +533,94 @@ export class NotFoundError extends APIError {
     this.name = 'NotFoundError';
   }
 }
+
+// ============================================================================
+// Payment & Subscription Types
+// ============================================================================
+
+export interface SubscriptionPlan {
+  name: 'ascent' | 'glide' | 'soar';
+  price_monthly: number;
+  price_yearly: number;
+  features: {
+    cohorts: number;
+    moves: number;
+    analytics: boolean;
+    integrations: string[];
+    support: string;
+  };
+  limits: {
+    cohorts: number;
+    moves_per_month: number;
+  };
+}
+
+export interface Subscription {
+  id: string;
+  user_id: string;
+  workspace_id: string;
+  plan: 'free' | 'ascent' | 'glide' | 'soar';
+  status: 'active' | 'inactive' | 'cancelled' | 'expired' | 'trial';
+  billing_period: 'monthly' | 'yearly';
+  current_period_start?: string;
+  current_period_end?: string;
+  trial_start?: string;
+  trial_end?: string;
+  phonepe_customer_id?: string;
+  phonepe_subscription_id?: string;
+  phonepe_transaction_id?: string;
+  created_at: string;
+  updated_at: string;
+  cancelled_at?: string;
+}
+
+export interface CreateCheckoutRequest {
+  plan: 'ascent' | 'glide' | 'soar';
+  billing_period: 'monthly' | 'yearly';
+  success_url: string;
+  cancel_url: string;
+}
+
+export interface CreateCheckoutResponse {
+  checkout_url: string;
+  session_id: string;
+  expires_at: string;
+}
+
+export interface PaymentStatus {
+  transaction_id: string;
+  merchant_transaction_id: string;
+  status: 'pending' | 'success' | 'failed' | 'cancelled';
+  amount: number;
+  payment_method?: string;
+}
+
+export interface BillingHistoryItem {
+  id: string;
+  user_id: string;
+  workspace_id: string;
+  transaction_id: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'success' | 'failed' | 'refunded';
+  plan: string;
+  billing_period: string;
+  payment_method?: string;
+  invoice_url?: string;
+  created_at: string;
+}
+
+export interface PlanLimits {
+  plan: 'free' | 'ascent' | 'glide' | 'soar';
+  limits: {
+    cohorts: number;
+    moves_per_month: number;
+  };
+  current_usage: {
+    cohorts: number;
+    moves_this_month: number;
+  };
+  is_limit_reached: boolean;
+  upgrade_required: boolean;
+  recommended_plan?: string;
+}
