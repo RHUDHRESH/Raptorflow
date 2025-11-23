@@ -76,10 +76,18 @@ VITE_YOUTUBE_API_KEY=your-youtube-api-key
 ### Payment Processing
 
 ```bash
-# Stripe
+# PhonePe (Primary Payment Gateway for India)
+PHONEPE_MERCHANT_ID=your-phonepe-merchant-id
+PHONEPE_SALT_KEY=your-phonepe-salt-key
+PHONEPE_SALT_INDEX=1
+PHONEPE_ENABLED=True
+
+# Stripe (Alternative)
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your-stripe-key
 STRIPE_SECRET_KEY=sk_test_your-stripe-secret-key
 ```
+
+Get PhonePe credentials from: https://business.phonepe.com/
 
 ## Setup Instructions
 

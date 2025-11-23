@@ -635,6 +635,69 @@ export const cohortsAPI = {
 };
 
 /**
+ * Payment & Subscription API
+ */
+export const paymentAPI = {
+  /**
+   * Get all available subscription plans
+   */
+  async getPlans() {
+    return apiFetch('/payments/plans');
+  },
+
+  /**
+   * Create a checkout session for subscription purchase
+   */
+  async createCheckout(data: { plan: string; billing_period: string; success_url: string; cancel_url: string }) {
+    return apiFetch('/payments/checkout/create', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Get current subscription status
+   */
+  async getSubscriptionStatus() {
+    return apiFetch('/payments/subscription/status');
+  },
+
+  /**
+   * Change subscription plan
+   */
+  async changeSubscription(data: { new_plan: string; billing_period: string; immediate?: boolean }) {
+    return apiFetch('/payments/subscription/change', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Cancel subscription
+   */
+  async cancelSubscription(data: { reason?: string; immediate?: boolean }) {
+    return apiFetch('/payments/subscription/cancel', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Get billing history
+   */
+  async getBillingHistory() {
+    return apiFetch('/payments/billing/history');
+  },
+
+  /**
+   * Check payment status
+   */
+  async checkPaymentStatus(merchantTransactionId: string) {
+    return apiFetch(`/payments/payment/status/${merchantTransactionId}`);
+  },
+};
+
+/**
  * Export all APIs as a single object
  */
 export const backendAPI = {
@@ -650,6 +713,7 @@ export const backendAPI = {
   performance: performanceAPI,
   guardian: guardianAPI,
   orchestration: orchestrationAPI,
+  payment: paymentAPI,
 };
 
 export default backendAPI;

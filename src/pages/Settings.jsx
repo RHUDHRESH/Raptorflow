@@ -3,6 +3,7 @@ import { Settings as SettingsIcon, Bell, Shield, Palette, Globe, Database, Downl
 import { useState, useEffect, useRef } from 'react'
 import Onboarding from '../components/Onboarding'
 import { sanitizeInput, setSecureLocalStorage, getSecureLocalStorage } from '../utils/sanitize'
+import { backendAPI } from '../lib/services/backend-api'
 
 const settingsTabs = [
   { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -580,10 +581,27 @@ export default function Settings() {
                           </div>
                           <button
                             disabled={isCurrent}
-                            onClick={() => {
+                            onClick={async () => {
                               if (!isCurrent) {
-                                setSecureLocalStorage('userPlan', plan.key)
-                                alert(`Plan changed to ${plan.name}. Please refresh the page.`)
+                                try {
+                                  // Create PhonePe checkout session
+                                  const response = await backendAPI.payment.createCheckout({
+                                    plan: plan.key,
+                                    billing_period: 'monthly',
+                                    success_url: window.location.origin + '/settings?tab=pricing&payment=success',
+                                    cancel_url: window.location.origin + '/settings?tab=pricing&payment=cancelled'
+                                  });
+
+                                  // Redirect to PhonePe payment page
+                                  if (response.checkout_url) {
+                                    window.location.href = response.checkout_url;
+                                  } else {
+                                    alert('Unable to initiate payment. Please try again.');
+                                  }
+                                } catch (error) {
+                                  console.error('Payment error:', error);
+                                  alert('Payment failed: ' + error.message);
+                                }
                               }
                             }}
                             className={`w-full border-2 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] transition-colors ${
