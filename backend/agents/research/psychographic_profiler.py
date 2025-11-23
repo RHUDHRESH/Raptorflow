@@ -7,7 +7,7 @@ import logging
 
 from backend.models.persona import ICPProfile, Psychographics
 from backend.config.settings import get_settings
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -142,7 +142,7 @@ Return JSON:
                 {"role": "user", "content": analysis_prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.4,  # Lower for more consistent psychological profiling
                 response_format={"type": "json_object"}
@@ -192,7 +192,7 @@ Return JSON array:
                 {"role": "user", "content": trigger_prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.6,
                 response_format={"type": "json_object"}
@@ -240,7 +240,7 @@ Return a 2-3 sentence description of their decision structure:
                 {"role": "user", "content": decision_prompt}
             ]
             
-            decision_structure = await openai_client.chat_completion(
+            decision_structure = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.5
             )

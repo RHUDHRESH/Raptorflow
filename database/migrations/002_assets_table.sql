@@ -56,3 +56,4 @@ CREATE POLICY "Users can delete assets in their workspace"
   USING (workspace_id = get_user_workspace_id());
 
 
+

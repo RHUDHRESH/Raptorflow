@@ -1,38 +1,141 @@
 """
 Pydantic models for Campaigns (Moves, Sprints, Tasks).
-These models define the structure for campaign planning and execution.
+
+This module defines comprehensive schemas for campaign planning and execution
+in RaptorFlow. It includes:
+
+- Campaign (Move) planning with objectives, timelines, and KPIs
+- Sprint-based execution with tasks and dependencies
+- Lines of Operation (LOO) for multi-channel coordination
+- Asset requirements and content planning
+- Real-time performance metrics and analytics
+- Anomaly detection and decision tracking
+
+The campaign models follow military doctrine (Maneuver Warfare) adapted
+for marketing: Moves represent campaigns, Sprints are execution cycles,
+Lines of Operation organize work streams, and Tasks are actionable items.
+
+Models in this module are used by the Strategy Supervisor and Execution
+agents to orchestrate campaign planning, task management, and performance
+monitoring.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Dict, Optional, Literal, Any
 from uuid import UUID
 from datetime import datetime, date
 
 
 class Task(BaseModel):
-    """A single task within a campaign."""
-    id: Optional[UUID] = None
-    move_id: UUID
-    sprint_id: Optional[UUID] = None
-    title: str
-    description: Optional[str] = None
+    """
+    A single task within a campaign.
+
+    Tasks are the atomic units of work in a campaign. They can be assigned
+    to team members or agents, have dependencies on other tasks, and track
+    completion status and effort.
+
+    Task Types:
+        - content_creation: Writing, designing, or producing content
+        - publishing: Scheduling and posting content to channels
+        - engagement: Community management and response
+        - research: Market research or competitive analysis
+        - analytics_review: Reviewing performance metrics
+        - other: Miscellaneous tasks
+
+    Status Workflow:
+        pending → in_progress → completed
+                ↓
+              blocked (if dependencies not met)
+                ↓
+              cancelled (if no longer needed)
+
+    Attributes:
+        id: Unique task identifier
+        move_id: Parent campaign/move identifier
+        sprint_id: Parent sprint identifier (if sprint-based execution)
+        title: Short task title
+        description: Detailed task description
+        task_type: Type of task (content_creation, publishing, etc.)
+        status: Current status (pending, in_progress, completed, blocked, cancelled)
+        priority: Task priority (high, medium, low)
+        assigned_to: User or agent assigned to this task
+        due_date: Target completion date
+        estimated_hours: Estimated effort in hours
+        completed_at: Actual completion timestamp
+        dependencies: Task IDs that must complete before this task can start
+        metadata: Additional task-specific metadata
+        created_at: Timestamp when task was created
+    """
+
+    id: Optional[UUID] = Field(
+        None,
+        description="Unique task identifier",
+    )
+    move_id: UUID = Field(
+        ...,
+        description="Parent campaign/move identifier",
+    )
+    sprint_id: Optional[UUID] = Field(
+        None,
+        description="Parent sprint identifier (if applicable)",
+    )
+    title: str = Field(
+        ...,
+        description="Short, descriptive task title",
+        min_length=1,
+    )
+    description: Optional[str] = Field(
+        None,
+        description="Detailed task description and acceptance criteria",
+    )
     task_type: Literal[
-        "content_creation", 
-        "publishing", 
-        "engagement", 
-        "research", 
-        "analytics_review", 
+        "content_creation",
+        "publishing",
+        "engagement",
+        "research",
+        "analytics_review",
         "other"
-    ] = Field(default="other")
-    status: Literal["pending", "in_progress", "completed", "blocked", "cancelled"] = Field(default="pending")
-    priority: Literal["high", "medium", "low"] = Field(default="medium")
-    assigned_to: Optional[str] = None
-    due_date: Optional[date] = None
-    estimated_hours: Optional[float] = None
-    completed_at: Optional[datetime] = None
-    dependencies: List[UUID] = Field(default_factory=list, description="Task IDs that must complete first")
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    created_at: Optional[datetime] = None
+    ] = Field(
+        default="other",
+        description="Type of task for categorization and routing",
+    )
+    status: Literal["pending", "in_progress", "completed", "blocked", "cancelled"] = Field(
+        default="pending",
+        description="Current task status in workflow",
+    )
+    priority: Literal["high", "medium", "low"] = Field(
+        default="medium",
+        description="Task priority for resource allocation",
+    )
+    assigned_to: Optional[str] = Field(
+        None,
+        description="User or agent assigned to this task",
+    )
+    due_date: Optional[date] = Field(
+        None,
+        description="Target completion date",
+    )
+    estimated_hours: Optional[float] = Field(
+        None,
+        description="Estimated effort in hours",
+        gt=0,
+    )
+    completed_at: Optional[datetime] = Field(
+        None,
+        description="Actual completion timestamp",
+    )
+    dependencies: List[UUID] = Field(
+        default_factory=list,
+        description="Task IDs that must complete before this task can start",
+    )
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional task-specific metadata",
+    )
+    created_at: Optional[datetime] = Field(
+        None,
+        description="Timestamp when task was created",
+    )
 
 
 class ChecklistItem(BaseModel):

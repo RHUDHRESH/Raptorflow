@@ -19,7 +19,7 @@ from backend.models.onboarding import (
     StylePreferences,
 )
 from backend.config.settings import get_settings
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -153,7 +153,7 @@ Return ONLY valid JSON matching the schema.
                 {"role": "user", "content": extraction_prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.3,  # Lower temperature for more accurate extraction
                 response_format={"type": "json_object"}

@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 from backend.config.prompts import MASTER_SUPERVISOR_SYSTEM_PROMPT
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 from backend.services.supabase_client import supabase_client
 from backend.utils.correlation import get_correlation_id
 
@@ -136,7 +136,7 @@ Return JSON:
                 {"role": "user", "content": prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.8,  # Higher for creative opportunities
                 response_format={"type": "json_object"}
@@ -212,7 +212,7 @@ Return JSON:
                 {"role": "user", "content": prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.6,
                 response_format={"type": "json_object"}
@@ -273,7 +273,7 @@ Return JSON:
                     {"role": "user", "content": prompt}
                 ]
                 
-                response = await openai_client.chat_completion(
+                response = await vertex_ai_client.chat_completion(
                     messages=messages,
                     temperature=0.4,
                     response_format={"type": "json_object"}

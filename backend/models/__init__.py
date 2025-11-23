@@ -2,6 +2,7 @@
 Pydantic models for RaptorFlow backend.
 """
 
+from backend.models.base import BaseSchema
 from backend.models.onboarding import (
     OnboardingProfile,
     OnboardingSession,
@@ -18,10 +19,22 @@ from backend.models.onboarding import (
 )
 
 from backend.models.persona import (
+    TAG_OPTIONS,
+    TagWithConfidence,
     ICPProfile,
+    ICPRequest,
+    ICPResponse,
+    Cohort,
     Demographics,
     Psychographics,
     Communication,
+    PersonaNarrative,
+    PersonaNarrativeRequest,
+    PersonaNarrativeResponse,
+    TagEnrichmentRequest,
+    TagEnrichmentResponse,
+    PainPointMiningRequest,
+    PainPointMiningResponse,
 )
 
 from backend.models.campaign import (
@@ -39,6 +52,13 @@ from backend.models.campaign import (
 )
 
 from backend.models.content import (
+    BlogRequest,
+    BlogResponse,
+    EmailRequest,
+    EmailMessage,
+    EmailResponse,
+    SocialPostRequest,
+    SocialPostResponse,
     ContentRequest,
     ContentResponse,
     ContentVariant,
@@ -49,9 +69,21 @@ from backend.models.content import (
     ContentCalendarEntry,
     AssetMetadata,
     BrandVoiceProfile,
+    ContentMetadata,
+)
+
+from backend.models.agent_state import (
+    BaseAgentState,
+    ResearchState,
+    ContentState,
+    StrategyState,
+    ExecutionState,
+    AnalyticsState,
 )
 
 __all__ = [
+    # Base
+    "BaseSchema",
     # Onboarding
     "OnboardingProfile",
     "OnboardingSession",
@@ -66,10 +98,22 @@ __all__ = [
     "AgencyProfile",
     "StylePreferences",
     # Persona
+    "TAG_OPTIONS",
+    "TagWithConfidence",
     "ICPProfile",
+    "ICPRequest",
+    "ICPResponse",
+    "Cohort",
     "Demographics",
     "Psychographics",
     "Communication",
+    "PersonaNarrative",
+    "PersonaNarrativeRequest",
+    "PersonaNarrativeResponse",
+    "TagEnrichmentRequest",
+    "TagEnrichmentResponse",
+    "PainPointMiningRequest",
+    "PainPointMiningResponse",
     # Campaign
     "MoveRequest",
     "MoveResponse",
@@ -83,6 +127,13 @@ __all__ = [
     "MoveDecision",
     "MoveAnomaly",
     # Content
+    "BlogRequest",
+    "BlogResponse",
+    "EmailRequest",
+    "EmailMessage",
+    "EmailResponse",
+    "SocialPostRequest",
+    "SocialPostResponse",
     "ContentRequest",
     "ContentResponse",
     "ContentVariant",
@@ -93,4 +144,12 @@ __all__ = [
     "ContentCalendarEntry",
     "AssetMetadata",
     "BrandVoiceProfile",
+    "ContentMetadata",
+    # Agent State
+    "BaseAgentState",
+    "ResearchState",
+    "ContentState",
+    "StrategyState",
+    "ExecutionState",
+    "AnalyticsState",
 ]

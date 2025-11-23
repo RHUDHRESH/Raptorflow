@@ -102,3 +102,4 @@ INSERT INTO capability_nodes (id, name, tier, status, workspace_id, parent_node_
 -- This will be populated after maneuver_types are inserted
 
 
+

@@ -6,8 +6,10 @@ import json
 import hashlib
 from typing import Any, Optional
 import redis.asyncio as redis
-from config.settings import settings
+from backend.config.settings import get_settings
 import structlog
+
+settings = get_settings()
 
 logger = structlog.get_logger()
 
@@ -115,36 +117,94 @@ class CacheClient:
 
 
 # Global cache instance
+<<<<<<< HEAD
 cache = CacheClient()
+redis_cache = cache  # Alias for backward compatibility
+=======
+redis_cache = CacheClient()
+# Legacy alias for backward compatibility
+cache = redis_cache
+>>>>>>> main
 
 
 # Convenience functions for specific cache types
 async def cache_research(query: str, result: Any) -> bool:
     """Cache research results for 7 days"""
-    return await cache.set("research", query, result, settings.CACHE_TTL_RESEARCH)
+    return await redis_cache.set("research", query, result, settings.CACHE_TTL_RESEARCH)
 
 
 async def get_cached_research(query: str) -> Optional[Any]:
     """Get cached research results"""
-    return await cache.get("research", query)
+    return await redis_cache.get("research", query)
 
 
 async def cache_persona(icp_id: str, persona: Any) -> bool:
     """Cache persona data for 30 days"""
-    return await cache.set("persona", icp_id, persona, settings.CACHE_TTL_PERSONA)
+    return await redis_cache.set("persona", icp_id, persona, settings.CACHE_TTL_PERSONA)
 
 
 async def get_cached_persona(icp_id: str) -> Optional[Any]:
     """Get cached persona data"""
-    return await cache.get("persona", icp_id)
+    return await redis_cache.get("persona", icp_id)
 
 
 async def cache_content(content_id: str, content: Any) -> bool:
     """Cache generated content for 24 hours"""
-    return await cache.set("content", content_id, content, settings.CACHE_TTL_CONTENT)
+    return await redis_cache.set("content", content_id, content, settings.CACHE_TTL_CONTENT)
 
 
 async def get_cached_content(content_id: str) -> Optional[Any]:
     """Get cached content"""
-    return await cache.get("content", content_id)
+    return await redis_cache.get("content", content_id)
+
+
+class RedisCache:
+    """
+    Convenience wrapper for redis cache with simplified API.
+    Used by content agents for caching generated content.
+    """
+
+    async def get(self, key: str) -> Optional[Any]:
+        """Get value from cache using full key"""
+        if not cache.redis:
+            return None
+        try:
+            value = await cache.redis.get(f"raptorflow:{key}")
+            if value:
+                return json.loads(value)
+            return None
+        except Exception as e:
+            logger.warning("Redis get failed", key=key, error=str(e))
+            return None
+
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+        """Set value in cache with optional TTL"""
+        if not cache.redis:
+            return False
+        try:
+            serialized = json.dumps(value)
+            full_key = f"raptorflow:{key}"
+            if ttl:
+                await cache.redis.setex(full_key, ttl, serialized)
+            else:
+                await cache.redis.set(full_key, serialized)
+            return True
+        except Exception as e:
+            logger.warning("Redis set failed", key=key, error=str(e))
+            return False
+
+    async def delete(self, key: str) -> bool:
+        """Delete value from cache"""
+        if not cache.redis:
+            return False
+        try:
+            await cache.redis.delete(f"raptorflow:{key}")
+            return True
+        except Exception as e:
+            logger.warning("Redis delete failed", key=key, error=str(e))
+            return False
+
+
+# Global redis_cache instance for content agents
+redis_cache = RedisCache()
 

@@ -8,7 +8,7 @@ import logging
 
 from backend.models.persona import ICPProfile, Demographics, Psychographics, Communication
 from backend.config.settings import get_settings
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -173,7 +173,7 @@ IMPORTANT:
                 {"role": "user", "content": extraction_prompt}
             ]
             
-            response = await openai_client.chat_completion(
+            response = await vertex_ai_client.chat_completion(
                 messages=messages,
                 temperature=0.5,
                 response_format={"type": "json_object"}

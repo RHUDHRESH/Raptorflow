@@ -30,8 +30,8 @@ class Settings(BaseSettings):
         "https://*.vercel.app"
     ]
     
-    # OpenAI
-    OPENAI_API_KEY: str
+    # OpenAI (Legacy - Optional fallback when ENABLE_OPENAI_FALLBACK is True)
+    OPENAI_API_KEY: Optional[str] = None
     OPENAI_MODEL: str = "gpt-4-turbo-preview"
     OPENAI_MAX_TOKENS: int = 4096
     OPENAI_TEMPERATURE: float = 0.7
@@ -71,9 +71,21 @@ class Settings(BaseSettings):
     # Canva
     CANVA_API_KEY: Optional[str] = None
     
-    # Google Cloud (for optional Vertex AI)
+    # Google Cloud / Vertex AI
     GOOGLE_CLOUD_PROJECT: Optional[str] = None
+    GOOGLE_CLOUD_LOCATION: str = "us-central1"
     GOOGLE_APPLICATION_CREDENTIALS: Optional[str] = None
+    VERTEX_AI_GEMINI_3_MODEL: str = "gemini-1.5-pro-002"
+    VERTEX_AI_SONNET_4_5_MODEL: str = "claude-3-5-sonnet@20240620"
+    DEFAULT_LLM_TEMPERATURE: float = 0.7
+    DEFAULT_LLM_MAX_OUTPUT_TOKENS: int = 4096
+
+    # Backward-compatible model aliases (used across agents)
+    MODEL_REASONING: str = VERTEX_AI_GEMINI_3_MODEL
+    MODEL_FAST: str = VERTEX_AI_GEMINI_3_MODEL
+    MODEL_CREATIVE: str = VERTEX_AI_SONNET_4_5_MODEL
+    MODEL_CREATIVE_FAST: str = VERTEX_AI_SONNET_4_5_MODEL
+    MODEL_OCR: str = "mistral-ocr"
     
     # Monitoring & Logging
     SENTRY_DSN: Optional[str] = None
@@ -88,6 +100,7 @@ class Settings(BaseSettings):
     MAX_CONCURRENT_AGENTS: int = 10
     AGENT_TIMEOUT_SECONDS: int = 300
     MAX_RETRIES: int = 3
+    DEFAULT_TEMPERATURE: float = 0.7
     
     # Security
     SECRET_KEY: str  # For JWT encoding
@@ -98,6 +111,7 @@ class Settings(BaseSettings):
     ENABLE_AMBIENT_SEARCH: bool = True
     ENABLE_WEB_SCRAPING: bool = True
     ENABLE_SOCIAL_POSTING: bool = False  # Disabled by default for safety
+    ENABLE_OPENAI_FALLBACK: bool = False  # Use OpenAI as fallback if Vertex AI fails (requires OPENAI_API_KEY)
     
     class Config:
         env_file = ".env"
