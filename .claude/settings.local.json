@@ -6,7 +6,14 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(powershell:*)",
-      "Bash(timeout 10 npm run dev)"
+      "Bash(timeout 10 npm run dev)",
+      "Bash(del DEPLOYMENT.md)",
+      "Bash(del GOOGLE_OAUTH_SETUP.md)",
+      "Bash(cat:*)",
+      "Bash(/tmp/readme_backup.md)",
+      "Bash(git add:*)",
+      "Bash(git reset:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nCleanup: Consolidate documentation and remove redundancies\n\n- Deleted duplicate docs from root (DEPLOYMENT.md, GOOGLE_OAUTH_SETUP.md)\n- Moved frontend guides to /docs (FRONTEND_MIGRATION_GUIDE.md, FRONTEND_PROMPTS.md)\n- Renamed RESEARCH_DOMAIN_README.md → RESEARCH_DOMAIN.md in /docs\n- Moved backend migration docs to /docs/archive (5 files)\n- Archived temporary project-specific docs to /docs/archive (2 files)\n- Moved ui_components.pdf to /docs\n- Updated root README with comprehensive documentation index and links\n\nRepository now has a clean, organized structure with:\n- Root level: Essential config, setup, and API docs\n- /docs: Primary documentation hub\n- /docs/archive: Historical/temporary documentation\n\n🦖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
