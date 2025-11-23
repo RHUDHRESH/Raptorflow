@@ -525,3 +525,415 @@ curl -X POST https://api.raptorflow.ai/api/v1/orchestration/execute \
 
 **Version:** 2.0.0
 **Last Updated:** 2024-01-15
+
+---
+
+## Advanced Analytics & Intelligence API
+
+### Performance Prediction
+
+#### POST /api/v1/analytics/predict/performance
+
+Predict content performance before publishing.
+
+**Request Body:**
+```json
+{
+  "content_type": "blog",
+  "platform": "linkedin",
+  "content_features": {
+    "word_count": 500,
+    "has_media": true,
+    "has_hashtags": true,
+    "topic": "AI Marketing"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "prediction_available": true,
+  "content_type": "blog",
+  "platform": "linkedin",
+  "predicted_engagement_rate": 4.5,
+  "predicted_impressions": 5000,
+  "predicted_clicks": 225,
+  "confidence_score": 85.2,
+  "performance_range": {
+    "min": 3.8,
+    "max": 5.2
+  },
+  "data_points_used": 45
+}
+```
+
+#### GET /api/v1/analytics/predict/optimal-time?platform=linkedin
+
+Predict the best time to post based on historical engagement.
+
+**Response:**
+```json
+{
+  "prediction_available": true,
+  "platform": "linkedin",
+  "best_day_of_week": "Tuesday",
+  "best_day_engagement": 5.8,
+  "best_hour": 10,
+  "best_hour_engagement": 6.2,
+  "recommended_posting_time": "Tuesday at 10:00"
+}
+```
+
+#### POST /api/v1/analytics/predict/ab-test
+
+Get A/B test configuration suggestions.
+
+**Request Body:**
+```json
+{
+  "content_variants": [
+    {
+      "name": "Short Hook",
+      "content_type": "social_post",
+      "platform": "linkedin",
+      "features": {"word_count": 100, "has_media": true}
+    },
+    {
+      "name": "Long Story",
+      "content_type": "social_post",
+      "platform": "linkedin",
+      "features": {"word_count": 300, "has_media": false}
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "variants": [...],
+  "recommendation": "Variant 'Short Hook' shows 20%+ higher predicted engagement...",
+  "suggested_split": {
+    "Short Hook": 70.0,
+    "Long Story": 30.0
+  },
+  "estimated_duration_days": 7
+}
+```
+
+### Meta-Learning
+
+#### GET /api/v1/analytics/meta-learning/insights?time_period_days=90
+
+Learn from historical performance and generate recommendations.
+
+**Response:**
+```json
+{
+  "learning_available": true,
+  "samples_analyzed": 85,
+  "content_patterns": {
+    "by_content_type": {
+      "blog": {"avg_engagement": 4.2, "count": 30},
+      "social_post": {"avg_engagement": 5.1, "count": 55}
+    },
+    "best_performing_type": "social_post"
+  },
+  "timing_patterns": {
+    "best_day": "Tuesday",
+    "best_day_engagement": 5.8
+  },
+  "platform_insights": {
+    "best_platform": "linkedin",
+    "best_platform_engagement": 6.2
+  },
+  "improvement_trends": {
+    "trend": "improving",
+    "improvement_percentage": 15.3
+  },
+  "recommendations": [
+    {
+      "category": "content_type",
+      "priority": "high",
+      "recommendation": "Focus on social_post content",
+      "confidence": "high"
+    }
+  ]
+}
+```
+
+#### GET /api/v1/analytics/meta-learning/strategy/{strategy_id}
+
+Track effectiveness of a specific strategy.
+
+**Response:**
+```json
+{
+  "tracking_available": true,
+  "strategy_id": "uuid",
+  "total_posts": 25,
+  "avg_engagement_rate": 4.8,
+  "effectiveness": "high",
+  "consistency_score": 87.5
+}
+```
+
+### Agent Swarm & Collaborative Intelligence
+
+#### POST /api/v1/analytics/debate
+
+Run a multi-agent debate on a strategic question.
+
+**Request Body:**
+```json
+{
+  "topic": "Should we focus on LinkedIn or Twitter for B2B outreach?",
+  "context": {
+    "description": "We're a B2B SaaS company targeting enterprise clients"
+  },
+  "agent_roles": ["conservative_marketer", "innovative_disruptor", "data_analyst"]
+}
+```
+
+**Response:**
+```json
+{
+  "topic": "Should we focus on LinkedIn or Twitter for B2B outreach?",
+  "agent_roles": ["conservative_marketer", "innovative_disruptor", "data_analyst"],
+  "debate_rounds": 3,
+  "transcript": [
+    {
+      "round": 1,
+      "arguments": {
+        "conservative_marketer": "LinkedIn is the proven platform for B2B...",
+        "innovative_disruptor": "Twitter offers unique opportunities for viral growth...",
+        "data_analyst": "The data shows LinkedIn has 3x higher conversion rates..."
+      }
+    }
+  ],
+  "consensus": {
+    "reached": true,
+    "synthesis": "While Twitter offers innovation potential, LinkedIn's proven B2B track record and higher conversion rates make it the primary focus, with Twitter as a secondary experimental channel."
+  }
+}
+```
+
+#### POST /api/v1/analytics/collaborative-decision
+
+Make a collaborative decision using agent swarm.
+
+**Request Body:**
+```json
+{
+  "decision_type": "platform",
+  "options": [
+    {"name": "LinkedIn", "description": "Professional network"},
+    {"name": "Twitter", "description": "Real-time updates"}
+  ],
+  "context": {"description": "B2B SaaS marketing"}
+}
+```
+
+**Response:**
+```json
+{
+  "decision_type": "platform",
+  "winning_option_index": 0,
+  "winning_option": {"name": "LinkedIn", "description": "Professional network"},
+  "total_confidence": 78.5,
+  "agent_votes": {...}
+}
+```
+
+### Semantic Memory API
+
+#### POST /api/v1/memory/context
+
+Store context in semantic memory.
+
+**Request Body:**
+```json
+{
+  "context_type": "icp",
+  "content": "Target audience: B2B SaaS founders aged 30-45...",
+  "metadata": {
+    "icp_id": "uuid",
+    "industry": "SaaS"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "context_id": "workspace_icp_1234567890",
+  "workspace_id": "uuid",
+  "context_type": "icp",
+  "stored_at": "2024-01-01T00:00:00Z",
+  "message": "Context stored successfully"
+}
+```
+
+#### POST /api/v1/memory/context/search
+
+Search context using semantic similarity.
+
+**Request Body:**
+```json
+{
+  "query": "What are our target audience's pain points?",
+  "context_type": "icp",
+  "limit": 5
+}
+```
+
+**Response:**
+```json
+{
+  "query": "What are our target audience's pain points?",
+  "results": [
+    {
+      "id": "context_id",
+      "content": "Target audience struggles with scaling, retention...",
+      "context_type": "icp",
+      "similarity": 0.89,
+      "metadata": {...}
+    }
+  ],
+  "result_count": 3
+}
+```
+
+### Content Quality & Language Engine
+
+#### POST /api/v1/analytics/content/check-grammar
+
+Check grammar and spelling.
+
+**Request Body:**
+```json
+{
+  "text": "Your content to check",
+  "language": "en-US"
+}
+```
+
+**Response:**
+```json
+{
+  "text": "Your content to check",
+  "language": "en-US",
+  "issues": [
+    {
+      "type": "spacing",
+      "message": "Multiple consecutive spaces found",
+      "severity": "low"
+    }
+  ],
+  "issue_count": 1
+}
+```
+
+#### POST /api/v1/analytics/content/analyze-readability
+
+Analyze content readability.
+
+**Request Body:**
+```json
+{
+  "text": "Your content to analyze"
+}
+```
+
+**Response:**
+```json
+{
+  "sentences": 5,
+  "words": 87,
+  "syllables": 142,
+  "avg_words_per_sentence": 17.4,
+  "flesch_reading_ease": 68.5,
+  "flesch_kincaid_grade": 8.2,
+  "readability_level": "standard"
+}
+```
+
+#### POST /api/v1/analytics/content/optimize-tone
+
+Optimize content tone.
+
+**Request Body:**
+```json
+{
+  "text": "Your content",
+  "target_tone": "professional"
+}
+```
+
+**Response:**
+```json
+{
+  "target_tone": "professional",
+  "current_tone_analysis": {
+    "contractions": 3,
+    "personal_pronouns": 5,
+    "informal_words": 2
+  },
+  "suggestions": [
+    "Reduce contractions (don't → do not)",
+    "Replace informal language"
+  ],
+  "tone_match_score": 65.0
+}
+```
+
+#### POST /api/v1/analytics/content/suggest-improvements
+
+Get comprehensive content analysis.
+
+**Request Body:**
+```json
+{
+  "text": "Your content to analyze"
+}
+```
+
+**Response:**
+```json
+{
+  "grammar_check": {...},
+  "readability_analysis": {...},
+  "suggestions": [
+    {
+      "category": "readability",
+      "priority": "medium",
+      "message": "Simplify language for better readability"
+    }
+  ],
+  "quality_score": 82.5
+}
+```
+
+---
+
+## Error Handling
+
+All endpoints return consistent error responses:
+
+```json
+{
+  "detail": "Error message",
+  "correlation_id": "uuid",
+  "timestamp": "2024-01-01T00:00:00Z"
+}
+```
+
+**Common HTTP Status Codes:**
+- `200 OK`: Success
+- `400 Bad Request`: Invalid request parameters
+- `401 Unauthorized`: Missing or invalid authentication
+- `403 Forbidden`: Insufficient permissions
+- `404 Not Found`: Resource not found
+- `500 Internal Server Error`: Server error
+
