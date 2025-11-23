@@ -113,3 +113,6 @@ pandas>=2.0.0
 
 # Language & Grammar Analysis
 language-tool-python>=2.7.1  # For grammar checking
+
+# PhonePe Payment Gateway SDK
+phonepe_sdk>=2.1.5  # PhonePe SDK for autopay and payments

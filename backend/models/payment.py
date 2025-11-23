@@ -170,3 +170,91 @@ class PlanLimits(BaseModel):
     is_limit_reached: bool = False
     upgrade_required: bool = False
     recommended_plan: Optional[str] = None
+
+
+# ========================================
+# Autopay Models (Recurring Payments)
+# ========================================
+
+class AutopaySubscriptionRequest(BaseModel):
+    """Request model for creating an autopay subscription."""
+    plan: Literal["ascent", "glide", "soar"]
+    billing_period: Literal["monthly", "yearly"] = "monthly"
+    user_id: UUID
+    workspace_id: UUID
+    mobile_number: str = Field(..., description="Customer mobile number (required for autopay)")
+    redirect_url: str = Field(..., description="URL to redirect after authorization")
+    callback_url: str = Field(..., description="URL for autopay webhook notifications")
+
+
+class AutopaySubscriptionResponse(BaseModel):
+    """Response model for autopay subscription creation."""
+    subscription_id: str
+    merchant_subscription_id: str
+    authorization_url: str  # URL to authorize the autopay mandate
+    amount: int  # Amount in paise
+    status: str
+    start_date: datetime
+    end_date: datetime
+    billing_frequency: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class AutopaySubscriptionStatus(BaseModel):
+    """Autopay subscription status check response."""
+    subscription_id: str
+    merchant_subscription_id: str
+    status: Literal["pending", "active", "paused", "cancelled", "expired", "unknown"]
+    amount: int
+    start_date: datetime
+    end_date: datetime
+    billing_frequency: str
+    next_billing_date: Optional[datetime] = None
+    total_payments: int = 0
+    successful_payments: int = 0
+    failed_payments: int = 0
+
+
+class AutopayWebhook(BaseModel):
+    """PhonePe Autopay webhook payload."""
+    merchant_subscription_id: str
+    subscription_id: str
+    event_type: str  # SUBSCRIPTION_ACTIVATED, PAYMENT_SUCCESS, PAYMENT_FAILED, etc.
+    payment_id: Optional[str] = None
+    amount: Optional[int] = None
+    status: str
+    timestamp: datetime
+
+
+class CreateAutopayCheckoutRequest(BaseModel):
+    """Request to create an autopay checkout session."""
+    plan: Literal["ascent", "glide", "soar"]
+    billing_period: Literal["monthly", "yearly"] = "monthly"
+    mobile_number: str = Field(..., description="Customer mobile number")
+    success_url: str
+    cancel_url: str
+
+
+class CreateAutopayCheckoutResponse(BaseModel):
+    """Response from creating an autopay checkout session."""
+    authorization_url: str
+    subscription_id: str
+    merchant_subscription_id: str
+    expires_at: datetime
+
+
+class CancelAutopayRequest(BaseModel):
+    """Request to cancel autopay subscription."""
+    merchant_subscription_id: str
+    reason: Optional[str] = None
+
+
+class PauseAutopayRequest(BaseModel):
+    """Request to pause autopay subscription."""
+    merchant_subscription_id: str
+    reason: Optional[str] = None
+
+
+class ResumeAutopayRequest(BaseModel):
+    """Request to resume paused autopay subscription."""
+    merchant_subscription_id: str
