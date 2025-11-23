@@ -1,37 +1,40 @@
 /**
  * RaptorFlow 2.0 Backend API Client
  * TypeScript client for communicating with the FastAPI backend
+ * Enhanced with Memory, Performance Prediction, and Advanced Features
  */
 
 import { supabase } from '../supabase';
+import { v4 as uuidv4 } from 'uuid';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:8000/api/v1';
 
 /**
- * Base fetch wrapper with authentication
+ * Base fetch wrapper with authentication and correlation ID tracking
  */
 async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const { data: { session } } = await supabase.auth.getSession();
-  
+
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
+    'X-Correlation-ID': uuidv4(), // Track requests across the system
     ...options.headers,
   };
-  
+
   if (session?.access_token) {
     headers['Authorization'] = `Bearer ${session.access_token}`;
   }
-  
+
   const response = await fetch(`${BACKEND_URL}${endpoint}`, {
     ...options,
     headers,
   });
-  
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
     throw new Error(error.detail || `API Error: ${response.status}`);
   }
-  
+
   return response.json();
 }
 
@@ -370,21 +373,21 @@ export const integrationsAPI = {
       body: JSON.stringify({ platform, ...data }),
     });
   },
-  
+
   /**
    * Disconnect a platform
    */
   async disconnectPlatform(platform: string) {
     return apiFetch(`/integrations/disconnect/${platform}`, { method: 'DELETE' });
   },
-  
+
   /**
    * Get integration status for all platforms
    */
   async getIntegrationStatus() {
     return apiFetch('/integrations/status');
   },
-  
+
   /**
    * Get specific platform status
    */
@@ -394,16 +397,259 @@ export const integrationsAPI = {
 };
 
 /**
+ * Memory API - Advanced Memory System
+ * Supports workspace, semantic, conversation, and agent memory
+ */
+export const memoryAPI = {
+  /**
+   * Store information in workspace memory
+   */
+  async remember(workspaceId: string, key: string, value: any, metadata?: any) {
+    return apiFetch('/memory/remember', {
+      method: 'POST',
+      body: JSON.stringify({
+        workspace_id: workspaceId,
+        key,
+        value,
+        metadata
+      })
+    });
+  },
+
+  /**
+   * Recall information from workspace memory
+   */
+  async recall(workspaceId: string, key: string) {
+    return apiFetch(`/memory/recall/${workspaceId}/${key}`);
+  },
+
+  /**
+   * Semantic search across all memory
+   */
+  async search(workspaceId: string, query: string, topK: number = 5) {
+    const params = new URLSearchParams({
+      query,
+      top_k: topK.toString()
+    });
+    return apiFetch(`/memory/search/${workspaceId}?${params}`);
+  },
+
+  /**
+   * Get full context for a task type
+   */
+  async getContext(workspaceId: string, taskType: string, topK: number = 10) {
+    const params = new URLSearchParams({
+      task_type: taskType,
+      top_k: topK.toString()
+    });
+    return apiFetch(`/memory/context/${workspaceId}?${params}`);
+  },
+
+  /**
+   * List all memory entries for a workspace
+   */
+  async list(workspaceId: string, memoryType?: string) {
+    const params = new URLSearchParams();
+    if (memoryType) params.append('memory_type', memoryType);
+    return apiFetch(`/memory/list/${workspaceId}?${params}`);
+  },
+
+  /**
+   * Delete a memory entry
+   */
+  async forget(workspaceId: string, key: string) {
+    return apiFetch(`/memory/forget/${workspaceId}/${key}`, {
+      method: 'DELETE'
+    });
+  },
+};
+
+/**
+ * Performance Prediction API
+ * AI-powered performance prediction before publishing
+ */
+export const performanceAPI = {
+  /**
+   * Predict engagement metrics for content
+   */
+  async predictEngagement(data: {
+    content: string;
+    icp_id: string;
+    channel: 'linkedin' | 'twitter' | 'blog' | 'email';
+    content_type: 'blog' | 'email' | 'social';
+  }) {
+    return apiFetch('/analytics/predict/performance', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+
+  /**
+   * Get optimal posting time for content
+   */
+  async getOptimalTime(data: {
+    icp_id: string;
+    channel: string;
+    content_type: string;
+  }) {
+    return apiFetch('/analytics/predict/optimal-time', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+
+  /**
+   * Predict A/B test outcomes
+   */
+  async predictABTest(data: {
+    variant_a: string;
+    variant_b: string;
+    icp_id: string;
+    channel: string;
+  }) {
+    return apiFetch('/analytics/predict/ab-test', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+};
+
+/**
+ * Guardian API - Compliance and Safety Checks
+ */
+export const guardianAPI = {
+  /**
+   * Run compliance check on content
+   */
+  async checkContent(contentId: string) {
+    return apiFetch(`/content/${contentId}/guardian-check`, {
+      method: 'POST'
+    });
+  },
+
+  /**
+   * Get compliance history
+   */
+  async getHistory(workspaceId: string, limit: number = 50) {
+    const params = new URLSearchParams({
+      limit: limit.toString()
+    });
+    return apiFetch(`/guardian/history/${workspaceId}?${params}`);
+  },
+};
+
+/**
+ * Orchestration API - Agent Debugging and Tracing
+ */
+export const orchestrationAPI = {
+  /**
+   * List recent agent execution runs
+   */
+  async listRecentRuns(limit: number = 20) {
+    const params = new URLSearchParams({
+      limit: limit.toString()
+    });
+    return apiFetch(`/orchestration/runs?${params}`);
+  },
+
+  /**
+   * Get detailed execution trace for a correlation ID
+   */
+  async getExecutionTrace(correlationId: string) {
+    return apiFetch(`/orchestration/trace/${correlationId}`);
+  },
+
+  /**
+   * Get agent performance metrics
+   */
+  async getAgentMetrics(agentName?: string) {
+    const params = new URLSearchParams();
+    if (agentName) params.append('agent_name', agentName);
+    return apiFetch(`/orchestration/metrics?${params}`);
+  },
+};
+
+/**
+ * Cohorts API (replaces icpAPI with correct endpoint names)
+ */
+export const cohortsAPI = {
+  /**
+   * Generate a new cohort/ICP
+   */
+  async generate(data: {
+    nickname: string;
+    role: string;
+    biggest_pain_point: string;
+    known_attributes?: string[];
+  }) {
+    return apiFetch('/cohorts/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Compute psychographics for a cohort
+   */
+  async computePsychographics(cohortId: string, cohortData: any) {
+    return apiFetch('/cohorts/compute_psychographics', {
+      method: 'POST',
+      body: JSON.stringify({
+        cohort: cohortData
+      }),
+    });
+  },
+
+  /**
+   * Get all cohorts for workspace
+   */
+  async list() {
+    return apiFetch('/cohorts/');
+  },
+
+  /**
+   * Get specific cohort
+   */
+  async get(cohortId: string) {
+    return apiFetch(`/cohorts/${cohortId}`);
+  },
+
+  /**
+   * Update cohort
+   */
+  async update(cohortId: string, data: any) {
+    return apiFetch(`/cohorts/${cohortId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Delete cohort
+   */
+  async delete(cohortId: string) {
+    return apiFetch(`/cohorts/${cohortId}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+/**
  * Export all APIs as a single object
  */
 export const backendAPI = {
   onboarding: onboardingAPI,
-  icp: icpAPI,
+  icp: icpAPI, // Keep for backwards compatibility
+  cohorts: cohortsAPI, // New correct endpoint
   strategy: strategyAPI,
   campaigns: campaignsAPI,
   content: contentAPI,
   analytics: analyticsAPI,
   integrations: integrationsAPI,
+  memory: memoryAPI,
+  performance: performanceAPI,
+  guardian: guardianAPI,
+  orchestration: orchestrationAPI,
 };
 
 export default backendAPI;
