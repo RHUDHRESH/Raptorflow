@@ -44,7 +44,26 @@ RaptorFlow 2.0 is an enterprise-grade marketing automation platform that uses **
 - 🔮 **Optimal Timing**: Predict best posting times based on engagement patterns
 - 🧪 **A/B Test Intelligence**: Automated A/B test configuration and outcome prediction
 
-📚 **[Full API Reference](./API_REFERENCE.md)** | 🚀 **[Deployment Guide](./DEPLOYMENT.md)**
+---
+
+## 📖 Documentation
+
+**Quick Links:**
+- 🚀 [Deployment Guide](./docs/DEPLOYMENT.md)
+- 📚 [Complete Documentation](./docs/)
+- 🏗️ [Architecture Overview](./ARCHITECTURE_DIAGRAM.txt)
+- 📖 [Setup Guide](./SETUP_GUIDE.md)
+- 📖 [Testing Setup](./TEST_SETUP.md)
+- 📖 [API Reference](./API_REFERENCE.md)
+
+**Frontend Integration:**
+- [Frontend Migration Guide](./docs/FRONTEND_MIGRATION_GUIDE.md) - Merge `main` and wire backend
+- [Frontend Prompts](./docs/FRONTEND_PROMPTS.md) - Step-by-step integration prompts (10 prompts)
+
+**Feature Documentation:**
+- [Research Domain](./docs/RESEARCH_DOMAIN.md) - Customer intelligence system (ICP, personas, pain points)
+
+**Archived Documentation** - See [`/docs/archive/`](./docs/archive/) for historical migration guides and implementation details.
 
 ---
 
@@ -123,6 +142,8 @@ cp backend/.env.example backend/.env
 # - REDIS_URL (defaults to localhost)
 ```
 
+See [Environment Variables](./docs/ENVIRONMENT_VARIABLES.md) for complete configuration details.
+
 ### 3. Run with Docker Compose
 
 ```bash
@@ -193,6 +214,8 @@ Interactive API documentation: **http://localhost:8000/docs**
 - `POST /api/v1/integrations/connect/{platform}` - Connect platform
 - `GET /api/v1/integrations/status` - Integration status
 
+See [API Reference](./API_REFERENCE.md) for comprehensive endpoint documentation.
+
 ---
 
 ## 🧪 Testing
@@ -207,6 +230,8 @@ pytest backend/tests/integration
 # Run with coverage
 pytest --cov=backend --cov-report=html
 ```
+
+See [Testing Setup](./TEST_SETUP.md) for detailed testing instructions.
 
 ---
 
@@ -224,11 +249,6 @@ pytest --cov=backend --cov-report=html
 - `GOOGLE_CLOUD_PROJECT`: Your GCP project ID
 - `GOOGLE_APPLICATION_CREDENTIALS`: Path to service account JSON
 - `VERTEX_AI_LOCATION`: GCP region (default: us-central1)
-- `VERTEX_AI_GEMINI_3_MODEL`: General reasoning model
-- `VERTEX_AI_GEMINI_2_5_FLASH_MODEL`: Fast model
-- `VERTEX_AI_SONNET_4_5_MODEL`: Creative reasoning model
-- `VERTEX_AI_HAIKU_4_5_MODEL`: Creative fast model
-- `VERTEX_AI_MISTRAL_OCR_MODEL`: OCR model
 
 #### Supabase (Required)
 - `SUPABASE_URL`: Your Supabase project URL
@@ -238,12 +258,7 @@ pytest --cov=backend --cov-report=html
 #### Redis (Required)
 - `REDIS_URL`: Redis connection string (default: redis://localhost:6379/0)
 
-#### Integrations (Optional)
-- `CANVA_API_KEY`: Canva API key
-- `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`: LinkedIn OAuth
-- `TWITTER_API_KEY`, `TWITTER_API_SECRET`: Twitter API v2
-- `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET`: Instagram Graph API
-- `GOOGLE_ANALYTICS_CREDENTIALS_PATH`: GA service account key
+See [Environment Variables](./docs/ENVIRONMENT_VARIABLES.md) for complete configuration details.
 
 ---
 
@@ -251,50 +266,11 @@ pytest --cov=backend --cov-report=html
 
 ### Google Cloud Run
 
-```bash
-# Set project ID
-export GOOGLE_CLOUD_PROJECT="your-project-id"
-
-# Run deployment script
-./scripts/deploy-backend.sh
-```
-
-The script will:
-1. Build Docker image
-2. Push to Google Container Registry
-3. Deploy to Cloud Run with auto-scaling
-4. Set up environment variables and secrets
-5. Output service URL
-
-### Environment Variables in Production
-
-Store sensitive variables in **Google Secret Manager**:
-```bash
-# Create secrets
-gcloud secrets create SUPABASE_SERVICE_KEY --data-file=-
-gcloud secrets create SUPABASE_JWT_SECRET --data-file=-
-gcloud secrets create REDIS_URL --data-file=-
-```
-
----
-
-## 📊 Monitoring & Observability
-
-### Structured Logging
-- **Development**: Human-readable console output
-- **Production**: JSON logs for aggregation
-- All logs include `correlation_id` for request tracing
-
-### Health Checks
-- **Backend**: `GET /health`
-- **Redis**: Automatic health check in docker-compose
-
-### Metrics
-- Request latency (p50, p95, p99)
-- Agent execution time
-- Cache hit rate
-- API error rates
-- LLM token usage
+See [Deployment Guide](./docs/DEPLOYMENT.md) for comprehensive deployment instructions including:
+- Building and pushing Docker images
+- Environment variables and secrets management
+- Auto-scaling configuration
+- Monitoring and observability setup
 
 ---
 
@@ -334,6 +310,7 @@ raptorflow/
 │   ├── lib/services/         # Backend API client
 │   └── ...
 ├── scripts/                   # Deployment scripts
+├── docs/                      # Documentation
 ├── docker-compose.yml         # Local development
 ├── Dockerfile.backend         # Backend container
 └── README.md                  # This file
@@ -348,6 +325,7 @@ raptorflow/
 - **Vertex AI**: Google Cloud LLM inference (Gemini, Claude, Mistral)
 - **Supabase**: PostgreSQL database & authentication
 - **Redis**: Task queue & caching
+- **ChromaDB/FAISS**: Vector database for semantic memory
 - **Pydantic**: Data validation
 - **Docker**: Containerization
 - **Google Cloud Run**: Serverless deployment
@@ -401,9 +379,8 @@ raptorflow/
 
 ## 📞 Support
 
-- **Documentation**: [Your docs URL]
-- **Issues**: [GitHub Issues]
-- **Discord**: [Your Discord]
+- **Documentation**: See `/docs/` directory
+- **Issues**: Report via GitHub Issues
 - **Email**: [Your email]
 
 ---
