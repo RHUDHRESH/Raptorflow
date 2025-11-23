@@ -106,7 +106,8 @@ from backend.routers import (
     campaigns,
     content,
     orchestration,
-    payments
+    payments,
+    autopay  # PhonePe Autopay integration
 )
 from backend.routers import memory  # New memory router
 
@@ -121,6 +122,7 @@ app.include_router(content.router, prefix="/api/v1/content", tags=["Content"])
 app.include_router(orchestration.router, prefix="/api/v1", tags=["Orchestration"])
 app.include_router(memory.router, prefix="/api/v1", tags=["Memory"])  # New semantic memory endpoints
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["Payments"])  # PhonePe payment integration
+app.include_router(autopay.router, prefix="/api/v1/autopay", tags=["Autopay"])  # PhonePe Autopay integration
 
 
 @app.get("/")
