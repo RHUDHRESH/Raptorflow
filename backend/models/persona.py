@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from backend.models.base import BaseSchema
 
@@ -542,10 +542,10 @@ class ICPProfile(BaseModel):
         description="Timestamp when this ICP was last updated",
     )
 
-    class Config:
-        """Pydantic model configuration."""
-        populate_by_name = True
-        from_attributes = True
+    model_config = ConfigDict(
+        populate_by_name=True,
+        from_attributes=True
+    )
 
     @field_validator("tags")
     @classmethod

@@ -3,7 +3,7 @@ Configuration settings for RaptorFlow 2.0 Backend
 Loads environment variables and provides centralized config
 """
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 from typing import Optional
 
@@ -127,7 +127,7 @@ class Settings(BaseSettings):
     DEFAULT_TEMPERATURE: float = 0.7
     
     # Security
-    SECRET_KEY: str = "CHANGE_THIS_IN_PRODUCTION_USE_RANDOM_STRING"  # For JWT encoding - MUST be changed in production
+    SECRET_KEY: str  # For JWT encoding - MUST be set via environment variable
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200  # 30 days
     
@@ -136,11 +136,12 @@ class Settings(BaseSettings):
     ENABLE_WEB_SCRAPING: bool = True
     ENABLE_SOCIAL_POSTING: bool = False  # Disabled by default for safety
     ENABLE_OPENAI_FALLBACK: bool = False  # Use OpenAI as fallback if Vertex AI fails (requires OPENAI_API_KEY)
-    
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True
+    )
 
 
 @lru_cache()

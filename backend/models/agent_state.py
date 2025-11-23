@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, ConfigDict
 
 from backend.models.content import BlogRequest, EmailRequest, SocialPostRequest
 from backend.models.persona import ICPRequest, ICPResponse, PersonaNarrative
@@ -90,13 +90,9 @@ class BaseAgentState(BaseModel):
         description="Timestamp of last state modification",
     )
 
-    class Config:
-        """Pydantic model configuration."""
-        from_attributes = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat(),
-            UUID: lambda v: str(v),
-        }
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
     def touch(self) -> None:
         """

@@ -3,10 +3,10 @@ Pydantic models for Payment and Subscription management.
 Supports PhonePe payment gateway integration.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Literal, Dict, Any, List
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class PhonePePaymentRequest(BaseModel):
@@ -26,7 +26,7 @@ class PhonePePaymentResponse(BaseModel):
     payment_url: str
     amount: int  # Amount in paise (smallest currency unit)
     status: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class PaymentStatus(BaseModel):
@@ -50,8 +50,8 @@ class SubscriptionPlan(BaseModel):
     features: Dict[str, Any]
     limits: Dict[str, int]
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "plan_id": "plan_ascent_monthly",
                 "name": "ascent",
@@ -69,6 +69,7 @@ class SubscriptionPlan(BaseModel):
                 }
             }
         }
+    )
 
 
 class Subscription(BaseModel):
@@ -197,7 +198,7 @@ class AutopaySubscriptionResponse(BaseModel):
     start_date: datetime
     end_date: datetime
     billing_frequency: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class AutopaySubscriptionStatus(BaseModel):

@@ -3,9 +3,9 @@ Payment API Router
 Endpoints for payment processing, subscription management, and PhonePe integration.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Annotated
 from uuid import UUID
-from fastapi import APIRouter, HTTPException, Depends, Request, Header
+from fastapi import APIRouter, HTTPException, Depends, Request
 import logging
 
 from backend.models.payment import (
@@ -20,26 +20,11 @@ from backend.models.payment import (
 from backend.services.phonepe_service import phonepe_service
 from backend.services.supabase_client import supabase_client
 from backend.utils.correlation import generate_correlation_id, set_correlation_id
+from backend.utils.auth import get_current_user_and_workspace
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
-
-# Simple auth dependency - will use actual auth from main.py in production
-async def get_current_user(authorization: str = Header(None)) -> Dict[str, str]:
-    """Get current authenticated user from token."""
-    # TODO: Implement proper JWT validation using Supabase
-    # For now, returning mock data for development
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    # In production, verify JWT and extract user info
-    # For development, we'll pass through
-    return {
-        "user_id": "00000000-0000-0000-0000-000000000000",
-        "workspace_id": "00000000-0000-0000-0000-000000000000"
-    }
 
 
 @router.get("/plans", response_model=Dict[str, Any])
@@ -75,7 +60,7 @@ async def get_available_plans():
 @router.post("/checkout/create", response_model=CreateCheckoutResponse)
 async def create_checkout_session(
     request: CreateCheckoutRequest,
-    auth: Dict[str, str] = Depends(get_current_user)
+    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
 ):
     """
     Create a new checkout session for subscription purchase.
@@ -190,7 +175,7 @@ async def phonepe_webhook(request: Request):
 
 @router.get("/subscription/status", response_model=Dict[str, Any])
 async def get_subscription_status(
-    auth: Dict[str, str] = Depends(get_current_user)
+    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
 ):
     """
     Get current subscription status for the authenticated user.
@@ -232,7 +217,7 @@ async def get_subscription_status(
 @router.post("/subscription/change", response_model=Dict[str, Any])
 async def change_subscription(
     request: SubscriptionChangeRequest,
-    auth: Dict[str, str] = Depends(get_current_user)
+    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
 ):
     """
     Change subscription plan.
@@ -277,7 +262,7 @@ async def change_subscription(
 @router.post("/subscription/cancel", response_model=Dict[str, Any])
 async def cancel_subscription(
     request: CancelSubscriptionRequest,
-    auth: Dict[str, str] = Depends(get_current_user)
+    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
 ):
     """
     Cancel active subscription.
@@ -318,7 +303,7 @@ async def cancel_subscription(
 
 @router.get("/billing/history", response_model=Dict[str, Any])
 async def get_billing_history(
-    auth: Dict[str, str] = Depends(get_current_user)
+    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
 ):
     """
     Get billing history for the authenticated user.
@@ -346,7 +331,7 @@ async def get_billing_history(
 @router.get("/payment/status/{merchant_transaction_id}", response_model=Dict[str, Any])
 async def check_payment_status(
     merchant_transaction_id: str,
-    auth: Dict[str, str] = Depends(get_current_user)
+    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
 ):
     """
     Check status of a payment transaction.

@@ -252,7 +252,7 @@ class GrammarOrchestrator:
             import language_tool_python
 
             # Run in executor to avoid blocking
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             tool = await loop.run_in_executor(
                 None,
                 lambda: language_tool_python.LanguageTool(language)

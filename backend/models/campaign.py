@@ -20,10 +20,10 @@ agents to orchestrate campaign planning, task management, and performance
 monitoring.
 """
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import List, Dict, Optional, Literal, Any
 from uuid import UUID
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 
 class Task(BaseModel):
@@ -211,9 +211,9 @@ class MoveRequest(BaseModel):
     constraints: Optional[Dict[str, Any]] = None
     budget: Optional[str] = None
     maneuver_type_id: Optional[UUID] = None  # Links to maneuver_types table
-    
-    class Config:
-        json_schema_extra = {
+
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
                 "name": "Q2 Demand Gen Sprint",
@@ -224,6 +224,7 @@ class MoveRequest(BaseModel):
                 "budget": "$10,000"
             }
         }
+    )
 
 
 class MoveMetrics(BaseModel):
@@ -267,9 +268,9 @@ class MoveResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
-    
-    class Config:
-        json_schema_extra = {
+
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "move_id": "750e8400-e29b-41d4-a716-446655440000",
                 "name": "Q2 Demand Gen Sprint",
@@ -288,6 +289,7 @@ class MoveResponse(BaseModel):
                 "created_at": "2024-04-01T00:00:00Z"
             }
         }
+    )
 
 
 class TaskUpdateRequest(BaseModel):
@@ -306,7 +308,7 @@ class MoveDecision(BaseModel):
     actions_taken: List[str] = Field(default_factory=list)
     expected_impact: Optional[str] = None
     actual_impact: Optional[str] = None
-    decided_at: datetime = Field(default_factory=datetime.utcnow)
+    decided_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     decided_by: Optional[str] = None
 
 
@@ -318,7 +320,7 @@ class MoveAnomaly(BaseModel):
     severity: Literal["low", "medium", "high", "critical"]
     description: str
     suggested_actions: List[str] = Field(default_factory=list)
-    detected_at: datetime = Field(default_factory=datetime.utcnow)
+    detected_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     resolved: bool = Field(default=False)
     resolved_at: Optional[datetime] = None
     resolution_notes: Optional[str] = None

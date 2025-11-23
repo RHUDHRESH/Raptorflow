@@ -12,7 +12,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AgentContext(BaseModel):
@@ -91,13 +91,9 @@ class AgentContext(BaseModel):
         description="Additional workspace-specific data",
     )
 
-    class Config:
-        """Pydantic model configuration."""
-        from_attributes = True
-        json_encoders = {
-            UUID: lambda v: str(v),
-            datetime: lambda v: v.isoformat(),
-        }
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
@@ -180,10 +176,9 @@ class WorkflowCheckpoint(BaseModel):
         description="User IDs to notify when checkpoint is reached",
     )
 
-    class Config:
-        """Pydantic model configuration."""
-        from_attributes = True
-        json_encoders = {UUID: lambda v: str(v)}
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
 
 class WorkflowCheckpoints(BaseModel):
@@ -222,10 +217,9 @@ class WorkflowCheckpoints(BaseModel):
         description="Whether checkpoints are enabled for this workspace",
     )
 
-    class Config:
-        """Pydantic model configuration."""
-        from_attributes = True
-        json_encoders = {UUID: lambda v: str(v)}
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
     def get_checkpoint(self, name: str) -> Optional[WorkflowCheckpoint]:
         """Get a checkpoint by name."""
@@ -360,6 +354,6 @@ class SelfCorrectionConfig(BaseModel):
         description="Store failed attempts in memory for learning",
     )
 
-    class Config:
-        """Pydantic model configuration."""
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True
+    )

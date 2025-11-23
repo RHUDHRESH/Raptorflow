@@ -16,10 +16,10 @@ generation agents to orchestrate multi-variant content creation with
 built-in quality assessment and approval workflows.
 """
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import List, Dict, Optional, Literal, Any
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class ContentMetadata(BaseModel):
@@ -334,9 +334,9 @@ class ContentRequest(BaseModel):
     # Constraints
     avoid_topics: List[str] = Field(default_factory=list)
     must_include_phrases: List[str] = Field(default_factory=list)
-    
-    class Config:
-        json_schema_extra = {
+
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
                 "move_id": "750e8400-e29b-41d4-a716-446655440000",
@@ -349,6 +349,7 @@ class ContentRequest(BaseModel):
                 "platform": "blog"
             }
         }
+    )
 
 
 class ContentVariant(BaseModel):
@@ -371,8 +372,9 @@ class ContentVariant(BaseModel):
         description="Predicted metrics (engagement, clicks, etc.)",
     )
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(
+        populate_by_name=True
+    )
 
     @property
     def text(self) -> str:
@@ -427,11 +429,11 @@ class ContentResponse(BaseModel):
     reviewed_at: Optional[datetime] = None
     
     # Timestamps
-    generated_at: datetime = Field(default_factory=datetime.utcnow)
+    generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     published_at: Optional[datetime] = None
-    
-    class Config:
-        json_schema_extra = {
+
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "content_id": "850e8400-e29b-41d4-a716-446655440000",
                 "variants": [
@@ -455,6 +457,7 @@ class ContentResponse(BaseModel):
                 "generated_at": "2024-04-15T10:30:00Z"
             }
         }
+    )
 
 
 class ContentApprovalRequest(BaseModel):
@@ -488,7 +491,7 @@ class ContentCalendar(BaseModel):
     entries: List["ContentCalendarEntry"] = Field(default_factory=list)
     start_date: datetime
     end_date: datetime
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class ContentCalendarEntry(BaseModel):
@@ -517,7 +520,7 @@ class AssetMetadata(BaseModel):
     source: Literal["canva", "dall-e", "stable_diffusion", "manual_upload", "other"]
     quality_check_passed: bool = Field(default=False)
     quality_issues: List[str] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class BrandVoiceProfile(BaseModel):
@@ -536,7 +539,7 @@ class BrandVoiceProfile(BaseModel):
         default_factory=dict,
         description="Common words/phrases and their frequencies"
     )
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # Update forward reference for ContentCalendar

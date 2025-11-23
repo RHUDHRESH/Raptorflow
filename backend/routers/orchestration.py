@@ -9,7 +9,7 @@ from uuid import UUID
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.utils.auth import get_current_user_and_workspace
 from backend.graphs.master_graph import master_graph_runnable, MasterGraphState, WorkflowGoal
@@ -40,8 +40,8 @@ class WorkflowExecuteRequest(BaseModel):
     content_params: Optional[Dict[str, Any]] = Field(None, description="Additional content generation parameters")
     publish_platforms: Optional[List[str]] = Field(None, description="Platforms to publish to: linkedin, twitter, etc.")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "goal": "full_campaign",
                 "research_query": "B2B SaaS startups",
@@ -56,6 +56,7 @@ class WorkflowExecuteRequest(BaseModel):
                 "publish_platforms": ["linkedin"]
             }
         }
+    )
 
 
 class WorkflowStatusResponse(BaseModel):

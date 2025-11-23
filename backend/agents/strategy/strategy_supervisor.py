@@ -49,7 +49,7 @@ from typing import Dict, List, Optional, Any, Literal
 from uuid import UUID
 from datetime import datetime
 import structlog
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.agents.base_agent import BaseSupervisor
 from backend.graphs.strategy_graph import strategy_graph
@@ -73,8 +73,8 @@ class StrategyRequest(BaseModel):
     mode: Literal["quick", "comprehensive"] = Field(default="quick", description="Research depth")
     constraints: Optional[Dict[str, Any]] = Field(None, description="Additional constraints or preferences")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "icp_ids": ["550e8400-e29b-41d4-a716-446655440000"],
                 "goals": "Generate 100 enterprise leads for Q2",
@@ -84,6 +84,7 @@ class StrategyRequest(BaseModel):
                 "mode": "comprehensive"
             }
         }
+    )
 
 
 class StrategyResponse(BaseModel):

@@ -4,10 +4,10 @@ These models define the structure for capturing user/business information
 during the initial onboarding process.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Dict, Optional, Literal
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class PersonaInput(BaseModel):
@@ -138,9 +138,9 @@ class OnboardingProfile(BaseModel):
     completed_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
-    class Config:
-        json_schema_extra = {
+
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
                 "entity_type": "business",
@@ -174,6 +174,7 @@ class OnboardingProfile(BaseModel):
                 ]
             }
         }
+    )
 
 
 class OnboardingAnswer(BaseModel):
@@ -181,7 +182,7 @@ class OnboardingAnswer(BaseModel):
     question_id: str
     question_text: str
     answer: str  # Free-form text or structured JSON
-    answered_at: datetime = Field(default_factory=datetime.utcnow)
+    answered_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class OnboardingSession(BaseModel):
@@ -192,6 +193,6 @@ class OnboardingSession(BaseModel):
     current_step: int = Field(default=1)
     answers: List[OnboardingAnswer] = Field(default_factory=list)
     profile: Optional[OnboardingProfile] = None
-    started_at: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed: bool = Field(default=False)
 

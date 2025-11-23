@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, field_validator, UUID4
+from pydantic import BaseModel, Field, field_validator, UUID4, ConfigDict
 
 
 class BaseSchema(BaseModel, ABC):
@@ -65,14 +65,10 @@ class BaseSchema(BaseModel, ABC):
         description="Timestamp when this entity was last updated (UTC)",
     )
 
-    class Config:
-        """Pydantic model configuration."""
-        populate_by_name = True  # Allow both field names and aliases
-        from_attributes = True  # Enable ORM mode for SQLAlchemy/database models
-        json_encoders = {
-            datetime: lambda v: v.isoformat(),
-            UUID: lambda v: str(v),
-        }
+    model_config = ConfigDict(
+        populate_by_name=True,  # Allow both field names and aliases
+        from_attributes=True,  # Enable ORM mode for SQLAlchemy/database models
+    )
 
     @field_validator("id", "workspace_id", mode="before")
     @classmethod

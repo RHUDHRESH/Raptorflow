@@ -4,9 +4,14 @@
 
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen)]()
 [![Coverage](https://img.shields.io/badge/coverage-85%25-green)]()
-[![Python](https://img.shields.io/badge/python-3.11+-blue)]()
+[![Python](https://img.shields.io/badge/python-3.11+%20|%203.14%20compatible-blue)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-teal)]()
 [![LangGraph](https://img.shields.io/badge/LangGraph-latest-purple)]()
+[![Pydantic](https://img.shields.io/badge/Pydantic-v2-crimson)]()
+
+---
+
+> **🔥 Python 3.14 Ready**: Codebase fully audited and upgraded for Python 3.14 compatibility with modern type annotations, Pydantic v2, and deprecation fixes.
 
 ---
 

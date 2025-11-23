@@ -208,7 +208,7 @@ class EmbeddingGenerator:
             model = self._load_model()
 
             # Run embedding in thread pool to avoid blocking
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             embedding = await loop.run_in_executor(
                 None,
                 lambda: model.encode(text, convert_to_numpy=True)
@@ -266,7 +266,7 @@ class EmbeddingGenerator:
             model = self._load_model()
 
             # Run batch embedding in thread pool
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             embeddings = await loop.run_in_executor(
                 None,
                 lambda: model.encode(

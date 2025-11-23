@@ -8,7 +8,7 @@ from uuid import UUID
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.utils.auth import get_current_user_and_workspace
 from backend.services.semantic_memory import semantic_memory
@@ -26,8 +26,8 @@ class StoreContextRequest(BaseModel):
     content: str = Field(..., description="Content to store")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "context_type": "icp",
                 "content": "Target audience: B2B SaaS founders aged 30-45, focused on growth and scaling...",
@@ -38,6 +38,7 @@ class StoreContextRequest(BaseModel):
                 }
             }
         }
+    )
 
 
 class StoreContextResponse(BaseModel):
@@ -55,14 +56,15 @@ class RetrieveContextRequest(BaseModel):
     context_type: Optional[str] = Field(None, description="Filter by context type")
     limit: int = Field(5, description="Maximum number of results", ge=1, le=50)
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "query": "What do we know about our target audience's pain points?",
                 "context_type": "icp",
                 "limit": 5
             }
         }
+    )
 
 
 class ContextItem(BaseModel):
