@@ -116,15 +116,9 @@ class CacheClient:
             return False
 
 
-# Global cache instance
-<<<<<<< HEAD
-cache = CacheClient()
-redis_cache = cache  # Alias for backward compatibility
-=======
 redis_cache = CacheClient()
 # Legacy alias for backward compatibility
 cache = redis_cache
->>>>>>> main
 
 
 # Convenience functions for specific cache types
@@ -207,4 +201,3 @@ class RedisCache:
 
 # Global redis_cache instance for content agents
 redis_cache = RedisCache()
-

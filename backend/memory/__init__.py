@@ -1,3 +1,4 @@
+"""
 RaptorFlow Memory System
 
 This module provides a comprehensive memory architecture for the RaptorFlow
@@ -15,7 +16,7 @@ Memory Types:
 Main Components:
 ----------------
 - BaseMemory: Abstract base class defining the memory interface
-- MemoryManager: Orchestrator for all memory types with unified API
+- MemoryManager: orchestrator for all memory types with unified API
 - Individual memory implementations for each type
 
 Usage:
