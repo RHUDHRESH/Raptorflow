@@ -1,4 +1,3 @@
-"""
 RaptorFlow Memory System
 
 This module provides a comprehensive memory architecture for the RaptorFlow
