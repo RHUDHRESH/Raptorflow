@@ -88,17 +88,6 @@ types-redis>=4.6.0.20240106
 chromadb>=0.4.22
 sentence-transformers>=2.2.2
 torch>=2.0.0  # Required for sentence-transformers
->>>>>>> main
-# Vector DB & Embeddings (for semantic search and memory system)
-chromadb>=0.4.22
-sentence-transformers>=2.2.2
-torch>=2.0.0  # Required for sentence-transformers
-=======
-# Vector DB & Embeddings (for semantic search and memory system)
-chromadb>=0.4.22
-sentence-transformers>=2.2.2
-torch>=2.0.0  # Required for sentence-transformers
->>>>>>> main
 
 # Rate Limiting
 slowapi>=0.1.9
@@ -122,5 +111,5 @@ pytz>=2024.1
 scikit-learn>=1.3.0
 pandas>=2.0.0
 
-# Language & Grammar (optional)
-# language-tool-python>=2.7.1  # Uncomment for production grammar checking
+# Language & Grammar Analysis
+language-tool-python>=2.7.1  # For grammar checking

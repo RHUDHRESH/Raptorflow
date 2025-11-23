@@ -1,15 +1,16 @@
 """
-Enhanced Critic Agent - Multi-dimensional content quality evaluation.
+Enhanced Critic Agent - Multi-dimensional content quality evaluation with language excellence engine.
 
 This agent provides comprehensive content critique across multiple dimensions:
 - Clarity, brand alignment, audience fit, engagement
 - Factual accuracy, SEO optimization, readability
-- Grammar, value proposition
+- Grammar, value proposition, linguistic excellence
 
 Features:
 - Multi-model evaluation (Gemini + Claude for diverse perspectives)
 - Detailed scoring and actionable feedback
 - Memory integration for learning from past critiques
+- Integrated language excellence engine with grammar, style, and diversity analysis
 - Readability metrics (Flesch-Kincaid)
 """
 
@@ -24,6 +25,7 @@ from uuid import UUID
 from backend.services.vertex_ai_client import vertex_ai_client
 from backend.services.supabase_client import supabase_client
 from backend.utils.correlation import get_correlation_id
+from backend.language import optimize_language, BrandStyleGuide
 
 logger = structlog.get_logger(__name__)
 
@@ -38,13 +40,15 @@ class CriticAgent:
     - SEO optimization
     - Readability metrics
     - Engagement potential
+    - Language excellence analysis
 
     Integrates memory to learn from past critiques and improve over time.
     """
 
-    def __init__(self):
+    def __init__(self, enable_language_engine: bool = True):
         self.llm = vertex_ai_client
         self.db = supabase_client
+        self.enable_language_engine = enable_language_engine
 
         # Expanded multi-dimensional rubric
         self.quality_rubric = {
@@ -92,8 +96,16 @@ class CriticAgent:
                 "description": "Does it provide meaningful value to the reader?",
                 "weight": 1.3,
                 "checks": ["actionability", "insights", "practical application"]
+            },
+            "linguistic_quality": {
+                "description": "Does it demonstrate linguistic excellence?",
+                "weight": 1.0,
+                "checks": ["vocabulary diversity", "style sophistication", "rhetorical devices"]
             }
         }
+
+        # Memory for learning from language analysis
+        self.language_analysis_history = []
 
     async def critique_content(
         self,
@@ -286,7 +298,7 @@ class CriticAgent:
 {brand_context}
 {past_context}
 
-**Evaluation Rubric** (9 dimensions):
+**Evaluation Rubric** (10 dimensions):
 {rubric_text}
 
 **Your Task**:
@@ -314,7 +326,8 @@ Output as JSON following this exact structure:
     "seo_optimization": {{"score": 6.0, "issues": [], "suggestions": []}},
     "readability": {{"score": 8.5, "issues": [], "suggestions": []}},
     "grammar": {{"score": 9.0, "issues": [], "suggestions": []}},
-    "value": {{"score": 8.0, "issues": [], "suggestions": []}}
+    "value": {{"score": 8.0, "issues": [], "suggestions": []}},
+    "linguistic_quality": {{"score": 8.0, "issues": [], "suggestions": []}}
   }},
   "priority_fixes": ["fix 1", "fix 2"],
   "optional_improvements": ["improvement 1", "improvement 2"]
@@ -612,28 +625,56 @@ Output as JSON following this exact structure:
         content_type: str,
         target_icp: Optional[Dict] = None,
         brand_voice: Optional[Dict] = None,
+        style_guide: Optional[BrandStyleGuide] = None,
+        target_grade_level: Optional[int] = None,
         correlation_id: str = None
     ) -> Dict[str, Any]:
         """
-        Legacy method for backward compatibility.
+        Legacy method for backward compatibility with enhanced language analysis.
 
         This method maintains compatibility with existing code that uses the old
         review_content() API. New code should use critique_content() instead.
 
-        Args:
-            content: The text to review
-            content_type: blog, email, social_post, etc.
-            target_icp: ICP profile for relevance check
-            brand_voice: Brand voice guidelines
-            correlation_id: Request correlation ID
-
-        Returns:
-            Review dict with scores and feedback (legacy format)
+        Enhanced with comprehensive language excellence analysis.
         """
-        correlation_id = correlation_id or get_correlation_id()
-        logger.info("Using legacy review_content (consider migrating to critique_content)", correlation_id=correlation_id)
 
-        # Call new critique method
+        correlation_id = correlation_id or get_correlation_id()
+        logger.info("Using enhanced legacy review_content method", correlation_id=correlation_id)
+
+        # Run language excellence engine if enabled
+        language_analysis = None
+        if self.enable_language_engine:
+            try:
+                logger.info("Running language excellence engine", correlation_id=correlation_id)
+                language_analysis = await optimize_language(
+                    content=content,
+                    style_guide=style_guide,
+                    target_grade_level=target_grade_level,
+                    correlation_id=correlation_id
+                )
+
+                # Store in memory for learning
+                self.language_analysis_history.append({
+                    "content_type": content_type,
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "overall_score": language_analysis.get("overall_score"),
+                    "correlation_id": correlation_id
+                })
+
+                # Keep only last 100 analyses
+                if len(self.language_analysis_history) > 100:
+                    self.language_analysis_history = self.language_analysis_history[-100:]
+
+                logger.info(
+                    "Language analysis completed",
+                    overall_score=language_analysis.get("overall_score"),
+                    correlation_id=correlation_id
+                )
+            except Exception as e:
+                logger.error(f"Language engine failed: {e}", correlation_id=correlation_id)
+                language_analysis = {"error": str(e)}
+
+        # Call new critique method and enhance with language results
         critique = await self.critique_content(
             content=content,
             content_type=content_type,
@@ -642,9 +683,16 @@ Output as JSON following this exact structure:
             correlation_id=correlation_id
         )
 
-        # Convert to legacy format
+        # Convert to legacy format with language enhancements
         scores = {dim: data["score"] for dim, data in critique["dimensions"].items()}
         feedback = {dim: "; ".join(data["issues"]) for dim, data in critique["dimensions"].items()}
+
+        # Add language-specific scores if available
+        if language_analysis and "error" not in language_analysis:
+            scores["grammar_quality"] = max(0, 10 - (language_analysis.get('results', {}).get('grammar', {}).get('critical_count', 0) * 2))
+            scores["readability"] = min(10, language_analysis.get('results', {}).get('readability', {}).get('metrics', {}).get('flesch_reading_ease', 50) / 10)
+            scores["linguistic_diversity"] = language_analysis.get('results', {}).get('diversity', {}).get('diversity_score', 50) / 10
+            critique["language_analysis"] = language_analysis
 
         # Map new recommendation to legacy format
         recommendation_map = {
