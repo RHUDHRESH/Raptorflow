@@ -12,7 +12,7 @@ This is the top-level workflow that coordinates:
 
 from typing import Dict, List, Optional, Any, TypedDict, Literal
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 import structlog
 from enum import Enum
 
@@ -216,7 +216,7 @@ class MasterGraph:
 
             state["correlation_id"] = correlation_id
             state["workflow_id"] = state.get("workflow_id") or str(uuid4())
-            state["started_at"] = datetime.utcnow().isoformat()
+            state["started_at"] = datetime.now(timezone.utc).isoformat()
             state["current_stage"] = "initialize"
             state["completed_stages"] = []
             state["failed_stages"] = []
@@ -492,7 +492,7 @@ class MasterGraph:
         """Finalize workflow and generate summary."""
         try:
             state["current_stage"] = "finalize"
-            state["completed_at"] = datetime.utcnow().isoformat()
+            state["completed_at"] = datetime.now(timezone.utc).isoformat()
 
             # Determine success
             has_errors = len(state["failed_stages"]) > 0

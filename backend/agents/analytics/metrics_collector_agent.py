@@ -7,7 +7,7 @@ and normalizes them into a unified structure.
 import structlog
 from typing import Dict, Any, List, Optional
 from uuid import UUID
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 import httpx
 
 from backend.services.vertex_ai_client import vertex_ai_client
@@ -52,7 +52,7 @@ class UnifiedMetrics:
         self.followers_change = followers_change
         self.engagement_rate = engagement_rate
         self.click_through_rate = click_through_rate
-        self.timestamp = timestamp or datetime.utcnow()
+        self.timestamp = timestamp or datetime.now(timezone.utc)
         self.raw_data = raw_data or {}
 
     def to_dict(self) -> Dict[str, Any]:
@@ -160,7 +160,7 @@ class MetricsCollectorAgent:
                     "move_id": str(move_id) if move_id else None,
                     "platform": platform,
                     "metrics": unified.to_dict(),
-                    "collected_at": datetime.utcnow().isoformat()
+                    "collected_at": datetime.now(timezone.utc).isoformat()
                 })
 
                 logger.info(
@@ -184,7 +184,7 @@ class MetricsCollectorAgent:
             "platform_metrics": platform_metrics,
             "aggregated": aggregated,
             "errors": errors,
-            "collection_time": datetime.utcnow().isoformat(),
+            "collection_time": datetime.now(timezone.utc).isoformat(),
             "time_range_days": time_range_days
         }
 
@@ -228,9 +228,9 @@ class MetricsCollectorAgent:
         try:
             async with httpx.AsyncClient() as client:
                 # Calculate time range
-                start_date = datetime.utcnow() - timedelta(days=time_range_days)
+                start_date = datetime.now(timezone.utc) - timedelta(days=time_range_days)
                 start_timestamp = int(start_date.timestamp() * 1000)
-                end_timestamp = int(datetime.utcnow().timestamp() * 1000)
+                end_timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
 
                 # LinkedIn Analytics API - Organization Stats
                 response = await client.get(
@@ -296,7 +296,7 @@ class MetricsCollectorAgent:
         try:
             async with httpx.AsyncClient() as client:
                 # Twitter API v2 - User Metrics
-                start_time = (datetime.utcnow() - timedelta(days=time_range_days)).isoformat() + "Z"
+                start_time = (datetime.now(timezone.utc) - timedelta(days=time_range_days)).isoformat() + "Z"
 
                 response = await client.get(
                     f"https://api.twitter.com/2/users/{account_id}/tweets",
@@ -356,8 +356,8 @@ class MetricsCollectorAgent:
         try:
             async with httpx.AsyncClient() as client:
                 # Instagram Graph API - Account Insights
-                since = int((datetime.utcnow() - timedelta(days=time_range_days)).timestamp())
-                until = int(datetime.utcnow().timestamp())
+                since = int((datetime.now(timezone.utc) - timedelta(days=time_range_days)).timestamp())
+                until = int(datetime.now(timezone.utc).timestamp())
 
                 response = await client.get(
                     f"https://graph.instagram.com/{account_id}/insights",
@@ -438,8 +438,8 @@ class MetricsCollectorAgent:
         try:
             async with httpx.AsyncClient() as client:
                 # YouTube Analytics API
-                start_date = (datetime.utcnow() - timedelta(days=time_range_days)).strftime("%Y-%m-%d")
-                end_date = datetime.utcnow().strftime("%Y-%m-%d")
+                start_date = (datetime.now(timezone.utc) - timedelta(days=time_range_days)).strftime("%Y-%m-%d")
+                end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
                 response = await client.get(
                     "https://youtubeanalytics.googleapis.com/v2/reports",

@@ -6,7 +6,7 @@ Handles JWT verification with Supabase and workspace resolution.
 import structlog
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import HTTPException, status, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -57,7 +57,7 @@ async def verify_jwt_token(token: str) -> dict:
         
         # Check token expiration
         exp = payload.get("exp")
-        if exp and datetime.utcnow().timestamp() > exp:
+        if exp and datetime.now(timezone.utc).timestamp() > exp:
             logger.warning("JWT expired", user_id=user_id, correlation_id=correlation_id)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

@@ -5,7 +5,7 @@ Combines grammar, style, readability, tone, and diversity analysis.
 
 import structlog
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .grammar_orchestrator import grammar_orchestrator, GrammarOrchestrator
 from .style_enforcer import style_enforcer, StyleEnforcer, BrandStyleGuide
@@ -75,7 +75,7 @@ async def optimize_language(
         correlation_id=correlation_id
     )
 
-    start_time = datetime.utcnow()
+    start_time = datetime.now(timezone.utc)
     results = {}
 
     # 1. Grammar Check
@@ -158,7 +158,7 @@ async def optimize_language(
     # Generate executive summary
     executive_summary = _generate_executive_summary(results, overall_score)
 
-    duration_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+    duration_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
     response = {
         "overall_score": overall_score,

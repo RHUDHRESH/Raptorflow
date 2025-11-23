@@ -79,7 +79,7 @@ results = await agent_memory.search(
 import json
 from typing import Any, Dict, List, Optional
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 from statistics import mean
 import redis.asyncio as redis
 from redis.asyncio import ConnectionPool
@@ -214,7 +214,7 @@ class AgentMemory(BaseMemory):
                         value[k] = v
 
             # Add timestamp
-            value["last_updated"] = datetime.utcnow().isoformat()
+            value["last_updated"] = datetime.now(timezone.utc).isoformat()
 
             # Serialize JSON fields
             for field in ["preferences", "patterns", "performance_metrics", "feedback_history"]:
@@ -522,7 +522,7 @@ class AgentMemory(BaseMemory):
 
             # Add new feedback with timestamp
             feedback_item = feedback.copy()
-            feedback_item["timestamp"] = datetime.utcnow().isoformat()
+            feedback_item["timestamp"] = datetime.now(timezone.utc).isoformat()
             feedback_history.append(feedback_item)
 
             # Keep only recent feedback
@@ -574,7 +574,7 @@ class AgentMemory(BaseMemory):
                 "feedback_history": json.dumps(feedback_history),
                 "patterns": json.dumps(patterns),
                 "performance_metrics": json.dumps(performance_metrics),
-                "last_updated": datetime.utcnow().isoformat()
+                "last_updated": datetime.now(timezone.utc).isoformat()
             }
 
             # Preserve preferences if they exist

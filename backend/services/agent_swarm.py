@@ -11,7 +11,7 @@ Provides:
 
 import structlog
 from typing import Dict, List, Any, Optional, Literal
-from datetime import datetime
+from datetime import datetime, timezone
 import asyncio
 from backend.services.vertex_ai_client import vertex_ai_client
 
@@ -120,7 +120,7 @@ class AgentSwarmService:
                 "transcript": debate_transcript,
                 "arguments_by_agent": arguments,
                 "consensus": consensus,
-                "debated_at": datetime.utcnow().isoformat()
+                "debated_at": datetime.now(timezone.utc).isoformat()
             }
 
             logger.info(
@@ -214,7 +214,7 @@ class AgentSwarmService:
                 "winning_option_index": winning_index,
                 "winning_option": winning_option,
                 "total_confidence": round(option_scores[winning_index] / len(agent_roles), 2),
-                "decided_at": datetime.utcnow().isoformat()
+                "decided_at": datetime.now(timezone.utc).isoformat()
             }
 
             logger.info(
@@ -285,7 +285,7 @@ class AgentSwarmService:
                 "perspectives": perspectives,
                 "synthesis": synthesis,
                 "perspective_count": len(perspectives),
-                "synthesized_at": datetime.utcnow().isoformat()
+                "synthesized_at": datetime.now(timezone.utc).isoformat()
             }
 
             logger.info(

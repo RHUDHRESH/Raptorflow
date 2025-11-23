@@ -8,7 +8,7 @@ import json
 import structlog
 from typing import Dict, Any, List, Optional
 from uuid import UUID
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 from backend.services.vertex_ai_client import vertex_ai_client
 from backend.services.supabase_client import supabase_client
@@ -49,7 +49,7 @@ class InsightAgent:
         logger.info("Analyzing performance", move_id=move_id, correlation_id=correlation_id)
         
         # Fetch historical metrics
-        cutoff_date = datetime.utcnow() - timedelta(days=time_period_days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=time_period_days)
         metrics_data = await supabase_client.fetch_all(
             "metrics_snapshot",
             {"workspace_id": str(workspace_id), "move_id": str(move_id)}
@@ -311,7 +311,7 @@ Output as JSON array:
         logger.info("Generating chart data", move_id=move_id, correlation_id=correlation_id)
 
         # Fetch historical metrics
-        cutoff_date = datetime.utcnow() - timedelta(days=time_period_days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=time_period_days)
         metrics_data = await supabase_client.fetch_all(
             "metrics_snapshot",
             {"workspace_id": str(workspace_id), "move_id": str(move_id)}
@@ -339,7 +339,7 @@ Output as JSON array:
             "time_series": time_series,
             "platform_comparison": platform_comparison,
             "engagement_funnel": engagement_funnel,
-            "generated_at": datetime.utcnow().isoformat()
+            "generated_at": datetime.now(timezone.utc).isoformat()
         }
 
     def _generate_time_series(self, metrics_data: List[Dict]) -> Dict[str, Any]:

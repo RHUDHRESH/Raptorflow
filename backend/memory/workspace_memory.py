@@ -83,7 +83,7 @@ icps = await ws_memory.search(
 import json
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 import structlog
 
 from memory.base import BaseMemory, MemoryError
@@ -149,7 +149,7 @@ class WorkspaceMemory(BaseMemory):
                 "memory_key": key,
                 "value": value if isinstance(value, dict) else {"data": value},
                 "metadata": metadata or {},
-                "updated_at": datetime.utcnow().isoformat()
+                "updated_at": datetime.now(timezone.utc).isoformat()
             }
 
             # Infer memory type from metadata or key
@@ -179,7 +179,7 @@ class WorkspaceMemory(BaseMemory):
             else:
                 # Insert new record
                 memory_record["id"] = str(uuid4())
-                memory_record["created_at"] = datetime.utcnow().isoformat()
+                memory_record["created_at"] = datetime.now(timezone.utc).isoformat()
                 result = await self.supabase.insert(
                     table=self.table_name,
                     data=memory_record
@@ -462,7 +462,7 @@ class WorkspaceMemory(BaseMemory):
                 metadata["feedback_history"] = []
 
             feedback_item = feedback.copy()
-            feedback_item["timestamp"] = datetime.utcnow().isoformat()
+            feedback_item["timestamp"] = datetime.now(timezone.utc).isoformat()
             metadata["feedback_history"].append(feedback_item)
 
             # Keep only recent feedback (last 20 items)
@@ -475,7 +475,7 @@ class WorkspaceMemory(BaseMemory):
                 filters={"id": record["id"]},
                 updates={
                     "metadata": metadata,
-                    "updated_at": datetime.utcnow().isoformat()
+                    "updated_at": datetime.now(timezone.utc).isoformat()
                 }
             )
 

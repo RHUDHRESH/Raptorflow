@@ -206,15 +206,15 @@ def test_current_leader_calculation(orchestrator):
 
 def test_should_end_test(orchestrator):
     """Test test end determination."""
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, timezone
 
     # Test with time-based end
     past_test = {
-        "end_time": (datetime.utcnow() - timedelta(hours=1)).isoformat()
+        "end_time": (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
     }
 
     future_test = {
-        "end_time": (datetime.utcnow() + timedelta(hours=24)).isoformat()
+        "end_time": (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
     }
 
     results_low_sample = [

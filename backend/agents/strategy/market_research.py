@@ -5,7 +5,7 @@ Market Research Agent - Quick Insight and Deep Dossier modes for market intellig
 import structlog
 from typing import Dict, List, Optional, Literal, Any
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 
 from backend.config.prompts import MASTER_SUPERVISOR_SYSTEM_PROMPT
 from backend.services.vertex_ai_client import vertex_ai_client
@@ -462,7 +462,7 @@ Return JSON:
 
             # Add metadata
             analysis["industry"] = industry
-            analysis["analyzed_at"] = datetime.utcnow().isoformat()
+            analysis["analyzed_at"] = datetime.now(timezone.utc).isoformat()
 
             # Cache results (14 days for competitive analysis)
             await redis_cache.set(cache_key, analysis, ttl=1209600)
@@ -543,7 +543,7 @@ Return JSON:
             "recommendations": findings.get("recommendations", []),
             "confidence": findings.get("confidence", "medium"),
             "sources": findings.get("sources_consulted", self.data_sources["market_knowledge"]),
-            "analyzed_at": datetime.utcnow().isoformat()
+            "analyzed_at": datetime.now(timezone.utc).isoformat()
         }
 
         return opportunities

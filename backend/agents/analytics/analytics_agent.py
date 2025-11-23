@@ -6,7 +6,7 @@ Fetches engagement data, audience insights, and performance metrics.
 import structlog
 from typing import Dict, Any, List, Optional
 from uuid import UUID
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 import httpx
 
 from backend.services.vertex_ai_client import vertex_ai_client
@@ -74,7 +74,7 @@ class AnalyticsAgent:
                     "move_id": str(move_id) if move_id else None,
                     "platform": platform,
                     "metrics": metrics,
-                    "collected_at": datetime.utcnow().isoformat()
+                    "collected_at": datetime.now(timezone.utc).isoformat()
                 })
                 
             except Exception as e:

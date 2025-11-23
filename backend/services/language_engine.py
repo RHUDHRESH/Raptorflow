@@ -12,7 +12,7 @@ Provides:
 import structlog
 from typing import Dict, List, Any, Optional, Literal
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 import asyncio
 
 logger = structlog.get_logger(__name__)
@@ -81,7 +81,7 @@ class LanguageEngineService:
                 "language": language,
                 "issues": issues,
                 "issue_count": len(issues),
-                "checked_at": datetime.utcnow().isoformat()
+                "checked_at": datetime.now(timezone.utc).isoformat()
             }
 
         except Exception as e:
@@ -284,7 +284,7 @@ class LanguageEngineService:
                 "readability_analysis": readability_results,
                 "suggestions": suggestions,
                 "quality_score": quality_score,
-                "analyzed_at": datetime.utcnow().isoformat()
+                "analyzed_at": datetime.now(timezone.utc).isoformat()
             }
 
             logger.info(

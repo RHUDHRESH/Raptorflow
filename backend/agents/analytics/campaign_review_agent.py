@@ -7,7 +7,7 @@ import json
 import structlog
 from typing import Dict, Any, Optional
 from uuid import UUID
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 from backend.services.vertex_ai_client import vertex_ai_client
 from backend.services.supabase_client import supabase_client
@@ -86,7 +86,7 @@ class CampaignReviewAgent:
             "workspace_id": str(workspace_id),
             "move_id": str(move_id),
             "report": report,
-            "generated_at": datetime.utcnow().isoformat()
+            "generated_at": datetime.now(timezone.utc).isoformat()
         })
         
         return report
@@ -165,7 +165,7 @@ Be specific, data-driven, and actionable.
             report = json.loads(llm_response)
             report["campaign_id"] = str(move_data["id"])
             report["campaign_name"] = move_data["name"]
-            report["generated_at"] = datetime.utcnow().isoformat()
+            report["generated_at"] = datetime.now(timezone.utc).isoformat()
             
             return report
             
@@ -188,7 +188,7 @@ Be specific, data-driven, and actionable.
         correlation_id = correlation_id or get_correlation_id()
         logger.info("Extracting cross-campaign learnings", correlation_id=correlation_id)
         
-        cutoff_date = datetime.utcnow() - timedelta(days=timeframe_days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=timeframe_days)
         
         # Fetch all completed moves
         moves = await supabase_client.fetch_all(

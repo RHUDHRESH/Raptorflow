@@ -7,7 +7,7 @@ import operator
 import structlog
 from typing import Annotated, List, Tuple, Literal, TypedDict, Optional
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from langchain_core.messages import BaseMessage
 from langgraph.graph import StateGraph, END
@@ -98,7 +98,7 @@ async def publish_content_node(state: ExecutionAnalyticsGraphState) -> Execution
     await supabase_client.update(
         "assets",
         {"id": str(content_id)},
-        {"status": "published", "published_at": datetime.utcnow().isoformat(), "platform_post_id": result.get("id")}
+        {"status": "published", "published_at": datetime.now(timezone.utc).isoformat(), "platform_post_id": result.get("id")}
     )
     
     return {

@@ -85,7 +85,7 @@ results = await semantic.search(
 import json
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 import structlog
 
 try:
@@ -272,7 +272,7 @@ class SemanticMemory(BaseMemory):
             # Prepare metadata
             meta = metadata.copy() if metadata else {}
             meta["workspace_id"] = str(workspace_id)
-            meta["created_at"] = datetime.utcnow().isoformat()
+            meta["created_at"] = datetime.now(timezone.utc).isoformat()
             meta["key"] = key
 
             # Store in ChromaDB
@@ -534,7 +534,7 @@ class SemanticMemory(BaseMemory):
                 metadata["feedback_history"] = []
 
             feedback_item = feedback.copy()
-            feedback_item["timestamp"] = datetime.utcnow().isoformat()
+            feedback_item["timestamp"] = datetime.now(timezone.utc).isoformat()
             metadata["feedback_history"].append(feedback_item)
 
             # Keep only recent feedback (last 10 items)

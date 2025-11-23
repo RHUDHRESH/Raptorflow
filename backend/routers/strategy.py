@@ -6,7 +6,7 @@ Implements ADAPT framework endpoints.
 import structlog
 from typing import Annotated
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -79,8 +79,8 @@ async def generate_strategy(
             "adapt_stage": final_state.get("adapt_stage", "analyze"),
             "insights": final_state.get("insights", {}),
             "campaign_ideas": final_state.get("campaign_ideas", []),
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
         }
         
         # Store in database

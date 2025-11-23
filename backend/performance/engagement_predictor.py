@@ -15,7 +15,7 @@ models to predict future performance with confidence intervals.
 """
 
 from typing import Any, Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import structlog
 import re
 from backend.performance.performance_memory import performance_memory
@@ -148,7 +148,7 @@ class EngagementPredictor:
                 "baseline_metrics": baseline_metrics,
                 "recommendations": recommendations,
                 "model_version": self.model_version,
-                "predicted_at": datetime.utcnow().isoformat()
+                "predicted_at": datetime.now(timezone.utc).isoformat()
             }
 
             # Store prediction if content_id provided

@@ -14,7 +14,7 @@ Features:
 """
 
 from typing import Any, Dict, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 import structlog
 from backend.services.supabase_client import supabase_client
@@ -67,7 +67,7 @@ class PerformanceMemory:
                 "predictions": predictions,
                 "confidence": confidence,
                 "model_version": model_version,
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "actual_results": None,
                 "accuracy_score": None
             }
@@ -104,7 +104,7 @@ class PerformanceMemory:
             results_data = {
                 "content_id": content_id,
                 "metrics": actual_metrics,
-                "recorded_at": datetime.utcnow().isoformat()
+                "recorded_at": datetime.now(timezone.utc).isoformat()
             }
 
             await self.db.insert("performance_results", results_data)
@@ -127,7 +127,7 @@ class PerformanceMemory:
                     {
                         "actual_results": actual_metrics,
                         "accuracy_score": accuracy,
-                        "updated_at": datetime.utcnow().isoformat()
+                        "updated_at": datetime.now(timezone.utc).isoformat()
                     }
                 )
 
@@ -205,11 +205,11 @@ class PerformanceMemory:
             # Check cache
             if cache_key in self.cache:
                 cached_data = self.cache[cache_key]
-                if cached_data["timestamp"] > datetime.utcnow() - timedelta(hours=1):
+                if cached_data["timestamp"] > datetime.now(timezone.utc) - timedelta(hours=1):
                     return cached_data["data"]
 
             # Query from database
-            cutoff_date = datetime.utcnow() - timedelta(days=days_back)
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
 
             # This is a simplified query - in production, you'd use more complex filtering
             results = await self.db.fetch_all("performance_results")
@@ -223,7 +223,7 @@ class PerformanceMemory:
             # Cache results
             self.cache[cache_key] = {
                 "data": filtered_results,
-                "timestamp": datetime.utcnow()
+                "timestamp": datetime.now(timezone.utc)
             }
 
             return filtered_results
@@ -248,7 +248,7 @@ class PerformanceMemory:
             Dictionary with accuracy trends and statistics
         """
         try:
-            cutoff_date = datetime.utcnow() - timedelta(days=days_back)
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
 
             predictions = await self.db.fetch_all(
                 "performance_predictions",
@@ -313,7 +313,7 @@ class PerformanceMemory:
                 "test_id": test_id,
                 "variant_id": variant_id,
                 "metrics": metrics,
-                "recorded_at": datetime.utcnow().isoformat()
+                "recorded_at": datetime.now(timezone.utc).isoformat()
             }
 
             result = await self.db.insert("ab_test_results", result_data)

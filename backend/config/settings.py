@@ -37,10 +37,10 @@ class Settings(BaseSettings):
     OPENAI_TEMPERATURE: float = 0.7
     
     # Supabase
-    SUPABASE_URL: str
-    SUPABASE_SERVICE_KEY: str  # Service role key for backend operations
-    SUPABASE_ANON_KEY: str  # Public anon key
-    SUPABASE_JWT_SECRET: str  # JWT secret for token verification
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_KEY: str = ""  # Service role key for backend operations
+    SUPABASE_ANON_KEY: str = ""  # Public anon key
+    SUPABASE_JWT_SECRET: str = ""  # JWT secret for token verification
     
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -93,10 +93,22 @@ class Settings(BaseSettings):
     DEFAULT_LLM_MAX_OUTPUT_TOKENS: int = 4096
 
     # Backward-compatible model aliases (used across agents)
-    MODEL_REASONING: str = VERTEX_AI_GEMINI_3_MODEL
-    MODEL_FAST: str = VERTEX_AI_GEMINI_3_MODEL
-    MODEL_CREATIVE: str = VERTEX_AI_SONNET_4_5_MODEL
-    MODEL_CREATIVE_FAST: str = VERTEX_AI_SONNET_4_5_MODEL
+    @property
+    def MODEL_REASONING(self) -> str:
+        return self.VERTEX_AI_GEMINI_3_MODEL
+
+    @property
+    def MODEL_FAST(self) -> str:
+        return self.VERTEX_AI_GEMINI_3_MODEL
+
+    @property
+    def MODEL_CREATIVE(self) -> str:
+        return self.VERTEX_AI_SONNET_4_5_MODEL
+
+    @property
+    def MODEL_CREATIVE_FAST(self) -> str:
+        return self.VERTEX_AI_SONNET_4_5_MODEL
+
     MODEL_OCR: str = "mistral-ocr"
     
     # Monitoring & Logging
@@ -115,7 +127,7 @@ class Settings(BaseSettings):
     DEFAULT_TEMPERATURE: float = 0.7
     
     # Security
-    SECRET_KEY: str  # For JWT encoding
+    SECRET_KEY: str = "CHANGE_THIS_IN_PRODUCTION_USE_RANDOM_STRING"  # For JWT encoding - MUST be changed in production
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200  # 30 days
     

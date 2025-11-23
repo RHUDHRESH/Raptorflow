@@ -11,7 +11,7 @@ Provides:
 
 import structlog
 from typing import Dict, List, Any, Optional, Literal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import numpy as np
 from backend.services.supabase_client import supabase_client
 
@@ -99,7 +99,7 @@ class PerformancePredictionService:
                 "content_type": content_type,
                 "platform": platform,
                 **predictions,
-                "predicted_at": datetime.utcnow().isoformat()
+                "predicted_at": datetime.now(timezone.utc).isoformat()
             }
 
         except Exception as e:
@@ -160,7 +160,7 @@ class PerformancePredictionService:
                 "prediction_available": True,
                 "platform": platform,
                 **time_analysis,
-                "predicted_at": datetime.utcnow().isoformat()
+                "predicted_at": datetime.now(timezone.utc).isoformat()
             }
 
         except Exception as e:
@@ -230,7 +230,7 @@ class PerformancePredictionService:
                 "recommendation": recommendation,
                 "suggested_split": self._suggest_traffic_split(variant_predictions),
                 "estimated_duration_days": self._estimate_test_duration(workspace_id),
-                "predicted_at": datetime.utcnow().isoformat()
+                "predicted_at": datetime.now(timezone.utc).isoformat()
             }
 
         except Exception as e:

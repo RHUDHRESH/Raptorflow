@@ -15,7 +15,7 @@ research from viral content studies and behavioral psychology.
 """
 
 from typing import Any, Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import re
 import structlog
 
@@ -201,7 +201,7 @@ class ViralPotentialScorer:
                 "format_analysis": format_analysis,
                 "viral_elements": viral_elements,
                 "optimization_suggestions": optimization_suggestions,
-                "scored_at": datetime.utcnow().isoformat()
+                "scored_at": datetime.now(timezone.utc).isoformat()
             }
 
             return result

@@ -11,7 +11,7 @@ Provides:
 
 import structlog
 from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import numpy as np
 from backend.services.supabase_client import supabase_client
 
@@ -96,7 +96,7 @@ class MetaLearningService:
                 "platform_insights": platform_insights,
                 "improvement_trends": improvement_trends,
                 "recommendations": recommendations,
-                "learned_at": datetime.utcnow().isoformat()
+                "learned_at": datetime.now(timezone.utc).isoformat()
             }
 
             logger.info(
@@ -178,7 +178,7 @@ class MetaLearningService:
                 "engagement_std": round(std_engagement, 2),
                 "effectiveness": effectiveness,
                 "consistency_score": round(self._calculate_consistency(engagement_rates), 2),
-                "tracked_at": datetime.utcnow().isoformat()
+                "tracked_at": datetime.now(timezone.utc).isoformat()
             }
 
             logger.info(
@@ -261,7 +261,7 @@ class MetaLearningService:
                 "winner": winner,
                 "learnings": learnings,
                 "statistical_significance": test_results.get("statistical_significance", 0),
-                "learned_at": datetime.utcnow().isoformat()
+                "learned_at": datetime.now(timezone.utc).isoformat()
             }
 
             logger.info(
@@ -293,7 +293,7 @@ class MetaLearningService:
     ) -> List[Dict[str, Any]]:
         """Get performance data for learning."""
         try:
-            cutoff_date = datetime.utcnow() - timedelta(days=time_period_days)
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=time_period_days)
 
             data = await supabase_client.query(
                 "content_performance",

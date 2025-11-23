@@ -14,7 +14,7 @@ Uses best practices from conversion rate optimization (CRO) and behavioral psych
 """
 
 from typing import Any, Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import re
 import structlog
 from backend.performance.performance_memory import performance_memory
@@ -135,7 +135,7 @@ class ConversionOptimizer:
                 "flow_analysis": flow_analysis,
                 "recommendations": recommendations,
                 "optimized_ctas": optimized_ctas,
-                "analyzed_at": datetime.utcnow().isoformat()
+                "analyzed_at": datetime.now(timezone.utc).isoformat()
             }
 
             return result

@@ -5,7 +5,7 @@ Rewrites content to match target tone profiles.
 
 import structlog
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 logger = structlog.get_logger(__name__)
@@ -232,7 +232,7 @@ class ToneAdapter:
             correlation_id=correlation_id
         )
 
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         # Analyze tone characteristics
         formality = self._assess_formality(content)
@@ -254,7 +254,7 @@ class ToneAdapter:
             person_perspective
         )
 
-        duration_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+        duration_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
         result = {
             "detected_characteristics": {
@@ -305,7 +305,7 @@ class ToneAdapter:
             correlation_id=correlation_id
         )
 
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         # Validate target tone
         if target_tone not in self.tone_profiles:
@@ -325,7 +325,7 @@ class ToneAdapter:
         # Verify adapted tone
         adapted_tone_analysis = await self.analyze_tone(adapted_content, correlation_id)
 
-        duration_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+        duration_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
         result = {
             "original_content": content,

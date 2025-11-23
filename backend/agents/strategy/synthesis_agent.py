@@ -5,7 +5,7 @@ Synthesis Agent - Converts ambient discoveries into concrete campaign ideas.
 import structlog
 from typing import Dict, List, Optional, Any
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from backend.config.prompts import MASTER_SUPERVISOR_SYSTEM_PROMPT
 from backend.services.vertex_ai_client import vertex_ai_client
@@ -171,7 +171,7 @@ Return JSON:
             
             # Add metadata
             campaign_proposal["source_opportunity"] = opportunity.get("title", "N/A")
-            campaign_proposal["synthesized_at"] = datetime.utcnow().isoformat()
+            campaign_proposal["synthesized_at"] = datetime.now(timezone.utc).isoformat()
             
             logger.info(
                 "Campaign idea synthesized",
@@ -492,7 +492,7 @@ Return JSON:
             strategy = json.loads(response)
 
             # Add metadata
-            strategy["synthesized_at"] = datetime.utcnow().isoformat()
+            strategy["synthesized_at"] = datetime.now(timezone.utc).isoformat()
             strategy["inputs"] = {
                 "market_research_mode": market_research.get("mode", "unknown"),
                 "num_icps": len(icps),

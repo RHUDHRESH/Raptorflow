@@ -10,7 +10,7 @@ Provides:
 
 import structlog
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import numpy as np
 
@@ -79,7 +79,7 @@ class SemanticMemoryService:
             context_id: Unique identifier for stored context
         """
         try:
-            context_id = f"{workspace_id}_{context_type}_{datetime.utcnow().timestamp()}"
+            context_id = f"{workspace_id}_{context_type}_{datetime.now(timezone.utc).timestamp()}"
 
             # Create embedding (mock for now - in production use sentence-transformers)
             embedding = await self._create_embedding(content)
@@ -90,7 +90,7 @@ class SemanticMemoryService:
                 "context_type": context_type,
                 "content": content,
                 "metadata": metadata or {},
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "correlation_id": correlation_id
             }
 

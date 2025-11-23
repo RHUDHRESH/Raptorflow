@@ -15,7 +15,7 @@ viral potential scorer to make data-driven variant selection.
 """
 
 from typing import Any, Dict, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 import structlog
 from backend.performance.performance_memory import performance_memory
@@ -85,7 +85,7 @@ class ABTestOrchestrator:
 
         try:
             test_id = str(uuid4())
-            test_name = test_name or f"Test_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+            test_name = test_name or f"Test_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
 
             # Generate variants using different strategies
             variants = await self._generate_variants(
@@ -120,8 +120,8 @@ class ABTestOrchestrator:
                 "content_type": content_type,
                 "platform": platform,
                 "objective": test_objective,
-                "start_time": datetime.utcnow().isoformat(),
-                "end_time": (datetime.utcnow() + timedelta(hours=test_duration_hours)).isoformat(),
+                "start_time": datetime.now(timezone.utc).isoformat(),
+                "end_time": (datetime.now(timezone.utc) + timedelta(hours=test_duration_hours)).isoformat(),
                 "status": "draft",
                 "traffic_split": self._calculate_traffic_split(len(recommended_variants))
             }
@@ -527,7 +527,7 @@ class ABTestOrchestrator:
                 "variant_results": results,
                 "should_end": should_end,
                 "recommendation": "Continue test" if not should_end else "End test and declare winner",
-                "checked_at": datetime.utcnow().isoformat()
+                "checked_at": datetime.now(timezone.utc).isoformat()
             }
 
         except Exception as e:
@@ -570,8 +570,8 @@ class ABTestOrchestrator:
     ) -> bool:
         """Determine if test should end."""
         # Check time-based end
-        end_time = datetime.fromisoformat(test.get("end_time", datetime.utcnow().isoformat()))
-        if datetime.utcnow() >= end_time:
+        end_time = datetime.fromisoformat(test.get("end_time", datetime.now(timezone.utc).isoformat()))
+        if datetime.now(timezone.utc) >= end_time:
             return True
 
         # Check minimum sample size (simplified)
@@ -624,7 +624,7 @@ class ABTestOrchestrator:
                 "prediction_accuracy": prediction_accuracy,
                 "learnings": learnings,
                 "recommendations": recommendations,
-                "analyzed_at": datetime.utcnow().isoformat()
+                "analyzed_at": datetime.now(timezone.utc).isoformat()
             }
 
             # Update test status
