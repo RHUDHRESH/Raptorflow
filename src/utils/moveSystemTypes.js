@@ -263,5 +263,3 @@ export const generateMockCapabilityNodes = () => [
     unlocks_maneuver_ids: ['garrison']
   })
 ]
-
-
