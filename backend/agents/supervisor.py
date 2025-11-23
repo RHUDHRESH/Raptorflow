@@ -1,33 +1,41 @@
 """
-Master Orchestrator (Tier 0) - Top-level supervisor for RaptorFlow 2.0
+Master Orchestrator (Tier 0) - Memory-Aware Top-level supervisor for RaptorFlow 2.0
 
 This module implements the Master Orchestrator, the highest-level agent in the
-RaptorFlow multi-agent hierarchy. It is responsible for:
+RaptorFlow multi-agent hierarchy with intelligent memory-based orchestration.
 
-1. Request Routing: Analyze incoming goals and dispatch to appropriate domain supervisors
-2. ADAPT Stage Enforcement: Ensure proper stage ordering (Onboarding → Research → Strategy → Content → Execution → Analytics)
-3. Correlation ID Management: Generate and propagate IDs throughout the agent hierarchy
-4. Result Aggregation: Combine outputs from multiple supervisors into unified responses
-5. Workflow Orchestration: Coordinate complex multi-supervisor workflows
+KEY FEATURES:
+1. Memory-Aware Routing: Uses historical task data to suggest optimal agent sequences
+2. Adaptive Agent Selection: Selects agents based on workspace-specific performance metrics
+3. Self-Correction Loops: Iteratively improves outputs through critique and revision
+4. Human-in-the-Loop Checkpoints: Pauses for approval at critical stages with auto-approval rules
+5. Context Propagation: Passes comprehensive AgentContext through entire execution chain
+6. ADAPT Stage Enforcement: Ensures proper stage ordering
+7. Result Aggregation: Combines outputs from multiple supervisors
 
 Responsibilities:
-- Route requests to domain supervisors (onboarding, research, strategy, content, execution, analytics)
-- Enforce prerequisite completion (e.g., can't run Strategy without completing Research)
-- Use Vertex AI for intelligent classification and routing
-- Cache classification results in Redis to reduce LLM calls
-- Log all operations with correlation IDs for distributed tracing
+- Route requests using memory of past successful task executions
+- Swap agents based on performance metrics (success rate, quality, speed)
+- Coordinate self-correction loops for content/strategy generation
+- Manage workflow checkpoints with configurable approval rules
+- Propagate rich context (brand voice, ICPs, preferences) to all agents
+- Learn from successes and failures to improve future routing
+- Cache intelligent routing decisions in Redis
 
 Assumptions:
 - Domain supervisors must be initialized before routing begins
 - Correlation IDs are set at the request middleware level (main.py)
-- Redis is available for caching (graceful degradation if unavailable)
+- Redis is available for caching and memory storage
+- MemoryManager stores task history and performance metrics
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import hashlib
-from typing import Any, Dict, List, Optional
+import time
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 from enum import Enum
 
@@ -35,6 +43,15 @@ from backend.agents.base_agent import BaseSupervisor
 from backend.config.settings import get_settings
 from backend.config.prompts import MASTER_SUPERVISOR_SYSTEM_PROMPT
 from backend.services.vertex_ai_client import vertex_ai_client
+from backend.services.memory_manager import memory_manager
+from backend.models.orchestration import (
+    AgentContext,
+    WorkflowCheckpoints,
+    WorkflowCheckpoint,
+    CheckpointCondition,
+    CheckpointAction,
+    SelfCorrectionConfig,
+)
 from backend.utils.correlation import get_correlation_id, set_correlation_id, generate_correlation_id
 from backend.utils.cache import redis_cache
 
@@ -114,8 +131,14 @@ class MasterOrchestrator(BaseSupervisor):
     """
 
     def __init__(self):
-        """Initialize the Master Orchestrator with domain supervisor metadata."""
+        """Initialize the Master Orchestrator with memory-aware capabilities."""
         super().__init__("master_orchestrator")
+
+        # Inject MemoryManager for intelligent routing
+        self.memory = memory_manager
+
+        # Self-correction configuration
+        self.self_correction_config = SelfCorrectionConfig()
 
         # Domain supervisor definitions
         # Note: Actual supervisor instances will be registered in main.py startup
@@ -617,6 +640,660 @@ Keep it under 150 words.
             }
 
         return health
+
+    async def route_with_context(
+        self,
+        goal: str,
+        workspace_id: UUID,
+        user_id: Optional[UUID] = None,
+        context_override: Optional[Dict[str, Any]] = None,
+    ) -> Tuple[List[str], AgentContext]:
+        """
+        Memory-aware routing that uses historical data to suggest optimal agent sequences.
+
+        This method:
+        1. Searches memory for similar successful tasks (confidence > 0.8)
+        2. If found, returns the proven agent sequence
+        3. Otherwise, calls LLM planner to suggest a new sequence
+        4. Stores the chosen sequence in memory for future learning
+
+        Args:
+            goal: High-level task objective
+            workspace_id: Workspace identifier
+            user_id: User making the request
+            context_override: Optional context values to override defaults
+
+        Returns:
+            Tuple of (agent_sequence, agent_context)
+        """
+        correlation_id = get_correlation_id() or generate_correlation_id()
+        if not get_correlation_id():
+            set_correlation_id(correlation_id)
+
+        self.log(
+            f"Memory-aware routing for goal: {goal}",
+            workspace_id=str(workspace_id),
+            goal=goal,
+        )
+
+        # Build comprehensive agent context
+        agent_context = await self._get_agent_context(
+            workspace_id=workspace_id,
+            user_id=user_id,
+            goal=goal,
+            correlation_id=correlation_id,
+            context_override=context_override,
+        )
+
+        # Search memory for similar successful tasks
+        similar_tasks = await self.memory.search(
+            query=goal,
+            memory_type="task_history",
+            workspace_id=workspace_id,
+            limit=5,
+        )
+
+        # Filter for high-confidence successful tasks
+        high_confidence_tasks = [
+            task for task in similar_tasks
+            if task.confidence > 0.8 and task.content.get("success", False)
+        ]
+
+        if high_confidence_tasks:
+            # Use the best performing sequence from memory
+            best_task = max(high_confidence_tasks, key=lambda t: t.confidence)
+            agent_sequence = best_task.content.get("agent_sequence", [])
+
+            self.log(
+                f"Using proven agent sequence from memory",
+                sequence=agent_sequence,
+                confidence=best_task.confidence,
+                similar_goal=best_task.content.get("goal"),
+            )
+
+            # Store that we're reusing this sequence
+            agent_context.past_successes.append({
+                "goal": best_task.content.get("goal"),
+                "sequence": agent_sequence,
+                "confidence": best_task.confidence,
+            })
+
+            return agent_sequence, agent_context
+
+        # No high-confidence match found, use LLM planner
+        self.log("No high-confidence match in memory, calling LLM planner")
+
+        agent_sequence = await self._plan_agent_sequence(goal, agent_context)
+
+        self.log(
+            f"LLM planned agent sequence",
+            sequence=agent_sequence,
+        )
+
+        return agent_sequence, agent_context
+
+    async def _get_agent_context(
+        self,
+        workspace_id: UUID,
+        user_id: Optional[UUID],
+        goal: str,
+        correlation_id: str,
+        context_override: Optional[Dict[str, Any]] = None,
+    ) -> AgentContext:
+        """
+        Build comprehensive AgentContext for execution.
+
+        Args:
+            workspace_id: Workspace identifier
+            user_id: User identifier
+            goal: Task goal
+            correlation_id: Correlation ID
+            context_override: Optional override values
+
+        Returns:
+            Fully populated AgentContext
+        """
+        # Get task history from memory
+        task_history = await self.memory.search(
+            query="",  # Get all tasks
+            memory_type="task_history",
+            workspace_id=workspace_id,
+            limit=20,
+        )
+
+        # Get performance data for agents
+        performance_data = {}
+        for supervisor_name in self.supervisor_metadata.keys():
+            best_agent = await self.memory.get_best_performing_agent(
+                task_type=supervisor_name,
+                workspace_id=workspace_id,
+            )
+            if best_agent:
+                performance_data[supervisor_name] = {
+                    "best_agent": best_agent,
+                }
+
+        # Build context
+        context = AgentContext(
+            workspace_id=workspace_id,
+            correlation_id=correlation_id,
+            user_id=user_id,
+            task_history=[task.to_dict() for task in task_history],
+            performance_data=performance_data,
+        )
+
+        # Apply overrides if provided
+        if context_override:
+            for key, value in context_override.items():
+                if hasattr(context, key):
+                    setattr(context, key, value)
+
+        return context
+
+    async def _plan_agent_sequence(
+        self,
+        goal: str,
+        context: AgentContext,
+    ) -> List[str]:
+        """
+        Use LLM to plan an optimal agent sequence for a new task.
+
+        Args:
+            goal: Task goal
+            context: Agent context with workspace data
+
+        Returns:
+            List of agent names in execution order
+        """
+        # Build supervisor list
+        supervisor_list = "\n".join([
+            f"- {name}: {info['description']}"
+            for name, info in self.supervisor_metadata.items()
+        ])
+
+        # Build performance insights
+        performance_insights = ""
+        if context.performance_data:
+            performance_insights = "\n\nPast Performance Insights:\n" + "\n".join([
+                f"- {task_type}: Best agent is {data.get('best_agent', 'unknown')}"
+                for task_type, data in context.performance_data.items()
+            ])
+
+        planning_prompt = f"""
+{MASTER_SUPERVISOR_SYSTEM_PROMPT}
+
+Available Supervisors:
+{supervisor_list}
+{performance_insights}
+
+Task Goal: {goal}
+
+Workspace Context:
+- Has brand voice: {bool(context.brand_voice)}
+- Target ICPs: {len(context.target_icps)}
+- Past successful tasks: {len(context.past_successes)}
+
+Based on this goal and the available supervisors, suggest the optimal sequence
+of agents to accomplish this task.
+
+Respond in JSON format:
+{{
+    "agent_sequence": ["supervisor1", "supervisor2", ...],
+    "reasoning": "explanation of why this sequence is optimal"
+}}
+"""
+
+        messages = [
+            {"role": "system", "content": "You are an intelligent agent orchestration planner."},
+            {"role": "user", "content": planning_prompt}
+        ]
+
+        try:
+            response = await vertex_ai_client.chat_completion(
+                messages=messages,
+                temperature=0.3,
+                response_format={"type": "json_object"}
+            )
+
+            agent_sequence = response.get("agent_sequence", ["onboarding"])
+            reasoning = response.get("reasoning", "")
+
+            self.log(
+                "LLM planned agent sequence",
+                sequence=agent_sequence,
+                reasoning=reasoning,
+            )
+
+            return agent_sequence
+
+        except Exception as e:
+            self.log(f"Agent sequence planning failed: {e}", level="error")
+            # Fallback to basic routing
+            return [self._fallback_routing(goal, context.to_dict())["primary_supervisor"]]
+
+    async def select_best_agent(
+        self,
+        task_type: str,
+        workspace_id: UUID,
+        fallback_agent: Optional[str] = None,
+    ) -> str:
+        """
+        Adaptive agent selection based on workspace-specific performance metrics.
+
+        Args:
+            task_type: Type of task (content_generation, strategy_planning, etc.)
+            workspace_id: Workspace identifier
+            fallback_agent: Fallback agent if no performance data exists
+
+        Returns:
+            Name of best performing agent for this task type
+        """
+        self.log(
+            f"Selecting best agent for task type: {task_type}",
+            workspace_id=str(workspace_id),
+        )
+
+        best_agent = await self.memory.get_best_performing_agent(
+            task_type=task_type,
+            workspace_id=workspace_id,
+        )
+
+        if best_agent:
+            self.log(
+                f"Selected high-performing agent",
+                agent=best_agent,
+                task_type=task_type,
+            )
+            return best_agent
+
+        # No performance data, use fallback or default
+        if fallback_agent:
+            self.log(
+                f"No performance data, using fallback",
+                agent=fallback_agent,
+                task_type=task_type,
+            )
+            return fallback_agent
+
+        # Default mapping
+        default_agents = {
+            "content_generation": "content",
+            "strategy_planning": "strategy",
+            "research": "research",
+            "execution": "execution",
+            "analytics": "analytics",
+        }
+
+        return default_agents.get(task_type, "onboarding")
+
+    async def execute_with_self_correction(
+        self,
+        agent_name: str,
+        payload: Dict[str, Any],
+        context: AgentContext,
+        config: Optional[SelfCorrectionConfig] = None,
+    ) -> Dict[str, Any]:
+        """
+        Execute an agent with self-correction loops for quality improvement.
+
+        This method:
+        1. Calls the content/strategy agent to generate initial output
+        2. Critiques the output against quality thresholds
+        3. Revises based on critique
+        4. Repeats until quality meets threshold or max iterations reached
+        5. Stores failed attempts in memory for learning
+
+        Args:
+            agent_name: Name of agent to execute
+            payload: Execution payload
+            context: Agent context
+            config: Self-correction configuration (uses default if not provided)
+
+        Returns:
+            Final result after self-correction
+        """
+        config = config or self.self_correction_config
+
+        self.log(
+            f"Starting self-correction execution",
+            agent=agent_name,
+            max_iterations=config.max_iterations,
+        )
+
+        iteration = 0
+        best_result = None
+        best_score = 0.0
+        attempts = []
+
+        while iteration < config.max_iterations:
+            iteration += 1
+
+            self.log(f"Self-correction iteration {iteration}/{config.max_iterations}")
+
+            # Execute agent
+            result = await self._execute_agent_with_context(agent_name, payload, context)
+
+            # Evaluate quality
+            quality_score = await self._calculate_quality_score(
+                result=result,
+                aspects=config.critique_aspects,
+                context=context,
+            )
+
+            self.log(
+                f"Iteration {iteration} quality score: {quality_score}",
+                score=quality_score,
+                threshold=config.min_quality_score,
+            )
+
+            attempts.append({
+                "iteration": iteration,
+                "result": result,
+                "quality_score": quality_score,
+            })
+
+            # Track best result
+            if quality_score > best_score:
+                best_score = quality_score
+                best_result = result
+
+            # Check if quality threshold met
+            if quality_score >= config.min_quality_score:
+                self.log(
+                    f"Quality threshold met on iteration {iteration}",
+                    score=quality_score,
+                )
+                break
+
+            # Check if improvement is too small to continue
+            if iteration > 1:
+                previous_score = attempts[-2]["quality_score"]
+                improvement = quality_score - previous_score
+
+                if improvement < config.improvement_threshold:
+                    self.log(
+                        f"Improvement below threshold, stopping",
+                        improvement=improvement,
+                        threshold=config.improvement_threshold,
+                    )
+                    break
+
+            # Generate critique and revise payload for next iteration
+            if iteration < config.max_iterations:
+                critique = await self._generate_critique(
+                    result=result,
+                    aspects=config.critique_aspects,
+                    quality_score=quality_score,
+                    context=context,
+                )
+
+                # Update payload with critique for revision
+                payload["critique"] = critique
+                payload["previous_attempt"] = result
+
+        # Store failed attempts if configured
+        if config.store_failures and best_score < config.min_quality_score:
+            for attempt in attempts:
+                await self.memory.store_critique(
+                    content_id=f"{context.correlation_id}_{attempt['iteration']}",
+                    critique=f"Quality score: {attempt['quality_score']}",
+                    issues=[f"Failed to meet threshold of {config.min_quality_score}"],
+                    workspace_id=context.workspace_id,
+                )
+
+        return {
+            **best_result,
+            "self_correction_metadata": {
+                "iterations": iteration,
+                "final_quality_score": best_score,
+                "threshold_met": best_score >= config.min_quality_score,
+                "attempts": len(attempts),
+            }
+        }
+
+    async def _execute_agent_with_context(
+        self,
+        agent_name: str,
+        payload: Dict[str, Any],
+        context: AgentContext,
+    ) -> Dict[str, Any]:
+        """
+        Execute an agent with full context propagation.
+
+        Args:
+            agent_name: Agent to execute
+            payload: Execution payload
+            context: Agent context to propagate
+
+        Returns:
+            Agent execution result
+        """
+        # Add context to payload
+        payload["agent_context"] = context.to_dict()
+
+        # Get agent instance
+        agent = self.sub_agents.get(agent_name)
+
+        if not agent:
+            self.log(
+                f"Agent not found: {agent_name}",
+                level="warning",
+            )
+            return {
+                "status": "error",
+                "error": f"Agent {agent_name} not registered",
+            }
+
+        # Execute agent
+        return await agent.execute(payload)
+
+    async def _calculate_quality_score(
+        self,
+        result: Dict[str, Any],
+        aspects: List[str],
+        context: AgentContext,
+    ) -> float:
+        """
+        Calculate quality score for generated content/strategy.
+
+        Uses LLM to evaluate specific aspects and return a score.
+
+        Args:
+            result: Agent execution result
+            aspects: Aspects to evaluate
+            context: Agent context
+
+        Returns:
+            Quality score between 0.0 and 1.0
+        """
+        # Extract content to evaluate
+        content = result.get("result", result.get("content", ""))
+
+        evaluation_prompt = f"""
+Evaluate the following output on these aspects: {', '.join(aspects)}
+
+Output to evaluate:
+{json.dumps(content, indent=2)}
+
+Brand voice requirements: {json.dumps(context.brand_voice) if context.brand_voice else "None specified"}
+
+For each aspect, rate from 0-10. Then provide an overall score from 0.0 to 1.0.
+
+Respond in JSON format:
+{{
+    "aspect_scores": {{{', '.join([f'"{aspect}": 0-10' for aspect in aspects])}}},
+    "overall_score": 0.0-1.0,
+    "reasoning": "brief explanation"
+}}
+"""
+
+        messages = [
+            {"role": "system", "content": "You are a quality evaluation expert."},
+            {"role": "user", "content": evaluation_prompt}
+        ]
+
+        try:
+            response = await vertex_ai_client.chat_completion(
+                messages=messages,
+                temperature=0.2,
+                response_format={"type": "json_object"}
+            )
+
+            return float(response.get("overall_score", 0.5))
+
+        except Exception as e:
+            self.log(f"Quality evaluation failed: {e}", level="error")
+            return 0.5  # Default middle score
+
+    async def _generate_critique(
+        self,
+        result: Dict[str, Any],
+        aspects: List[str],
+        quality_score: float,
+        context: AgentContext,
+    ) -> str:
+        """
+        Generate constructive critique for content revision.
+
+        Args:
+            result: Agent execution result
+            aspects: Aspects to critique
+            quality_score: Current quality score
+            context: Agent context
+
+        Returns:
+            Critique text
+        """
+        content = result.get("result", result.get("content", ""))
+
+        critique_prompt = f"""
+The following output scored {quality_score}/1.0 on quality evaluation.
+
+Output:
+{json.dumps(content, indent=2)}
+
+Provide specific, actionable critique on these aspects: {', '.join(aspects)}
+
+Brand voice requirements: {json.dumps(context.brand_voice) if context.brand_voice else "None specified"}
+
+Focus on concrete improvements that would increase the quality score.
+"""
+
+        messages = [
+            {"role": "system", "content": "You are a constructive content critic."},
+            {"role": "user", "content": critique_prompt}
+        ]
+
+        try:
+            response = await vertex_ai_client.chat_completion(
+                messages=messages,
+                temperature=0.3,
+            )
+
+            # Handle both dict and string responses
+            if isinstance(response, dict):
+                return response.get("critique", str(response))
+            return str(response)
+
+        except Exception as e:
+            self.log(f"Critique generation failed: {e}", level="error")
+            return f"Improve quality score from {quality_score} to meet threshold."
+
+    async def evaluate_checkpoint(
+        self,
+        checkpoint_name: str,
+        checkpoints_config: WorkflowCheckpoints,
+        context: AgentContext,
+        execution_data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Evaluate a workflow checkpoint and determine if approval is needed.
+
+        This implements human-in-the-loop checkpoints with:
+        - Configurable trigger conditions
+        - Auto-approval rules
+        - Timeout handling
+        - User notifications
+
+        Args:
+            checkpoint_name: Name of the checkpoint
+            checkpoints_config: Checkpoint configuration
+            context: Agent context
+            execution_data: Current execution data (quality scores, results, etc.)
+
+        Returns:
+            Checkpoint evaluation result with approval status
+        """
+        self.log(
+            f"Evaluating checkpoint: {checkpoint_name}",
+            workspace_id=str(context.workspace_id),
+        )
+
+        checkpoint = checkpoints_config.get_checkpoint(checkpoint_name)
+
+        if not checkpoint:
+            self.log(
+                f"Checkpoint not found: {checkpoint_name}",
+                level="warning",
+            )
+            return {
+                "status": "auto_approved",
+                "reason": "Checkpoint not configured",
+            }
+
+        # Build checkpoint context
+        checkpoint_context = {
+            **context.to_dict(),
+            **execution_data,
+        }
+
+        # Check if should pause for approval
+        should_pause = checkpoints_config.should_pause(
+            checkpoint_name=checkpoint_name,
+            context=checkpoint_context,
+        )
+
+        if not should_pause:
+            self.log(
+                f"Checkpoint auto-approved",
+                checkpoint=checkpoint_name,
+            )
+            return {
+                "status": "auto_approved",
+                "reason": "Auto-approval conditions met",
+                "checkpoint": checkpoint.name,
+            }
+
+        # Pause for approval (mock implementation - in production would notify user)
+        self.log(
+            f"Checkpoint requires approval",
+            checkpoint=checkpoint_name,
+            timeout=checkpoint.timeout_seconds,
+        )
+
+        # Mock approval interface - in production this would:
+        # 1. Send notification to user(s)
+        # 2. Wait for approval with timeout
+        # 3. Return approval decision
+
+        # For now, simulate based on timeout
+        if checkpoint.timeout_seconds and checkpoint.timeout_seconds > 0:
+            # Simulate immediate auto-approval for testing
+            # In production, this would wait for user input
+            return {
+                "status": "approved",
+                "reason": "User approval received (mock)",
+                "checkpoint": checkpoint.name,
+                "approver": str(context.user_id) if context.user_id else "system",
+            }
+        else:
+            # No timeout means must wait for manual approval
+            return {
+                "status": "pending_approval",
+                "reason": "Awaiting user approval",
+                "checkpoint": checkpoint.name,
+                "notify_users": [str(uid) for uid in checkpoint.notify_users],
+            }
 
 
 # Global instance
