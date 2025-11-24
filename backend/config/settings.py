@@ -42,10 +42,13 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str = ""  # Public anon key
     SUPABASE_JWT_SECRET: str = ""  # JWT secret for token verification
     
-    # Redis
+    # Redis (supports localhost and Upstash)
     REDIS_URL: str = "redis://localhost:6379/0"
     REDIS_MAX_CONNECTIONS: int = 50
     REDIS_SOCKET_TIMEOUT: int = 5
+    REDIS_SSL: bool = False  # Set to True for Upstash production
+    REDIS_RETRIES: int = 3  # Retry failed connections
+    REDIS_RETRY_DELAY: int = 1  # Seconds between retries
     
     # Cache TTLs (in seconds)
     CACHE_TTL_RESEARCH: int = 604800  # 7 days
