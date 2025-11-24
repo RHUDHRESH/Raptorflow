@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
-// Fallback className joiner to avoid dependency on utils
 const cn = (...classes) => classes.filter(Boolean).join(" ");
 
 const MOCK_TASKS = [
@@ -53,73 +52,47 @@ const MOCK_TASKS = [
     prompt:
       "Draft an email that shares one proof story with a single CTA to book a slot. Keep under 120 words. Lead with outcome > method.",
   },
-  {
-    id: "t4",
-    title: "Story sequence",
-    channel: "Instagram Stories",
-    cohort: "Price Sensitive",
-    goal: "Retention & Reactivation",
-    status: "done",
-    prompt:
-      "Create a 3-frame story sequence. Frame 1: pain. Frame 2: quick proof. Frame 3: urgency CTA.",
-  },
-  {
-    id: "t5",
-    title: "Insight test outline",
-    channel: "Blog",
-    cohort: "Corporate",
-    goal: "Insight & Learning",
-    status: "upcoming",
-    prompt:
-      "Outline an A/B test to learn which positioning lands better: 'risk mitigation' vs 'speed to value'. Include hypothesis, metric, and sample copy.",
-  },
 ];
 
 const PROMPTS = [
   {
     id: "sharpen",
     label: "Sharpen Hook",
-    helper: "Make the first 3 seconds impossible to ignore.",
+    helper: "Make it impossible to ignore in 3s",
     fn: (task) =>
-      `Sharpen the hook for ${task?.channel || "this channel"} so it makes the audience stop in 3 seconds. Keep it concise and specific to ${task?.cohort ||
+      `Sharpen the hook for ${task?.channel || "this channel"} so the audience stops scrolling. Keep it concise for ${task?.cohort ||
         "the cohort"}.`,
   },
   {
     id: "proof",
-    label: "Add Proof",
-    helper: "Inject 1 concrete proof point.",
+    label: "Layer Proof",
+    helper: "Add one convincing evidence point",
     fn: (task) =>
-      `Add one proof element (number, quote, or artifact) that ${task?.cohort ||
-        "this cohort"} will trust. Keep tone aligned to ${task?.goal}.`,
+      `Add one proof detail (number, quote, artifact) relevant to ${task?.cohort ||
+        "this cohort"} while keeping tone in line with ${task?.goal}.`,
   },
   {
     id: "cta",
     label: "Tighten CTA",
-    helper: "Remove friction and make the next step obvious.",
+    helper: "Make the next step frictionless",
     fn: (task) =>
-      `Rewrite the CTA so it's single-step, low-friction, and native to ${task?.channel ||
-        "the channel"}. Mention expected outcome in 10 words or less.`,
+      `Rewrite the CTA so it's one clear action, ties back to ${task?.goal}, and uses the natural language of ${task?.channel ||
+        "the channel"}.`,
   },
 ];
 
 const VARIATIONS = [
   {
     id: "direct",
-    label: "Direct & ROI-led",
+    label: "Direct & ROI",
     body:
-      "Cut your ops drag by 30% in 14 days. If we miss, you pay $0. Reply “show me” and I’ll share the teardown.",
+      "Cut ops drag by 30% in 14 days. If it misses, we pay. Reply 'show me' and I’ll share the teardown.",
   },
   {
     id: "story",
     label: "Story & Proof",
     body:
-      "Last quarter we turned a stalled pipeline into 17 meetings in 10 days. They just swapped the opener. Want to see the before/after?",
-  },
-  {
-    id: "urgency",
-    label: "Urgency & Scarcity",
-    body:
-      "Two slots left this week for a 15-min audit. If we don’t find $5k/month to reclaim, we’ll write you a check. Want one?",
+      "We turned a stalled pipeline into 17 meetings in 10 days by swapping the opener. Want the before/after?",
   },
 ];
 
@@ -127,14 +100,14 @@ const SIGNALS = [
   {
     id: "s1",
     title: "Face-led hooks",
-    detail: "Hooks with a human face are driving 2.3x replies vs text-only.",
+    detail: "Human faces are pulling 2.3x replies vs text-only hooks this week.",
     confidence: "high",
     impact: "medium",
   },
   {
     id: "s2",
     title: "DM follow-through",
-    detail: "When a DM block is followed by a proof asset within 4 hours, conversion lifts by +18%.",
+    detail: "Sending proof assets within 4h of a DM block lifts conversion +18%.",
     confidence: "medium",
     impact: "high",
   },
@@ -146,8 +119,33 @@ const STATUS_FILTERS = [
   { id: "all", label: "All" },
   { id: "today", label: "Today" },
   { id: "upcoming", label: "Upcoming" },
-  { id: "done", label: "Done" },
 ];
+
+const SummaryCard = ({ label, value, helper, accent }) => (
+  <div className="rounded-3xl border border-neutral-200 bg-gradient-to-br from-white to-neutral-100 p-4 shadow-sm">
+    <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-neutral-400">{label}</p>
+    <p className="text-3xl font-semibold text-neutral-900">{value}</p>
+    {helper && <p className="text-xs text-neutral-500">{helper}</p>}
+    {accent && <span className="mt-2 inline-flex rounded-full bg-black px-2 py-0.5 text-[10px] font-semibold text-white">{accent}</span>}
+  </div>
+);
+
+const SectionCard = ({ title, subtitle, accent, className, children }) => (
+  <div className={cn("runway-card border border-neutral-200 bg-white shadow-sm p-4", className)}>
+    {(title || subtitle || accent) && (
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          {title && <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-neutral-400">{title}</p>}
+          {subtitle && <h3 className="text-base font-semibold text-neutral-900">{subtitle}</h3>}
+        </div>
+        {accent && (
+          <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-neutral-500">{accent}</span>
+        )}
+      </div>
+    )}
+    {children}
+  </div>
+);
 
 export default function Muse() {
   const [searchParams] = useSearchParams();
@@ -173,39 +171,24 @@ export default function Muse() {
     setDraft(task.prompt);
   };
 
-  // hydrate context from Matrix/Moves/Cohorts via query params
   useEffect(() => {
     const moveId = searchParams.get("moveId");
     const cohortId = searchParams.get("cohortId");
-    const pattern = searchParams.get("pattern");
     if (cohortId) {
       setActiveTask((prev) => ({ ...prev, cohort: cohortId }));
     }
-    if (pattern) {
-      setDraft((prev) => `${prev}\n\nPattern to scale: ${pattern}`);
+    if (moveId) {
+      setDraft((prev) => `${prev}\n\nContext from Move ${moveId}`);
     }
-    const assetId = searchParams.get("assetId");
-    if (moveId) setDraft((prev) => `${prev}\n\nContext from Move ${moveId}`);
-    if (assetId) setDraft((prev) => `${prev}\n\nSource asset: ${assetId}`);
   }, [searchParams]);
 
   return (
-    <div className="flex h-full flex-col bg-white">
-      <div className="border-b border-neutral-200 bg-white/80 backdrop-blur">
+    <div className="flex min-h-screen flex-col bg-neutral-50">
+      <div className="border-b border-neutral-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 hover:text-neutral-900"
-              aria-label="Back"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
-                Creative Workspace
-              </p>
-              <h1 className="text-xl font-semibold text-neutral-900">Muse</h1>
-            </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.4em] text-neutral-400">Creative</p>
+            <h1 className="text-2xl font-semibold text-neutral-900">Muse</h1>
           </div>
           <div className="flex items-center gap-3">
             <a
@@ -216,27 +199,25 @@ export default function Muse() {
             >
               <PenTool size={16} /> Open Canva
             </a>
-            <button className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-neutral-900">
+            <button className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-neutral-900">
               <Sparkles size={16} /> New from brief
             </button>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 gap-6 px-6 py-6">
-        {/* Left: Queue + signals */}
-        <div className="w-full max-w-sm space-y-4">
-          <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400">
-                  From Moves
-                </p>
-                <h3 className="text-base font-semibold text-neutral-900">
-                  Queue
-                </h3>
-              </div>
-              <div className="flex gap-2">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <SummaryCard label="Active task" value={activeTask.title} helper={activeTask.channel} accent={activeTask.status} />
+          <SummaryCard label="Draft quality" value="High" helper="Thanks to on-brand proof" accent="Updated" />
+          <SummaryCard label="Signal" value={selectedSignal.title} helper={`Impact: ${selectedSignal.impact}`} accent={selectedSignal.confidence} />
+        </div>
+        <main className="grid gap-6 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)_minmax(0,320px)]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)_minmax(0,320px)]">
+          {/* Left column */}
+          <div className="space-y-4">
+            <SectionCard title="From Moves" subtitle="Queue">
+              <div className="flex flex-wrap gap-2 mb-3">
                 {STATUS_FILTERS.map((filter) => (
                   <button
                     key={filter.id}
@@ -252,221 +233,185 @@ export default function Muse() {
                   </button>
                 ))}
               </div>
-            </div>
-            <div className="divide-y divide-neutral-100">
-              {filteredTasks.map((task) => (
-                <button
-                  key={task.id}
-                  onClick={() => handleTaskSelect(task)}
-                  className={cn(
-                    "w-full px-4 py-3 text-left transition-colors",
-                    activeTask?.id === task.id
-                      ? "bg-neutral-50"
-                      : "hover:bg-neutral-50"
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-neutral-500">
-                      <Layers size={14} />
-                      <span>{task.goal}</span>
+              <div className="divide-y divide-neutral-100">
+                {filteredTasks.map((task) => (
+                  <button
+                    key={task.id}
+                    onClick={() => handleTaskSelect(task)}
+                    className={cn(
+                      "w-full px-4 py-3 text-left transition-colors",
+                      activeTask?.id === task.id ? "bg-neutral-50" : "hover:bg-neutral-50"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-[11px] font-semibold text-neutral-500">
+                        <Layers size={14} />
+                        <span>{task.goal}</span>
+                      </div>
+                      <span className="text-[11px] font-semibold uppercase text-neutral-400">{task.status}</span>
                     </div>
-                    <span className="text-[11px] font-semibold uppercase text-neutral-400">
-                      {task.status}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm font-semibold text-neutral-900">
-                    {task.title}
-                  </p>
-                  <p className="mt-1 text-xs text-neutral-500">
-                    {task.channel} • {task.cohort}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400">
-                  Signals
-                </p>
-                <h3 className="text-base font-semibold text-neutral-900">
-                  From Matrix
-                </h3>
-              </div>
-              <div className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                Live
-              </div>
-            </div>
-            <div className="divide-y divide-neutral-100">
-              {SIGNALS.map((signal) => (
-                <button
-                  key={signal.id}
-                  onClick={() => setSelectedSignal(signal)}
-                  className={cn(
-                    "w-full px-4 py-3 text-left transition-colors",
-                    selectedSignal?.id === signal.id
-                      ? "bg-emerald-50/60"
-                      : "hover:bg-neutral-50"
-                  )}
-                >
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
-                    <CheckCircle2
-                      size={14}
-                      className={signal.impact === "high" ? "text-emerald-600" : "text-amber-500"}
-                    />
-                    <span className="text-neutral-500">{signal.title}</span>
-                  </div>
-                  <p className="mt-2 text-sm text-neutral-800">{signal.detail}</p>
-                  <p className="mt-2 text-xs text-neutral-500">
-                    Confidence: {signal.confidence} • Impact: {signal.impact}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right: workspace */}
-        <div className="flex-1 space-y-4">
-          <div className="flex flex-wrap gap-2 text-xs text-neutral-500">
-            <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 font-semibold">
-              <Layers size={14} /> {activeTask.goal}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 font-semibold">
-              <BookOpen size={14} /> {activeTask.channel}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 font-semibold">
-              <Zap size={14} /> {activeTask.cohort}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 font-semibold">
-              <Clock size={14} /> Status: {activeTask.status}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
-                    Draft
-                  </p>
-                  <h2 className="text-lg font-semibold text-neutral-900">
-                    {activeTask.title}
-                  </h2>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => navigator.clipboard?.writeText(draft || "")}
-                    className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-700 hover:border-neutral-300"
-                  >
-                    <Copy size={14} /> Copy
-                  </button>
-                  <button className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500">
-                    <CheckCircle size={14} /> Mark ready
-                  </button>
-                </div>
-              </div>
-              <textarea
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                className="min-h-[260px] w-full rounded-xl border border-neutral-200 bg-neutral-50/80 px-4 py-3 text-sm text-neutral-900 shadow-inner focus:border-neutral-300 focus:outline-none"
-              />
-              <div className="flex flex-wrap gap-2">
-                {PROMPTS.map((prompt) => (
-                  <button
-                    key={prompt.id}
-                    onClick={() => applyPrompt(prompt)}
-                    className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-800 hover:border-neutral-300"
-                  >
-                    <Wand2 size={14} /> {prompt.label}
-                    <span className="text-[11px] font-normal text-neutral-500">
-                      {prompt.helper}
-                    </span>
+                    <p className="mt-2 text-sm font-semibold text-neutral-900">{task.title}</p>
+                    <p className="mt-1 text-xs text-neutral-500">
+                      {task.channel} • {task.cohort}
+                    </p>
                   </button>
                 ))}
               </div>
-            </div>
+            </SectionCard>
 
-            <div className="flex flex-col gap-3 rounded-xl border border-neutral-100 bg-neutral-50 p-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
-                <Brain size={14} /> Variations
+            <SectionCard title="Signals" subtitle="From Matrix" accent="Live">
+              <p className="text-sm text-neutral-700 mb-2">{selectedSignal.detail}</p>
+              <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase text-neutral-400">
+                <span>Impact: {selectedSignal.impact}</span>
+                <span>Confidence: {selectedSignal.confidence}</span>
               </div>
-              {VARIATIONS.map((variation) => (
-                <button
-                  key={variation.id}
-                  onClick={() => handleVariation(variation.body)}
-                  className="rounded-lg border border-transparent bg-white px-3 py-2 text-left text-sm text-neutral-800 shadow-sm transition hover:border-neutral-200"
-                >
-                  <div className="flex items-center gap-2 text-xs font-semibold text-neutral-500">
-                    <Sparkles size={14} /> {variation.label}
-                  </div>
-                  <p className="mt-2 text-sm leading-snug text-neutral-800">
-                    {variation.body}
-                  </p>
-                </button>
-              ))}
-            </div>
+              <div className="mt-4 flex flex-col gap-2 text-sm">
+                {SIGNALS.map((signal) => (
+                  <button
+                    key={signal.id}
+                    onClick={() => setSelectedSignal(signal)}
+                    className={cn(
+                      "text-left text-sm font-semibold transition-colors",
+                      selectedSignal?.id === signal.id ? "text-neutral-900" : "text-neutral-500 hover:text-neutral-900"
+                    )}
+                  >
+                    {signal.title}
+                  </button>
+                ))}
+              </div>
+            </SectionCard>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
-                <PenTool size={14} /> Templates
+          {/* Center workspace */}
+          <div className="space-y-4">
+            <SectionCard title="Workspace" subtitle="Live Draft">
+              <div className="flex flex-wrap gap-3 text-xs text-neutral-500 mb-4">
+                <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 font-semibold">
+                  <Layers size={14} /> {activeTask.goal}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 font-semibold">
+                  <BookOpen size={14} /> {activeTask.channel}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 font-semibold">
+                  <Zap size={14} /> {activeTask.cohort}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 font-semibold">
+                  <Clock size={14} /> Status: {activeTask.status}
+                </span>
               </div>
-              <div className="mt-3 space-y-3">
-                <button
-                  onClick={() => setDraft(MOCK_TASKS[0].prompt)}
-                  className="flex w-full items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-sm font-semibold text-neutral-800 hover:border-neutral-300"
-                >
-                  Short-form video <ArrowRight size={14} />
-                </button>
-                <button
-                  onClick={() => setDraft(MOCK_TASKS[1].prompt)}
-                  className="flex w-full items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-sm font-semibold text-neutral-800 hover:border-neutral-300"
-                >
-                  Outbound DM <ArrowRight size={14} />
-                </button>
-                <button
-                  onClick={() => setDraft(MOCK_TASKS[2].prompt)}
-                  className="flex w-full items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-sm font-semibold text-neutral-800 hover:border-neutral-300"
-                >
-                  Email proof drop <ArrowRight size={14} />
-                </button>
-              </div>
-            </div>
 
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
-                <Upload size={14} /> Assets
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-neutral-400">Draft</p>
+                      <h2 className="text-lg font-semibold text-neutral-900">{activeTask.title}</h2>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => navigator.clipboard?.writeText(draft || "")}
+                        className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-700 hover:border-neutral-300"
+                      >
+                        <Copy size={14} /> Copy
+                      </button>
+                      <button className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500">
+                        <CheckCircle size={14} /> Mark ready
+                      </button>
+                    </div>
+                  </div>
+                  <textarea
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    className="min-h-[260px] w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 shadow-inner focus:border-neutral-300 focus:outline-none"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    {PROMPTS.map((prompt) => (
+                      <button
+                        key={prompt.id}
+                        onClick={() => applyPrompt(prompt)}
+                        className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-800 hover:border-neutral-300"
+                      >
+                        <Wand2 size={14} /> {prompt.label}
+                        <span className="text-[11px] font-normal text-neutral-500">{prompt.helper}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
+                      <Brain size={14} /> Variations
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      {VARIATIONS.map((variation) => (
+                        <button
+                          key={variation.id}
+                          onClick={() => handleVariation(variation.body)}
+                          className="w-full rounded-xl border border-transparent bg-white px-3 py-2 text-left text-sm text-neutral-800 shadow-sm transition hover:border-neutral-200"
+                        >
+                          <div className="flex items-center gap-2 text-xs font-semibold text-neutral-500">
+                            <Sparkles size={14} /> {variation.label}
+                          </div>
+                          <p className="mt-2 text-sm leading-snug text-neutral-800">{variation.body}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <SectionCard title="Active Signal" subtitle={selectedSignal.title}>
+                    <p className="text-sm text-neutral-700">{selectedSignal.detail}</p>
+                    <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase text-neutral-400 mt-2">
+                      <span>Impact: {selectedSignal.impact}</span>
+                      <span>Confidence: {selectedSignal.confidence}</span>
+                    </div>
+                  </SectionCard>
+                </div>
               </div>
-              <p className="mt-2 text-sm text-neutral-700">
-                Planning inside RaptorFlow, production in Canva.
+            </SectionCard>
+          </div>
+
+          {/* Right column */}
+          <div className="space-y-4">
+            <SectionCard title="Templates" subtitle="Ready-made">
+              <div className="space-y-3">
+                {MOCK_TASKS.slice(0, 3).map((task) => (
+                  <button
+                    key={task.id}
+                    onClick={() => setDraft(task.prompt)}
+                    className="flex w-full items-center justify-between rounded-xl border border-neutral-200 px-3 py-2 text-sm font-semibold text-neutral-800 hover:border-neutral-300"
+                  >
+                    {task.title}
+                    <ArrowRight size={14} />
+                  </button>
+                ))}
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Production" subtitle="Assets">
+              <p className="text-sm text-neutral-700">
+                Plan inside RaptorFlow, craft in Canva for polished output.
               </p>
               <a
                 href={CANVA_LINK}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-3 inline-flex items-center gap-2 rounded-full bg-black px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-neutral-900"
+                className="mt-3 inline-flex items-center gap-2 rounded-full bg-black px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-neutral-900"
               >
-                Open Canva <ArrowUpRight size={14} />
+                Open Canva
+                <ArrowUpRight size={14} />
               </a>
-            </div>
+            </SectionCard>
 
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
-                <AlertTriangle size={14} /> Guardrails
-              </div>
-              <ul className="mt-3 space-y-2 text-sm text-neutral-700">
-                <li>Stay within the cohort tone; avoid jargon bloat.</li>
+            <SectionCard title="Guardrails">
+              <ul className="space-y-2 text-sm text-neutral-700">
+                <li>Stay within the cohort tone—no jargon bloat.</li>
                 <li>One CTA per asset; remove extra links.</li>
-                <li>Proof > promises. Name a number or artifact.</li>
+                <li>Proof over promises. Call out a number or artifact.</li>
               </ul>
-            </div>
+            </SectionCard>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

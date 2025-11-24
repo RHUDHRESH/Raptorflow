@@ -4,20 +4,14 @@ import { motion } from "framer-motion"
 import {
   LayoutDashboard,
   Target,
-  TrendingUp,
   Users,
-  FileText,
-  Clock,
   HelpCircle,
   Sparkles,
   Settings,
   User,
   BookOpen,
   Activity,
-  Network,
-  Calendar,
-  Library,
-  Zap
+  Calendar
 } from "lucide-react"
 import {
   DesktopSidebar,
@@ -37,17 +31,12 @@ import { cn } from "../utils/cn"
 
 const navigationItems = [
   { title: "Command Center", icon: LayoutDashboard, url: "/" },
-  { title: "War Room", icon: Target, url: "/moves/war-room" },
-  { title: "Move Library", icon: Library, url: "/moves/library" },
+  { title: "Moves", icon: BookOpen, url: "/moves" },
   { title: "Muse", icon: Sparkles, url: "/muse" },
   { title: "Matrix", icon: Activity, url: "/matrix" },
-  { title: "Tech Tree", icon: Network, url: "/quests" },
-  { title: "Daily Ops", icon: Calendar, url: "/today" },
-  { title: "Daily Sweep", icon: Zap, url: "/daily-sweep" },
-  { title: "Strategy Atelier", icon: Sparkles, url: "/strategy" },
-  { title: "Performance", icon: TrendingUp, url: "/analytics" },
+  { title: "Operational Pulse", icon: Calendar, url: "/today" },
+  { title: "Your Position", icon: Target, url: "/strategy" },
   { title: "Cohorts", icon: Users, url: "/cohorts" },
-  { title: "Archive", icon: FileText, url: "/history" },
 ]
 
 const settingsItems = [

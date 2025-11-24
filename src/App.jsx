@@ -9,17 +9,12 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Moves from './pages/Moves'
 import MoveDetail from './pages/MoveDetail'
-import WarRoom from './pages/WarRoom'
-import MoveLibrary from './pages/MoveLibrary'
 import Quests from './pages/Quests'
-import TechTree from './pages/TechTree'
 import Today from './pages/Today'
-import DailySweep from './pages/DailySweep'
 import Onboarding from './components/Onboarding'
 import Strategy from './pages/Strategy'
 import StrategyWizard from './pages/StrategyWizard'
 import StrategyWizardEnhanced from './pages/StrategyWizardEnhanced'
-import Analytics from './pages/Analytics'
 import CohortsManager from './pages/CohortsManager'
 import CohortsMoves from './pages/CohortsMoves'
 import Cohorts from './pages/Cohorts'
@@ -56,20 +51,6 @@ function App() {
             </Layout>
           </ProtectedRoute>
         } />
-        <Route path="/moves/war-room" element={
-          <ProtectedRoute>
-            <Layout>
-              <WarRoom />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/moves/library" element={
-          <ProtectedRoute>
-            <Layout>
-              <MoveLibrary />
-            </Layout>
-          </ProtectedRoute>
-        } />
         <Route path="/moves/:id" element={
           <ProtectedRoute>
             <Layout>
@@ -84,24 +65,10 @@ function App() {
             </Layout>
           </ProtectedRoute>
         } />
-        <Route path="/tech-tree" element={
-          <ProtectedRoute>
-            <Layout>
-              <TechTree />
-            </Layout>
-          </ProtectedRoute>
-        } />
         <Route path="/today" element={
           <ProtectedRoute>
             <Layout>
               <Today />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/daily-sweep" element={
-          <ProtectedRoute>
-            <Layout>
-              <DailySweep />
             </Layout>
           </ProtectedRoute>
         } />
@@ -126,13 +93,6 @@ function App() {
           <ProtectedRoute>
             <Layout>
               <StrategyWizard />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/analytics" element={
-          <ProtectedRoute>
-            <Layout>
-              <Analytics />
             </Layout>
           </ProtectedRoute>
         } />

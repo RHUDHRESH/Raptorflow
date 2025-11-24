@@ -50,6 +50,14 @@ const mockDailyTasks = [
   }
 ]
 
+const getPhaseLabel = (status) => {
+  const phase = status.replace('OODA_', '').toLowerCase()
+  if (phase === 'act') return 'Act'
+  if (phase === 'decide') return 'Decide'
+  if (phase === 'orient') return 'Orient'
+  return phase.charAt(0).toUpperCase() + phase.slice(1)
+}
+
 export default function Today() {
   const [tasks] = useState(mockDailyTasks)
 
@@ -69,7 +77,7 @@ export default function Today() {
         <div className="absolute inset-0 bg-gradient-to-br from-white via-neutral-50 to-white" />
         <div className="relative z-10 space-y-6">
           <div className="flex items-center gap-3">
-            <span className="micro-label tracking-[0.5em]">Daily Ops</span>
+            <span className="micro-label tracking-[0.5em]">Operational Pulse</span>
             <span className="h-px w-16 bg-neutral-200" />
             <span className="text-xs uppercase tracking-[0.3em] text-neutral-400">Today's Checklist</span>
           </div>
@@ -153,92 +161,95 @@ export default function Today() {
       <div className="space-y-6">
         <h2 className="text-xl font-bold text-neutral-900">Today's Operations</h2>
         
-        {tasks.map((moveGroup, moveIndex) => (
-          <motion.div
-            key={moveGroup.move_id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: moveIndex * 0.1 }}
-            className="runway-card p-6"
-          >
-            {/* Move Header */}
-            <div className="flex items-start justify-between mb-4 pb-4 border-b border-neutral-200">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <PlayCircle className="w-5 h-5 text-blue-600" />
-                  <Link
-                    to={`/moves/${moveGroup.move_id}`}
-                    className="text-lg font-bold text-neutral-900 hover:underline"
-                  >
-                    {moveGroup.move_name}
-                  </Link>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-neutral-600">
-                  <span>Sprint: {moveGroup.sprint_dates}</span>
-                  <span>•</span>
-                  <span>{moveGroup.day_progress}</span>
-                </div>
-              </div>
-              <span className={cn(
-                "px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] border rounded",
-                moveGroup.move_status === MoveStatus.OODA_ACT
-                  ? "bg-blue-100 text-blue-900 border-blue-200"
-                  : "bg-yellow-100 text-yellow-900 border-yellow-200"
-              )}>
-                {moveGroup.move_status}
-              </span>
-            </div>
-
-            {/* Tasks */}
-            <div className="space-y-3">
-              {moveGroup.tasks.map((task, taskIndex) => (
-                <motion.div
-                  key={task.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: (moveIndex * 0.1) + (taskIndex * 0.05) }}
-                  className={cn(
-                    "flex items-start gap-3 p-4 rounded-lg border transition-colors",
-                    task.status === 'complete'
-                      ? "bg-green-50 border-green-200"
-                      : "bg-neutral-50 border-neutral-200 hover:bg-neutral-100"
-                  )}
-                >
-                  <button className={cn(
-                    "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors",
-                    task.status === 'complete'
-                      ? "bg-green-600 border-green-600"
-                      : "border-neutral-300 hover:border-neutral-900"
-                  )}>
-                    {task.status === 'complete' && (
-                      <CheckCircle2 className="w-4 h-4 text-white" />
-                    )}
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <p className={cn(
-                      "text-sm font-medium",
-                      task.status === 'complete'
-                        ? "text-green-900 line-through"
-                        : "text-neutral-900"
-                    )}>
-                      {task.text}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Clock className="w-3 h-3 text-neutral-400" />
-                      <span className="text-xs text-neutral-600">{task.due}</span>
-                    </div>
+        {tasks.map((moveGroup, moveIndex) => {
+          const phaseLabel = getPhaseLabel(moveGroup.move_status)
+          return (
+            <motion.div
+              key={moveGroup.move_id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: moveIndex * 0.1 }}
+              className="runway-card p-6"
+            >
+              {/* Move Header */}
+              <div className="flex items-start justify-between mb-4 pb-4 border-b border-neutral-200">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <PlayCircle className="w-5 h-5 text-blue-600" />
+                    <Link
+                      to={`/moves/${moveGroup.move_id}`}
+                      className="text-lg font-bold text-neutral-900 hover:underline"
+                    >
+                      {moveGroup.move_name}
+                    </Link>
                   </div>
-                  <Link
-                    to={`/moves/${moveGroup.move_id}`}
-                    className="text-neutral-400 hover:text-neutral-900 transition-colors"
+                  <div className="flex items-center gap-3 text-sm text-neutral-600">
+                    <span>Sprint: {moveGroup.sprint_dates}</span>
+                    <span>•</span>
+                    <span>{moveGroup.day_progress}</span>
+                  </div>
+                </div>
+                <span className={cn(
+                  "px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] border rounded",
+                  phaseLabel === 'Act'
+                    ? "bg-blue-100 text-blue-900 border-blue-200"
+                    : "bg-yellow-100 text-yellow-900 border-yellow-200"
+                )}>
+                  {phaseLabel}
+                </span>
+              </div>
+
+              {/* Tasks */}
+              <div className="space-y-3">
+                {moveGroup.tasks.map((task, taskIndex) => (
+                  <motion.div
+                    key={task.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: (moveIndex * 0.1) + (taskIndex * 0.05) }}
+                    className={cn(
+                      "flex items-start gap-3 p-4 rounded-lg border transition-colors",
+                      task.status === 'complete'
+                        ? "bg-green-50 border-green-200"
+                        : "bg-neutral-50 border-neutral-200 hover:bg-neutral-100"
+                    )}
                   >
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        ))}
+                    <button className={cn(
+                      "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors",
+                      task.status === 'complete'
+                        ? "bg-green-600 border-green-600"
+                        : "border-neutral-300 hover:border-neutral-900"
+                    )}>
+                      {task.status === 'complete' && (
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      )}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <p className={cn(
+                        "text-sm font-medium",
+                        task.status === 'complete'
+                          ? "text-green-900 line-through"
+                          : "text-neutral-900"
+                      )}>
+                        {task.text}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Clock className="w-3 h-3 text-neutral-400" />
+                        <span className="text-xs text-neutral-600">{task.due}</span>
+                      </div>
+                    </div>
+                    <Link
+                      to={`/moves/${moveGroup.move_id}`}
+                      className="text-neutral-400 hover:text-neutral-900 transition-colors"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )
+        })}
       </div>
 
       {/* Empty State */}
@@ -247,13 +258,13 @@ export default function Today() {
           <Calendar className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
           <h3 className="text-lg font-bold text-neutral-900 mb-2">No tasks for today</h3>
           <p className="text-sm text-neutral-600 mb-6">
-            All caught up! Check the War Room to see upcoming moves.
+            All caught up! Check Moves to see upcoming work.
           </p>
           <Link
-            to="/moves/war-room"
+            to="/moves"
             className="inline-flex items-center gap-2 border border-neutral-900 px-6 py-3 text-[10px] font-mono uppercase tracking-[0.3em] text-neutral-900 hover:bg-neutral-900 hover:text-white transition-colors"
           >
-            Go to War Room
+            Open Moves
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -261,5 +272,3 @@ export default function Today() {
     </div>
   )
 }
-
-
