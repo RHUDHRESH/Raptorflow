@@ -104,18 +104,50 @@ class PhonePeService:
 
         return calculated_checksum == received_checksum
 
-    def get_plan_price(self, plan: str, billing_period: str = "monthly") -> int:
+    def _validate_plan_and_period(self, plan: str, billing_period: str) -> Tuple[bool, Optional[str]]:
         """
-        Get price for a plan in rupees.
+        Validate plan and billing period.
+
+        Args:
+            plan: Plan name
+            billing_period: Billing period
+
+        Returns:
+            Tuple of (is_valid, error_message)
+        """
+        if plan not in self.PLAN_PRICES:
+            return False, f"Invalid plan: {plan}. Allowed: {', '.join(self.PLAN_PRICES.keys())}"
+
+        if billing_period not in self.PLAN_PRICES.get(plan, {}):
+            return False, f"Invalid billing period for {plan}: {billing_period}. Allowed: {', '.join(self.PLAN_PRICES[plan].keys())}"
+
+        return True, None
+
+    def get_plan_price(self, plan: str, billing_period: str = "monthly") -> Tuple[int, Optional[str]]:
+        """
+        Get price for a plan in rupees with validation.
 
         Args:
             plan: Plan name (ascent, glide, soar)
             billing_period: Billing period (monthly, yearly)
 
         Returns:
-            Price in rupees
+            Tuple of (price_in_rupees, error_message)
         """
-        return self.PLAN_PRICES.get(plan, {}).get(billing_period, 0)
+        is_valid, error = self._validate_plan_and_period(plan, billing_period)
+        if not is_valid:
+            return 0, error
+
+        price = self.PLAN_PRICES[plan][billing_period]
+
+        # Validate price
+        if price <= 0:
+            return 0, f"Invalid price for {plan}/{billing_period}: {price}"
+
+        if price > 999999:  # Max 9,99,999 rupees
+            return 0, f"Price exceeds maximum limit: {price}"
+
+        return price, None
 
     def get_plan_details(self, plan: str) -> SubscriptionPlan:
         """
@@ -156,8 +188,12 @@ class PhonePeService:
             # Generate unique merchant transaction ID
             merchant_transaction_id = f"MT{uuid.uuid4().hex[:20].upper()}"
 
-            # Calculate amount in paise (PhonePe uses smallest currency unit)
-            amount_rupees = self.get_plan_price(request.plan, request.billing_period)
+            # Calculate and validate amount in paise (PhonePe uses smallest currency unit)
+            amount_rupees, amount_error = self.get_plan_price(request.plan, request.billing_period)
+            if amount_error:
+                logger.error(f"Amount validation failed: {amount_error}")
+                return None, amount_error
+
             amount_paise = amount_rupees * 100
 
             # Prepare payment request payload

@@ -41,7 +41,14 @@
       "mcp__vercel__deploy_to_vercel",
       "mcp__cloud-run__list_services",
       "Bash(docker build:*)",
-      "mcp__cloud-run__deploy_local_folder"
+      "mcp__cloud-run__deploy_local_folder",
+      "Bash(git commit -m \"$(cat <<''''EOF''''\nfeat: Complete refactoring for Vercel, Cloud Run, and Supabase deployment\n\nCore Changes:\n- Set up Supabase database with 3 migrations (move system, assets, quests)\n- Optimized frontend build for Vercel (code splitting, security headers)\n- Optimized backend for Cloud Run (multi-stage Docker, lean dependencies)\n- Created automated deployment scripts (Windows & Mac/Linux)\n- Added comprehensive deployment documentation (1000+ lines)\n\nNew Files:\n- vercel.json (production deployment config)\n- Dockerfile.cloudrun (optimized backend container)\n- requirements-prod.txt (lean production dependencies)\n- cloudbuild-prod.yaml (CI/CD pipeline)\n- deploy-frontend.cmd/sh, deploy-backend.cmd/sh (automation scripts)\n- README_DEPLOYMENT.md, QUICK_START_DEPLOYMENT.md, etc. (documentation)\n\nImprovements:\n- Frontend: Code splitting (4 vendor bundles), Terser minification, 11 security headers\n- Backend: 2GB → 800MB image size, 119 → 65 dependencies, auto-scaling 1-10 instances\n- Database: 15 tables with RLS, 12+ performance indexes, full migrations\n- Security: HTTPS, XSS/CSRF protection, non-root containers, health checks\n\n🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "mcp__vercel__list_deployments",
+      "mcp__vercel__get_project",
+      "Bash(gcloud run list:*)",
+      "Bash(gcloud run services list:*)",
+      "WebFetch(domain:developer.phonepe.com)"
     ],
     "deny": [],
     "ask": []

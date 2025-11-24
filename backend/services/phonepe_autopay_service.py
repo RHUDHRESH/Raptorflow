@@ -5,6 +5,8 @@ Handles recurring payment subscriptions using PhonePe Python SDK.
 
 import logging
 import uuid
+import hashlib
+import base64
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional, Tuple
 
@@ -65,6 +67,7 @@ class PhonePeAutopayService:
         self.client_id = settings.PHONEPE_AUTOPAY_CLIENT_ID
         self.client_secret = settings.PHONEPE_AUTOPAY_CLIENT_SECRET
         self.client_version = settings.PHONEPE_AUTOPAY_CLIENT_VERSION
+        self.salt_key = settings.PHONEPE_AUTOPAY_SALT_KEY
         self.is_production = settings.ENVIRONMENT == "production"
 
         # Initialize PhonePe Autopay Client
@@ -79,22 +82,122 @@ class PhonePeAutopayService:
             )
             logger.info(f"PhonePe Autopay client initialized in {self.env.name} mode")
         except Exception as e:
-            logger.error(f"Failed to initialize PhonePe Autopay client: {e}")
+            error_msg = f"Failed to initialize PhonePe Autopay client: {e}"
+            logger.error(error_msg)
+            if self.is_production:
+                raise RuntimeError(error_msg)
             self.autopay_client = None
 
-    def _calculate_subscription_amount(self, plan: str, billing_period: str) -> int:
+    def verify_webhook_signature(
+        self,
+        payload_base64: str,
+        x_verify_header: str
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
         """
-        Calculate subscription amount in paise.
+        Verify PhonePe autopay webhook signature.
+
+        Args:
+            payload_base64: Base64 encoded webhook payload
+            x_verify_header: X-VERIFY header from webhook
+
+        Returns:
+            Tuple of (decoded_payload, error_message)
+        """
+        try:
+            # Decode the base64 payload
+            payload_bytes = base64.b64decode(payload_base64)
+            payload_str = payload_bytes.decode('utf-8')
+
+            # Verify checksum
+            checksum_string = f"{payload_str}{self.salt_key}"
+            expected_checksum = hashlib.sha256(checksum_string.encode()).hexdigest()
+
+            # X-VERIFY format is checksum###saltindex
+            if "###" in x_verify_header:
+                provided_checksum = x_verify_header.split("###")[0]
+            else:
+                provided_checksum = x_verify_header
+
+            # Constant-time comparison to prevent timing attacks
+            if not self._constant_time_compare(provided_checksum, expected_checksum):
+                logger.warning("Invalid autopay webhook signature")
+                return None, "Invalid webhook signature"
+
+            # Parse the payload as JSON
+            import json
+            webhook_data = json.loads(payload_str)
+            return webhook_data, None
+
+        except Exception as e:
+            logger.error(f"Error verifying webhook signature: {e}", exc_info=True)
+            return None, f"Signature verification error: {str(e)}"
+
+    def _constant_time_compare(self, a: str, b: str) -> bool:
+        """
+        Constant-time string comparison to prevent timing attacks.
+
+        Args:
+            a: First string
+            b: Second string
+
+        Returns:
+            True if strings are equal, False otherwise
+        """
+        if len(a) != len(b):
+            return False
+
+        result = 0
+        for x, y in zip(a, b):
+            result |= ord(x) ^ ord(y)
+
+        return result == 0
+
+    def _validate_plan_and_period(self, plan: str, billing_period: str) -> Tuple[bool, Optional[str]]:
+        """
+        Validate plan and billing period.
+
+        Args:
+            plan: Plan name
+            billing_period: Billing period
+
+        Returns:
+            Tuple of (is_valid, error_message)
+        """
+        if plan not in self.PLAN_PRICES:
+            return False, f"Invalid plan: {plan}. Allowed: {', '.join(self.PLAN_PRICES.keys())}"
+
+        if billing_period not in self.PLAN_PRICES.get(plan, {}):
+            return False, f"Invalid billing period for {plan}: {billing_period}. Allowed: {', '.join(self.PLAN_PRICES[plan].keys())}"
+
+        return True, None
+
+    def _calculate_subscription_amount(self, plan: str, billing_period: str) -> Tuple[int, Optional[str]]:
+        """
+        Calculate and validate subscription amount in paise.
 
         Args:
             plan: Plan name (ascent, glide, soar)
             billing_period: Billing period (monthly, yearly)
 
         Returns:
-            Amount in paise (smallest currency unit)
+            Tuple of (amount_in_paise, error_message)
         """
-        amount_rupees = self.PLAN_PRICES.get(plan, {}).get(billing_period, 0)
-        return amount_rupees * 100  # Convert to paise
+        # Validate plan and billing period
+        is_valid, error = self._validate_plan_and_period(plan, billing_period)
+        if not is_valid:
+            return 0, error
+
+        amount_rupees = self.PLAN_PRICES[plan][billing_period]
+
+        # Validate amount
+        if amount_rupees <= 0:
+            return 0, f"Invalid amount for {plan}/{billing_period}: {amount_rupees}"
+
+        if amount_rupees > 999999:  # Max 9,99,999 rupees
+            return 0, f"Amount exceeds maximum limit: {amount_rupees}"
+
+        amount_paise = amount_rupees * 100
+        return amount_paise, None
 
     def _calculate_subscription_dates(
         self,
@@ -156,11 +259,15 @@ class PhonePeAutopayService:
             merchant_subscription_id = f"SUB{uuid.uuid4().hex[:20].upper()}"
             merchant_user_id = str(request.user_id)
 
-            # Calculate amount and dates
-            amount_paise = self._calculate_subscription_amount(
+            # Calculate and validate amount
+            amount_paise, amount_error = self._calculate_subscription_amount(
                 request.plan,
                 request.billing_period
             )
+            if amount_error:
+                logger.error(f"Amount validation failed: {amount_error}")
+                return None, amount_error
+
             start_date, end_date = self._calculate_subscription_dates(
                 request.billing_period
             )

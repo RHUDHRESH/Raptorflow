@@ -8,6 +8,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends, Request, Header
 import logging
 
+from backend.utils.rate_limit import rate_limit_webhook, get_ip_from_request
 from backend.models.payment import (
     CreateCheckoutRequest,
     CreateCheckoutResponse,
@@ -139,6 +140,7 @@ async def create_checkout_session(
 
 
 @router.post("/webhook")
+@rate_limit_webhook(max_requests=100, window_seconds=60)
 async def phonepe_webhook(request: Request):
     """
     Handle PhonePe payment webhook callbacks.

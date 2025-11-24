@@ -8,6 +8,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends, Request, Header
 import logging
 
+from backend.utils.rate_limit import rate_limit_webhook, get_ip_from_request
 from backend.models.payment import (
     CreateAutopayCheckoutRequest,
     CreateAutopayCheckoutResponse,
@@ -309,6 +310,7 @@ async def resume_autopay_subscription(
 
 
 @router.post("/webhook")
+@rate_limit_webhook(max_requests=100, window_seconds=60)
 async def autopay_webhook(request: Request):
     """
     Handle PhonePe autopay webhook callbacks.
@@ -318,38 +320,42 @@ async def autopay_webhook(request: Request):
     """
     try:
         # Get webhook payload
-        payload_data = await request.json()
+        payload_base64 = (await request.body()).decode('utf-8')
+        x_verify_header = request.headers.get("X-VERIFY", "")
 
-        # TODO: Verify webhook signature for security
-        # x_verify_header = request.headers.get("X-VERIFY")
-        # if not phonepe_autopay_service.verify_webhook_signature(payload_data, x_verify_header):
-        #     logger.warning("Invalid webhook signature")
-        #     raise HTTPException(status_code=401, detail="Invalid signature")
+        # Verify webhook signature for security
+        webhook_data, error = phonepe_autopay_service.verify_webhook_signature(
+            payload_base64,
+            x_verify_header
+        )
+        if error or not webhook_data:
+            logger.warning(f"Invalid autopay webhook signature: {error}")
+            raise HTTPException(status_code=401, detail="Invalid signature")
 
         # Extract event data
-        event_type = payload_data.get("eventType")
-        merchant_subscription_id = payload_data.get("merchantSubscriptionId")
-        subscription_id = payload_data.get("subscriptionId")
-        status = payload_data.get("status")
+        event_type = webhook_data.get("eventType")
+        merchant_subscription_id = webhook_data.get("merchantSubscriptionId")
+        subscription_id = webhook_data.get("subscriptionId")
+        status = webhook_data.get("status")
 
         logger.info(f"Processing autopay webhook: {event_type} for subscription {merchant_subscription_id}")
 
         # Process webhook based on event type
         if event_type == "SUBSCRIPTION_ACTIVATED":
             # Subscription activated - user has authorized the mandate
-            await _activate_autopay_subscription(payload_data)
+            await _activate_autopay_subscription(webhook_data)
 
         elif event_type == "PAYMENT_SUCCESS":
             # Recurring payment succeeded
-            await _process_autopay_payment_success(payload_data)
+            await _process_autopay_payment_success(webhook_data)
 
         elif event_type == "PAYMENT_FAILED":
             # Recurring payment failed
-            await _process_autopay_payment_failure(payload_data)
+            await _process_autopay_payment_failure(webhook_data)
 
         elif event_type == "SUBSCRIPTION_CANCELLED":
             # Subscription cancelled
-            await _process_autopay_cancellation(payload_data)
+            await _process_autopay_cancellation(webhook_data)
 
         return {"status": "success", "message": "Webhook processed"}
 
