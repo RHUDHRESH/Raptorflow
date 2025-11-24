@@ -123,8 +123,8 @@ async def create_checkout_session(
             "billing_period": request.billing_period
         }
 
-        # Insert into billing_history table (assuming it exists)
-        # await supabase_client.insert("billing_history", transaction_data)
+        # Insert into billing_history table
+        await supabase_client.insert("billing_history", transaction_data)
 
         return CreateCheckoutResponse(
             checkout_url=payment_response.payment_url,
@@ -403,7 +403,7 @@ async def _activate_subscription(webhook_data: Dict[str, Any]):
             "updated_at": "now()"
         }
 
-        # await supabase_client.upsert("subscriptions", subscription_data, ["user_id"])
+        await supabase_client.upsert("subscriptions", subscription_data, ["user_id"])
 
         logger.info(f"Subscription activated for user {merchant_user_id}")
 
@@ -415,11 +415,11 @@ async def _mark_payment_failed(merchant_transaction_id: str):
     """Mark payment as failed in database."""
     try:
         # Update billing history
-        # await supabase_client.update(
-        #     "billing_history",
-        #     {"merchant_transaction_id": merchant_transaction_id},
-        #     {"status": "failed"}
-        # )
+        await supabase_client.update(
+            "billing_history",
+            {"merchant_transaction_id": merchant_transaction_id},
+            {"status": "failed"}
+        )
 
         logger.info(f"Marked payment {merchant_transaction_id} as failed")
 
