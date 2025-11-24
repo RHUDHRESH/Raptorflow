@@ -1,4 +1,4 @@
-import { getVertexAIUrl, TASK_TYPES } from '../utils/vertexAI';
+import { getVertexAIUrl, TASK_TYPES } from '../utils/vertexAI.js';
 
 // AI-powered answer suggestions
 export const generateAnswerSuggestions = async (question, partialAnswer, answers) => {

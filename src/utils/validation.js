@@ -69,10 +69,10 @@ export const validatePassword = (password) => {
 
   const criteriaMet = [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar].filter(Boolean).length;
 
-  if (criteriaMet < 3) {
+  if (criteriaMet < 2) {
     return {
       isValid: false,
-      error: 'Password must contain at least 3 of: uppercase, lowercase, numbers, special characters',
+      error: 'Password must include at least two of: uppercase, lowercase, numbers, special characters',
       strength: 'weak',
     };
   }

@@ -106,4 +106,22 @@ const Toast = ({ toast, onClose }) => {
   )
 }
 
-export default Toast
+// Provide simple toast object for direct usage
+let toastInstance = null;
+
+const createToast = () => ({
+  success: (message, duration) => toastInstance?.success(message, duration),
+  error: (message, duration) => toastInstance?.error(message, duration),
+  info: (message, duration) => toastInstance?.info(message, duration),
+  warning: (message, duration) => toastInstance?.warning(message, duration)
+});
+
+export const toast = createToast();
+
+// Hook to set the toast instance (call from ToastProvider)
+export const setToastInstance = (instance) => {
+  toastInstance = instance;
+  return toast;
+};
+
+// Hook to set the toast instance (call from ToastProvider)
