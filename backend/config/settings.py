@@ -80,6 +80,7 @@ class Settings(BaseSettings):
     # PhonePe Autopay (Recurring Payments)
     PHONEPE_AUTOPAY_CLIENT_ID: Optional[str] = None
     PHONEPE_AUTOPAY_CLIENT_SECRET: Optional[str] = None
+    PHONEPE_AUTOPAY_SALT_KEY: Optional[str] = None
     PHONEPE_AUTOPAY_CLIENT_VERSION: int = 1
     PHONEPE_AUTOPAY_ENABLED: bool = True
 

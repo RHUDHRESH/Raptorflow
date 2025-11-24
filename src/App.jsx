@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
@@ -22,12 +22,16 @@ import StrategyWizardEnhanced from './pages/StrategyWizardEnhanced'
 import Analytics from './pages/Analytics'
 import CohortsManager from './pages/CohortsManager'
 import CohortsMoves from './pages/CohortsMoves'
+import Cohorts from './pages/Cohorts'
 import Support from './pages/Support'
 import History from './pages/History'
 import Account from './pages/Account'
 import Settings from './pages/Settings'
+import Muse from './pages/Muse'
+import Matrix from './pages/Matrix'
 
 function App() {
+  const navigate = useNavigate();
   return (
     <ErrorBoundary name="AppRoot">
       <ToastProvider>
@@ -103,7 +107,7 @@ function App() {
         } />
         <Route path="/onboarding" element={
           <ProtectedRoute requireOnboarding={false}>
-            <Onboarding onClose={() => window.location.href = '/'} />
+            <Onboarding onClose={() => navigate('/')} />
           </ProtectedRoute>
         } />
         <Route path="/strategy" element={
@@ -135,7 +139,7 @@ function App() {
         <Route path="/cohorts" element={
           <ProtectedRoute>
             <Layout>
-              <CohortsManager />
+              <Cohorts />
             </Layout>
           </ProtectedRoute>
         } />
@@ -174,6 +178,20 @@ function App() {
             </Layout>
           </ProtectedRoute>
         } />
+        <Route path="/muse" element={
+          <ProtectedRoute>
+            <Layout>
+              <Muse />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/matrix" element={
+          <ProtectedRoute>
+            <Layout>
+              <Matrix />
+            </Layout>
+          </ProtectedRoute>
+        } />
       </Routes>
         </AuthProvider>
       </ToastProvider>
@@ -182,4 +200,3 @@ function App() {
 }
 
 export default App
-

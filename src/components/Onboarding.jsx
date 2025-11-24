@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { ArrowRight, Sparkles, Search, Check, Loader2, AlertTriangle, ChevronDown, X, Brain, Users, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
@@ -151,6 +151,20 @@ const GrainOverlay = () => (
          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")` 
        }}>
   </div>
+);
+
+const AuraBackground = () => (
+  <motion.div
+    className="absolute inset-0 pointer-events-none"
+    initial={{ opacity: 0, rotate: -6 }}
+    animate={{ opacity: 0.32, rotate: 6 }}
+    transition={{ duration: 12, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
+    style={{
+      background: 'radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.9), rgba(255, 209, 113, 0.25) 40%, rgba(56, 189, 248, 0.05) 70%, transparent 100%)',
+      filter: 'blur(120px)',
+      mixBlendMode: 'screen'
+    }}
+  />
 );
 
 const curatedCities = [
@@ -964,28 +978,36 @@ export default function Onboarding({ onClose }) {
   const [generatedICPs, setGeneratedICPs] = useState([]);
   const [positioningInsights, setPositioningInsights] = useState(null);
   const [showAISuggestions, setShowAISuggestions] = useState(false);
-  const { user } = useAuth();
+  const { user, markOnboardingComplete } = useAuth();
 
   const currentQuestion = questions[currentStepIndex];
   const mainScrollRef = useRef(null);
   const suggestionTimeoutRef = useRef(null);
 
   // Keyboard navigation support
+  const handleCloseOnboarding = useCallback(async () => {
+    if (markOnboardingComplete) {
+      await markOnboardingComplete();
+    }
+    onClose && onClose();
+  }, [markOnboardingComplete, onClose]);
+
   useEffect(() => {
+    if (!onClose) return;
     const handleKeyDown = (e) => {
       // Only handle keyboard shortcuts if we're in input or followup mode
       if (status !== 'input' && status !== 'followup') return;
 
       // Escape to close
-      if (e.key === 'Escape' && onClose) {
+      if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        handleCloseOnboarding();
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [status, onClose]);
+  }, [status, handleCloseOnboarding, onClose]);
 
   const handleAnswer = (id, value) => {
     setAnswers(prev => ({ ...prev, [id]: value }));
@@ -1130,6 +1152,39 @@ export default function Onboarding({ onClose }) {
     }
   };
 
+  const handleFinishOnboarding = async () => {
+    if (user) {
+      try {
+        const { error } = await supabase
+          .from('onboarding_responses')
+          .upsert([
+            { 
+              user_id: user.id, 
+              answers, 
+              generated_icps: generatedICPs, 
+              positioning_insights: positioningInsights,
+              completed_at: new Date().toISOString(),
+              progress_percentage: 100,
+              updated_at: new Date().toISOString()
+            }
+          ]);
+        
+        if (error) {
+          console.warn('Failed to save onboarding responses to Supabase:', error);
+          localStorage.setItem('onboarding_backup', JSON.stringify({ answers, generatedICPs, positioningInsights }));
+        }
+      } catch (err) {
+        console.error('Error saving onboarding:', err);
+      }
+    }
+
+    if (markOnboardingComplete) {
+      await markOnboardingComplete();
+    }
+
+    setShowCohortsBuilder(true);
+  };
+
   const renderInput = () => {
     if (status === 'analyzing') return <ProcessingScreen onSkip={skipToMarketPosition} />;
     if (status === 'market-position') {
@@ -1146,43 +1201,7 @@ export default function Onboarding({ onClose }) {
         <h1 className="font-serif text-6xl mb-6">All Set.</h1>
         <p className="text-neutral-500 font-sans uppercase tracking-widest text-xs mb-12">Protocol Complete</p>
         <button
-            onClick={async () => {
-              // Save onboarding data to Supabase
-              if (user) {
-                try {
-                  const { error } = await supabase
-                    .from('onboarding_responses')
-                    .upsert([
-                      { 
-                        user_id: user.id, 
-                        answers, 
-                        generated_icps: generatedICPs, 
-                        positioning_insights: positioningInsights,
-                        completed_at: new Date().toISOString(),
-                        progress_percentage: 100,
-                        updated_at: new Date().toISOString()
-                      }
-                    ]);
-                  
-                  if (error) {
-                    console.warn('Failed to save onboarding responses to Supabase:', error);
-                    // Optional: save to localStorage as backup
-                    localStorage.setItem('onboarding_backup', JSON.stringify({ answers, generatedICPs, positioningInsights }));
-                  } else {
-                    // Mark onboarding as complete in user profile
-                    await supabase
-                      .from('user_profiles')
-                      .update({ onboarding_completed: true })
-                      .eq('id', user.id);
-                  }
-                } catch (err) {
-                  console.error('Error saving onboarding:', err);
-                }
-              }
-
-              // Launch Cohorts Builder instead of closing
-              setShowCohortsBuilder(true);
-            }} 
+            onClick={handleFinishOnboarding}
             className="group relative bg-black text-white px-16 py-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20"
         >
             <div className="relative z-10 flex items-center space-x-4">
@@ -1243,7 +1262,7 @@ export default function Onboarding({ onClose }) {
       <CohortsBuilder
         onClose={() => {
           setShowCohortsBuilder(false);
-          onClose && onClose();
+          handleCloseOnboarding();
         }}
         onboardingData={{
           answers,
@@ -1257,16 +1276,17 @@ export default function Onboarding({ onClose }) {
   return (
     <div className="fixed inset-0 z-[100] flex h-screen w-screen bg-white text-neutral-900 overflow-hidden font-sans selection:bg-black selection:text-white">
       <GrainOverlay />
-      {onClose && (
-        <button
-          className="absolute top-8 left-8 z-50 p-2 text-neutral-400 hover:text-black transition-colors hover:bg-neutral-100"
-          onClick={onClose}
-          aria-label="Close onboarding"
-          title="Close onboarding"
-        >
-          <X size={24} aria-hidden="true" />
-        </button>
-      )}
+      <AuraBackground />
+        {onClose && (
+          <button
+            className="absolute top-8 left-8 z-50 p-2 text-neutral-400 hover:text-black transition-colors hover:bg-neutral-100"
+            onClick={handleCloseOnboarding}
+            aria-label="Close onboarding"
+            title="Close onboarding"
+          >
+            <X size={24} aria-hidden="true" />
+          </button>
+        )}
       <div ref={mainScrollRef} className="flex-grow flex flex-col justify-center items-center px-6 md:px-8 relative z-10">
         <div className="w-full flex flex-col items-center pb-12 max-w-7xl">
            {status !== 'analyzing' && status !== 'complete' && status !== 'market-position' && currentQuestion && (
@@ -1317,4 +1337,3 @@ export default function Onboarding({ onClose }) {
     </div>
   );
 }
-

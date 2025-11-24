@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { ArrowRight, Check, Loader2, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Info, Check, Loader2, ChevronLeft } from 'lucide-react';
 import PropTypes from 'prop-types';
 import {
   generateMarketAlternatives,
@@ -11,13 +11,13 @@ import {
   generateServiceReasoning
 } from '../lib/ai';
 
-// Pre-defined alternative positions on the map
+// Clean alternative positions
 const ALTERNATIVES = [
-  { id: 'diy', label: 'DIY tools / software', x: -1.5, y: -1.8 },
-  { id: 'courses', label: 'Courses / info products', x: -1.2, y: -1.5 },
-  { id: 'freelancers', label: 'Freelancers / cheap agencies', x: -0.5, y: 0.3 },
-  { id: 'agencies', label: 'Full-service agencies', x: 1.2, y: 1.5 },
-  { id: 'nothing', label: 'Do nothing', x: -1.8, y: -1.2 },
+  { id: 'diy', label: 'DIY Tools', x: -1.5, y: -1.8 },
+  { id: 'courses', label: 'Courses', x: -1.2, y: -1.5 },
+  { id: 'freelancers', label: 'Freelancers', x: -0.5, y: 0.3 },
+  { id: 'agencies', label: 'Agencies', x: 1.2, y: 1.5 },
+  { id: 'nothing', label: 'Do Nothing', x: -1.8, y: -1.2 },
 ];
 
 // Price comparison options (maps to x-axis: -2 to +2)

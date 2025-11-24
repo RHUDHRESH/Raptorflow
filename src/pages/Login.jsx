@@ -12,7 +12,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
-  const { login, loginWithGoogle, loading, error: authError, isAuthenticated } = useAuth();
+  const { login, loginWithGoogle, skipLoginDev, loading, error: authError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -53,6 +53,14 @@ const Login = () => {
       setErrors({ submit: result.error });
     }
     // OAuth redirect will happen automatically
+  };
+
+  const handleDevLogin = async () => {
+    setErrors({});
+    const result = await skipLoginDev();
+    if (!result.success) {
+      setErrors({ submit: result.error });
+    }
   };
 
   return (
@@ -108,9 +116,11 @@ const Login = () => {
                 Email Address
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" strokeWidth={1.5} />
-                </div>
+                {formData.email === '' && (
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" strokeWidth={1.5} />
+                  </div>
+                )}
                 <input
                   id="email"
                   name="email"
@@ -119,7 +129,7 @@ const Login = () => {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="input pl-12"
+                  className={`input ${formData.email === '' ? 'pl-12' : 'pl-4'}`}
                   placeholder="you@example.com"
                 />
               </div>
@@ -134,9 +144,11 @@ const Login = () => {
                 Password
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" strokeWidth={1.5} />
-                </div>
+                {formData.password === '' && (
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" strokeWidth={1.5} />
+                  </div>
+                )}
                 <input
                   id="password"
                   name="password"
@@ -145,7 +157,7 @@ const Login = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="input pl-12 pr-16"
+                  className={`input ${formData.password === '' ? 'pl-12' : 'pl-4'} pr-16`}
                   placeholder="••••••••"
                 />
                 <button
@@ -179,6 +191,16 @@ const Login = () => {
             </button>
           </form>
 
+          {import.meta.env.DEV && (
+            <button
+              type="button"
+              onClick={handleDevLogin}
+              className="w-full mt-4 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-yellow-50 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            >
+              Dev Login (Bypass)
+            </button>
+          )}
+
           {/* Register Link */}
           <div className="mt-8 text-center border-t border-black/10 pt-6">
             <p className="text-sm font-sans text-gray-600">
@@ -188,13 +210,6 @@ const Login = () => {
               </Link>
             </p>
           </div>
-        </div>
-
-        {/* Info Note */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
-            <strong>Note:</strong> Sign in with Google for quick access, or use your email and password.
-          </p>
         </div>
       </div>
     </div>

@@ -107,12 +107,56 @@ class CacheClient:
         """Check if key exists in cache"""
         if not self.redis:
             return False
-            
+
         key = self._generate_key(prefix, identifier)
         try:
             return await self.redis.exists(key) > 0
         except Exception as e:
             logger.warning("Cache exists check failed", key=key, error=str(e))
+            return False
+
+    async def incr(self, key: str, expire: Optional[int] = None) -> int:
+        """
+        Increment counter in cache (for rate limiting). Returns new count.
+
+        SECURITY: Uses Lua script for atomic increment with expiry to prevent race conditions.
+        Ensures expiry is set atomically on first increment without gap vulnerabilities.
+        """
+        if not self.redis:
+            return 1
+
+        try:
+            if expire:
+                # Use Lua script for atomic increment with expiry
+                # This prevents race condition between INCR and EXPIRE
+                lua_script = """
+local count = redis.call('incr', KEYS[1])
+if count == 1 then
+    redis.call('expire', KEYS[1], ARGV[1])
+end
+return count
+"""
+                # Register and execute Lua script atomically
+                script = self.redis.register_script(lua_script)
+                count = await script(keys=[key], args=[expire])
+                return int(count)
+            else:
+                # Simple increment without expiry
+                count = await self.redis.incr(key)
+                return count
+        except Exception as e:
+            logger.warning("Cache incr failed", key=key, error=str(e))
+            return 1
+
+    async def ping(self) -> bool:
+        """Check Redis connection"""
+        if not self.redis:
+            return False
+        try:
+            await self.redis.ping()
+            return True
+        except Exception as e:
+            logger.warning("Redis ping failed", error=str(e))
             return False
 
 

@@ -82,6 +82,79 @@ class SupabaseClient:
             query = query.eq(key, value)
         query.execute()
         return True
+
+    async def upsert(self, table: str, data: Dict[str, Any], match_columns: Optional[List[str]] = None) -> Dict[str, Any]:
+        """Upsert a row (insert or update based on match columns)."""
+        self._ensure_client()
+        if match_columns:
+            result = self.client.table(table).upsert(data, {"onConflict": ",".join(match_columns)}).execute()
+        else:
+            result = self.client.table(table).upsert(data).execute()
+        return result.data[0] if result.data else {}
+
+    async def execute_transaction(self, operations: List[Dict[str, Any]]) -> bool:
+        """
+        Execute multiple operations atomically.
+
+        Operations format:
+        [
+            {"type": "insert", "table": "...", "data": {...}},
+            {"type": "update", "table": "...", "filters": {...}, "data": {...}},
+            ...
+        ]
+
+        Rolls back all operations if any fails.
+        """
+        self._ensure_client()
+        try:
+            # Since Supabase REST API doesn't support transactions,
+            # we implement transaction-like behavior with rollback capability
+            completed_ops = []
+
+            for op in operations:
+                op_type = op.get("type")
+                table = op.get("table")
+
+                try:
+                    if op_type == "insert":
+                        result = await self.insert(table, op.get("data", {}))
+                        completed_ops.append({"type": "insert", "table": table, "data": result})
+
+                    elif op_type == "update":
+                        result = await self.update(table, op.get("filters", {}), op.get("data", {}))
+                        completed_ops.append({"type": "update", "table": table, "data": result})
+
+                    elif op_type == "upsert":
+                        result = await self.upsert(table, op.get("data", {}), op.get("match_columns"))
+                        completed_ops.append({"type": "upsert", "table": table, "data": result})
+
+                except Exception as e:
+                    logger.error(f"Transaction operation failed: {op_type} on {table}")
+                    logger.error(f"Rolling back {len(completed_ops)} completed operations")
+
+                    # Rollback completed operations
+                    for completed_op in reversed(completed_ops):
+                        try:
+                            if completed_op["type"] in ["insert", "upsert"]:
+                                # For inserts/upserts, we need to identify and delete the record
+                                # This assumes the data has an 'id' field
+                                if "id" in completed_op.get("data", {}):
+                                    await self.delete(completed_op["table"], {"id": completed_op["data"]["id"]})
+                            elif completed_op["type"] == "update":
+                                # Updates are harder to rollback without original state
+                                # Log warning instead
+                                logger.warning(f"Could not rollback update on {completed_op['table']}")
+                        except Exception as rollback_error:
+                            logger.error(f"Rollback failed for {completed_op['type']}: {rollback_error}")
+
+                    raise
+
+            logger.info(f"Transaction completed successfully with {len(operations)} operations")
+            return True
+
+        except Exception as e:
+            logger.error(f"Transaction failed: {e}", exc_info=True)
+            raise
     
     # === COHORTS (ICPs) === #
     

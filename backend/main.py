@@ -98,6 +98,81 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# CSRF/XSRF Protection
+# For a JWT-based API, CSRF risk is lower since tokens are in Authorization headers (not cookies)
+# But we add extra protection anyway:
+# 1. SameSite cookie attribute (if using session cookies)
+# 2. CORS restrictions (already configured above)
+# 3. Origin/Referer validation for state-changing requests
+
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
+
+class CsrfProtectionMiddleware(BaseHTTPMiddleware):
+    """
+    Basic CSRF protection middleware.
+    Validates Origin/Referer headers for state-changing requests (POST, PUT, DELETE, PATCH).
+    Webhook endpoints are exempt and must use signature-based validation instead.
+    """
+
+    # Explicitly list webhook paths that are exempt from CSRF checks
+    # These endpoints use cryptographic signature verification instead
+    WEBHOOK_PATHS = [
+        "/api/v1/payments/webhook",
+        "/api/v1/autopay/webhook"
+    ]
+
+    async def dispatch(self, request, call_next):
+        # Only validate for state-changing methods
+        if request.method in ["POST", "PUT", "DELETE", "PATCH"]:
+            # Webhook endpoints are exempt (they use signature validation instead)
+            # Use exact path matching to prevent path traversal bypasses
+            if request.url.path in self.WEBHOOK_PATHS:
+                return await call_next(request)
+
+            # Check Origin header (most reliable CSRF protection)
+            origin = request.headers.get("origin", "")
+            referer = request.headers.get("referer", "")
+
+            # Allow requests from configured origins
+            if origin or referer:
+                # In development, allow any origin
+                if settings.ENVIRONMENT != "production":
+                    return await call_next(request)
+
+                # In production, validate origin against CORS allowed origins
+                allowed = settings.ALLOWED_ORIGINS if settings.ALLOWED_ORIGINS else []
+                valid_origin = False
+
+                if origin and any(origin.startswith(allowed_origin) for allowed_origin in allowed):
+                    valid_origin = True
+
+                if referer and any(referer.startswith(allowed_origin) for allowed_origin in allowed):
+                    valid_origin = True
+
+                if not valid_origin and allowed:
+                    logger.warning(
+                        f"CSRF protection: Rejecting request from invalid origin",
+                        origin=origin,
+                        referer=referer,
+                        method=request.method,
+                        path=request.url.path
+                    )
+                    return JSONResponse(
+                        status_code=403,
+                        content={"detail": "CSRF validation failed"}
+                    )
+
+        return await call_next(request)
+
+
+try:
+    app.add_middleware(CsrfProtectionMiddleware)
+    logger.info("✓ CSRF protection middleware enabled")
+except Exception as e:
+    logger.warning(f"Failed to add CSRF protection middleware: {e}")
+
 # Import routers
 from backend.routers import (
     onboarding,

@@ -115,4 +115,6 @@ pandas>=2.0.0
 language-tool-python>=2.7.1  # For grammar checking
 
 # PhonePe Payment Gateway SDK
-# phonepe_sdk>=2.1.5  # PhonePe SDK for autopay and payments
+# Note: Requires special index - install with:
+# pip install --index-url https://phonepe.mycloudrepo.io/public/repositories/phonepe-pg-sdk-python --extra-index-url https://pypi.org/simple phonepe_sdk
+phonepe_sdk>=2.1.5  # PhonePe SDK for autopay and payments

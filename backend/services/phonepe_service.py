@@ -13,6 +13,7 @@ from typing import Dict, Any, Optional, Tuple
 import httpx
 
 from backend.config.settings import settings
+from backend.utils.retry import async_retry
 from backend.models.payment import (
     PhonePePaymentRequest,
     PhonePePaymentResponse,
@@ -171,12 +172,38 @@ class PhonePeService:
             }
         )
 
+    @async_retry(max_attempts=3, initial_delay=1.0, max_delay=10.0, backoff_factor=2.0)
+    async def _call_phonepe_create_payment(
+        self,
+        payload_base64: str,
+        checksum: str,
+        request_body: Dict[str, str]
+    ) -> Dict[str, Any]:
+        """
+        Internal method to call PhonePe payment API with retry support.
+        Raises exceptions on network errors for retry decorator to handle.
+        """
+        headers = {
+            "Content-Type": "application/json",
+            "X-VERIFY": checksum
+        }
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{self.base_url}/pg/v1/pay",
+                json=request_body,
+                headers=headers
+            )
+            response.raise_for_status()  # Raise on HTTP errors
+            return response.json()
+
     async def create_payment(
         self,
         request: PhonePePaymentRequest
     ) -> Tuple[PhonePePaymentResponse, Optional[str]]:
         """
         Create a new payment request with PhonePe.
+        Uses exponential backoff retry for transient failures.
 
         Args:
             request: Payment request details
@@ -218,24 +245,16 @@ class PhonePeService:
             # Generate checksum
             checksum = self._generate_checksum(payload_base64)
 
-            # Make API request to PhonePe
-            headers = {
-                "Content-Type": "application/json",
-                "X-VERIFY": checksum
-            }
-
             request_body = {
                 "request": payload_base64
             }
 
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    f"{self.base_url}/pg/v1/pay",
-                    json=request_body,
-                    headers=headers
-                )
-
-            response_data = response.json()
+            # Make API request with retry logic
+            response_data = await self._call_phonepe_create_payment(
+                payload_base64,
+                checksum,
+                request_body
+            )
 
             if response_data.get("success"):
                 payment_data = response_data.get("data", {})
@@ -256,12 +275,37 @@ class PhonePeService:
             logger.error(f"Error creating PhonePe payment: {str(e)}", exc_info=True)
             return None, f"Payment service error: {str(e)}"
 
+    @async_retry(max_attempts=3, initial_delay=1.0, max_delay=10.0, backoff_factor=2.0)
+    async def _call_phonepe_check_status(
+        self,
+        checksum_header: str,
+        merchant_transaction_id: str
+    ) -> Dict[str, Any]:
+        """
+        Internal method to call PhonePe status check API with retry support.
+        Raises exceptions on network errors for retry decorator to handle.
+        """
+        headers = {
+            "Content-Type": "application/json",
+            "X-VERIFY": checksum_header,
+            "X-MERCHANT-ID": self.merchant_id
+        }
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                f"{self.base_url}/pg/v1/status/{self.merchant_id}/{merchant_transaction_id}",
+                headers=headers
+            )
+            response.raise_for_status()  # Raise on HTTP errors
+            return response.json()
+
     async def check_payment_status(
         self,
         merchant_transaction_id: str
     ) -> Tuple[Optional[PaymentStatus], Optional[str]]:
         """
         Check status of a payment transaction.
+        Uses exponential backoff retry for transient failures.
 
         Args:
             merchant_transaction_id: Merchant transaction ID to check
@@ -275,19 +319,11 @@ class PhonePeService:
             checksum = hashlib.sha256(checksum_string.encode()).hexdigest()
             checksum_header = f"{checksum}###{self.salt_index}"
 
-            headers = {
-                "Content-Type": "application/json",
-                "X-VERIFY": checksum_header,
-                "X-MERCHANT-ID": self.merchant_id
-            }
-
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.get(
-                    f"{self.base_url}/pg/v1/status/{self.merchant_id}/{merchant_transaction_id}",
-                    headers=headers
-                )
-
-            response_data = response.json()
+            # Make API request with retry logic
+            response_data = await self._call_phonepe_check_status(
+                checksum_header,
+                merchant_transaction_id
+            )
 
             if response_data.get("success"):
                 data = response_data.get("data", {})

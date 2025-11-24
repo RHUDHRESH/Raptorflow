@@ -5,6 +5,7 @@ Endpoints for PhonePe autopay (recurring payment) subscriptions.
 
 from typing import Dict, Any
 from uuid import UUID
+from urllib.parse import urlparse, urljoin
 from fastapi import APIRouter, HTTPException, Depends, Request, Header
 import logging
 
@@ -49,7 +50,27 @@ async def create_autopay_checkout(
     set_correlation_id(correlation_id)
 
     try:
+        # SECURITY: Rate limit autopay initiation per user
+        # Max 3 autopay requests per minute per user
+        from backend.utils.cache import redis_cache
+        redis_key = f"autopay_checkout:{auth['user_id']}"
+        autopay_count = await redis_cache.incr(redis_key, expire=60)
+        if autopay_count > 3:
+            logger.warning(f"Autopay checkout rate limit exceeded for user {auth['user_id']}")
+            raise HTTPException(status_code=429, detail="Too many autopay requests. Try again in a minute.")
+
         logger.info(f"Creating autopay checkout for user {auth['user_id']}, plan: {request.plan}")
+
+        # SECURITY: Validate mobile number format
+        import re
+        if not re.match(r"^\+?91?[6-9]\d{9}$", request.mobile_number):
+            logger.warning(f"Invalid mobile number format from user {auth['user_id']}")
+            raise HTTPException(status_code=400, detail="Invalid mobile number format. Must be valid Indian number.")
+
+        # Parse and construct callback URL properly
+        parsed_url = urlparse(request.success_url)
+        base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        callback_url = urljoin(base_url, "/api/v1/autopay/webhook")
 
         # Create autopay subscription request
         subscription_request = AutopaySubscriptionRequest(
@@ -59,7 +80,7 @@ async def create_autopay_checkout(
             workspace_id=UUID(auth["workspace_id"]),
             mobile_number=request.mobile_number,
             redirect_url=request.success_url,
-            callback_url=f"{request.success_url.split('/')[0]}//{request.success_url.split('/')[2]}/api/v1/autopay/webhook"
+            callback_url=callback_url
         )
 
         # Create autopay subscription with PhonePe
@@ -102,7 +123,7 @@ async def create_autopay_checkout(
         raise
     except Exception as e:
         logger.error(f"Failed to create autopay checkout: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to create autopay checkout")
 
 
 @router.get("/subscription/status/{merchant_subscription_id}", response_model=Dict[str, Any])
@@ -112,6 +133,7 @@ async def get_autopay_subscription_status(
 ):
     """
     Check status of an autopay subscription.
+    SECURITY: Validates subscription belongs to authenticated user.
 
     Args:
         merchant_subscription_id: Merchant subscription ID to check
@@ -120,6 +142,19 @@ async def get_autopay_subscription_status(
         Subscription status details
     """
     try:
+        # SECURITY: Verify subscription belongs to authenticated user
+        subscription_record = await supabase_client.fetch_one(
+            "autopay_subscriptions",
+            {
+                "merchant_subscription_id": merchant_subscription_id,
+                "user_id": auth["user_id"]  # Verify ownership
+            }
+        )
+
+        if not subscription_record:
+            # Don't reveal whether subscription exists or not
+            raise HTTPException(status_code=404, detail="Subscription not found")
+
         # Check with PhonePe
         status, error = await phonepe_autopay_service.check_subscription_status(
             merchant_subscription_id
@@ -148,7 +183,7 @@ async def get_autopay_subscription_status(
         raise
     except Exception as e:
         logger.error(f"Failed to check subscription status: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to retrieve subscription status")
 
 
 @router.post("/subscription/cancel", response_model=Dict[str, Any])
@@ -169,6 +204,8 @@ async def cancel_autopay_subscription(
     set_correlation_id(correlation_id)
 
     try:
+        from datetime import datetime, timezone
+
         logger.info(f"Cancelling autopay subscription {request.merchant_subscription_id} for user {auth['user_id']}")
 
         # Cancel with PhonePe
@@ -185,7 +222,7 @@ async def cancel_autopay_subscription(
             {"merchant_subscription_id": request.merchant_subscription_id},
             {
                 "status": "cancelled",
-                "cancelled_at": "now()",
+                "cancelled_at": datetime.now(timezone.utc).isoformat(),
                 "cancellation_reason": request.reason
             }
         )
@@ -201,7 +238,7 @@ async def cancel_autopay_subscription(
         raise
     except Exception as e:
         logger.error(f"Failed to cancel subscription: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to cancel subscription")
 
 
 @router.post("/subscription/pause", response_model=Dict[str, Any])
@@ -238,7 +275,7 @@ async def pause_autopay_subscription(
             {"merchant_subscription_id": request.merchant_subscription_id},
             {
                 "status": "paused",
-                "paused_at": "now()",
+                "paused_at": datetime.now(timezone.utc).isoformat(),
                 "pause_reason": request.reason
             }
         )
@@ -291,7 +328,7 @@ async def resume_autopay_subscription(
             {"merchant_subscription_id": request.merchant_subscription_id},
             {
                 "status": "active",
-                "resumed_at": "now()"
+                "resumed_at": datetime.now(timezone.utc).isoformat()
             }
         )
 
@@ -310,20 +347,28 @@ async def resume_autopay_subscription(
 
 
 @router.post("/webhook")
-@rate_limit_webhook(max_requests=100, window_seconds=60)
 async def autopay_webhook(request: Request):
     """
     Handle PhonePe autopay webhook callbacks.
 
     This endpoint receives autopay events like subscription activation,
     payment success/failure, etc.
+
+    SECURITY: Signature verification happens BEFORE rate limiting
+    to prevent DoS via invalid signatures.
     """
     try:
         # Get webhook payload
-        payload_base64 = (await request.body()).decode('utf-8')
+        payload_data = await request.json()
+        payload_base64 = payload_data.get("response", "")
         x_verify_header = request.headers.get("X-VERIFY", "")
 
-        # Verify webhook signature for security
+        if not payload_base64 or not x_verify_header:
+            logger.warning("Autopay webhook missing payload or signature")
+            raise HTTPException(status_code=400, detail="Invalid webhook payload")
+
+        # VERIFY SIGNATURE FIRST (before rate limit)
+        # This prevents invalid signatures from burning rate limit quota
         webhook_data, error = phonepe_autopay_service.verify_webhook_signature(
             payload_base64,
             x_verify_header
@@ -331,6 +376,21 @@ async def autopay_webhook(request: Request):
         if error or not webhook_data:
             logger.warning(f"Invalid autopay webhook signature: {error}")
             raise HTTPException(status_code=401, detail="Invalid signature")
+
+        # NOW apply rate limiting (after signature is valid)
+        from backend.utils.cache import redis_cache
+        client_ip = request.client.host if request.client else "unknown"
+
+        # Rate limit: max 20 valid webhooks per minute per IP
+        redis_key = f"webhook:autopay:{client_ip}"
+        try:
+            webhook_count = await redis_cache.incr(redis_key, expire=60)
+            if webhook_count > 20:
+                logger.warning(f"Autopay webhook rate limit exceeded for IP {client_ip}")
+                raise HTTPException(status_code=429, detail="Too many webhook requests")
+        except Exception as e:
+            logger.warning(f"Rate limiting check failed: {e}")
+            # Continue anyway if rate limiting fails
 
         # Extract event data
         event_type = webhook_data.get("eventType")
@@ -396,8 +456,61 @@ async def get_user_subscriptions(
 async def _activate_autopay_subscription(webhook_data: Dict[str, Any]):
     """Activate autopay subscription after user authorization."""
     try:
+        from datetime import datetime, timezone
+
         merchant_subscription_id = webhook_data.get("merchantSubscriptionId")
         subscription_id = webhook_data.get("subscriptionId")
+        webhook_amount = webhook_data.get("amount")
+
+        # SECURITY: Validate amount from webhook matches stored subscription
+        if webhook_amount is None:
+            logger.error(f"SECURITY: Webhook missing amount for subscription {merchant_subscription_id}")
+            raise ValueError("Amount is required in webhook")
+
+        # Fetch stored subscription to validate amount
+        stored_subscription = await supabase_client.fetch_one(
+            "autopay_subscriptions",
+            {"merchant_subscription_id": merchant_subscription_id}
+        )
+
+        if not stored_subscription:
+            logger.error(f"SECURITY: Subscription {merchant_subscription_id} not found in database")
+            raise ValueError("Subscription not found")
+
+        stored_amount = stored_subscription.get("amount")
+
+        # Amount must match - webhook should not be able to modify the charged amount
+        if stored_amount is None:
+            logger.error(f"SECURITY: Stored subscription has NULL amount for {merchant_subscription_id}")
+            raise ValueError("Stored subscription has invalid amount")
+
+        if webhook_amount != stored_amount:
+            logger.error(
+                f"SECURITY: Amount mismatch for subscription {merchant_subscription_id}: "
+                f"webhook={webhook_amount}, stored={stored_amount}. Rejecting activation."
+            )
+            raise ValueError(f"Amount mismatch: webhook amount {webhook_amount} != stored amount {stored_amount}")
+
+        # SECURITY: Verify user exists before activating subscription
+        # This prevents orphaned subscriptions for non-existent users
+        user_id = stored_subscription.get("user_id")
+        if user_id:
+            user_exists = await supabase_client.fetch_one(
+                "users",
+                {"id": user_id}
+            )
+            if not user_exists:
+                logger.error(f"SECURITY: User {user_id} for subscription {merchant_subscription_id} does not exist")
+                raise ValueError(f"User {user_id} not found")
+
+        # SECURITY: Validate plan is one of allowed autopay plans
+        plan = stored_subscription.get("plan")
+        if plan:
+            valid_plans = list(phonepe_autopay_service.PLAN_PRICES.keys())
+            if plan not in valid_plans:
+                logger.error(f"SECURITY: Invalid autopay plan '{plan}' for subscription {merchant_subscription_id}. "
+                            f"Valid plans: {valid_plans}")
+                raise ValueError(f"Invalid plan: {plan}")
 
         # Update subscription status in database
         await supabase_client.update(
@@ -406,31 +519,70 @@ async def _activate_autopay_subscription(webhook_data: Dict[str, Any]):
             {
                 "status": "active",
                 "subscription_id": subscription_id,
-                "activated_at": "now()"
+                "activated_at": datetime.now(timezone.utc).isoformat()
             }
         )
 
-        logger.info(f"Autopay subscription {merchant_subscription_id} activated")
+        logger.info(f"Autopay subscription {merchant_subscription_id} activated with validated amount {webhook_amount}")
 
     except Exception as e:
         logger.error(f"Failed to activate subscription: {e}", exc_info=True)
+        raise
 
 
 async def _process_autopay_payment_success(webhook_data: Dict[str, Any]):
     """Process successful autopay payment."""
     try:
+        from datetime import datetime, timezone
+
         merchant_subscription_id = webhook_data.get("merchantSubscriptionId")
         payment_id = webhook_data.get("paymentId")
-        amount = webhook_data.get("amount")
+        webhook_amount = webhook_data.get("amount")
+
+        # SECURITY: Strictly validate amount - must not be NULL and must be positive
+        if webhook_amount is None:
+            logger.error(f"SECURITY: Payment success webhook missing amount for subscription {merchant_subscription_id}")
+            raise ValueError("Amount is required in webhook")
+
+        # Validate amount is numeric and positive
+        try:
+            webhook_amt_num = float(webhook_amount)
+            if webhook_amt_num <= 0:
+                raise ValueError("Amount must be positive")
+        except (ValueError, TypeError) as e:
+            logger.error(f"SECURITY: Invalid webhook amount format for subscription {merchant_subscription_id}: {e}")
+            raise ValueError(f"Invalid amount format: {e}")
+
+        # Fetch stored subscription to validate recurring amount
+        stored_subscription = await supabase_client.fetch_one(
+            "autopay_subscriptions",
+            {"merchant_subscription_id": merchant_subscription_id}
+        )
+
+        if stored_subscription:
+            stored_amount = stored_subscription.get("amount")
+            if stored_amount is not None:
+                try:
+                    stored_amt_num = float(stored_amount)
+                    if webhook_amt_num != stored_amt_num:
+                        logger.error(
+                            f"SECURITY ALERT: Recurring payment amount mismatch for subscription {merchant_subscription_id}: "
+                            f"webhook={webhook_amount}, expected={stored_amount}. Rejecting."
+                        )
+                        raise ValueError(f"Amount mismatch: webhook {webhook_amount} != stored {stored_amount}")
+                except (ValueError, TypeError) as e:
+                    logger.error(f"SECURITY: Invalid stored amount format for subscription {merchant_subscription_id}: {e}")
+            else:
+                logger.error(f"SECURITY: Stored subscription has NULL amount for {merchant_subscription_id}")
 
         # Record payment in database
         payment_data = {
             "merchant_subscription_id": merchant_subscription_id,
             "payment_id": payment_id,
-            "amount": amount,
+            "amount": webhook_amount,
             "currency": "INR",
             "status": "success",
-            "payment_date": "now()"
+            "payment_date": datetime.now(timezone.utc).isoformat()
         }
         await supabase_client.insert("autopay_payments", payment_data)
 
@@ -443,6 +595,8 @@ async def _process_autopay_payment_success(webhook_data: Dict[str, Any]):
 async def _process_autopay_payment_failure(webhook_data: Dict[str, Any]):
     """Process failed autopay payment."""
     try:
+        from datetime import datetime, timezone
+
         merchant_subscription_id = webhook_data.get("merchantSubscriptionId")
         payment_id = webhook_data.get("paymentId")
         failure_reason = webhook_data.get("failureReason")
@@ -453,7 +607,7 @@ async def _process_autopay_payment_failure(webhook_data: Dict[str, Any]):
             "payment_id": payment_id,
             "status": "failed",
             "failure_reason": failure_reason,
-            "payment_date": "now()"
+            "payment_date": datetime.now(timezone.utc).isoformat()
         }
         await supabase_client.insert("autopay_payments", payment_data)
 
@@ -466,6 +620,8 @@ async def _process_autopay_payment_failure(webhook_data: Dict[str, Any]):
 async def _process_autopay_cancellation(webhook_data: Dict[str, Any]):
     """Process autopay subscription cancellation."""
     try:
+        from datetime import datetime, timezone
+
         merchant_subscription_id = webhook_data.get("merchantSubscriptionId")
 
         # Update subscription status in database
@@ -474,7 +630,7 @@ async def _process_autopay_cancellation(webhook_data: Dict[str, Any]):
             {"merchant_subscription_id": merchant_subscription_id},
             {
                 "status": "cancelled",
-                "cancelled_at": "now()"
+                "cancelled_at": datetime.now(timezone.utc).isoformat()
             }
         )
 

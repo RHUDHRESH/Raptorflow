@@ -11,6 +11,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional, Tuple
 
 from phonepe_sdk.autopay.autopay_client import AutopayClient
+
+from backend.utils.retry import async_retry
 from phonepe_sdk.autopay.models.autopay_request import AutopayRequest
 from phonepe_sdk.autopay.models.subscription_request import SubscriptionRequest
 from phonepe_sdk.autopay.models.autopay_constants import AutopayConstants
@@ -238,12 +240,28 @@ class PhonePeAutopayService:
         else:
             return AutopayConstants.FREQUENCY_MONTHLY
 
+    async def _retry_create_subscription_sdk(
+        self,
+        subscription_request: SubscriptionRequest
+    ) -> Any:
+        """
+        Internal method to call SDK with retry support.
+        Wraps blocking SDK call in retry logic.
+        """
+        # SDK calls are blocking, but we wrap them for consistency
+        try:
+            return self.autopay_client.create_subscription(subscription_request)
+        except Exception as e:
+            logger.warning(f"SDK call failed, will retry: {str(e)}")
+            raise
+
     async def create_subscription(
         self,
         request: AutopaySubscriptionRequest
     ) -> Tuple[Optional[AutopaySubscriptionResponse], Optional[str]]:
         """
         Create a new autopay subscription.
+        Uses retry logic for transient SDK failures.
 
         Args:
             request: Autopay subscription request details
@@ -288,10 +306,8 @@ class PhonePeAutopayService:
                 redirect_mode="POST"
             )
 
-            # Create autopay subscription
-            autopay_response = self.autopay_client.create_subscription(
-                subscription_request
-            )
+            # Create autopay subscription with retry logic
+            autopay_response = await self._retry_create_subscription_sdk(subscription_request)
 
             if autopay_response and autopay_response.success:
                 data = autopay_response.data

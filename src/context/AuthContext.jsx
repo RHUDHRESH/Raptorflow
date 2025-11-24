@@ -400,6 +400,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const markOnboardingComplete = async () => {
+    setOnboardingCompleted(true);
     if (!user || !supabase) return { success: false, error: 'No user authenticated' };
 
     try {
