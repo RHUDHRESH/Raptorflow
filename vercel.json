@@ -4,7 +4,6 @@
   "framework": "vite",
   "installCommand": "npm ci",
   "devCommand": "npm run dev",
-  "nodeVersion": "20.x",
   "rewrites": [
     {
       "source": "/(.*)",
@@ -46,14 +45,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "VITE_SUPABASE_URL": "@vite_supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key",
-    "VITE_BACKEND_API_URL": "@vite_backend_api_url",
-    "VITE_GOOGLE_MAPS_API_KEY": "@vite_google_maps_api_key",
-    "VITE_POSTHOG_KEY": "@vite_posthog_key",
-    "VITE_POSTHOG_HOST": "https://app.posthog.com",
-    "VITE_ENVIRONMENT": "production"
-  }
+  ]
 }
