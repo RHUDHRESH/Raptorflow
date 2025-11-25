@@ -5,6 +5,7 @@
   "outputDirectory": "dist",
   "installCommand": "npm ci",
   "devCommand": "npm run dev",
+  "nodeVersion": "25.x",
   "rewrites": [
     {
       "source": "/(.*)",
