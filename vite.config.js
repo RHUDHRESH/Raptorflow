@@ -12,6 +12,8 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
+    outDir: 'dist',
+    emptyOutDir: true,
     minify: 'terser',
     terserOptions: {
       compress: {
@@ -39,4 +41,3 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
   }
 })
-

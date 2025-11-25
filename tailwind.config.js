@@ -15,14 +15,14 @@ export default {
           DEFAULT: '#fdfcf9',
           50: '#fdfcf9',
         },
-        
+
         // Oxblood Accent - 5% usage only
         oxblood: {
           DEFAULT: '#6b2b2d',
           light: '#8f3739',
           dark: '#4a1d1e',
         },
-        
+
         // Grayscale Hierarchy
         gray: {
           50: '#fafafa',
@@ -101,6 +101,12 @@ export default {
         'shimmer': 'shimmer 2s infinite',
         'spin': 'spin 1s linear infinite',
         'press': 'press 100ms ease-out',
+        'blob': 'blob 7s infinite',
+      },
+      animationDelay: {
+        '0': '0s',
+        '2000': '2s',
+        '4000': '4s',
       },
       keyframes: {
         fadeIn: {
@@ -128,7 +134,29 @@ export default {
           '50%': { transform: 'scale(0.98)' },
           '100%': { transform: 'scale(1)' },
         },
+        blob: {
+          '0%, 100%': { transform: 'translate(0px, 0px) scale(1)' },
+          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+          '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+        },
       },
     },
   },
+},
+plugins: [
+  function ({ matchUtilities, theme }) {
+    matchUtilities(
+      {
+        'animation-delay': (value) => {
+          return {
+            'animation-delay': value,
+          }
+        },
+      },
+      {
+        values: theme('animationDelay'),
+      }
+    )
+  },
+],
 }
