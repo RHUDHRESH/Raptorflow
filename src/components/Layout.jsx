@@ -10,7 +10,7 @@ import { Bell, User } from 'lucide-react'
 import { cn } from '../utils/cn'
 
 const getPageTitle = (pathname) => {
-  if (pathname === '/') return 'Dashboard'
+  if (pathname === '/dashboard') return 'Dashboard'
   const parts = pathname.split('/').filter(Boolean)
   const lastPart = parts[parts.length - 1]
   return lastPart.charAt(0).toUpperCase() + lastPart.slice(1).replace(/-/g, ' ')

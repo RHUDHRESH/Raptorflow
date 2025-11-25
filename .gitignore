@@ -75,3 +75,5 @@ backend/.env
 backend/*.egg-info/
 backend/.pytest_cache/
 
+
+.vercel

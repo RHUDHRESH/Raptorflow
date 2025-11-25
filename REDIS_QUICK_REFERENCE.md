@@ -42,8 +42,8 @@ REDIS_SSL=true
 | **Rate Limiting** | ✅ Active | Limit API requests |
 | **Distributed Locks** | ✅ Active | Prevent race conditions in payments |
 | **Token Blacklist** | ✅ Active | Admin token revocation |
-| **Session Management** | ⏳ Coming | User sessions & refresh tokens |
-| **Queue Management** | ⏳ Coming | Job processing |
+| **Session Management** | ✅ Active | User sessions & refresh tokens |
+| **Queue Management** | ✅ Active | Job processing & webhook retries |
 | **Pub/Sub** | ⏳ Coming | Real-time updates |
 
 ## Testing Connection
@@ -75,12 +75,16 @@ gcloud run logs read raptorflow-backend --limit 50 | grep "Redis connected"
 ## Common Redis Keys (Auto-generated)
 
 ```
-raptorflow:lock:webhook:MT123456...      # Distributed lock
-raptorflow:webhook:phonepe:192.168.1.1   # Rate limit counter
-raptorflow:token_blacklist:uuid           # Revoked tokens
-raptorflow:research:query                 # Research cache
-raptorflow:persona:icp-id                 # Persona cache
-raptorflow:content:content-id             # Content cache
+raptorflow:lock:webhook:MT123456...           # Distributed lock
+raptorflow:webhook:phonepe:192.168.1.1       # Rate limit counter
+raptorflow:token_blacklist:uuid               # Revoked tokens
+raptorflow:session:session-uuid               # User session data
+raptorflow:user_sessions:user-uuid            # Set of user's session IDs
+raptorflow:queue:payment_reconciliation       # Payment reconciliation queue
+raptorflow:queue:webhook_retry_payment        # Webhook retry queue
+raptorflow:research:query                     # Research cache
+raptorflow:persona:icp-id                     # Persona cache
+raptorflow:content:content-id                 # Content cache
 ```
 
 ## Debugging Commands
@@ -99,6 +103,15 @@ redis-cli -u redis://default:PASSWORD@HOST.upstash.io:PORT
 
 # Check counter
 > GET raptorflow:webhook:phonepe:192.168.1.1
+
+# Check queue length
+> LLEN raptorflow:queue:payment_reconciliation
+
+# Peek at first 5 queue items (newest first)
+> LRANGE raptorflow:queue:payment_reconciliation 0 4
+
+# Peek at all queue items
+> LRANGE raptorflow:queue:payment_reconciliation 0 -1
 
 # Monitor in real-time
 > MONITOR

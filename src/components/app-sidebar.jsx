@@ -30,7 +30,7 @@ import { Tooltip, TooltipProvider } from "./ui/tooltip"
 import { cn } from "../utils/cn"
 
 const navigationItems = [
-  { title: "Command Center", icon: LayoutDashboard, url: "/" },
+  { title: "Command Center", icon: LayoutDashboard, url: "/dashboard" },
   { title: "Moves", icon: BookOpen, url: "/moves" },
   { title: "Muse", icon: Sparkles, url: "/muse" },
   { title: "Matrix", icon: Activity, url: "/matrix" },
