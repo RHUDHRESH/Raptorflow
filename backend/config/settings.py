@@ -145,6 +145,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True
+        extra = "ignore"  # Allow extra fields like VITE_ variables
 
 
 @lru_cache()
@@ -155,4 +156,3 @@ def get_settings() -> Settings:
 
 # Export for easy import
 settings = get_settings()
-
