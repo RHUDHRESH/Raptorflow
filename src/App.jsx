@@ -18,7 +18,6 @@ import Onboarding from './components/Onboarding'
 import Strategy from './pages/Strategy'
 import StrategyWizard from './pages/StrategyWizard'
 import StrategyWizardEnhanced from './pages/StrategyWizardEnhanced'
-import CohortsManager from './pages/CohortsManager'
 import CohortsMoves from './pages/CohortsMoves'
 
 import Support from './pages/Support'
