@@ -158,194 +158,181 @@ export default function Matrix() {
   }, [searchParams]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-neutral-900">
-      <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-6">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">Analytics</p>
-              <h1 className="text-xl font-semibold">Matrix</h1>
-            </div>
-            <nav className="hidden gap-2 rounded-full border border-neutral-200 bg-white px-2 py-1 shadow-sm md:flex">
-              {["moves", "cohorts", "patterns", "pulse"].map((t) => (
-                <button
-                  key={t}
-                  onClick={() => { setSelectedMove(null); setTab(t); }}
-                  className={cn("rounded-full px-3 py-1 text-xs font-semibold capitalize", tab === t ? "bg-neutral-900 text-white" : "text-neutral-600 hover:text-neutral-900")}
-                >
-                  {t}
-                </button>
-              ))}
-            </nav>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-neutral-500">
-              <AlertCircle size={18} />
-              <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-rose-500" />
-            </button>
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 text-sm font-semibold">JD</div>
-          </div>
+    <div className="space-y-6">
+      {/* Page Title */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">Analytics</p>
+          <h1 className="text-3xl font-semibold">Matrix</h1>
         </div>
-      </header>
-
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-6">
-        {!selectedMove ? (
-          <>
-            {tab === "moves" && (
-              <div className="space-y-6">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div className="flex flex-1 items-center gap-2 rounded-full border border-neutral-200 px-3 py-2">
-                    <Search size={16} className="text-neutral-400" />
-                    <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search moves..." className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400" />
-                  </div>
-                  <div className="flex gap-2">
-                    {["all", "active"].map((s) => (
-                      <button key={s} onClick={() => setStatusFilter(s)} className={cn("rounded-full border px-3 py-1 text-xs font-semibold", statusFilter === s ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-600")}>
-                        {s}
-                      </button>
-                    ))}
-                    <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-600">
-                      <Filter size={14} /> Filters
-                    </div>
-                  </div>
+        <nav className="hidden gap-2 rounded-full border border-neutral-200 bg-white px-2 py-1 shadow-sm md:flex">
+          {["moves", "cohorts", "patterns", "pulse"].map((t) => (
+            <button
+              key={t}
+              onClick={() => { setSelectedMove(null); setTab(t); }}
+              className={cn("rounded-full px-3 py-1 text-xs font-semibold capitalize", tab === t ? "bg-neutral-900 text-white" : "text-neutral-600 hover:text-neutral-900")}
+            >
+              {t}
+            </button>
+          ))}
+        </nav>
+      </div>
+      {!selectedMove ? (
+        <>
+          {tab === "moves" && (
+            <div className="space-y-6">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex flex-1 items-center gap-2 rounded-full border border-neutral-200 px-3 py-2">
+                  <Search size={16} className="text-neutral-400" />
+                  <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search moves..." className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400" />
                 </div>
-
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                  {filteredMoves.map((move) => (
-                    <div key={move.id} className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300">
-                      <div className="absolute left-0 top-0 h-full w-1 bg-neutral-900" />
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="mb-2 flex items-center gap-2">
-                            <Link to={`/strategy/campaigns/${move.id}`} className="text-lg font-semibold hover:underline">{move.name}</Link>
-                            <StatusPill status={move.status} />
-                          </div>
-                          <p className="text-sm text-neutral-500">{move.goal}</p>
-                        </div>
-                        <button className="text-neutral-400 hover:text-neutral-700"><MoreHorizontal size={18} /></button>
-                      </div>
-
-                      <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
-                        <div>
-                          <p className="text-[11px] uppercase tracking-wide text-neutral-500">Progress</p>
-                          <p className="text-lg font-semibold">{Math.round((move.current / move.target) * 100)}%</p>
-                          <Progress current={move.current} total={move.target} />
-                        </div>
-                        <div>
-                          <p className="text-[11px] uppercase tracking-wide text-neutral-500">Execution</p>
-                          <p className="text-lg font-semibold">{move.tasksDone}/{move.totalTasks}</p>
-                        </div>
-                        <div>
-                          <p className="text-[11px] uppercase tracking-wide text-neutral-500">Top channel</p>
-                          <p className="text-lg font-semibold text-emerald-700">{move.bestChannelMultiplier}</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-3">
-                        <div className="flex items-center gap-2 text-xs text-neutral-500">
-                          <Users size={12} /> {move.bestCohort}
-                        </div>
-                        <div className="flex gap-2">
-                          <button className="rounded-full px-3 py-1 text-xs font-semibold text-neutral-600 hover:text-neutral-900">Review</button>
-                          <button onClick={() => setSelectedMove(move)} className="rounded-full bg-neutral-900 px-3 py-1 text-xs font-semibold text-white">View Matrix</button>
-                        </div>
-                      </div>
-                    </div>
+                <div className="flex gap-2">
+                  {["all", "active"].map((s) => (
+                    <button key={s} onClick={() => setStatusFilter(s)} className={cn("rounded-full border px-3 py-1 text-xs font-semibold", statusFilter === s ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-600")}>
+                      {s}
+                    </button>
                   ))}
+                  <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-600">
+                    <Filter size={14} /> Filters
+                  </div>
                 </div>
               </div>
-            )}
 
-            {tab === "cohorts" && (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {COHORTS.map((c) => (
-                  <div key={c.id} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300">
-                    <div className="mb-3 flex items-start justify-between">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {filteredMoves.map((move) => (
+                  <div key={move.id} className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300">
+                    <div className="absolute left-0 top-0 h-full w-1 bg-neutral-900" />
+                    <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-[11px] uppercase tracking-wide text-neutral-500">Cohort</p>
-                        <h3 className="text-lg font-semibold">{c.name}</h3>
+                        <div className="mb-2 flex items-center gap-2">
+                          <Link to={`/strategy/campaigns/${move.id}`} className="text-lg font-semibold hover:underline">{move.name}</Link>
+                          <StatusPill status={move.status} />
+                        </div>
+                        <p className="text-sm text-neutral-500">{move.goal}</p>
                       </div>
-                      <StatusPill status={c.health} />
+                      <button className="text-neutral-400 hover:text-neutral-700"><MoreHorizontal size={18} /></button>
                     </div>
-                    <div className="space-y-2 text-sm text-neutral-600">
-                      <div className="flex justify-between"><span>Active moves</span><span className="font-semibold text-neutral-900">{c.activeMoves}</span></div>
-                      <div className="flex items-center justify-between">
-                        <span>Response rate</span>
-                        <span className="flex items-center gap-1 font-semibold text-neutral-900">
-                          {c.responseRate}
-                          {c.responseTrend === "up" && <TrendingUp size={14} className="text-emerald-600" />}
-                          {c.responseTrend === "down" && <TrendingDown size={14} className="text-rose-500" />}
-                        </span>
+
+                    <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-wide text-neutral-500">Progress</p>
+                        <p className="text-lg font-semibold">{Math.round((move.current / move.target) * 100)}%</p>
+                        <Progress current={move.current} total={move.target} />
+                      </div>
+                      <div>
+                        <p className="text-[11px] uppercase tracking-wide text-neutral-500">Execution</p>
+                        <p className="text-lg font-semibold">{move.tasksDone}/{move.totalTasks}</p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] uppercase tracking-wide text-neutral-500">Top channel</p>
+                        <p className="text-lg font-semibold text-emerald-700">{move.bestChannelMultiplier}</p>
                       </div>
                     </div>
-                    <div className="mt-3 space-y-1 rounded-xl bg-neutral-50 p-3 text-sm">
-                      <div className="flex items-start gap-2 text-emerald-700"><Star size={14} /> {c.bestPattern}</div>
-                      <div className="flex items-start gap-2 text-rose-600"><Skull size={14} /> {c.deadPattern}</div>
-                    </div>
-                    <div className="mt-4 grid grid-cols-3 gap-2">
-                      <button className="rounded-lg border border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-700 hover:border-neutral-300">Details</button>
-                      <button onClick={() => openMuse({ cohort: c.name, pattern: c.bestPattern })} className="col-span-2 rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white hover:bg-neutral-800">Open in Muse</button>
+
+                    <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-3">
+                      <div className="flex items-center gap-2 text-xs text-neutral-500">
+                        <Users size={12} /> {move.bestCohort}
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="rounded-full px-3 py-1 text-xs font-semibold text-neutral-600 hover:text-neutral-900">Review</button>
+                        <button onClick={() => setSelectedMove(move)} className="rounded-full bg-neutral-900 px-3 py-1 text-xs font-semibold text-white">View Matrix</button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {tab === "patterns" && (
+          {tab === "cohorts" && (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {COHORTS.map((c) => (
+                <div key={c.id} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300">
+                  <div className="mb-3 flex items-start justify-between">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wide text-neutral-500">Cohort</p>
+                      <h3 className="text-lg font-semibold">{c.name}</h3>
+                    </div>
+                    <StatusPill status={c.health} />
+                  </div>
+                  <div className="space-y-2 text-sm text-neutral-600">
+                    <div className="flex justify-between"><span>Active moves</span><span className="font-semibold text-neutral-900">{c.activeMoves}</span></div>
+                    <div className="flex items-center justify-between">
+                      <span>Response rate</span>
+                      <span className="flex items-center gap-1 font-semibold text-neutral-900">
+                        {c.responseRate}
+                        {c.responseTrend === "up" && <TrendingUp size={14} className="text-emerald-600" />}
+                        {c.responseTrend === "down" && <TrendingDown size={14} className="text-rose-500" />}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-1 rounded-xl bg-neutral-50 p-3 text-sm">
+                    <div className="flex items-start gap-2 text-emerald-700"><Star size={14} /> {c.bestPattern}</div>
+                    <div className="flex items-start gap-2 text-rose-600"><Skull size={14} /> {c.deadPattern}</div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    <button className="rounded-lg border border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-700 hover:border-neutral-300">Details</button>
+                    <button onClick={() => openMuse({ cohort: c.name, pattern: c.bestPattern })} className="col-span-2 rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white hover:bg-neutral-800">Open in Muse</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {tab === "patterns" && (
+            <div className="space-y-3">
+              {PATTERNS.map((p, idx) => (
+                <div key={p.id} className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300 md:flex-row md:items-center">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-sm font-semibold text-neutral-700">#{idx + 1}</div>
+                  <div className="flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <h3 className="text-lg font-semibold">{p.name}</h3>
+                      <StatusPill status={p.sentiment === "positive" ? "healthy" : "off_track"} text={`${p.performance}% vs baseline`} />
+                    </div>
+                  </div>
+                  <div className="flex w-full gap-2 md:w-auto">
+                    <button className="flex-1 rounded-lg border border-neutral-200 px-4 py-2 text-xs font-semibold text-neutral-700 hover:border-neutral-300">See assets</button>
+                    {p.sentiment === "positive" && (
+                      <button onClick={() => openMuse({ pattern: p.name, sourceName: "Pattern Matrix" })} className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-xs font-semibold text-white hover:bg-neutral-800">Scale in Muse</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {tab === "pulse" && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <PulseStat label="Moves On Track" value="2" tone="emerald" />
+                <PulseStat label="Move At Risk" value="1" tone="amber" />
+                <PulseStat label="Move Failing" value="1" tone="rose" />
+              </div>
               <div className="space-y-3">
-                {PATTERNS.map((p, idx) => (
-                  <div key={p.id} className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300 md:flex-row md:items-center">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-sm font-semibold text-neutral-700">#{idx + 1}</div>
-                    <div className="flex-1">
-                      <div className="mb-1 flex items-center gap-2">
-                        <h3 className="text-lg font-semibold">{p.name}</h3>
-                        <StatusPill status={p.sentiment === "positive" ? "healthy" : "off_track"} text={`${p.performance}% vs baseline`} />
+                {PULSE.map((a) => (
+                  <div key={a.id} className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-base font-semibold">{a.title}</h4>
+                        <StatusPill status={a.actionType === "kill" ? "off_track" : "healthy"} text={`${a.impact || ""} Impact`} />
                       </div>
+                      <p className="text-sm text-neutral-600">{a.reason}</p>
                     </div>
                     <div className="flex w-full gap-2 md:w-auto">
-                      <button className="flex-1 rounded-lg border border-neutral-200 px-4 py-2 text-xs font-semibold text-neutral-700 hover:border-neutral-300">See assets</button>
-                      {p.sentiment === "positive" && (
-                        <button onClick={() => openMuse({ pattern: p.name, sourceName: "Pattern Matrix" })} className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-xs font-semibold text-white hover:bg-neutral-800">Scale in Muse</button>
-                      )}
+                      <button className="flex-1 rounded-lg border border-neutral-200 px-4 py-2 text-xs font-semibold text-neutral-700 hover:border-neutral-300">Ignore</button>
+                      <button onClick={() => setPulseAction(a)} className={cn("flex-1 rounded-lg px-4 py-2 text-xs font-semibold text-white", a.actionType === "kill" ? "bg-rose-600 hover:bg-rose-500" : "bg-emerald-600 hover:bg-emerald-500")}>
+                        {a.actionType === "kill" ? "Kill Move" : "Apply"}
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
-            )}
-
-            {tab === "pulse" && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <PulseStat label="Moves On Track" value="2" tone="emerald" />
-                  <PulseStat label="Move At Risk" value="1" tone="amber" />
-                  <PulseStat label="Move Failing" value="1" tone="rose" />
-                </div>
-                <div className="space-y-3">
-                  {PULSE.map((a) => (
-                    <div key={a.id} className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300 md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-base font-semibold">{a.title}</h4>
-                          <StatusPill status={a.actionType === "kill" ? "off_track" : "healthy"} text={`${a.impact || ""} Impact`} />
-                        </div>
-                        <p className="text-sm text-neutral-600">{a.reason}</p>
-                      </div>
-                      <div className="flex w-full gap-2 md:w-auto">
-                        <button className="flex-1 rounded-lg border border-neutral-200 px-4 py-2 text-xs font-semibold text-neutral-700 hover:border-neutral-300">Ignore</button>
-                        <button onClick={() => setPulseAction(a)} className={cn("flex-1 rounded-lg px-4 py-2 text-xs font-semibold text-white", a.actionType === "kill" ? "bg-rose-600 hover:bg-rose-500" : "bg-emerald-600 hover:bg-emerald-500")}>
-                          {a.actionType === "kill" ? "Kill Move" : "Apply"}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <Detail move={selectedMove} onBack={() => setSelectedMove(null)} openMuse={openMuse} setAsset={setSelectedAsset} />
-        )}
-      </main>
+            </div>
+          )}
+        </>
+      ) : (
+        <Detail move={selectedMove} onBack={() => setSelectedMove(null)} openMuse={openMuse} setAsset={setSelectedAsset} />
+      )}
 
       {selectedAsset && <AssetInspector asset={selectedAsset} onClose={() => setSelectedAsset(null)} onOpenMuse={openMuse} />}
       {pulseAction && <StrategyModal action={pulseAction} onClose={() => setPulseAction(null)} />}
