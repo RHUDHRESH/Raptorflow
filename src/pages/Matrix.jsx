@@ -330,9 +330,9 @@ export default function Matrix() {
             </div>
           )}
         </>
-       : (
-          <Detail move={selectedMove} onBack={() => setSelectedMove(null)} openMuse={openMuse} setAsset={setSelectedAsset} />
-        )}
+      ) : (
+        <Detail move={selectedMove} onBack={() => setSelectedMove(null)} openMuse={openMuse} setAsset={setSelectedAsset} />
+      )}
 
       {selectedAsset && <AssetInspector asset={selectedAsset} onClose={() => setSelectedAsset(null)} onOpenMuse={openMuse} />}
       {pulseAction && <StrategyModal action={pulseAction} onClose={() => setPulseAction(null)} />}
