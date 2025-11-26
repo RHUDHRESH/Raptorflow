@@ -280,3 +280,4 @@ GRANT EXECUTE ON FUNCTION public.has_completed_onboarding(UUID) TO authenticated
 
 
 
+

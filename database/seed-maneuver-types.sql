@@ -153,3 +153,4 @@ INSERT INTO maneuver_prerequisites (maneuver_type_id, required_capability_id) VA
 
 
 
+

@@ -68,36 +68,29 @@ export default function CohortsEnhancedLuxe() {
 
     return (
         <div className="space-y-8 animate-fade-in">
-            {/* Hero Header */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="runway-card relative overflow-hidden p-10"
-            >
-                <div className="absolute inset-0 bg-gradient-to-r from-white via-neutral-50 to-white" />
-                <div className="relative z-10">
-                    <Link
-                        to="/strategy"
-                        className="inline-flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors mb-4"
-                    >
-                        <ArrowRight className="w-4 h-4 rotate-180" />
-                        <span className="text-sm">Back to Strategy</span>
-                    </Link>
+            {/* Page Title */}
+            <div>
+                <Link
+                    to="/strategy"
+                    className="inline-flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors mb-4"
+                >
+                    <ArrowRight className="w-4 h-4 rotate-180" />
+                    <span className="text-sm">Back to Strategy</span>
+                </Link>
 
-                    <div className="flex items-center gap-3 mb-4">
-                        <span className="micro-label tracking-[0.5em]">Strategic Intelligence</span>
-                        <span className="h-px w-16 bg-neutral-200" />
-                    </div>
-
-                    <h1 className="font-serif text-4xl md:text-6xl text-black leading-[1.1] tracking-tight antialiased mb-4">
-                        Enhanced Cohorts
-                    </h1>
-
-                    <p className="text-neutral-600 max-w-2xl">
-                        Deep customer intelligence with buying triggers, decision criteria, and strategic insights
-                    </p>
+                <div className="flex items-center gap-3 mb-2">
+                    <span className="text-xs font-mono font-medium uppercase tracking-[0.5em] text-neutral-400">Strategic Intelligence</span>
+                    <span className="h-px w-16 bg-neutral-200" />
                 </div>
-            </motion.div>
+
+                <h1 className="font-serif text-4xl md:text-6xl text-black leading-[1.1] tracking-tight antialiased mb-4">
+                    Enhanced Cohorts
+                </h1>
+
+                <p className="text-neutral-600 max-w-2xl">
+                    Deep customer intelligence with buying triggers, decision criteria, and strategic insights
+                </p>
+            </div>
 
             {/* Search & Actions */}
             <div className="flex items-center gap-4">

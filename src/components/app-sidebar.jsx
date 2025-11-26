@@ -31,13 +31,13 @@ import { Tooltip, TooltipProvider } from "./ui/tooltip"
 import { cn } from "../utils/cn"
 
 const navigationItems = [
-  { title: "Command Center", icon: LayoutDashboard, url: "/dashboard" },
+  { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
   { title: "Moves", icon: BookOpen, url: "/moves" },
   { title: "Campaigns", icon: Megaphone, url: "/campaigns" },
   { title: "Muse", icon: Sparkles, url: "/muse" },
   { title: "Matrix", icon: Activity, url: "/matrix" },
-  { title: "Operational Pulse", icon: Calendar, url: "/today" },
-  { title: "Your Position", icon: Target, url: "/strategy" },
+  { title: "Daily Pulse", icon: Calendar, url: "/today" },
+  { title: "Strategy", icon: Target, url: "/strategy" },
   { title: "Cohorts", icon: Users, url: "/cohorts" },
 ]
 

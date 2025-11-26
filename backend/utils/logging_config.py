@@ -74,3 +74,4 @@ def get_logger(name: str = None) -> Any:
 
 # Alias for backward compatibility
 setup_logging = configure_logging
+

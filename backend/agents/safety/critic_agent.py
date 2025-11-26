@@ -822,3 +822,4 @@ Output as JSON following this exact structure:
 # Global singleton instance
 critic_agent = CriticAgent()
 
+
