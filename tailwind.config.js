@@ -7,41 +7,37 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Monochrome System - RaptorFlow Editorial
-        black: '#000000',
-        white: '#FFFFFF',
-        ink: '#0c0c0c',
-        cream: {
-          DEFAULT: '#fdfcf9',
-          50: '#fdfcf9',
-        },
-
-        // Oxblood Accent - 5% usage only
-        oxblood: {
-          DEFAULT: '#6b2b2d',
-          light: '#8f3739',
-          dark: '#4a1d1e',
-        },
-
-        // Grayscale Hierarchy
-        gray: {
-          50: '#fafafa',
-          100: '#f5f5f5',
-          200: '#e5e5e5',
-          300: '#d4d4d4',
-          400: '#a3a3a3',
+        // Cinematic Dark System
+        obsidian: {
+          DEFAULT: '#050505',
+          100: '#1a1a1a',
+          200: '#262626',
+          300: '#404040',
+          400: '#525252',
           500: '#737373',
-          600: '#525252',
-          700: '#404040',
-          800: '#262626',
-          900: '#171717',
+          800: '#0A0A0A',
+          900: '#050505',
         },
+
+        // Neon Accents
+        neon: {
+          green: '#00FF94',
+          blue: '#00E0FF',
+          purple: '#B026FF',
+          red: '#FF2A6D',
+        },
+
+        // Glass
+        glass: {
+          DEFAULT: 'rgba(255, 255, 255, 0.05)',
+          hover: 'rgba(255, 255, 255, 0.1)',
+          border: 'rgba(255, 255, 255, 0.1)',
+        }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        serif: ['GFS Didot', 'Didot', 'Bodoni Moda', 'Georgia', 'serif'],
-        display: ['GFS Didot', 'Didot', 'serif'],
-        mono: ['JetBrains Mono', 'Consolas', 'monospace'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Space Grotesk', 'Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
       fontSize: {
         'xs': ['0.75rem', { lineHeight: '1.5' }],      // 12px
