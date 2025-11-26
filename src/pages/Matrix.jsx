@@ -19,7 +19,7 @@ import {
   Zap,
   X,
 } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ResponsiveContainer,
   BarChart,
