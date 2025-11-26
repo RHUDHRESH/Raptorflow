@@ -1,1339 +1,1270 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { ArrowRight, Sparkles, Search, Check, Loader2, AlertTriangle, ChevronDown, X, Brain, Users, Target } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-
-// Fix for Leaflet default marker
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
-let DefaultIcon = L.icon({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
-});
-
-L.Marker.prototype.options.icon = DefaultIcon;
-
-import MarketPositionSnapshot from './MarketPositionSnapshot';
-import CohortsBuilder from './CohortsBuilder';
-import { 
-  generateAnswerSuggestions, 
-  generateICPFromAnswers, 
-  generatePositioningInsights, 
-  generateVertexAIQuestions 
-} from '../lib/ai';
-import { supabase } from '../lib/supabase';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import CohortsBuilder from './CohortsBuilder';
+import {
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  Target,
+  Shield,
+  Zap,
+  Eye,
+  CheckCircle2,
+  Building2,
+  Users,
+  Rocket,
+  MapPin,
+  Globe,
+  Instagram,
+  Linkedin,
+  Youtube,
+  DollarSign,
+  Briefcase,
+  LayoutGrid,
+  MessageSquare,
+  BarChart3,
+  Loader2,
+  AlertCircle
+} from 'lucide-react';
 
-const GOOGLE_MAPS_API_KEY =
-  import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
-  'AIzaSyGT2XWp6X7UJLZ1EkL3mxV4m7Gx4nv6wU';
 
-const INITIAL_QUESTIONS = [
-  {
-    id: 'q1',
-    section: '01',
-    category: 'Basics',
-    title: 'What You Do',
-    type: 'text',
-    prompt: 'In simple words, what does your business do?',
-    placeholder: 'e.g. "We build websites for small local shops" or "We sell a SaaS tool..."'
-  },
-  {
-    id: 'q2',
-    section: '01',
-    category: 'Basics',
-    title: 'The Offer',
-    type: 'text',
-    prompt: 'What do you actually sell, and what do people usually pay?',
-    placeholder: 'Product/Service? One-time or Monthly? Rough price range?'
-  },
-  {
-    id: 'q3',
-    section: '02',
-    category: 'Origin',
-    title: 'Why',
-    type: 'text',
-    prompt: 'Why did you start this business?',
-    placeholder: 'A few lines about what pushed you to do this.'
-  },
-  {
-    id: 'q4',
-    section: '02',
-    category: 'Customers',
-    title: 'Best Fit',
-    type: 'text',
-    prompt: 'Who are your best customers?',
-    placeholder: 'Think of 2-3 examples. What business? What size? Who do you deal with?'
-  },
-  {
-    id: 'q5',
-    section: '02',
-    category: 'Customers',
-    title: 'Bad Fit',
-    type: 'text',
-    prompt: 'Who is usually not a good fit for you?',
-    placeholder: 'Early stage? Low budget? Daily calls? Who do you avoid?'
-  },
-  {
-    id: 'q6',
-    section: '03',
-    category: 'Location',
-    title: 'Coordinates',
-    type: 'map',
-    prompt: 'Where is your business based, or where are most of your customers?',
-    placeholder: 'Search for a city or drop a pin.'
-  },
-  {
-    id: 'q7',
-    section: '04',
-    category: 'Reality',
-    title: 'Snapshot',
-    type: 'multi',
-    prompt: "Let's look at where things stand right now.",
-    fields: [
-      { id: 'q7a', label: 'How do new customers find you right now?', placeholder: 'Referrals, Ads, Cold Email...' },
-      { id: 'q7b', label: 'How much time can you spend on marketing weekly?', type: 'select', options: ['~2 hours', '3-5 hours', '6-10 hours', '10+ hours / Team'] },
-      { id: 'q7c', label: 'If things go well in 3 months, what happens?', placeholder: 'e.g. "Book 5 calls/mo" or "Close 3 clients"' }
-    ]
-  }
-];
+import { supabase } from '../lib/supabase';
+import { analyzeWebsite, normalizeUrl, isValidUrl } from '../lib/services/scraper-api';
 
-const FALLBACK_FOLLOW_UPS = [
-  {
-    category: 'Clarification',
-    title: 'Focus',
-    prompt: 'You mentioned a few different types of customers. For the next 3 months, which one do you want to focus on first?',
-    placeholder: 'Pick one and describe it in a bit more detail.'
-  },
-  {
-    category: 'Differentiation',
-    title: 'The Edge',
-    prompt: 'When someone chooses you instead of someone else, what do they usually say they liked about you?',
-    placeholder: 'Why did they pick you over the other option?'
-  }
-];
-
-const loadGoogleMapsScript = (apiKey, onLoad, onError) => {
-  if (!apiKey) {
-    onError?.('missing-key')
-    return
-  }
-  if (window.google && window.google.maps) {
-    onLoad?.();
-    return;
-  }
-  if (document.getElementById('google-maps-script')) {
-     const checkInterval = setInterval(() => {
-        if (window.google && window.google.maps) {
-           clearInterval(checkInterval);
-           onLoad?.();
-        }
-     }, 500);
-     return; 
-  }
-  const script = document.createElement('script');
-  script.id = 'google-maps-script';
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-  script.async = true;
-  script.defer = true;
-  script.onload = onLoad;
-  script.onerror = () => onError?.('script-error');
-  document.head.appendChild(script);
+const CORE_QUESTIONS = {
+  business: [
+    { id: 'q1', label: 'The Elevator Pitch', question: 'What do you do, in one sentence?', placeholder: 'We help [X] achieve [Y] by [Z]...' },
+    { id: 'q2', label: 'Segments', question: 'Who are you trying to reach right now?', placeholder: 'e.g. CMOs at Series B tech companies...' },
+    { id: 'q3', label: 'The Offer', question: 'What are you selling primarily?', placeholder: 'e.g. $2k/mo retainer, $50 SaaS subscription...' },
+    { id: 'q4', label: 'Channels', question: 'How do customers currently find you?', placeholder: 'e.g. SEO, LinkedIn, Referrals...' },
+    { id: 'q5', label: 'Friction', question: 'What is NOT working?', placeholder: 'e.g. Lots of traffic but low conversion...' },
+    { id: 'q6', label: 'Snapshot', question: 'Roughly, what are your current numbers?', placeholder: 'e.g. $10k MRR, 5k visitors/mo...' },
+    { id: 'q7', label: 'The Stake', question: 'What MUST happen in the next 90 days?', placeholder: 'e.g. Close 5 new enterprise deals...' }
+  ],
+  founder: [
+    { id: 'q1', label: 'Superpower', question: 'What is your core expertise or "superpower"?', placeholder: 'e.g. Crisis management for startups...' },
+    { id: 'q2', label: 'Audience', question: 'Who needs to know you exist?', placeholder: 'e.g. VCs, early-stage founders...' },
+    { id: 'q3', label: 'The Offer', question: 'How do you monetize (or plan to)?', placeholder: 'e.g. Coaching, speaking, advisory...' },
+    { id: 'q4', label: 'Platform', question: 'Where are you most active?', placeholder: 'e.g. Twitter/X, LinkedIn, Newsletter...' },
+    { id: 'q5', label: 'Bottleneck', question: 'What is holding you back?', placeholder: 'e.g. Inconsistent content, no clear funnel...' },
+    { id: 'q6', label: 'Reach', question: 'Current audience size?', placeholder: 'e.g. 2k followers, 500 subs...' },
+    { id: 'q7', label: 'The Win', question: 'What does a "win" look like in 90 days?', placeholder: 'e.g. Launch my course, get 3 speaking gigs...' }
+  ],
+  agency: [
+    { id: 'q1', label: 'Niche', question: 'What is your specific niche?', placeholder: 'e.g. SEO for Dental Practices...' },
+    { id: 'q2', label: 'Ideal Client', question: 'Who is your dream client?', placeholder: 'e.g. Multi-location clinics with $1M+ revenue...' },
+    { id: 'q3', label: 'Model', question: 'What is your service model?', placeholder: 'e.g. Performance-based, Retainer, Project...' },
+    { id: 'q4', label: 'Acquisition', question: 'How do you get clients now?', placeholder: 'e.g. Cold outreach, referrals...' },
+    { id: 'q5', label: 'Friction', question: 'Biggest growth blocker?', placeholder: 'e.g. Churn, fulfillment capacity...' },
+    { id: 'q6', label: 'Scale', question: 'Current client count / MRR?', placeholder: 'e.g. 12 clients, $40k MRR...' },
+    { id: 'q7', label: 'Milestone', question: 'Next big milestone?', placeholder: 'e.g. Hit $83k/mo (1M run rate)...' }
+  ]
 };
 
-const GrainOverlay = () => (
-  <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.03] mix-blend-multiply" 
-       style={{ 
-         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")` 
-       }}>
-  </div>
-);
-
-const AuraBackground = () => (
-  <motion.div
-    className="absolute inset-0 pointer-events-none"
-    initial={{ opacity: 0, rotate: -6 }}
-    animate={{ opacity: 0.32, rotate: 6 }}
-    transition={{ duration: 12, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
-    style={{
-      background: 'radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.9), rgba(255, 209, 113, 0.25) 40%, rgba(56, 189, 248, 0.05) 70%, transparent 100%)',
-      filter: 'blur(120px)',
-      mixBlendMode: 'screen'
-    }}
-  />
-);
-
-const curatedCities = [
-  { label: 'Hyderabad, Telangana, India', lat: '17.3850', lon: '78.4867' },
-  { label: 'Bengaluru, Karnataka, India', lat: '12.9716', lon: '77.5946' },
-  { label: 'Mumbai, Maharashtra, India', lat: '19.0760', lon: '72.8777' },
-  { label: 'Chennai, Tamil Nadu, India', lat: '13.0827', lon: '80.2707' },
-  { label: 'Delhi, India', lat: '28.6139', lon: '77.2090' }
-]
-
-const ManualLocationFallback = ({ onLocationSelect, initialValue }) => {
-  const [manualAddress, setManualAddress] = useState(initialValue?.address || '')
-  const [manualLat, setManualLat] = useState(initialValue?.lat || '')
-  const [manualLng, setManualLng] = useState(initialValue?.lng || '')
-  const [suggestions, setSuggestions] = useState([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [advancedOpen, setAdvancedOpen] = useState(false)
-
-  useEffect(() => {
-    onLocationSelect({
-      address: manualAddress,
-      lat: manualLat || undefined,
-      lng: manualLng || undefined
-    })
-  }, [manualAddress, manualLat, manualLng, onLocationSelect])
-
-  useEffect(() => {
-    if (!manualAddress || manualAddress.length < 3) {
-      setSuggestions([])
-      return
-    }
-    const controller = new AbortController()
-    const timeout = setTimeout(async () => {
-      setIsSearching(true)
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(manualAddress)}&limit=5`,
-          { signal: controller.signal, headers: { 'Accept-Language': 'en' } }
-        )
-        if (response.ok) {
-          const data = await response.json()
-          setSuggestions(
-            data.map((item) => ({
-              label: item.display_name,
-              lat: item.lat,
-              lon: item.lon
-            }))
-          )
-        }
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('Location search failed', error)
-        }
-      } finally {
-        setIsSearching(false)
+const steps = [
+  {
+    id: 'welcome_mode',
+    title: 'Welcome to RaptorFlow',
+    subtitle: 'Let\'s tune RaptorFlow to who you are.',
+    description: 'This takes about 10–15 minutes and powers everything: your cohorts, your moves, your content, your analytics.',
+    type: 'mode_selection',
+    options: [
+      {
+        value: 'business',
+        label: 'Business / Brand',
+        subtitle: 'You\'re here to grow a product, service, or company.',
+        examples: 'SaaS · restaurant · hotel · D2C · clinic',
+        icon: Building2
+      },
+      {
+        value: 'founder',
+        label: 'Founder / Executive',
+        subtitle: 'You\'re building a personal brand around you.',
+        examples: 'Startup founder · coach · CXO · creator',
+        icon: Users
+      },
+      {
+        value: 'agency',
+        label: 'Agency / Studio',
+        subtitle: 'You run marketing for multiple clients.',
+        examples: 'Agency · freelancer with several retainers',
+        icon: Briefcase
       }
-    }, 350)
-    return () => {
-      controller.abort()
-      clearTimeout(timeout)
-    }
-  }, [manualAddress])
-
-  const handleSuggestionClick = (suggestion) => {
-    setManualAddress(suggestion.label)
-    setManualLat(suggestion.lat)
-    setManualLng(suggestion.lon)
-    setSuggestions([])
+    ]
+  },
+  {
+    id: 'outcome_focus',
+    title: 'What do you need RaptorFlow to do?',
+    subtitle: 'Select up to 3 primary outcomes for the next 90 days.',
+    type: 'multi_select',
+    maxSelect: 3,
+    options: [
+      { value: 'fill_capacity', label: 'Fill capacity', desc: 'Get more bookings, tables, demos, or calls.' },
+      { value: 'grow_audience', label: 'Grow audience', desc: 'Grow followers, email list, or community.' },
+      { value: 'launch', label: 'Launch something', desc: 'New offer, feature, collection, or location.' },
+      { value: 'fix_leak', label: 'Fix a leak', desc: 'Improve conversions, reduce churn, increase repeat customers.' },
+      { value: 'clarify_message', label: 'Clarify my message', desc: 'Tighten positioning, story, and brand narrative.' },
+      { value: 'diagnose', label: 'I\'m not sure yet', desc: 'I need you to diagnose where to start.' }
+    ],
+    hasFreeText: true,
+    freeTextLabel: 'If we\'re wildly successful together in 90 days, what happens?'
+  },
+  {
+    id: 'context_footprint',
+    title: 'Context & Footprint',
+    subtitle: 'Where do you live on the internet? What\'s already in place?',
+    type: 'context_form'
+  },
+  {
+    id: 'core_questions',
+    title: 'The Core Questions',
+    subtitle: 'Let\'s get specific about your business.',
+    type: 'core_questions'
+  },
+  {
+    id: 'ai_followup',
+    title: 'Clarifying Questions',
+    subtitle: 'A few quick follow-ups to make sure we understand.',
+    description: 'Our AI is analyzing your answers to ask 3 sharp clarifying questions.',
+    type: 'ai_followup'
   }
+  // REMOVED: cohorts_builder, positioning_grid, and first_moves steps
+  // User will go straight to dashboard after AI followup
+];
 
-  return (
-    <div className="w-full max-w-xl space-y-6 rounded-3xl border border-neutral-200 bg-white/70 p-6 text-left">
-      <div>
-        <p className="text-sm uppercase tracking-[0.4em] text-neutral-500">Location</p>
-        <p className="font-display text-2xl text-neutral-900">Manual Entry</p>
-        <p className="text-sm text-neutral-500">Describe where you operate—we will geocode it later.</p>
-      </div>
-      <div className="space-y-4">
-        <div className="relative">
-          <label htmlFor="location-address-input" className="text-xs uppercase tracking-[0.3em] text-neutral-500">Address or Region</label>
-          <input
-            id="location-address-input"
-            type="text"
-            className="mt-2 w-full rounded-2xl border border-neutral-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-neutral-900"
-            placeholder="e.g., Paris, France"
-            value={manualAddress}
-            onChange={(e) => setManualAddress(e.target.value)}
-            aria-label="Enter your business location address or region"
-            aria-describedby="location-help-text"
-            aria-autocomplete="list"
-            aria-controls={suggestions.length > 0 ? "location-suggestions" : undefined}
-          />
-          {(isSearching || suggestions.length > 0 || manualAddress.length >= 3) && (
-            <div
-              id="location-suggestions"
-              className="absolute left-0 right-0 top-[92%] z-10 mt-2 overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl"
-              role="listbox"
-              aria-label="Location suggestions"
-            >
-              {isSearching && (
-                <div className="px-4 py-3 text-xs uppercase tracking-[0.3em] text-neutral-400" role="status" aria-live="polite">
-                  searching...
+export default function Onboarding() {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [answers, setAnswers] = useState({
+    outcomes: [],
+    socials: {},
+    coreQuestions: {},
+    aiQuestions: [],
+    aiAnswers: {},
+    positioning: { x: 50, y: 50 }, // Default center
+    firstMove: null,
+    generatedMoves: []
+  });
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
+  const [isGeneratingMoves, setIsGeneratingMoves] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [isScrapingWebsite, setIsScrapingWebsite] = useState(false);
+  const [websiteAnalysis, setWebsiteAnalysis] = useState(null);
+  const [showScrapedDataPreview, setShowScrapedDataPreview] = useState(false);
+  const [showSkipConfirmation, setShowSkipConfirmation] = useState(false);
+
+  const navigate = useNavigate();
+  const { markOnboardingComplete, user, subscription } = useAuth();
+
+  const step = steps[currentStep];
+  const isFirstStep = currentStep === 0;
+
+  // Check if current step is valid to proceed
+  const canProceed = () => {
+    if (step.id === 'welcome_mode') return !!answers.mode;
+    if (step.id === 'outcome_focus') return answers.outcomes && answers.outcomes.length > 0;
+    if (step.id === 'context_footprint') return !!answers.businessName; // Basic validation
+    if (step.id === 'core_questions') {
+      // Check if at least 3 core questions are answered
+      const mode = answers.mode || 'business';
+      const questions = CORE_QUESTIONS[mode];
+      const answeredCount = questions.filter(q => !!answers.coreQuestions?.[q.id]).length;
+      return answeredCount >= 3;
+    }
+    if (step.id === 'ai_followup') {
+      // Must answer all generated questions
+      if (!answers.aiQuestions || answers.aiQuestions.length === 0) return false;
+      const answeredCount = answers.aiQuestions.filter(q => !!answers.aiAnswers?.[q.id]).length;
+      return answeredCount === answers.aiQuestions.length;
+    }
+    if (step.id === 'cohorts_builder') return true; // Handled by component
+    if (step.id === 'positioning_grid') return answers.positioning !== null;
+    if (step.id === 'first_moves') return !!answers.firstMove;
+    return true;
+  };
+
+  // Generate AI Questions when entering the step
+  const generateAIQuestions = async () => {
+    if (answers.aiQuestions && answers.aiQuestions.length > 0) return; // Already generated
+
+    setIsGeneratingQuestions(true);
+
+    // Simulate AI generation for now (replace with backend call later)
+    // In a real implementation, this would call /api/v1/onboarding/generate-questions
+    setTimeout(() => {
+      const mode = answers.mode || 'business';
+      let newQuestions = [];
+
+      if (mode === 'business') {
+        newQuestions = [
+          { id: 'ai_q1', question: 'When are your busiest months, and when is it usually hardest to fill capacity?' },
+          { id: 'ai_q2', question: 'Who do you MOST want to attract more of – families, couples, business groups, or something else?' },
+          { id: 'ai_q3', question: 'In one sentence, what do customers say they love most after buying from you?' }
+        ];
+      } else if (mode === 'founder') {
+        newQuestions = [
+          { id: 'ai_q1', question: 'What specific topics do you want to own in your niche?' },
+          { id: 'ai_q2', question: 'What makes you credible? (Exits, revenue, years of experience)' },
+          { id: 'ai_q3', question: 'What type of audience do you want more of? (Investors, talent, clients)' }
+        ];
+      } else {
+        newQuestions = [
+          { id: 'ai_q1', question: 'What is the typical budget range for your ideal client?' },
+          { id: 'ai_q2', question: 'Do you prefer retainer work or project-based work?' },
+          { id: 'ai_q3', question: 'What is the biggest bottleneck in your current fulfillment process?' }
+        ];
+      }
+
+      setAnswers(prev => ({ ...prev, aiQuestions: newQuestions }));
+      setIsGeneratingQuestions(false);
+    }, 2000);
+  };
+
+  const generateFirstMoves = async () => {
+    if (answers.generatedMoves && answers.generatedMoves.length > 0) return;
+
+    setIsGeneratingMoves(true);
+
+    // Simulate AI strategy generation
+    setTimeout(() => {
+      const outcomes = answers.outcomes || [];
+      const mode = answers.mode || 'business';
+      const cohortName = answers.firstCohort?.name || 'Target Audience';
+
+      let moves = [];
+
+      // Logic to pick moves based on outcomes
+      if (outcomes.includes('fill_capacity')) {
+        moves.push({
+          id: 'capacity_push',
+          title: 'Weekend Capacity Push',
+          duration: '14 days',
+          target: cohortName,
+          objective: 'Increase weekend occupancy from 60% → 80% within 6 weeks.',
+          channels: ['Instagram', 'WhatsApp', 'Google Maps'],
+          summary: 'Run a 14-day sprint focusing on weekend deals, with emotional family-time messaging and strong visuals.',
+          icon: Zap
+        });
+      }
+
+      if (outcomes.includes('grow_audience') || mode === 'founder') {
+        moves.push({
+          id: 'magnet_campaign',
+          title: 'The Magnet Campaign',
+          duration: '30 days',
+          target: 'Broad Audience',
+          objective: 'Grow email list by 500 subscribers.',
+          channels: ['LinkedIn', 'Twitter/X', 'Newsletter'],
+          summary: 'Publish high-value threads/carousels leading to a specific lead magnet to capture emails.',
+          icon: Sparkles
+        });
+      }
+
+      if (outcomes.includes('fix_leak') || outcomes.includes('clarify_message')) {
+        moves.push({
+          id: 'review_loop',
+          title: 'Review & Proof Loop',
+          duration: '28 days',
+          target: 'Past Customers',
+          objective: 'Double reviews on Google and Trustpilot.',
+          channels: ['Email', 'SMS'],
+          summary: 'Automated sequence to recent happy customers asking for specific, keyword-rich reviews.',
+          icon: CheckCircle2
+        });
+      }
+
+      if (outcomes.includes('launch')) {
+        moves.push({
+          id: 'launch_sequence',
+          title: 'The Hype Sequence',
+          duration: '21 days',
+          target: 'Waitlist / Followers',
+          objective: 'Generate $10k in opening week sales.',
+          channels: ['Email', 'Social Stories'],
+          summary: 'A structured 3-part launch: Tease, Reveal, and Open Cart with scarcity.',
+          icon: Rocket
+        });
+      }
+
+      // Fallback if we don't have enough moves
+      if (moves.length < 3) {
+        moves.push({
+          id: 'local_outreach',
+          title: 'Local Corporate Outreach',
+          duration: '14 days',
+          target: 'Local Businesses',
+          objective: 'Get 5 new B2B inquiries.',
+          channels: ['LinkedIn', 'Direct Email'],
+          summary: 'Direct outreach to local office managers for offsites and events.',
+          icon: Building2
+        });
+      }
+
+      if (moves.length < 3) {
+        moves.push({
+          id: 'sniper_outreach',
+          title: 'The Sniper Approach',
+          duration: 'Ongoing',
+          target: 'Dream Clients',
+          objective: 'Start conversations with 10 high-value prospects.',
+          channels: ['Personal Email', 'LinkedIn'],
+          summary: 'High-touch, personalized research and outreach to your top 50 dream clients.',
+          icon: Target
+        });
+      }
+
+      setAnswers(prev => ({ ...prev, generatedMoves: moves.slice(0, 3) }));
+      setIsGeneratingMoves(false);
+    }, 2500);
+  };
+
+  // Handle website analysis and auto-prefill
+  const handleWebsiteAnalysis = async (websiteUrl) => {
+    if (!websiteUrl || !isValidUrl(normalizeUrl(websiteUrl))) {
+      return;
+    }
+
+    setIsScrapingWebsite(true);
+    setWebsiteAnalysis(null);
+
+    try {
+      const normalizedUrl = normalizeUrl(websiteUrl);
+      const analysis = await analyzeWebsite(normalizedUrl);
+
+      setWebsiteAnalysis(analysis);
+      setShowScrapedDataPreview(true);
+
+      // Auto-prefill business name if available
+      if (analysis.business_name && analysis.business_name !== 'Unknown') {
+        setAnswers(prev => ({
+          ...prev,
+          businessName: analysis.business_name
+        }));
+      }
+
+      // Auto-prefill industry if available and determine if precise location is needed
+      if (analysis.industry && analysis.industry !== 'Unknown') {
+        const industryLower = analysis.industry.toLowerCase();
+        const locationBoundIndustries = ['hospitality', 'restaurant', 'retail', 'salon', 'clinic', 'gym', 'real_estate', 'hotel', 'spa', 'fitness', 'healthcare'];
+        const needsPreciseLocation = locationBoundIndustries.some(keyword => industryLower.includes(keyword));
+
+        setAnswers(prev => ({
+          ...prev,
+          industry: analysis.industry,
+          needsPreciseLocation
+        }));
+      }
+
+      // Auto-prefill location if available
+      if (analysis.location && analysis.location !== 'Unknown') {
+        // If precise location is needed, put it in preciseLocation, otherwise in general location
+        const fieldName = answers.needsPreciseLocation ? 'preciseLocation' : 'location';
+        setAnswers(prev => ({
+          ...prev,
+          [fieldName]: analysis.location
+        }));
+      }
+
+      // Auto-prefill core questions based on analysis
+      const mode = answers.mode || 'business';
+      const coreQuestionsUpdate = {};
+
+      if (analysis.description && analysis.description !== 'Unknown') {
+        coreQuestionsUpdate['q1'] = analysis.description;
+      }
+
+      if (analysis.target_audience && analysis.target_audience !== 'Unknown') {
+        coreQuestionsUpdate['q2'] = analysis.target_audience;
+      }
+
+      if (analysis.products_services && analysis.products_services !== 'Unknown') {
+        coreQuestionsUpdate['q3'] = analysis.products_services;
+      }
+
+      if (Object.keys(coreQuestionsUpdate).length > 0) {
+        setAnswers(prev => ({
+          ...prev,
+          coreQuestions: {
+            ...prev.coreQuestions,
+            ...coreQuestionsUpdate
+          }
+        }));
+      }
+
+      console.log('Website analysis complete:', analysis);
+    } catch (error) {
+      console.error('Website analysis failed:', error);
+      // Silently fail - user can still fill manually
+    } finally {
+      setIsScrapingWebsite(false);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentStep === steps.length - 1) {
+      handleFinalComplete();
+    } else {
+      const nextStepIdx = currentStep + 1;
+      const nextStep = steps[nextStepIdx];
+
+      if (nextStep.id === 'ai_followup') {
+        generateAIQuestions();
+      }
+
+      if (nextStep.id === 'first_moves') {
+        generateFirstMoves();
+      }
+
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  const handleCohortComplete = (cohortData) => {
+    // Save cohort data to state/local storage but don't finish onboarding yet
+    updateAnswer('firstCohort', cohortData);
+    handleNext();
+  };
+
+  const handleFinalComplete = async () => {
+    setIsCompleting(true);
+
+    try {
+      // Save to Supabase
+      if (user) {
+        const { error } = await supabase
+          .from('user_profiles')
+          .update({
+            onboarding_completed: true,
+            preferences: {
+              ...answers,
+              onboarding_completed_at: new Date().toISOString()
+            }
+          })
+          .eq('id', user.id);
+
+        if (error) {
+          console.error('Error saving profile to Supabase:', error);
+          // Continue anyway to not block user
+        }
+      }
+
+      // Local storage backup
+      const finalData = {
+        ...answers,
+        completedAt: new Date().toISOString()
+      };
+      localStorage.setItem('raptorflow_onboarding', JSON.stringify(finalData));
+
+      // Update context
+      await markOnboardingComplete();
+
+      // Navigate to dashboard
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 800);
+
+    } catch (err) {
+      console.error('Error completing onboarding:', err);
+      // Force navigation if something goes wrong
+      navigate('/dashboard');
+    }
+  };
+
+  const handleSkipOnboarding = async () => {
+    setShowSkipConfirmation(false);
+    setIsCompleting(true);
+
+    try {
+      // Mark as skipped in local storage
+      const skippedData = {
+        skipped: true,
+        skippedAt: new Date().toISOString()
+      };
+      localStorage.setItem('raptorflow_onboarding', JSON.stringify(skippedData));
+
+      // Update context
+      await markOnboardingComplete();
+
+      // Navigate to dashboard
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 300);
+
+    } catch (err) {
+      console.error('Error skipping onboarding:', err);
+      // Force navigation if something goes wrong
+      navigate('/dashboard');
+    }
+  };
+
+
+  const updateAnswer = (key, value) => {
+    setAnswers(prev => ({ ...prev, [key]: value }));
+  };
+
+  const updateCoreQuestion = (id, value) => {
+    setAnswers(prev => ({
+      ...prev,
+      coreQuestions: {
+        ...prev.coreQuestions,
+        [id]: value
+      }
+    }));
+  };
+
+  const updateAIAnswer = (id, value) => {
+    setAnswers(prev => ({
+      ...prev,
+      aiAnswers: {
+        ...prev.aiAnswers,
+        [id]: value
+      }
+    }));
+  };
+
+  const toggleOutcome = (value) => {
+    setAnswers(prev => {
+      const current = prev.outcomes || [];
+      if (current.includes(value)) {
+        return { ...prev, outcomes: current.filter(i => i !== value) };
+      }
+      if (current.length >= 3) return prev;
+      return { ...prev, outcomes: [...current, value] };
+    });
+  };
+
+  // Render Step Content
+  const renderStepContent = () => {
+    switch (step.type) {
+      case 'mode_selection':
+        return (
+          <div className="grid gap-4">
+            {step.options.map((option) => {
+              const Icon = option.icon;
+              const isSelected = answers.mode === option.value;
+              return (
+                <motion.button
+                  key={option.value}
+                  onClick={() => updateAnswer('mode', option.value)}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  className={`
+                    group relative p-6 border-2 rounded-lg text-left transition-all duration-200
+                    ${isSelected
+                      ? 'border-black bg-black text-white'
+                      : 'border-black/10 bg-white hover:border-black/30'
+                    }
+                  `}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`
+                      w-12 h-12 border flex items-center justify-center flex-shrink-0 rounded-full
+                      ${isSelected
+                        ? 'border-white/20 bg-white/10'
+                        : 'border-black/10 bg-gray-50'
+                      }
+                    `}>
+                      <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-black'}`} strokeWidth={1.5} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className={`text-xl font-serif mb-1 ${isSelected ? 'text-white' : 'text-black'}`}>
+                        {option.label}
+                      </h3>
+                      <p className={`text-sm font-medium mb-2 ${isSelected ? 'text-white/90' : 'text-gray-900'}`}>
+                        {option.subtitle}
+                      </p>
+                      <p className={`text-xs ${isSelected ? 'text-white/60' : 'text-gray-500'}`}>
+                        e.g. {option.examples}
+                      </p>
+                    </div>
+                    {isSelected && (
+                      <CheckCircle2 className="w-6 h-6 text-white flex-shrink-0" strokeWidth={2} />
+                    )}
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+        );
+
+      case 'multi_select':
+        return (
+          <div className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              {step.options.map((option) => {
+                const isSelected = (answers.outcomes || []).includes(option.value);
+                return (
+                  <motion.button
+                    key={option.value}
+                    onClick={() => toggleOutcome(option.value)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`
+                      p-4 border-2 rounded-lg text-left transition-all duration-200 h-full
+                      ${isSelected
+                        ? 'border-black bg-black text-white'
+                        : 'border-black/10 bg-white hover:border-black/30'
+                      }
+                    `}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className={`font-bold ${isSelected ? 'text-white' : 'text-black'}`}>{option.label}</h3>
+                      {isSelected && <CheckCircle2 className="w-4 h-4 text-white" />}
+                    </div>
+                    <p className={`text-sm ${isSelected ? 'text-white/80' : 'text-gray-600'}`}>{option.desc}</p>
+                  </motion.button>
+                );
+              })}
+            </div>
+            {step.hasFreeText && (
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">{step.freeTextLabel}</label>
+                <textarea
+                  value={answers.outcomeFreeText || ''}
+                  onChange={(e) => updateAnswer('outcomeFreeText', e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-black rounded-lg transition-all outline-none resize-none"
+                  rows={2}
+                  placeholder="e.g. I want to be fully booked on weekends..."
+                />
+              </div>
+            )}
+          </div>
+        );
+
+      case 'context_form':
+        return (
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+                <input
+                  type="text"
+                  value={answers.businessName || ''}
+                  onChange={(e) => updateAnswer('businessName', e.target.value)}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
+                  placeholder="Acme Corp"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+                <select
+                  value={answers.industry || ''}
+                  onChange={(e) => {
+                    updateAnswer('industry', e.target.value);
+                    // Determine if precise location is needed
+                    const locationBoundIndustries = ['hospitality', 'restaurant', 'retail', 'salon', 'clinic', 'gym', 'real_estate'];
+                    const needsPreciseLocation = locationBoundIndustries.includes(e.target.value);
+                    updateAnswer('needsPreciseLocation', needsPreciseLocation);
+                  }}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
+                >
+                  <option value="">Select Industry...</option>
+                  <optgroup label="Digital / Online">
+                    <option value="saas">SaaS</option>
+                    <option value="agency">Agency</option>
+                    <option value="ecommerce">E-commerce</option>
+                    <option value="creator">Creator / Coach</option>
+                    <option value="consulting">Consulting</option>
+                  </optgroup>
+                  <optgroup label="Location-Based">
+                    <option value="restaurant">Restaurant / Café</option>
+                    <option value="hospitality">Hotel / Hospitality</option>
+                    <option value="retail">Retail Store</option>
+                    <option value="salon">Salon / Spa</option>
+                    <option value="clinic">Clinic / Healthcare</option>
+                    <option value="gym">Gym / Fitness</option>
+                    <option value="real_estate">Real Estate</option>
+                  </optgroup>
+                  <optgroup label="Other">
+                    <option value="other">Other</option>
+                  </optgroup>
+                </select>
+              </div>
+
+              {/* Smart Location Field - Shows precise location for location-bound businesses */}
+              {answers.needsPreciseLocation ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Precise Location
+                    <span className="text-xs text-gray-500 ml-2">(Important for local targeting)</span>
+                  </label>
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={answers.preciseLocation || ''}
+                        onChange={(e) => updateAnswer('preciseLocation', e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
+                        placeholder="123 Main St, City, State, ZIP"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (navigator.geolocation) {
+                          navigator.geolocation.getCurrentPosition(
+                            async (position) => {
+                              const { latitude, longitude } = position.coords;
+                              // Use reverse geocoding to get address
+                              try {
+                                const response = await fetch(
+                                  `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+                                );
+                                const data = await response.json();
+                                const address = data.display_name || `${latitude}, ${longitude}`;
+                                updateAnswer('preciseLocation', address);
+                                updateAnswer('coordinates', { lat: latitude, lng: longitude });
+                              } catch (error) {
+                                updateAnswer('preciseLocation', `${latitude}, ${longitude}`);
+                                updateAnswer('coordinates', { lat: latitude, lng: longitude });
+                              }
+                            },
+                            (error) => {
+                              alert('Unable to get your location. Please enter it manually.');
+                            }
+                          );
+                        } else {
+                          alert('Geolocation is not supported by your browser.');
+                        }
+                      }}
+                      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      <Target className="w-4 h-4" />
+                      Use My Current Location
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    General Location
+                    <span className="text-xs text-gray-500 ml-2">(City or Region)</span>
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      value={answers.location || ''}
+                      onChange={(e) => updateAnswer('location', e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
+                      placeholder="City, Country"
+                    />
+                  </div>
                 </div>
               )}
-              {!isSearching && suggestions.length > 0 && (
-                <>
-                  <div className="px-4 pt-3 text-[10px] uppercase tracking-[0.4em] text-neutral-400">
-                    Matches
-                  </div>
-                  {suggestions.map((suggestion) => (
-                    <button
-                      key={suggestion.label}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      className="block w-full px-4 py-3 text-left text-sm text-neutral-800 hover:bg-neutral-50"
-                      role="option"
-                      aria-label={`Select location: ${suggestion.label}`}
-                    >
-                      {suggestion.label}
-                    </button>
-                  ))}
-                </>
-              )}
-              {!isSearching && suggestions.length === 0 && manualAddress.length >= 3 && (
-                <>
-                  <div className="px-4 pt-3 text-[10px] uppercase tracking-[0.4em] text-neutral-400">
-                    Try These
-                  </div>
-                  {curatedCities
-                    .filter((city) =>
-                      city.label.toLowerCase().includes(manualAddress.toLowerCase())
-                    )
-                    .concat(
-                      curatedCities.slice(0, 2)
-                    )
-                    .slice(0, 5)
-                    .map((city) => (
-                      <button
-                        key={city.label}
-                        onClick={() => handleSuggestionClick(city)}
-                        className="block w-full px-4 py-3 text-left text-sm text-neutral-800 hover:bg-neutral-50"
-                      >
-                        {city.label}
-                      </button>
-                    ))}
-                  <div className="px-4 py-3 text-xs text-neutral-500">
-                    No exact matches; press Enter to keep your custom location.
-                  </div>
-                </>
-              )}
             </div>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={() => setAdvancedOpen(!advancedOpen)}
-          className="text-xs uppercase tracking-[0.3em] text-neutral-500 hover:text-neutral-900"
-        >
-          {advancedOpen ? 'Hide advanced coordinates' : 'Show advanced coordinates'}
-        </button>
-        {advancedOpen && (
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs uppercase tracking-[0.3em] text-neutral-500">Latitude</label>
-              <input
-                type="number"
-                className="mt-2 w-full rounded-2xl border border-neutral-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                placeholder="48.8566"
-                value={manualLat}
-                onChange={(e) => setManualLat(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-[0.3em] text-neutral-500">Longitude</label>
-              <input
-                type="number"
-                className="mt-2 w-full rounded-2xl border border-neutral-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                placeholder="2.3522"
-                value={manualLng}
-                onChange={(e) => setManualLng(e.target.value)}
-              />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                  <input
+                    type="url"
+                    value={answers.website || ''}
+                    onChange={(e) => {
+                      updateAnswer('website', e.target.value);
+                    }}
+                    onBlur={(e) => {
+                      const url = e.target.value;
+                      if (url && isValidUrl(normalizeUrl(url))) {
+                        handleWebsiteAnalysis(url);
+                      }
+                    }}
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
+                    placeholder="https://yourwebsite.com"
+                    disabled={isScrapingWebsite}
+                  />
+                  {isScrapingWebsite && (
+                    <div className="absolute right-3 top-2.5">
+                      <Loader2 className="w-4 h-4 text-black animate-spin" />
+                    </div>
+                  )}
+                </div>
+                {isScrapingWebsite && (
+                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    Analyzing your website with AI...
+                  </p>
+                )}
+                {websiteAnalysis && showScrapedDataPreview && !isScrapingWebsite && (
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-xs text-green-800 font-medium flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Website analyzed! We've prefilled some fields for you. Feel free to edit them.
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Budget</label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                  <select
+                    value={answers.budget || ''}
+                    onChange={(e) => updateAnswer('budget', e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
+                  >
+                    <option value="">Select Range...</option>
+                    <option value="0-1k">&lt; $1k / mo</option>
+                    <option value="1k-5k">$1k - $5k / mo</option>
+                    <option value="5k-20k">$5k - $20k / mo</option>
+                    <option value="20k+">$20k+ / mo</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-const LeafletMap = ({ onLocationSelect, initialValue, error }) => {
-  const [searchQuery, setSearchQuery] = useState(initialValue?.address || '');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [position, setPosition] = useState(
-    initialValue?.lat 
-      ? { lat: Number(initialValue.lat), lng: Number(initialValue.lng) } 
-      : null
-  );
-
-  // Default center (India)
-  const defaultCenter = { lat: 20.5937, lng: 78.9629 };
-  const center = position || defaultCenter;
-  const zoom = position ? 12 : 4;
-
-  // Component to handle map clicks
-  const MapEvents = () => {
-    useMapEvents({
-      click(e) {
-        const newPos = { lat: e.latlng.lat, lng: e.latlng.lng };
-        setPosition(newPos);
-        onLocationSelect({
-          lat: newPos.lat,
-          lng: newPos.lng,
-          address: `Pinned Location (${newPos.lat.toFixed(4)}, ${newPos.lng.toFixed(4)})`
-        });
-      },
-    });
-    return null;
-  };
-
-  // Component to update map view when position changes
-  const MapUpdater = ({ center, zoom }) => {
-    const map = useMap();
-    useEffect(() => {
-      map.setView(center, zoom);
-    }, [center, zoom, map]);
-    return null;
-  };
-
-  const handleSearch = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-  };
-
-  // Effect for search debounce
-  useEffect(() => {
-    if (!searchQuery || searchQuery.length < 3) {
-      setSearchResults([]);
-      return;
-    }
-    
-    const timer = setTimeout(async () => {
-      try {
-        setIsSearching(true);
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`
         );
-        if (response.ok) {
-            const data = await response.json();
-            setSearchResults(data);
-        }
-      } catch (err) {
-        console.error("Search failed", err);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
-  const selectResult = (result) => {
-    const newPos = { lat: parseFloat(result.lat), lng: parseFloat(result.lon) };
-    setPosition(newPos);
-    setSearchQuery(result.display_name);
-    setSearchResults([]);
-    onLocationSelect({
-      address: result.display_name,
-      lat: newPos.lat,
-      lng: newPos.lng
-    });
-  };
+      case 'core_questions':
+        const mode = answers.mode || 'business';
+        const questions = CORE_QUESTIONS[mode];
 
-  return (
-    <div className="w-full flex flex-col items-center space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-      <div className="relative w-full max-w-xl z-20">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
-        <input 
-          type="text" 
-          value={searchQuery}
-          onChange={handleSearch}
-          placeholder="Search for your city..." 
-          className="w-full bg-white border border-neutral-200 rounded-full py-4 pl-12 pr-6 text-neutral-800 shadow-xl shadow-neutral-200/50 focus:outline-none focus:ring-2 focus:ring-black transition-all font-sans text-sm"
-        />
-        {searchResults.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-neutral-100 overflow-hidden z-50 max-h-60 overflow-y-auto">
-             {searchResults.map((result, idx) => (
-               <button
-                 key={idx}
-                 onClick={() => selectResult(result)}
-                 className="w-full text-left px-4 py-3 hover:bg-neutral-50 text-xs text-neutral-700 border-b border-neutral-50 last:border-0 truncate"
-               >
-                 {result.display_name}
-               </button>
-             ))}
-          </div>
-        )}
-      </div>
-
-      <div className="w-full h-[40vh] md:h-[50vh] bg-neutral-100 relative border border-neutral-200 overflow-hidden shadow-inner rounded-xl z-0">
-         {error && (
-            <div className="absolute top-0 left-0 right-0 bg-amber-50/90 text-amber-800 text-[10px] uppercase font-bold py-2 text-center z-[400] flex items-center justify-center space-x-2 backdrop-blur-sm">
-               <AlertTriangle size={12} />
-               <span>Google Maps unavailable - switched to OpenStreetMap</span>
+        return (
+          <div className="space-y-6">
+            <div className="grid gap-6">
+              {questions.map((q) => (
+                <div key={q.id}>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="text-gray-400 mr-2 font-mono text-xs uppercase tracking-wider">{q.label}</span>
+                    {q.question}
+                  </label>
+                  <input
+                    type="text"
+                    value={answers.coreQuestions?.[q.id] || ''}
+                    onChange={(e) => updateCoreQuestion(q.id, e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black focus:bg-white transition-colors"
+                    placeholder={q.placeholder}
+                  />
+                </div>
+              ))}
             </div>
-         )}
-         
-         <MapContainer 
-           center={center} 
-           zoom={zoom} 
-           style={{ height: '100%', width: '100%' }}
-           zoomControl={false}
-         >
-           <TileLayer
-             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-           />
-           {position && <Marker position={position} />}
-           <MapEvents />
-           <MapUpdater center={center} zoom={zoom} />
-         </MapContainer>
-      </div>
-      
-      {position && (
-        <div className="flex items-center space-x-2 text-green-600 bg-green-50 px-4 py-2 border border-green-100 rounded-full">
-           <Check size={14} />
-           <span className="text-[10px] font-mono uppercase tracking-[0.2em]">Location Locked</span>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const InteractiveMap = ({ onLocationSelect, initialValue }) => {
-  const mapRef = useRef(null);
-  const searchInputRef = useRef(null);
-  const mapObj = useRef(null);
-  const markerObj = useRef(null);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-  const [authWarning, setAuthWarning] = useState(false);
-  const [mapError, setMapError] = useState('');
-
-  // Memoize map styles to prevent recreation on every render
-  const mapStyles = useMemo(() => [
-    { "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
-    { "elementType": "labels.icon", "stylers": [{ "visibility": "off" }] },
-    { "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
-    { "elementType": "labels.text.stroke", "stylers": [{ "color": "#f5f5f5" }] },
-    { "featureType": "administrative.land_parcel", "elementType": "labels.text.fill", "stylers": [{ "color": "#bdbdbd" }] },
-    { "featureType": "poi", "elementType": "geometry", "stylers": [{ "color": "#eeeeee" }] },
-    { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
-    { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#ffffff" }] },
-    { "featureType": "road.arterial", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
-    { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#dadada" }] },
-    { "featureType": "road.highway", "elementType": "labels.text.fill", "stylers": [{ "color": "#616161" }] },
-    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#e9e9e9" }] },
-    { "featureType": "water", "elementType": "labels.text.fill", "stylers": [{ "color": "#9e9e9e" }] }
-  ], []);
-  
-  useEffect(() => {
-    window.gm_authFailure = () => {
-      console.warn("Google Maps API Key Warning - Map may be degraded");
-      setAuthWarning(true);
-      // If auth fails, switch to Leaflet fallback
-      setMapError('Authentication failed for Google Maps API key. Switching to fallback.');
-    };
-
-    if (!GOOGLE_MAPS_API_KEY) {
-      // If no key is present, immediately switch to fallback
-      setMapError('Google Maps API key missing. Add VITE_GOOGLE_MAPS_API_KEY to your .env file.');
-      setAuthWarning(true);
-      return;
-    }
-
-    loadGoogleMapsScript(
-      GOOGLE_MAPS_API_KEY,
-      () => {
-        if (
-          window.google &&
-          window.google.maps &&
-          typeof window.google.maps.Map === "function"
-        ) {
-          setScriptLoaded(true);
-        } else {
-          console.error("Google Maps failed to initialize.");
-          setAuthWarning(true);
-          setMapError('Google Maps failed to initialize. Please verify your API key permissions.');
-        }
-      },
-      (reason) => {
-        setAuthWarning(true);
-        setMapError(
-          reason === 'missing-key'
-            ? 'Google Maps API key missing. Add VITE_GOOGLE_MAPS_API_KEY to your .env file.'
-            : 'Unable to load Google Maps. Check your network connection or API key.'
+          </div>
         );
-      }
-    );
-  }, []);
 
-  useEffect(() => {
-    if (!scriptLoaded || !mapRef.current || !window.google) return;
-    try {
-        const indiaCenter = { lat: 20.5937, lng: 78.9629 };
-        const map = new window.google.maps.Map(mapRef.current, {
-          center: initialValue?.lat ? { lat: Number(initialValue.lat), lng: Number(initialValue.lng) } : indiaCenter,
-          zoom: initialValue?.lat ? 10 : 5,
-          styles: mapStyles,
-          disableDefaultUI: true,
-          zoomControl: true,
-        });
-        const marker = new window.google.maps.Marker({
-          map: map,
-          draggable: true,
-          animation: window.google.maps.Animation.DROP,
-        });
-        if (searchInputRef.current) {
-            const searchBox = new window.google.maps.places.SearchBox(searchInputRef.current);
-            searchBox.setOptions({
-              componentRestrictions: { country: 'in' }
-            });
-            map.addListener('bounds_changed', () => {
-              searchBox.setBounds(map.getBounds());
-            });
-            searchBox.addListener('places_changed', () => {
-              const places = searchBox.getPlaces();
-              if (places.length === 0) return;
-              const place = places[0];
-              if (!place.geometry || !place.geometry.location) return;
-              map.setCenter(place.geometry.location);
-              map.setZoom(12);
-              marker.setPosition(place.geometry.location);
-              marker.setVisible(true);
-              onLocationSelect({
-                address: place.formatted_address,
-                lat: place.geometry.location.lat(),
-                lng: place.geometry.location.lng()
-              });
-            });
-        }
-        map.addListener('click', (e) => {
-          marker.setPosition(e.latLng);
-          marker.setVisible(true);
-          onLocationSelect({
-            lat: e.latLng.lat(),
-            lng: e.latLng.lng(),
-            address: `Pinned Location (${e.latLng.lat().toFixed(4)}, ${e.latLng.lng().toFixed(4)})`
-          });
-        });
-        mapObj.current = map;
-        markerObj.current = marker;
-    } catch (e) {
-        console.error("Map Init Error:", e);
-    }
-  }, [scriptLoaded, initialValue, onLocationSelect, mapStyles]);
-
-  useEffect(() => {
-    if (!initialValue || !markerObj.current || !mapObj.current) return
-    const position = {
-      lat: Number(initialValue.lat),
-      lng: Number(initialValue.lng),
-    }
-    markerObj.current.setPosition(position)
-    markerObj.current.setVisible(true)
-    mapObj.current.setCenter(position)
-    mapObj.current.setZoom(10)
-  }, [initialValue])
-
-  // Fallback to Leaflet if Google Maps fails or key is missing
-  if (mapError) {
-    return (
-      <LeafletMap
-        onLocationSelect={onLocationSelect}
-        initialValue={initialValue}
-        error={mapError}
-      />
-    )
-  }
-
-  return (
-    <div className="w-full flex flex-col items-center space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-      <div className="relative w-full max-w-xl z-20">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
-        <input 
-          ref={searchInputRef}
-          type="text" 
-          placeholder="Search for your city..." 
-          className="w-full bg-white border border-neutral-200 rounded-full py-4 pl-12 pr-6 text-neutral-800 shadow-xl shadow-neutral-200/50 focus:outline-none focus:ring-2 focus:ring-black transition-all font-sans text-sm"
-        />
-      </div>
-      <div className="w-full h-[40vh] md:h-[50vh] bg-neutral-100 relative border border-neutral-200 overflow-hidden shadow-inner">
-         {(authWarning) && (
-            <div className="absolute top-0 left-0 right-0 bg-amber-100/90 text-amber-800 text-[10px] uppercase font-bold py-2 text-center z-30 flex items-center justify-center space-x-2 backdrop-blur-sm">
-               <AlertTriangle size={12} />
-               <span>{mapError || 'Maps API issue - functionality limited'}</span>
+      case 'ai_followup':
+        if (isGeneratingQuestions) {
+          return (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mb-6"></div>
+              <h3 className="text-xl font-serif font-bold mb-2">Analyzing your business...</h3>
+              <p className="text-gray-500 text-center max-w-sm">
+                Our AI is reviewing your answers to ask the most relevant follow-up questions.
+              </p>
             </div>
-         )}
-         <div ref={mapRef} className="w-full h-full" />
-         {!scriptLoaded && !mapError && (
-           <div className="absolute inset-0 flex items-center justify-center text-neutral-400 text-xs font-mono z-0">
-             INITIALIZING SATELLITE UPLINK...
-           </div>
-         )}
-      </div>
-      {initialValue && initialValue.address && (
-        <div className="flex items-center space-x-2 text-green-600 bg-green-50 px-4 py-2 border border-green-100">
-           <Check size={14} />
-           <span className="text-[10px] font-mono uppercase tracking-[0.2em]">Location Locked</span>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Custom Dropdown Component with styled menu
-const CustomDropdown = ({ value, options, onChange, placeholder = "Select an option" }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
-
-  const handleSelect = (option) => {
-    onChange(option);
-    setIsOpen(false);
-    setFocusedIndex(-1);
-  };
-
-  const handleKeyDown = (e) => {
-    if (!isOpen) {
-      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        setIsOpen(true);
-        setFocusedIndex(0);
-      }
-      return;
-    }
-
-    switch (e.key) {
-      case 'Escape':
-        e.preventDefault();
-        setIsOpen(false);
-        setFocusedIndex(-1);
-        break;
-      case 'ArrowDown':
-        e.preventDefault();
-        setFocusedIndex((prev) => (prev < options.length - 1 ? prev + 1 : 0));
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setFocusedIndex((prev) => (prev > 0 ? prev - 1 : options.length - 1));
-        break;
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        if (focusedIndex >= 0) {
-          handleSelect(options[focusedIndex]);
+          );
         }
-        break;
-      default:
-        break;
-    }
-  };
 
-  const displayValue = value || placeholder;
-  const isPlaceholder = !value;
-
-  return (
-    <div className="relative w-full" ref={dropdownRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        onKeyDown={handleKeyDown}
-        className={`w-full bg-white/50 backdrop-blur-sm border border-neutral-200 rounded-lg px-6 py-4 pr-10 text-lg font-serif italic transition-all appearance-none cursor-pointer shadow-sm text-left flex items-center justify-between ${
-          isPlaceholder ? 'text-neutral-400' : 'text-neutral-900'
-        } hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black ${
-          isOpen ? 'border-black ring-2 ring-black' : ''
-        }`}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        aria-label={`Select option: ${displayValue}`}
-      >
-        <span>{displayValue}</span>
-        <ChevronDown
-          size={18}
-          className={`text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          aria-hidden="true"
-        />
-      </button>
-
-      {isOpen && (
-        <div
-          className="absolute z-50 w-full mt-2 bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden"
-          style={{ animation: 'dropdownFadeIn 0.15s ease-out' }}
-          role="listbox"
-          aria-label="Options"
-        >
-          <div className="py-2">
-            {options.map((option, idx) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => handleSelect(option)}
-                onKeyDown={handleKeyDown}
-                className={`w-full px-6 py-3 text-left text-lg font-serif italic transition-colors ${
-                  value === option
-                    ? 'bg-neutral-100 text-neutral-900 font-medium'
-                    : idx === focusedIndex
-                    ? 'bg-neutral-100 text-neutral-900'
-                    : 'text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900'
-                } ${idx === 0 ? 'rounded-t-lg' : ''} ${idx === options.length - 1 ? 'rounded-b-lg' : ''}`}
-                role="option"
-                aria-selected={value === option}
-                tabIndex={-1}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const MultiInputStep = ({ question, answers, onChange }) => {
-  return (
-    <div className="w-full max-w-6xl animate-in fade-in slide-in-from-bottom-12 duration-1000 ease-out">
-      <p className="font-serif text-3xl md:text-5xl text-black mb-24 leading-tight text-center">
-        {question.prompt}
-      </p>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 w-full">
-        {question.fields.map((field, idx) => (
-          <div key={field.id} className="flex flex-col items-center space-y-6 group w-full">
-             <label className="font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 group-focus-within:text-black transition-colors text-center">
-               {field.label}
-             </label>
-             {field.type === 'select' ? (
-                <CustomDropdown
-                  value={answers[field.id] || ''}
-                  options={field.options}
-                  onChange={(value) => onChange(field.id, value)}
-                  placeholder="Select an option"
-                />
-             ) : (
-                <textarea
-                  value={answers[field.id] || ''}
-                  onChange={(e) => onChange(field.id, e.target.value)}
-                  placeholder={field.placeholder}
-                  rows={1}
-                  className="w-full bg-transparent border-b border-neutral-200 py-4 text-xl font-serif italic text-neutral-900 focus:outline-none focus:border-black transition-all placeholder:text-neutral-300 text-center resize-none min-h-[60px]"
-                  onInput={(e) => {
-                      e.target.style.height = 'auto';
-                      e.target.style.height = e.target.scrollHeight + 'px';
-                  }}
-                />
-             )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const StandardInput = ({ question, value, onChange, onBlur, aiSuggestions, loadingSuggestions, showSuggestions, onApplySuggestion }) => {
-  return (
-    <div className="group animate-in fade-in slide-in-from-bottom-12 duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col items-center text-center w-full z-10 max-w-4xl">
-      <label
-        htmlFor={`input-${question.id}`}
-        className="block font-sans text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400 mb-8 group-focus-within:text-black transition-colors duration-700"
-      >
-        {question.title}
-      </label>
-      <p className="font-serif text-4xl md:text-6xl text-black mb-16 leading-[1.1] tracking-tight antialiased" id={`question-${question.id}`}>
-        {question.prompt}
-      </p>
-      <div className="relative w-full max-w-2xl space-y-6">
-        <textarea
-          id={`input-${question.id}`}
-          autoFocus={true}
-          value={value || ''}
-          onChange={(e) => onChange(question.id, e.target.value)}
-          onBlur={() => onBlur && onBlur(question.id)}
-          placeholder={question.placeholder}
-          className="w-full bg-transparent border-b border-neutral-200 text-2xl md:text-3xl text-neutral-900 py-8 focus:outline-none focus:border-neutral-900 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] placeholder:text-neutral-200 placeholder:font-light font-serif italic resize-none h-40 text-center leading-relaxed selection:bg-black selection:text-white"
-          aria-labelledby={`question-${question.id}`}
-          aria-describedby={`label-${question.id}`}
-          aria-required={question.required || false}
-        />
-
-        {/* AI Suggestions */}
-        {(loadingSuggestions || (showSuggestions && aiSuggestions.length > 0)) && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-2xl space-y-3"
-          >
-            <div className="flex items-center gap-2 justify-center">
-              <Sparkles className="w-4 h-4 text-neutral-400" />
-              <p className="text-xs uppercase tracking-widest text-neutral-400 font-bold">
-                AI Suggestions
+        return (
+          <div className="space-y-8">
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-blue-800">
+                Based on what you told us, we have a few quick follow-ups so we don't guess.
               </p>
             </div>
 
-            {loadingSuggestions && (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-5 h-5 animate-spin text-neutral-400" />
-              </div>
-            )}
-
-            {!loadingSuggestions && showSuggestions && aiSuggestions.map((suggestion, idx) => (
-              <button
-                key={idx}
-                onClick={() => onApplySuggestion(suggestion)}
-                className="w-full p-4 text-left bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-lg transition-all duration-200 group/suggestion"
-              >
-                <p className="text-sm text-neutral-700 group-hover/suggestion:text-neutral-900 font-serif italic">
-                  "{suggestion}"
-                </p>
-                <p className="text-xs text-neutral-400 mt-2 uppercase tracking-wider font-sans font-bold">
-                  Click to apply
-                </p>
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const ProcessingScreen = ({ onSkip }) => (
-   <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-1000" role="status" aria-live="polite">
-      <Loader2 className="animate-spin text-black" size={56} aria-hidden="true" />
-      <div className="text-center space-y-4 max-w-2xl">
-        <p className="font-serif text-3xl italic">Analyzing your business...</p>
-        <div className="space-y-3">
-          <p className="font-sans text-xs uppercase tracking-widest text-neutral-400">Running AI Analysis</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="runway-card p-4 text-center">
-              <Brain className="w-6 h-6 mx-auto mb-2 text-neutral-600" />
-              <p className="text-xs font-bold uppercase tracking-wider text-neutral-700">Strategy Gaps</p>
-              <p className="text-[10px] text-neutral-500 mt-1">Identifying missing insights</p>
-            </div>
-            <div className="runway-card p-4 text-center">
-              <Users className="w-6 h-6 mx-auto mb-2 text-neutral-600" />
-              <p className="text-xs font-bold uppercase tracking-wider text-neutral-700">ICP Generation</p>
-              <p className="text-[10px] text-neutral-500 mt-1">Creating ideal customer profiles</p>
-            </div>
-            <div className="runway-card p-4 text-center">
-              <Target className="w-6 h-6 mx-auto mb-2 text-neutral-600" />
-              <p className="text-xs font-bold uppercase tracking-wider text-neutral-700">Positioning</p>
-              <p className="text-[10px] text-neutral-500 mt-1">Analyzing market position</p>
+            <div className="space-y-6">
+              {answers.aiQuestions?.map((q, index) => (
+                <motion.div
+                  key={q.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="text-gray-400 mr-2 font-mono text-xs uppercase tracking-wider">Clarification {index + 1}</span>
+                    {q.question}
+                  </label>
+                  <textarea
+                    value={answers.aiAnswers?.[q.id] || ''}
+                    onChange={(e) => updateAIAnswer(q.id, e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black focus:bg-white transition-colors resize-none"
+                    rows={2}
+                    placeholder="Your answer..."
+                  />
+                </motion.div>
+              ))}
             </div>
           </div>
+        );
+
+      case 'positioning_grid':
+        return (
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="relative w-full max-w-md aspect-square bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-4">
+              {/* Grid Labels */}
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-bold uppercase tracking-widest text-gray-500">Emotional / Brand</div>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-bold uppercase tracking-widest text-gray-500">Functional / Utility</div>
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 -rotate-90 text-xs font-bold uppercase tracking-widest text-gray-500">Mass / Low Price</div>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 rotate-90 text-xs font-bold uppercase tracking-widest text-gray-500">Premium / High Price</div>
+
+              {/* Grid Lines */}
+              <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 pointer-events-none">
+                <div className="border-r border-b border-gray-200"></div>
+                <div className="border-b border-gray-200"></div>
+                <div className="border-r border-gray-200"></div>
+                <div></div>
+              </div>
+
+              {/* Interactive Area */}
+              <div
+                className="absolute inset-8 cursor-crosshair"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = ((e.clientX - rect.left) / rect.width) * 100;
+                  const y = 100 - ((e.clientY - rect.top) / rect.height) * 100; // Invert Y so top is 100
+                  updateAnswer('positioning', { x, y });
+                }}
+              >
+                {/* The Dot */}
+                <motion.div
+                  layout
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  className="absolute w-6 h-6 bg-black rounded-full shadow-lg border-2 border-white transform -translate-x-1/2 -translate-y-1/2"
+                  style={{
+                    left: `${answers.positioning?.x || 50}%`,
+                    top: `${100 - (answers.positioning?.y || 50)}%`
+                  }}
+                >
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-1 rounded whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity">
+                    {Math.round(answers.positioning?.x || 50)}, {Math.round(answers.positioning?.y || 50)}
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+            <p className="mt-6 text-sm text-gray-500 text-center max-w-md">
+              Click to place your brand. High price & emotional? Low price & functional?
+              <br />This helps us tune your copy and strategy.
+            </p>
+          </div>
+        );
+
+      case 'first_moves':
+        if (isGeneratingMoves) {
+          return (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mb-6"></div>
+              <h3 className="text-xl font-serif font-bold mb-2">Designing your strategy...</h3>
+              <p className="text-gray-500 text-center max-w-sm">
+                We're analyzing your cohorts and goals to build your first 90-day playbook.
+              </p>
+            </div>
+          );
+        }
+
+        return (
+          <div className="space-y-6">
+            <div className="bg-green-50 border border-green-100 rounded-lg p-4 flex items-start gap-3">
+              <Target className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-green-800">
+                Here are 3 high-impact moves tailored to your goals. Select the one you want to start with.
+              </p>
+            </div>
+
+            <div className="grid gap-4">
+              {answers.generatedMoves?.map((move) => {
+                const Icon = move.icon || Target;
+                const isSelected = answers.firstMove === move.id;
+                return (
+                  <motion.button
+                    key={move.id}
+                    onClick={() => updateAnswer('firstMove', move.id)}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className={`
+                      relative p-6 border-2 rounded-xl text-left transition-all duration-200
+                      ${isSelected
+                        ? 'border-black bg-black text-white shadow-xl'
+                        : 'border-black/10 bg-white hover:border-black/30'
+                      }
+                    `}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-white/10' : 'bg-gray-100'}`}>
+                          <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-black'}`} />
+                        </div>
+                        <div>
+                          <h3 className={`text-lg font-bold ${isSelected ? 'text-white' : 'text-black'}`}>
+                            {move.title}
+                          </h3>
+                          <span className={`text-xs font-mono uppercase tracking-wider ${isSelected ? 'text-white/60' : 'text-gray-500'}`}>
+                            {move.duration}
+                          </span>
+                        </div>
+                      </div>
+                      {isSelected && <CheckCircle2 className="w-6 h-6 text-green-400" />}
+                    </div>
+
+                    <p className={`text-sm mb-4 leading-relaxed ${isSelected ? 'text-white/90' : 'text-gray-600'}`}>
+                      {move.summary}
+                    </p>
+
+                    <div className={`grid grid-cols-2 gap-4 mb-4 text-xs ${isSelected ? 'text-white/80' : 'text-gray-600'}`}>
+                      <div>
+                        <span className={`block font-bold mb-1 ${isSelected ? 'text-white/60' : 'text-gray-400'}`}>TARGET</span>
+                        {move.target}
+                      </div>
+                      <div>
+                        <span className={`block font-bold mb-1 ${isSelected ? 'text-white/60' : 'text-gray-400'}`}>OBJECTIVE</span>
+                        {move.objective}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {move.channels?.map(channel => (
+                        <span
+                          key={channel}
+                          className={`
+                            text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded
+                            ${isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}
+                          `}
+                        >
+                          {channel}
+                        </span>
+                      ))}
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  // If we are at the Cohorts Builder step, render it full screen
+  if (step.id === 'cohorts_builder') {
+    // Prepare initial data for CohortsBuilder from previous answers
+    const mode = answers.mode || 'business';
+    const questions = CORE_QUESTIONS[mode];
+
+    // Map core questions to business description for AI context
+    const businessDescription = questions
+      .map(q => `${q.label}: ${answers.coreQuestions?.[q.id] || 'N/A'}`)
+      .join('\n');
+
+    const combinedDescription = `
+      Business Name: ${answers.businessName}
+      Industry: ${answers.industry}
+      Location: ${answers.location}
+      Website: ${answers.website}
+      Outcomes: ${answers.outcomes?.join(', ')}
+      Wild Success: ${answers.outcomeFreeText}
+      
+      Core Details:
+      ${businessDescription}
+    `;
+
+    return (
+      <div className="min-h-screen bg-cream p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8 flex items-center justify-between">
+            <button
+              onClick={() => setCurrentStep(prev => prev - 1)}
+              className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-black transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Foundation
+            </button>
+            <div className="text-sm text-gray-400 font-mono uppercase tracking-widest">
+              Final Step: ICP Creation
+            </div>
+          </div>
+
+          <CohortsBuilder
+            userProfile={user}
+            userPlan={subscription?.plan || 'free'}
+            cohortsLimit={100}
+            currentCohortsCount={0}
+            onComplete={handleCohortComplete}
+            initialData={{
+              businessDescription: combinedDescription,
+              goals: answers.outcomes?.join(', '),
+              location: answers.location
+            }}
+          />
         </div>
       </div>
-      {onSkip && (
-        <button
-          onClick={onSkip}
-          className="mt-8 font-sans text-[10px] font-bold uppercase tracking-widest border-b border-transparent hover:border-black transition-all duration-500 pb-1 text-neutral-400 hover:text-black"
-          aria-label="Skip AI analysis and continue to next step"
-        >
-          Skip analysis
-        </button>
-      )}
-   </div>
-);
-
-const ProgressBar = ({ current, total }) => {
-  const progress = ((current + 1) / total) * 100;
-  return (
-    <div className="fixed bottom-0 left-0 w-full z-50 bg-white pt-4 pb-0" role="progressbar" aria-valuenow={current + 1} aria-valuemin={1} aria-valuemax={total} aria-label={`Onboarding progress: step ${current + 1} of ${total}`}>
-       <div className="flex justify-between items-end px-8 pb-2 text-xs font-sans font-bold text-black uppercase tracking-widest">
-          <span aria-hidden="true">{current + 1} / {total}</span>
-       </div>
-       <div className="h-3 bg-neutral-200 w-full">
-          <div
-            className="h-full bg-black transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]"
-            style={{ width: `${progress}%` }}
-            aria-hidden="true"
-          ></div>
-       </div>
-    </div>
-  );
-};
-
-export default function Onboarding({ onClose }) {
-  const [questions, setQuestions] = useState(INITIAL_QUESTIONS);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [status, setStatus] = useState('input');
-  const [showCohortsBuilder, setShowCohortsBuilder] = useState(false);
-
-  // AI-powered features state
-  const [aiSuggestions, setAiSuggestions] = useState([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [generatedICPs, setGeneratedICPs] = useState([]);
-  const [positioningInsights, setPositioningInsights] = useState(null);
-  const [showAISuggestions, setShowAISuggestions] = useState(false);
-  const { user, markOnboardingComplete } = useAuth();
-
-  const currentQuestion = questions[currentStepIndex];
-  const mainScrollRef = useRef(null);
-  const suggestionTimeoutRef = useRef(null);
-
-  // Keyboard navigation support
-  const handleCloseOnboarding = useCallback(async () => {
-    if (markOnboardingComplete) {
-      await markOnboardingComplete();
-    }
-    onClose && onClose();
-  }, [markOnboardingComplete, onClose]);
-
-  useEffect(() => {
-    if (!onClose) return;
-    const handleKeyDown = (e) => {
-      // Only handle keyboard shortcuts if we're in input or followup mode
-      if (status !== 'input' && status !== 'followup') return;
-
-      // Escape to close
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        handleCloseOnboarding();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [status, handleCloseOnboarding, onClose]);
-
-  const handleAnswer = (id, value) => {
-    setAnswers(prev => ({ ...prev, [id]: value }));
-
-    // Trigger AI suggestions after user pauses typing (debounced)
-    if (currentQuestion && (currentQuestion.type === 'text' || currentQuestion.type === 'textarea')) {
-      if (suggestionTimeoutRef.current) {
-        clearTimeout(suggestionTimeoutRef.current);
-      }
-
-      // Only fetch suggestions if user has typed at least 10 characters
-      if (value && value.length >= 10) {
-        suggestionTimeoutRef.current = setTimeout(async () => {
-          setLoadingSuggestions(true);
-          const suggestions = await generateAnswerSuggestions(currentQuestion, value, answers);
-          setAiSuggestions(suggestions);
-          setLoadingSuggestions(false);
-          if (suggestions.length > 0) {
-            setShowAISuggestions(true);
-          }
-        }, 2000); // Wait 2 seconds after user stops typing
-      } else {
-        setAiSuggestions([]);
-        setShowAISuggestions(false);
-      }
-    }
-  };
-
-  const applySuggestion = (suggestion) => {
-    if (currentQuestion) {
-      setAnswers(prev => ({ ...prev, [currentQuestion.id]: suggestion }));
-      setShowAISuggestions(false);
-      setAiSuggestions([]);
-    }
-  };
-
-  const skipToMarketPosition = () => {
-    setStatus('market-position');
-  };
-
-  const runAIAnalysis = async () => {
-    setStatus('analyzing');
-
-    // Add a shorter timeout - if analysis takes too long, skip to market position
-    const timeoutId = setTimeout(() => {
-      console.warn("AI analysis timeout - proceeding to market position");
-      setStatus('market-position');
-    }, 15000); // 15 second timeout for multiple AI operations
-
-    try {
-      // Run multiple AI analyses in parallel
-      const [aiQuestions, icps, insights] = await Promise.all([
-        generateVertexAIQuestions(answers, INITIAL_QUESTIONS).catch(err => {
-          console.warn("AI questions failed:", err);
-          return [];
-        }),
-        generateICPFromAnswers(answers).catch(err => {
-          console.warn("ICP generation failed:", err);
-          return [];
-        }),
-        generatePositioningInsights(answers).catch(err => {
-          console.warn("Positioning insights failed:", err);
-          return null;
-        })
-      ]);
-
-      clearTimeout(timeoutId);
-
-      // Store generated ICPs and insights
-      if (icps && icps.length > 0) {
-        setGeneratedICPs(icps);
-      }
-      if (insights) {
-        setPositioningInsights(insights);
-      }
-
-      if (aiQuestions && aiQuestions.length > 0) {
-        const processedQuestions = aiQuestions.map((q, idx) => ({
-          id: `ai_${Date.now()}_${idx}`,
-          section: 'AI CHECK',
-          category: q.category,
-          title: q.title,
-          type: 'text',
-          prompt: q.prompt,
-          placeholder: q.placeholder
-        }));
-        setQuestions(prev => [...prev, ...processedQuestions]);
-        setStatus('followup');
-        setCurrentStepIndex(prev => prev + 1);
-      } else {
-        // No AI questions generated, go straight to market position
-        clearTimeout(timeoutId);
-        setStatus('market-position');
-      }
-    } catch (error) {
-      clearTimeout(timeoutId);
-      console.error("AI Generation failed, proceeding to market position:", error);
-      // Skip AI questions and go straight to market position
-      setStatus('market-position');
-    }
-  };
-
-  const nextStep = () => {
-    // Special handling for q7 - triggers AI analysis
-    if (currentQuestion && currentQuestion.id === 'q7') {
-       runAIAnalysis();
-       return;
-    }
-    // Check if we're at the last question (index equals last index)
-    if (currentStepIndex < questions.length - 1) {
-      // Move to next question
-      setCurrentStepIndex(prev => prev + 1);
-      if (mainScrollRef.current) mainScrollRef.current.scrollTop = 0;
-    } else {
-       // We're on the last question, so next click should go to market position
-       setStatus('market-position');
-       if (mainScrollRef.current) mainScrollRef.current.scrollTop = 0;
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStepIndex > 0) {
-      setCurrentStepIndex(prev => prev - 1);
-    }
-  };
-
-  const handleMarketPositionComplete = (marketData) => {
-    // Store market position data in answers
-    setAnswers(prev => ({
-      ...prev,
-      market_position: marketData
-    }));
-    // Move to complete status
-    setStatus('complete');
-  };
-
-  const handleMarketPositionBack = () => {
-    // Go back to last question
-    if (currentStepIndex > 0) {
-      setCurrentStepIndex(questions.length - 1);
-      setStatus('input');
-    }
-  };
-
-  const handleFinishOnboarding = async () => {
-    if (user) {
-      try {
-        const { error } = await supabase
-          .from('onboarding_responses')
-          .upsert([
-            { 
-              user_id: user.id, 
-              answers, 
-              generated_icps: generatedICPs, 
-              positioning_insights: positioningInsights,
-              completed_at: new Date().toISOString(),
-              progress_percentage: 100,
-              updated_at: new Date().toISOString()
-            }
-          ]);
-        
-        if (error) {
-          console.warn('Failed to save onboarding responses to Supabase:', error);
-          localStorage.setItem('onboarding_backup', JSON.stringify({ answers, generatedICPs, positioningInsights }));
-        }
-      } catch (err) {
-        console.error('Error saving onboarding:', err);
-      }
-    }
-
-    if (markOnboardingComplete) {
-      await markOnboardingComplete();
-    }
-
-    setShowCohortsBuilder(true);
-  };
-
-  const renderInput = () => {
-    if (status === 'analyzing') return <ProcessingScreen onSkip={skipToMarketPosition} />;
-    if (status === 'market-position') {
-      return (
-        <MarketPositionSnapshot
-          answers={answers}
-          onComplete={handleMarketPositionComplete}
-          onBack={handleMarketPositionBack}
-        />
-      );
-    }
-    if (status === 'complete') return (
-      <div className="text-center animate-in zoom-in-95 duration-1000 flex flex-col items-center">
-        <h1 className="font-serif text-6xl mb-6">All Set.</h1>
-        <p className="text-neutral-500 font-sans uppercase tracking-widest text-xs mb-12">Protocol Complete</p>
-        <button
-            onClick={handleFinishOnboarding}
-            className="group relative bg-black text-white px-16 py-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20"
-        >
-            <div className="relative z-10 flex items-center space-x-4">
-                <span className="font-sans text-xs font-bold tracking-widest uppercase">
-                    Let's Go
-                </span>
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" />
-            </div>
-            <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
-        </button>
-      </div>
-    );
-
-    // Safety check - if no current question, transition to market position
-    if (!currentQuestion) {
-      // This shouldn't happen, but if it does, go to market position
-      if (status === 'input' || status === 'followup') {
-        setStatus('market-position');
-        return null;
-      }
-    }
-
-    switch (currentQuestion.type) {
-      case 'map':
-        return (
-          <InteractiveMap 
-            onLocationSelect={(loc) => handleAnswer(currentQuestion.id, loc)} 
-            initialValue={answers[currentQuestion.id]}
-          />
-        );
-      case 'multi':
-        return (
-          <MultiInputStep 
-            question={currentQuestion} 
-            answers={answers} 
-            onChange={handleAnswer} 
-          />
-        );
-      default:
-        return (
-          <StandardInput
-             key={currentQuestion.id}
-             question={currentQuestion}
-             value={answers[currentQuestion.id]}
-             onChange={handleAnswer}
-             aiSuggestions={aiSuggestions}
-             loadingSuggestions={loadingSuggestions}
-             showSuggestions={showAISuggestions}
-             onApplySuggestion={applySuggestion}
-          />
-        );
-    }
-  };
-
-  // Show Cohorts Builder if triggered
-  if (showCohortsBuilder) {
-    return (
-      <CohortsBuilder
-        onClose={() => {
-          setShowCohortsBuilder(false);
-          handleCloseOnboarding();
-        }}
-        onboardingData={{
-          answers,
-          aiGeneratedICPs: generatedICPs,
-          positioningInsights: positioningInsights
-        }}
-      />
     );
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex h-screen w-screen bg-white text-neutral-900 overflow-hidden font-sans selection:bg-black selection:text-white">
-      <GrainOverlay />
-      <AuraBackground />
-        {onClose && (
-          <button
-            className="absolute top-8 left-8 z-50 p-2 text-neutral-400 hover:text-black transition-colors hover:bg-neutral-100"
-            onClick={handleCloseOnboarding}
-            aria-label="Close onboarding"
-            title="Close onboarding"
-          >
-            <X size={24} aria-hidden="true" />
-          </button>
-        )}
-      <div ref={mainScrollRef} className="flex-grow flex flex-col justify-center items-center px-6 md:px-8 relative z-10">
-        <div className="w-full flex flex-col items-center pb-12 max-w-7xl">
-           {status !== 'analyzing' && status !== 'complete' && status !== 'market-position' && currentQuestion && (
-             <div className="flex items-center space-x-4 mb-12 animate-in fade-in duration-1000 slide-in-from-top-4 ease-[cubic-bezier(0.22,1,0.36,1)]">
-                <span className="font-sans font-bold text-[9px] text-white bg-black px-2 py-1 tracking-widest">
-                  {currentQuestion.section}
-                </span>
-                <span className="font-sans font-bold text-[10px] uppercase tracking-[0.2em] text-neutral-400">
-                  {currentQuestion.category}
-                </span>
-             </div>
-           )}
-           {renderInput()}
-           {status !== 'analyzing' && status !== 'complete' && status !== 'market-position' && (
-             <div className="mt-24 flex items-center space-x-12 animate-in fade-in duration-1000 delay-300 ease-out">
-                <button
-                    onClick={prevStep}
-                    disabled={currentStepIndex === 0}
-                    className={`font-sans text-[10px] font-bold uppercase tracking-widest border-b border-transparent hover:border-black transition-all duration-500 pb-1 ${currentStepIndex === 0 ? 'opacity-0 cursor-default' : 'text-neutral-400 hover:text-black'}`}
-                    aria-label="Go to previous question"
-                    aria-disabled={currentStepIndex === 0}
-                >
-                    Back
-                </button>
-                <button
-                    onClick={nextStep}
-                    className="group relative bg-black text-white px-12 py-5 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20"
-                    aria-label={currentQuestion && currentQuestion.id === 'q7' ? 'Analyze responses with AI' : (currentStepIndex === questions.length - 1 ? 'Finish onboarding' : 'Continue to next question')}
-                >
-                    <div className="relative z-10 flex items-center space-x-4">
-                        <span className="font-sans text-xs font-bold tracking-widest uppercase">
-                            {currentQuestion && currentQuestion.id === 'q7' ? 'Analyze' : (currentStepIndex === questions.length - 1 ? 'Finish' : 'Next')}
-                        </span>
-                        {currentQuestion && currentQuestion.id === 'q7' ? <Sparkles size={14} aria-hidden="true" /> : <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" aria-hidden="true" />}
-                    </div>
-                    <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
-                </button>
-             </div>
-           )}
-        </div>
+    <div className="min-h-screen bg-cream flex items-center justify-center p-6">
+      {/* Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-black/[0.02] rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-black/[0.02] rounded-full blur-3xl" />
       </div>
-      {status !== 'complete' && status !== 'market-position' && (
-         <ProgressBar 
-           current={currentStepIndex} 
-           total={questions.length} 
-         />
-      )}
+
+      <div className="relative w-full max-w-5xl">
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
+              Step {currentStep + 1} of {steps.length}
+            </span>
+            <span className="text-xs text-gray-500">
+              {Math.round(((currentStep + 1) / steps.length) * 100)}% Complete
+            </span>
+          </div>
+          <div className="h-1 bg-black/5 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-black"
+              initial={{ width: 0 }}
+              animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+              transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+            />
+          </div>
+        </div>
+
+        {/* Content Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white border border-black/10 rounded-2xl shadow-xl shadow-black/5 p-8 md:p-12 min-h-[600px] flex flex-col"
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              className="flex-1 flex flex-col"
+            >
+              {/* Header */}
+              <div className="mb-8">
+                <h1 className="font-serif text-4xl md:text-5xl font-bold mb-4">{step.title}</h1>
+                <p className="text-xl text-gray-600">{step.subtitle}</p>
+                {step.description && <p className="mt-4 text-gray-500">{step.description}</p>}
+              </div>
+
+              {/* Dynamic Content */}
+              <div className="flex-1">
+                {renderStepContent()}
+              </div>
+
+              {/* Navigation */}
+              <div className="flex items-center justify-between pt-12 mt-8 border-t border-black/5">
+                <button
+                  onClick={handleBack}
+                  disabled={isFirstStep}
+                  className={`
+                    inline-flex items-center gap-2 px-6 py-3 text-sm font-medium uppercase tracking-wide
+                    transition-all duration-200
+                    ${isFirstStep
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-700 hover:text-black'
+                    }
+                  `}
+                >
+                  <ArrowLeft className="w-4 h-4" strokeWidth={2} />
+                  Back
+                </button>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowSkipConfirmation(true)}
+                    className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium uppercase tracking-wide text-gray-500 hover:text-oxblood transition-all duration-200 border border-gray-200 hover:border-oxblood/30 rounded-lg"
+                  >
+                    Skip Onboarding
+                  </button>
+
+                  <button
+                    onClick={handleNext}
+                    disabled={!canProceed() || isCompleting}
+                    className={`
+                      inline-flex items-center gap-2 px-8 py-3 text-sm font-medium uppercase tracking-wide rounded-lg
+                      transition-all duration-200
+                      ${canProceed() && !isCompleting
+                        ? 'bg-black text-white hover:bg-gray-900 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/20'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }
+                    `}
+                  >
+                    {currentStep === steps.length - 1 ? 'Finish Setup' : 'Continue'}
+                    <ArrowRight className="w-4 h-4" strokeWidth={2} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Skip Confirmation Modal */}
+        <AnimatePresence>
+          {showSkipConfirmation && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+              onClick={() => setShowSkipConfirmation(false)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border-2 border-black/10"
+              >
+                {/* Header */}
+                <div className="bg-oxblood/5 border-b-2 border-oxblood/20 px-8 py-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-12 h-12 rounded-full bg-oxblood/10 flex items-center justify-center">
+                      <AlertCircle className="w-6 h-6 text-oxblood" strokeWidth={2} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-mono uppercase tracking-widest text-oxblood/60">Warning</p>
+                      <h3 className="text-2xl font-serif font-bold text-black">Are you sure?</h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="px-8 py-6">
+                  <p className="text-gray-700 leading-relaxed mb-4">
+                    Skipping onboarding means you'll miss out on personalized setup and recommendations.
+                  </p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    You can always configure your preferences later in Settings, but it's much easier to do it now.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="bg-gray-50 px-8 py-6 flex items-center justify-end gap-3 border-t border-gray-200">
+                  <button
+                    onClick={() => setShowSkipConfirmation(false)}
+                    className="px-6 py-3 text-sm font-semibold text-gray-700 hover:text-black transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSkipOnboarding}
+                    className="px-6 py-3 bg-oxblood text-white rounded-lg text-sm font-semibold hover:bg-oxblood-dark transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-oxblood/20"
+                  >
+                    Yes, Skip Onboarding
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

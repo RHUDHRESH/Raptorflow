@@ -4,7 +4,7 @@ Supabase client for database operations
 
 from typing import Any, Dict, List, Optional
 from supabase import create_client, Client
-from config.settings import settings
+from backend.config.settings import settings
 import structlog
 
 logger = structlog.get_logger()

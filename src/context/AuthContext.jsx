@@ -432,6 +432,19 @@ export const AuthProvider = ({ children }) => {
         avatar_url: null,
       };
       setUser(devUser);
+
+      // Set dev subscription (Soar plan - full access)
+      setSubscription({
+        plan: 'soar',
+        status: 'active',
+        billing_period: 'monthly',
+        current_period_start: new Date().toISOString(),
+        current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      });
+
+      // Mark onboarding as NOT complete so user goes through onboarding flow
+      setOnboardingCompleted(false);
+
       setLoading(false);
       return { success: true, user: devUser };
     }

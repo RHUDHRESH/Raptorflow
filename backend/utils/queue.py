@@ -7,7 +7,7 @@ import asyncio
 from typing import Any, Callable, Dict, Optional
 from enum import Enum
 import redis.asyncio as redis
-from config.settings import settings
+from backend.config.settings import settings
 import structlog
 
 logger = structlog.get_logger()

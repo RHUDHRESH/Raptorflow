@@ -123,12 +123,7 @@ CREATE TRIGGER update_workspaces_updated_at
 -- ============================================
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
-DECLARE
-  v_trial_end TIMESTAMP WITH TIME ZONE;
 BEGIN
-  -- Calculate trial end date (14 days from now)
-  v_trial_end := CURRENT_TIMESTAMP + INTERVAL '14 days';
-  
   -- Create user profile
   INSERT INTO public.user_profiles (id, full_name, avatar_url)
   VALUES (
@@ -141,25 +136,8 @@ BEGIN
   INSERT INTO public.workspaces (owner_id, name)
   VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', 'My Workspace'));
   
-  -- Create free trial subscription (14 days)
-  INSERT INTO public.subscriptions (
-    user_id, 
-    plan, 
-    status,
-    trial_start,
-    trial_end,
-    current_period_start,
-    current_period_end
-  )
-  VALUES (
-    NEW.id, 
-    'free', 
-    'trialing',
-    CURRENT_TIMESTAMP,
-    v_trial_end,
-    CURRENT_TIMESTAMP,
-    v_trial_end
-  );
+  -- NO FREE TRIAL - User must pay to get subscription
+  -- Subscription will be created after successful payment via PhonePe webhook
   
   RETURN NEW;
 END;

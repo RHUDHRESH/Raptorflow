@@ -72,5 +72,5 @@ def get_logger(name: str = None) -> Any:
     return structlog.get_logger(name)
 
 
-
-
+# Alias for backward compatibility
+setup_logging = configure_logging

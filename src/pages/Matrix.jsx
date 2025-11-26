@@ -217,7 +217,7 @@ export default function Matrix() {
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="mb-2 flex items-center gap-2">
-                            <h3 className="text-lg font-semibold">{move.name}</h3>
+                            <Link to={`/strategy/campaigns/${move.id}`} className="text-lg font-semibold hover:underline">{move.name}</Link>
                             <StatusPill status={move.status} />
                           </div>
                           <p className="text-sm text-neutral-500">{move.goal}</p>

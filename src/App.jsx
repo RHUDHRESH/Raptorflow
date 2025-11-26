@@ -7,6 +7,8 @@ import { ToastProvider } from './components/Toast'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Landing from './pages/Landing'
+import Privacy from './pages/Privacy'
+import Terms from './pages/Terms'
 import Dashboard from './pages/Dashboard'
 import Moves from './pages/Moves'
 import MoveDetail from './pages/MoveDetail'
@@ -18,7 +20,7 @@ import StrategyWizard from './pages/StrategyWizard'
 import StrategyWizardEnhanced from './pages/StrategyWizardEnhanced'
 import CohortsManager from './pages/CohortsManager'
 import CohortsMoves from './pages/CohortsMoves'
-import Cohorts from './pages/Cohorts'
+
 import Support from './pages/Support'
 import History from './pages/History'
 import Account from './pages/Account'
@@ -28,6 +30,13 @@ import MuseDraftWorkspace from './pages/muse/MuseDraftWorkspace'
 import MuseRepurpose from './pages/muse/MuseRepurpose'
 import MuseHooks from './pages/muse/MuseHooks'
 import Matrix from './pages/Matrix'
+import Billing from './pages/Billing'
+import PositioningWorkshopLuxe from './pages/strategy/PositioningWorkshopLuxe'
+import CampaignBuilderLuxe from './pages/strategy/CampaignBuilderLuxe'
+import CohortsEnhancedLuxe from './pages/strategy/CohortsEnhancedLuxe'
+import CohortDetail from './pages/strategy/CohortDetail'
+import Campaigns from './pages/Campaigns'
+
 
 function App() {
   const navigate = useNavigate();
@@ -41,6 +50,8 @@ function App() {
             <Route path="/landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
 
             {/* Protected Routes */}
             <Route path="/dashboard" element={
@@ -105,7 +116,14 @@ function App() {
             <Route path="/cohorts" element={
               <ProtectedRoute>
                 <Layout>
-                  <Cohorts />
+                  <CohortsEnhancedLuxe />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/cohorts/:id" element={
+              <ProtectedRoute>
+                <Layout>
+                  <CohortDetail />
                 </Layout>
               </ProtectedRoute>
             } />
@@ -116,6 +134,29 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
+            <Route path="/strategy/positioning" element={
+              <ProtectedRoute>
+                <PositioningWorkshopLuxe />
+              </ProtectedRoute>
+            } />
+            <Route path="/campaigns" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Campaigns />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/campaigns/new" element={
+              <ProtectedRoute>
+                <CampaignBuilderLuxe />
+              </ProtectedRoute>
+            } />
+            <Route path="/strategy/campaigns/:id" element={
+              <ProtectedRoute>
+                <CampaignBuilderLuxe />
+              </ProtectedRoute>
+            } />
+
             <Route path="/support" element={
               <ProtectedRoute>
                 <Layout>
@@ -141,6 +182,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Settings />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/billing" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Billing />
                 </Layout>
               </ProtectedRoute>
             } />

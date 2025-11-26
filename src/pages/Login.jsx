@@ -18,7 +18,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/';
+  const from = location.state?.from?.pathname || '/dashboard';
 
   useEffect(() => {
     // Check if Supabase env vars are actually loaded
@@ -47,6 +47,17 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
+
+    // DEV BYPASS: Check for hardcoded dev credentials
+    if (import.meta.env.DEV && formData.email === 'user' && formData.password === 'pass') {
+      const result = await skipLoginDev();
+      if (result.success) {
+        navigate(from, { replace: true });
+      } else {
+        setErrors({ submit: result.error });
+      }
+      return;
+    }
 
     const result = await login(formData.email, formData.password);
 
@@ -230,13 +241,16 @@ const Login = () => {
           </div>
 
           {import.meta.env.DEV && (
-            <div className="pt-8 border-t border-neutral-100">
+            <div className="pt-8 border-t border-neutral-100 space-y-2">
               <button
                 onClick={handleDevLogin}
                 className="w-full py-2 px-4 rounded-lg border border-dashed border-neutral-300 text-xs font-mono text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900 transition-colors"
               >
                 [DEV] Bypass Authentication
               </button>
+              <p className="text-xs text-center text-neutral-400 font-mono">
+                Or use: <span className="text-neutral-600 font-semibold">user</span> / <span className="text-neutral-600 font-semibold">pass</span>
+              </p>
             </div>
           )}
         </div>
@@ -244,9 +258,9 @@ const Login = () => {
         {/* Footer Links */}
         <div className="absolute bottom-8 left-0 w-full text-center lg:text-left lg:pl-12">
           <div className="flex gap-6 justify-center lg:justify-start text-xs text-neutral-400">
-            <a href="#" className="hover:text-neutral-600">Privacy Policy</a>
-            <a href="#" className="hover:text-neutral-600">Terms of Service</a>
-            <a href="#" className="hover:text-neutral-600">Help Center</a>
+            <Link to="/privacy" className="hover:text-neutral-600">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-neutral-600">Terms of Service</Link>
+            <a href="mailto:support@raptorflow.in" className="hover:text-neutral-600">Help Center</a>
           </div>
         </div>
       </div>

@@ -108,7 +108,7 @@ export default function MuseHome() {
                     {/* Center: Workbench */}
                     <div className="space-y-8">
                         <div className="grid gap-4 sm:grid-cols-3">
-                            <button className="group relative flex flex-col justify-between rounded-3xl border border-black/5 bg-white p-6 text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+                            <Link to="/moves" className="group relative flex flex-col justify-between rounded-3xl border border-black/5 bg-white p-6 text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
                                 <div className="flex items-center gap-3 text-sm font-bold text-neutral-900">
                                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-neutral-900 group-hover:bg-black group-hover:text-white transition-colors">
                                         <PenSquare size={16} />
@@ -121,7 +121,7 @@ export default function MuseHome() {
                                 <div className="absolute right-4 top-4 opacity-0 transition-opacity group-hover:opacity-100">
                                     <MoveRight size={16} className="text-neutral-400" />
                                 </div>
-                            </button>
+                            </Link>
                             <button className="group relative flex flex-col justify-between rounded-3xl border border-black/5 bg-white p-6 text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
                                 <div className="flex items-center gap-3 text-sm font-bold text-neutral-900">
                                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-neutral-900 group-hover:bg-black group-hover:text-white transition-colors">
@@ -220,7 +220,7 @@ export default function MuseHome() {
                                             </div>
                                             <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                                                 <Link
-                                                    to={`/muse/workspace`} // Placeholder, should be /muse/assets/:id
+                                                    to={`/muse/assets/${asset.id}`}
                                                     className="inline-flex items-center gap-1.5 rounded-full bg-black px-4 py-1.5 text-[11px] font-bold text-white shadow-sm hover:bg-neutral-800"
                                                 >
                                                     Open <ArrowUpRight size={12} />

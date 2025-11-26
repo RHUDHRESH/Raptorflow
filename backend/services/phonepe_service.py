@@ -31,11 +31,11 @@ class PhonePeService:
     PRODUCTION_URL = "https://api.phonepe.com/apis/hermes"
     SANDBOX_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox"
 
-    # Plan pricing (in rupees)
+    # Plan pricing (in rupees) - NO FREE TRIAL
     PLAN_PRICES = {
-        "ascent": {"monthly": 2499, "yearly": 24999},
-        "glide": {"monthly": 6499, "yearly": 64999},
-        "soar": {"monthly": 16499, "yearly": 164999}
+        "ascent": {"monthly": 3500, "yearly": 35000},
+        "glide": {"monthly": 7000, "yearly": 70000},
+        "soar": {"monthly": 10000, "yearly": 100000}
     }
 
     # Plan features and limits

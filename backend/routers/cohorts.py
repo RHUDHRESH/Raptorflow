@@ -69,6 +69,77 @@ class CohortResponse(BaseModel):
     updated_at: str
 
 
+class CohortSuggestion(BaseModel):
+    """Cohort suggestion structure."""
+    name: str
+    description: str
+    reasoning: str
+
+
+@router.post("/suggest", response_model=list[CohortSuggestion], summary="Suggest Cohorts", tags=["Cohorts"])
+async def suggest_cohorts(
+    request: CohortGenerateRequest,
+    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
+):
+    """
+    Analyzes business inputs and suggests 3 distinct cohorts/ICPs.
+    """
+    correlation_id = generate_correlation_id()
+    logger.info("Suggesting cohorts", correlation_id=correlation_id)
+    
+    try:
+        context = f"""
+Analyze the following business data and suggest 3 distinct, high-value Ideal Customer Profiles (ICPs) or cohorts they should target.
+
+Business Description: {request.businessDescription}
+Product Description: {request.productDescription}
+Target Market: {request.targetMarket}
+Value Proposition: {request.valueProposition}
+Goals: {request.goals}
+
+Return a JSON list of 3 suggestions. Each suggestion must have:
+- name: A catchy, specific name (e.g., "Weekend Families", "Enterprise CTOs")
+- description: A 1-sentence description of who they are and what they want.
+- reasoning: Why this is a good target.
+
+Example format:
+[
+  {{
+    "name": "Weekend Families",
+    "description": "Parents looking for quick getaways within driving distance.",
+    "reasoning": "High volume segment that aligns with your location."
+  }}
+]
+"""
+        
+        messages = [{"role": "user", "content": context}]
+        
+        response_text = await vertex_ai_client.chat_completion(
+            messages=messages,
+            model_type="fast",
+            temperature=0.7,
+            max_tokens=1000,
+            response_format={"type": "json_object"}
+        )
+        
+        import json
+        data = json.loads(response_text)
+        suggestions = data.get("suggestions", data if isinstance(data, list) else [])
+        
+        # Handle case where LLM returns a dict with a key instead of a list
+        if isinstance(suggestions, dict) and "suggestions" in suggestions:
+            suggestions = suggestions["suggestions"]
+            
+        return [CohortSuggestion(**s) for s in suggestions]
+        
+    except Exception as e:
+        logger.error(f"Failed to suggest cohorts: {e}", correlation_id=correlation_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to suggest cohorts: {str(e)}"
+        )
+
+
 class PsychographicsRequest(BaseModel):
     """Request to compute psychographics for a cohort."""
     cohort: dict

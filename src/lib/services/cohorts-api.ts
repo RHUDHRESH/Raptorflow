@@ -244,7 +244,7 @@ function getAuthToken(): string {
       console.warn('Failed to parse auth token');
     }
   }
-  
+
   // For development, return a dummy token
   return 'dev-token';
 }
@@ -279,6 +279,33 @@ export async function generateCohortFromInputs(inputs: CohortGenerateInputs): Pr
   } catch (error) {
     console.error('Cohort generation failed:', error);
     return fallback(error);
+  }
+}
+
+/**
+ * Suggest cohorts based on business inputs using backend AI
+ */
+export async function suggestCohorts(inputs: CohortGenerateInputs): Promise<any[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/v1/cohorts/suggest`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getAuthToken()}`,
+      },
+      body: JSON.stringify(inputs),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+      console.warn('Backend cohort suggestion failed.', error);
+      return [];
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Cohort suggestion failed:', error);
+    return [];
   }
 }
 

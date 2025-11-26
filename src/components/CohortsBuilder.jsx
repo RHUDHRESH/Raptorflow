@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  ArrowRight, 
-  Sparkles, 
-  Loader2, 
-  X, 
-  ChevronDown, 
-  Check, 
+import {
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  Loader2,
+  X,
+  ChevronDown,
+  Check,
+  CheckCircle2,
   Target,
   Building2,
   Users,
@@ -50,7 +52,7 @@ const COMMON_DESCRIPTORS = [
 
 // Industry options
 const INDUSTRIES = [
-  'SaaS', 'E-commerce', 'Healthcare', 'Finance', 'Education', 
+  'SaaS', 'E-commerce', 'Healthcare', 'Finance', 'Education',
   'Manufacturing', 'Retail', 'Real Estate', 'Consulting', 'Other'
 ];
 
@@ -78,17 +80,17 @@ const CHANNELS = [
 
 // Grain overlay component
 const GrainOverlay = () => (
-  <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.03] mix-blend-multiply" 
-       style={{ 
-         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")` 
-       }}>
+  <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.03] mix-blend-multiply"
+    style={{
+      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")`
+    }}>
   </div>
 );
 
 // Step 1: Launch Screen
 const Step1Launch = ({ onNext, userProfile, existingCohorts, userPlan, cohortsLimit, currentCohortsCount, canCreate }) => {
   const planName = userPlan.charAt(0).toUpperCase() + userPlan.slice(1);
-  
+
   return (
     <div className="w-full max-w-4xl mx-auto text-center animate-in fade-in slide-in-from-bottom-12 duration-1000">
       <div className="mb-12">
@@ -99,16 +101,16 @@ const Step1Launch = ({ onNext, userProfile, existingCohorts, userPlan, cohortsLi
           </div>
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-neutral-900/5 to-transparent pointer-events-none"></div>
         </div>
-        
+
         {/* Enhanced Typography */}
         <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl mb-6 gradient-text text-shadow-subtle leading-tight tracking-tighter">
           Create Your Ideal Customer Profile
         </h1>
         <p className="text-lg md:text-xl text-neutral-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-          A cohort is a detailed description of an ideal-fit company for your product or service. 
+          A cohort is a detailed description of an ideal-fit company for your product or service.
           Think of it as your perfect customer—the type of business that gets the most value from what you offer.
         </p>
-        
+
         {/* Glassmorphism Example Card */}
         <div className="glass-card p-6 max-w-xl mx-auto text-left mb-6 rounded-2xl transform hover:scale-[1.02] transition-transform duration-300">
           <div className="flex items-start gap-3">
@@ -118,13 +120,13 @@ const Step1Launch = ({ onNext, userProfile, existingCohorts, userPlan, cohortsLi
             <div>
               <p className="text-sm font-bold text-neutral-900 mb-2 tracking-tight">Example</p>
               <p className="text-sm text-neutral-700 leading-relaxed">
-                "Mid-market SaaS companies (50–200 employees, $5–25M revenue) with mature customer success teams, 
+                "Mid-market SaaS companies (50–200 employees, $5–25M revenue) with mature customer success teams,
                 seeking efficiency and data-driven solutions."
               </p>
             </div>
           </div>
         </div>
-        
+
         {/* Glassmorphism Plan Info Card */}
         <div className="glass-card p-6 max-w-xl mx-auto mb-6 rounded-2xl">
           <div className="flex items-center justify-between mb-4">
@@ -140,7 +142,7 @@ const Step1Launch = ({ onNext, userProfile, existingCohorts, userPlan, cohortsLi
               </p>
               {/* Modern Progress Bar */}
               <div className="w-32 h-3 bg-gradient-to-r from-neutral-100 to-neutral-200 rounded-full mt-2 overflow-hidden shadow-inner">
-                <div 
+                <div
                   className="h-full progress-gradient rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${(currentCohortsCount / cohortsLimit) * 100}%` }}
                 />
@@ -158,7 +160,7 @@ const Step1Launch = ({ onNext, userProfile, existingCohorts, userPlan, cohortsLi
               <div className="text-left">
                 <p className="text-sm font-bold text-red-900 mb-1 tracking-tight">Cohorts Limit Reached</p>
                 <p className="text-sm text-red-700 leading-relaxed">
-                  You've reached your {planName} plan limit of {cohortsLimit} cohorts. 
+                  You've reached your {planName} plan limit of {cohortsLimit} cohorts.
                   Upgrade to {userPlan === 'ascent' ? 'Glide' : 'Soar'} to create more cohorts.
                 </p>
               </div>
@@ -166,22 +168,21 @@ const Step1Launch = ({ onNext, userProfile, existingCohorts, userPlan, cohortsLi
           </div>
         )}
       </div>
-      
+
       {existingCohorts && existingCohorts.length > 0 && (
         <div className="mb-8 text-sm text-neutral-500 font-medium tracking-wide">
           You have {existingCohorts.length} existing cohort{existingCohorts.length !== 1 ? 's' : ''} in your account.
         </div>
       )}
-      
+
       {/* Enhanced Button */}
       <button
         onClick={onNext}
         disabled={!canCreate}
-        className={`group relative px-16 py-6 overflow-hidden rounded-xl ${
-          canCreate 
-            ? 'button-enhanced text-white' 
-            : 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
-        }`}
+        className={`group relative px-16 py-6 overflow-hidden rounded-xl ${canCreate
+          ? 'button-enhanced text-white'
+          : 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
+          }`}
       >
         <div className="relative z-10 flex items-center space-x-4">
           <span className="font-sans text-xs font-bold tracking-widest uppercase">
@@ -198,7 +199,7 @@ const Step1Launch = ({ onNext, userProfile, existingCohorts, userPlan, cohortsLi
 };
 
 // Step 2: Choose Creation Mode
-const Step2ModeSelection = ({ onSelect, userPreferences }) => {
+const Step2ModeSelection = ({ onSelect, userPreferences, onBack }) => {
   const [selectedMode, setSelectedMode] = useState(userPreferences?.preferredMode || null);
 
   const handleSelect = (mode) => {
@@ -212,22 +213,20 @@ const Step2ModeSelection = ({ onSelect, userPreferences }) => {
         <h2 className="font-serif text-4xl md:text-5xl mb-4 text-neutral-900">How would you like to create your cohort?</h2>
         <p className="text-neutral-600">Choose your preferred method</p>
       </div>
-      
-      <div className="grid md:grid-cols-2 gap-8">
+
+      <div className="grid md:grid-cols-2 gap-8 mb-12">
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => handleSelect('ai')}
-          className={`runway-card p-8 text-left cursor-pointer transition-all ${
-            selectedMode === 'ai' 
-              ? 'ring-2 ring-black shadow-xl' 
-              : 'hover:shadow-xl'
-          }`}
+          className={`runway-card p-8 text-left cursor-pointer transition-all ${selectedMode === 'ai'
+            ? 'ring-2 ring-black shadow-xl'
+            : 'hover:shadow-xl'
+            }`}
         >
           <div className="flex items-start gap-4 mb-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-              selectedMode === 'ai' ? 'bg-black text-white' : 'bg-neutral-100 text-neutral-900'
-            }`}>
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${selectedMode === 'ai' ? 'bg-black text-white' : 'bg-neutral-100 text-neutral-900'
+              }`}>
               <Sparkles className="w-6 h-6" />
             </div>
             <div className="flex-1">
@@ -259,16 +258,14 @@ const Step2ModeSelection = ({ onSelect, userPreferences }) => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => handleSelect('manual')}
-          className={`runway-card p-8 text-left cursor-pointer transition-all ${
-            selectedMode === 'manual' 
-              ? 'ring-2 ring-black shadow-xl' 
-              : 'hover:shadow-xl'
-          }`}
+          className={`runway-card p-8 text-left cursor-pointer transition-all ${selectedMode === 'manual'
+            ? 'ring-2 ring-black shadow-xl'
+            : 'hover:shadow-xl'
+            }`}
         >
           <div className="flex items-start gap-4 mb-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-              selectedMode === 'manual' ? 'bg-black text-white' : 'bg-neutral-100 text-neutral-900'
-            }`}>
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${selectedMode === 'manual' ? 'bg-black text-white' : 'bg-neutral-100 text-neutral-900'
+              }`}>
               <Users className="w-6 h-6" />
             </div>
             <div className="flex-1">
@@ -296,12 +293,22 @@ const Step2ModeSelection = ({ onSelect, userPreferences }) => {
           </div>
         </motion.button>
       </div>
+
+      <div className="flex justify-center">
+        <button
+          onClick={onBack}
+          className="text-neutral-500 hover:text-black text-sm font-medium transition-colors flex items-center gap-2"
+        >
+          <ArrowLeft size={16} />
+          Back
+        </button>
+      </div>
     </div>
   );
 };
 
 // Step 3: Initial Inputs (AI Path)
-const Step3AIInputs = ({ onSubmit, initialData }) => {
+const Step3AIInputs = ({ onSubmit, initialData, onBack }) => {
   const [inputs, setInputs] = useState({
     businessDescription: initialData?.businessDescription || '',
     productDescription: initialData?.productDescription || '',
@@ -388,7 +395,14 @@ const Step3AIInputs = ({ onSubmit, initialData }) => {
         </div>
       </div>
 
-      <div className="mt-12 flex justify-end">
+      <div className="mt-12 flex justify-between items-center">
+        <button
+          onClick={onBack}
+          className="text-neutral-500 hover:text-black text-sm font-medium transition-colors flex items-center gap-2"
+        >
+          <ArrowLeft size={16} />
+          Back
+        </button>
         <button
           onClick={() => onSubmit(inputs)}
           disabled={!inputs.businessDescription.trim()}
@@ -407,10 +421,10 @@ const Step3AIInputs = ({ onSubmit, initialData }) => {
   );
 };
 
-// Step 4: AI Analysis & Draft Generation
+// Step 4: AI Analysis & Suggestions
 const Step4AIGeneration = ({ inputs, onComplete, onBack }) => {
-  const [status, setStatus] = useState('analyzing'); // 'analyzing' | 'draft' | 'error'
-  const [draftCohort, setDraftCohort] = useState(null);
+  const [status, setStatus] = useState('analyzing'); // 'analyzing' | 'suggestions' | 'error'
+  const [suggestions, setSuggestions] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -418,13 +432,19 @@ const Step4AIGeneration = ({ inputs, onComplete, onBack }) => {
     const analyzeData = async () => {
       setStatus('analyzing');
       setError(null);
-      
+
       try {
-        // Generate cohort using Vertex AI via our service
-        const generated = await generateCohortFromInputs(inputs);
-        
-        // Ensure we have valid data structures (fallback for AI quirks)
-        const sanitized = {
+        // Generate suggestions using Vertex AI via our service
+        const { suggestCohorts } = await import('../lib/services/cohorts-api');
+        const results = await suggestCohorts(inputs);
+
+        if (!results || results.length === 0) {
+          // If no suggestions, fallback to generating a single cohort directly
+          // This handles cases where the suggestion endpoint might fail or return empty
+          const { generateCohortFromInputs } = await import('../lib/services/cohorts-api');
+          const generated = await generateCohortFromInputs(inputs);
+
+          const sanitized = {
             ...generated,
             demographics: generated.demographics || { companySize: 'Unknown', industry: 'Unknown', revenue: 'Unknown', location: 'Unknown' },
             psychographics: generated.psychographics || { values: [], decisionStyle: '', priorities: [] },
@@ -432,13 +452,17 @@ const Step4AIGeneration = ({ inputs, onComplete, onBack }) => {
             goals: generated.goals || [],
             behavioralTriggers: generated.behavioralTriggers || [],
             communication: generated.communication || { channels: [], tone: '', format: '' }
-        };
+          };
 
-        setDraftCohort(sanitized);
-        setStatus('draft');
+          onComplete(sanitized);
+          return;
+        }
+
+        setSuggestions(results);
+        setStatus('suggestions');
       } catch (err) {
         console.error("AI Generation Error:", err);
-        setError("Failed to generate cohort. Please try again or build manually.");
+        setError("Failed to generate suggestions. Please try again or build manually.");
         setStatus('error');
       }
     };
@@ -446,23 +470,57 @@ const Step4AIGeneration = ({ inputs, onComplete, onBack }) => {
     analyzeData();
   }, [inputs]);
 
+  const handleSelectSuggestion = async (suggestion) => {
+    setStatus('analyzing'); // Show loading while generating full profile
+    try {
+      const { generateCohortFromInputs } = await import('../lib/services/cohorts-api');
+      // Combine original inputs with the selected suggestion for a targeted generation
+      const refinedInputs = {
+        ...inputs,
+        targetMarket: suggestion.name,
+        valueProposition: `${inputs.valueProposition}. Focus on: ${suggestion.reasoning}`
+      };
+
+      const generated = await generateCohortFromInputs(refinedInputs);
+
+      // Ensure we have valid data structures
+      const sanitized = {
+        ...generated,
+        name: suggestion.name, // Use the suggested name
+        executiveSummary: generated.executiveSummary || suggestion.description,
+        demographics: generated.demographics || { companySize: 'Unknown', industry: 'Unknown', revenue: 'Unknown', location: 'Unknown' },
+        psychographics: generated.psychographics || { values: [], decisionStyle: '', priorities: [] },
+        painPoints: generated.painPoints || [],
+        goals: generated.goals || [],
+        behavioralTriggers: generated.behavioralTriggers || [],
+        communication: generated.communication || { channels: [], tone: '', format: '' }
+      };
+
+      onComplete(sanitized);
+    } catch (err) {
+      console.error("Full Profile Generation Error:", err);
+      setError("Failed to generate full profile. Please try again.");
+      setStatus('error');
+    }
+  };
+
   if (status === 'error') {
-      return (
-        <div className="w-full max-w-3xl mx-auto text-center animate-in fade-in duration-1000">
-          <AlertCircle className="text-red-500 mx-auto mb-6" size={48} />
-          <div className="space-y-4">
-            <p className="font-serif text-2xl italic text-red-900">Generation Failed</p>
-            <p className="text-neutral-600">
-              {error}
-            </p>
-            <div className="flex justify-center gap-4">
-                <button onClick={onBack} className="px-6 py-2 border border-black rounded-lg hover:bg-neutral-50">
-                    Go Back
-                </button>
-            </div>
+    return (
+      <div className="w-full max-w-3xl mx-auto text-center animate-in fade-in duration-1000">
+        <AlertCircle className="text-red-500 mx-auto mb-6" size={48} />
+        <div className="space-y-4">
+          <p className="font-serif text-2xl italic text-red-900">Generation Failed</p>
+          <p className="text-neutral-600">
+            {error}
+          </p>
+          <div className="flex justify-center gap-4">
+            <button onClick={onBack} className="px-6 py-2 border border-black rounded-lg hover:bg-neutral-50">
+              Go Back
+            </button>
           </div>
         </div>
-      );
+      </div>
+    );
   }
 
   if (status === 'analyzing') {
@@ -472,7 +530,7 @@ const Step4AIGeneration = ({ inputs, onComplete, onBack }) => {
         <div className="space-y-2">
           <p className="font-serif text-2xl italic">Analyzing your inputs...</p>
           <p className="font-sans text-[10px] uppercase tracking-widest text-neutral-400">
-            Using AI to identify patterns and generate your cohort
+            Using AI to identify the best cohorts for you
           </p>
         </div>
       </div>
@@ -480,96 +538,53 @@ const Step4AIGeneration = ({ inputs, onComplete, onBack }) => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-1000">
-      <div className="text-center mb-8">
-        <h2 className="font-serif text-4xl md:text-5xl mb-4 text-neutral-900">Your AI-Generated cohort</h2>
-        <p className="text-neutral-600">Review the suggestions below. You can edit any field in the next step.</p>
+    <div className="w-full max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-1000">
+      <div className="text-center mb-12">
+        <h2 className="font-serif text-4xl md:text-5xl mb-4 text-neutral-900">We found 3 high-potential cohorts</h2>
+        <p className="text-neutral-600">Select the one you want to target first.</p>
       </div>
 
-      <div className="runway-card p-8 mb-6">
-        <div className="mb-6">
-          <h3 className="text-xl font-bold text-neutral-900 mb-3">Executive Summary</h3>
-          <p className="text-neutral-700 leading-relaxed">{draftCohort.executiveSummary}</p>
-        </div>
+      <div className="grid md:grid-cols-3 gap-6 mb-12">
+        {suggestions.map((suggestion, idx) => (
+          <motion.div
+            key={idx}
+            whileHover={{ y: -5 }}
+            className="group relative flex flex-col h-full"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-neutral-100 to-white rounded-2xl transform rotate-1 group-hover:rotate-2 transition-transform duration-300"></div>
+            <div className="relative flex-1 bg-white border border-neutral-200 p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
+              <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center mb-6 text-xl font-serif">
+                {idx + 1}
+              </div>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-widest text-neutral-500 mb-3">Firmographics</h4>
-            <div className="space-y-2 text-sm">
-              <div><span className="font-medium">Company Size:</span> {draftCohort.demographics.companySize} employees</div>
-              <div><span className="font-medium">Industry:</span> {draftCohort.demographics.industry}</div>
-              <div><span className="font-medium">Revenue:</span> {draftCohort.demographics.revenue}</div>
-              <div><span className="font-medium">Location:</span> {draftCohort.demographics.location}</div>
+              <h3 className="text-xl font-bold text-neutral-900 mb-3">{suggestion.name}</h3>
+              <p className="text-sm text-neutral-600 mb-6 flex-1 leading-relaxed">
+                {suggestion.description}
+              </p>
+
+              <div className="bg-neutral-50 p-4 rounded-lg mb-6">
+                <p className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2">Why this works</p>
+                <p className="text-xs text-neutral-700 italic">"{suggestion.reasoning}"</p>
+              </div>
+
+              <button
+                onClick={() => handleSelectSuggestion(suggestion)}
+                className="w-full py-3 bg-white border-2 border-black text-black font-bold text-sm uppercase tracking-wider hover:bg-black hover:text-white transition-colors rounded-lg"
+              >
+                Select Cohort
+              </button>
             </div>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-widest text-neutral-500 mb-3">Buyer Profile</h4>
-            <div className="space-y-2 text-sm">
-              <div><span className="font-medium">Role:</span> {draftCohort.buyerRole}</div>
-              <div><span className="font-medium">Budget:</span> {draftCohort.budget}</div>
-              <div><span className="font-medium">Timeline:</span> {draftCohort.timeline}</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h4 className="text-sm font-bold uppercase tracking-widest text-neutral-500 mb-3">Psychographics</h4>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {draftCohort.psychographics.values.map((value, idx) => (
-              <span key={idx} className="px-3 py-1.5 bg-neutral-100 text-neutral-900 border border-neutral-200 text-[10px] font-mono uppercase tracking-[0.2em]">
-                {value}
-              </span>
-            ))}
-          </div>
-          <p className="text-sm text-neutral-600"><span className="font-medium">Decision Style:</span> {draftCohort.psychographics.decisionStyle}</p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-widest text-neutral-500 mb-3">Pain Points</h4>
-            <ul className="space-y-1 text-sm">
-              {draftCohort.painPoints.map((pain, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                  <span>{pain}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-widest text-neutral-500 mb-3">Goals</h4>
-            <ul className="space-y-1 text-sm">
-              {draftCohort.goals.map((goal, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <Target className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>{goal}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+          </motion.div>
+        ))}
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex justify-center">
         <button
           onClick={onBack}
-          className="font-sans text-[10px] font-bold uppercase tracking-widest border-b border-transparent hover:border-black transition-all duration-500 pb-1 text-neutral-400 hover:text-black"
+          className="text-neutral-500 hover:text-black text-sm font-medium transition-colors flex items-center gap-2"
         >
-          Back
-        </button>
-        <button
-          onClick={() => onComplete(draftCohort)}
-          className="group relative bg-black text-white px-12 py-4 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20"
-        >
-          <div className="relative z-10 flex items-center space-x-4">
-            <span className="font-sans text-xs font-bold tracking-widest uppercase">
-              Continue to Refine
-            </span>
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-500" />
-          </div>
-          <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
+          <ArrowLeft size={16} />
+          Back to Inputs
         </button>
       </div>
     </div>
@@ -669,11 +684,10 @@ const Step5ReviewRefine = ({ draftCohort, onComplete, onBack, userPreferences })
                   <button
                     key={panel.id}
                     onClick={() => setActivePanel(panel.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${
-                      activePanel === panel.id
-                        ? 'bg-black text-white'
-                        : 'hover:bg-neutral-100 text-neutral-700'
-                    }`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${activePanel === panel.id
+                      ? 'bg-black text-white'
+                      : 'hover:bg-neutral-100 text-neutral-700'
+                      }`}
                   >
                     <Icon className="w-5 h-5" />
                     <span className="text-sm font-medium">{panel.label}</span>
@@ -800,11 +814,10 @@ const Step5ReviewRefine = ({ draftCohort, onComplete, onBack, userPreferences })
                             updateField('psychographics.values', [...values, desc]);
                           }
                         }}
-                        className={`px-4 py-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-all ${
-                          (cohort.psychographics.values || []).includes(desc)
-                            ? 'bg-black text-white'
-                            : 'bg-neutral-100 text-neutral-700 border border-neutral-200 hover:bg-neutral-200'
-                        }`}
+                        className={`px-4 py-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-all ${(cohort.psychographics.values || []).includes(desc)
+                          ? 'bg-black text-white'
+                          : 'bg-neutral-100 text-neutral-700 border border-neutral-200 hover:bg-neutral-200'
+                          }`}
                       >
                         {desc}
                       </button>
@@ -989,11 +1002,10 @@ const Step5ReviewRefine = ({ draftCohort, onComplete, onBack, userPreferences })
                             updateField('communication.channels', [...channels, channel]);
                           }
                         }}
-                        className={`px-4 py-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-all ${
-                          (cohort.communication.channels || []).includes(channel)
-                            ? 'bg-black text-white'
-                            : 'bg-neutral-100 text-neutral-700 border border-neutral-200 hover:bg-neutral-200'
-                        }`}
+                        className={`px-4 py-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-all ${(cohort.communication.channels || []).includes(channel)
+                          ? 'bg-black text-white'
+                          : 'bg-neutral-100 text-neutral-700 border border-neutral-200 hover:bg-neutral-200'
+                          }`}
                       >
                         {channel}
                       </button>
@@ -1095,8 +1107,8 @@ const Step6ManualBuilder = ({ onComplete, onBack, userPreferences }) => {
   });
 
   const handleDescriptorToggle = (desc) => {
-    setDescriptors(prev => 
-      prev.includes(desc) 
+    setDescriptors(prev =>
+      prev.includes(desc)
         ? prev.filter(d => d !== desc)
         : [...prev, desc]
     );
@@ -1122,11 +1134,10 @@ const Step6ManualBuilder = ({ onComplete, onBack, userPreferences }) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSelectedHat(hat.id)}
-                className={`p-6 rounded-2xl border-2 transition-all ${
-                  isSelected
-                    ? 'border-black bg-black text-white'
-                    : 'border-neutral-200 hover:border-neutral-400 bg-white'
-                }`}
+                className={`p-6 rounded-2xl border-2 transition-all ${isSelected
+                  ? 'border-black bg-black text-white'
+                  : 'border-neutral-200 hover:border-neutral-400 bg-white'
+                  }`}
               >
                 <Icon className={`w-12 h-12 mx-auto mb-3 ${isSelected ? 'text-white' : 'text-neutral-700'}`} />
                 <div className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-neutral-900'}`}>
@@ -1159,11 +1170,10 @@ const Step6ManualBuilder = ({ onComplete, onBack, userPreferences }) => {
                 <button
                   key={desc}
                   onClick={() => handleDescriptorToggle(desc)}
-                  className={`px-4 py-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-all ${
-                    descriptors.includes(desc)
-                      ? 'bg-black text-white'
-                      : 'bg-neutral-100 text-neutral-700 border border-neutral-200 hover:bg-neutral-200'
-                  }`}
+                  className={`px-4 py-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-all ${descriptors.includes(desc)
+                    ? 'bg-black text-white'
+                    : 'bg-neutral-100 text-neutral-700 border border-neutral-200 hover:bg-neutral-200'
+                    }`}
                 >
                   {desc}
                 </button>
@@ -1191,9 +1201,17 @@ const Step6ManualBuilder = ({ onComplete, onBack, userPreferences }) => {
         </div>
       )}
 
-      {/* Continue to detailed fields */}
-      {selectedHat && cohortName && (
-        <div className="flex justify-end">
+      {/* Navigation */}
+      <div className="flex justify-between items-center mt-8">
+        <button
+          onClick={onBack}
+          className="text-neutral-500 hover:text-black text-sm font-medium transition-colors flex items-center gap-2"
+        >
+          <ArrowLeft size={16} />
+          Back
+        </button>
+
+        {selectedHat && cohortName && (
           <button
             onClick={() => onComplete({ ...cohort, name: cohortName, hat: selectedHat, descriptors, size })}
             className="group relative bg-black text-white px-12 py-4 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-neutral-500/20"
@@ -1206,8 +1224,8 @@ const Step6ManualBuilder = ({ onComplete, onBack, userPreferences }) => {
             </div>
             <div className="absolute inset-0 bg-neutral-800 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
@@ -1221,23 +1239,23 @@ const Step7Psychographics = ({ cohort, onComplete, onBack }) => {
     // Real psychographic computation
     const computeData = async () => {
       setIsComputing(true);
-      
+
       try {
-          const computed = await computePsychographics(cohort);
-          setComputedPsychographics(computed);
+        const computed = await computePsychographics(cohort);
+        setComputedPsychographics(computed);
       } catch (err) {
-          console.error("Psychographics Error:", err);
-          // Fallback to basic structure if AI fails
-          setComputedPsychographics({
-            values: cohort.psychographics?.values || [],
-            decisionStyle: cohort.psychographics?.decisionStyle || '',
-            personalityTraits: [],
-            interests: [],
-            painPsychology: { primaryFear: '', motivation: '', emotionalDriver: '' },
-            contentPreferences: { format: '', tone: '', channels: [] }
-          });
+        console.error("Psychographics Error:", err);
+        // Fallback to basic structure if AI fails
+        setComputedPsychographics({
+          values: cohort.psychographics?.values || [],
+          decisionStyle: cohort.psychographics?.decisionStyle || '',
+          personalityTraits: [],
+          interests: [],
+          painPsychology: { primaryFear: '', motivation: '', emotionalDriver: '' },
+          contentPreferences: { format: '', tone: '', channels: [] }
+        });
       } finally {
-          setIsComputing(false);
+        setIsComputing(false);
       }
     };
 
@@ -1345,7 +1363,7 @@ const Step7Psychographics = ({ cohort, onComplete, onBack }) => {
 };
 
 // Step 8: Finalize and Save
-const Step8Finalize = ({ cohort, onComplete, onClose }) => {
+const Step8Finalize = ({ cohort, onComplete, onClose, onBack }) => {
   const [cohortName, setCohortName] = useState(cohort.name || '');
   const [fitScore, setFitScore] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -1378,14 +1396,14 @@ const Step8Finalize = ({ cohort, onComplete, onClose }) => {
     // Check limit before saving
     const currentCount = getCurrentCohortsCount();
     const limit = getCohortsLimit();
-    
+
     if (currentCount >= limit) {
       alert(`You've reached your plan limit of ${limit} cohorts. Please upgrade to create more.`);
       return;
     }
 
     setIsSaving(true);
-    
+
     try {
       // Save to Supabase
       const { data, error } = await supabase
@@ -1395,8 +1413,8 @@ const Step8Finalize = ({ cohort, onComplete, onClose }) => {
             user_id: user?.id,
             name: cohortName,
             data: {
-                ...cohort,
-                fitScore
+              ...cohort,
+              fitScore
             },
             created_at: new Date().toISOString()
           }
@@ -1435,7 +1453,7 @@ const Step8Finalize = ({ cohort, onComplete, onClose }) => {
     } catch (err) {
       console.error("Error saving cohort:", err);
       alert("Failed to save cohort to cloud. Saving locally instead.");
-      
+
       // Fallback to local storage only
       const savedCohort = {
         ...cohort,
@@ -1449,7 +1467,7 @@ const Step8Finalize = ({ cohort, onComplete, onClose }) => {
       const existingCohorts = JSON.parse(localStorage.getItem('cohorts') || '[]');
       existingCohorts.push(savedCohort);
       localStorage.setItem('cohorts', JSON.stringify(existingCohorts));
-      
+
       setIsSaving(false);
       onComplete(savedCohort);
     }
@@ -1464,12 +1482,12 @@ const Step8Finalize = ({ cohort, onComplete, onClose }) => {
 
       <div className="runway-card p-8 mb-6">
         <div className="mb-6">
-            <label className="block text-sm font-medium text-neutral-700 mb-2">Cohort Name</label>
-            <input
-              type="text"
-              value={cohortName}
-              onChange={(e) => setCohortName(e.target.value)}
-              placeholder="e.g., Enterprise SaaS CTOs"
+          <label className="block text-sm font-medium text-neutral-700 mb-2">Cohort Name</label>
+          <input
+            type="text"
+            value={cohortName}
+            onChange={(e) => setCohortName(e.target.value)}
+            placeholder="e.g., Enterprise SaaS CTOs"
             className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900"
           />
         </div>
@@ -1510,10 +1528,10 @@ const Step8Finalize = ({ cohort, onComplete, onClose }) => {
 
       <div className="flex justify-between">
         <button
-          onClick={onClose}
+          onClick={onBack}
           className="font-sans text-[10px] font-bold uppercase tracking-widest border-b border-transparent hover:border-black transition-all duration-500 pb-1 text-neutral-400 hover:text-black"
         >
-          Cancel
+          Back
         </button>
         <button
           onClick={handleSave}
@@ -1573,7 +1591,17 @@ const canCreateCohort = () => {
 };
 
 // Main Cohorts Builder Component
-export default function CohortsBuilder({ onClose, onboardingData }) {
+export default function CohortsBuilder({
+  onClose,
+  onboardingData,
+  // New props for integration
+  userProfile: propUserProfile,
+  userPlan: propUserPlan,
+  cohortsLimit: propCohortsLimit,
+  currentCohortsCount: propCurrentCohortsCount,
+  onComplete: propOnComplete,
+  initialData
+}) {
   const [currentStep, setCurrentStep] = useState(1);
   const [creationMode, setCreationMode] = useState(null); // 'ai' or 'manual'
   const [cohortData, setCohortData] = useState({});
@@ -1587,146 +1615,172 @@ export default function CohortsBuilder({ onClose, onboardingData }) {
     };
   });
 
-  // Get plan info
-  const userPlan = getUserPlan();
-  const cohortsLimit = getCohortsLimit();
-  const currentCohortsCount = getCurrentCohortsCount();
-  const canCreate = canCreateCohort();
+  // Use props if available, otherwise fall back to internal logic
+  const userPlan = propUserPlan || getUserPlan();
+  const cohortsLimit = propCohortsLimit !== undefined ? propCohortsLimit : getCohortsLimit();
+  const currentCohortsCount = propCurrentCohortsCount !== undefined ? propCurrentCohortsCount : getCurrentCohortsCount();
+  const canCreate = propCohortsLimit ? (currentCohortsCount < cohortsLimit) : canCreateCohort();
 
   // Mock user profile and existing cohorts (would come from backend)
-  const userProfile = {
+  const userProfile = propUserProfile || {
     companyName: onboardingData?.answers?.q1 || 'Your Company',
     industry: 'Technology'
   };
 
-  const existingCohorts = JSON.parse(localStorage.getItem('cohorts') || '[]');
+  const existingCohorts = []; // In a real app, fetch this
 
-  const handleStep1Complete = () => {
-    // Skip directly to AI generation using onboarding data
-    // Convert onboarding answers to AI inputs format
-    const aiInputs = {
-      businessDescription: onboardingData?.answers?.q1 || '',
-      productDescription: onboardingData?.answers?.q2 || '',
-      targetMarket: onboardingData?.answers?.q4 || '', // Best customers
-      valueProposition: onboardingData?.answers?.q3 || '', // Why they started
-      topCustomers: onboardingData?.answers?.q4 || '',
-      location: onboardingData?.answers?.q6?.address || '',
-      currentMarketing: onboardingData?.answers?.q7a || '',
-      timeAvailable: onboardingData?.answers?.q7b || '',
-      goals: onboardingData?.answers?.q7c || '',
-    };
-    setCohortData(prev => ({ ...prev, aiInputs }));
-    setCurrentStep(4); // Go directly to AI generation
+  const handleNext = () => {
+    setCurrentStep(prev => prev + 1);
   };
 
-  const handleAIGenerationComplete = (draft) => {
-    setCohortData(prev => ({ ...prev, draft }));
-    setCurrentStep(5);
+  const handleBack = () => {
+    setCurrentStep(prev => prev - 1);
   };
 
-  const handleReviewComplete = (refinedCohort) => {
-    setCohortData(prev => ({ ...prev, refined: refinedCohort }));
-    setCurrentStep(7); // Skip to psychographics
+  const handleModeSelect = (mode) => {
+    setCreationMode(mode);
+    // Save preference
+    const newPrefs = { ...userPreferences, preferredMode: mode };
+    setUserPreferences(newPrefs);
+    localStorage.setItem('userPreferences', JSON.stringify(newPrefs));
+
+    handleNext();
   };
 
-
-  const handlePsychographicsComplete = (cohortWithPsychographics) => {
-    setCohortData(prev => ({ ...prev, final: cohortWithPsychographics }));
-    setCurrentStep(8);
+  const handleAIInputSubmit = (inputs) => {
+    setCohortData(inputs);
+    handleNext();
   };
 
-  const handleFinalizeComplete = (savedCohort) => {
-    // Check if we're at limit after saving
-    const newCount = getCurrentCohortsCount();
-    const limit = getCohortsLimit();
-    
-    if (newCount >= limit) {
-      // Show a message that limit is reached
-      alert(`Cohort created successfully! You've reached your ${userPlan.charAt(0).toUpperCase() + userPlan.slice(1)} plan limit of ${limit} cohorts.`);
-    }
-    
-    if (onClose) {
+  const handleDraftComplete = (draft) => {
+    setCohortData(draft);
+    handleNext();
+  };
+
+  const handleFinalize = (finalCohort) => {
+    if (propOnComplete) {
+      propOnComplete(finalCohort);
+    } else if (onClose) {
       onClose();
     }
   };
 
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-    }
-  };
-
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <Step1Launch 
-            onNext={handleStep1Complete} 
-            userProfile={userProfile} 
-            existingCohorts={existingCohorts}
-            userPlan={userPlan}
-            cohortsLimit={cohortsLimit}
-            currentCohortsCount={currentCohortsCount}
-            canCreate={canCreate}
-          />
-        );
-      case 4:
-        return (
-          <Step4AIGeneration 
-            inputs={cohortData.aiInputs} 
-            onComplete={handleAIGenerationComplete}
-            onBack={handleBack}
-          />
-        );
-      case 5:
-        return (
-          <Step5ReviewRefine 
-            draftCohort={cohortData.draft}
-            onComplete={handleReviewComplete}
-            onBack={handleBack}
-            userPreferences={userPreferences}
-          />
-        );
-      case 7:
-        return (
-          <Step7Psychographics 
-            cohort={cohortData.refined}
-            onComplete={handlePsychographicsComplete}
-            onBack={handleBack}
-          />
-        );
-      case 8:
-        return (
-          <Step8Finalize 
-            cohort={cohortData.final}
-            onComplete={handleFinalizeComplete}
-            onClose={onClose}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className="fixed inset-0 z-[100] flex h-screen w-screen radial-gradient-bg text-neutral-900 overflow-hidden font-sans selection:bg-black selection:text-white">
+    <div className="min-h-screen bg-cream text-neutral-900 font-sans selection:bg-black selection:text-white">
+      {/* Background Noise */}
       <GrainOverlay />
-      {/* Floating Orbs for Visual Interest */}
-      <div className="floating-orb w-96 h-96 bg-neutral-400 absolute top-20 -left-48" style={{ animationDelay: '0s' }}></div>
-      <div className="floating-orb w-80 h-80 bg-neutral-300 absolute bottom-20 -right-40" style={{ animationDelay: '2s' }}></div>
-      <div className="floating-orb w-64 h-64 bg-neutral-200 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ animationDelay: '4s' }}></div>
-      
-      {onClose && (
-        <button 
-          className="absolute top-8 left-8 z-50 p-2 text-neutral-400 hover:text-black transition-colors hover:bg-neutral-100 rounded-lg"
-          onClick={onClose} 
-        >
-          <X size={24} />
-        </button>
-      )}
-      <div className="flex-grow flex flex-col justify-center items-center px-6 md:px-8 relative z-10 overflow-y-auto py-20">
-        {renderStep()}
-      </div>
+
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-white/80 backdrop-blur-md border-b border-neutral-200/50">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+              <Target className="text-white w-5 h-5" />
+            </div>
+            <span className="font-serif font-bold text-xl tracking-tight">RaptorFlow</span>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-neutral-100 rounded-full transition-colors"
+            >
+              <X size={20} />
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="pt-32 pb-20 px-6 relative z-10">
+        <AnimatePresence mode="wait">
+          {currentStep === 1 && (
+            <Step1Launch
+              key="step1"
+              onNext={handleNext}
+              userProfile={userProfile}
+              existingCohorts={existingCohorts}
+              userPlan={userPlan}
+              cohortsLimit={cohortsLimit}
+              currentCohortsCount={currentCohortsCount}
+              canCreate={canCreate}
+            />
+          )}
+
+          {currentStep === 2 && (
+            <Step2ModeSelection
+              key="step2"
+              onSelect={handleModeSelect}
+              userPreferences={userPreferences}
+              onBack={handleBack}
+            />
+          )}
+
+          {currentStep === 3 && creationMode === 'ai' && (
+            <Step3AIInputs
+              key="step3-ai"
+              onSubmit={handleAIInputSubmit}
+              initialData={initialData}
+              onBack={handleBack}
+            />
+          )}
+
+          {currentStep === 4 && creationMode === 'ai' && (
+            <Step4AIGeneration
+              key="step4-ai"
+              inputs={cohortData}
+              onComplete={handleDraftComplete}
+              onBack={handleBack}
+            />
+          )}
+
+          {currentStep === 5 && creationMode === 'ai' && (
+            <Step5ReviewRefine
+              key="step5-ai"
+              draftCohort={cohortData}
+              onComplete={(data) => {
+                setCohortData(data);
+                setCurrentStep(8); // Go to finalize
+              }}
+              onBack={handleBack}
+              userPreferences={userPreferences}
+            />
+          )}
+
+          {currentStep === 3 && creationMode === 'manual' && (
+            <Step6ManualBuilder
+              key="step6-manual"
+              onComplete={(data) => {
+                setCohortData(data);
+                setCurrentStep(7); // Go to psychographics
+              }}
+              onBack={handleBack}
+              userPreferences={userPreferences}
+            />
+          )}
+
+          {currentStep === 7 && (
+            <Step7Psychographics
+              key="step7"
+              cohort={cohortData}
+              onComplete={(data) => {
+                setCohortData(data);
+                setCurrentStep(8); // Go to finalize
+              }}
+              onBack={handleBack}
+            />
+          )}
+
+          {currentStep === 8 && (
+            <Step8Finalize
+              key="step8"
+              cohort={cohortData}
+              onComplete={handleFinalize}
+              onClose={onClose}
+              onBack={handleBack}
+            />
+          )}
+        </AnimatePresence>
+      </main>
     </div>
   );
 }

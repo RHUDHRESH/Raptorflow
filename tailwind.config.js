@@ -142,21 +142,20 @@ export default {
       },
     },
   },
-},
-plugins: [
-  function ({ matchUtilities, theme }) {
-    matchUtilities(
-      {
-        'animation-delay': (value) => {
-          return {
-            'animation-delay': value,
-          }
+  plugins: [
+    function ({ matchUtilities, theme }) {
+      matchUtilities(
+        {
+          'animation-delay': (value) => {
+            return {
+              'animation-delay': value,
+            }
+          },
         },
-      },
-      {
-        values: theme('animationDelay'),
-      }
-    )
-  },
-],
+        {
+          values: theme('animationDelay'),
+        }
+      )
+    },
+  ],
 }

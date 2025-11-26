@@ -129,7 +129,7 @@ const Register = () => {
 
           <div className="text-center lg:text-left">
             <h2 className="text-3xl font-bold tracking-tight text-neutral-900">Create account</h2>
-            <p className="mt-2 text-neutral-500">Get started with your 14-day free trial.</p>
+            <p className="mt-2 text-neutral-500">Get started with RaptorFlow today.</p>
           </div>
 
           {!isSupabaseReady && (
@@ -285,6 +285,15 @@ const Register = () => {
                 Sign in
               </Link>
             </p>
+          </div>
+        </div>
+
+        {/* Footer Links */}
+        <div className="absolute bottom-8 left-0 w-full text-center lg:text-left lg:pl-12">
+          <div className="flex gap-6 justify-center lg:justify-start text-xs text-neutral-400">
+            <Link to="/privacy" className="hover:text-neutral-600">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-neutral-600">Terms of Service</Link>
+            <a href="mailto:support@raptorflow.in" className="hover:text-neutral-600">Help Center</a>
           </div>
         </div>
       </div>

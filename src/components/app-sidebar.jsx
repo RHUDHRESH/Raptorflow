@@ -11,7 +11,8 @@ import {
   User,
   BookOpen,
   Activity,
-  Calendar
+  Calendar,
+  Megaphone
 } from "lucide-react"
 import {
   DesktopSidebar,
@@ -32,6 +33,7 @@ import { cn } from "../utils/cn"
 const navigationItems = [
   { title: "Command Center", icon: LayoutDashboard, url: "/dashboard" },
   { title: "Moves", icon: BookOpen, url: "/moves" },
+  { title: "Campaigns", icon: Megaphone, url: "/campaigns" },
   { title: "Muse", icon: Sparkles, url: "/muse" },
   { title: "Matrix", icon: Activity, url: "/matrix" },
   { title: "Operational Pulse", icon: Calendar, url: "/today" },
@@ -66,7 +68,7 @@ const SidebarContentInner = () => {
             className="absolute left-0 top-0 bottom-0 z-10 bg-white rounded-r-sm"
           />
         )}
-        
+
         <Link
           to={item.url}
           className={cn(
@@ -78,7 +80,7 @@ const SidebarContentInner = () => {
           )}
         >
           {Icon && (
-            <Icon 
+            <Icon
               className="flex-shrink-0"
               size={open ? 18 : 20}
               strokeWidth={1.5}
@@ -88,7 +90,7 @@ const SidebarContentInner = () => {
               }}
             />
           )}
-          
+
           {open && (
             <span
               className="whitespace-nowrap flex-shrink-0 text-sm font-medium"
@@ -119,13 +121,13 @@ const SidebarContentInner = () => {
     <TooltipProvider>
       <div className="flex flex-col h-full">
         <SidebarHeader className="px-0 pt-8 pb-0 border-b-0 flex-shrink-0">
-          <div 
+          <div
             className={cn(
               "flex items-center w-full h-12",
               open ? "px-6 justify-start" : "justify-center"
             )}
           >
-            <span 
+            <span
               className="font-serif font-bold text-white leading-none"
               style={{
                 fontSize: open ? "28px" : "24px",
@@ -136,7 +138,7 @@ const SidebarContentInner = () => {
             </span>
           </div>
         </SidebarHeader>
-        
+
         <SidebarContent className="px-0 flex flex-col flex-1 min-h-0 pt-8">
           {/* Primary Navigation Section */}
           <SidebarGroup className="flex-1 min-h-0 overflow-y-auto">
@@ -147,7 +149,7 @@ const SidebarContentInner = () => {
                 </span>
               </div>
             )}
-            
+
             <SidebarMenu className="space-y-1">
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
@@ -158,7 +160,7 @@ const SidebarContentInner = () => {
           </SidebarGroup>
 
           {/* Divider */}
-          <div 
+          <div
             className={cn(
               "flex-shrink-0 h-px bg-white/10 my-4",
               open ? "mx-6" : "mx-3"
@@ -174,7 +176,7 @@ const SidebarContentInner = () => {
                 </span>
               </div>
             )}
-            
+
             <SidebarMenu className="space-y-1">
               {settingsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>

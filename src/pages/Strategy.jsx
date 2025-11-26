@@ -1,6 +1,53 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Sparkles, ArrowRight, Target, TrendingUp, Users, Zap, CheckCircle2 } from 'lucide-react'
+import {
+  Sparkles,
+  ArrowRight,
+  Target,
+  TrendingUp,
+  Users,
+  Zap,
+  CheckCircle2,
+  MessageSquare,
+  Award,
+  Megaphone,
+  Plus
+} from 'lucide-react'
+
+const strategyTools = [
+  {
+    title: 'Positioning Workshop',
+    description: 'Define your strategic positioning and message architecture',
+    icon: Award,
+    url: '/strategy/positioning',
+    color: 'purple',
+    status: 'ready',
+  },
+  {
+    title: 'Strategic Cohorts',
+    description: 'Deep customer intelligence with buying triggers and decision criteria',
+    icon: Users,
+    url: '/strategy/cohorts',
+    color: 'blue',
+    status: 'ready',
+  },
+  {
+    title: 'Campaign Builder',
+    description: 'Orchestrate coordinated campaigns that ladder up to strategic intent',
+    icon: Megaphone,
+    url: '/strategy/campaigns/new',
+    color: 'green',
+    status: 'ready',
+  },
+  {
+    title: 'Message Architecture',
+    description: 'Build your message hierarchy and proof points',
+    icon: MessageSquare,
+    url: '/strategy/positioning',
+    color: 'amber',
+    status: 'coming-soon',
+  },
+]
 
 const strategySections = [
   {
@@ -49,14 +96,133 @@ export default function Strategy() {
               <span className="h-px w-16 bg-neutral-200" />
             </div>
             <h1 className="font-serif text-4xl md:text-6xl text-black leading-[1.1] tracking-tight antialiased">
-              Blueprint the Collection
+              Strategic Command Center
             </h1>
             <p className="font-sans text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400">
-              Narrative, value, and metrics in one editorial spread
+              Positioning, Cohorts, and Campaign Orchestration
             </p>
           </div>
         </div>
       </motion.div>
+
+      {/* Strategy Tools - NEW */}
+      <div className="runway-card p-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <p className="micro-label mb-2">Strategic Arsenal</p>
+            <h2 className="font-serif text-3xl md:text-4xl text-neutral-900 leading-tight">Marketing Warfare Tools</h2>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {strategyTools.map((tool, index) => {
+            const Icon = tool.icon
+            const isReady = tool.status === 'ready'
+
+            return (
+              <motion.div
+                key={tool.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                {isReady ? (
+                  <Link
+                    to={tool.url}
+                    className="block p-6 border-2 border-neutral-200 hover:border-neutral-900 hover:bg-neutral-50 transition-all group h-full"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-12 h-12 border-2 border-neutral-200 bg-white text-neutral-900 flex items-center justify-center group-hover:border-neutral-900 transition-colors">
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-neutral-900 group-hover:translate-x-1 transition-all" />
+                    </div>
+                    <h3 className="text-lg font-bold text-neutral-900 mb-2">{tool.title}</h3>
+                    <p className="text-sm text-neutral-600">{tool.description}</p>
+                    <div className="mt-4 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full" />
+                      <span className="text-xs text-neutral-500">Ready to use</span>
+                    </div>
+                  </Link>
+                ) : (
+                  <div className="p-6 border-2 border-dashed border-neutral-200 bg-neutral-50 h-full opacity-60">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-12 h-12 border-2 border-neutral-200 bg-white text-neutral-400 flex items-center justify-center">
+                        <Icon className="w-6 h-6" />
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-bold text-neutral-600 mb-2">{tool.title}</h3>
+                    <p className="text-sm text-neutral-500">{tool.description}</p>
+                    <div className="mt-4 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-amber-500 rounded-full" />
+                      <span className="text-xs text-neutral-400">Coming soon</span>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link
+          to="/strategy/positioning"
+          className="runway-card p-6 hover:shadow-lg transition-shadow group"
+        >
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <Award className="w-5 h-5 text-purple-600" />
+            </div>
+            <h3 className="font-semibold text-neutral-900">Define Positioning</h3>
+          </div>
+          <p className="text-sm text-neutral-600 mb-4">
+            Create your strategic positioning statement and message architecture
+          </p>
+          <div className="flex items-center gap-2 text-sm text-neutral-500 group-hover:text-neutral-900">
+            Start Workshop
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </Link>
+
+        <Link
+          to="/strategy/cohorts"
+          className="runway-card p-6 hover:shadow-lg transition-shadow group"
+        >
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 text-blue-600" />
+            </div>
+            <h3 className="font-semibold text-neutral-900">Manage Cohorts</h3>
+          </div>
+          <p className="text-sm text-neutral-600 mb-4">
+            View and enhance your customer cohorts with strategic intelligence
+          </p>
+          <div className="flex items-center gap-2 text-sm text-neutral-500 group-hover:text-neutral-900">
+            View Cohorts
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </Link>
+
+        <Link
+          to="/strategy/campaigns/new"
+          className="runway-card p-6 hover:shadow-lg transition-shadow group bg-gradient-to-br from-neutral-900 to-neutral-800 text-white"
+        >
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+              <Plus className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="font-semibold text-white">New Campaign</h3>
+          </div>
+          <p className="text-sm text-white/70 mb-4">
+            Launch a coordinated campaign with strategic intent
+          </p>
+          <div className="flex items-center gap-2 text-sm text-white/90 group-hover:text-white">
+            Create Campaign
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </Link>
+      </div>
 
       {/* Strategy Overview */}
       <div className="runway-card p-8">
@@ -124,4 +290,3 @@ export default function Strategy() {
     </div>
   )
 }
-
