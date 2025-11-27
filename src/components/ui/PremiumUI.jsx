@@ -197,10 +197,20 @@ export const LuxeBadge = ({ children, variant = 'neutral', className }) => {
     )
 }
 
+// --- Loading ---
+export const LuxeSkeleton = ({ className, ...props }) => {
+    return (
+        <div
+            className={cn("animate-pulse rounded-md bg-neutral-200/50", className)}
+            {...props}
+        />
+    )
+}
+
 // --- Stats ---
 export const LuxeStat = ({ label, value, trend, icon: Icon, delay = 0 }) => {
     return (
-        <LuxeCard className="relative overflow-hidden group" delay={delay}>
+        <LuxeCard className="relative overflow-hidden group hover:shadow-md transition-all duration-300" delay={delay} hover={true}>
             <div className="flex items-start justify-between mb-4">
                 <div>
                     <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">{label}</p>

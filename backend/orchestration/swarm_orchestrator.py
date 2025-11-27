@@ -11,12 +11,14 @@ import time
 from typing import Dict, List, Any, Optional, Callable
 from datetime import datetime
 from enum import Enum
+from uuid import UUID
 
 from backend.messaging.event_bus import EventBus, AgentMessage, EventType
 from backend.messaging.context_bus import ContextBus
 from backend.messaging.agent_registry import AgentRegistry
 from backend.agents.consensus.orchestrator import ConsensusOrchestrator
 from backend.models.agent_messages import WorkflowStart, WorkflowComplete
+from backend.services.cost_tracker import cost_tracker
 
 
 class WorkflowStatus(str, Enum):
@@ -322,7 +324,8 @@ class SwarmOrchestrator:
         """
         Wait for agents to complete
 
-        Polls context bus for results, respects timeout
+        Polls context bus for results, respects timeout.
+        After collecting results, logs cost for each successful agent action.
         """
 
         start_time = time.time()
@@ -368,7 +371,78 @@ class SwarmOrchestrator:
             print(f"[SwarmOrchestrator] TIMEOUT waiting for: {pending}")
             raise TimeoutError(f"Agents {pending} did not complete within {timeout}s")
 
+        # Log costs for successful agent actions
+        await self.log_agent_costs(correlation_id, results)
+
         return results
+
+    async def log_agent_costs(
+        self,
+        correlation_id: str,
+        agent_results: Dict[str, Any]
+    ) -> None:
+        """
+        Log costs for agent actions based on their results.
+
+        Extracts token usage from agent results and logs estimated costs.
+        This method should be called after agent execution completes.
+
+        Note: In production, agents should include token usage metadata in their results.
+        For now, we use placeholder values that should be replaced with actual token counts
+        extracted from LLM responses.
+        """
+
+        try:
+            # Get workspace_id from workflow (correlation_id == workflow_id)
+            workflow = self.workflows.get(correlation_id)
+            if not workflow:
+                print(f"[CostTracker] No workflow found for correlation_id: {correlation_id}")
+                return
+
+            workspace_id = workflow.get("workspace_id")
+            if not workspace_id:
+                print(f"[CostTracker] No workspace_id found for workflow: {correlation_id}")
+                return
+
+            workspace_uuid = UUID(workspace_id)
+
+            # Log cost for each successful agent
+            successful_agents = [
+                agent_id for agent_id, result in agent_results.items()
+                if isinstance(result, dict) and "error" not in result
+            ]
+
+            for agent_id in successful_agents:
+                try:
+                    # Extract token usage from agent result or use defaults
+                    # TODO: Replace with actual token extraction from LLM responses
+                    result = agent_results[agent_id]
+
+                    # Placeholder token extraction - in production, this should be
+                    # replaced with actual token counts from OpenAI/LangChain responses
+                    input_tokens = result.get("input_tokens", result.get("input_token_count", 1000))
+                    output_tokens = result.get("output_tokens", result.get("output_token_count", 500))
+
+                    # Determine action name based on agent ID or result
+                    action_name = result.get("action", f"agent_task_{agent_id}")
+
+                    # Log the cost
+                    await cost_tracker.log_cost(
+                        workspace_id=workspace_uuid,
+                        correlation_id=UUID(correlation_id),
+                        agent_name=agent_id,
+                        action_name=action_name,
+                        input_tokens=int(input_tokens),
+                        output_tokens=int(output_tokens),
+                    )
+
+                    print(f"[CostTracker] Logged cost for {agent_id}: {input_tokens} in, {output_tokens} out")
+
+                except Exception as e:
+                    print(f"[CostTracker] Failed to log cost for agent {agent_id}: {e}")
+
+        except Exception as e:
+            print(f"[CostTracker] Error in log_agent_costs: {e}")
 
     async def resolve_conflicts(
         self,

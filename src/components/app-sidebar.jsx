@@ -12,7 +12,14 @@ import {
   BookOpen,
   Activity,
   Calendar,
-  Megaphone
+  Megaphone,
+  Castle,
+  Brain,
+  Shield,
+  Palette,
+  Eye,
+  Gavel,
+  Bell
 } from "lucide-react"
 import {
   DesktopSidebar,
@@ -39,6 +46,16 @@ const navigationItems = [
   { title: "Daily Pulse", icon: Calendar, url: "/today" },
   { title: "Strategy", icon: Target, url: "/strategy" },
   { title: "Cohorts", icon: Users, url: "/cohorts" },
+]
+
+const lordsItems = [
+  { title: "Architect", icon: Castle, url: "/strategy/architect" },
+  { title: "Cognition", icon: Brain, url: "/strategy/cognition" },
+  { title: "Strategos", icon: Shield, url: "/strategy/strategos" },
+  { title: "Aesthete", icon: Palette, url: "/strategy/aesthete" },
+  { title: "Seer", icon: Eye, url: "/strategy/seer" },
+  { title: "Arbiter", icon: Gavel, url: "/strategy/arbiter" },
+  { title: "Herald", icon: Bell, url: "/strategy/herald" },
 ]
 
 const settingsItems = [
@@ -152,6 +169,23 @@ const SidebarContentInner = () => {
 
             <SidebarMenu className="space-y-1">
               {navigationItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  {renderNavItem(item, false)}
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+
+            {/* Divider for Section */}
+            {open && (
+              <div className="mt-8 mb-4 px-6 border-t border-white/10 pt-4">
+                <span className="text-xs font-mono font-medium uppercase tracking-widest text-white/30">
+                  Council of Lords
+                </span>
+              </div>
+            )}
+
+            <SidebarMenu className="space-y-1 mb-4">
+              {lordsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   {renderNavItem(item, false)}
                 </SidebarMenuItem>

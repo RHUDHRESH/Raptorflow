@@ -119,6 +119,9 @@ class ArchitectLord(LordAgent):
 
     async def initialize(self) -> None:
         """Initialize Architect Lord"""
+        # Correctly initialize the base class first.
+        await super().initialize()
+        
         logger.info("👑 Initializing Architect Lord...")
 
         # Register architect-specific capabilities

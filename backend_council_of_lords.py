@@ -76,6 +76,37 @@ class LordAgent(BaseAgent, AgentRAGMixin):
 
         logger.info(f"✅ {self.name} initialized with {len(self.capabilities)} capabilities")
 
+    async def execute(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute a capability by name. This is the implementation of the BaseAgent contract.
+        """
+        capability_name = payload.get("capability")
+        if not capability_name:
+            raise ValueError("Payload must contain a 'capability' name.")
+
+        capability = self.capabilities.get(capability_name)
+        if not capability:
+            raise ValueError(f"Unknown capability: {capability_name}")
+
+        # Remove the capability name from the payload before passing it to the handler
+        kwargs = payload.copy()
+        del kwargs["capability"]
+
+        try:
+            result = await capability["handler"](**kwargs)
+            return {
+                "status": "success",
+                "result": result,
+                "correlation_id": "not-implemented" # TODO: Add correlation ID
+            }
+        except Exception as e:
+            logger.error(f"Error executing capability {capability_name}: {e}", exc_info=True)
+            return {
+                "status": "error",
+                "result": str(e),
+                "correlation_id": "not-implemented" # TODO: Add correlation ID
+            }
+            
     async def shutdown(self) -> None:
         """Shutdown lord agent"""
         logger.info(f"🛑 Shutting down {self.name}")
@@ -122,22 +153,6 @@ class LordAgent(BaseAgent, AgentRAGMixin):
             await self._register_arbiter_capabilities()
         elif self.role == LordRole.HERALD:
             await self._register_herald_capabilities()
-
-    async def _register_architect_capabilities(self) -> None:
-        """Register Architect-specific capabilities"""
-        self.register_capability(
-            name="design_strategy",
-            category=CapabilityCategory.CREATION,
-            handler=self._design_strategy,
-            description="Design strategic initiatives"
-        )
-
-        self.register_capability(
-            name="optimize_architecture",
-            category=CapabilityCategory.OPTIMIZATION,
-            handler=self._optimize_architecture,
-            description="Optimize system architecture"
-        )
 
     async def _register_cognition_capabilities(self) -> None:
         """Register Cognition-specific capabilities"""
@@ -522,6 +537,9 @@ class CouncilOfLords:
         """Initialize all council members"""
         logger.info("👑 Initializing Council of Lords...")
 
+        # Import the specialized ArchitectLord
+        from backend_lord_architect import ArchitectLord
+
         # Create each lord
         lords_config = [
             ("Architect", LordRole.ARCHITECT, "Designs strategic initiatives and system architecture"),
@@ -534,12 +552,15 @@ class CouncilOfLords:
         ]
 
         for i, (name, role, description) in enumerate(lords_config, 1):
-            lord = LordAgent(
-                name=name,
-                role=role,
-                description=description,
-                council_position=i
-            )
+            if role == LordRole.ARCHITECT:
+                lord = ArchitectLord()
+            else:
+                lord = LordAgent(
+                    name=name,
+                    role=role,
+                    description=description,
+                    council_position=i
+                )
             await lord.initialize()
             self.lords[role.value] = lord
 

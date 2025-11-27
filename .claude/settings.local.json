@@ -32,7 +32,8 @@
       "Bash(xargs:*)",
       "Bash(timeout 10 bash -c 'while true; do curl -s http://localhost:8000/health 2>&1 && break; done')",
       "Bash(pkill:*)",
-      "Bash(timeout 15 bash:*)"
+      "Bash(timeout 15 bash:*)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

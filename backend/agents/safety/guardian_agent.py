@@ -29,6 +29,8 @@ from datetime import datetime, timezone
 from backend.services.vertex_ai_client import vertex_ai_client
 from backend.services.supabase_client import supabase_client
 from backend.utils.correlation import get_correlation_id
+from backend.agents.safety.privacy_guardian import privacy_guardian
+from backend.agents.safety.brand_guardian import brand_guardian
 
 logger = structlog.get_logger(__name__)
 
@@ -294,8 +296,119 @@ class GuardianAgent:
         workspace_config = workspace_config or {}
 
         try:
+            # === CRITICAL PII CHECK - BLOCK IMMEDIATELY IF DETECTED ===
+            logger.info("Running critical PII scan first", correlation_id=correlation_id)
+            pii_report = await privacy_guardian.scan_text_for_pii(content)
+
+            if pii_report.status == "FAIL":
+                logger.warning(
+                    "PII detected - blocking content processing",
+                    pii_count=pii_report.findings_count,
+                    correlation_id=correlation_id
+                )
+
+                # Build PII-specific violations for the response
+                pii_violations = []
+                for finding in pii_report.findings:
+                    pii_violations.append({
+                        "type": "PII_DETECTED",
+                        "severity": "critical",
+                        "description": f"{finding.pii_type} detected: {finding.redacted_text}",
+                        "guidance": "Remove all personally identifiable information before processing"
+                    })
+
+                return {
+                    "safety_status": SafetyStatus.BLOCKED.value,
+                    "confidence": 1.0,
+                    "checks": {
+                        "pii_scan": {
+                            "passed": False,
+                            "violations": pii_violations
+                        }
+                    },
+                    "required_actions": [
+                        "Remove all personally identifiable information (PII) before processing",
+                        f"Detected {pii_report.findings_count} PII violations"
+                    ],
+                    "recommended_actions": [],
+                    "metadata": {
+                        "content_type": content_type,
+                        "checks_performed": 1,
+                        "total_violations": pii_report.findings_count,
+                        "critical_violations": pii_report.findings_count,
+                        "high_violations": 0,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "correlation_id": correlation_id,
+                        "pii_findings": [f.model_dump() for f in pii_report.findings]
+                    }
+                }
+
+            logger.info("PII scan passed - proceeding with safety checks", correlation_id=correlation_id)
+
+            # === BRAND COMPLIANCE CHECK ===
+            logger.info("Running brand compliance analysis", correlation_id=correlation_id)
+            brand_report = await brand_guardian.check_brand_alignment(
+                text_to_check=content,
+                workspace_config=workspace_config,
+                correlation_id=correlation_id
+            )
+
+            if brand_report.status == "FAIL":
+                logger.warning(
+                    "Brand compliance violation detected - blocking content processing",
+                    reason=getattr(brand_report, 'reason', 'Unknown'),
+                    category=getattr(brand_report, 'category', None),
+                    correlation_id=correlation_id
+                )
+
+                return {
+                    "safety_status": SafetyStatus.BLOCKED.value,
+                    "confidence": getattr(brand_report, 'confidence', 0.8),
+                    "checks": {
+                        "pii_scan": {
+                            "passed": True,
+                            "violations": []
+                        },
+                        "brand_compliance": {
+                            "passed": False,
+                            "violations": [{
+                                "type": getattr(brand_report, 'category', 'BRAND_VIOLATION'),
+                                "severity": "critical",
+                                "description": getattr(brand_report, 'reason', 'Brand guideline violation detected'),
+                                "guidance": "Revise content to align with brand guidelines"
+                            }]
+                        }
+                    },
+                    "required_actions": [
+                        "Revise content to align with brand guidelines",
+                        getattr(brand_report, 'reason', 'Content violates brand standards')
+                    ],
+                    "recommended_actions": [],
+                    "metadata": {
+                        "content_type": content_type,
+                        "checks_performed": 2,
+                        "total_violations": 1,
+                        "critical_violations": 1,
+                        "high_violations": 0,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "correlation_id": correlation_id,
+                        "brand_analysis": brand_report.model_dump()
+                    }
+                }
+
+            logger.info("Brand compliance passed - proceeding with detailed safety checks", correlation_id=correlation_id)
+
             # Run all safety checks
-            checks = {}
+            checks = {
+                "pii_scan": {
+                    "passed": True,
+                    "violations": []
+                },
+                "brand_compliance": {
+                    "passed": True,
+                    "violations": []
+                }
+            }
 
             # 1. Security checks (deterministic)
             checks["security"] = self._check_security(content)
@@ -942,5 +1055,3 @@ class GuardianAgent:
 
 # Global singleton instance
 guardian_agent = GuardianAgent()
-
-

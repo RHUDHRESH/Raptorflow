@@ -134,6 +134,43 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "CHANGE_THIS_IN_PRODUCTION_USE_RANDOM_STRING"  # For JWT encoding - MUST be changed in production
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200  # 30 days
+
+    # Brand Guardian Configuration
+    BRAND_GUARDIAN_GUIDELINES: str = """
+BRAND GUARDIAN GUIDELINES
+
+1. PROFESSIONAL TONE:
+   - Use confident, expert, and authoritative language
+   - Avoid casual slang, emojis, or overly informal expressions
+   - Maintain a polished, business-appropriate voice
+   - Examples ACCEPTED: "Our solution delivers exceptional results"
+   - Examples REJECTED: "Our solution rocks! 🚀", "Check this out, guys!"
+
+2. FORBIDDEN TOPICS:
+   - Politics, elections, or partisan discussions
+   - Religion, spirituality, or faith-based content
+   - Conspiracy theories or unverified rumors
+   - Controversial social or cultural debates
+   - Illegal activities or unethical practices
+
+3. COMPETITOR POLICY:
+   - Never mention competitors by name or imply direct comparisons
+   - Focus on our unique strengths and value propositions
+   - Avoid "us vs them" language or negative competitor references
+   - Maintain focus on customer benefits, not competitive positioning
+
+4. CONTENT QUALITY:
+   - Provide actionable, valuable information
+   - Avoid exaggerated claims or unsubstantiated promises
+   - Ensure content serves customer needs and interests
+   - Maintain honesty and transparency in all communications
+
+5. LANGUAGE STANDARDS:
+   - Use inclusive and respectful language
+   - Avoid offensive, discriminatory, or biased terminology
+   - Ensure clarity and professionalism in explanations
+   - Maintain appropriate business communication standards
+"""
     
     # Feature Flags
     ENABLE_AMBIENT_SEARCH: bool = True

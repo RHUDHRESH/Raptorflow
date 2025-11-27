@@ -54,6 +54,7 @@ function App() {
           <Suspense fallback={<div>Loading...</div>}>
             <Routes>
               <Route path="/" element={<Landing />} />
+              <Route path="/landing" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/privacy" element={<Privacy />} />
@@ -97,6 +98,56 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <Matrix />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              {/* Council of Lords Dashboards - Phase 2A */}
+              <Route path="/strategy/architect" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ArchitectDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/strategy/cognition" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <CognitionDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/strategy/strategos" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <StrategosDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/strategy/aesthete" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AestheteDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/strategy/seer" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <SeerDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/strategy/arbiter" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ArbiterDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/strategy/herald" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <HeraldDashboard />
                   </Layout>
                 </ProtectedRoute>
               } />
