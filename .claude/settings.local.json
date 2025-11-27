@@ -27,7 +27,10 @@
       "Bash(venvScriptspython.exe -m pip install:*)",
       "Bash(\"venv/Scripts/python.exe\" -m pip install -r requirements.txt)",
       "Bash(ls:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs:*)",
+      "Bash(timeout 10 bash -c 'while true; do curl -s http://localhost:8000/health 2>&1 && break; done')"
     ],
     "deny": [],
     "ask": []

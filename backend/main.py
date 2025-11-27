@@ -36,15 +36,15 @@ async def lifespan(app: FastAPI):
     try:
         # Initialize Redis connections
         await redis_cache.connect()
-        logger.info("✓ Redis cache connection established")
+        logger.info("[OK] Redis cache connection established")
     except Exception as e:
-        logger.error(f"✗ Redis cache connection failed: {e}")
+        logger.error(f"[ERROR] Redis cache connection failed: {e}")
 
     try:
         await redis_queue.connect()
-        logger.info("✓ Redis queue connection established")
+        logger.info("[OK] Redis queue connection established")
     except Exception as e:
-        logger.error(f"✗ Redis queue connection failed: {e}")
+        logger.error(f"[ERROR] Redis queue connection failed: {e}")
 
     # Initialize Master Orchestrator and domain supervisors
     logger.info("Initializing Master Orchestrator and supervisors...")
@@ -62,13 +62,13 @@ async def lifespan(app: FastAPI):
         # Store orchestrator in app state for access in endpoints
         app.state.master_orchestrator = master_orchestrator
 
-        logger.info("✓ Master Orchestrator initialized")
+        logger.info("[OK] Master Orchestrator initialized")
         logger.info(f"  Available supervisors: {list(master_orchestrator.supervisor_metadata.keys())}")
     except Exception as e:
-        logger.error(f"✗ Master Orchestrator initialization failed: {e}")
+        logger.error(f"[ERROR] Master Orchestrator initialization failed: {e}")
         # Non-fatal: app can still start, but orchestration won't work
 
-    logger.info(f"✓ {settings.APP_NAME} startup complete")
+    logger.info(f"[OK] {settings.APP_NAME} startup complete")
 
     yield
 
@@ -76,7 +76,7 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down...")
     await redis_cache.disconnect()
     await redis_queue.disconnect()
-    logger.info("✓ Cleanup complete")
+    logger.info("[OK] Cleanup complete")
 
 
 # Create FastAPI app
@@ -169,7 +169,7 @@ class CsrfProtectionMiddleware(BaseHTTPMiddleware):
 
 try:
     app.add_middleware(CsrfProtectionMiddleware)
-    logger.info("✓ CSRF protection middleware enabled")
+    logger.info("[OK] CSRF protection middleware enabled")
 except Exception as e:
     logger.warning(f"Failed to add CSRF protection middleware: {e}")
 
@@ -198,9 +198,9 @@ for lord_name in lord_names:
     try:
         module = __import__(f"backend_routers_{lord_name}", fromlist=["router"])
         lord_routers[lord_name] = module.router
-        logger.info(f"✓ {lord_name.capitalize()} Lord router loaded")
+        logger.info(f"[OK] {lord_name.capitalize()} Lord router loaded")
     except ImportError:
-        logger.warning(f"⚠ {lord_name.capitalize()} Lord router not found - skipping")
+        logger.warning(f"[SKIP] {lord_name.capitalize()} Lord router not found - skipping")
 
 # Register API routers
 app.include_router(onboarding.router, prefix="/api/v1/onboarding", tags=["Onboarding"])
@@ -220,9 +220,9 @@ app.include_router(scraper.router, tags=["Scraper"])  # Website scraping and AI 
 for lord_name, lord_router in lord_routers.items():
     try:
         app.include_router(lord_router, tags=[f"{lord_name.capitalize()} Lord"])
-        logger.info(f"✓ {lord_name.capitalize()} Lord router registered")
+        logger.info(f"[OK] {lord_name.capitalize()} Lord router registered")
     except Exception as e:
-        logger.error(f"✗ Failed to register {lord_name} Lord router: {e}")
+        logger.error(f"[ERROR] Failed to register {lord_name} Lord router: {e}")
 
 
 @app.get("/")
@@ -290,16 +290,16 @@ class ConnectionManager:
         await websocket.accept()
         if lord in self.lord_connections:
             self.lord_connections[lord].append(websocket)
-            logger.info(f"✓ WebSocket connected: {lord} (total: {len(self.lord_connections[lord])})")
+            logger.info(f"[CONNECT] WebSocket connected: {lord} (total: {len(self.lord_connections[lord])})")
         else:
-            logger.warning(f"⚠ Unknown lord: {lord}")
+            logger.warning(f"[WARN] Unknown lord: {lord}")
 
     async def disconnect(self, websocket: WebSocket, lord: str):
         """Remove a WebSocket connection"""
         if lord in self.lord_connections:
             if websocket in self.lord_connections[lord]:
                 self.lord_connections[lord].remove(websocket)
-                logger.info(f"✗ WebSocket disconnected: {lord} (remaining: {len(self.lord_connections[lord])})")
+                logger.info(f"[DISCONNECT] WebSocket disconnected: {lord} (remaining: {len(self.lord_connections[lord])})")
 
     async def broadcast(self, lord: str, message: Dict):
         """Broadcast message to all connected clients for a lord"""
