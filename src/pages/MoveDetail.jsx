@@ -6,8 +6,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Target, ArrowLeft, Edit2, Save, X, Play, Pause, CheckCircle, XCircle, TrendingUp 
+import {
+  Target, ArrowLeft, Edit2, Save, X, Play, Pause, CheckCircle, XCircle, TrendingUp
 } from 'lucide-react';
 import { moveService } from '../lib/services/move-service';
 import { analyticsService } from '../lib/services/analytics-service';
@@ -15,58 +15,51 @@ import { analyticsService } from '../lib/services/analytics-service';
 export default function MoveDetailIntegrated() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [move, setMove] = useState(null);
   const [maneuverType, setManeuverType] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
   const [metrics, setMetrics] = useState([]);
-  
+
   // Editable fields
   const [editedName, setEditedName] = useState('');
   const [editedGoal, setEditedGoal] = useState('');
   const [editedOODA, setEditedOODA] = useState({});
 
-  // Load move data
-  useEffect(() => {
-    const loadMoveData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch move
-        const moveData = await moveService.getMove(id);
-        if (!moveData) {
-          setError('Move not found');
-          return;
-        }
-        setMove(moveData);
-        setEditedName(moveData.name);
-        setEditedGoal(moveData.goal || '');
-        setEditedOODA(moveData.ooda_config || {});
-
-        // Fetch maneuver type
-        if (moveData.maneuver_type_id) {
-          const maneuver = await moveService.getManeuverType(moveData.maneuver_type_id);
-          setManeuverType(maneuver);
-        }
-
-        // Fetch metrics
-        const metricsData = await analyticsService.getMoveMetrics(id);
-        setMetrics(metricsData);
-        
-        setError(null);
-      } catch (err) {
-        console.error('Error loading move:', err);
-        setError('Failed to load move data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      loadMoveData();
+  // Mock move data
+  const MOCK_MOVE = {
+    id: id,
+    name: '14-Day Conversion Sprint',
+    status: 'Planning',
+    goal: 'Drive 500 qualified leads',
+    progress_percentage: 48,
+    start_date: '2025-01-15',
+    end_date: '2025-01-29',
+    targetCohorts: ['Enterprise CTOs', 'Startup Founders'],
+    channels: ['LinkedIn', 'Email', 'Content'],
+    tasksCompleted: 12,
+    totalTasks: 25,
+    health_status: 'green',
+    ooda_config: {
+      observe_sources: ['Google Analytics', 'LinkedIn Insights'],
+      orient_rules: 'Analyze conversion funnel data',
+      decide_logic: 'Optimize top 3 bottlenecks',
+      act_tasks: ['A/B test landing page', 'Email campaign', 'LinkedIn ads']
     }
+  };
+
+  useEffect(() => {
+    // Simulate loading with mock data
+    setLoading(true);
+    setTimeout(() => {
+      setMove(MOCK_MOVE);
+      setEditedName(MOCK_MOVE.name);
+      setEditedGoal(MOCK_MOVE.goal || '');
+      setEditedOODA(MOCK_MOVE.ooda_config || {});
+      setLoading(false);
+    }, 300);
   }, [id]);
 
   const handleSave = async () => {
@@ -194,7 +187,7 @@ export default function MoveDetailIntegrated() {
             ) : (
               <h1 className="text-3xl font-bold text-neutral-900 mb-4">{move.name}</h1>
             )}
-            
+
             <div className="flex flex-wrap gap-3">
               <span className="px-3 py-1 text-sm font-medium bg-neutral-100 text-neutral-900 border border-neutral-200 rounded">
                 {getStatusLabel(move.status)}
@@ -245,7 +238,7 @@ export default function MoveDetailIntegrated() {
             <span>{move.progress_percentage}%</span>
           </div>
           <div className="h-3 bg-neutral-200 rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-neutral-900 transition-all duration-300"
               style={{ width: `${move.progress_percentage}%` }}
             />

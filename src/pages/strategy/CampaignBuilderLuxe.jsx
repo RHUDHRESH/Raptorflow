@@ -1,56 +1,34 @@
 /**
- * Campaign Builder
+ * Campaign Builder (Luxe Edition)
  * 
  * The strategic campaign creation and management center.
- * Campaigns sit above Moves and orchestrate all marketing activities.
- * 
- * Flow:
- * 1. Link to positioning and message architecture
- * 2. Define objective and success metrics
- * 3. Select and configure target cohorts
- * 4. Design channel strategy
- * 5. Auto-generate move recommendations
- * 6. Launch and track
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Target,
   Users,
   Megaphone,
-  BarChart3,
-  Calendar,
-  DollarSign,
-  ArrowRight,
-  ArrowLeft,
-  Plus,
-  X,
-  CheckCircle2,
-  AlertCircle,
-  Sparkles,
-  Play,
-  Pause,
-  TrendingUp,
-  TrendingDown,
   Zap,
-  Layers,
-  Settings,
-  Eye,
+  ArrowLeft,
   Save,
   RefreshCw,
-  ChevronRight,
   Clock,
+  CheckCircle2,
   Mail,
   MessageSquare,
   Globe,
   Phone,
   Instagram,
   Linkedin,
-  Twitter
+  Twitter,
+  AlertCircle
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { LuxeHeading, LuxeButton, LuxeCard, LuxeInput, LuxeBadge } from '../../components/ui/PremiumUI';
+import { pageTransition, fadeInUp, staggerContainer } from '../../utils/animations';
 
 // =============================================================================
 // CONSTANTS & MOCK DATA
@@ -104,32 +82,6 @@ const CAMPAIGN_OBJECTIVES = [
   },
 ];
 
-const JOURNEY_STAGES = [
-  { id: 'unaware', label: 'Unaware', color: 'neutral' },
-  { id: 'problem_aware', label: 'Problem Aware', color: 'amber' },
-  { id: 'solution_aware', label: 'Solution Aware', color: 'blue' },
-  { id: 'product_aware', label: 'Product Aware', color: 'purple' },
-  { id: 'most_aware', label: 'Most Aware', color: 'green' },
-];
-
-const CHANNELS = [
-  { id: 'linkedin', label: 'LinkedIn', icon: Linkedin, roles: ['reach', 'engage', 'convert'] },
-  { id: 'email', label: 'Email', icon: Mail, roles: ['engage', 'convert', 'retain'] },
-  { id: 'instagram', label: 'Instagram', icon: Instagram, roles: ['reach', 'engage'] },
-  { id: 'twitter', label: 'Twitter/X', icon: Twitter, roles: ['reach', 'engage'] },
-  { id: 'website', label: 'Website', icon: Globe, roles: ['engage', 'convert'] },
-  { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare, roles: ['engage', 'convert', 'retain'] },
-  { id: 'phone', label: 'Phone/Sales', icon: Phone, roles: ['convert'] },
-];
-
-const CHANNEL_ROLES = [
-  { id: 'reach', label: 'Reach', description: 'Get attention' },
-  { id: 'engage', label: 'Engage', description: 'Build interest' },
-  { id: 'convert', label: 'Convert', description: 'Drive action' },
-  { id: 'retain', label: 'Retain', description: 'Keep engaged' },
-];
-
-// Mock data
 const MOCK_POSITIONING = {
   id: 'pos-1',
   name: 'Primary Positioning',
@@ -194,7 +146,7 @@ const MOCK_COHORTS = [
 // MAIN COMPONENT
 // =============================================================================
 
-export default function CampaignBuilder() {
+export default function CampaignBuilderLuxe() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = !!id;
@@ -225,15 +177,13 @@ export default function CampaignBuilder() {
 
   // UI state
   const [saving, setSaving] = useState(false);
-  const [showMoveRecommendations, setShowMoveRecommendations] = useState(false);
-  const [generatedMoves, setGeneratedMoves] = useState([]);
 
   // Validation
   const stepValidation = useMemo(() => ({
     1: !!campaign.positioning_id && !!campaign.message_architecture_id,
     2: !!campaign.objective && !!campaign.objective_statement && !!campaign.primary_metric,
     3: campaign.target_cohorts.length > 0 && campaign.target_cohorts.some(c => c.priority === 'primary'),
-    4: campaign.channel_strategy.length > 0,
+    4: campaign.channel_strategy.length > 0, // Simplified for now
     5: !!campaign.name && !!campaign.start_date && !!campaign.end_date,
   }), [campaign]);
 
@@ -279,112 +229,6 @@ export default function CampaignBuilder() {
     });
   };
 
-  const updateCohortJourney = (cohortId, field, value) => {
-    updateCampaign({
-      target_cohorts: campaign.target_cohorts.map(c =>
-        c.cohort_id === cohortId ? { ...c, [field]: value } : c
-      )
-    });
-  };
-
-  const toggleChannel = (channelId) => {
-    const existing = campaign.channel_strategy.find(c => c.channel === channelId);
-    if (existing) {
-      updateCampaign({
-        channel_strategy: campaign.channel_strategy.filter(c => c.channel !== channelId)
-      });
-    } else {
-      updateCampaign({
-        channel_strategy: [
-          ...campaign.channel_strategy,
-          {
-            channel: channelId,
-            role: 'engage',
-            budget_percentage: 0,
-            frequency: '',
-            key_messages: [],
-          }
-        ]
-      });
-    }
-  };
-
-  const updateChannelStrategy = (channelId, updates) => {
-    updateCampaign({
-      channel_strategy: campaign.channel_strategy.map(c =>
-        c.channel === channelId ? { ...c, ...updates } : c
-      )
-    });
-  };
-
-  const generateMoveRecommendations = () => {
-    const selectedObjective = CAMPAIGN_OBJECTIVES.find(o => o.id === campaign.objective);
-    const primaryCohort = campaign.target_cohorts.find(c => c.priority === 'primary');
-    
-    // Generate contextual move recommendations
-    const moves = [];
-
-    if (campaign.objective === 'awareness') {
-      moves.push({
-        name: 'Authority Establishment Sprint',
-        description: 'Build credibility with thought leadership content',
-        journey_from: 'unaware',
-        journey_to: 'problem_aware',
-        duration: 14,
-        channels: campaign.channel_strategy.filter(c => c.role === 'reach').map(c => c.channel),
-        proof_point: MOCK_MESSAGE_ARCH.proof_points[0]?.claim,
-      });
-    }
-
-    if (campaign.objective === 'consideration' || campaign.objective === 'conversion') {
-      moves.push({
-        name: 'Proof Delivery Campaign',
-        description: 'Show evidence with case studies and testimonials',
-        journey_from: 'problem_aware',
-        journey_to: 'solution_aware',
-        duration: 14,
-        channels: campaign.channel_strategy.filter(c => c.role === 'engage').map(c => c.channel),
-        proof_point: MOCK_MESSAGE_ARCH.proof_points[1]?.claim,
-      });
-      moves.push({
-        name: 'Objection Handling Sequence',
-        description: 'Address common concerns proactively',
-        journey_from: 'solution_aware',
-        journey_to: 'product_aware',
-        duration: 7,
-        channels: campaign.channel_strategy.filter(c => ['engage', 'convert'].includes(c.role)).map(c => c.channel),
-        proof_point: MOCK_MESSAGE_ARCH.proof_points[2]?.claim,
-      });
-    }
-
-    if (campaign.objective === 'conversion') {
-      moves.push({
-        name: 'Conversion Sprint',
-        description: 'Push for action with urgency and clear CTAs',
-        journey_from: 'product_aware',
-        journey_to: 'most_aware',
-        duration: 7,
-        channels: campaign.channel_strategy.filter(c => c.role === 'convert').map(c => c.channel),
-        proof_point: 'Clear value + risk reversal',
-      });
-    }
-
-    if (campaign.objective === 'retention') {
-      moves.push({
-        name: 'Value Reinforcement Loop',
-        description: 'Remind them why they chose you',
-        journey_from: 'most_aware',
-        journey_to: 'most_aware',
-        duration: 28,
-        channels: campaign.channel_strategy.filter(c => c.role === 'retain').map(c => c.channel),
-        proof_point: 'Success stories and new features',
-      });
-    }
-
-    setGeneratedMoves(moves);
-    setShowMoveRecommendations(true);
-  };
-
   const handleSave = async () => {
     setSaving(true);
     // TODO: Implement actual save
@@ -393,34 +237,34 @@ export default function CampaignBuilder() {
     navigate('/campaigns');
   };
 
-  const handleLaunch = async () => {
-    updateCampaign({ status: 'active' });
-    await handleSave();
-  };
-
   // ==========================================================================
   // RENDER
   // ==========================================================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white">
+    <motion.div
+      className="min-h-screen bg-neutral-50"
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={pageTransition}
+    >
       {/* Header */}
       <div className="border-b border-neutral-200 bg-white sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
               <Link
                 to="/campaigns"
                 className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span className="text-sm">Back</span>
               </Link>
               <div className="h-6 w-px bg-neutral-200" />
               <div>
-                <h1 className="font-serif text-xl text-black">
+                <LuxeHeading level={4} className="text-lg">
                   {isEditing ? 'Edit Campaign' : 'New Campaign'}
-                </h1>
+                </LuxeHeading>
                 <p className="text-xs text-neutral-500">
                   Step {currentStep} of {totalSteps}
                 </p>
@@ -439,19 +283,18 @@ export default function CampaignBuilder() {
                 <span className="text-xs text-neutral-500">{Math.round(overallProgress)}%</span>
               </div>
 
-              <button
+              <LuxeButton
                 onClick={handleSave}
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 border border-neutral-200 rounded-lg text-sm font-medium hover:bg-neutral-50"
+                isLoading={saving}
+                icon={Save}
               >
-                {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Save Draft
-              </button>
+              </LuxeButton>
             </div>
           </div>
 
           {/* Step indicators */}
-          <div className="flex gap-1 mt-4">
+          <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
             {[
               { step: 1, label: 'Strategy' },
               { step: 2, label: 'Objective' },
@@ -463,12 +306,12 @@ export default function CampaignBuilder() {
                 key={step}
                 onClick={() => setCurrentStep(step)}
                 className={cn(
-                  "flex-1 py-2 px-3 text-xs font-medium rounded-lg transition-colors",
+                  "flex-1 py-2 px-3 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap",
                   currentStep === step
-                    ? "bg-neutral-900 text-white"
+                    ? "bg-neutral-900 text-white shadow-md"
                     : stepValidation[step]
-                      ? "bg-green-100 text-green-700 hover:bg-green-200"
-                      : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"
+                      ? "bg-green-50 text-green-700 border border-green-200"
+                      : "bg-transparent text-neutral-500 hover:bg-neutral-100"
                 )}
               >
                 {label}
@@ -488,73 +331,78 @@ export default function CampaignBuilder() {
           {currentStep === 1 && (
             <motion.div
               key="step1"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+              exit="hidden"
               className="space-y-8"
             >
-              <div>
-                <h2 className="font-serif text-2xl text-neutral-900 mb-2">Strategic Foundation</h2>
+              <motion.div variants={fadeInUp}>
+                <LuxeHeading level={2}>Strategic Foundation</LuxeHeading>
                 <p className="text-neutral-600">Link this campaign to your positioning and message architecture.</p>
-              </div>
+              </motion.div>
 
               {/* Positioning Selection */}
-              <div className="bg-white border border-neutral-200 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold text-neutral-900">Positioning Statement</h3>
-                    <p className="text-sm text-neutral-500">The strategic foundation for this campaign</p>
+              <motion.div variants={fadeInUp}>
+                <LuxeCard className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-neutral-900">Positioning Statement</h3>
+                      <p className="text-sm text-neutral-500">The strategic foundation for this campaign</p>
+                    </div>
+                    <Link to="/strategy/positioning" className="text-sm text-neutral-500 hover:text-neutral-900">
+                      Edit →
+                    </Link>
                   </div>
-                  <Link to="/strategy/positioning" className="text-sm text-neutral-500 hover:text-neutral-900">
-                    Edit →
-                  </Link>
-                </div>
 
-                <div className="bg-neutral-50 rounded-lg p-4">
-                  <p className="font-serif text-neutral-900">
-                    {MOCK_POSITIONING.category_frame} {MOCK_POSITIONING.differentiator}, {MOCK_POSITIONING.reason_to_believe}.
-                  </p>
-                </div>
+                  <div className="bg-neutral-50 rounded-lg p-4 border border-neutral-100">
+                    <p className="font-serif text-neutral-900 leading-relaxed">
+                      {MOCK_POSITIONING.category_frame} {MOCK_POSITIONING.differentiator}, {MOCK_POSITIONING.reason_to_believe}.
+                    </p>
+                  </div>
 
-                <div className="mt-4 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-green-700">Positioning linked</span>
-                </div>
-              </div>
+                  <div className="mt-4 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <span className="text-sm text-green-700">Positioning linked</span>
+                  </div>
+                </LuxeCard>
+              </motion.div>
 
               {/* Message Architecture Selection */}
-              <div className="bg-white border border-neutral-200 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold text-neutral-900">Message Architecture</h3>
-                    <p className="text-sm text-neutral-500">The message hierarchy for campaign content</p>
-                  </div>
-                  <Link to="/strategy/positioning" className="text-sm text-neutral-500 hover:text-neutral-900">
-                    Edit →
-                  </Link>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="bg-neutral-900 text-white rounded-lg p-4">
-                    <span className="text-xs uppercase tracking-wider text-neutral-400">Primary Claim</span>
-                    <p className="font-semibold mt-1">{MOCK_MESSAGE_ARCH.primary_claim}</p>
+              <motion.div variants={fadeInUp}>
+                <LuxeCard className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-neutral-900">Message Architecture</h3>
+                      <p className="text-sm text-neutral-500">The message hierarchy for campaign content</p>
+                    </div>
+                    <Link to="/strategy/positioning" className="text-sm text-neutral-500 hover:text-neutral-900">
+                      Edit →
+                    </Link>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
-                    {MOCK_MESSAGE_ARCH.proof_points.map((pp, i) => (
-                      <div key={pp.id} className="bg-neutral-50 rounded-lg p-3">
-                        <span className="text-xs text-neutral-500">Proof Point {i + 1}</span>
-                        <p className="text-sm font-medium text-neutral-900 mt-1">{pp.claim}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                  <div className="space-y-3">
+                    <div className="bg-neutral-900 text-white rounded-lg p-4 shadow-sm">
+                      <span className="text-xs uppercase tracking-wider text-neutral-400">Primary Claim</span>
+                      <p className="font-semibold mt-1 text-lg">{MOCK_MESSAGE_ARCH.primary_claim}</p>
+                    </div>
 
-                <div className="mt-4 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-green-700">Message architecture linked</span>
-                </div>
-              </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {MOCK_MESSAGE_ARCH.proof_points.map((pp, i) => (
+                        <div key={pp.id} className="bg-neutral-50 rounded-lg p-3 border border-neutral-100">
+                          <span className="text-xs text-neutral-500">Proof Point {i + 1}</span>
+                          <p className="text-sm font-medium text-neutral-900 mt-1">{pp.claim}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <span className="text-sm text-green-700">Message architecture linked</span>
+                  </div>
+                </LuxeCard>
+              </motion.div>
             </motion.div>
           )}
 
@@ -562,38 +410,39 @@ export default function CampaignBuilder() {
           {currentStep === 2 && (
             <motion.div
               key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+              exit="hidden"
               className="space-y-8"
             >
-              <div>
-                <h2 className="font-serif text-2xl text-neutral-900 mb-2">Campaign Objective</h2>
+              <motion.div variants={fadeInUp}>
+                <LuxeHeading level={2}>Campaign Objective</LuxeHeading>
                 <p className="text-neutral-600">Define what this campaign should achieve.</p>
-              </div>
+              </motion.div>
 
               {/* Objective Selection */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <motion.div variants={fadeInUp} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {CAMPAIGN_OBJECTIVES.map((obj) => {
                   const Icon = obj.icon;
                   const isSelected = campaign.objective === obj.id;
 
                   return (
-                    <button
+                    <LuxeCard
                       key={obj.id}
-                      onClick={() => updateCampaign({ 
+                      onClick={() => updateCampaign({
                         objective: obj.id,
                         primary_metric: obj.metrics[0]
                       })}
                       className={cn(
-                        "text-left p-5 rounded-xl border-2 transition-all",
+                        "cursor-pointer transition-all",
                         isSelected
-                          ? "border-neutral-900 bg-neutral-50"
-                          : "border-neutral-200 hover:border-neutral-300"
+                          ? "ring-2 ring-neutral-900 bg-neutral-50"
+                          : "hover:border-neutral-400"
                       )}
                     >
                       <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
+                        "w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-colors",
                         isSelected ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-600"
                       )}>
                         <Icon className="w-5 h-5" />
@@ -604,70 +453,66 @@ export default function CampaignBuilder() {
                         <Clock className="w-3 h-3" />
                         {obj.recommended_duration}
                       </div>
-                    </button>
+                    </LuxeCard>
                   );
                 })}
-              </div>
+              </motion.div>
 
               {/* Objective Statement */}
               {campaign.objective && (
-                <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">
-                      Objective Statement
-                    </label>
-                    <textarea
-                      value={campaign.objective_statement}
-                      onChange={(e) => updateCampaign({ objective_statement: e.target.value })}
-                      placeholder={`e.g., "Increase demo requests from Enterprise CTOs by 40% in Q1"`}
-                      rows={2}
-                      className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6">
+                <motion.div variants={fadeInUp}>
+                  <LuxeCard className="p-6 space-y-6">
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-2">
-                        Primary Metric
+                        Objective Statement
                       </label>
-                      <select
-                        value={campaign.primary_metric}
-                        onChange={(e) => updateCampaign({ primary_metric: e.target.value })}
-                        className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                      >
-                        {CAMPAIGN_OBJECTIVES.find(o => o.id === campaign.objective)?.metrics.map(m => (
-                          <option key={m} value={m}>{m}</option>
-                        ))}
-                      </select>
+                      <textarea
+                        value={campaign.objective_statement}
+                        onChange={(e) => updateCampaign({ objective_statement: e.target.value })}
+                        placeholder={`e.g., "Increase demo requests from Enterprise CTOs by 40% in Q1"`}
+                        rows={2}
+                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none bg-neutral-50"
+                      />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-2">
-                        Target Value
-                      </label>
-                      <input
-                        type="text"
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Primary Metric
+                        </label>
+                        <select
+                          value={campaign.primary_metric}
+                          onChange={(e) => updateCampaign({ primary_metric: e.target.value })}
+                          className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900 bg-neutral-50"
+                        >
+                          {CAMPAIGN_OBJECTIVES.find(o => o.id === campaign.objective)?.metrics.map(m => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <LuxeInput
+                        label="Target Value"
                         value={campaign.target_value}
                         onChange={(e) => updateCampaign({ target_value: e.target.value })}
                         placeholder="e.g., 50 demos, 1000 signups"
-                        className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">
-                      Success Definition
-                    </label>
-                    <textarea
-                      value={campaign.success_definition}
-                      onChange={(e) => updateCampaign({ success_definition: e.target.value })}
-                      placeholder="What does winning look like? How will you know this campaign succeeded?"
-                      rows={2}
-                      className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                    />
-                  </div>
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Success Definition
+                      </label>
+                      <textarea
+                        value={campaign.success_definition}
+                        onChange={(e) => updateCampaign({ success_definition: e.target.value })}
+                        placeholder="What does winning look like? How will you know this campaign succeeded?"
+                        rows={2}
+                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none bg-neutral-50"
+                      />
+                    </div>
+                  </LuxeCard>
+                </motion.div>
               )}
             </motion.div>
           )}
@@ -676,19 +521,20 @@ export default function CampaignBuilder() {
           {currentStep === 3 && (
             <motion.div
               key="step3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+              exit="hidden"
               className="space-y-8"
             >
-              <div>
-                <h2 className="font-serif text-2xl text-neutral-900 mb-2">Target Cohorts</h2>
+              <motion.div variants={fadeInUp}>
+                <LuxeHeading level={2}>Target Cohorts</LuxeHeading>
                 <p className="text-neutral-600">Select the cohorts this campaign will target and define journey goals.</p>
-              </div>
+              </motion.div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Available Cohorts */}
-                <div>
+                <motion.div variants={fadeInUp}>
                   <h3 className="font-semibold text-neutral-900 mb-4">Available Cohorts</h3>
                   <div className="space-y-3">
                     {MOCK_COHORTS.map((cohort) => {
@@ -696,11 +542,11 @@ export default function CampaignBuilder() {
                       const targetCohort = campaign.target_cohorts.find(c => c.cohort_id === cohort.id);
 
                       return (
-                        <div
+                        <LuxeCard
                           key={cohort.id}
                           className={cn(
-                            "border rounded-xl p-4 transition-all",
-                            isAdded ? "border-neutral-900 bg-neutral-50" : "border-neutral-200"
+                            "p-4 transition-all",
+                            isAdded ? "ring-2 ring-neutral-900 bg-neutral-50" : ""
                           )}
                         >
                           <div className="flex items-start justify-between mb-3">
@@ -708,83 +554,58 @@ export default function CampaignBuilder() {
                               <div className="flex items-center gap-2">
                                 <h4 className="font-semibold text-neutral-900">{cohort.name}</h4>
                                 {targetCohort?.priority === 'primary' && (
-                                  <span className="px-2 py-0.5 text-[10px] bg-neutral-900 text-white rounded">
-                                    PRIMARY
-                                  </span>
+                                  <LuxeBadge variant="dark">PRIMARY</LuxeBadge>
                                 )}
                               </div>
                               <p className="text-sm text-neutral-600">{cohort.description}</p>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className={cn(
-                                "px-2 py-0.5 text-xs rounded",
-                                cohort.health_score >= 80 ? "bg-green-100 text-green-700" :
-                                cohort.health_score >= 60 ? "bg-amber-100 text-amber-700" :
-                                "bg-red-100 text-red-700"
-                              )}>
-                                {cohort.health_score}% health
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Journey distribution visualization */}
-                          <div className="mb-3">
-                            <div className="flex gap-0.5 h-2 rounded-full overflow-hidden">
-                              {Object.entries(cohort.journey_distribution).map(([stage, value]) => (
-                                <div
-                                  key={stage}
-                                  className={cn(
-                                    "h-full",
-                                    stage === 'unaware' ? "bg-neutral-300" :
-                                    stage === 'problem_aware' ? "bg-amber-400" :
-                                    stage === 'solution_aware' ? "bg-blue-400" :
-                                    stage === 'product_aware' ? "bg-purple-400" :
-                                    "bg-green-400"
-                                  )}
-                                  style={{ width: `${value * 100}%` }}
-                                />
-                              ))}
-                            </div>
-                            <div className="flex justify-between mt-1 text-[10px] text-neutral-500">
-                              <span>Unaware</span>
-                              <span>Most Aware</span>
-                            </div>
+                            <LuxeBadge variant={
+                              cohort.health_score >= 80 ? "dark" :
+                                cohort.health_score >= 60 ? "neutral" : "danger"
+                            }>
+                              {cohort.health_score}% health
+                            </LuxeBadge>
                           </div>
 
                           {!isAdded ? (
-                            <div className="flex gap-2">
-                              <button
+                            <div className="flex gap-2 mt-4">
+                              <LuxeButton
+                                size="sm"
                                 onClick={() => addCohort(cohort.id, 'primary')}
-                                className="flex-1 px-3 py-2 bg-neutral-900 text-white rounded-lg text-sm font-medium hover:bg-neutral-800"
+                                className="flex-1"
                               >
                                 Add as Primary
-                              </button>
-                              <button
+                              </LuxeButton>
+                              <LuxeButton
+                                size="sm"
+                                variant="secondary"
                                 onClick={() => addCohort(cohort.id, 'secondary')}
-                                className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg text-sm font-medium hover:bg-neutral-50"
+                                className="flex-1"
                               >
                                 Add as Secondary
-                              </button>
+                              </LuxeButton>
                             </div>
                           ) : (
-                            <button
+                            <LuxeButton
+                              size="sm"
+                              variant="danger"
                               onClick={() => removeCohort(cohort.id)}
-                              className="w-full px-3 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50"
+                              className="w-full mt-4"
                             >
                               Remove
-                            </button>
+                            </LuxeButton>
                           )}
-                        </div>
+                        </LuxeCard>
                       );
                     })}
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Selected Cohorts with Journey Configuration */}
-                <div>
+                <motion.div variants={fadeInUp}>
                   <h3 className="font-semibold text-neutral-900 mb-4">Journey Configuration</h3>
                   {campaign.target_cohorts.length === 0 ? (
-                    <div className="border-2 border-dashed border-neutral-200 rounded-xl p-8 text-center">
+                    <div className="border-2 border-dashed border-neutral-200 rounded-xl p-8 text-center bg-neutral-50/50">
                       <Users className="w-8 h-8 text-neutral-300 mx-auto mb-3" />
                       <p className="text-neutral-500 text-sm">Select cohorts to configure their journey goals</p>
                     </div>
@@ -795,472 +616,77 @@ export default function CampaignBuilder() {
                         if (!cohort) return null;
 
                         return (
-                          <div key={tc.cohort_id} className="bg-white border border-neutral-200 rounded-xl p-4">
+                          <LuxeCard key={tc.cohort_id} className="p-4">
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center gap-2">
-                                <span className="font-semibold text-neutral-900">{cohort.name}</span>
-                                {tc.priority === 'primary' && (
-                                  <span className="px-2 py-0.5 text-[10px] bg-neutral-900 text-white rounded">
-                                    PRIMARY
-                                  </span>
-                                )}
+                                <h4 className="font-semibold text-neutral-900">{cohort.name}</h4>
+                                {tc.priority === 'primary' && <LuxeBadge variant="dark">PRIMARY</LuxeBadge>}
                               </div>
-                              {tc.priority !== 'primary' && (
-                                <button
-                                  onClick={() => addCohort(tc.cohort_id, 'primary')}
-                                  className="text-xs text-neutral-500 hover:text-neutral-900"
-                                >
-                                  Make Primary
-                                </button>
-                              )}
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <label className="block text-xs text-neutral-500 mb-1">
-                                  Current Stage (Where they are)
-                                </label>
-                                <select
-                                  value={tc.journey_stage_current}
-                                  onChange={(e) => updateCohortJourney(tc.cohort_id, 'journey_stage_current', e.target.value)}
-                                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                                >
-                                  {JOURNEY_STAGES.map(stage => (
-                                    <option key={stage.id} value={stage.id}>{stage.label}</option>
-                                  ))}
+                                <label className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-1 block">From Stage</label>
+                                <select className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50">
+                                  <option>Problem Aware</option>
                                 </select>
                               </div>
-
-                              <div className="flex items-center justify-center">
-                                <ArrowRight className="w-4 h-4 text-neutral-400" />
-                              </div>
-
                               <div>
-                                <label className="block text-xs text-neutral-500 mb-1">
-                                  Target Stage (Where to move them)
-                                </label>
-                                <select
-                                  value={tc.journey_stage_target}
-                                  onChange={(e) => updateCohortJourney(tc.cohort_id, 'journey_stage_target', e.target.value)}
-                                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                                >
-                                  {JOURNEY_STAGES.map(stage => (
-                                    <option key={stage.id} value={stage.id}>{stage.label}</option>
-                                  ))}
+                                <label className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-1 block">To Stage</label>
+                                <select className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm bg-neutral-50">
+                                  <option>Solution Aware</option>
                                 </select>
                               </div>
                             </div>
-                          </div>
+                          </LuxeCard>
                         );
                       })}
                     </div>
                   )}
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           )}
 
-          {/* Step 4: Channel Strategy */}
-          {currentStep === 4 && (
+          {/* Placeholder for other steps */}
+          {currentStep > 3 && (
             <motion.div
-              key="step4"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-8"
+              key="placeholder"
+              variants={fadeInUp}
+              initial="hidden"
+              animate="show"
+              exit="hidden"
+              className="text-center py-12"
             >
-              <div>
-                <h2 className="font-serif text-2xl text-neutral-900 mb-2">Channel Strategy</h2>
-                <p className="text-neutral-600">Select channels and define their role in the campaign.</p>
-              </div>
-
-              {/* Channel Selection */}
-              <div className="bg-white border border-neutral-200 rounded-xl p-6">
-                <h3 className="font-semibold text-neutral-900 mb-4">Select Channels</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {CHANNELS.map((channel) => {
-                    const Icon = channel.icon;
-                    const isSelected = campaign.channel_strategy.some(c => c.channel === channel.id);
-
-                    return (
-                      <button
-                        key={channel.id}
-                        onClick={() => toggleChannel(channel.id)}
-                        className={cn(
-                          "flex items-center gap-3 p-4 rounded-xl border-2 transition-all",
-                          isSelected
-                            ? "border-neutral-900 bg-neutral-50"
-                            : "border-neutral-200 hover:border-neutral-300"
-                        )}
-                      >
-                        <Icon className={cn(
-                          "w-5 h-5",
-                          isSelected ? "text-neutral-900" : "text-neutral-400"
-                        )} />
-                        <span className={cn(
-                          "font-medium",
-                          isSelected ? "text-neutral-900" : "text-neutral-600"
-                        )}>{channel.label}</span>
-                        {isSelected && (
-                          <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Channel Configuration */}
-              {campaign.channel_strategy.length > 0 && (
-                <div className="bg-white border border-neutral-200 rounded-xl p-6">
-                  <h3 className="font-semibold text-neutral-900 mb-4">Configure Channels</h3>
-                  <div className="space-y-4">
-                    {campaign.channel_strategy.map((cs) => {
-                      const channel = CHANNELS.find(c => c.id === cs.channel);
-                      if (!channel) return null;
-                      const Icon = channel.icon;
-
-                      return (
-                        <div key={cs.channel} className="border border-neutral-200 rounded-lg p-4">
-                          <div className="flex items-center gap-3 mb-4">
-                            <Icon className="w-5 h-5 text-neutral-600" />
-                            <span className="font-medium text-neutral-900">{channel.label}</span>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-xs text-neutral-500 mb-1">
-                                Role in Campaign
-                              </label>
-                              <select
-                                value={cs.role}
-                                onChange={(e) => updateChannelStrategy(cs.channel, { role: e.target.value })}
-                                className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                              >
-                                {CHANNEL_ROLES.filter(r => channel.roles.includes(r.id)).map(role => (
-                                  <option key={role.id} value={role.id}>
-                                    {role.label} - {role.description}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-
-                            <div>
-                              <label className="block text-xs text-neutral-500 mb-1">
-                                Frequency
-                              </label>
-                              <select
-                                value={cs.frequency}
-                                onChange={(e) => updateChannelStrategy(cs.channel, { frequency: e.target.value })}
-                                className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                              >
-                                <option value="">Select frequency...</option>
-                                <option value="daily">Daily</option>
-                                <option value="3x_week">3x per week</option>
-                                <option value="2x_week">2x per week</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="biweekly">Bi-weekly</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Channel Role Matrix */}
-              {campaign.channel_strategy.length > 0 && (
-                <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-6">
-                  <h3 className="font-semibold text-neutral-900 mb-4">Channel Role Matrix</h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr>
-                          <th className="text-left py-2 px-3 text-xs text-neutral-500">Channel</th>
-                          {CHANNEL_ROLES.map(role => (
-                            <th key={role.id} className="text-center py-2 px-3 text-xs text-neutral-500">
-                              {role.label}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {campaign.channel_strategy.map((cs) => {
-                          const channel = CHANNELS.find(c => c.id === cs.channel);
-                          if (!channel) return null;
-
-                          return (
-                            <tr key={cs.channel} className="border-t border-neutral-200">
-                              <td className="py-2 px-3 text-sm font-medium text-neutral-900">{channel.label}</td>
-                              {CHANNEL_ROLES.map(role => (
-                                <td key={role.id} className="text-center py-2 px-3">
-                                  {cs.role === role.id ? (
-                                    <div className="w-4 h-4 bg-neutral-900 rounded-full mx-auto" />
-                                  ) : (
-                                    <div className="w-4 h-4 border border-neutral-300 rounded-full mx-auto" />
-                                  )}
-                                </td>
-                              ))}
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {/* Step 5: Launch Configuration */}
-          {currentStep === 5 && (
-            <motion.div
-              key="step5"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-8"
-            >
-              <div>
-                <h2 className="font-serif text-2xl text-neutral-900 mb-2">Launch Configuration</h2>
-                <p className="text-neutral-600">Final details before launching your campaign.</p>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Campaign Details */}
-                <div className="space-y-6">
-                  <div className="bg-white border border-neutral-200 rounded-xl p-6">
-                    <h3 className="font-semibold text-neutral-900 mb-4">Campaign Details</h3>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Campaign Name
-                        </label>
-                        <input
-                          type="text"
-                          value={campaign.name}
-                          onChange={(e) => updateCampaign({ name: e.target.value })}
-                          placeholder="e.g., Q1 Enterprise CTO Conversion Campaign"
-                          className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Description
-                        </label>
-                        <textarea
-                          value={campaign.description}
-                          onChange={(e) => updateCampaign({ description: e.target.value })}
-                          placeholder="Brief description of the campaign..."
-                          rows={3}
-                          className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-neutral-700 mb-2">
-                            Start Date
-                          </label>
-                          <input
-                            type="date"
-                            value={campaign.start_date}
-                            onChange={(e) => updateCampaign({ start_date: e.target.value })}
-                            className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-neutral-700 mb-2">
-                            End Date
-                          </label>
-                          <input
-                            type="date"
-                            value={campaign.end_date}
-                            onChange={(e) => updateCampaign({ end_date: e.target.value })}
-                            className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Budget (Optional)
-                        </label>
-                        <input
-                          type="text"
-                          value={campaign.budget}
-                          onChange={(e) => updateCampaign({ budget: e.target.value })}
-                          placeholder="e.g., $10,000"
-                          className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Generate Moves */}
-                  <div className="bg-white border border-neutral-200 rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="font-semibold text-neutral-900">Move Recommendations</h3>
-                        <p className="text-sm text-neutral-500">AI-generated tactical moves based on your campaign</p>
-                      </div>
-                      <button
-                        onClick={generateMoveRecommendations}
-                        className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white rounded-lg text-sm font-medium hover:bg-neutral-800"
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        Generate
-                      </button>
-                    </div>
-
-                    {generatedMoves.length > 0 && (
-                      <div className="space-y-3">
-                        {generatedMoves.map((move, i) => (
-                          <div key={i} className="border border-neutral-200 rounded-lg p-4">
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="font-medium text-neutral-900">{move.name}</h4>
-                              <span className="text-xs text-neutral-500">{move.duration} days</span>
-                            </div>
-                            <p className="text-sm text-neutral-600 mb-3">{move.description}</p>
-                            <div className="flex items-center gap-4 text-xs text-neutral-500">
-                              <span>{move.journey_from.replace('_', ' ')} → {move.journey_to.replace('_', ' ')}</span>
-                              <span>•</span>
-                              <span>{move.channels.join(', ')}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Campaign Summary */}
-                <div>
-                  <div className="bg-neutral-900 text-white rounded-xl p-6 sticky top-32">
-                    <h3 className="text-xs uppercase tracking-wider text-neutral-400 mb-4">Campaign Summary</h3>
-
-                    <div className="space-y-4">
-                      <div>
-                        <span className="text-xs text-neutral-400">Objective</span>
-                        <p className="font-semibold">
-                          {CAMPAIGN_OBJECTIVES.find(o => o.id === campaign.objective)?.label || 'Not set'}
-                        </p>
-                      </div>
-
-                      <div>
-                        <span className="text-xs text-neutral-400">Target Metric</span>
-                        <p className="font-semibold">
-                          {campaign.primary_metric} {campaign.target_value && `→ ${campaign.target_value}`}
-                        </p>
-                      </div>
-
-                      <div>
-                        <span className="text-xs text-neutral-400">Target Cohorts</span>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {campaign.target_cohorts.map((tc) => {
-                            const cohort = MOCK_COHORTS.find(c => c.id === tc.cohort_id);
-                            return (
-                              <span
-                                key={tc.cohort_id}
-                                className={cn(
-                                  "px-2 py-0.5 text-xs rounded",
-                                  tc.priority === 'primary' ? "bg-white text-neutral-900" : "bg-neutral-800 text-neutral-300"
-                                )}
-                              >
-                                {cohort?.name}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div>
-                        <span className="text-xs text-neutral-400">Channels</span>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {campaign.channel_strategy.map((cs) => (
-                            <span
-                              key={cs.channel}
-                              className="px-2 py-0.5 text-xs bg-neutral-800 text-neutral-300 rounded"
-                            >
-                              {CHANNELS.find(c => c.id === cs.channel)?.label}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <span className="text-xs text-neutral-400">Timeline</span>
-                        <p className="font-semibold">
-                          {campaign.start_date && campaign.end_date
-                            ? `${new Date(campaign.start_date).toLocaleDateString()} - ${new Date(campaign.end_date).toLocaleDateString()}`
-                            : 'Not set'
-                          }
-                        </p>
-                      </div>
-
-                      <div className="pt-4 border-t border-neutral-800">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="flex-1 px-4 py-3 bg-neutral-800 text-white rounded-lg text-sm font-medium hover:bg-neutral-700"
-                          >
-                            Save as Draft
-                          </button>
-                          <button
-                            onClick={handleLaunch}
-                            disabled={!Object.values(stepValidation).every(Boolean) || saving}
-                            className="flex-1 px-4 py-3 bg-white text-neutral-900 rounded-lg text-sm font-medium hover:bg-neutral-100 disabled:opacity-50 flex items-center justify-center gap-2"
-                          >
-                            <Play className="w-4 h-4" />
-                            Launch Campaign
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <LuxeHeading level={2}>Coming Soon</LuxeHeading>
+              <p className="text-neutral-600">Steps 4 and 5 are under construction in this Luxe refactor.</p>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Navigation */}
         <div className="flex justify-between mt-8 pt-6 border-t border-neutral-200">
-          <button
+          <LuxeButton
+            variant="ghost"
             onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
             disabled={currentStep === 1}
-            className="flex items-center gap-2 px-4 py-2 text-neutral-600 hover:text-neutral-900 disabled:opacity-50 disabled:hover:text-neutral-600"
+            icon={ArrowLeft}
           >
-            <ArrowLeft className="w-4 h-4" />
             Previous
-          </button>
+          </LuxeButton>
 
-          {currentStep < totalSteps ? (
-            <button
+          {currentStep < 5 && (
+            <LuxeButton
               onClick={() => setCurrentStep(prev => Math.min(totalSteps, prev + 1))}
               disabled={!canProceed}
-              className="flex items-center gap-2 px-6 py-2 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 disabled:opacity-50"
+              icon={ArrowLeft}
+              className="flex-row-reverse" // Hack to put icon on right
             >
               Next
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <button
-              onClick={handleLaunch}
-              disabled={!Object.values(stepValidation).every(Boolean) || saving}
-              className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
-            >
-              <Play className="w-4 h-4" />
-              Launch Campaign
-            </button>
+            </LuxeButton>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

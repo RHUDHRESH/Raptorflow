@@ -1,12 +1,17 @@
 """
-Redis-based task queue for async agent operations
+Redis-based task queue for async agent operations.
+
+Includes:
+- Traditional task queue (enqueue/dequeue with priority levels)
+- Pub/Sub messaging (integrated with RaptorBus)
 """
 
 import json
 import asyncio
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Union
 from enum import Enum
 import redis.asyncio as redis
+from redis.asyncio.connection import ConnectionPool
 from backend.config.settings import settings
 import structlog
 
@@ -189,6 +194,134 @@ class TaskQueue:
                 await asyncio.sleep(1)  # Brief pause before retry
                 
         logger.info("Worker stopped", name=worker_name)
+
+    # ========================================================================
+    # PUB/SUB METHODS (integrated with RaptorBus)
+    # ========================================================================
+
+    async def publish(self, channel: str, message: Union[str, Dict]) -> int:
+        """
+        Publish a message to a Redis channel.
+
+        Args:
+            channel: Channel name
+            message: Message (string or dict, which will be JSON serialized)
+
+        Returns:
+            Number of subscribers that received the message
+        """
+        if not self.redis:
+            raise RuntimeError("Queue not connected")
+
+        if isinstance(message, dict):
+            message = json.dumps(message)
+
+        num_subscribers = await self.redis.publish(channel, message)
+
+        logger.debug(
+            "Message published",
+            channel=channel,
+            subscribers=num_subscribers
+        )
+
+        return num_subscribers
+
+    async def subscribe(self, channels: Union[str, list]) -> redis.client.PubSub:
+        """
+        Subscribe to one or more channels.
+
+        Args:
+            channels: Single channel name or list of channel names
+
+        Returns:
+            PubSub object for listening to messages
+
+        Usage:
+            pubsub = await queue.subscribe(["channel1", "channel2"])
+            async for message in pubsub.listen():
+                print(message)
+        """
+        if not self.redis:
+            raise RuntimeError("Queue not connected")
+
+        pubsub = self.redis.pubsub()
+
+        if isinstance(channels, str):
+            channels = [channels]
+
+        await pubsub.subscribe(*channels)
+
+        logger.debug("Subscribed to channels", channels=channels)
+
+        return pubsub
+
+    async def psubscribe(self, patterns: Union[str, list]) -> redis.client.PubSub:
+        """
+        Subscribe to channels matching patterns.
+
+        Args:
+            patterns: Single pattern or list of patterns (e.g., "sys.alert.*")
+
+        Returns:
+            PubSub object for listening to messages
+        """
+        if not self.redis:
+            raise RuntimeError("Queue not connected")
+
+        pubsub = self.redis.pubsub()
+
+        if isinstance(patterns, str):
+            patterns = [patterns]
+
+        await pubsub.psubscribe(*patterns)
+
+        logger.debug("Subscribed to patterns", patterns=patterns)
+
+        return pubsub
+
+    async def publish_and_persist(
+        self,
+        channel: str,
+        message: Dict,
+        ttl_seconds: int = 3600,
+    ) -> str:
+        """
+        Publish a message and persist it for potential replay.
+
+        Args:
+            channel: Channel name
+            message: Message dict
+            ttl_seconds: How long to keep message in cache
+
+        Returns:
+            Unique message ID
+        """
+        from uuid import uuid4
+
+        if not self.redis:
+            raise RuntimeError("Queue not connected")
+
+        message_id = str(uuid4())
+
+        # Publish
+        await self.publish(channel, message)
+
+        # Persist
+        cache_key = f"msg:{channel}:{message_id}"
+        await self.redis.setex(
+            cache_key,
+            ttl_seconds,
+            json.dumps(message)
+        )
+
+        logger.debug(
+            "Message published and persisted",
+            channel=channel,
+            message_id=message_id,
+            ttl=ttl_seconds
+        )
+
+        return message_id
 
 
 # Global queue instance

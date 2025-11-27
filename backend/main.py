@@ -189,6 +189,19 @@ from backend.routers import (
 )
 from backend.routers import memory  # New memory router
 
+# Import Council of Lords routers (Phase 2A)
+# All 7 strategic lords with graceful fallback
+lord_routers = {}
+lord_names = ["architect", "cognition", "strategos", "aesthete", "seer", "arbiter", "herald"]
+
+for lord_name in lord_names:
+    try:
+        module = __import__(f"backend_routers_{lord_name}", fromlist=["router"])
+        lord_routers[lord_name] = module.router
+        logger.info(f"✓ {lord_name.capitalize()} Lord router loaded")
+    except ImportError:
+        logger.warning(f"⚠ {lord_name.capitalize()} Lord router not found - skipping")
+
 # Register API routers
 app.include_router(onboarding.router, prefix="/api/v1/onboarding", tags=["Onboarding"])
 app.include_router(cohorts.router, prefix="/api/v1/cohorts", tags=["Cohorts"])
@@ -202,6 +215,14 @@ app.include_router(memory.router, prefix="/api/v1", tags=["Memory"])  # New sema
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["Payments"])  # PhonePe payment integration
 app.include_router(autopay.router, prefix="/api/v1/autopay", tags=["Autopay"])  # PhonePe Autopay integration
 app.include_router(scraper.router, tags=["Scraper"])  # Website scraping and AI analysis
+
+# Register Council of Lords routers (Phase 2A)
+for lord_name, lord_router in lord_routers.items():
+    try:
+        app.include_router(lord_router, tags=[f"{lord_name.capitalize()} Lord"])
+        logger.info(f"✓ {lord_name.capitalize()} Lord router registered")
+    except Exception as e:
+        logger.error(f"✗ Failed to register {lord_name} Lord router: {e}")
 
 
 @app.get("/")
@@ -240,6 +261,123 @@ async def health_check():
         health_status["status"] = "degraded"
 
     return health_status
+
+
+# ============================================================================
+# WEBSOCKET ENDPOINTS - COUNCIL OF LORDS (Phase 2A)
+# ============================================================================
+
+from fastapi import WebSocket, WebSocketDisconnect
+from datetime import datetime
+from typing import List, Dict
+
+class ConnectionManager:
+    """Manages WebSocket connections for real-time lord updates (Council of 7)"""
+
+    def __init__(self):
+        self.lord_connections: Dict[str, List[WebSocket]] = {
+            "architect": [],
+            "cognition": [],
+            "strategos": [],
+            "aesthete": [],
+            "seer": [],
+            "arbiter": [],
+            "herald": []
+        }
+
+    async def connect(self, websocket: WebSocket, lord: str):
+        """Accept a new WebSocket connection"""
+        await websocket.accept()
+        if lord in self.lord_connections:
+            self.lord_connections[lord].append(websocket)
+            logger.info(f"✓ WebSocket connected: {lord} (total: {len(self.lord_connections[lord])})")
+        else:
+            logger.warning(f"⚠ Unknown lord: {lord}")
+
+    async def disconnect(self, websocket: WebSocket, lord: str):
+        """Remove a WebSocket connection"""
+        if lord in self.lord_connections:
+            if websocket in self.lord_connections[lord]:
+                self.lord_connections[lord].remove(websocket)
+                logger.info(f"✗ WebSocket disconnected: {lord} (remaining: {len(self.lord_connections[lord])})")
+
+    async def broadcast(self, lord: str, message: Dict):
+        """Broadcast message to all connected clients for a lord"""
+        if lord in self.lord_connections:
+            connections = self.lord_connections[lord]
+            for connection in connections:
+                try:
+                    await connection.send_json(message)
+                except Exception as e:
+                    logger.error(f"Error broadcasting to {lord}: {e}")
+
+
+manager = ConnectionManager()
+
+
+# Create WebSocket endpoints for all 7 lords dynamically
+async def websocket_handler(websocket: WebSocket, lord: str):
+    """Generic WebSocket handler for all Council of Lords"""
+    await manager.connect(websocket, lord)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_json({
+                    "type": "pong",
+                    "lord": lord,
+                    "timestamp": datetime.utcnow().isoformat()
+                })
+            elif data == "subscribe":
+                await websocket.send_json({
+                    "type": "subscription_confirmed",
+                    "lord": lord,
+                    "timestamp": datetime.utcnow().isoformat()
+                })
+            else:
+                # Echo message for testing
+                await websocket.send_json({
+                    "type": "message_received",
+                    "lord": lord,
+                    "data": data,
+                    "timestamp": datetime.utcnow().isoformat()
+                })
+    except WebSocketDisconnect:
+        await manager.disconnect(websocket, lord)
+        logger.info(f"WebSocket disconnected: {lord}")
+    except Exception as e:
+        logger.error(f"WebSocket error ({lord}): {e}")
+        await manager.disconnect(websocket, lord)
+
+
+# Register WebSocket endpoints for all 7 lords
+@app.websocket("/ws/lords/architect")
+async def websocket_architect(websocket: WebSocket):
+    await websocket_handler(websocket, "architect")
+
+@app.websocket("/ws/lords/cognition")
+async def websocket_cognition(websocket: WebSocket):
+    await websocket_handler(websocket, "cognition")
+
+@app.websocket("/ws/lords/strategos")
+async def websocket_strategos(websocket: WebSocket):
+    await websocket_handler(websocket, "strategos")
+
+@app.websocket("/ws/lords/aesthete")
+async def websocket_aesthete(websocket: WebSocket):
+    await websocket_handler(websocket, "aesthete")
+
+@app.websocket("/ws/lords/seer")
+async def websocket_seer(websocket: WebSocket):
+    await websocket_handler(websocket, "seer")
+
+@app.websocket("/ws/lords/arbiter")
+async def websocket_arbiter(websocket: WebSocket):
+    await websocket_handler(websocket, "arbiter")
+
+@app.websocket("/ws/lords/herald")
+async def websocket_herald(websocket: WebSocket):
+    await websocket_handler(websocket, "herald")
 
 
 if __name__ == "__main__":

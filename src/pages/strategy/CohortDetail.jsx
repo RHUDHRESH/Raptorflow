@@ -2,14 +2,6 @@
  * Cohort Detail Page (Luxe Edition)
  * 
  * A comprehensive, 6-tab interface for deep customer intelligence.
- * 
- * Tabs:
- * 1. Buying Intelligence - Triggers & Decision Criteria
- * 2. Objections - Objection map & response strategies
- * 3. Channels - Attention windows & receptivity
- * 4. Competitive - Competitive frame & alternatives
- * 5. Journey - Distribution across awareness stages
- * 6. Health - Cohort health score + trends
  */
 
 import { useState, useEffect } from 'react';
@@ -18,7 +10,6 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft,
     Zap,
-    CheckCircle2,
     Shield,
     MessageSquare,
     Users,
@@ -27,14 +18,14 @@ import {
     Clock,
     AlertCircle,
     Plus,
-    X,
     Save,
-    Sparkles,
     Edit2,
     Trash2
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { INITIAL_COHORTS, JOURNEY_STAGES } from '../../data/mockCohorts';
+import { LuxeHeading, LuxeButton, LuxeCard, LuxeInput, LuxeBadge } from '../../components/ui/PremiumUI';
+import { pageTransition, fadeInUp, staggerContainer } from '../../utils/animations';
 
 // =============================================================================
 // CONSTANTS
@@ -205,24 +196,29 @@ export default function CohortDetail() {
     // ==========================================================================
 
     return (
-        <div className="min-h-screen bg-neutral-50">
+        <motion.div
+            className="min-h-screen bg-neutral-50"
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={pageTransition}
+        >
             {/* Header */}
             <div className="border-b border-neutral-200 bg-white sticky top-0 z-20">
-                <div className="max-w-6xl mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between">
+                <div className="max-w-7xl mx-auto px-6 py-4">
+                    <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-4">
                             <Link
-                                to="/cohorts"
+                                to="/strategy/cohorts"
                                 className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors"
                             >
                                 <ArrowLeft className="w-4 h-4" />
-                                <span className="text-sm">Back to Cohorts</span>
                             </Link>
                             <div className="h-6 w-px bg-neutral-200" />
                             <div className="flex items-center gap-3">
                                 <span className="text-3xl">{cohort.avatar}</span>
                                 <div>
-                                    <h1 className="font-serif text-xl text-black">{cohort.name}</h1>
+                                    <LuxeHeading level={3} className="text-xl">{cohort.name}</LuxeHeading>
                                     <p className="text-xs text-neutral-500">{cohort.description}</p>
                                 </div>
                             </div>
@@ -230,29 +226,28 @@ export default function CohortDetail() {
 
                         <div className="flex items-center gap-3">
                             {/* Health Score */}
-                            <div className="flex items-center gap-2 px-3 py-1.5 border border-neutral-200 rounded-lg">
+                            <div className="flex items-center gap-2 px-3 py-1.5 border border-neutral-200 rounded-lg bg-neutral-50">
                                 <TrendingUp className={cn(
                                     "w-4 h-4",
-                                    cohort.health_score >= 80 ? "text-neutral-900" :
-                                        cohort.health_score >= 60 ? "text-neutral-600" :
-                                            "text-neutral-400"
+                                    cohort.health_score >= 80 ? "text-green-600" :
+                                        cohort.health_score >= 60 ? "text-amber-600" :
+                                            "text-red-600"
                                 )} />
                                 <span className="text-sm font-semibold">{cohort.health_score}%</span>
                             </div>
 
-                            <button
+                            <LuxeButton
                                 onClick={handleSave}
-                                disabled={saving}
-                                className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white rounded-lg text-sm font-medium hover:bg-neutral-800 disabled:opacity-50"
+                                isLoading={saving}
+                                icon={Save}
                             >
-                                <Save className="w-4 h-4" />
-                                {saving ? 'Saving...' : 'Save Changes'}
-                            </button>
+                                Save Changes
+                            </LuxeButton>
                         </div>
                     </div>
 
                     {/* Tab Navigation */}
-                    <div className="flex gap-1 mt-4 overflow-x-auto">
+                    <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
                         {TABS.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
@@ -264,8 +259,8 @@ export default function CohortDetail() {
                                     className={cn(
                                         "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap",
                                         isActive
-                                            ? "bg-neutral-900 text-white"
-                                            : "bg-neutral-50 text-neutral-600 hover:bg-neutral-100"
+                                            ? "bg-neutral-900 text-white shadow-md"
+                                            : "bg-transparent text-neutral-600 hover:bg-neutral-100"
                                     )}
                                 >
                                     <Icon className="w-4 h-4" />
@@ -278,77 +273,65 @@ export default function CohortDetail() {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-6xl mx-auto px-6 py-8">
+            <div className="max-w-7xl mx-auto px-6 py-8">
                 <AnimatePresence mode="wait">
                     {/* Tab 1: Buying Intelligence */}
                     {activeTab === 'buying' && (
                         <motion.div
                             key="buying"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            variants={staggerContainer}
+                            initial="hidden"
+                            animate="show"
+                            exit="hidden"
                             className="space-y-8"
                         >
                             {/* Buying Triggers */}
-                            <div>
+                            <motion.div variants={fadeInUp}>
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
-                                        <h2 className="font-serif text-2xl text-neutral-900">Buying Triggers</h2>
+                                        <LuxeHeading level={3}>Buying Triggers</LuxeHeading>
                                         <p className="text-sm text-neutral-600">What makes them act NOW</p>
                                     </div>
-                                    <button
-                                        onClick={addBuyingTrigger}
-                                        className="flex items-center gap-2 px-4 py-2 border border-neutral-200 rounded-lg text-sm font-medium hover:bg-neutral-50"
-                                    >
-                                        <Plus className="w-4 h-4" />
+                                    <LuxeButton variant="secondary" size="sm" icon={Plus} onClick={addBuyingTrigger}>
                                         Add Trigger
-                                    </button>
+                                    </LuxeButton>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {cohort.buying_triggers.map((trigger) => (
-                                        <div key={trigger.id} className="bg-white border border-neutral-200 rounded-xl p-4">
+                                        <LuxeCard key={trigger.id} className="p-4">
                                             {editingTrigger === trigger.id ? (
                                                 <div className="space-y-3">
-                                                    <input
-                                                        type="text"
+                                                    <LuxeInput
                                                         value={trigger.trigger}
                                                         onChange={(e) => updateBuyingTrigger(trigger.id, { trigger: e.target.value })}
                                                         placeholder="Trigger description"
-                                                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
                                                         autoFocus
                                                     />
                                                     <div className="grid grid-cols-2 gap-3">
                                                         <select
                                                             value={trigger.strength}
                                                             onChange={(e) => updateBuyingTrigger(trigger.id, { strength: e.target.value })}
-                                                            className="px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                                                            className="px-3 py-2 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900 bg-neutral-50 text-sm"
                                                         >
                                                             <option value="low">Low Strength</option>
                                                             <option value="medium">Medium Strength</option>
                                                             <option value="high">High Strength</option>
                                                         </select>
-                                                        <input
-                                                            type="text"
+                                                        <LuxeInput
                                                             value={trigger.timing}
                                                             onChange={(e) => updateBuyingTrigger(trigger.id, { timing: e.target.value })}
                                                             placeholder="Timing (e.g., Q4)"
-                                                            className="px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
                                                         />
                                                     </div>
-                                                    <input
-                                                        type="text"
+                                                    <LuxeInput
                                                         value={trigger.signal}
                                                         onChange={(e) => updateBuyingTrigger(trigger.id, { signal: e.target.value })}
                                                         placeholder="Signal to watch for"
-                                                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
                                                     />
-                                                    <button
-                                                        onClick={() => setEditingTrigger(null)}
-                                                        className="w-full px-3 py-2 bg-neutral-900 text-white rounded-lg text-sm font-medium"
-                                                    >
+                                                    <LuxeButton size="sm" className="w-full" onClick={() => setEditingTrigger(null)}>
                                                         Done
-                                                    </button>
+                                                    </LuxeButton>
                                                 </div>
                                             ) : (
                                                 <>
@@ -370,14 +353,12 @@ export default function CohortDetail() {
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-3 text-sm">
-                                                        <span className={cn(
-                                                            "px-2 py-1 border rounded font-medium",
-                                                            trigger.strength === 'high' ? "bg-neutral-900 text-white border-neutral-900" :
-                                                                trigger.strength === 'medium' ? "bg-neutral-100 text-neutral-900 border-neutral-200" :
-                                                                    "bg-white text-neutral-500 border-neutral-200"
-                                                        )}>
+                                                        <LuxeBadge variant={
+                                                            trigger.strength === 'high' ? 'dark' :
+                                                                trigger.strength === 'medium' ? 'neutral' : 'neutral'
+                                                        }>
                                                             {trigger.strength}
-                                                        </span>
+                                                        </LuxeBadge>
                                                         <span className="text-neutral-600 flex items-center gap-1">
                                                             <Clock className="w-3 h-3" />
                                                             {trigger.timing}
@@ -388,16 +369,16 @@ export default function CohortDetail() {
                                                     )}
                                                 </>
                                             )}
-                                        </div>
+                                        </LuxeCard>
                                     ))}
                                 </div>
-                            </div>
+                            </motion.div>
 
                             {/* Decision Criteria */}
-                            <div>
+                            <motion.div variants={fadeInUp}>
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
-                                        <h2 className="font-serif text-2xl text-neutral-900">Decision Criteria</h2>
+                                        <LuxeHeading level={3}>Decision Criteria</LuxeHeading>
                                         <p className="text-sm text-neutral-600">How they evaluate options (weights must sum to 1.0)</p>
                                         {!criteriaValid && (
                                             <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -406,35 +387,30 @@ export default function CohortDetail() {
                                             </p>
                                         )}
                                     </div>
-                                    <button
-                                        onClick={addDecisionCriterion}
-                                        className="flex items-center gap-2 px-4 py-2 border border-neutral-200 rounded-lg text-sm font-medium hover:bg-neutral-50"
-                                    >
-                                        <Plus className="w-4 h-4" />
+                                    <LuxeButton variant="secondary" size="sm" icon={Plus} onClick={addDecisionCriterion}>
                                         Add Criterion
-                                    </button>
+                                    </LuxeButton>
                                 </div>
 
                                 <div className="space-y-3">
                                     {cohort.decision_criteria.map((criterion) => (
-                                        <div key={criterion.id} className="bg-white border border-neutral-200 rounded-xl p-4 flex items-center gap-4">
+                                        <LuxeCard key={criterion.id} className="p-4 flex items-center gap-4">
                                             {editingCriterion === criterion.id ? (
                                                 <div className="flex-1 flex items-center gap-3">
-                                                    <input
-                                                        type="text"
+                                                    <LuxeInput
                                                         value={criterion.criterion}
                                                         onChange={(e) => updateDecisionCriterion(criterion.id, { criterion: e.target.value })}
                                                         placeholder="Criterion description"
-                                                        className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                                                        className="flex-1"
                                                         autoFocus
                                                     />
-                                                    <input
+                                                    <LuxeInput
                                                         type="number"
                                                         step="0.05"
                                                         value={criterion.weight}
                                                         onChange={(e) => updateDecisionCriterion(criterion.id, { weight: parseFloat(e.target.value) })}
                                                         placeholder="Weight"
-                                                        className="w-24 px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                                                        className="w-24"
                                                     />
                                                     <label className="flex items-center gap-2 text-sm">
                                                         <input
@@ -445,12 +421,9 @@ export default function CohortDetail() {
                                                         />
                                                         Deal Breaker
                                                     </label>
-                                                    <button
-                                                        onClick={() => setEditingCriterion(null)}
-                                                        className="px-3 py-2 bg-neutral-900 text-white rounded-lg text-sm font-medium"
-                                                    >
+                                                    <LuxeButton size="sm" onClick={() => setEditingCriterion(null)}>
                                                         Done
-                                                    </button>
+                                                    </LuxeButton>
                                                 </div>
                                             ) : (
                                                 <>
@@ -462,9 +435,7 @@ export default function CohortDetail() {
                                                         <div className="flex items-center gap-2">
                                                             <p className="font-medium text-neutral-900">{criterion.criterion}</p>
                                                             {criterion.deal_breaker && (
-                                                                <span className="px-1.5 py-0.5 bg-neutral-900 text-white text-[10px] font-bold uppercase tracking-wider rounded border border-neutral-900">
-                                                                    Deal Breaker
-                                                                </span>
+                                                                <LuxeBadge variant="dark">Deal Breaker</LuxeBadge>
                                                             )}
                                                         </div>
                                                     </div>
@@ -484,10 +455,10 @@ export default function CohortDetail() {
                                                     </div>
                                                 </>
                                             )}
-                                        </div>
+                                        </LuxeCard>
                                     ))}
                                 </div>
-                            </div>
+                            </motion.div>
                         </motion.div>
                     )}
 
@@ -495,67 +466,53 @@ export default function CohortDetail() {
                     {activeTab === 'objections' && (
                         <motion.div
                             key="objections"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            variants={fadeInUp}
+                            initial="hidden"
+                            animate="show"
+                            exit="hidden"
                             className="space-y-6"
                         >
                             <div className="flex items-center justify-between mb-4">
                                 <div>
-                                    <h2 className="font-serif text-2xl text-neutral-900">Objection Map</h2>
+                                    <LuxeHeading level={3}>Objection Map</LuxeHeading>
                                     <p className="text-sm text-neutral-600">Why they say no and how to respond</p>
                                 </div>
-                                <button
-                                    onClick={addObjection}
-                                    className="flex items-center gap-2 px-4 py-2 border border-neutral-200 rounded-lg text-sm font-medium hover:bg-neutral-50"
-                                >
-                                    <Plus className="w-4 h-4" />
+                                <LuxeButton variant="secondary" size="sm" icon={Plus} onClick={addObjection}>
                                     Add Objection
-                                </button>
+                                </LuxeButton>
                             </div>
 
                             <div className="grid grid-cols-1 gap-4">
                                 {cohort.objection_map.map((obj) => (
-                                    <div key={obj.id} className="bg-white border border-neutral-200 rounded-xl p-6">
+                                    <LuxeCard key={obj.id} className="p-6">
                                         {editingObjection === obj.id ? (
                                             <div className="space-y-4">
-                                                <input
-                                                    type="text"
+                                                <LuxeInput
                                                     value={obj.objection}
                                                     onChange={(e) => updateObjection(obj.id, { objection: e.target.value })}
                                                     placeholder="The Objection (e.g., Too expensive)"
-                                                    className="w-full px-4 py-2 border border-neutral-200 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-neutral-900"
                                                 />
                                                 <div className="grid grid-cols-2 gap-4">
-                                                    <input
-                                                        type="text"
+                                                    <LuxeInput
                                                         value={obj.root_cause}
                                                         onChange={(e) => updateObjection(obj.id, { root_cause: e.target.value })}
                                                         placeholder="Root Cause (e.g., Budget constraints)"
-                                                        className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
                                                     />
-                                                    <input
-                                                        type="text"
+                                                    <LuxeInput
                                                         value={obj.response_strategy}
                                                         onChange={(e) => updateObjection(obj.id, { response_strategy: e.target.value })}
                                                         placeholder="Response Strategy"
-                                                        className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
                                                     />
                                                 </div>
-                                                <button
-                                                    onClick={() => setEditingObjection(null)}
-                                                    className="w-full px-4 py-2 bg-neutral-900 text-white rounded-lg text-sm font-medium"
-                                                >
+                                                <LuxeButton size="sm" className="w-full" onClick={() => setEditingObjection(null)}>
                                                     Done
-                                                </button>
+                                                </LuxeButton>
                                             </div>
                                         ) : (
                                             <div className="flex items-start gap-6">
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <span className="px-2 py-1 bg-neutral-100 text-neutral-900 border border-neutral-200 text-[10px] uppercase font-bold tracking-wider rounded">
-                                                            Objection
-                                                        </span>
+                                                        <LuxeBadge variant="neutral">Objection</LuxeBadge>
                                                         <h3 className="font-serif text-lg text-neutral-900">{obj.objection}</h3>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-6 mt-4">
@@ -585,7 +542,7 @@ export default function CohortDetail() {
                                                 </div>
                                             </div>
                                         )}
-                                    </div>
+                                    </LuxeCard>
                                 ))}
                             </div>
                         </motion.div>
@@ -595,15 +552,16 @@ export default function CohortDetail() {
                     {activeTab === 'channels' && (
                         <motion.div
                             key="channels"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            variants={fadeInUp}
+                            initial="hidden"
+                            animate="show"
+                            exit="hidden"
                             className="space-y-6"
                         >
-                            <h2 className="font-serif text-2xl text-neutral-900 mb-4">Attention Windows</h2>
+                            <LuxeHeading level={3} className="mb-4">Attention Windows</LuxeHeading>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {cohort.attention_windows.map((window, i) => (
-                                    <div key={i} className="bg-white border border-neutral-200 rounded-xl p-6">
+                                    <LuxeCard key={i} className="p-6">
                                         <div className="flex items-center justify-between mb-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center">
@@ -614,13 +572,9 @@ export default function CohortDetail() {
                                                     <p className="text-xs text-neutral-500">{window.frequency_tolerance}</p>
                                                 </div>
                                             </div>
-                                            <span className={cn(
-                                                "px-2 py-1 text-xs rounded border font-medium",
-                                                window.receptivity === 'high' ? "bg-neutral-900 text-white border-neutral-900" :
-                                                    "bg-neutral-100 text-neutral-900 border-neutral-200"
-                                            )}>
+                                            <LuxeBadge variant={window.receptivity === 'high' ? 'dark' : 'neutral'}>
                                                 {window.receptivity.toUpperCase()} Receptivity
-                                            </span>
+                                            </LuxeBadge>
                                         </div>
                                         <div className="space-y-2">
                                             <p className="text-xs text-neutral-500 uppercase tracking-wider">Best Times</p>
@@ -632,7 +586,7 @@ export default function CohortDetail() {
                                                 ))}
                                             </div>
                                         </div>
-                                    </div>
+                                    </LuxeCard>
                                 ))}
                             </div>
                         </motion.div>
@@ -642,9 +596,10 @@ export default function CohortDetail() {
                     {activeTab === 'competitive' && (
                         <motion.div
                             key="competitive"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            variants={fadeInUp}
+                            initial="hidden"
+                            animate="show"
+                            exit="hidden"
                             className="text-center py-12"
                         >
                             <Target className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
@@ -657,13 +612,14 @@ export default function CohortDetail() {
                     {activeTab === 'journey' && (
                         <motion.div
                             key="journey"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            variants={fadeInUp}
+                            initial="hidden"
+                            animate="show"
+                            exit="hidden"
                             className="space-y-8"
                         >
                             <div>
-                                <h2 className="font-serif text-2xl text-neutral-900 mb-2">Journey Distribution</h2>
+                                <LuxeHeading level={3} className="mb-2">Journey Distribution</LuxeHeading>
                                 <p className="text-neutral-600 mb-6">Where are they in the buying journey?</p>
 
                                 {!journeyValid && (
@@ -673,7 +629,7 @@ export default function CohortDetail() {
                                     </div>
                                 )}
 
-                                <div className="bg-white border border-neutral-200 rounded-xl p-6">
+                                <LuxeCard className="p-6">
                                     <div className="flex h-12 rounded-lg overflow-hidden mb-6">
                                         {Object.entries(cohort.journey_distribution).map(([stage, value]) => {
                                             const stageInfo = JOURNEY_STAGES.find(s => s.id === stage);
@@ -697,20 +653,19 @@ export default function CohortDetail() {
                                                 </label>
                                                 <div className="flex items-center gap-2">
                                                     <div className={cn("w-3 h-3 rounded-full", stage.color)} />
-                                                    <input
+                                                    <LuxeInput
                                                         type="number"
                                                         step="0.05"
                                                         min="0"
                                                         max="1"
                                                         value={cohort.journey_distribution[stage.id]}
                                                         onChange={(e) => updateJourneyDistribution(stage.id, parseFloat(e.target.value))}
-                                                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
                                                     />
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
-                                </div>
+                                </LuxeCard>
                             </div>
                         </motion.div>
                     )}
@@ -719,9 +674,10 @@ export default function CohortDetail() {
                     {activeTab === 'health' && (
                         <motion.div
                             key="health"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            variants={fadeInUp}
+                            initial="hidden"
+                            animate="show"
+                            exit="hidden"
                             className="text-center py-12"
                         >
                             <TrendingUp className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
@@ -731,6 +687,6 @@ export default function CohortDetail() {
                     )}
                 </AnimatePresence>
             </div>
-        </div>
+        </motion.div>
     );
 }

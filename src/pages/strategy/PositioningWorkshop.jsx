@@ -3,17 +3,9 @@
  * 
  * Strategic foundation for all marketing activities.
  * Helps users define their positioning statement and message architecture.
- * 
- * Flow:
- * 1. Select target cohort
- * 2. Define problem/desire
- * 3. Craft category frame and differentiator
- * 4. Establish reason to believe
- * 5. Identify competitive alternative
- * 6. Generate message architecture
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -21,21 +13,19 @@ import {
     Users,
     Zap,
     Shield,
-    TrendingUp,
     ArrowRight,
     ArrowLeft,
-    Plus,
     Save,
     Sparkles,
     CheckCircle2,
-    AlertCircle,
     Lightbulb,
     MessageSquare,
-    Award,
-    X
+    Award
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { generatePositioning, generateMessageArchitecture } from '../../lib/services/cohortService';
+import { LuxeHeading, LuxeButton, LuxeCard, LuxeInput, LuxeBadge } from '../../components/ui/PremiumUI';
+import { pageTransition, fadeInUp } from '../../utils/animations';
 
 // =============================================================================
 // CONSTANTS & MOCK DATA
@@ -104,9 +94,6 @@ export default function PositioningWorkshop() {
     const [messageArchitecture, setMessageArchitecture] = useState(null);
     const [generating, setGenerating] = useState(false);
     const [saving, setSaving] = useState(false);
-
-    // UI state
-    const [showAISuggestions, setShowAISuggestions] = useState(false);
 
     // Validation
     const stepValidation = {
@@ -180,22 +167,27 @@ export default function PositioningWorkshop() {
     // ==========================================================================
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white">
+        <motion.div
+            className="min-h-screen bg-neutral-50"
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={pageTransition}
+        >
             {/* Header */}
             <div className="border-b border-neutral-200 bg-white sticky top-0 z-20">
                 <div className="max-w-5xl mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-4">
                             <Link
                                 to="/strategy"
                                 className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors"
                             >
                                 <ArrowLeft className="w-4 h-4" />
-                                <span className="text-sm">Back</span>
                             </Link>
                             <div className="h-6 w-px bg-neutral-200" />
                             <div>
-                                <h1 className="font-serif text-xl text-black">Positioning Workshop</h1>
+                                <LuxeHeading level={4} className="text-lg">Positioning Workshop</LuxeHeading>
                                 <p className="text-xs text-neutral-500">
                                     Step {currentStep} of {totalSteps}
                                 </p>
@@ -215,20 +207,19 @@ export default function PositioningWorkshop() {
                             </div>
 
                             {generatedPositioning && (
-                                <button
+                                <LuxeButton
                                     onClick={handleSave}
-                                    disabled={saving}
-                                    className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white rounded-lg text-sm font-medium hover:bg-neutral-800"
+                                    isLoading={saving}
+                                    icon={Save}
                                 >
-                                    <Save className="w-4 h-4" />
-                                    {saving ? 'Saving...' : 'Save Positioning'}
-                                </button>
+                                    Save Positioning
+                                </LuxeButton>
                             )}
                         </div>
                     </div>
 
                     {/* Step indicators */}
-                    <div className="flex gap-1 mt-4">
+                    <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
                         {[
                             { step: 1, label: 'Cohort', icon: Users },
                             { step: 2, label: 'Problem', icon: Target },
@@ -242,12 +233,12 @@ export default function PositioningWorkshop() {
                                 onClick={() => step <= currentStep && setCurrentStep(step)}
                                 disabled={step > currentStep}
                                 className={cn(
-                                    "flex-1 py-2 px-3 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5",
+                                    "flex-1 py-2 px-3 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap",
                                     currentStep === step
-                                        ? "bg-neutral-900 text-white"
+                                        ? "bg-neutral-900 text-white shadow-md"
                                         : stepValidation[step]
-                                            ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                            : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200 disabled:hover:bg-neutral-100"
+                                            ? "bg-green-50 text-green-700 border border-green-200"
+                                            : "bg-transparent text-neutral-500 hover:bg-neutral-100 disabled:hover:bg-transparent"
                                 )}
                             >
                                 <Icon className="w-3 h-3" />
@@ -265,32 +256,33 @@ export default function PositioningWorkshop() {
                     {currentStep === 1 && (
                         <motion.div
                             key="step1"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            variants={fadeInUp}
+                            initial="hidden"
+                            animate="show"
+                            exit="hidden"
                             className="space-y-6"
                         >
                             <div>
-                                <h2 className="font-serif text-2xl text-neutral-900 mb-2">Select Target Cohort</h2>
+                                <LuxeHeading level={2}>Select Target Cohort</LuxeHeading>
                                 <p className="text-neutral-600">Who is this positioning for?</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {MOCK_COHORTS.map((cohort) => (
-                                    <button
+                                    <LuxeCard
                                         key={cohort.id}
                                         onClick={() => updatePositioning({ cohort_id: cohort.id })}
                                         className={cn(
-                                            "text-left p-6 rounded-xl border-2 transition-all",
+                                            "cursor-pointer transition-all",
                                             positioning.cohort_id === cohort.id
-                                                ? "border-neutral-900 bg-neutral-50"
-                                                : "border-neutral-200 hover:border-neutral-300"
+                                                ? "ring-2 ring-neutral-900 bg-neutral-50"
+                                                : "hover:border-neutral-400"
                                         )}
                                     >
                                         <div className="flex items-center justify-between mb-3">
                                             <h3 className="font-semibold text-neutral-900">{cohort.name}</h3>
                                             {positioning.cohort_id === cohort.id && (
-                                                <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                                <CheckCircle2 className="w-5 h-5 text-neutral-900" />
                                             )}
                                         </div>
                                         <p className="text-sm text-neutral-600 mb-3">{cohort.description}</p>
@@ -300,7 +292,7 @@ export default function PositioningWorkshop() {
                                                 <p key={i} className="text-xs text-neutral-700">• {pain}</p>
                                             ))}
                                         </div>
-                                    </button>
+                                    </LuxeCard>
                                 ))}
                             </div>
                         </motion.div>
@@ -310,17 +302,18 @@ export default function PositioningWorkshop() {
                     {currentStep === 2 && (
                         <motion.div
                             key="step2"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            variants={fadeInUp}
+                            initial="hidden"
+                            animate="show"
+                            exit="hidden"
                             className="space-y-6"
                         >
                             <div>
-                                <h2 className="font-serif text-2xl text-neutral-900 mb-2">Define the Problem or Desire</h2>
+                                <LuxeHeading level={2}>Define the Problem or Desire</LuxeHeading>
                                 <p className="text-neutral-600">What problem are they trying to solve? What do they want to achieve?</p>
                             </div>
 
-                            <div className="bg-white border border-neutral-200 rounded-xl p-6">
+                            <LuxeCard className="p-6">
                                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                                     Problem/Desire Statement
                                 </label>
@@ -329,12 +322,12 @@ export default function PositioningWorkshop() {
                                     onChange={(e) => updatePositioning({ problem_desire: e.target.value })}
                                     placeholder="e.g., 'struggle with scattered marketing activities that don't ladder up to strategic goals'"
                                     rows={4}
-                                    className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
+                                    className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none bg-neutral-50/50"
                                 />
                                 <p className="text-xs text-neutral-500 mt-2">
                                     Tip: Be specific about their pain or aspiration. Use their language.
                                 </p>
-                            </div>
+                            </LuxeCard>
 
                             {positioning.cohort_id && (
                                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
@@ -357,31 +350,28 @@ export default function PositioningWorkshop() {
                     {currentStep === 3 && (
                         <motion.div
                             key="step3"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            variants={fadeInUp}
+                            initial="hidden"
+                            animate="show"
+                            exit="hidden"
                             className="space-y-6"
                         >
                             <div>
-                                <h2 className="font-serif text-2xl text-neutral-900 mb-2">Define Your Category Frame</h2>
+                                <LuxeHeading level={2}>Define Your Category Frame</LuxeHeading>
                                 <p className="text-neutral-600">What category do you want to own in their mind?</p>
                             </div>
 
-                            <div className="bg-white border border-neutral-200 rounded-xl p-6">
-                                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                    Category Frame
-                                </label>
-                                <input
-                                    type="text"
+                            <LuxeCard className="p-6">
+                                <LuxeInput
+                                    label="Category Frame"
                                     value={positioning.category_frame}
                                     onChange={(e) => updatePositioning({ category_frame: e.target.value })}
                                     placeholder="e.g., 'the strategic marketing command center'"
-                                    className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900"
                                 />
-                                <p className="text-xs text-neutral-500 mt-2">
+                                <p className="text-xs text-neutral-500 mt-2 ml-1">
                                     Tip: This should be a category you can own, not a commodity category.
                                 </p>
-                            </div>
+                            </LuxeCard>
 
                             <div>
                                 <h3 className="text-sm font-medium text-neutral-700 mb-3">Suggestions</h3>
@@ -391,10 +381,10 @@ export default function PositioningWorkshop() {
                                             key={i}
                                             onClick={() => updatePositioning({ category_frame: frame })}
                                             className={cn(
-                                                "text-left p-4 rounded-lg border-2 transition-all",
+                                                "text-left p-4 rounded-xl border transition-all",
                                                 positioning.category_frame === frame
-                                                    ? "border-neutral-900 bg-neutral-50"
-                                                    : "border-neutral-200 hover:border-neutral-300"
+                                                    ? "border-neutral-900 bg-neutral-50 ring-1 ring-neutral-900"
+                                                    : "border-neutral-200 hover:border-neutral-400 bg-white"
                                             )}
                                         >
                                             <p className="text-sm text-neutral-900">{frame}</p>
@@ -409,17 +399,18 @@ export default function PositioningWorkshop() {
                     {currentStep === 4 && (
                         <motion.div
                             key="step4"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            variants={fadeInUp}
+                            initial="hidden"
+                            animate="show"
+                            exit="hidden"
                             className="space-y-6"
                         >
                             <div>
-                                <h2 className="font-serif text-2xl text-neutral-900 mb-2">Define Your Key Differentiator</h2>
+                                <LuxeHeading level={2}>Define Your Key Differentiator</LuxeHeading>
                                 <p className="text-neutral-600">What makes you different from alternatives?</p>
                             </div>
 
-                            <div className="bg-white border border-neutral-200 rounded-xl p-6">
+                            <LuxeCard className="p-6">
                                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                                     Differentiator
                                 </label>
@@ -428,12 +419,12 @@ export default function PositioningWorkshop() {
                                     onChange={(e) => updatePositioning({ differentiator: e.target.value })}
                                     placeholder="e.g., 'that turns scattered activities into coordinated campaigns'"
                                     rows={3}
-                                    className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
+                                    className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none bg-neutral-50/50"
                                 />
                                 <p className="text-xs text-neutral-500 mt-2">
                                     Tip: Focus on the unique mechanism or approach, not just features.
                                 </p>
-                            </div>
+                            </LuxeCard>
 
                             <div>
                                 <h3 className="text-sm font-medium text-neutral-700 mb-3">Suggestions</h3>
@@ -443,10 +434,10 @@ export default function PositioningWorkshop() {
                                             key={i}
                                             onClick={() => updatePositioning({ differentiator: diff })}
                                             className={cn(
-                                                "w-full text-left p-4 rounded-lg border-2 transition-all",
+                                                "w-full text-left p-4 rounded-xl border transition-all",
                                                 positioning.differentiator === diff
-                                                    ? "border-neutral-900 bg-neutral-50"
-                                                    : "border-neutral-200 hover:border-neutral-300"
+                                                    ? "border-neutral-900 bg-neutral-50 ring-1 ring-neutral-900"
+                                                    : "border-neutral-200 hover:border-neutral-400 bg-white"
                                             )}
                                         >
                                             <p className="text-sm text-neutral-900">{diff}</p>
@@ -461,18 +452,19 @@ export default function PositioningWorkshop() {
                     {currentStep === 5 && (
                         <motion.div
                             key="step5"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            variants={fadeInUp}
+                            initial="hidden"
+                            animate="show"
+                            exit="hidden"
                             className="space-y-6"
                         >
                             <div>
-                                <h2 className="font-serif text-2xl text-neutral-900 mb-2">Establish Proof & Alternative</h2>
+                                <LuxeHeading level={2}>Establish Proof & Alternative</LuxeHeading>
                                 <p className="text-neutral-600">Why should they believe you? What are they comparing you to?</p>
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div className="bg-white border border-neutral-200 rounded-xl p-6">
+                                <LuxeCard className="p-6">
                                     <label className="block text-sm font-medium text-neutral-700 mb-2">
                                         Reason to Believe
                                     </label>
@@ -481,14 +473,14 @@ export default function PositioningWorkshop() {
                                         onChange={(e) => updatePositioning({ reason_to_believe: e.target.value })}
                                         placeholder="e.g., 'because we combine AI-powered cohort intelligence with battle-tested frameworks'"
                                         rows={4}
-                                        className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
+                                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none bg-neutral-50/50"
                                     />
                                     <p className="text-xs text-neutral-500 mt-2">
                                         What proof do you have? What makes your claim credible?
                                     </p>
-                                </div>
+                                </LuxeCard>
 
-                                <div className="bg-white border border-neutral-200 rounded-xl p-6">
+                                <LuxeCard className="p-6">
                                     <label className="block text-sm font-medium text-neutral-700 mb-2">
                                         Competitive Alternative
                                     </label>
@@ -497,17 +489,17 @@ export default function PositioningWorkshop() {
                                         onChange={(e) => updatePositioning({ competitive_alternative: e.target.value })}
                                         placeholder="e.g., 'generic marketing automation tools that just send emails'"
                                         rows={4}
-                                        className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
+                                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none bg-neutral-50/50"
                                     />
                                     <p className="text-xs text-neutral-500 mt-2">
                                         What do they use now? What are they comparing you to?
                                     </p>
-                                </div>
+                                </LuxeCard>
                             </div>
 
-                            <div className="bg-white border border-neutral-200 rounded-xl p-6">
+                            <LuxeCard className="p-6 bg-white border-neutral-200">
                                 <h3 className="font-semibold text-neutral-900 mb-4">Preview Positioning Statement</h3>
-                                <div className="bg-neutral-50 rounded-lg p-6">
+                                <div className="bg-neutral-50 rounded-xl p-6 border border-neutral-100">
                                     <p className="font-serif text-lg text-neutral-900 leading-relaxed">
                                         For <span className="font-semibold">{MOCK_COHORTS.find(c => c.id === positioning.cohort_id)?.name || '[cohort]'}</span>{' '}
                                         who <span className="font-semibold">{positioning.problem_desire || '[problem/desire]'}</span>,{' '}
@@ -519,24 +511,16 @@ export default function PositioningWorkshop() {
                                     </p>
                                 </div>
 
-                                <button
+                                <LuxeButton
                                     onClick={handleGenerate}
                                     disabled={!stepValidation[5] || generating}
-                                    className="w-full mt-6 flex items-center justify-center gap-2 px-6 py-3 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    isLoading={generating}
+                                    className="w-full mt-6"
+                                    icon={Sparkles}
                                 >
-                                    {generating ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                            Generating Message Architecture...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Sparkles className="w-5 h-5" />
-                                            Generate Message Architecture
-                                        </>
-                                    )}
-                                </button>
-                            </div>
+                                    Generate Message Architecture
+                                </LuxeButton>
+                            </LuxeCard>
                         </motion.div>
                     )}
 
@@ -544,18 +528,19 @@ export default function PositioningWorkshop() {
                     {currentStep === 6 && messageArchitecture && (
                         <motion.div
                             key="step6"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
+                            variants={fadeInUp}
+                            initial="hidden"
+                            animate="show"
+                            exit="hidden"
                             className="space-y-6"
                         >
                             <div>
-                                <h2 className="font-serif text-2xl text-neutral-900 mb-2">Message Architecture</h2>
+                                <LuxeHeading level={2}>Message Architecture</LuxeHeading>
                                 <p className="text-neutral-600">Your strategic messaging framework</p>
                             </div>
 
                             {/* Positioning Statement */}
-                            <div className="bg-neutral-900 text-white rounded-xl p-6">
+                            <div className="bg-neutral-900 text-white rounded-xl p-8 shadow-xl">
                                 <h3 className="text-xs uppercase tracking-wider text-neutral-400 mb-3">Positioning Statement</h3>
                                 <p className="font-serif text-xl leading-relaxed">
                                     {generatedPositioning?.full_statement}
@@ -563,66 +548,58 @@ export default function PositioningWorkshop() {
                             </div>
 
                             {/* Primary Claim */}
-                            <div className="bg-white border border-neutral-200 rounded-xl p-6">
+                            <LuxeCard className="p-8 border-l-4 border-l-neutral-900">
                                 <h3 className="text-xs uppercase tracking-wider text-neutral-500 mb-3">Primary Claim</h3>
-                                <p className="font-serif text-2xl text-neutral-900">
+                                <p className="font-serif text-3xl text-neutral-900">
                                     {messageArchitecture.primary_claim}
                                 </p>
-                                <p className="text-sm text-neutral-600 mt-2">
+                                <p className="text-sm text-neutral-600 mt-4">
                                     This is the ONE thing you want them to believe. Every piece of content should ladder up to this.
                                 </p>
-                            </div>
+                            </LuxeCard>
 
                             {/* Proof Points */}
                             <div>
                                 <h3 className="font-semibold text-neutral-900 mb-4">Proof Points</h3>
                                 <div className="space-y-4">
                                     {messageArchitecture.proof_points.map((pp, i) => (
-                                        <div key={i} className="bg-white border border-neutral-200 rounded-xl p-6">
+                                        <LuxeCard key={i} className="p-6">
                                             <div className="flex items-start justify-between mb-3">
                                                 <div>
                                                     <span className="text-xs text-neutral-500">Proof Point {i + 1}</span>
                                                     <h4 className="font-semibold text-neutral-900 mt-1">{pp.claim}</h4>
                                                 </div>
-                                                <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                                                <LuxeBadge variant="info">
                                                     {pp.for_journey_stage?.replace('_', ' ')}
-                                                </span>
+                                                </LuxeBadge>
                                             </div>
                                             <p className="text-sm text-neutral-600 mb-2">{pp.evidence}</p>
                                             <div className="flex items-center gap-2 text-sm text-neutral-500">
                                                 <MessageSquare className="w-4 h-4" />
                                                 <span className="italic">"{pp.emotional_hook}"</span>
                                             </div>
-                                        </div>
+                                        </LuxeCard>
                                     ))}
                                 </div>
                             </div>
 
                             {/* Actions */}
-                            <div className="flex gap-3">
-                                <button
+                            <div className="flex gap-3 pt-4">
+                                <LuxeButton
+                                    variant="secondary"
                                     onClick={() => setCurrentStep(5)}
-                                    className="flex-1 px-6 py-3 border border-neutral-200 rounded-lg font-medium hover:bg-neutral-50"
+                                    className="flex-1"
                                 >
                                     Refine Positioning
-                                </button>
-                                <button
+                                </LuxeButton>
+                                <LuxeButton
                                     onClick={handleSave}
-                                    disabled={saving}
-                                    className="flex-1 px-6 py-3 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 flex items-center justify-center gap-2"
+                                    isLoading={saving}
+                                    className="flex-1"
+                                    icon={Save}
                                 >
-                                    {saving ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="w-5 h-5" />
-                                            Save & Continue
-                                        </>
-                                    )}
-                                </button>
+                                    Save & Continue
+                                </LuxeButton>
                             </div>
                         </motion.div>
                     )}
@@ -631,28 +608,27 @@ export default function PositioningWorkshop() {
                 {/* Navigation */}
                 {currentStep < 6 && (
                     <div className="flex justify-between mt-8 pt-6 border-t border-neutral-200">
-                        <button
+                        <LuxeButton
+                            variant="ghost"
                             onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
                             disabled={currentStep === 1}
-                            className="flex items-center gap-2 px-4 py-2 text-neutral-600 hover:text-neutral-900 disabled:opacity-50 disabled:hover:text-neutral-600"
+                            icon={ArrowLeft}
                         >
-                            <ArrowLeft className="w-4 h-4" />
                             Previous
-                        </button>
+                        </LuxeButton>
 
                         {currentStep < 5 && (
-                            <button
+                            <LuxeButton
                                 onClick={() => setCurrentStep(prev => Math.min(totalSteps, prev + 1))}
                                 disabled={!canProceed}
-                                className="flex items-center gap-2 px-6 py-2 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 disabled:opacity-50"
+                                icon={ArrowRight}
                             >
                                 Next
-                                <ArrowRight className="w-4 h-4" />
-                            </button>
+                            </LuxeButton>
                         )}
                     </div>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 }

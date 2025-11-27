@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
-  ArrowLeft, 
-  Users, 
-  Target, 
+import {
+  ArrowLeft,
+  Users,
+  Target,
   TrendingUp,
   Plus,
   Calendar,
@@ -12,12 +12,14 @@ import {
 } from 'lucide-react'
 import { cn } from '../utils/cn'
 import MoveCard from '../components/moves/MoveCard'
-import { 
-  createMove, 
+import {
+  createMove,
   generateMockManeuverTypes,
   MoveStatus,
   Posture
 } from '../utils/moveSystemTypes'
+import { LuxeHeading, LuxeButton, LuxeCard, LuxeBadge } from '../components/ui/PremiumUI'
+import { pageTransition, fadeInUp, staggerContainer } from '../utils/animations'
 
 // Mock cohort data
 const mockCohort = {
@@ -106,63 +108,71 @@ export default function CohortsMoves() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <motion.div
+      className="space-y-8 animate-fade-in p-6 max-w-7xl mx-auto"
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={pageTransition}
+    >
       {/* Header */}
-      <div className="runway-card p-6">
-        <div className="flex items-start gap-4 mb-6">
-          <Link
-            to="/cohorts"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-neutral-700 hover:bg-white transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <Users className="w-6 h-6 text-neutral-700" />
-              <span className="micro-label tracking-[0.5em]">Cohort Moves</span>
+      <motion.div variants={fadeInUp}>
+        <LuxeCard className="p-6">
+          <div className="flex items-start gap-4 mb-6">
+            <Link
+              to="/cohorts"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-neutral-700 hover:bg-neutral-50 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <Users className="w-6 h-6 text-neutral-700" />
+                <span className="text-xs font-mono font-medium uppercase tracking-[0.5em] text-neutral-400">Cohort Moves</span>
+              </div>
+              <LuxeHeading level={1}>{cohort.name}</LuxeHeading>
+              <p className="text-sm text-neutral-600 mt-2">{cohort.description}</p>
             </div>
-            <h1 className="font-serif text-3xl md:text-4xl text-black leading-tight mb-2">
-              {cohort.name}
-            </h1>
-            <p className="text-sm text-neutral-600">{cohort.description}</p>
           </div>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-neutral-200">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Total Moves</p>
-            <p className="text-2xl font-bold text-neutral-900">{totalMoves}</p>
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-neutral-200">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Total Moves</p>
+              <p className="text-2xl font-bold text-neutral-900">{totalMoves}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Active</p>
+              <p className="text-2xl font-bold text-blue-600">{activeMoves}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Complete</p>
+              <p className="text-2xl font-bold text-green-600">{completeMoves}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Success Rate</p>
+              <p className="text-2xl font-bold text-neutral-900">
+                {totalMoves > 0 ? Math.round((completeMoves / totalMoves) * 100) : 0}%
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Active</p>
-            <p className="text-2xl font-bold text-blue-600">{activeMoves}</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Complete</p>
-            <p className="text-2xl font-bold text-green-600">{completeMoves}</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Success Rate</p>
-            <p className="text-2xl font-bold text-neutral-900">
-              {totalMoves > 0 ? Math.round((completeMoves / totalMoves) * 100) : 0}%
-            </p>
-          </div>
-        </div>
-      </div>
+        </LuxeCard>
+      </motion.div>
 
       {/* Posture Distribution */}
-      <div className="runway-card p-6">
-        <h2 className="text-lg font-bold text-neutral-900 mb-4">Posture Distribution</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {Object.entries(postureDistribution).map(([posture, count]) => (
-            <div key={posture} className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-              <p className="text-xs text-neutral-600 mb-1">{posture}</p>
-              <p className="text-2xl font-bold text-neutral-900">{count}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <motion.div variants={fadeInUp}>
+        <LuxeCard className="p-6">
+          <h2 className="text-lg font-bold text-neutral-900 mb-4">Posture Distribution</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Object.entries(postureDistribution).map(([posture, count]) => (
+              <div key={posture} className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
+                <p className="text-xs text-neutral-600 mb-1">{posture}</p>
+                <p className="text-2xl font-bold text-neutral-900">{count}</p>
+              </div>
+            ))}
+          </div>
+        </LuxeCard>
+      </motion.div>
 
       {/* Filters */}
       <div className="flex items-center gap-4">
@@ -175,112 +185,105 @@ export default function CohortsMoves() {
           <option value="active">Active</option>
           <option value="complete">Complete</option>
         </select>
-        <Link
-          to="/moves/library"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors"
+        <LuxeButton
+          onClick={() => { }} // TODO: Navigate to move library with cohort pre-selected
+          icon={Plus}
         >
-          <Plus className="w-4 h-4" />
           New Move for this cohort
-        </Link>
+        </LuxeButton>
       </div>
 
       {/* Moves Timeline */}
-      <div>
-        <h2 className="text-xl font-bold text-neutral-900 mb-4">Timeline</h2>
-        <div className="space-y-6">
-          {/* Past Moves */}
-          {filteredMoves.filter(m => m.status === MoveStatus.COMPLETE).length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-neutral-600 mb-3 uppercase tracking-[0.2em]">
-                Past Moves
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredMoves
-                  .filter(m => m.status === MoveStatus.COMPLETE)
-                  .map((move) => {
-                    const maneuverType = maneuverTypes.find(mt => mt.id === move.maneuver_type_id)
-                    return (
-                      <MoveCard
-                        key={move.id}
-                        move={move}
-                        maneuverType={maneuverType}
-                        cohort={cohort}
-                      />
-                    )
-                  })}
-              </div>
+      <motion.div variants={staggerContainer} className="space-y-6">
+        {/* Past Moves */}
+        {filteredMoves.filter(m => m.status === MoveStatus.COMPLETE).length > 0 && (
+          <motion.div variants={fadeInUp}>
+            <h3 className="text-sm font-medium text-neutral-600 mb-3 uppercase tracking-[0.2em]">
+              Past Moves
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredMoves
+                .filter(m => m.status === MoveStatus.COMPLETE)
+                .map((move) => {
+                  const maneuverType = maneuverTypes.find(mt => mt.id === move.maneuver_type_id)
+                  return (
+                    <MoveCard
+                      key={move.id}
+                      move={move}
+                      maneuverType={maneuverType}
+                      cohort={cohort}
+                    />
+                  )
+                })}
             </div>
-          )}
+          </motion.div>
+        )}
 
-          {/* Current Moves */}
-          {filteredMoves.filter(m => m.status.includes('OODA')).length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-neutral-600 mb-3 uppercase tracking-[0.2em]">
-                Current Moves
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredMoves
-                  .filter(m => m.status.includes('OODA'))
-                  .map((move) => {
-                    const maneuverType = maneuverTypes.find(mt => mt.id === move.maneuver_type_id)
-                    return (
-                      <MoveCard
-                        key={move.id}
-                        move={move}
-                        maneuverType={maneuverType}
-                        cohort={cohort}
-                      />
-                    )
-                  })}
-              </div>
+        {/* Current Moves */}
+        {filteredMoves.filter(m => m.status.includes('OODA')).length > 0 && (
+          <motion.div variants={fadeInUp}>
+            <h3 className="text-sm font-medium text-neutral-600 mb-3 uppercase tracking-[0.2em]">
+              Current Moves
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredMoves
+                .filter(m => m.status.includes('OODA'))
+                .map((move) => {
+                  const maneuverType = maneuverTypes.find(mt => mt.id === move.maneuver_type_id)
+                  return (
+                    <MoveCard
+                      key={move.id}
+                      move={move}
+                      maneuverType={maneuverType}
+                      cohort={cohort}
+                    />
+                  )
+                })}
             </div>
-          )}
+          </motion.div>
+        )}
 
-          {/* Planned Moves */}
-          {filteredMoves.filter(m => m.status === MoveStatus.PLANNING).length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-neutral-600 mb-3 uppercase tracking-[0.2em]">
-                Planned Moves
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredMoves
-                  .filter(m => m.status === MoveStatus.PLANNING)
-                  .map((move) => {
-                    const maneuverType = maneuverTypes.find(mt => mt.id === move.maneuver_type_id)
-                    return (
-                      <MoveCard
-                        key={move.id}
-                        move={move}
-                        maneuverType={maneuverType}
-                        cohort={cohort}
-                      />
-                    )
-                  })}
-              </div>
+        {/* Planned Moves */}
+        {filteredMoves.filter(m => m.status === MoveStatus.PLANNING).length > 0 && (
+          <motion.div variants={fadeInUp}>
+            <h3 className="text-sm font-medium text-neutral-600 mb-3 uppercase tracking-[0.2em]">
+              Planned Moves
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredMoves
+                .filter(m => m.status === MoveStatus.PLANNING)
+                .map((move) => {
+                  const maneuverType = maneuverTypes.find(mt => mt.id === move.maneuver_type_id)
+                  return (
+                    <MoveCard
+                      key={move.id}
+                      move={move}
+                      maneuverType={maneuverType}
+                      cohort={cohort}
+                    />
+                  )
+                })}
             </div>
-          )}
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </motion.div>
 
       {/* Empty State */}
       {filteredMoves.length === 0 && (
-        <div className="runway-card p-12 text-center">
+        <LuxeCard className="p-12 text-center">
           <Target className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
           <h3 className="text-lg font-bold text-neutral-900 mb-2">No moves for this cohort</h3>
           <p className="text-sm text-neutral-600 mb-6">
             Create your first move targeting this cohort
           </p>
-          <Link
-            to="/moves/library"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors"
+          <LuxeButton
+            onClick={() => { }} // TODO: Navigate to move library
+            icon={Plus}
           >
-            <Plus className="w-4 h-4" />
             Create Move
-          </Link>
-        </div>
+          </LuxeButton>
+        </LuxeCard>
       )}
-    </div>
+    </motion.div>
   )
 }
-
-
