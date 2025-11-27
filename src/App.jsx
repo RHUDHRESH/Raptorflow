@@ -30,11 +30,19 @@ import MuseRepurpose from './pages/muse/MuseRepurpose'
 import MuseHooks from './pages/muse/MuseHooks'
 import Matrix from './pages/Matrix'
 import Billing from './pages/Billing'
-import PositioningWorkshopLuxe from './pages/strategy/PositioningWorkshopLuxe'
+import PositioningWorkshop from './pages/strategy/PositioningWorkshop'
 import CampaignBuilderLuxe from './pages/strategy/CampaignBuilderLuxe'
 import CohortsEnhancedLuxe from './pages/strategy/CohortsEnhancedLuxe'
 import CohortDetail from './pages/strategy/CohortDetail'
 import Campaigns from './pages/Campaigns'
+// Council of Lords Dashboards - Phase 2A
+import ArchitectDashboard from './pages/strategy/ArchitectDashboard'
+import CognitionDashboard from './pages/strategy/CognitionDashboard'
+import StrategosDashboard from './pages/strategy/StrategosDashboard'
+import AestheteDashboard from './pages/strategy/AestheteDashboard'
+import SeerDashboard from './pages/strategy/SeerDashboard'
+import ArbiterDashboard from './pages/strategy/ArbiterDashboard'
+import HeraldDashboard from './pages/strategy/HeraldDashboard'
 
 
 function App() {
@@ -135,7 +143,7 @@ function App() {
             } />
             <Route path="/strategy/positioning" element={
               <ProtectedRoute>
-                <PositioningWorkshopLuxe />
+                <PositioningWorkshop />
               </ProtectedRoute>
             } />
             <Route path="/campaigns" element={
@@ -153,6 +161,43 @@ function App() {
             <Route path="/strategy/campaigns/:id" element={
               <ProtectedRoute>
                 <CampaignBuilderLuxe />
+              </ProtectedRoute>
+            } />
+
+            {/* Council of Lords Routes - Phase 2A */}
+            <Route path="/strategy/architect" element={
+              <ProtectedRoute>
+                <ArchitectDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/strategy/cognition" element={
+              <ProtectedRoute>
+                <CognitionDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/strategy/strategos" element={
+              <ProtectedRoute>
+                <StrategosDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/strategy/aesthete" element={
+              <ProtectedRoute>
+                <AestheteDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/strategy/seer" element={
+              <ProtectedRoute>
+                <SeerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/strategy/arbiter" element={
+              <ProtectedRoute>
+                <ArbiterDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/strategy/herald" element={
+              <ProtectedRoute>
+                <HeraldDashboard />
               </ProtectedRoute>
             } />
 
