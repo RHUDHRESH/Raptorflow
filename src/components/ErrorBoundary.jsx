@@ -43,10 +43,9 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <React.Suspense fallback={<div className="min-h-screen bg-black" />}>
-          <ArtisticError
+          <Error500
             error={this.state.error}
             resetErrorBoundary={this.handleReset}
-            code={500}
           />
         </React.Suspense>
       );
@@ -56,7 +55,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-const ArtisticError = React.lazy(() => import('./art/ArtisticError'));
+const Error500 = React.lazy(() => import('../pages/Error500'));
 
 export default ErrorBoundary;
 

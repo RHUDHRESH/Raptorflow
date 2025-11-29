@@ -204,6 +204,16 @@ class StrategySupervisor(BaseSupervisor):
             # TRACK: Prepare response with analytics hooks
             self.log("Strategy generation completed successfully")
 
+            # Publish completion event
+            await self.publish_event(
+                "agent.strategy.workflow_completed",
+                {
+                    "workspace_id": str(workspace_id),
+                    "goals": strategy_request.goals,
+                    "campaign_id": result["campaign"].get("id")
+                }
+            )
+
             return {
                 "success": True,
                 "strategy_id": result["campaign"].get("id"),

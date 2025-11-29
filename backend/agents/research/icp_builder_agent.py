@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import ValidationError
 
-from backend.agents.base_agent_enhanced import BaseAgentEnhanced
+from backend.agents.base_agent import BaseAgentEnhanced
 from backend.models.persona import Demographics, ICPResponse, Psychographics
 from backend.services.vertex_ai_client import vertex_ai_client
 from backend.utils.correlation import get_correlation_id
@@ -152,6 +152,17 @@ class ICPBuilderAgent(BaseAgentEnhanced):
                 "ICP built successfully",
                 success_score=success_score,
                 used_patterns=len(past_icps),
+            )
+
+            # Publish completion event
+            await self.publish_event(
+                "agent.research.icp_generated",
+                {
+                    "company_name": company_name,
+                    "industry": industry,
+                    "icp_name": icp_data.get("icp_name"),
+                    "confidence": icp_data.get("confidence")
+                }
             )
 
             return result

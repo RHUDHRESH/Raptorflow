@@ -31,6 +31,19 @@ class ContentMetadata(BaseModel):
     correlation_id: Optional[str] = None
 
 
+class OCRRequest(BaseModel):
+    """Request schema for OCR extraction."""
+    image_url: str = Field(..., description="URL of the image to process")
+    model_type: Optional[str] = Field(default="ocr", description="Model to use: 'ocr' (Mistral) or 'gemini'")
+
+
+class OCRResponse(BaseModel):
+    """Response for OCR extraction."""
+    text: str
+    confidence: Optional[float] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
 class BlogRequest(BaseModel):
     """Request schema for blog generation."""
 
@@ -541,4 +554,3 @@ class BrandVoiceProfile(BaseModel):
 
 # Update forward reference for ContentCalendar
 ContentCalendar.model_rebuild()
-

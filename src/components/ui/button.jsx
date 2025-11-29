@@ -1,4 +1,5 @@
 import React from 'react'
+import { cn } from '../../utils/cn'
 
 const Button = React.forwardRef(({
     className = '',
@@ -7,15 +8,15 @@ const Button = React.forwardRef(({
     disabled = false,
     ...props
 }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none'
+    const baseStyles = 'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none'
 
     const variants = {
-        default: 'bg-gray-900 text-white hover:bg-gray-800',
-        destructive: 'bg-red-600 text-white hover:bg-red-700',
-        outline: 'border border-gray-300 bg-transparent hover:bg-gray-100',
-        secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
-        ghost: 'hover:bg-gray-100 hover:text-gray-900',
-        link: 'underline-offset-4 hover:underline text-gray-900',
+        default: 'bg-neutral-900 text-white hover:bg-black shadow-sm',
+        destructive: 'bg-white text-red-600 border border-red-200 hover:bg-red-50',
+        outline: 'border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-900',
+        secondary: 'bg-neutral-100 text-neutral-900 hover:bg-neutral-200',
+        ghost: 'hover:bg-neutral-100 hover:text-neutral-900',
+        link: 'text-neutral-900 underline-offset-4 hover:underline',
     }
 
     const sizes = {
@@ -28,7 +29,7 @@ const Button = React.forwardRef(({
     return (
         <button
             ref={ref}
-            className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+            className={cn(baseStyles, variants[variant], sizes[size], className)}
             disabled={disabled}
             {...props}
         />

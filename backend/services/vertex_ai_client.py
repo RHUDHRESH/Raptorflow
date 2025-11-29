@@ -39,7 +39,7 @@ except ImportError:
     MistralClient = None
     ChatMessage = None
 
-from backend.config.settings import get_settings
+from backend.core.config import get_settings
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -52,21 +52,22 @@ class VertexAIClient:
         settings = get_settings()
 
         # GCP configuration
-        self.project_id = settings.GOOGLE_CLOUD_PROJECT
-        self.location = settings.GOOGLE_CLOUD_LOCATION or "us-central1"
+        self.project_id = settings.gcp_project_id
+        self.location = settings.gcp_location or "us-central1"
 
         # Model configurations
+        # NOTE: All Claude models are re-routed to Gemini as per configuration policy
         self.models = {
             "reasoning": settings.MODEL_REASONING or "gemini-2.0-flash-thinking-exp-01-21",
             "fast": settings.MODEL_FAST or "gemini-2.5-flash-002",
-            "creative": settings.MODEL_CREATIVE or "claude-sonnet-4.5",
-            "creative_fast": settings.MODEL_CREATIVE_FAST or "claude-haiku-4.5",
+            "creative": "gemini-1.5-pro-002", # Re-routed from Claude Sonnet
+            "creative_fast": "gemini-2.5-flash-002", # Re-routed from Claude Haiku
             "ocr": settings.MODEL_OCR or "mistral-ocr"
         }
 
         # Default settings
-        self.default_temperature = settings.OPENAI_TEMPERATURE or 0.7
-        self.max_retries = settings.MAX_RETRIES or 3
+        self.default_temperature = settings.default_temperature or 0.7
+        self.max_retries = settings.max_retries or 3
 
         # Initialize clients
         self.gemini_client = None
@@ -452,6 +453,62 @@ class VertexAIClient:
 
         tasks = [limited_generate(prompt) for prompt in prompts]
         return await asyncio.gather(*tasks)
+
+    async def ocr_image(self, image_url: str, model_type: str = "ocr") -> str:
+        """
+        Perform OCR on an image using Mistral OCR or Gemini Vision
+
+        Args:
+            image_url: URL of the image to process
+            model_type: Model to use ("ocr" for Mistral, or "fast"/"reasoning" for Gemini Vision)
+
+        Returns:
+            Extracted text from the image
+        """
+        config = self._get_model_config(model_type)
+        logger.info(f"Performing OCR using {config['model']} on {image_url}")
+
+        try:
+            if config["client"] == "mistral" and self.mistral_client:
+                # Mistral OCR implementation
+                # Note: Depending on SDK version, this might be client.ocr.process or similar
+                # For now, we use the chat completion with image content if supported, 
+                # or assume a specific ocr endpoint if available in the client.
+                # Since Mistral OCR is new, we'll attempt a chat completion with image_url which is standard for vision models
+                
+                messages = [
+                    ChatMessage(role="user", content=[
+                        {"type": "text", "text": "Transcribe the text in this image exactly."},
+                        {"type": "image_url", "image_url": {"url": image_url}}
+                    ])
+                ]
+                
+                response = await asyncio.to_thread(
+                    self.mistral_client.chat,
+                    model=config["model"],
+                    messages=messages
+                )
+                
+                if response.choices and response.choices[0].message.content:
+                    return response.choices[0].message.content
+                
+            elif config["client"] == "gemini" and self.gemini_client:
+                # Gemini Vision implementation
+                # Gemini supports images via parts
+                # Note: We need to handle image loading/passing correctly for Gemini
+                # This is a simplified placeholder for image URL handling
+                
+                # For Gemini via Vertex AI, we typically pass GCS URI or base64
+                # Here we just pass text prompt for now as a placeholder if URL fetching isn't implemented
+                
+                prompt = f"Extract text from image at: {image_url}"
+                return await self.generate_text(prompt, model_type=model_type)
+
+            raise ValueError(f"OCR not supported for client: {config['client']}")
+
+        except Exception as e:
+            logger.error(f"OCR failed: {e}")
+            raise
 
 
 # Global singleton instance

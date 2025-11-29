@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Send, Megaphone, FileText, BarChart3 } from 'lucide-react';
+import heraldApi from '../../api/herald';
 
 interface MetricCard {
   title: string;
@@ -135,34 +136,26 @@ const HeraldDashboard: React.FC = () => {
   const handleSendMessage = useCallback(async () => {
     setMessageSending(true);
     try {
-      const response = await fetch('/lords/herald/messages/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(messageForm),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
-          const newMessage: Message = {
-            message_id: result.data.message_id,
-            channel: messageForm.channel,
-            recipient: messageForm.recipient,
-            subject: messageForm.subject,
-            content: messageForm.content,
-            priority: messageForm.priority,
-            status: result.data.status,
-            created_at: new Date().toISOString(),
-          };
-          setMessages([newMessage, ...messages]);
-          setMessageForm({
-            channel: 'email',
-            recipient: '',
-            subject: '',
-            content: '',
-            priority: 'normal',
-          });
-        }
+      const result = await heraldApi.sendMessage(messageForm);
+      if (result.data) {
+        const newMessage: Message = {
+          message_id: result.data.message_id,
+          channel: messageForm.channel,
+          recipient: messageForm.recipient,
+          subject: messageForm.subject,
+          content: messageForm.content,
+          priority: messageForm.priority,
+          status: result.data.status,
+          created_at: new Date().toISOString(),
+        };
+        setMessages([newMessage, ...messages]);
+        setMessageForm({
+          channel: 'email',
+          recipient: '',
+          subject: '',
+          content: '',
+          priority: 'normal',
+        });
       }
     } catch (error) {
       console.error('Message sending error:', error);
@@ -174,36 +167,28 @@ const HeraldDashboard: React.FC = () => {
   // Schedule Announcement
   const handleScheduleAnnouncement = useCallback(async () => {
     try {
-      const response = await fetch('/lords/herald/announcements/schedule', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(announcementForm),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
-          const newAnnouncement: Announcement = {
-            announcement_id: result.data.announcement_id,
-            title: announcementForm.title,
-            content: announcementForm.content,
-            scope: announcementForm.scope,
-            channels: announcementForm.channels,
-            scheduled_at: announcementForm.scheduled_at,
-            status: result.data.status,
-            delivery_rate: 0,
-            open_rate: 0,
-          };
-          setAnnouncements([newAnnouncement, ...announcements]);
-          setAnnouncementForm({
-            title: '',
-            content: '',
-            scope: 'organization',
-            scope_id: '',
-            channels: ['email'],
-            scheduled_at: new Date().toISOString().slice(0, 16),
-          });
-        }
+      const result = await heraldApi.scheduleAnnouncement(announcementForm);
+      if (result.data) {
+        const newAnnouncement: Announcement = {
+          announcement_id: result.data.announcement_id,
+          title: announcementForm.title,
+          content: announcementForm.content,
+          scope: announcementForm.scope,
+          channels: announcementForm.channels,
+          scheduled_at: announcementForm.scheduled_at,
+          status: result.data.status,
+          delivery_rate: 0,
+          open_rate: 0,
+        };
+        setAnnouncements([newAnnouncement, ...announcements]);
+        setAnnouncementForm({
+          title: '',
+          content: '',
+          scope: 'organization',
+          scope_id: '',
+          channels: ['email'],
+          scheduled_at: new Date().toISOString().slice(0, 16),
+        });
       }
     } catch (error) {
       console.error('Announcement scheduling error:', error);
@@ -213,30 +198,22 @@ const HeraldDashboard: React.FC = () => {
   // Create Template
   const handleCreateTemplate = useCallback(async () => {
     try {
-      const response = await fetch('/lords/herald/templates/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(templateForm),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
-          const newTemplate: Template = {
-            template_id: result.data.template_id,
-            name: templateForm.name,
-            template_type: templateForm.template_type,
-            variables: templateForm.variables,
-          };
-          setTemplates([newTemplate, ...templates]);
-          setTemplateForm({
-            name: '',
-            template_type: 'campaign_announcement',
-            subject_template: '',
-            content_template: '',
-            variables: [],
-          });
-        }
+      const result = await heraldApi.createTemplate(templateForm);
+      if (result.data) {
+        const newTemplate: Template = {
+          template_id: result.data.template_id,
+          name: templateForm.name,
+          template_type: templateForm.template_type,
+          variables: templateForm.variables,
+        };
+        setTemplates([newTemplate, ...templates]);
+        setTemplateForm({
+          name: '',
+          template_type: 'campaign_announcement',
+          subject_template: '',
+          content_template: '',
+          variables: [],
+        });
       }
     } catch (error) {
       console.error('Template creation error:', error);
@@ -246,17 +223,9 @@ const HeraldDashboard: React.FC = () => {
   // Get Delivery Report
   const handleGetReport = useCallback(async () => {
     try {
-      const response = await fetch('/lords/herald/reporting/communication-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ period_days: 30 }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
-          setDeliveryMetrics(result.data);
-        }
+      const result = await heraldApi.getCommunicationReport({ period_days: 30 });
+      if (result.data) {
+        setDeliveryMetrics(result.data);
       }
     } catch (error) {
       console.error('Report generation error:', error);

@@ -14,17 +14,19 @@ from backend.services.supabase_client import supabase_client
 from backend.models.campaign import Task, Sprint
 from backend.utils.correlation import get_correlation_id
 from backend.utils.cache import redis_cache
+from backend.agents.base_agent import BaseAgent
 
 logger = structlog.get_logger(__name__)
 
 
-class SchedulerAgent:
+class SchedulerAgent(BaseAgent):
     """
     Optimizes content scheduling based on audience engagement patterns.
     Generates daily/weekly checklists for execution.
     """
     
     def __init__(self):
+        super().__init__(name="scheduler_agent")
         self.llm = vertex_ai_client
         # Default best times per platform (can be overridden by analytics)
         self.default_optimal_times = {
@@ -36,6 +38,88 @@ class SchedulerAgent:
             "email": ["08:00", "13:00"],  # Morning and post-lunch
         }
     
+    async def execute(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute scheduling tasks.
+        
+        Args:
+            payload: Dictionary containing:
+                - task_type: "get_optimal_times", "generate_checklist", "schedule_batch"
+                - workspace_id: UUID/str
+                - ... other params depending on task
+        """
+        try:
+            task_type = payload.get("task_type")
+            workspace_id_str = payload.get("workspace_id")
+            workspace_id = UUID(workspace_id_str) if workspace_id_str else None
+            correlation_id = payload.get("correlation_id")
+
+            self.log(f"Executing scheduler task: {task_type}", level="info")
+
+            if task_type == "get_optimal_times":
+                platform = payload.get("platform")
+                date_str = payload.get("date")
+                date = datetime.fromisoformat(date_str) if date_str else datetime.now()
+                count = payload.get("count", 1)
+                
+                times = await self.get_optimal_post_times(workspace_id, platform, date, count, correlation_id)
+                return {
+                    "status": "success",
+                    "result": [t.isoformat() for t in times],
+                    "metadata": {"count": len(times)}
+                }
+                
+            elif task_type == "generate_checklist":
+                move_id_str = payload.get("move_id")
+                move_id = UUID(move_id_str) if move_id_str else None
+                date_str = payload.get("date")
+                date = datetime.fromisoformat(date_str) if date_str else datetime.now()
+                
+                tasks = await self.generate_daily_checklist(workspace_id, move_id, date, correlation_id)
+                return {
+                    "status": "success",
+                    "result": [t.model_dump() for t in tasks],  # Assuming Task is Pydantic
+                    "metadata": {"count": len(tasks)}
+                }
+                
+            elif task_type == "schedule_batch":
+                move_id_str = payload.get("move_id")
+                move_id = UUID(move_id_str) if move_id_str else None
+                content_variants = payload.get("content_variants", [])
+                start_date_str = payload.get("start_date")
+                start_date = datetime.fromisoformat(start_date_str) if start_date_str else datetime.now()
+                end_date_str = payload.get("end_date")
+                end_date = datetime.fromisoformat(end_date_str) if end_date_str else datetime.now() + timedelta(days=7)
+                
+                schedule = await self.schedule_content_batch(
+                    workspace_id, move_id, content_variants, start_date, end_date, correlation_id
+                )
+                
+                await self.publish_event(
+                    "agent.execution.content_scheduled",
+                    {
+                        "workspace_id": str(workspace_id),
+                        "move_id": str(move_id),
+                        "items_scheduled": len(schedule)
+                    }
+                )
+                
+                return {
+                    "status": "success",
+                    "result": schedule,
+                    "metadata": {"count": len(schedule)}
+                }
+            
+            else:
+                raise ValueError(f"Unknown task_type: {task_type}")
+
+        except Exception as e:
+            self.log(f"Scheduler task failed: {str(e)}", level="error")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+
     async def get_optimal_post_times(
         self,
         workspace_id: UUID,
@@ -259,4 +343,3 @@ Output as JSON array: ["HH:MM", "HH:MM", ...]
 
 
 scheduler_agent = SchedulerAgent()
-

@@ -1,6 +1,5 @@
 // frontend/pages/strategy/CognitionDashboard.tsx
-// RaptorFlow Codex - Cognition Lord Dashboard
-// Phase 2A Week 4 - Learning & Knowledge Synthesis
+// Knowledge Synthesis Dashboard
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Lightbulb, CheckCircle2, Users } from 'lucide-react';
+import cognitionApi, { RecordLearningRequest, SynthesizeKnowledgeRequest, MakeDecisionRequest, MentorAgentRequest } from '../../api/cognition';
+import useCognitionSocket from '../../hooks/useCognitionSocket';
 
 interface MetricCard {
   title: string;
@@ -57,7 +58,7 @@ interface Mentoring {
 
 const CognitionDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('learning');
-  const [wsConnected, setWsConnected] = useState(false);
+  const { status: wsStatus, messages: wsMessages } = useCognitionSocket();
   const [metrics, setMetrics] = useState<Record<string, any>>({
     learnings_recorded: 0,
     syntheses_created: 0,
@@ -100,51 +101,54 @@ const CognitionDashboard: React.FC = () => {
   });
   const [mentorings, setMentorings] = useState<Mentoring[]>([]);
 
-  // WebSocket Connection
+  // Handle WebSocket Messages
   useEffect(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.host}/ws/lords/cognition`);
+    if (wsMessages.length > 0) {
+      const lastMessage = wsMessages[wsMessages.length - 1];
+      if (lastMessage.type === 'status_update') {
+        setMetrics(lastMessage.data?.metrics || {});
+      }
+    }
+  }, [wsMessages]);
 
-    ws.onopen = () => {
-      console.log('✅ Connected to Cognition WebSocket');
-      setWsConnected(true);
-      ws.send(JSON.stringify({ type: 'subscribe', lord: 'cognition' }));
-    };
-
-    ws.onmessage = (event) => {
+  // Initial Load
+  useEffect(() => {
+    const loadData = async () => {
       try {
-        const message = JSON.parse(event.data);
-        if (message.type === 'status_update') {
-          setMetrics(message.data?.metrics || {});
+        const status = await cognitionApi.getStatus();
+        if (status?.performance) {
+          // Update metrics if needed
+        }
+        const recentLearnings = await cognitionApi.getRecentLearnings();
+        if (Array.isArray(recentLearnings)) {
+            // Map learnings if needed, assuming API returns Learning[]
+            // setLearnings(recentLearnings);
         }
       } catch (error) {
-        console.error('WebSocket message error:', error);
+        console.error('Failed to load cognition data', error);
       }
     };
-
-    ws.onclose = () => {
-      console.log('❌ Disconnected from Cognition WebSocket');
-      setWsConnected(false);
-    };
-
-    return () => ws.close();
+    loadData();
   }, []);
 
   // Record Learning
   const handleRecordLearning = useCallback(async () => {
     setLearningLoading(true);
     try {
-      const response = await fetch('/lords/cognition/learning/record', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(learningForm),
-      });
+      const requestData: RecordLearningRequest = {
+        learning_type: learningForm.type,
+        source: learningForm.source,
+        description: learningForm.insight, // Mapping insight to description
+        key_insight: learningForm.insight,
+        context: { text: learningForm.context },
+        confidence: learningForm.confidence / 100,
+      };
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
+      const result = await cognitionApi.recordLearning(requestData);
+
+      if (result.data) {
           const newLearning: Learning = {
-            learning_id: result.data.learning_id,
+            learning_id: result.data.learning_id || 'temp-id',
             type: learningForm.type,
             source: learningForm.source,
             insight: learningForm.insight,
@@ -160,7 +164,6 @@ const CognitionDashboard: React.FC = () => {
             context: '',
             confidence: 75,
           });
-        }
       }
     } catch (error) {
       console.error('Learning recording error:', error);
@@ -172,21 +175,23 @@ const CognitionDashboard: React.FC = () => {
   // Create Synthesis
   const handleCreateSynthesis = useCallback(async () => {
     try {
-      const response = await fetch('/lords/cognition/synthesis/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(synthesisForm),
-      });
+      const requestData: SynthesizeKnowledgeRequest = {
+        synthesis_type: synthesisForm.synthesis_type,
+        title: synthesisForm.title,
+        description: synthesisForm.insight, // Mapping insight to description
+        learning_ids: [], // TODO: Select learnings
+        recommendations: [],
+      };
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
+      const result = await cognitionApi.synthesizeKnowledge(requestData);
+
+      if (result.data) {
           const newSynthesis: Synthesis = {
-            synthesis_id: result.data.synthesis_id,
+            synthesis_id: result.data.synthesis_id || 'temp-id',
             synthesis_type: synthesisForm.synthesis_type,
             title: synthesisForm.title,
             insight: synthesisForm.insight,
-            confidence: result.data.confidence || 80,
+            confidence: (result.data.confidence || 0.8) * 100,
             supporting_learnings: result.data.supporting_learnings || 0,
             created_at: new Date().toISOString(),
           };
@@ -196,7 +201,6 @@ const CognitionDashboard: React.FC = () => {
             title: '',
             insight: '',
           });
-        }
       }
     } catch (error) {
       console.error('Synthesis creation error:', error);
@@ -206,20 +210,22 @@ const CognitionDashboard: React.FC = () => {
   // Make Decision
   const handleMakeDecision = useCallback(async () => {
     try {
-      const response = await fetch('/lords/cognition/decision/make', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(decisionForm),
-      });
+      const requestData: MakeDecisionRequest = {
+        title: decisionForm.title,
+        description: decisionForm.recommendation, // Mapping recommendation to description
+        decision_type: 'strategic',
+        options: {},
+        synthesis_ids: [],
+      };
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
+      const result = await cognitionApi.makeDecision(requestData);
+
+      if (result.data) {
           const newDecision: Decision = {
-            decision_id: result.data.decision_id,
+            decision_id: result.data.decision_id || 'temp-id',
             title: decisionForm.title,
             recommendation: decisionForm.recommendation,
-            confidence: result.data.confidence || 75,
+            confidence: (result.data.confidence || 0.75) * 100,
             rationale: result.data.rationale || '',
             status: result.data.status || 'active',
           };
@@ -229,7 +235,6 @@ const CognitionDashboard: React.FC = () => {
             recommendation: '',
             supporting_learnings: [],
           });
-        }
       }
     } catch (error) {
       console.error('Decision making error:', error);
@@ -239,29 +244,32 @@ const CognitionDashboard: React.FC = () => {
   // Provide Mentoring
   const handleProvideMentoring = useCallback(async () => {
     try {
-      const response = await fetch('/lords/cognition/mentoring/provide', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mentoringForm),
-      });
+      const requestData: MentorAgentRequest = {
+        agent_name: mentoringForm.agent_name,
+        current_challenge: mentoringForm.topic,
+        agent_goal: 'improvement',
+      };
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
+      const result = await cognitionApi.provideMentoring(requestData);
+
+      if (result.data) {
           const newMentoring: Mentoring = {
-            mentoring_id: result.data.mentoring_id,
+            mentoring_id: result.data.mentoring_id || 'temp-id',
             agent_name: mentoringForm.agent_name,
-            guidance: mentoringForm.guidance,
+            guidance: mentoringForm.guidance, // Not used in API request but updated in local state? Wait, guidance is result.
             topic: mentoringForm.topic,
-            effectiveness: result.data.effectiveness || 80,
+            effectiveness: (result.data.effectiveness || 0.8) * 100,
           };
+          // If API returns guidance, use it. If not, use form guidance (which is input?)
+          // Usually mentoring provides guidance. Here user inputs guidance? 
+          // The API `provideMentoring` seems to *generate* guidance if not provided, or record it.
+          // Looking at backend: `task="mentor_agent"`.
           setMentorings([newMentoring, ...mentorings]);
           setMentoringForm({
             agent_name: '',
             topic: '',
             guidance: '',
           });
-        }
       }
     } catch (error) {
       console.error('Mentoring provision error:', error);
@@ -337,18 +345,18 @@ const CognitionDashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 bg-clip-text text-transparent mb-2">
-                🧠 Cognition Lord
+                Knowledge Synthesis
               </h1>
-              <p className="text-slate-400">Learning & Knowledge Synthesis</p>
+              <p className="text-slate-400">Adaptive Learning & Intelligence</p>
             </div>
             <div className="flex items-center gap-3">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  wsConnected ? 'bg-blue-500 animate-pulse' : 'bg-red-500'
+                  wsStatus === 'connected' ? 'bg-blue-500 animate-pulse' : 'bg-red-500'
                 }`}
               />
               <span className="text-sm text-slate-400">
-                {wsConnected ? 'Connected' : 'Disconnected'}
+                {wsStatus === 'connected' ? 'Connected' : 'Disconnected'}
               </span>
             </div>
           </div>

@@ -14,18 +14,36 @@ from backend.models.content import Hook
 from backend.models.persona import ICPProfile
 from backend.utils.correlation import get_correlation_id
 from backend.utils.cache import redis_cache
+from backend.agents.base_agent import BaseAgent
 
 logger = structlog.get_logger(__name__)
 
 
-class HookGeneratorAgent:
+class HookGeneratorAgent(BaseAgent):
     """
     Generates high-quality hooks (taglines, subject lines, ad openers) for marketing content.
     Uses creative_fast model (Claude Haiku) for rapid generation.
     """
     
     def __init__(self):
+        super().__init__(name="hook_generator")
         self.llm = vertex_ai_client
+
+    async def execute(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Standard execute method for BaseAgent compatibility.
+        """
+        topic = payload.get("topic")
+        icp_profile = payload.get("icp_profile") # Expects dict or object
+        hook_type = payload.get("hook_type", "tagline")
+        count = payload.get("count", 5)
+        
+        # Convert dict to ICPProfile if needed
+        if isinstance(icp_profile, dict):
+            icp_profile = ICPProfile(**icp_profile)
+            
+        hooks = await self.generate_hooks(topic, icp_profile, hook_type, count)
+        return {"hooks": [h.model_dump() for h in hooks]}
     
     async def generate_hooks(
         self,
@@ -147,6 +165,15 @@ Output as JSON array:
             await redis_cache.set(cache_key, [h.model_dump() for h in hooks], ttl=86400)
             
             logger.info("Hooks generated and cached", count=len(hooks), correlation_id=correlation_id)
+            
+            # Publish event
+            await self.publish_event("content.hooks_generated", {
+                "topic": topic,
+                "count": len(hooks),
+                "hook_type": hook_type,
+                "icp_id": str(icp_profile.id) if icp_profile.id else None
+            })
+            
             return hooks
             
         except Exception as e:
@@ -163,4 +190,3 @@ Output as JSON array:
 
 
 hook_generator_agent = HookGeneratorAgent()
-

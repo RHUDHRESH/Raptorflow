@@ -1,27 +1,52 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { PenSquare, Repeat, Sparkles, MoveRight, ArrowUpRight, Link as LinkIcon } from "lucide-react";
 import { MuseHeader } from "./components/MuseHeader";
 import { SectionCard } from "./components/SectionCard";
 import { SummaryCard } from "./components/SummaryCard";
 import { Pill } from "./components/Pill";
-import { WEEK_OPTIONS, BRANDS, MODEL_ROUTES, MOVES, COHORTS, VOICE, ASSETS, INSIGHTS, IDEA_STACK, STATUS_COLORS } from "./data";
+import { WEEK_OPTIONS, BRANDS, MODEL_ROUTES, MOVES, COHORTS, VOICE, INSIGHTS, IDEA_STACK, STATUS_COLORS } from "./data";
 import { cn } from "../../utils/cn";
+import { museService } from "../../services/museService";
+import { useWorkspace } from "../../context/WorkspaceContext";
+import { toast } from "../../components/Toast";
 
 export default function MuseHome() {
+    const { currentWorkspace } = useWorkspace();
     const [week, setWeek] = useState(WEEK_OPTIONS[0]);
     const [brand, setBrand] = useState(BRANDS[0]);
     const [modelRoute] = useState(MODEL_ROUTES[0]);
     const [statusFilter, setStatusFilter] = useState("All");
     const [channelFilter, setChannelFilter] = useState("All");
+    const [assets, setAssets] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (currentWorkspace?.id) {
+            loadAssets();
+        }
+    }, [currentWorkspace?.id]);
+
+    const loadAssets = async () => {
+        try {
+            setLoading(true);
+            const data = await museService.getAssets(currentWorkspace.id);
+            setAssets(data);
+        } catch (error) {
+            console.error("Error loading assets:", error);
+            toast.error("Failed to load assets");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const filteredAssets = useMemo(() => {
-        return ASSETS.filter((asset) => {
+        return assets.filter((asset) => {
             const statusMatch = statusFilter === "All" || asset.status === statusFilter;
-            const channelMatch = channelFilter === "All" || asset.channel === channelFilter;
+            const channelMatch = channelFilter === "All" || asset.type === channelFilter; // Mapping channel to type for now
             return statusMatch && channelMatch;
         });
-    }, [statusFilter, channelFilter]);
+    }, [assets, statusFilter, channelFilter]);
 
     return (
         <div className="min-h-screen bg-[#FAFAFA]"> {/* Very light grey/cream */}

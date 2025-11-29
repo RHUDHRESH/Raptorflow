@@ -12,7 +12,25 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
 from backend.utils.auth import get_current_user_and_workspace
-from backend.graphs.master_graph import master_graph_runnable, MasterGraphState, WorkflowGoal
+try:
+    from backend.graphs.master_graph import master_graph_runnable, MasterGraphState, WorkflowGoal
+except ImportError:
+    logger.warning("Could not import master_graph, using mocks. Orchestration will not work.")
+    from enum import Enum
+    class WorkflowGoal(str, Enum):
+        FULL_CAMPAIGN = "full_campaign"
+        RESEARCH_ONLY = "research_only"
+        STRATEGY_ONLY = "strategy_only"
+        CONTENT_ONLY = "content_only"
+        PUBLISH = "publish"
+        ONBOARD = "onboard"
+    
+    MasterGraphState = Dict[str, Any]
+    
+    class MockRunnable:
+        async def ainvoke(self, *args, **kwargs):
+            raise NotImplementedError("Master graph not available")
+    master_graph_runnable = MockRunnable()
 from backend.services.supabase_client import supabase_client
 from backend.utils.correlation import generate_correlation_id
 

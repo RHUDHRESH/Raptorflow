@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { INITIAL_COHORTS, JOURNEY_STAGES } from '../../data/mockCohorts';
-import { LuxeHeading, LuxeButton, LuxeCard, LuxeInput, LuxeBadge, LuxeModal } from '../../components/ui/PremiumUI';
+import { PageHeader, LuxeHeading, LuxeButton, LuxeCard, LuxeInput, LuxeBadge, LuxeModal } from '../../components/ui/PremiumUI';
 import { pageTransition, fadeInUp, staggerContainer } from '../../utils/animations';
 
 export default function CohortsEnhancedLuxe() {
@@ -64,36 +64,20 @@ export default function CohortsEnhancedLuxe() {
             exit="exit"
             variants={pageTransition}
         >
-            {/* Page Title */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <Link
-                        to="/strategy"
-                        className="inline-flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors mb-4"
+            {/* Page Title (Task 22) */}
+            <PageHeader
+                backUrl="/strategy"
+                title="Enhanced Cohorts"
+                subtitle="Deep customer intelligence with buying triggers, decision criteria, and strategic insights"
+                action={
+                    <LuxeButton
+                        onClick={() => setShowNewCohortModal(true)}
+                        icon={Plus}
                     >
-                        <ArrowRight className="w-4 h-4 rotate-180" />
-                        <span className="text-sm">Back to Strategy</span>
-                    </Link>
-
-                    <div className="flex items-center gap-3 mb-2">
-                        <span className="text-xs font-mono font-medium uppercase tracking-[0.5em] text-neutral-400">Strategic Intelligence</span>
-                        <span className="h-px w-16 bg-neutral-200" />
-                    </div>
-
-                    <LuxeHeading level={1}>Enhanced Cohorts</LuxeHeading>
-                    <p className="text-neutral-600 max-w-2xl mt-2">
-                        Deep customer intelligence with buying triggers, decision criteria, and strategic insights
-                    </p>
-                </div>
-
-                <LuxeButton
-                    onClick={() => setShowNewCohortModal(true)}
-                    icon={Plus}
-                    variant="primary"
-                >
-                    New Cohort
-                </LuxeButton>
-            </div>
+                        New Cohort
+                    </LuxeButton>
+                }
+            />
 
             {/* Search */}
             <div className="max-w-md">
@@ -156,6 +140,23 @@ export default function CohortsEnhancedLuxe() {
                                 <div className="flex justify-between mt-2 text-[10px] text-neutral-500">
                                     <span>Unaware</span>
                                     <span>Most Aware</span>
+                                </div>
+                            </div>
+
+                            {/* Buying Signals Preview (Task 22) */}
+                            <div className="mb-6">
+                                <p className="text-[10px] uppercase tracking-wider text-neutral-400 mb-2">Buying Signals</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {cohort.buying_triggers?.slice(0, 3).map((trigger, i) => (
+                                        <span key={i} className="px-2 py-1 rounded-md bg-neutral-50 border border-neutral-100 text-[10px] font-medium text-neutral-600">
+                                            {trigger.trigger}
+                                        </span>
+                                    ))}
+                                    {(cohort.buying_triggers?.length || 0) > 3 && (
+                                        <span className="px-2 py-1 rounded-md bg-neutral-50 text-[10px] text-neutral-400">
+                                            +{cohort.buying_triggers.length - 3} more
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 

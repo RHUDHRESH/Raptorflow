@@ -3,7 +3,7 @@ import { Separator } from './ui/separator'
 import { AppSidebar } from './app-sidebar'
 import { SidebarTrigger } from './ui/sidebar'
 import Footer from './Footer'
-import { useLocation, Link } from 'react-router-dom'
+import { useLocation, Link, Outlet } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { Bell, User } from 'lucide-react'
@@ -38,21 +38,20 @@ export default function Layout({ children }) {
   return (
     <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} animate={true}>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="bg-neutral-50">
         {/* Mobile Header */}
-        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-black/10 bg-white px-4 md:hidden">
-          <SidebarTrigger className="-ml-1 rounded-full border border-black/10 p-2" />
+        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-black/5 bg-white/80 backdrop-blur-sm px-4 md:hidden sticky top-0 z-10">
+          <SidebarTrigger className="-ml-1 rounded-full border border-black/10 p-2 hover:bg-neutral-100 transition-colors" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div>
-            <p className="text-micro">Scene</p>
-            <h1 className="text-lg font-display text-black">{pageTitle}</h1>
+            <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-medium">Scene</p>
+            <h1 className="text-lg font-serif font-medium text-black">{pageTitle}</h1>
           </div>
         </header>
 
-        <main className="relative flex-1 bg-cream px-6 pb-0 pt-8 md:px-8 lg:px-12 md:pt-12">
-          {/* Clean background - no textures */}
-          <div className="relative max-w-[1440px] mx-auto pb-16 space-y-12">
-            {children}
+        <main className="relative flex-1 min-h-screen bg-neutral-50">
+          <div className="container-max section-padding space-y-12">
+            {children || <Outlet />}
           </div>
         </main>
         <Footer />

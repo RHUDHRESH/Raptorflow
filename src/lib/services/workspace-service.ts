@@ -1,6 +1,7 @@
 /**
  * Workspace Service
  * Handles workspace and multi-user operations
+ * Updated for Phase 2.1 schema
  */
 
 import { supabase } from '../supabase';
@@ -9,68 +10,31 @@ export interface Workspace {
   id: string;
   name: string;
   slug: string;
-  plan: 'Ascent' | 'Glide' | 'Soar';
-  cohorts_limit: number;
-  moves_per_sprint_limit: number;
+  owner_id: string;
+  plan: 'starter' | 'pro' | 'max';
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export interface UserWorkspace {
-  id: string;
-  user_id: string;
-  workspace_id: string;
-  role: 'Owner' | 'Strategist' | 'Creator' | 'Analyst' | 'Viewer';
-  joined_at: string;
-}
-
 export interface WorkspaceMember {
   id: string;
+  workspace_id: string;
   user_id: string;
-  email: string;
-  name?: string;
-  role: UserWorkspace['role'];
-  joined_at: string;
+  role: 'owner' | 'admin' | 'member' | 'viewer';
+  created_at: string;
+}
+
+export interface WorkspaceMemberWithProfile extends WorkspaceMember {
+  email?: string;
+  full_name?: string;
+  avatar_url?: string;
 }
 
 export const workspaceService = {
   /**
-   * Get current workspace
-   */
-  async getCurrentWorkspace(): Promise<Workspace | null> {
-    if (!supabase) {
-      console.warn('Supabase not configured');
-      return null;
-    }
-
-    // First get user's workspace ID from user_workspaces
-    const { data: membership, error: memberError } = await supabase
-      .from('user_workspaces')
-      .select('workspace_id')
-      .limit(1)
-      .single();
-
-    if (memberError || !membership) {
-      console.error('Error fetching user workspace:', memberError);
-      return null;
-    }
-
-    const { data, error } = await supabase
-      .from('workspaces')
-      .select('*')
-      .eq('id', membership.workspace_id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching workspace:', error);
-      return null;
-    }
-
-    return data;
-  },
-
-  /**
-   * Get all workspaces the current user belongs to
+   * Get all workspaces for the current user
+   * RLS automatically filters to only workspaces the user is a member of
    */
   async getUserWorkspaces(): Promise<Workspace[]> {
     if (!supabase) {
@@ -78,21 +42,10 @@ export const workspaceService = {
       return [];
     }
 
-    const { data: memberships, error: memberError } = await supabase
-      .from('user_workspaces')
-      .select('workspace_id');
-
-    if (memberError) {
-      console.error('Error fetching user workspaces:', memberError);
-      return [];
-    }
-
-    const workspaceIds = memberships.map(m => m.workspace_id);
-
     const { data, error } = await supabase
       .from('workspaces')
       .select('*')
-      .in('id', workspaceIds);
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching workspaces:', error);
@@ -103,24 +56,65 @@ export const workspaceService = {
   },
 
   /**
+   * Get current workspace (first workspace or from localStorage)
+   */
+  async getCurrentWorkspace(): Promise<Workspace | null> {
+    if (!supabase) {
+      console.warn('Supabase not configured');
+      return null;
+    }
+
+    // Try to get from localStorage first
+    const lastWorkspaceId = localStorage.getItem('lastWorkspaceId');
+
+    if (lastWorkspaceId) {
+      const { data, error } = await supabase
+        .from('workspaces')
+        .select('*')
+        .eq('id', lastWorkspaceId)
+        .single();
+
+      if (!error && data) {
+        return data;
+      }
+    }
+
+    // Otherwise get first workspace
+    const workspaces = await this.getUserWorkspaces();
+    return workspaces.length > 0 ? workspaces[0] : null;
+  },
+
+  /**
    * Create a new workspace
+   * Automatically adds the current user as owner in workspace_members
    */
   async createWorkspace(workspace: {
     name: string;
-    slug: string;
+    slug?: string;
     plan?: Workspace['plan'];
   }): Promise<Workspace> {
     if (!supabase) {
       throw new Error('Supabase not configured');
     }
 
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    // Generate slug if not provided
+    const slug = workspace.slug || workspace.name.toLowerCase().replace(/\s+/g, '-');
+
+    // Create workspace
     const { data, error } = await supabase
       .from('workspaces')
       .insert({
-        ...workspace,
-        plan: workspace.plan || 'Ascent',
-        cohorts_limit: workspace.plan === 'Soar' ? 50 : workspace.plan === 'Glide' ? 10 : 3,
-        moves_per_sprint_limit: workspace.plan === 'Soar' ? 20 : workspace.plan === 'Glide' ? 10 : 5
+        name: workspace.name,
+        slug,
+        owner_id: user.id,
+        plan: workspace.plan || 'starter',
+        is_active: true
       })
       .select()
       .single();
@@ -130,10 +124,19 @@ export const workspaceService = {
       throw error;
     }
 
-    // Add current user as owner
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await this.addMember(data.id, user.id, 'Owner');
+    // Add current user as owner in workspace_members
+    const { error: memberError } = await supabase
+      .from('workspace_members')
+      .insert({
+        workspace_id: data.id,
+        user_id: user.id,
+        role: 'owner'
+      });
+
+    if (memberError) {
+      console.error('Error adding owner to workspace_members:', memberError);
+      // Note: workspace was created, but member insertion failed
+      // In production, you might want to rollback or handle this differently
     }
 
     return data;
@@ -163,17 +166,46 @@ export const workspaceService = {
   },
 
   /**
-   * Get workspace members
+   * Delete workspace (owner only via RLS)
    */
-  async getWorkspaceMembers(workspaceId: string): Promise<WorkspaceMember[]> {
+  async deleteWorkspace(id: string): Promise<void> {
+    if (!supabase) {
+      throw new Error('Supabase not configured');
+    }
+
+    const { error } = await supabase
+      .from('workspaces')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting workspace:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get workspace members with profile information
+   */
+  async getWorkspaceMembers(workspaceId: string): Promise<WorkspaceMemberWithProfile[]> {
     if (!supabase) {
       console.warn('Supabase not configured');
       return [];
     }
 
     const { data, error } = await supabase
-      .from('user_workspaces')
-      .select('id, user_id, role, joined_at')
+      .from('workspace_members')
+      .select(`
+        id,
+        workspace_id,
+        user_id,
+        role,
+        created_at,
+        profiles:user_id (
+          full_name,
+          avatar_url
+        )
+      `)
       .eq('workspace_id', workspaceId);
 
     if (error) {
@@ -181,29 +213,32 @@ export const workspaceService = {
       return [];
     }
 
-    // Note: In production, you'd join with a users table to get email/name
-    // For now, return with placeholder data
+    // Transform the data to flatten the profile info
     return (data || []).map(member => ({
-      ...member,
-      email: `user_${member.user_id.substring(0, 8)}@example.com`,
-      name: `User ${member.user_id.substring(0, 8)}`
+      id: member.id,
+      workspace_id: member.workspace_id,
+      user_id: member.user_id,
+      role: member.role,
+      created_at: member.created_at,
+      full_name: member.profiles?.full_name,
+      avatar_url: member.profiles?.avatar_url
     }));
   },
 
   /**
-   * Add a member to workspace
+   * Add a member to workspace (owner only via RLS)
    */
   async addMember(
     workspaceId: string,
     userId: string,
-    role: UserWorkspace['role'] = 'Viewer'
-  ): Promise<UserWorkspace> {
+    role: WorkspaceMember['role'] = 'member'
+  ): Promise<WorkspaceMember> {
     if (!supabase) {
       throw new Error('Supabase not configured');
     }
 
     const { data, error } = await supabase
-      .from('user_workspaces')
+      .from('workspace_members')
       .insert({
         workspace_id: workspaceId,
         user_id: userId,
@@ -221,19 +256,19 @@ export const workspaceService = {
   },
 
   /**
-   * Update member role
+   * Update member role (owner only via RLS)
    */
   async updateMemberRole(
     workspaceId: string,
     userId: string,
-    role: UserWorkspace['role']
-  ): Promise<UserWorkspace> {
+    role: WorkspaceMember['role']
+  ): Promise<WorkspaceMember> {
     if (!supabase) {
       throw new Error('Supabase not configured');
     }
 
     const { data, error } = await supabase
-      .from('user_workspaces')
+      .from('workspace_members')
       .update({ role })
       .eq('workspace_id', workspaceId)
       .eq('user_id', userId)
@@ -249,7 +284,7 @@ export const workspaceService = {
   },
 
   /**
-   * Remove member from workspace
+   * Remove member from workspace (owner only via RLS)
    */
   async removeMember(workspaceId: string, userId: string): Promise<void> {
     if (!supabase) {
@@ -257,7 +292,7 @@ export const workspaceService = {
     }
 
     const { error } = await supabase
-      .from('user_workspaces')
+      .from('workspace_members')
       .delete()
       .eq('workspace_id', workspaceId)
       .eq('user_id', userId);
@@ -271,7 +306,7 @@ export const workspaceService = {
   /**
    * Get user's role in workspace
    */
-  async getUserRole(workspaceId: string): Promise<UserWorkspace['role'] | null> {
+  async getUserRole(workspaceId: string): Promise<WorkspaceMember['role'] | null> {
     if (!supabase) {
       return null;
     }
@@ -280,7 +315,7 @@ export const workspaceService = {
     if (!user) return null;
 
     const { data, error } = await supabase
-      .from('user_workspaces')
+      .from('workspace_members')
       .select('role')
       .eq('workspace_id', workspaceId)
       .eq('user_id', user.id)
@@ -295,16 +330,65 @@ export const workspaceService = {
   },
 
   /**
-   * Invite member by email (placeholder - needs email integration)
+   * Check if user is workspace owner
+   */
+  async isWorkspaceOwner(workspaceId: string): Promise<boolean> {
+    if (!supabase) {
+      return false;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { data, error } = await supabase
+      .from('workspaces')
+      .select('owner_id')
+      .eq('id', workspaceId)
+      .single();
+
+    if (error) {
+      console.error('Error checking workspace owner:', error);
+      return false;
+    }
+
+    return data?.owner_id === user.id;
+  },
+
+  /**
+   * Invite member by email (uses workspace_invites table)
    */
   async inviteMember(
     workspaceId: string,
     email: string,
-    role: UserWorkspace['role']
+    role: WorkspaceMember['role']
   ): Promise<void> {
-    // TODO: Implement email invitation service
-    // This would send an email invitation to ${email} for workspace ${workspaceId} with role ${role}
-    // Implement with email service (Supabase Auth or external)
+    if (!supabase) {
+      throw new Error('Supabase not configured');
+    }
+
+    // Generate a random token for the invite
+    const token = crypto.randomUUID();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+
+    const { error } = await supabase
+      .from('workspace_invites')
+      .insert({
+        workspace_id: workspaceId,
+        email,
+        role,
+        token,
+        expires_at: expiresAt.toISOString()
+      });
+
+    if (error) {
+      console.error('Error creating invite:', error);
+      throw error;
+    }
+
+    // TODO: Send email with invite link
+    // This would integrate with an email service
+    console.log(`Invite created for ${email} with token ${token}`);
   }
 };
 

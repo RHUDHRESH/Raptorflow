@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Scale, AlertCircle, CheckCircle2, MessageSquare } from 'lucide-react';
+import arbiterApi from '../../api/arbiter';
 
 interface MetricCard {
   title: string;
@@ -145,34 +146,26 @@ const ArbiterDashboard: React.FC = () => {
   const handleRegisterConflict = useCallback(async () => {
     setCaseLoading(true);
     try {
-      const response = await fetch('/lords/arbiter/conflict/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(caseForm),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
-          const newCase: ConflictCase = {
-            case_id: result.data.case_id,
-            conflict_type: caseForm.conflict_type,
-            title: caseForm.title,
-            description: caseForm.description,
-            severity: result.data.severity,
-            status: result.data.status,
-            parties_involved: caseForm.parties_involved,
-            created_at: new Date().toISOString(),
-          };
-          setCases([newCase, ...cases]);
-          setCaseForm({
-            conflict_type: 'resource_allocation',
-            title: '',
-            description: '',
-            parties_involved: [],
-            conflicting_goals: [],
-          });
-        }
+      const result = await arbiterApi.registerConflict(caseForm);
+      if (result.data) {
+        const newCase: ConflictCase = {
+          case_id: result.data.case_id,
+          conflict_type: caseForm.conflict_type,
+          title: caseForm.title,
+          description: caseForm.description,
+          severity: result.data.severity,
+          status: result.data.status,
+          parties_involved: caseForm.parties_involved,
+          created_at: new Date().toISOString(),
+        };
+        setCases([newCase, ...cases]);
+        setCaseForm({
+          conflict_type: 'resource_allocation',
+          title: '',
+          description: '',
+          parties_involved: [],
+          conflicting_goals: [],
+        });
       }
     } catch (error) {
       console.error('Conflict registration error:', error);
@@ -184,31 +177,23 @@ const ArbiterDashboard: React.FC = () => {
   // Propose Resolution
   const handleProposeResolution = useCallback(async () => {
     try {
-      const response = await fetch('/lords/arbiter/resolution/propose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(proposalForm),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
-          const newProposal: ResolutionProposal = {
-            proposal_id: result.data.proposal_id,
-            case_id: proposalForm.case_id,
-            proposed_solution: proposalForm.proposed_solution,
-            fairness_score: result.data.fairness_score,
-            trade_offs: result.data.trade_offs,
-            status: result.data.status,
-            created_at: new Date().toISOString(),
-          };
-          setProposals([newProposal, ...proposals]);
-          setProposalForm({
-            case_id: '',
-            proposed_solution: '',
-            priority_adjustment: {},
-          });
-        }
+      const result = await arbiterApi.proposeResolution(proposalForm);
+      if (result.data) {
+        const newProposal: ResolutionProposal = {
+          proposal_id: result.data.proposal_id,
+          case_id: proposalForm.case_id,
+          proposed_solution: proposalForm.proposed_solution,
+          fairness_score: result.data.fairness_score,
+          trade_offs: result.data.trade_offs,
+          status: result.data.status,
+          created_at: new Date().toISOString(),
+        };
+        setProposals([newProposal, ...proposals]);
+        setProposalForm({
+          case_id: '',
+          proposed_solution: '',
+          priority_adjustment: {},
+        });
       }
     } catch (error) {
       console.error('Resolution proposal error:', error);
@@ -218,33 +203,25 @@ const ArbiterDashboard: React.FC = () => {
   // Make Arbitration Decision
   const handleMakeDecision = useCallback(async () => {
     try {
-      const response = await fetch('/lords/arbiter/decision/make', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(decisionForm),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
-          const newDecision: ArbitrationDecision = {
-            decision_id: result.data.decision_id,
-            case_id: decisionForm.case_id,
-            proposal_id: decisionForm.proposal_id,
-            decision_outcome: result.data.decision_outcome,
-            enforcement_method: decisionForm.enforcement_method,
-            fairness_rationale: result.data.fairness_rationale,
-            stakeholder_satisfaction: result.data.stakeholder_satisfaction,
-            status: result.data.status,
-            created_at: new Date().toISOString(),
-          };
-          setDecisions([newDecision, ...decisions]);
-          setDecisionForm({
-            case_id: '',
-            proposal_id: '',
-            enforcement_method: 'standard',
-          });
-        }
+      const result = await arbiterApi.makeDecision(decisionForm);
+      if (result.data) {
+        const newDecision: ArbitrationDecision = {
+          decision_id: result.data.decision_id,
+          case_id: decisionForm.case_id,
+          proposal_id: decisionForm.proposal_id,
+          decision_outcome: result.data.decision_outcome,
+          enforcement_method: decisionForm.enforcement_method,
+          fairness_rationale: result.data.fairness_rationale,
+          stakeholder_satisfaction: result.data.stakeholder_satisfaction,
+          status: result.data.status,
+          created_at: new Date().toISOString(),
+        };
+        setDecisions([newDecision, ...decisions]);
+        setDecisionForm({
+          case_id: '',
+          proposal_id: '',
+          enforcement_method: 'standard',
+        });
       }
     } catch (error) {
       console.error('Decision making error:', error);
@@ -254,32 +231,24 @@ const ArbiterDashboard: React.FC = () => {
   // Handle Appeal
   const handleAppeal = useCallback(async () => {
     try {
-      const response = await fetch('/lords/arbiter/appeals/handle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(appealForm),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
-          const newAppeal: Appeal = {
-            appeal_id: result.data.appeal_id,
-            decision_id: appealForm.decision_id,
-            appellant_party: appealForm.appellant_party,
-            appeal_grounds: appealForm.appeal_grounds,
-            status: result.data.status,
-            merit_assessment: result.data.merit_assessment,
-            created_at: new Date().toISOString(),
-          };
-          setAppeals([newAppeal, ...appeals]);
-          setAppealForm({
-            decision_id: '',
-            appellant_party: '',
-            appeal_grounds: [],
-            requested_review_points: [],
-          });
-        }
+      const result = await arbiterApi.handleAppeal(appealForm);
+      if (result.data) {
+        const newAppeal: Appeal = {
+          appeal_id: result.data.appeal_id,
+          decision_id: appealForm.decision_id,
+          appellant_party: appealForm.appellant_party,
+          appeal_grounds: appealForm.appeal_grounds,
+          status: result.data.status,
+          merit_assessment: result.data.merit_assessment,
+          created_at: new Date().toISOString(),
+        };
+        setAppeals([newAppeal, ...appeals]);
+        setAppealForm({
+          decision_id: '',
+          appellant_party: '',
+          appeal_grounds: [],
+          requested_review_points: [],
+        });
       }
     } catch (error) {
       console.error('Appeal handling error:', error);

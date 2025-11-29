@@ -16,11 +16,12 @@ from backend.models.campaign import (
 )
 from backend.models.persona import ICPProfile
 from backend.utils.correlation import get_correlation_id
+from backend.agents.base_agent import BaseAgent
 
 logger = structlog.get_logger(__name__)
 
 
-class CampaignPlannerAgent:
+class CampaignPlannerAgent(BaseAgent):
     """
     Plans comprehensive marketing campaigns (moves) using ADAPT framework.
     
@@ -40,6 +41,7 @@ class CampaignPlannerAgent:
     """
     
     def __init__(self):
+        super().__init__(name="campaign_planner")
         self.move_patterns = {
             "burst": {
                 "duration_days": 14,
@@ -57,6 +59,80 @@ class CampaignPlannerAgent:
                 "description": "Year-long ambient presence with monthly themes"
             }
         }
+
+    async def execute(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute campaign planning tasks.
+        
+        Args:
+            payload: Dictionary containing:
+                - task_type: "campaign" or "30_60_90"
+                - move_request: MoveRequest (dict or object)
+                - icps: List[ICPProfile] (dict or object)
+                - market_insights: Optional[Dict]
+        """
+        try:
+            task_type = payload.get("task_type", "campaign")
+            move_req_data = payload.get("move_request")
+            icps_data = payload.get("icps", [])
+            market_insights = payload.get("market_insights")
+            
+            # Hydrate objects
+            if isinstance(move_req_data, dict):
+                move_request = MoveRequest(**move_req_data)
+            else:
+                move_request = move_req_data
+                
+            icps = []
+            for icp in icps_data:
+                if isinstance(icp, dict):
+                    icps.append(ICPProfile(**icp))
+                else:
+                    icps.append(icp)
+
+            self.log(f"Executing campaign planner task: {task_type}", level="info")
+
+            if task_type == "30_60_90":
+                plan = await self.generate_30_60_90_plan(move_request, icps, market_insights)
+                
+                await self.publish_event(
+                    "agent.strategy.30_60_90_plan_generated",
+                    {
+                        "workspace_id": str(move_request.workspace_id),
+                        "goal": move_request.goal
+                    }
+                )
+                
+                return {
+                    "status": "success",
+                    "result": plan,
+                    "metadata": {"type": "30_60_90"}
+                }
+            else:
+                # Default to campaign generation
+                campaign = await self.generate_campaign(move_request, icps, market_insights)
+                
+                await self.publish_event(
+                    "agent.strategy.campaign_generated",
+                    {
+                        "workspace_id": str(move_request.workspace_id),
+                        "campaign_id": str(campaign.id),
+                        "goal": move_request.goal
+                    }
+                )
+                
+                return {
+                    "status": "success",
+                    "result": campaign,
+                    "metadata": {"type": "campaign"}
+                }
+
+        except Exception as e:
+            self.log(f"Campaign planning failed: {str(e)}", level="error")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
     
     async def generate_campaign(
         self, 
@@ -565,4 +641,3 @@ Return JSON:
 
 # Global instance
 campaign_planner = CampaignPlannerAgent()
-

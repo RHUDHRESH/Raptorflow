@@ -1,427 +1,353 @@
-/**
- * Move Detail - Integrated with Real Supabase Data
- * Complete view of a move with editable OODA configuration
- */
-
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  Target, ArrowLeft, Edit2, Save, X, Play, Pause, CheckCircle, XCircle, TrendingUp
+    ArrowLeft,
+    CheckCircle2,
+    AlertTriangle,
+    Play,
+    FileText,
+    BarChart3,
+    Clock,
+    ExternalLink,
+    Wand2,
+    Send
 } from 'lucide-react';
-import { moveService } from '../lib/services/move-service';
-import { analyticsService } from '../lib/services/analytics-service';
+import { PageHeader, LuxeHeading, LuxeButton, LuxeCard, LuxeBadge, LuxeTabs } from '../components/ui/PremiumUI';
+import { pageTransition, fadeInUp } from '../utils/animations';
+import { moveService } from '../services/moveService';
+import { campaignService } from '../services/campaignService';
+import { toast } from '../components/Toast';
 
-export default function MoveDetailIntegrated() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+export default function MoveDetail() {
+    const { moveId } = useParams();
+    const [move, setMove] = useState(null);
+    const [assets, setAssets] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [preflightResult, setPreflightResult] = useState(null);
+    const [activeTab, setActiveTab] = useState('overview');
 
-  const [move, setMove] = useState(null);
-  const [maneuverType, setManeuverType] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [editing, setEditing] = useState(false);
-  const [metrics, setMetrics] = useState([]);
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                // Mock fetching if API fails or returns null
+                // In reality, moveService should return the move
+                // const moveData = await moveService.getMove(moveId);
+                // setMove(moveData);
+                
+                // Fetch assets
+                // const assetsData = await moveService.getAssets(moveId);
+                // setAssets(assetsData);
+                
+                // Mock Data for now to show UI
+                setMove({
+                    id: moveId,
+                    name: 'Authority Sprint – Week 1-2',
+                    status: 'planned',
+                    move_type: 'authority',
+                    journey_stage_from: 'problem_aware',
+                    journey_stage_to: 'solution_aware',
+                    start_date: '2025-01-10',
+                    end_date: '2025-01-24',
+                    campaign: { id: 'c1', name: 'Q1 Enterprise CTO Conversion' },
+                    cohort: { name: 'Enterprise CTOs' },
+                    message_variant: 'Strategic OS vs random hacks'
+                });
+                
+                setAssets([
+                    { id: 'a1', name: 'Authority Post 1', format: 'post', channel: 'linkedin', status: 'draft' },
+                    { id: 'a2', name: 'Value Add Email', format: 'email', channel: 'email', status: 'published', metrics: { opens: 450, clicks: 120 } }
+                ]);
 
-  // Editable fields
-  const [editedName, setEditedName] = useState('');
-  const [editedGoal, setEditedGoal] = useState('');
-  const [editedOODA, setEditedOODA] = useState({});
+            } catch (error) {
+                console.error(error);
+                toast.error('Failed to load move details');
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchData();
+    }, [moveId]);
 
-  // Mock move data
-  const MOCK_MOVE = {
-    id: id,
-    name: '14-Day Conversion Sprint',
-    status: 'Planning',
-    goal: 'Drive 500 qualified leads',
-    progress_percentage: 48,
-    start_date: '2025-01-15',
-    end_date: '2025-01-29',
-    targetCohorts: ['Enterprise CTOs', 'Startup Founders'],
-    channels: ['LinkedIn', 'Email', 'Content'],
-    tasksCompleted: 12,
-    totalTasks: 25,
-    health_status: 'green',
-    ooda_config: {
-      observe_sources: ['Google Analytics', 'LinkedIn Insights'],
-      orient_rules: 'Analyze conversion funnel data',
-      decide_logic: 'Optimize top 3 bottlenecks',
-      act_tasks: ['A/B test landing page', 'Email campaign', 'LinkedIn ads']
-    }
-  };
-
-  useEffect(() => {
-    // Simulate loading with mock data
-    setLoading(true);
-    setTimeout(() => {
-      setMove(MOCK_MOVE);
-      setEditedName(MOCK_MOVE.name);
-      setEditedGoal(MOCK_MOVE.goal || '');
-      setEditedOODA(MOCK_MOVE.ooda_config || {});
-      setLoading(false);
-    }, 300);
-  }, [id]);
-
-  const handleSave = async () => {
-    try {
-      const updated = await moveService.updateMove(id, {
-        name: editedName,
-        goal: editedGoal,
-        ooda_config: editedOODA,
-      });
-      setMove(updated);
-      setEditing(false);
-    } catch (err) {
-      console.error('Error saving move:', err);
-      alert('Failed to save changes');
-    }
-  };
-
-  const handleStatusTransition = async (newStatus) => {
-    try {
-      const updated = await moveService.updateMove(id, { status: newStatus });
-      setMove(updated);
-    } catch (err) {
-      console.error('Error updating status:', err);
-      alert('Failed to update status');
-    }
-  };
-
-  const handleProgressUpdate = async (newProgress) => {
-    try {
-      const updated = await moveService.updateMove(id, { progress_percentage: newProgress });
-      setMove(updated);
-    } catch (err) {
-      console.error('Error updating progress:', err);
-    }
-  };
-
-  const getStatusLabel = (status) => {
-    const labels = {
-      'Planning': 'Planning',
-      'OODA_Observe': 'Observe',
-      'OODA_Orient': 'Orient',
-      'OODA_Decide': 'Decide',
-      'OODA_Act': 'Act',
-      'Complete': 'Complete',
-      'Killed': 'Killed',
+    const handlePreflight = async () => {
+        // Mock preflight call
+        const result = {
+            status: 'warn',
+            issues: [
+                { code: 'EMAIL_LIST_SIZE', message: 'Email list < 1000', severity: 'warn', recommendation: 'Add more contacts or expect lower volume.' }
+            ]
+        };
+        setPreflightResult(result);
+        toast('Pre-flight check complete');
     };
-    return labels[status] || status;
-  };
 
-  const getNextStatus = (currentStatus) => {
-    const flow = {
-      'Planning': 'OODA_Observe',
-      'OODA_Observe': 'OODA_Orient',
-      'OODA_Orient': 'OODA_Decide',
-      'OODA_Decide': 'OODA_Act',
-      'OODA_Act': 'Complete',
+    const handleGenerateAssets = async () => {
+        toast.success('Generating assets...');
+        // In real app, call API
+        setTimeout(() => {
+            setAssets(prev => [...prev, { id: 'a3', name: 'Generated Post', format: 'post', channel: 'linkedin', status: 'draft' }]);
+        }, 1500);
     };
-    return flow[currentStatus];
-  };
 
-  const getHealthColor = (health) => {
-    const colors = {
-      green: 'bg-green-500',
-      amber: 'bg-amber-500',
-      red: 'bg-red-500',
-    };
-    return colors[health] || colors.green;
-  };
+    if (loading) return <div className="p-10 text-center">Loading...</div>;
+    if (!move) return <div className="p-10 text-center">Move not found</div>;
 
-  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-neutral-600">Loading move details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !move) {
-    return (
-      <div className="runway-card p-12 text-center">
-        <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-neutral-900 mb-2">Error</h2>
-        <p className="text-neutral-600 mb-6">{error || 'Move not found'}</p>
-        <button
-          onClick={() => navigate('/moves')}
-          className="px-6 py-3 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800"
+        <motion.div
+            className="max-w-6xl mx-auto px-6 py-8 space-y-8"
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={pageTransition}
         >
-          Back to Moves
-        </button>
-      </div>
-    );
-  }
-
-  const nextStatus = getNextStatus(move.status);
-
-  return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Back Navigation */}
-      <Link
-        to="/moves"
-        className="inline-flex items-center gap-2 text-neutral-600 hover:text-neutral-900"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Moves
-      </Link>
-
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="runway-card p-10"
-      >
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex-1">
-            {editing ? (
-              <input
-                type="text"
-                value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-                className="text-3xl font-bold text-neutral-900 border-b-2 border-neutral-300 focus:outline-none focus:border-neutral-900 w-full mb-4"
-              />
-            ) : (
-              <h1 className="text-3xl font-bold text-neutral-900 mb-4">{move.name}</h1>
-            )}
-
-            <div className="flex flex-wrap gap-3">
-              <span className="px-3 py-1 text-sm font-medium bg-neutral-100 text-neutral-900 border border-neutral-200 rounded">
-                {getStatusLabel(move.status)}
-              </span>
-              {maneuverType && (
-                <span className="px-3 py-1 text-sm font-medium bg-blue-100 text-blue-900 border border-blue-200 rounded">
-                  {maneuverType.category} - {maneuverType.name}
-                </span>
-              )}
-              <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${getHealthColor(move.health_status)}`} />
-                <span className="text-sm text-neutral-600">Health: {move.health_status}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            {editing ? (
-              <>
-                <button
-                  onClick={handleSave}
-                  className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                >
-                  <Save className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setEditing(false)}
-                  className="p-2 bg-neutral-200 text-neutral-900 rounded-lg hover:bg-neutral-300"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setEditing(true)}
-                className="p-2 bg-neutral-100 text-neutral-900 rounded-lg hover:bg-neutral-200"
-              >
-                <Edit2 className="w-5 h-5" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-6">
-          <div className="flex justify-between text-sm text-neutral-600 mb-2">
-            <span>Progress</span>
-            <span>{move.progress_percentage}%</span>
-          </div>
-          <div className="h-3 bg-neutral-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-neutral-900 transition-all duration-300"
-              style={{ width: `${move.progress_percentage}%` }}
+            {/* Header (Task 14) */}
+            <PageHeader
+                backUrl={`/campaigns/${move.campaign?.id}`}
+                title={move.name}
+                subtitle={
+                    <span>
+                        Goal: Move <span className="font-medium text-neutral-900">{move.cohort?.name}</span> from <span className="font-medium text-neutral-900">{move.journey_stage_from}</span> → <span className="font-medium text-neutral-900">{move.journey_stage_to}</span>
+                    </span>
+                }
+                action={
+                    <div className="flex items-center gap-3">
+                        <LuxeBadge variant={
+                            move.status === 'active' ? 'success' : 
+                            move.status === 'completed' ? 'info' : 'neutral'
+                        } className="px-3 py-1">
+                            {move.status}
+                        </LuxeBadge>
+                        
+                        {move.status === 'planned' && (
+                            <LuxeButton onClick={handlePreflight} variant="secondary" icon={CheckCircle2}>Run Pre-flight</LuxeButton>
+                        )}
+                        {move.status === 'ready' && (
+                            <LuxeButton icon={Play}>Launch Move</LuxeButton>
+                        )}
+                    </div>
+                }
             />
-          </div>
-        </div>
+            
+            {/* Tabs (Task 15) */}
+            <div className="border-b border-neutral-200 pb-1">
+                <LuxeTabs
+                    tabs={[
+                        { id: 'overview', label: 'Overview' },
+                        { id: 'assets', label: 'Assets' },
+                        { id: 'performance', label: 'Performance' }
+                    ]}
+                    activeTab={activeTab}
+                    onChange={setActiveTab}
+                    className="bg-transparent p-0 gap-6"
+                />
+            </div>
 
-        {/* Quick Actions */}
-        <div className="flex gap-3">
-          {nextStatus && move.status !== 'Complete' && (
-            <button
-              onClick={() => handleStatusTransition(nextStatus)}
-              className="px-6 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 flex items-center gap-2"
-            >
-              <Play className="w-4 h-4" />
-              Move to {getStatusLabel(nextStatus)}
-            </button>
-          )}
-          {move.status !== 'Complete' && move.status !== 'Killed' && (
-            <button
-              onClick={() => handleStatusTransition('Complete')}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-            >
-              <CheckCircle className="w-4 h-4" />
-              Mark Complete
-            </button>
-          )}
-          <button
-            onClick={() => handleStatusTransition('Killed')}
-            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
-          >
-            <XCircle className="w-4 h-4" />
-            Kill Move
-          </button>
-        </div>
-      </motion.div>
+            {/* Tab Content */}
+            <div className="min-h-[400px] pt-6">
+                {activeTab === 'overview' && (
+                    <motion.div variants={fadeInUp} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Left: Intent & Strategy */}
+                        <div className="lg:col-span-2 space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Move Intent Card */}
+                                <LuxeCard title="Move Intent" className="h-full">
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block mb-1">Campaign</label>
+                                            <Link to={`/campaigns/${move.campaign?.id}`} className="text-sm font-medium text-neutral-900 hover:underline">
+                                                {move.campaign?.name}
+                                            </Link>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block mb-1">Timeline</label>
+                                            <div className="flex items-center gap-2 text-sm font-medium text-neutral-900">
+                                                <Clock className="w-4 h-4 text-neutral-400" />
+                                                {new Date(move.start_date).toLocaleDateString()} — {new Date(move.end_date).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block mb-1">Move Type</label>
+                                            <span className="text-sm font-medium text-neutral-900 capitalize">{move.move_type}</span>
+                                        </div>
+                                    </div>
+                                </LuxeCard>
 
-      {/* Details Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Timeline */}
-        <div className="runway-card p-6">
-          <h2 className="text-lg font-bold text-neutral-900 mb-4">Timeline</h2>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm text-neutral-600">Start Date</p>
-              <p className="text-neutral-900">
-                {move.start_date ? new Date(move.start_date).toLocaleDateString() : 'Not set'}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-neutral-600">End Date</p>
-              <p className="text-neutral-900">
-                {move.end_date ? new Date(move.end_date).toLocaleDateString() : 'Not set'}
-              </p>
-            </div>
-            {maneuverType && (
-              <div>
-                <p className="text-sm text-neutral-600">Duration</p>
-                <p className="text-neutral-900">{maneuverType.base_duration_days} days</p>
-              </div>
-            )}
-          </div>
-        </div>
+                                {/* Target & Message Card */}
+                                <LuxeCard title="Target & Message" className="h-full">
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block mb-1">Cohort</label>
+                                            <LuxeBadge variant="neutral" icon={Clock} className="py-1 px-2">
+                                                {move.cohort?.name}
+                                            </LuxeBadge>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block mb-2">Single Minded Proposition</label>
+                                            <p className="text-lg font-serif italic text-neutral-900 leading-relaxed">
+                                                "{move.message_variant}"
+                                            </p>
+                                        </div>
+                                    </div>
+                                </LuxeCard>
+                            </div>
+                        </div>
 
-        {/* Metadata */}
-        <div className="runway-card p-6">
-          <h2 className="text-lg font-bold text-neutral-900 mb-4">Metadata</h2>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm text-neutral-600">ICP</p>
-              <p className="text-neutral-900">{move.primary_icp_id?.slice(0, 8) || 'None'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-neutral-600">Sprint</p>
-              <p className="text-neutral-900">{move.sprint_id ? move.sprint_id.slice(0, 8) : 'Unassigned'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-neutral-600">Line of Operation</p>
-              <p className="text-neutral-900">{move.line_of_operation_id ? move.line_of_operation_id.slice(0, 8) : 'None'}</p>
-            </div>
-          </div>
-        </div>
+                        {/* Right: Pre-flight Checklist */}
+                        <div>
+                            <LuxeCard title="Pre-flight Checklist" className="h-full bg-neutral-50/50 border-dashed">
+                                {preflightResult ? (
+                                    <div className="space-y-4">
+                                        <div className={`p-4 rounded border ${
+                                            preflightResult.status === 'pass' 
+                                                ? 'bg-green-50 border-green-100 text-green-800' 
+                                                : 'bg-amber-50 border-amber-100 text-amber-800'
+                                        }`}>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                {preflightResult.status === 'pass' ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+                                                <span className="font-bold uppercase text-xs tracking-wider">Status: {preflightResult.status}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-0 divide-y divide-neutral-100 border-t border-b border-neutral-100">
+                                            {preflightResult.issues.map((issue, i) => (
+                                                <div key={i} className="py-3">
+                                                    <div className="flex gap-3">
+                                                        {issue.severity === 'fail' 
+                                                            ? <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" /> 
+                                                            : <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                                                        }
+                                                        <div>
+                                                            <p className="text-sm font-medium text-neutral-900">{issue.message}</p>
+                                                            {issue.recommendation && (
+                                                                <p className="text-xs text-neutral-500 mt-1">{issue.recommendation}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-40 text-center">
+                                        <p className="text-sm text-neutral-500 mb-4">Validation not run yet.</p>
+                                        <LuxeButton size="sm" variant="secondary" onClick={handlePreflight} icon={CheckCircle2}>Run Check</LuxeButton>
+                                    </div>
+                                )}
+                            </LuxeCard>
+                        </div>
+                    </motion.div>
+                )}
 
-        {/* Channels */}
-        <div className="runway-card p-6">
-          <h2 className="text-lg font-bold text-neutral-900 mb-4">Channels</h2>
-          <div className="flex flex-wrap gap-2">
-            {move.channels && move.channels.length > 0 ? (
-              move.channels.map((channel, i) => (
-                <span
-                  key={i}
-                  className="px-3 py-1 text-sm bg-neutral-100 text-neutral-900 border border-neutral-200 rounded"
-                >
-                  {channel}
-                </span>
-              ))
-            ) : (
-              <p className="text-neutral-600 text-sm">No channels specified</p>
-            )}
-          </div>
-        </div>
-      </div>
+                {activeTab === 'assets' && (
+                    <motion.div variants={fadeInUp} className="space-y-6">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h3 className="font-display text-lg font-medium text-neutral-900">Required Assets</h3>
+                                <p className="text-sm text-neutral-500">Content needed to execute this move.</p>
+                            </div>
+                            <LuxeButton icon={Wand2} onClick={handleGenerateAssets}>Generate Briefs</LuxeButton>
+                        </div>
 
-      {/* Goal */}
-      <div className="runway-card p-6">
-        <h2 className="text-lg font-bold text-neutral-900 mb-4">Goal</h2>
-        {editing ? (
-          <textarea
-            value={editedGoal}
-            onChange={(e) => setEditedGoal(e.target.value)}
-            className="w-full p-4 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 min-h-[100px]"
-            placeholder="Describe the goal of this move..."
-          />
-        ) : (
-          <p className="text-neutral-700">{move.goal || 'No goal specified'}</p>
-        )}
-      </div>
+                        <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-neutral-50 border-b border-neutral-200">
+                                    <tr>
+                                        <th className="px-6 py-3 font-bold text-neutral-400 uppercase tracking-wider text-xs">Asset Name</th>
+                                        <th className="px-6 py-3 font-bold text-neutral-400 uppercase tracking-wider text-xs">Channel</th>
+                                        <th className="px-6 py-3 font-bold text-neutral-400 uppercase tracking-wider text-xs">Status</th>
+                                        <th className="px-6 py-3 font-bold text-neutral-400 uppercase tracking-wider text-xs text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-neutral-100">
+                                    {assets.map(asset => (
+                                        <tr key={asset.id} className="group hover:bg-neutral-50 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded bg-neutral-100 flex items-center justify-center text-neutral-500">
+                                                        {asset.format === 'post' ? <FileText className="w-4 h-4" /> : 
+                                                         asset.format === 'email' ? <Send className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                                                    </div>
+                                                    <span className="font-medium text-neutral-900">{asset.name}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className="capitalize text-neutral-600">{asset.channel}</span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <LuxeBadge variant={asset.status === 'published' ? 'success' : 'neutral'} className="capitalize">
+                                                    {asset.status}
+                                                </LuxeBadge>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button className="text-neutral-400 hover:text-neutral-900 font-medium text-xs transition-colors">View Brief</button>
+                                                    <button className="text-neutral-400 hover:text-neutral-900 transition-colors"><ExternalLink className="w-4 h-4" /></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {assets.length === 0 && (
+                                <div className="p-12 text-center text-neutral-500">No assets generated yet.</div>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
 
-      {/* OODA Configuration */}
-      <div className="runway-card p-6">
-        <h2 className="text-lg font-bold text-neutral-900 mb-6">OODA Loop Configuration</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-sm font-bold text-neutral-700 mb-2">Observe</h3>
-            <p className="text-sm text-neutral-600">Data sources and monitoring</p>
-            <div className="mt-3 text-neutral-700">
-              {JSON.stringify(editedOODA.observe_sources || [], null, 2)}
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-neutral-700 mb-2">Orient</h3>
-            <p className="text-sm text-neutral-600">Context and interpretation rules</p>
-            <div className="mt-3 text-neutral-700">
-              {editedOODA.orient_rules || 'Not configured'}
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-neutral-700 mb-2">Decide</h3>
-            <p className="text-sm text-neutral-600">Decision logic and thresholds</p>
-            <div className="mt-3 text-neutral-700">
-              {editedOODA.decide_logic || 'Not configured'}
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-neutral-700 mb-2">Act</h3>
-            <p className="text-sm text-neutral-600">Action tasks and execution</p>
-            <div className="mt-3 text-neutral-700">
-              {JSON.stringify(editedOODA.act_tasks || [], null, 2)}
-            </div>
-          </div>
-        </div>
-      </div>
+                {activeTab === 'performance' && (
+                    <motion.div variants={fadeInUp} className="space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <LuxeCard className="p-6">
+                                <div className="text-sm text-neutral-500 font-medium mb-2">Primary KPI</div>
+                                <div className="text-3xl font-display font-medium text-neutral-900">
+                                    {move.status === 'active' ? '12' : '0'} <span className="text-lg text-neutral-400">/ 50</span>
+                                </div>
+                                <div className="text-xs text-neutral-400 mt-1 uppercase tracking-wider">Qualified Leads</div>
+                            </LuxeCard>
+                            
+                            <LuxeCard className="p-6">
+                                <div className="text-sm text-neutral-500 font-medium mb-2">Efficiency</div>
+                                <div className="text-3xl font-display font-medium text-neutral-900">$450</div>
+                                <div className="text-xs text-neutral-400 mt-1 uppercase tracking-wider">Cost Per Lead</div>
+                            </LuxeCard>
 
-      {/* Metrics */}
-      {metrics.length > 0 && (
-        <div className="runway-card p-6">
-          <h2 className="text-lg font-bold text-neutral-900 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Performance Metrics
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-neutral-200">
-                  <th className="text-left p-2 text-sm text-neutral-600">Date</th>
-                  <th className="text-right p-2 text-sm text-neutral-600">Actions</th>
-                  <th className="text-right p-2 text-sm text-neutral-600">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {metrics.map((metric, i) => (
-                  <tr key={i} className="border-b border-neutral-100">
-                    <td className="p-2 text-sm">{metric.date}</td>
-                    <td className="p-2 text-sm text-right">{metric.actions_completed || 0}</td>
-                    <td className="p-2 text-sm text-right">{metric.notes || '-'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+                            <LuxeCard className="p-6">
+                                <div className="text-sm text-neutral-500 font-medium mb-2">Engagement</div>
+                                <div className="text-3xl font-display font-medium text-neutral-900">4.2%</div>
+                                <div className="text-xs text-neutral-400 mt-1 uppercase tracking-wider">Avg Click Rate</div>
+                            </LuxeCard>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <LuxeCard title="Stage Shift Velocity">
+                                <div className="h-64 bg-neutral-50 rounded border border-neutral-100 flex items-center justify-center">
+                                    <span className="text-neutral-400 text-sm italic">Funnel Visualization Placeholder</span>
+                                </div>
+                            </LuxeCard>
+
+                            <LuxeCard title="Asset Leaderboard">
+                                <div className="space-y-4">
+                                    {assets.slice(0, 3).map((asset, i) => (
+                                        <div key={asset.id} className="flex items-center justify-between p-3 border border-neutral-100 rounded bg-neutral-50/50">
+                                            <div className="flex items-center gap-3">
+                                                <div className="font-bold text-neutral-300 text-lg">#{i+1}</div>
+                                                <div className="text-sm font-medium text-neutral-900">{asset.name}</div>
+                                            </div>
+                                            <div className="text-sm font-bold text-neutral-900">
+                                                {asset.metrics?.clicks || 0} <span className="text-neutral-400 font-normal text-xs">clicks</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {assets.length === 0 && <div className="text-sm text-neutral-400 italic">No data available</div>}
+                                </div>
+                            </LuxeCard>
+                        </div>
+                    </motion.div>
+                )}
+            </div>
+        </motion.div>
+    );
 }
-
-

@@ -47,9 +47,9 @@ A comprehensive strategic marketing command center that unifies positioning, cam
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Supabase account (for database)
+- **Node.js 18+** and npm
+- **Supabase account** - Sign up at [supabase.com](https://supabase.com)
+- Git
 
 ### Installation
 
@@ -60,21 +60,46 @@ cd raptorflow
 
 # Install dependencies
 npm install
+```
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your Supabase credentials
+### Environment Setup
 
-# Run database migrations
-# In Supabase SQL Editor:
-# \i database/migrations/009_strategic_system_foundation.sql
-# \i database/migrations/010_enhance_existing_tables.sql
+1. **Copy the environment template:**
+   ```bash
+   cp .env.example .env.local
+   ```
 
-# Start development server
+2. **Configure Supabase** (Required):
+   - Go to your [Supabase Dashboard](https://app.supabase.com)
+   - Create a new project (or use existing)
+   - Navigate to **Settings** → **API**
+   - Copy your **Project URL** and **anon/public key**
+   - Update `.env.local`:
+     ```bash
+     VITE_SUPABASE_URL=https://your-project.supabase.co
+     VITE_SUPABASE_ANON_KEY=your_actual_anon_key_here
+     ```
+
+3. **Run database migrations** (see Database Setup below)
+
+### Start Development Server
+
+```bash
 npm run dev
 ```
 
 Navigate to `http://localhost:5173`
+
+### Database Setup
+
+Run these migrations in your Supabase SQL Editor (in order):
+
+1. **Workspace Tables** - Creates `workspaces`, `workspace_members`, `profiles` tables
+2. **Positioning Tables** - Creates `positioning_profiles` table
+3. **Enable RLS** - Sets up Row Level Security policies
+
+See `supabase/migrations/` folder for SQL scripts.
+
 
 ---
 
@@ -82,7 +107,6 @@ Navigate to `http://localhost:5173`
 
 - **[Quick Start Guide](QUICK_START.md)** - Get started in 5 minutes
 - **[Final Summary](FINAL_SUMMARY.md)** - Complete project overview
-- **[Project Summary](PROJECT_SUMMARY.md)** - Technical details
 - **[Walkthrough](walkthrough.md)** - Detailed examples
 - **[Testing Guide](PHASE_8_COMPLETE.md)** - End-to-end testing
 
@@ -90,43 +114,50 @@ Navigate to `http://localhost:5173`
 
 ## 🏗️ Architecture
 
-### Frontend
-- **React** - UI framework
-- **Framer Motion** - Animations
-- **Tailwind CSS** - Styling
-- **React Router** - Navigation
-- **TypeScript** - Type safety
+### Frontend Stack
+- **React 19** - UI framework with concurrent features
+- **Vite** - Fast build tool and dev server
+- **React Router 7** - Client-side routing
+- **Tailwind CSS** - Utility-first styling with custom design system
+- **Framer Motion** - Smooth animations and transitions
+- **Zod** - Schema validation
+- **Supabase JS Client** - Database and auth integration
 
-### Backend
-- **Python** - Backend language
-- **FastAPI** - REST API framework
-- **Supabase** - Database (PostgreSQL)
-- **Pydantic** - Data validation
+### Backend Stack
+- **Python FastAPI** - REST API framework
+- **Supabase** - PostgreSQL database with real-time features
+- **Vertex AI** - AI-powered insights and generation
 
-### Database
-- **8 Tables** - 6 new + 2 enhanced
+### Frontend Architecture Layers
+
+#### 1. Auth Layer (`src/context/AuthContext.tsx`)
+- Manages authentication state: `loading`, `authenticated`, `unauthenticated`
+- Handles Supabase auth flows: email/password, OAuth
+- User session management and persistence
+- Profile and subscription data
+
+#### 2. Workspace Layer (`src/context/WorkspaceContext.tsx`)
+- Multi-workspace support for users
+- Workspace selection and persistence (localStorage)
+- Row Level Security (RLS) scoped data access
+- Workspace member roles: owner, admin, member, viewer
+
+#### 3. Protected Routes (`src/components/ProtectedRoute.tsx`)
+- Guards authenticated pages
+- Redirects to `/auth` when unauthenticated
+- Shows loading states during auth check
+
+#### 4. App Shell
+- Sidebar navigation
+- Topbar with workspace selector and user menu
+- Consistent layout across workspace pages
+
+### Database Schema
+- **8 Core Tables** - workspaces, profiles, positioning, campaigns, etc.
 - **JSONB Columns** - Flexible strategic attributes
-- **RLS Policies** - Row-level security
-- **Indexes** - Performance optimization
+- **RLS Policies** - Workspace-scoped security
+- **Triggers** - Auto-create profiles, auto-assign workspace owners
 
----
-
-## 📁 Project Structure
-
-```
-Raptorflow/
-├── backend/
-│   ├── services/          # 5 backend services
-│   ├── routers/           # 5 API routers (40+ endpoints)
-│   └── database/          # Migrations and schemas
-├── src/
-│   ├── pages/
-│   │   ├── strategy/      # 5 strategic components
-│   │   └── muse/          # Creative brief components
-│   └── types/             # TypeScript definitions
-└── database/
-    └── migrations/        # SQL migrations
-```
 
 ---
 
@@ -198,6 +229,11 @@ Improved Results
 ---
 
 ## 🧪 Testing
+
+### Unit Testing
+```bash
+npm test
+```
 
 ### UI Testing (Mock Data)
 ```bash

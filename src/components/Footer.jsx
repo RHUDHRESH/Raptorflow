@@ -12,7 +12,7 @@ export default function Footer() {
   const handleNewsletterSubmit = (e) => {
     e.preventDefault()
     const emailValidation = validateEmail(email)
-    
+
     if (!emailValidation.isValid) {
       setError(emailValidation.error)
       return
@@ -21,7 +21,7 @@ export default function Footer() {
     setSubscribed(true)
     setEmail('')
     setError('')
-    
+
     setTimeout(() => {
       setSubscribed(false)
     }, 3000)
@@ -42,7 +42,7 @@ export default function Footer() {
                 Strategy Execution Platform. Transform vision into reality with precision and clarity.
               </p>
             </div>
-            
+
             {/* Newsletter */}
             <div>
               <label className="text-micro block mb-3">
@@ -153,7 +153,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full border border-black/10 flex items-center justify-center text-gray-400 hover:text-black hover:border-black/20 transition-all duration-180"
-                aria-label="Twitter"
+                aria-label="Follow on X"
               >
                 <Twitter className="w-4 h-4" strokeWidth={1.5} />
               </a>

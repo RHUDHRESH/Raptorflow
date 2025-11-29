@@ -25,10 +25,10 @@ from backend.bus.channels import (
     Channel, ChannelType, GUILD_CHANNELS, ALERT_CHANNELS, DLQ_PREFIX,
     HEARTBEAT_CHANNEL, STATE_UPDATE_CHANNEL, is_alert_channel, is_dlq_channel
 )
-from backend.config.settings import settings
+from backend.core.config import settings
+from backend.utils.logging_config import get_logger, get_correlation_id, get_workspace_id
 
-
-logger = logging.getLogger(__name__)
+logger = get_logger("bus")
 
 
 class RaptorBusException(Exception):
@@ -101,7 +101,7 @@ class RaptorBus:
 
         # Subscription management
         self._subscriptions: Dict[str, asyncio.Task] = {}
-        self._handlers: Dict[str, List[Callable]] = {}
+        self._handlers: Dict[str, Callable] = {}
 
         # Metrics
         self._metrics = {
@@ -154,6 +154,68 @@ class RaptorBus:
             await self.redis_client.close()
             self.is_connected = False
             logger.info("RaptorBus disconnected")
+
+    async def publish(self, event_type: str, payload: dict, *, workspace_id: Optional[str] = None, correlation_id: Optional[str] = None) -> None:
+        """
+        Simple publish method for agent communication according to master skeleton spec.
+
+        Args:
+            event_type: Type of event (e.g., "agent.task_started", "model_inference_complete")
+            payload: Event-specific data
+            workspace_id: Workspace context (uses context var if not provided)
+            correlation_id: Correlation ID (uses context var if not provided)
+        """
+        import json
+        from datetime import datetime
+
+        resolved_correlation_id = correlation_id or get_correlation_id()
+        resolved_workspace_id = workspace_id or get_workspace_id()
+
+        # Build envelope as per master skeleton spec
+        envelope = {
+            "event_type": event_type,
+            "workspace_id": resolved_workspace_id,
+            "correlation_id": resolved_correlation_id,
+            "payload": payload,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        channel = f"raptorflow.events.{event_type}"
+
+        try:
+            await self.redis_client.publish(channel, json.dumps(envelope))
+            logger.info(f"Published event {event_type} to {channel}",
+                       workspace_id=resolved_workspace_id,
+                       correlation_id=resolved_correlation_id)
+        except Exception as e:
+            logger.error(f"Failed to publish event {event_type}: {e}")
+            raise
+
+        # Also keep the existing complex publish method available
+
+    def subscribe(self, event_type: str, handler: Callable[[dict], None]) -> None:
+        """
+        Register a handler for a specific event type.
+
+        Args:
+            event_type: Event type to subscribe to
+            handler: Function that receives the event payload dict
+        """
+        # Create an async wrapper that extracts payload and calls the handler
+        async def async_handler(event: BusEvent):
+            handler(event.payload)
+
+        channel = f"raptorflow.events.{event_type}"
+        # Use the full subscription method but with a converted handler
+        self._handlers[channel] = handler  # Store the original handler for simple dispatching
+
+        # Register the async wrapper
+        async def event_wrapper(event: BusEvent):
+            handler(event.payload)
+
+        self._registry_handlers[channel] = event_wrapper
+
+        logger.info(f"Registered handler for {event_type} on {channel}")
 
     # ========================================================================
     # PUBLISH OPERATIONS

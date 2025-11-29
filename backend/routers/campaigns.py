@@ -1,198 +1,187 @@
-"""
-Campaigns Router - API endpoints for campaign/move creation, tasks, and tracking.
-"""
-
-import structlog
-from typing import Annotated
-from uuid import UUID
-from datetime import datetime, timezone
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
-
-from backend.main import get_current_user_and_workspace
-from backend.models.campaign import MoveRequest, MoveResponse, Task
-from backend.graphs.strategy_graph import strategy_graph_runnable, StrategyGraphState
-from backend.agents.execution.scheduler_agent import scheduler_agent
+from typing import List, Optional, Dict, Any
+from uuid import UUID, uuid4
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from backend.core.request_context import RequestContext, get_request_context
 from backend.services.supabase_client import supabase_client
-from backend.utils.correlation import get_correlation_id, generate_correlation_id
+from backend.models.campaign import (
+    Campaign, CampaignCreate, CampaignUpdate,
+    CampaignChannel, CampaignCohortTarget,
+    MovePlanSkeleton, MoveType
+)
+import structlog
 
-router = APIRouter()
+router = APIRouter(prefix="/api/v1/campaigns", tags=["campaigns"])
 logger = structlog.get_logger(__name__)
 
+# --- Campaign CRUD ---
 
-@router.post("/create", response_model=MoveResponse, summary="Create Campaign", tags=["Campaigns"])
+@router.get("", response_model=List[Campaign])
+async def list_campaigns(
+    ctx: RequestContext = Depends(get_request_context)
+):
+    """List all campaigns for the workspace."""
+    campaigns = await supabase_client.fetch_all(
+        "campaigns",
+        {"workspace_id": str(ctx.workspace_id)}
+    )
+    return campaigns
+
+@router.post("", response_model=Campaign)
 async def create_campaign(
-    request: MoveRequest,
-    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
+    campaign: CampaignCreate,
+    ctx: RequestContext = Depends(get_request_context)
 ):
-    """Creates a new marketing campaign (Move)."""
-    workspace_id = auth["workspace_id"]
-    correlation_id = generate_correlation_id()
-    logger.info("Creating campaign", name=request.name, correlation_id=correlation_id)
+    """Create a new campaign with optional initial cohorts and channels."""
     
-    try:
-        # Use strategy graph to generate campaign plan
-        initial_state = StrategyGraphState(
-            user_id=auth["user_id"],
-            workspace_id=workspace_id,
-            correlation_id=correlation_id,
-            goal=request.goal,
-            timeframe_days=request.timeframe_days,
-            target_cohort_ids=request.target_cohort_ids,
-            channels=request.channels,
-            constraints=request.constraints,
-            adapt_stage="design",
-            next_step="campaign_plan"
-        )
-        
-        final_state = await strategy_graph_runnable.ainvoke(initial_state)
-        campaign_plan = final_state.get("campaign_plan")
-        
-        # Create move record
-        move_data = {
-            "workspace_id": str(workspace_id),
-            "name": request.name,
-            "goal": request.goal,
-            "status": "planning",
-            "start_date": datetime.now(timezone.utc).isoformat(),
-            "target_cohort_ids": [str(cid) for cid in request.target_cohort_ids],
-            "channels": request.channels,
-            "lines_of_operation": campaign_plan.get("lines_of_operation", []) if campaign_plan else [],
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }
-        
-        move_record = await supabase_client.insert("moves", move_data)
+    # 1. Create Campaign
+    campaign_data = campaign.dict(exclude={"cohorts", "channels"})
+    campaign_data["workspace_id"] = str(ctx.workspace_id)
+    campaign_data["status"] = "planning"
+    
+    created_campaign = await supabase_client.insert("campaigns", campaign_data)
+    campaign_id = created_campaign["id"]
+    
+    # 2. Add Cohorts
+    if campaign.cohorts:
+        for cohort in campaign.cohorts:
+            await supabase_client.insert("campaign_cohorts", {
+                "workspace_id": str(ctx.workspace_id),
+                "campaign_id": campaign_id,
+                "cohort_id": str(cohort.cohort_id),
+                "journey_stage_target": cohort.journey_stage_target,
+                "priority": cohort.priority
+            })
+            
+    # 3. Add Channels
+    if campaign.channels:
+        for channel in campaign.channels:
+            await supabase_client.insert("campaign_channels", {
+                "workspace_id": str(ctx.workspace_id),
+                "campaign_id": campaign_id,
+                "channel": channel.channel,
+                "role": channel.role,
+                "budget_allocation": channel.budget_allocation
+            })
+            
+    return created_campaign
 
-        logger.info("Campaign created", move_id=move_record["id"], correlation_id=correlation_id)
-
-        return {
-            **MoveResponse(**move_record).dict(),
-            "correlation_id": correlation_id
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to create campaign: {e}", correlation_id=correlation_id)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
-
-
-@router.get("/{move_id}", response_model=dict, summary="Get Campaign", tags=["Campaigns"])
+@router.get("/{campaign_id}", response_model=Campaign)
 async def get_campaign(
-    move_id: UUID,
-    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
+    campaign_id: UUID,
+    ctx: RequestContext = Depends(get_request_context)
 ):
-    """Retrieves a specific campaign."""
-    workspace_id = auth["workspace_id"]
-    correlation_id = generate_correlation_id()
-
-    move = await supabase_client.fetch_one(
-        "moves",
-        {"id": str(move_id), "workspace_id": str(workspace_id)}
+    """Get campaign details including cohorts and channels."""
+    campaign = await supabase_client.fetch_one(
+        "campaigns",
+        {"id": str(campaign_id), "workspace_id": str(ctx.workspace_id)}
     )
-
-    if not move:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Campaign not found"
-        )
-
-    return {
-        **MoveResponse(**move).dict(),
-        "correlation_id": correlation_id
-    }
-
-
-@router.get("/{move_id}/tasks/today", response_model=dict, summary="Get Today's Tasks", tags=["Campaigns"])
-async def get_todays_tasks(
-    move_id: UUID,
-    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
-):
-    """Retrieves today's tasks for a campaign."""
-    workspace_id = auth["workspace_id"]
-    correlation_id = generate_correlation_id()
-
-    try:
-        tasks = await scheduler_agent.generate_daily_checklist(
-            workspace_id,
-            move_id,
-            datetime.now(),
-            correlation_id
-        )
-
-        return {
-            "move_id": str(move_id),
-            "tasks": tasks,
-            "date": datetime.now().isoformat(),
-            "correlation_id": correlation_id
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to get tasks: {e}", correlation_id=correlation_id)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
-
-
-@router.put("/{move_id}/task/{task_id}/complete", summary="Mark Task Complete", tags=["Campaigns"])
-async def complete_task(
-    move_id: UUID,
-    task_id: UUID,
-    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
-):
-    """Marks a task as complete."""
-    workspace_id = auth["workspace_id"]
-    correlation_id = generate_correlation_id()
-
-    try:
-        await supabase_client.update(
-            "tasks",
-            {"id": str(task_id), "move_id": str(move_id)},
-            {"status": "completed", "completed_at": datetime.now(timezone.utc).isoformat(), "updated_at": datetime.now(timezone.utc).isoformat()}
-        )
-
-        logger.info("Task marked complete",
-                   task_id=task_id,
-                   move_id=move_id,
-                   correlation_id=correlation_id)
-
-        return {
-            "status": "success",
-            "message": "Task marked complete",
-            "task_id": str(task_id),
-            "correlation_id": correlation_id
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to complete task: {e}", correlation_id=correlation_id)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
-
-
-@router.get("/", response_model=dict, summary="List Campaigns", tags=["Campaigns"])
-async def list_campaigns(auth: Annotated[dict, Depends(get_current_user_and_workspace)]):
-    """Lists all campaigns for the workspace."""
-    workspace_id = auth["workspace_id"]
-    correlation_id = generate_correlation_id()
-
-    moves = await supabase_client.fetch_all(
-        "moves",
-        {"workspace_id": str(workspace_id)}
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+        
+    # Fetch related data
+    cohorts_data = await supabase_client.fetch_all(
+        "campaign_cohorts",
+        {"campaign_id": str(campaign_id)}
     )
+    channels_data = await supabase_client.fetch_all(
+        "campaign_channels",
+        {"campaign_id": str(campaign_id)}
+    )
+    
+    campaign["cohorts"] = cohorts_data
+    campaign["channels"] = channels_data
+    
+    return campaign
 
-    return {
-        "campaigns": [MoveResponse(**m).dict() for m in moves],
-        "total": len(moves),
-        "correlation_id": correlation_id
-    }
+@router.patch("/{campaign_id}", response_model=Campaign)
+async def update_campaign(
+    campaign_id: UUID,
+    update: CampaignUpdate,
+    ctx: RequestContext = Depends(get_request_context)
+):
+    """Update campaign details."""
+    update_data = update.dict(exclude_unset=True)
+    updated = await supabase_client.update(
+        "campaigns",
+        {"id": str(campaign_id), "workspace_id": str(ctx.workspace_id)},
+        update_data
+    )
+    return updated
 
+# --- Auto-Planning ---
 
-
-
-
+@router.post("/{campaign_id}/autoplan-moves", response_model=List[MovePlanSkeleton])
+async def autoplan_moves(
+    campaign_id: UUID,
+    ctx: RequestContext = Depends(get_request_context)
+):
+    """
+    Trigger the CampaignPlanner agent to generate a move sequence.
+    Currently returns a mock plan for immediate UI integration.
+    """
+    logger.info("Auto-planning moves", campaign_id=str(campaign_id))
+    
+    # Fetch campaign context
+    campaign = await get_campaign(campaign_id, ctx)
+    
+    # In a real implementation, we would call CampaignPlannerGraph here.
+    # For now, we implement the "Auto-suggest Moves" logic deterministically 
+    # based on the prompt's example.
+    
+    objective_type = campaign.get("objective_type", "conversion")
+    
+    plan = []
+    
+    # Example Logic: Authority -> Consideration -> Objection -> Conversion
+    
+    # Move 1: Authority
+    plan.append(MovePlanSkeleton(
+        name="Authority Sprint",
+        move_type=MoveType.AUTHORITY,
+        journey_stage_from="problem_aware",
+        journey_stage_to="solution_aware",
+        cohort_id=None, # Applies to all targeted cohorts
+        channels=["linkedin", "email"],
+        duration_weeks=2,
+        focus_message="Chaos to Clarity"
+    ))
+    
+    # Move 2: Consideration
+    plan.append(MovePlanSkeleton(
+        name="Consideration Sprint",
+        move_type=MoveType.CONSIDERATION,
+        journey_stage_from="solution_aware",
+        journey_stage_to="product_aware",
+        cohort_id=None,
+        channels=["email", "retargeting"],
+        duration_weeks=2,
+        focus_message="Proof It Works"
+    ))
+    
+    # Move 3: Objection
+    plan.append(MovePlanSkeleton(
+        name="Objection Crusher",
+        move_type=MoveType.OBJECTION,
+        journey_stage_from="product_aware",
+        journey_stage_to="most_aware",
+        cohort_id=None,
+        channels=["email", "dm"],
+        duration_weeks=2,
+        focus_message="Risk Reversal"
+    ))
+    
+    # Move 4: Conversion
+    if objective_type == "conversion":
+        plan.append(MovePlanSkeleton(
+            name="Conversion Push",
+            move_type=MoveType.CONVERSION,
+            journey_stage_from="most_aware",
+            journey_stage_to="customer",
+            cohort_id=None,
+            channels=["email", "sales"],
+            duration_weeks=2,
+            focus_message="Urgency & Offer"
+        ))
+        
+    return plan

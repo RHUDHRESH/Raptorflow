@@ -11,8 +11,16 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from backend.main import get_current_user_and_workspace
-from backend.graphs.strategy_graph import strategy_graph_runnable, StrategyGraphState
+from backend.utils.auth import get_current_user_and_workspace
+try:
+    from backend.graphs.strategy_graph import strategy_graph_runnable, StrategyGraphState
+except ImportError:
+    logger.warning("Could not import strategy_graph, using mocks. Strategy generation will not work.")
+    StrategyGraphState = dict
+    class MockRunnable:
+        async def ainvoke(self, *args, **kwargs):
+            raise NotImplementedError("Strategy graph not available")
+    strategy_graph_runnable = MockRunnable()
 from backend.services.supabase_client import supabase_client
 from backend.utils.correlation import get_correlation_id, generate_correlation_id
 

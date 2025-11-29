@@ -205,6 +205,17 @@ class ExecutionSupervisor(BaseSupervisor):
             correlation_id=correlation_id
         )
 
+        # Publish completion event
+        await self.publish_event(
+            "agent.execution.publish_completed",
+            {
+                "job_id": job_id,
+                "content_id": content_id,
+                "workspace_id": str(workspace_id),
+                "successful": len([r for r in publishing_results if r.get("status") == "published"])
+            }
+        )
+
         return {
             "status": "completed",
             "job_id": job_id,
@@ -289,6 +300,16 @@ class ExecutionSupervisor(BaseSupervisor):
                 "status": "scheduled",
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
+
+        # Publish scheduled event
+        await self.publish_event(
+            "agent.execution.schedule_completed",
+            {
+                "move_id": str(move_id),
+                "workspace_id": str(workspace_id),
+                "scheduled_count": len(scheduled_posts)
+            }
+        )
 
         return {
             "status": "scheduled",

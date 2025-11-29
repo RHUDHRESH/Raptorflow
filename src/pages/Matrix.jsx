@@ -30,6 +30,7 @@ import {
   CartesianGrid,
   Cell,
 } from "recharts";
+import { PageHeader, LuxeHeading, LuxeButton, LuxeCard, LuxeBadge, LuxeStat } from '../components/ui/PremiumUI';
 
 const cn = (...c) => c.filter(Boolean).join(" ");
 
@@ -158,25 +159,28 @@ export default function Matrix() {
   }, [searchParams]);
 
   return (
-    <div className="space-y-6">
-      {/* Page Title */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">Analytics</p>
-          <h1 className="text-3xl font-semibold">Matrix</h1>
-        </div>
-        <nav className="hidden gap-2 rounded-full border border-neutral-200 bg-white px-2 py-1 shadow-sm md:flex">
-          {["moves", "cohorts", "patterns", "pulse"].map((t) => (
-            <button
-              key={t}
-              onClick={() => { setSelectedMove(null); setTab(t); }}
-              className={cn("rounded-full px-3 py-1 text-xs font-semibold capitalize", tab === t ? "bg-neutral-900 text-white" : "text-neutral-600 hover:text-neutral-900")}
-            >
-              {t}
-            </button>
-          ))}
-        </nav>
-      </div>
+    <div className="space-y-8 max-w-7xl mx-auto p-6">
+      {/* Page Title (Task 24) */}
+      <PageHeader
+        title="The Matrix"
+        subtitle="Cross-campaign intelligence, pattern recognition, and anomaly detection."
+        action={
+            <nav className="hidden gap-1 md:flex p-1 bg-neutral-100 rounded-lg">
+            {["moves", "cohorts", "patterns", "pulse"].map((t) => (
+                <button
+                key={t}
+                onClick={() => { setSelectedMove(null); setTab(t); }}
+                className={cn(
+                    "rounded-md px-4 py-2 text-sm font-medium capitalize transition-all", 
+                    tab === t ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-900"
+                )}
+                >
+                {t}
+                </button>
+            ))}
+            </nav>
+        }
+      />
       {!selectedMove ? (
         <>
           {tab === "moves" && (
@@ -302,13 +306,13 @@ export default function Matrix() {
           )}
 
           {tab === "pulse" && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                <PulseStat label="Moves On Track" value="2" tone="emerald" />
-                <PulseStat label="Move At Risk" value="1" tone="amber" />
-                <PulseStat label="Move Failing" value="1" tone="rose" />
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <LuxeStat label="Moves On Track" value="2" icon={Check} />
+                <LuxeStat label="Moves At Risk" value="1" icon={AlertCircle} />
+                <LuxeStat label="Moves Failing" value="1" icon={X} />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {PULSE.map((a) => (
                   <div key={a.id} className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300 md:flex-row md:items-center md:justify-between">
                     <div>

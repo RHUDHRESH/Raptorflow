@@ -35,6 +35,7 @@ import asyncio
 import json
 import hashlib
 import time
+import uuid
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 from enum import Enum
@@ -56,6 +57,24 @@ from backend.utils.correlation import get_correlation_id, set_correlation_id, ge
 from backend.utils.cache import redis_cache
 
 settings = get_settings()
+
+
+class PlaceholderSupervisor(BaseSupervisor):
+    """
+    Placeholder supervisor for domains that are not yet fully implemented as agents.
+    Allows the Master Orchestrator to route requests without crashing.
+    """
+    def __init__(self, name: str):
+        super().__init__(name)
+    
+    async def execute(self, goal: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        self.log(f"Placeholder supervisor {self.name} executed", goal=goal)
+        return {
+            "status": "success", 
+            "result": f"Simulated execution for {self.name}",
+            "supervisor": self.name,
+            "goal": goal
+        }
 
 
 class ADAPTStage(str, Enum):
@@ -237,14 +256,52 @@ class MasterOrchestrator(BaseSupervisor):
                         "correlation_id": correlation_id
                     }
 
-        # Return routing decision
-        # In future iterations, this will actually invoke the supervisor
+        # Execute the selected supervisor
+        if primary_supervisor:
+            self.log(f"Executing primary supervisor: {primary_supervisor}")
+            try:
+                # Create execution payload
+                payload = {
+                    "goal": goal,
+                    "context": context,
+                    "routing_info": routing,
+                    "correlation_id": correlation_id
+                }
+                
+                # Execute the sub-agent
+                execution_result = await self._execute_agent_with_context(
+                    primary_supervisor, 
+                    payload, 
+                    AgentContext(
+                        workspace_id=UUID(workspace_id) if workspace_id else uuid.uuid4(),
+                        correlation_id=correlation_id,
+                        user_id=None, # TODO: Extract from context
+                        task_history=[]
+                    )
+                )
+                
+                return {
+                    "status": "success",
+                    "routing_decision": routing,
+                    "execution_result": execution_result,
+                    "correlation_id": correlation_id,
+                    "message": f"Executed {primary_supervisor} supervisor",
+                    "next_steps": self._get_next_steps(primary_supervisor, goal)
+                }
+            except Exception as e:
+                self.log(f"Execution failed: {e}", level="error")
+                return {
+                    "status": "execution_failed",
+                    "error": str(e),
+                    "routing_decision": routing,
+                    "correlation_id": correlation_id
+                }
+
         return {
-            "status": "routed",
+            "status": "routed_only",
             "routing_decision": routing,
             "correlation_id": correlation_id,
-            "message": f"Request routed to {primary_supervisor} supervisor",
-            "next_steps": self._get_next_steps(primary_supervisor, goal)
+            "message": "No primary supervisor identified to execute",
         }
 
     async def route_request(

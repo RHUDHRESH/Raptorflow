@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Settings as SettingsIcon, Bell, Shield, Palette, Globe, Database, Download, Upload, Trash2, Sparkles, ArrowRight, Check, X, CreditCard, ChevronDown, AlertTriangle } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Onboarding from '../components/Onboarding'
 import { sanitizeInput, setSecureLocalStorage, getSecureLocalStorage } from '../utils/sanitize'
 import { backendAPI } from '../lib/services/backend-api'
@@ -27,6 +28,7 @@ const getUserPlan = () => {
 }
 
 export default function Settings() {
+  const navigate = useNavigate()
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showChangelog, setShowChangelog] = useState(false)
   const [showComingSoon, setShowComingSoon] = useState(false)
@@ -129,7 +131,7 @@ export default function Settings() {
     reader.onload = (e) => {
       try {
         const importedData = JSON.parse(e.target.result)
-        
+
         // Validate it's an object
         if (typeof importedData !== 'object' || importedData === null) {
           throw new Error('Invalid data format')
@@ -152,7 +154,7 @@ export default function Settings() {
       }
     }
     reader.readAsText(file)
-    
+
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
@@ -336,452 +338,448 @@ export default function Settings() {
         )}
       </AnimatePresence>
       <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="pb-8"
-      >
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <span className="micro-label tracking-[0.5em]">Settings</span>
-            <span className="h-px w-16 bg-neutral-200" />
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="pb-8"
+        >
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="micro-label tracking-[0.5em]">Settings</span>
+              <span className="h-px w-16 bg-neutral-200" />
+            </div>
+            <div className="space-y-2">
+              <h1 className="font-serif text-4xl md:text-6xl text-black leading-[1.1] tracking-tight antialiased">
+                Settings
+              </h1>
+              <p className="font-sans text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400">
+                Configure your workspace preferences
+              </p>
+            </div>
           </div>
-          <div className="space-y-2">
-            <h1 className="font-serif text-4xl md:text-6xl text-black leading-[1.1] tracking-tight antialiased">
-              Settings
-            </h1>
-            <p className="font-sans text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400">
-              Configure your workspace preferences
-            </p>
-          </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* Tabs */}
-      <div className="border-b-2 border-neutral-200">
-        <div className="flex overflow-x-auto scrollbar-hide">
-          {settingsTabs.map((tab) => {
-            const Icon = tab.icon
-            const isActive = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`relative flex items-center gap-2 px-6 py-4 font-sans text-sm font-medium transition-all ${
-                  isActive
+        {/* Tabs */}
+        <div className="border-b-2 border-neutral-200">
+          <div className="flex overflow-x-auto scrollbar-hide">
+            {settingsTabs.map((tab) => {
+              const Icon = tab.icon
+              const isActive = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative flex items-center gap-2 px-6 py-4 font-sans text-sm font-medium transition-all ${isActive
                     ? 'text-neutral-900'
                     : 'text-neutral-500 hover:text-neutral-900'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-900"
-                  />
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-        >
-          {activeTab === 'notifications' && (
-            <div className="bg-white border-2 border-black p-12 space-y-8">
-              <h2 className="font-serif text-3xl text-black mb-8">Notification Settings</h2>
-              {[
-                { key: 'email', label: 'Email Notifications', description: 'Receive email updates about your campaigns and moves' },
-                { key: 'push', label: 'Push Notifications', description: 'Real-time browser notifications for important events' },
-                { key: 'weekly', label: 'Weekly Reminder', description: 'Weekly recap reminder for your strategy review' },
-              ].map((item, index) => (
-                <div key={item.key} className={`flex items-center justify-between py-6 ${index < 2 ? 'border-b border-neutral-200' : ''}`}>
-                  <div className="flex-1 pr-8">
-                    <h3 className="font-sans font-semibold text-black mb-2 text-base">{item.label}</h3>
-                    <p className="font-sans text-sm text-neutral-600">{item.description}</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifications[item.key]}
-                      onChange={(e) => setNotifications({ ...notifications, [item.key]: e.target.checked })}
-                      className="sr-only peer"
+                    }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-900"
                     />
-                    <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-black after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
-                  </label>
-                </div>
-              ))}
-            </div>
-          )}
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
-          {activeTab === 'preferences' && (
-            <div className="bg-white border-2 border-black p-12 space-y-8">
-              <h2 className="font-serif text-3xl text-black mb-8">Preferences</h2>
+        {/* Tab Content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {activeTab === 'notifications' && (
+              <div className="bg-white border-2 border-black p-12 space-y-8">
+                <h2 className="font-serif text-3xl text-black mb-8">Notification Settings</h2>
+                {[
+                  { key: 'email', label: 'Email Notifications', description: 'Receive email updates about your campaigns and moves' },
+                  { key: 'push', label: 'Push Notifications', description: 'Real-time browser notifications for important events' },
+                  { key: 'weekly', label: 'Weekly Reminder', description: 'Weekly recap reminder for your strategy review' },
+                ].map((item, index) => (
+                  <div key={item.key} className={`flex items-center justify-between py-6 ${index < 2 ? 'border-b border-neutral-200' : ''}`}>
+                    <div className="flex-1 pr-8">
+                      <h3 className="font-sans font-semibold text-black mb-2 text-base">{item.label}</h3>
+                      <p className="font-sans text-sm text-neutral-600">{item.description}</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={notifications[item.key]}
+                        onChange={(e) => setNotifications({ ...notifications, [item.key]: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-black after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'preferences' && (
+              <div className="bg-white border-2 border-black p-12 space-y-8">
+                <h2 className="font-serif text-3xl text-black mb-8">Preferences</h2>
+                <div className="space-y-8">
+                  <div>
+                    <label className="block font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37] mb-3">
+                      Theme
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={preferences.theme}
+                        onChange={(e) => handlePreferenceChange('theme', e.target.value)}
+                        className="w-full bg-white border-2 border-black rounded-lg px-4 py-3 pr-10 font-serif text-lg text-black appearance-none cursor-pointer hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+                      >
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="editorial">Editorial</option>
+                        <option value="runway">Runway</option>
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black pointer-events-none" />
+                    </div>
+                  </div>
+                  <div className="border-t border-neutral-200 pt-8">
+                    <label className="block font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37] mb-3">
+                      Language
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={preferences.language}
+                        onChange={(e) => handlePreferenceChange('language', e.target.value)}
+                        className="w-full bg-white border-2 border-black rounded-lg px-4 py-3 pr-10 font-serif text-lg text-black appearance-none cursor-pointer hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+                      >
+                        <option value="en">English</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black pointer-events-none" />
+                    </div>
+                  </div>
+                  <div className="border-t border-neutral-200 pt-8">
+                    <label className="block font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37] mb-3">
+                      Timezone
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={preferences.timezone}
+                        onChange={(e) => handlePreferenceChange('timezone', e.target.value)}
+                        className="w-full bg-white border-2 border-black rounded-lg px-4 py-3 pr-10 font-serif text-lg text-black appearance-none cursor-pointer hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+                      >
+                        <option value="UTC">UTC</option>
+                        <option value="EST">Eastern Time</option>
+                        <option value="PST">Pacific Time</option>
+                        <option value="GMT">GMT</option>
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'pricing' && (
               <div className="space-y-8">
+                {/* Current Plan */}
+                <div className="border-2 border-black bg-black text-white p-8 rounded-lg">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37] mb-3">Current Plan</p>
+                      <h2 className="font-serif text-3xl md:text-4xl text-white mb-2">
+                        {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
+                      </h2>
+                      <p className="font-sans text-base text-neutral-300">
+                        {currentPlanData.price}/month
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-white">{currentPlanData.cohorts} cohorts</div>
+                      <div className="text-sm text-neutral-300">Limit</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6 pt-6 border-t border-neutral-700">
+                    <div>
+                      <p className="text-xs text-neutral-400 uppercase tracking-[0.2em] mb-2">Cohort Profiles</p>
+                      <p className="text-xl font-semibold text-white">{currentPlanData.cohorts}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-neutral-400 uppercase tracking-[0.2em] mb-2">Moves</p>
+                      <p className="text-xl font-semibold text-white">{currentPlanData.moves}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Available Plans */}
                 <div>
-                  <label className="block font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37] mb-3">
-                    Theme
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={preferences.theme}
-                      onChange={(e) => handlePreferenceChange('theme', e.target.value)}
-                      className="w-full bg-white border-2 border-black rounded-lg px-4 py-3 pr-10 font-serif text-lg text-black appearance-none cursor-pointer hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-                    >
-                      <option value="light">Light</option>
-                      <option value="dark">Dark</option>
-                      <option value="editorial">Editorial</option>
-                      <option value="runway">Runway</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black pointer-events-none" />
-                  </div>
-                </div>
-                <div className="border-t border-neutral-200 pt-8">
-                  <label className="block font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37] mb-3">
-                    Language
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={preferences.language}
-                      onChange={(e) => handlePreferenceChange('language', e.target.value)}
-                      className="w-full bg-white border-2 border-black rounded-lg px-4 py-3 pr-10 font-serif text-lg text-black appearance-none cursor-pointer hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-                    >
-                      <option value="en">English</option>
-                      <option value="es">Spanish</option>
-                      <option value="fr">French</option>
-                      <option value="de">German</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black pointer-events-none" />
-                  </div>
-                </div>
-                <div className="border-t border-neutral-200 pt-8">
-                  <label className="block font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37] mb-3">
-                    Timezone
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={preferences.timezone}
-                      onChange={(e) => handlePreferenceChange('timezone', e.target.value)}
-                      className="w-full bg-white border-2 border-black rounded-lg px-4 py-3 pr-10 font-serif text-lg text-black appearance-none cursor-pointer hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-                    >
-                      <option value="UTC">UTC</option>
-                      <option value="EST">Eastern Time</option>
-                      <option value="PST">Pacific Time</option>
-                      <option value="GMT">GMT</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black pointer-events-none" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+                  <h3 className="font-serif text-2xl text-neutral-900 mb-6">Available Plans</h3>
+                  <div className="flex gap-6 overflow-x-auto pb-4 custom-scrollbar">
+                    {[
+                      { name: 'Ascent', key: 'ascent' },
+                      { name: 'Glide', key: 'glide' },
+                      { name: 'Soar', key: 'soar' },
+                    ].map((plan) => {
+                      const planData = PLAN_LIMITS[plan.key]
+                      const isCurrent = currentPlan === plan.key
+                      const currentPlanTier = currentPlanData?.tier || 1
+                      const planTier = planData.tier
+                      const isUpgrade = planTier > currentPlanTier
+                      const isDowngrade = planTier < currentPlanTier
 
-          {activeTab === 'pricing' && (
-            <div className="space-y-8">
-              {/* Current Plan */}
-              <div className="border-2 border-black bg-black text-white p-8 rounded-lg">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37] mb-3">Current Plan</p>
-                    <h2 className="font-serif text-3xl md:text-4xl text-white mb-2">
-                      {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
-                    </h2>
-                    <p className="font-sans text-base text-neutral-300">
-                      {currentPlanData.price}/month
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-white">{currentPlanData.cohorts} cohorts</div>
-                    <div className="text-sm text-neutral-300">Limit</div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-6 pt-6 border-t border-neutral-700">
-                  <div>
-                    <p className="text-xs text-neutral-400 uppercase tracking-[0.2em] mb-2">Cohort Profiles</p>
-                    <p className="text-xl font-semibold text-white">{currentPlanData.cohorts}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-neutral-400 uppercase tracking-[0.2em] mb-2">Moves</p>
-                    <p className="text-xl font-semibold text-white">{currentPlanData.moves}</p>
-                  </div>
-                </div>
-              </div>
+                      let buttonText = 'Select Plan'
+                      if (isCurrent) {
+                        buttonText = 'Current Plan'
+                      } else if (isUpgrade) {
+                        buttonText = 'Upgrade'
+                      } else if (isDowngrade) {
+                        buttonText = 'Downgrade'
+                      }
 
-              {/* Available Plans */}
-              <div>
-                <h3 className="font-serif text-2xl text-neutral-900 mb-6">Available Plans</h3>
-                <div className="flex gap-6 overflow-x-auto pb-4 custom-scrollbar">
-                  {[
-                    { name: 'Ascent', key: 'ascent' },
-                    { name: 'Glide', key: 'glide' },
-                    { name: 'Soar', key: 'soar' },
-                  ].map((plan) => {
-                    const planData = PLAN_LIMITS[plan.key]
-                    const isCurrent = currentPlan === plan.key
-                    const currentPlanTier = currentPlanData?.tier || 1
-                    const planTier = planData.tier
-                    const isUpgrade = planTier > currentPlanTier
-                    const isDowngrade = planTier < currentPlanTier
-                    
-                    let buttonText = 'Select Plan'
-                    if (isCurrent) {
-                      buttonText = 'Current Plan'
-                    } else if (isUpgrade) {
-                      buttonText = 'Upgrade'
-                    } else if (isDowngrade) {
-                      buttonText = 'Downgrade'
-                    }
-                    
-                    return (
-                      <div
-                        key={plan.name}
-                        className={`bg-white border-2 rounded-lg p-8 transition-all flex-shrink-0 w-full min-w-[320px] max-w-[380px] ${
-                          isCurrent
+                      return (
+                        <div
+                          key={plan.name}
+                          className={`bg-white border-2 rounded-lg p-8 transition-all flex-shrink-0 w-full min-w-[320px] max-w-[380px] ${isCurrent
                             ? 'border-black'
                             : 'border-neutral-200 hover:border-black'
-                        }`}
-                      >
-                        <div className="space-y-6">
-                          <div>
-                            <div className="flex items-center justify-between mb-3">
-                              <h3 className="font-serif text-2xl text-black">{plan.name}</h3>
-                              {isCurrent && (
-                                <span className="px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] bg-black text-white rounded">
-                                  Current
-                                </span>
-                              )}
+                            }`}
+                        >
+                          <div className="space-y-6">
+                            <div>
+                              <div className="flex items-center justify-between mb-3">
+                                <h3 className="font-serif text-2xl text-black">{plan.name}</h3>
+                                {isCurrent && (
+                                  <span className="px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] bg-black text-white rounded">
+                                    Current
+                                  </span>
+                                )}
+                              </div>
+                              <p className="font-sans text-3xl font-semibold text-black mb-2">
+                                {planData.price}
+                                <span className="text-sm font-normal text-neutral-500">/mo</span>
+                              </p>
+                              <p className="font-sans text-xs text-[#D4AF37] uppercase tracking-[0.2em] font-semibold">
+                                Tier {planData.tier}
+                              </p>
                             </div>
-                            <p className="font-sans text-3xl font-semibold text-black mb-2">
-                              {planData.price}
-                              <span className="text-sm font-normal text-neutral-500">/mo</span>
-                            </p>
-                            <p className="font-sans text-xs text-[#D4AF37] uppercase tracking-[0.2em] font-semibold">
-                              Tier {planData.tier}
-                            </p>
-                          </div>
-                          <div className="space-y-3 py-6 border-t border-neutral-200">
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-xs uppercase tracking-[0.2em] text-[#D4AF37] font-semibold">Cohort Profiles</span>
-                              <span className="font-semibold text-black text-base">{planData.cohorts}</span>
+                            <div className="space-y-3 py-6 border-t border-neutral-200">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-xs uppercase tracking-[0.2em] text-[#D4AF37] font-semibold">Cohort Profiles</span>
+                                <span className="font-semibold text-black text-base">{planData.cohorts}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-xs uppercase tracking-[0.2em] text-[#D4AF37] font-semibold">Moves</span>
+                                <span className="font-semibold text-black text-base">{planData.moves}</span>
+                              </div>
                             </div>
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-xs uppercase tracking-[0.2em] text-[#D4AF37] font-semibold">Moves</span>
-                              <span className="font-semibold text-black text-base">{planData.moves}</span>
-                            </div>
-                          </div>
-                          <button
-                            disabled={isCurrent}
-                            onClick={async () => {
-                              if (!isCurrent) {
-                                try {
-                                  // Create PhonePe checkout session
-                                  const response = await backendAPI.payment.createCheckout({
-                                    plan: plan.key,
-                                    billing_period: 'monthly',
-                                    success_url: window.location.origin + '/settings?tab=pricing&payment=success',
-                                    cancel_url: window.location.origin + '/settings?tab=pricing&payment=cancelled'
-                                  });
+                            <button
+                              disabled={isCurrent}
+                              onClick={async () => {
+                                if (!isCurrent) {
+                                  try {
+                                    // Create PhonePe checkout session
+                                    const response = await backendAPI.payment.createCheckout({
+                                      plan: plan.key,
+                                      billing_period: 'monthly',
+                                      success_url: window.location.origin + '/settings?tab=pricing&payment=success',
+                                      cancel_url: window.location.origin + '/settings?tab=pricing&payment=cancelled'
+                                    });
 
-                                  // Redirect to PhonePe payment page
-                                  if (response.checkout_url) {
-                                    window.location.href = response.checkout_url;
-                                  } else {
-                                    alert('Unable to initiate payment. Please try again.');
+                                    // Redirect to PhonePe payment page
+                                    if (response.checkout_url) {
+                                      window.location.href = response.checkout_url;
+                                    } else {
+                                      alert('Unable to initiate payment. Please try again.');
+                                    }
+                                  } catch (error) {
+                                    console.error('Payment error:', error);
+                                    alert('Payment failed: ' + error.message);
                                   }
-                                } catch (error) {
-                                  console.error('Payment error:', error);
-                                  alert('Payment failed: ' + error.message);
                                 }
-                              }
-                            }}
-                            className={`w-full border-2 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] transition-colors ${
-                              isCurrent
+                              }}
+                              className={`w-full border-2 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] transition-colors ${isCurrent
                                 ? 'border-neutral-300 bg-neutral-100 text-neutral-400 cursor-not-allowed'
                                 : 'border-black text-black hover:bg-black hover:text-white'
-                            }`}
-                          >
-                            {buttonText}
-                          </button>
+                                }`}
+                            >
+                              {buttonText}
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeTab === 'onboarding' && (
-            <div className="bg-white border-2 border-black p-12">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">Onboarding</span>
-                    <span className="h-px w-8 bg-neutral-300" />
-                    <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">Setup</span>
+            {activeTab === 'onboarding' && (
+              <div className="bg-white border-2 border-black p-12">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">Onboarding</span>
+                      <span className="h-px w-8 bg-neutral-300" />
+                      <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">Setup</span>
+                    </div>
+                    <h3 className="font-serif text-2xl md:text-3xl text-black leading-tight mb-3">
+                      Get Started
+                    </h3>
+                    <p className="font-sans text-base text-neutral-600 max-w-xl leading-relaxed">
+                      Complete the onboarding process to set up your workspace and configure your preferences.
+                    </p>
                   </div>
-                  <h3 className="font-serif text-2xl md:text-3xl text-black leading-tight mb-3">
-                    Get Started
-                  </h3>
-                  <p className="font-sans text-base text-neutral-600 max-w-xl leading-relaxed">
-                    Complete the onboarding process to set up your workspace and configure your preferences.
-                  </p>
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => navigate('/onboarding-new')}
+                      className="group relative inline-flex items-center gap-3 border-2 border-black bg-black text-white px-8 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] hover:bg-neutral-800 transition-colors"
+                    >
+                      Start Setup
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <button
-                    onClick={() => setShowOnboarding(true)}
-                    className="group relative inline-flex items-center gap-3 border-2 border-black bg-black text-white px-8 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] hover:bg-neutral-800 transition-colors"
+              </div>
+            )}
+
+            {activeTab === 'data' && (
+              <div className="bg-white border-2 border-black p-12 space-y-0">
+                <h2 className="font-serif text-3xl text-black mb-8">Data Management</h2>
+
+                {/* Success/Error Messages */}
+                {dataMessage.text && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`mb-6 p-4 rounded-lg border-2 ${dataMessage.type === 'success'
+                      ? 'bg-green-50 border-green-500 text-green-900'
+                      : 'bg-red-50 border-red-500 text-red-900'
+                      }`}
                   >
-                    Start Setup
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <div className="flex items-center gap-2">
+                      {dataMessage.type === 'success' ? (
+                        <Check className="w-5 h-5" />
+                      ) : (
+                        <X className="w-5 h-5" />
+                      )}
+                      <p className="font-sans text-sm font-medium">{dataMessage.text}</p>
+                    </div>
+                  </motion.div>
+                )}
+
+                <div className="space-y-0">
+                  <button
+                    onClick={handleExportData}
+                    className="w-full flex items-center justify-between py-6 px-0 border-b border-neutral-200 hover:bg-neutral-50 transition-colors group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <Download className="w-5 h-5 text-black group-hover:text-neutral-700 transition-colors" />
+                      <div className="text-left">
+                        <h3 className="font-sans font-semibold text-black mb-1 text-base">Export Data</h3>
+                        <p className="font-sans text-sm text-neutral-600">Download your data as JSON</p>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-black transition-colors" />
+                  </button>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportData}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full flex items-center justify-between py-6 px-0 border-b border-neutral-200 hover:bg-neutral-50 transition-colors group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <Upload className="w-5 h-5 text-black group-hover:text-neutral-700 transition-colors" />
+                      <div className="text-left">
+                        <h3 className="font-sans font-semibold text-black mb-1 text-base">Import Data</h3>
+                        <p className="font-sans text-sm text-neutral-600">Restore from a saved backup</p>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-black transition-colors" />
+                  </button>
+
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="w-full flex items-center justify-between py-6 px-0 border-b-0 hover:bg-red-50 transition-colors group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <Trash2 className="w-5 h-5 text-red-600 group-hover:text-red-700 transition-colors" />
+                      <div className="text-left">
+                        <h3 className="font-sans font-semibold text-red-600 group-hover:text-red-700 mb-1 text-base transition-colors">Delete All Data</h3>
+                        <p className="font-sans text-sm text-red-500 group-hover:text-red-600 transition-colors">Permanently delete all data</p>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-red-400 group-hover:text-red-600 transition-colors" />
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeTab === 'data' && (
-            <div className="bg-white border-2 border-black p-12 space-y-0">
-              <h2 className="font-serif text-3xl text-black mb-8">Data Management</h2>
-              
-              {/* Success/Error Messages */}
-              {dataMessage.text && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`mb-6 p-4 rounded-lg border-2 ${
-                    dataMessage.type === 'success' 
-                      ? 'bg-green-50 border-green-500 text-green-900' 
-                      : 'bg-red-50 border-red-500 text-red-900'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    {dataMessage.type === 'success' ? (
-                      <Check className="w-5 h-5" />
-                    ) : (
-                      <X className="w-5 h-5" />
-                    )}
-                    <p className="font-sans text-sm font-medium">{dataMessage.text}</p>
-                  </div>
-                </motion.div>
-              )}
-
-              <div className="space-y-0">
-                <button 
-                  onClick={handleExportData}
-                  className="w-full flex items-center justify-between py-6 px-0 border-b border-neutral-200 hover:bg-neutral-50 transition-colors group"
-                >
-                  <div className="flex items-center gap-4">
-                    <Download className="w-5 h-5 text-black group-hover:text-neutral-700 transition-colors" />
-                    <div className="text-left">
-                      <h3 className="font-sans font-semibold text-black mb-1 text-base">Export Data</h3>
-                      <p className="font-sans text-sm text-neutral-600">Download your data as JSON</p>
+            {activeTab === 'security' && (
+              <div className="bg-white border-2 border-black p-12 space-y-0">
+                <h2 className="font-serif text-3xl text-black mb-8">Security Settings</h2>
+                <div className="space-y-0">
+                  <button
+                    onClick={() => showComingSoonModal('Change Password')}
+                    className="w-full flex items-center justify-between px-0 py-6 text-left border-b border-neutral-200 hover:bg-neutral-50 transition-colors group"
+                  >
+                    <span className="font-sans text-base font-medium text-black">Change Password</span>
+                    <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-black transition-colors" />
+                  </button>
+                  <button
+                    onClick={() => showComingSoonModal('Two-Factor Authentication')}
+                    className="w-full flex items-center justify-between px-0 py-6 text-left border-b border-neutral-200 hover:bg-neutral-50 transition-colors group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="font-sans text-base font-medium text-black">Two-Factor Authentication</span>
+                      <span className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] bg-neutral-200 text-neutral-600 rounded">Not Set</span>
                     </div>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-black transition-colors" />
-                </button>
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".json"
-                  onChange={handleImportData}
-                  className="hidden"
-                />
-                <button 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-between py-6 px-0 border-b border-neutral-200 hover:bg-neutral-50 transition-colors group"
-                >
-                  <div className="flex items-center gap-4">
-                    <Upload className="w-5 h-5 text-black group-hover:text-neutral-700 transition-colors" />
-                    <div className="text-left">
-                      <h3 className="font-sans font-semibold text-black mb-1 text-base">Import Data</h3>
-                      <p className="font-sans text-sm text-neutral-600">Restore from a saved backup</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-black transition-colors" />
-                </button>
-                
-                <button 
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="w-full flex items-center justify-between py-6 px-0 border-b-0 hover:bg-red-50 transition-colors group"
-                >
-                  <div className="flex items-center gap-4">
-                    <Trash2 className="w-5 h-5 text-red-600 group-hover:text-red-700 transition-colors" />
-                    <div className="text-left">
-                      <h3 className="font-sans font-semibold text-red-600 group-hover:text-red-700 mb-1 text-base transition-colors">Delete All Data</h3>
-                      <p className="font-sans text-sm text-red-500 group-hover:text-red-600 transition-colors">Permanently delete all data</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-red-400 group-hover:text-red-600 transition-colors" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'security' && (
-            <div className="bg-white border-2 border-black p-12 space-y-0">
-              <h2 className="font-serif text-3xl text-black mb-8">Security Settings</h2>
-              <div className="space-y-0">
-                <button 
-                  onClick={() => showComingSoonModal('Change Password')}
-                  className="w-full flex items-center justify-between px-0 py-6 text-left border-b border-neutral-200 hover:bg-neutral-50 transition-colors group"
-                >
-                  <span className="font-sans text-base font-medium text-black">Change Password</span>
-                  <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-black transition-colors" />
-                </button>
-                <button 
-                  onClick={() => showComingSoonModal('Two-Factor Authentication')}
-                  className="w-full flex items-center justify-between px-0 py-6 text-left border-b border-neutral-200 hover:bg-neutral-50 transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="font-sans text-base font-medium text-black">Two-Factor Authentication</span>
-                    <span className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] bg-neutral-200 text-neutral-600 rounded">Not Set</span>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-black transition-colors" />
-                </button>
-                <button 
-                  onClick={() => showComingSoonModal('Active Sessions')}
-                  className="w-full flex items-center justify-between px-0 py-6 text-left border-b-0 hover:bg-neutral-50 transition-colors group"
-                >
-                  <span className="font-sans text-base font-medium text-black">Active Sessions</span>
-                  <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-black transition-colors" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'about' && (
-            <div className="bg-white border-2 border-black p-12">
-              <h2 className="font-serif text-3xl text-black mb-8">About</h2>
-              <div className="space-y-4">
-                <div>
-                  <p className="font-serif text-3xl text-black mb-2">Raptorflow v1.0</p>
-                  <p className="font-sans text-base text-neutral-600 mb-6">Strategy Execution Platform</p>
+                    <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-black transition-colors" />
+                  </button>
+                  <button
+                    onClick={() => showComingSoonModal('Active Sessions')}
+                    className="w-full flex items-center justify-between px-0 py-6 text-left border-b-0 hover:bg-neutral-50 transition-colors group"
+                  >
+                    <span className="font-sans text-base font-medium text-black">Active Sessions</span>
+                    <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-black transition-colors" />
+                  </button>
                 </div>
-                <button 
-                  onClick={() => setShowChangelog(true)}
-                  className="inline-flex items-center gap-2 border-2 border-black text-black px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-colors"
-                >
-                  View Changelog
-                  <ArrowRight className="w-4 h-4" />
-                </button>
               </div>
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
-    </div>
+            )}
+
+            {activeTab === 'about' && (
+              <div className="bg-white border-2 border-black p-12">
+                <h2 className="font-serif text-3xl text-black mb-8">About</h2>
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-serif text-3xl text-black mb-2">Raptorflow v1.0</p>
+                    <p className="font-sans text-base text-neutral-600 mb-6">Strategy Execution Platform</p>
+                  </div>
+                  <button
+                    onClick={() => setShowChangelog(true)}
+                    className="inline-flex items-center gap-2 border-2 border-black text-black px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-colors"
+                  >
+                    View Changelog
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </>
   )
 }

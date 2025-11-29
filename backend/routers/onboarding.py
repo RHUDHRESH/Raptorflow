@@ -9,14 +9,141 @@ from fastapi import APIRouter, HTTPException, Depends
 import logging
 
 from backend.models.onboarding import OnboardingSession, OnboardingAnswer, OnboardingProfile
-from backend.graphs.onboarding_graph import onboarding_graph
+try:
+    from backend.graphs.onboarding_graph import onboarding_graph
+except ImportError:
+    logging.getLogger(__name__).warning("Could not import onboarding_graph, using mock. Onboarding will not work.")
+    class MockOnboardingGraph:
+        async def start_session(self, *args, **kwargs): raise NotImplementedError("Onboarding graph not available")
+        async def get_session_state(self, *args, **kwargs): return None
+        async def submit_answer(self, *args, **kwargs): raise NotImplementedError("Onboarding graph not available")
+    onboarding_graph = MockOnboardingGraph()
+
+from backend.agents.onboarding.context_agent import context_extractor
+from backend.agents.onboarding.axis_agent import axis_selector
+from backend.agents.onboarding.competitor_agent import competitor_agent
+from backend.agents.onboarding.icp_proposal_agent import icp_proposal_agent
 from backend.services.supabase_client import supabase_client
 from backend.utils.correlation import generate_correlation_id, set_correlation_id
-from backend.main import verify_token
+from backend.core.security import verify_token
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+@router.post("/analyze-context", response_model=Dict[str, Any])
+async def analyze_context(
+    request: Dict[str, Any],
+    auth: Dict[str, str] = Depends(verify_token)
+):
+    """
+    Analyze user input to extract positioning context.
+    Act I - Screen 1
+    """
+    correlation_id = generate_correlation_id()
+    set_correlation_id(correlation_id)
+    
+    try:
+        logger.info("Analyzing context for positioning extraction")
+        
+        # Extract context using the agent
+        result = await context_extractor.execute({
+            "raw_text": request.get("raw_text"),
+            "website": request.get("website"),
+            "pitch": request.get("pitch"),
+            "industry": request.get("industry")
+        })
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Context analysis failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/generate-axes", response_model=Dict[str, Any])
+async def generate_axes(
+    request: Dict[str, Any],
+    auth: Dict[str, str] = Depends(verify_token)
+):
+    """
+    Generate 2D positioning frames based on context.
+    Act I - Screen 3
+    """
+    correlation_id = generate_correlation_id()
+    set_correlation_id(correlation_id)
+    
+    try:
+        logger.info("Generating positioning axes")
+        
+        result = await axis_selector.execute({
+            "category": request.get("category"),
+            "narrative": request.get("narrative"),
+            "keywords": request.get("keywords")
+        })
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Axis generation failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/analyze-competitors", response_model=Dict[str, Any])
+async def analyze_competitors(
+    request: Dict[str, Any],
+    auth: Dict[str, str] = Depends(verify_token)
+):
+    """
+    Identify and plot competitors.
+    Act II - The Battlefield
+    """
+    correlation_id = generate_correlation_id()
+    set_correlation_id(correlation_id)
+    
+    try:
+        logger.info("Analyzing competitors")
+        
+        result = await competitor_agent.execute({
+            "industry": request.get("industry"),
+            "context_summary": request.get("context_summary"),
+            "axis_frame": request.get("axis_frame")
+        })
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Competitor analysis failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/propose-icps", response_model=Dict[str, Any])
+async def propose_icps(
+    request: Dict[str, Any],
+    auth: Dict[str, str] = Depends(verify_token)
+):
+    """
+    Propose candidate ICPs.
+    Act III - The Tribes
+    """
+    correlation_id = generate_correlation_id()
+    set_correlation_id(correlation_id)
+    
+    try:
+        logger.info("Proposing ICPs")
+        
+        result = await icp_proposal_agent.execute({
+            "industry": request.get("industry"),
+            "context_summary": request.get("context_summary"),
+            "positioning": request.get("positioning")
+        })
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"ICP proposal failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/start", response_model=Dict[str, Any])
@@ -291,13 +418,15 @@ async def complete_onboarding(
         
         saved_profile = await supabase_client.insert("onboarding_profiles", profile_data)
         
-        # TODO: Trigger strategy generation via Master Supervisor
-        # from backend.agents.supervisor import master_supervisor
-        # await master_supervisor.orchestrate_workflow(
-        #     goal="Generate initial marketing strategy",
-        #     workspace_id=UUID(auth["workspace_id"]),
-        #     context={"onboarding_profile": profile_data}
-        # )
+        # Trigger strategy generation via Master Orchestrator
+        from backend.agents.supervisor import master_orchestrator
+        await master_orchestrator.execute(
+            goal="Generate initial marketing strategy",
+            context={
+                "workspace_id": str(auth["workspace_id"]),
+                "onboarding_profile": profile_data
+            }
+        )
         
         return {
             "session_id": str(session_id),
@@ -357,4 +486,3 @@ async def delete_session(
     except Exception as e:
         logger.error(f"Failed to delete session: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
-

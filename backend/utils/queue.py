@@ -14,8 +14,9 @@ import redis.asyncio as redis
 from redis.asyncio.connection import ConnectionPool
 from backend.config.settings import settings
 import structlog
+from backend.utils.logging_config import get_logger
 
-logger = structlog.get_logger()
+logger = get_logger("bus")
 
 
 class Priority(str, Enum):
@@ -328,4 +329,3 @@ class TaskQueue:
 redis_queue = TaskQueue()
 # Legacy alias for backward compatibility
 queue = redis_queue
-

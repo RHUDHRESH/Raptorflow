@@ -14,18 +14,92 @@ from backend.models.content import ContentVariant
 from backend.models.persona import ICPProfile
 from backend.utils.correlation import get_correlation_id
 from backend.utils.cache import redis_cache
+from backend.agents.base_agent import BaseAgent
 
 logger = structlog.get_logger(__name__)
 
 
-class BlogWriterAgent:
+class BlogWriterAgent(BaseAgent):
     """
     Generates comprehensive blog posts and long-form articles.
     Uses creative model (Claude Sonnet) for best quality.
     """
     
     def __init__(self):
+        super().__init__(name="blog_writer")
         self.llm = vertex_ai_client
+
+    async def execute(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute the blog writing task.
+        
+        Args:
+            payload: Dictionary containing:
+                - topic: str
+                - icp_profile: ICPProfile (dict or object)
+                - keywords: List[str]
+                - word_count_target: int
+                - tone: str
+                - include_sections: List[str]
+                - brand_voice: str
+        """
+        try:
+            # Extract parameters
+            topic = payload.get("topic")
+            icp_data = payload.get("icp_profile")
+            
+            # Handle ICP profile being passed as dict or object
+            if isinstance(icp_data, dict):
+                icp_profile = ICPProfile(**icp_data)
+            else:
+                icp_profile = icp_data
+
+            keywords = payload.get("keywords", [])
+            word_count_target = payload.get("word_count_target", 1200)
+            tone = payload.get("tone", "professional")
+            include_sections = payload.get("include_sections")
+            brand_voice = payload.get("brand_voice")
+            correlation_id = payload.get("correlation_id")
+
+            self.log(f"Executing blog writer task: {topic}", level="info")
+
+            # Generate content
+            variant = await self.write_blog_post(
+                topic=topic,
+                icp_profile=icp_profile,
+                keywords=keywords,
+                word_count_target=word_count_target,
+                tone=tone,
+                include_sections=include_sections,
+                brand_voice=brand_voice,
+                correlation_id=correlation_id
+            )
+
+            # Publish completion event
+            await self.publish_event(
+                "agent.content.blog_generated",
+                {
+                    "topic": topic,
+                    "word_count": variant.word_count,
+                    "variant_id": str(variant.id) if hasattr(variant, "id") else None
+                }
+            )
+
+            return {
+                "status": "success",
+                "result": variant,
+                "metadata": {
+                    "word_count": variant.word_count,
+                    "model": "claude-3-5-sonnet"
+                }
+            }
+
+        except Exception as e:
+            self.log(f"Blog generation failed: {str(e)}", level="error")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
     
     async def write_blog_post(
         self,
@@ -135,4 +209,3 @@ Generate the blog post now. Output as markdown.
 
 
 blog_writer_agent = BlogWriterAgent()
-

@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "raptorflow-477017",
+  "private_key_id": "d75059f2c50fa8df30afed9afbc65130fbeaf98f",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQClsQZ7ZNXjpkHf\nPadMQ7bctbSy8wqsNT3LBnr80AwTqkzPTVNGesgze3qpqqIkAZEc4ziyFIB126Lz\nbA4u9M0L/Dl5NbpLANehkvufjCGqQFa02TpoY0QTWCEreHHVJhMwn7VDuHtiQoI9\n2t2sKsbkKFB+V1hMbdYKT4Ke1uxwVSyW+uFkC4pMMIkpRxMcYkIPaaPpcXxWx85N\nJvDjwH38JLfdiTffeTN72eAv0NBtvfmrCZ9EFWL1Sgs4io1P8we0CzLooxErrIo9\n4+leaTxkd07CaIorUJ1elHO3Pc8TQyDXr3lGA4aaAh8pACLOvifqot0vngZKaqbA\nNbdLCzezAgMBAAECggEADfw4MNgdBEm3NlGXj7oIyEOqDI9eb5Slh5UfcmaubkZ/\nPzbRTZn1e1Weeo2wK9vZ/2yKZOA9djU4ttUrCU7uXmbxWZ1tq6usMl4b+6aHUj3Q\nqRPLeJ4lqSr/ebzWgYg6McN5OE3CVFPgIbpvNXtS2FUyyMc0k8GS7GyI+OvpKb3+\nmRbvJU70FHgOg70OXEI8VoCIIUeBjpQut/zPPfwibzyjjqRZLQAORHBkqFngpYYe\nJqqu7VRckPJ9pavw5P4bxt/bUGr3GIuIBaNnb/c+hJbi48IfMo3TDC3eBg8yoKWC\n07fVqMWQTzUpuqs3L3CwNVCUuZbx299vLzaciPlvUQKBgQDSmQV8LO2Ek2Fzpieh\nX1jdKFWa8yxR4oDDEwAAlmWU5s8xcFz/8XuXWzpLJyH2+t4hzYPh+IVZIRWNgHtx\nTQDlzgAMTQ1UPBlZ8GiiTWPmDPxvMcvdzb9xpAcDUw+2a/nn9Udtz00maM1QCS1E\nOOgwAs5YZImY9554jguBGhPEmwKBgQDJaZwYzCWAZ0ZA0snybP4i2/Y/lHf46pQl\ndaCEtoekkr8slf7D+B1z7zKbJ5KWpkksgRCMiCy+cQq8P/QGgqEjsFiVECIj4gxC\nV/eYTMQvVhKpY31MVg2uBPUoA62YERa9ogBwgk19BOktO5QHgwl2WuepNPs+9dch\naI1aWrYuyQKBgFHD8bo9o1ZW9n41Y6um3lS3hU0s3udH/uA+b0DLI9OFLaqvSpxg\nwLCKTf7BydEfo8ESDwNcP0HUs46F9OePkyqmKaSdAfDTiLA/xBBH5eJ65kOx3MpY\nSN0xZzumMzKLh7LEq5/53aVtCVHqzjVvts51OHJfToEimteJpvPQER7DAoGBALCL\nLrUZtEFxxMWrPjKN0NDzZ0xhsitwSrzu9u19JTZfHs1RCMfzorVtVDllnXsJdJha\n5QuZjUa8xUEu+ZH/TImA2JSIWLSFPmOkwbUwjMJFOwRY3Ypc347Kb61MVAw35mwA\nJUx5Grzb4huw3lcbR98DXY4Wj6enS5PQFh695nTpAoGBAJBYjqU3+UdNwSYr2ZvF\ndtR6+PJVf1dq73IQ1qbsgNO1Y+esNwPQ2aoAEIvtk/LdOBwuy8rlw1v12HLisvKh\nxShioLBdqlr1H+nTEn07D+6r71iigrYBFV8XpVTevFb1OJ6stAsqI6DeuB8NF99u\nsnWl9ZsFHD5yhQTfNiAhfD9Q\n-----END PRIVATE KEY-----\n",
+  "client_email": "vertex-ai-service-account@raptorflow-477017.iam.gserviceaccount.com",
+  "client_id": "103094783071209533906",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/vertex-ai-service-account%40raptorflow-477017.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

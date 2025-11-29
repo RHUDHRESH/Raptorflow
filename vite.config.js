@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
+// Force restart
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -49,6 +50,12 @@ export default defineConfig({
     },
     sourcemap: false,
     reportCompressedSize: false
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    css: true,
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')

@@ -1,26 +1,6 @@
 import * as React from "react"
-import { Link, useLocation } from "react-router-dom"
-import { motion } from "framer-motion"
-import {
-  LayoutDashboard,
-  Target,
-  Users,
-  HelpCircle,
-  Sparkles,
-  Settings,
-  User,
-  BookOpen,
-  Activity,
-  Calendar,
-  Megaphone,
-  Castle,
-  Brain,
-  Shield,
-  Palette,
-  Eye,
-  Gavel,
-  Bell
-} from "lucide-react"
+import { NavLink, useLocation } from "react-router-dom"
+import { Tooltip, TooltipProvider } from "./ui/tooltip"
 import {
   DesktopSidebar,
   MobileSidebar,
@@ -34,98 +14,69 @@ import {
   DESKTOP_SIDEBAR_WIDTH,
   DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
 } from "./ui/sidebar"
-import { Tooltip, TooltipProvider } from "./ui/tooltip"
 import { cn } from "../utils/cn"
+import { WorkspaceSelector } from "./WorkspaceSelector.tsx"
+import { sidebarSections } from "../config/sidebar"
 
-const navigationItems = [
-  { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
-  { title: "Moves", icon: BookOpen, url: "/moves" },
-  { title: "Campaigns", icon: Megaphone, url: "/campaigns" },
-  { title: "Muse", icon: Sparkles, url: "/muse" },
-  { title: "Matrix", icon: Activity, url: "/matrix" },
-  { title: "Daily Pulse", icon: Calendar, url: "/today" },
-  { title: "Strategy", icon: Target, url: "/strategy" },
-  { title: "Cohorts", icon: Users, url: "/cohorts" },
-]
-
-const lordsItems = [
-  { title: "Architect", icon: Castle, url: "/strategy/architect" },
-  { title: "Cognition", icon: Brain, url: "/strategy/cognition" },
-  { title: "Strategos", icon: Shield, url: "/strategy/strategos" },
-  { title: "Aesthete", icon: Palette, url: "/strategy/aesthete" },
-  { title: "Seer", icon: Eye, url: "/strategy/seer" },
-  { title: "Arbiter", icon: Gavel, url: "/strategy/arbiter" },
-  { title: "Herald", icon: Bell, url: "/strategy/herald" },
-]
-
-const settingsItems = [
-  { title: "Settings", icon: Settings, url: "/settings" },
-  { title: "Account", icon: User, url: "/account" },
-  { title: "Support", icon: HelpCircle, url: "/support" },
-]
-
+/**
+ * Sidebar Content Component
+ * 
+ * Renders the sidebar navigation using the centralized config.
+ * Applies high-fashion SaaS styling with monochrome palette.
+ */
 const SidebarContentInner = () => {
   const location = useLocation()
   const { open } = useSidebar()
 
-  const renderNavItem = (item, isSystem = false) => {
+  const renderNavItem = (item) => {
     const Icon = item.icon
     const isActive =
-      location.pathname === item.url ||
-      (item.url !== "/" && location.pathname.startsWith(item.url))
+      location.pathname === item.to ||
+      (item.to !== "/" && location.pathname.startsWith(item.to))
 
     const itemContent = (
-      <div className="relative w-full">
-        {/* Active left border */}
-        {isActive && open && (
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: 2 }}
-            transition={{ duration: 0.18 }}
-            className="absolute left-0 top-0 bottom-0 z-10 bg-white rounded-r-sm"
+      <NavLink
+        to={item.to}
+        className={({ isActive: linkActive }) =>
+          cn(
+            // Base styles
+            "flex items-center h-10 w-full relative transition-all duration-200 ease-out",
+            "rounded-lg",
+            // Spacing
+            !open && "justify-center px-0",
+            open && "px-3",
+            // Active state - solid dark pill + white text
+            linkActive || isActive
+              ? "bg-neutral-900 text-white"
+              : "text-neutral-400 hover:text-white hover:bg-neutral-900/60"
+          )
+        }
+      >
+        {Icon && (
+          <Icon
+            className={cn(
+              "flex-shrink-0 transition-colors",
+              isActive ? "text-white opacity-100" : "text-neutral-400 opacity-80"
+            )}
+            size={18}
+            strokeWidth={1.5}
+            style={{
+              marginRight: open ? "10px" : "0",
+            }}
           />
         )}
 
-        <Link
-          to={item.url}
-          className={cn(
-            "flex items-center h-10 w-full relative transition-all duration-180 ease-out cursor-pointer",
-            "hover:bg-white/10",
-            isActive && "bg-white/[0.15]",
-            !open && "justify-center px-0",
-            open && "px-6"
-          )}
-        >
-          {Icon && (
-            <Icon
-              className="flex-shrink-0"
-              size={open ? 18 : 20}
-              strokeWidth={1.5}
-              style={{
-                color: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.7)",
-                marginRight: open ? "12px" : "0",
-              }}
-            />
-          )}
-
-          {open && (
-            <span
-              className="whitespace-nowrap flex-shrink-0 text-sm font-medium"
-              style={{
-                letterSpacing: "0.02em",
-                color: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.7)",
-              }}
-            >
-              {item.title}
-            </span>
-          )}
-        </Link>
-      </div>
+        {open && (
+          <span className="whitespace-nowrap text-[13px] font-medium tracking-[0.01em]">
+            {item.label}
+          </span>
+        )}
+      </NavLink>
     )
 
     if (!open) {
       return (
-        <Tooltip content={item.title}>
+        <Tooltip content={item.label}>
           {itemContent}
         </Tooltip>
       )
@@ -136,18 +87,19 @@ const SidebarContentInner = () => {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full min-h-screen bg-neutral-950">
+        {/* Header - Logo/Brand */}
         <SidebarHeader className="px-0 pt-8 pb-0 border-b-0 flex-shrink-0">
           <div
             className={cn(
-              "flex items-center w-full h-12",
+              "flex items-center w-full h-12 mb-6",
               open ? "px-6 justify-start" : "justify-center"
             )}
           >
             <span
-              className="font-serif font-bold text-white leading-none"
+              className="font-display font-bold text-white leading-none"
               style={{
-                fontSize: open ? "28px" : "24px",
+                fontSize: open ? "22px" : "18px",
                 letterSpacing: "-0.02em",
               }}
             >
@@ -156,69 +108,45 @@ const SidebarContentInner = () => {
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="px-0 flex flex-col flex-1 min-h-0 pt-8">
-          {/* Primary Navigation Section */}
-          <SidebarGroup className="flex-1 min-h-0 overflow-y-auto">
-            {open && (
-              <div className="mb-4 px-6">
-                <span className="text-xs font-mono font-medium uppercase tracking-widest text-white/30">
-                  Workspace
-                </span>
-              </div>
-            )}
+        <SidebarContent className="px-0 flex flex-col flex-1 min-h-0">
+          {/* Workspace Selector */}
+          <div className={cn("mb-6", open ? "px-4" : "px-2")}>
+            <WorkspaceSelector open={open} />
+          </div>
 
-            <SidebarMenu className="space-y-1">
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  {renderNavItem(item, false)}
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+          {/* Main Navigation Sections */}
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            {sidebarSections.map((section, sectionIndex) => (
+              <SidebarGroup
+                key={section.id}
+                className={cn(
+                  sectionIndex === 0 ? "flex-1" : "flex-shrink-0",
+                  sectionIndex > 0 && "mt-6"
+                )}
+              >
+                {/* Section Label */}
+                {open && (
+                  <div className="mb-3 px-6">
+                    <span className="text-[10px] font-mono font-medium uppercase tracking-[0.15em] text-neutral-500">
+                      {section.label}
+                    </span>
+                  </div>
+                )}
 
-            {/* Divider for Section */}
-            {open && (
-              <div className="mt-8 mb-4 px-6 border-t border-white/10 pt-4">
-                <span className="text-xs font-mono font-medium uppercase tracking-widest text-white/30">
-                  Council of Lords
-                </span>
-              </div>
-            )}
+                {/* Section Items */}
+                <SidebarMenu className={cn("space-y-1", open ? "px-3" : "px-2")}>
+                  {section.items.map((item) => (
+                    <SidebarMenuItem key={item.id}>
+                      {renderNavItem(item)}
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroup>
+            ))}
+          </div>
 
-            <SidebarMenu className="space-y-1 mb-4">
-              {lordsItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  {renderNavItem(item, false)}
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroup>
-
-          {/* Divider */}
-          <div
-            className={cn(
-              "flex-shrink-0 h-px bg-white/10 my-4",
-              open ? "mx-6" : "mx-3"
-            )}
-          />
-
-          {/* System Controls Section */}
-          <SidebarGroup className="flex-shrink-0 pb-6">
-            {open && (
-              <div className="mb-4 px-6">
-                <span className="text-xs font-mono font-medium uppercase tracking-widest text-white/30">
-                  System
-                </span>
-              </div>
-            )}
-
-            <SidebarMenu className="space-y-1">
-              {settingsItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  {renderNavItem(item, true)}
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroup>
+          {/* Bottom Padding */}
+          <div className="flex-shrink-0 h-6" />
         </SidebarContent>
         <SidebarRail />
       </div>
@@ -226,26 +154,30 @@ const SidebarContentInner = () => {
   )
 }
 
+/**
+ * App Sidebar Component
+ * 
+ * Main sidebar wrapper with desktop and mobile variants.
+ * Width: 260-280px on desktop, collapsible.
+ */
 export function AppSidebar({ ...props }) {
   const { open } = useSidebar()
-  const sidebarWidth = open ? DESKTOP_SIDEBAR_WIDTH : DESKTOP_SIDEBAR_COLLAPSED_WIDTH
+  const sidebarWidth = open ? 260 : DESKTOP_SIDEBAR_COLLAPSED_WIDTH
 
   return (
     <>
       <DesktopSidebar
         {...props}
-        className="border-r border-white/10 bg-black"
+        className="border-r border-neutral-900/50 bg-neutral-950"
         style={{
           width: sidebarWidth,
-          transition: "width 240ms ease-out",
+          transition: "width 240ms cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
         <SidebarContentInner />
       </DesktopSidebar>
-      <MobileSidebar {...props} className="bg-white">
-        <div className="text-black">
-          <SidebarContentInner />
-        </div>
+      <MobileSidebar {...props} className="bg-neutral-950 border-r border-neutral-900/50">
+        <SidebarContentInner />
       </MobileSidebar>
     </>
   )

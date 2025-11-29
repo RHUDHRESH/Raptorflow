@@ -1,1270 +1,962 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import CohortsBuilder from './CohortsBuilder';
+import onboardingApi from '../api/onboarding';
 import {
   ArrowRight,
   ArrowLeft,
   Sparkles,
-  Target,
-  Shield,
-  Zap,
-  Eye,
   CheckCircle2,
-  Building2,
-  Users,
-  Rocket,
+  AlertCircle,
+  Loader2,
   MapPin,
   Globe,
-  Instagram,
-  Linkedin,
-  Youtube,
-  DollarSign,
-  Briefcase,
-  LayoutGrid,
-  MessageSquare,
-  BarChart3,
-  Loader2,
-  AlertCircle
+  Target,
+  MousePointer2,
+  RefreshCw,
+  ChevronRight
 } from 'lucide-react';
-
-
-import { supabase } from '../lib/supabase';
-import { analyzeWebsite, normalizeUrl, isValidUrl } from '../lib/services/scraper-api';
-
-const CORE_QUESTIONS = {
-  business: [
-    { id: 'q1', label: 'The Elevator Pitch', question: 'What do you do, in one sentence?', placeholder: 'We help [X] achieve [Y] by [Z]...' },
-    { id: 'q2', label: 'Segments', question: 'Who are you trying to reach right now?', placeholder: 'e.g. CMOs at Series B tech companies...' },
-    { id: 'q3', label: 'The Offer', question: 'What are you selling primarily?', placeholder: 'e.g. $2k/mo retainer, $50 SaaS subscription...' },
-    { id: 'q4', label: 'Channels', question: 'How do customers currently find you?', placeholder: 'e.g. SEO, LinkedIn, Referrals...' },
-    { id: 'q5', label: 'Friction', question: 'What is NOT working?', placeholder: 'e.g. Lots of traffic but low conversion...' },
-    { id: 'q6', label: 'Snapshot', question: 'Roughly, what are your current numbers?', placeholder: 'e.g. $10k MRR, 5k visitors/mo...' },
-    { id: 'q7', label: 'The Stake', question: 'What MUST happen in the next 90 days?', placeholder: 'e.g. Close 5 new enterprise deals...' }
-  ],
-  founder: [
-    { id: 'q1', label: 'Superpower', question: 'What is your core expertise or "superpower"?', placeholder: 'e.g. Crisis management for startups...' },
-    { id: 'q2', label: 'Audience', question: 'Who needs to know you exist?', placeholder: 'e.g. VCs, early-stage founders...' },
-    { id: 'q3', label: 'The Offer', question: 'How do you monetize (or plan to)?', placeholder: 'e.g. Coaching, speaking, advisory...' },
-    { id: 'q4', label: 'Platform', question: 'Where are you most active?', placeholder: 'e.g. Twitter/X, LinkedIn, Newsletter...' },
-    { id: 'q5', label: 'Bottleneck', question: 'What is holding you back?', placeholder: 'e.g. Inconsistent content, no clear funnel...' },
-    { id: 'q6', label: 'Reach', question: 'Current audience size?', placeholder: 'e.g. 2k followers, 500 subs...' },
-    { id: 'q7', label: 'The Win', question: 'What does a "win" look like in 90 days?', placeholder: 'e.g. Launch my course, get 3 speaking gigs...' }
-  ],
-  agency: [
-    { id: 'q1', label: 'Niche', question: 'What is your specific niche?', placeholder: 'e.g. SEO for Dental Practices...' },
-    { id: 'q2', label: 'Ideal Client', question: 'Who is your dream client?', placeholder: 'e.g. Multi-location clinics with $1M+ revenue...' },
-    { id: 'q3', label: 'Model', question: 'What is your service model?', placeholder: 'e.g. Performance-based, Retainer, Project...' },
-    { id: 'q4', label: 'Acquisition', question: 'How do you get clients now?', placeholder: 'e.g. Cold outreach, referrals...' },
-    { id: 'q5', label: 'Friction', question: 'Biggest growth blocker?', placeholder: 'e.g. Churn, fulfillment capacity...' },
-    { id: 'q6', label: 'Scale', question: 'Current client count / MRR?', placeholder: 'e.g. 12 clients, $40k MRR...' },
-    { id: 'q7', label: 'Milestone', question: 'Next big milestone?', placeholder: 'e.g. Hit $83k/mo (1M run rate)...' }
-  ]
-};
+import { LuxeHeading, LuxeButton, LuxeCard, LuxeInput, LuxeTextarea } from './ui/PremiumUI';
 
 const steps = [
-  {
-    id: 'welcome_mode',
-    title: 'Welcome to RaptorFlow',
-    subtitle: 'Let\'s tune RaptorFlow to who you are.',
-    description: 'This takes about 10–15 minutes and powers everything: your cohorts, your moves, your content, your analytics.',
-    type: 'mode_selection',
-    options: [
-      {
-        value: 'business',
-        label: 'Business / Brand',
-        subtitle: 'You\'re here to grow a product, service, or company.',
-        examples: 'SaaS · restaurant · hotel · D2C · clinic',
-        icon: Building2
-      },
-      {
-        value: 'founder',
-        label: 'Founder / Executive',
-        subtitle: 'You\'re building a personal brand around you.',
-        examples: 'Startup founder · coach · CXO · creator',
-        icon: Users
-      },
-      {
-        value: 'agency',
-        label: 'Agency / Studio',
-        subtitle: 'You run marketing for multiple clients.',
-        examples: 'Agency · freelancer with several retainers',
-        icon: Briefcase
-      }
-    ]
-  },
-  {
-    id: 'outcome_focus',
-    title: 'What do you need RaptorFlow to do?',
-    subtitle: 'Select up to 3 primary outcomes for the next 90 days.',
-    type: 'multi_select',
-    maxSelect: 3,
-    options: [
-      { value: 'fill_capacity', label: 'Fill capacity', desc: 'Get more bookings, tables, demos, or calls.' },
-      { value: 'grow_audience', label: 'Grow audience', desc: 'Grow followers, email list, or community.' },
-      { value: 'launch', label: 'Launch something', desc: 'New offer, feature, collection, or location.' },
-      { value: 'fix_leak', label: 'Fix a leak', desc: 'Improve conversions, reduce churn, increase repeat customers.' },
-      { value: 'clarify_message', label: 'Clarify my message', desc: 'Tighten positioning, story, and brand narrative.' },
-      { value: 'diagnose', label: 'I\'m not sure yet', desc: 'I need you to diagnose where to start.' }
-    ],
-    hasFreeText: true,
-    freeTextLabel: 'If we\'re wildly successful together in 90 days, what happens?'
-  },
-  {
-    id: 'context_footprint',
-    title: 'Context & Footprint',
-    subtitle: 'Where do you live on the internet? What\'s already in place?',
-    type: 'context_form'
-  },
-  {
-    id: 'core_questions',
-    title: 'The Core Questions',
-    subtitle: 'Let\'s get specific about your business.',
-    type: 'core_questions'
-  },
-  {
-    id: 'ai_followup',
-    title: 'Clarifying Questions',
-    subtitle: 'A few quick follow-ups to make sure we understand.',
-    description: 'Our AI is analyzing your answers to ask 3 sharp clarifying questions.',
-    type: 'ai_followup'
-  }
-  // REMOVED: cohorts_builder, positioning_grid, and first_moves steps
-  // User will go straight to dashboard after AI followup
+  { id: 'brain_dump', title: 'Identity' },
+  { id: 'context_review', title: 'Review' },
+  { id: 'axis_selection', title: 'Audience' },
+  { id: 'positioning_map', title: 'Value' },
+  { id: 'final_recap', title: 'Narrative' },
+  { id: 'battlefield', title: 'Battlefield' },
+  { id: 'tribes', title: 'Tribes' }
 ];
 
 export default function Onboarding() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState({
-    outcomes: [],
-    socials: {},
-    coreQuestions: {},
-    aiQuestions: [],
-    aiAnswers: {},
-    positioning: { x: 50, y: 50 }, // Default center
-    firstMove: null,
-    generatedMoves: []
+  const [currentStep, setCurrentStep] = useState('brain_dump');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // State
+  const [inputs, setInputs] = useState({
+    rawText: '',
+    website: '',
+    pitch: '',
+    industry: ''
   });
-  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
-  const [isGeneratingMoves, setIsGeneratingMoves] = useState(false);
-  const [isCompleting, setIsCompleting] = useState(false);
-  const [isScrapingWebsite, setIsScrapingWebsite] = useState(false);
-  const [websiteAnalysis, setWebsiteAnalysis] = useState(null);
-  const [showScrapedDataPreview, setShowScrapedDataPreview] = useState(false);
-  const [showSkipConfirmation, setShowSkipConfirmation] = useState(false);
+  
+  const [contextData, setContextData] = useState(null);
+  const [axesData, setAxesData] = useState(null);
+  const [selectedFrameId, setSelectedFrameId] = useState(null);
+  const [position, setPosition] = useState({ x: 50, y: 50 });
+  
+  const [competitorData, setCompetitorData] = useState(null);
+  const [icpData, setIcpData] = useState(null);
+  const [selectedIcps, setSelectedIcps] = useState([]);
 
   const navigate = useNavigate();
-  const { markOnboardingComplete, user, subscription } = useAuth();
+  const { markOnboardingComplete, user } = useAuth();
 
-  const step = steps[currentStep];
-  const isFirstStep = currentStep === 0;
-
-  // Check if current step is valid to proceed
-  const canProceed = () => {
-    if (step.id === 'welcome_mode') return !!answers.mode;
-    if (step.id === 'outcome_focus') return answers.outcomes && answers.outcomes.length > 0;
-    if (step.id === 'context_footprint') return !!answers.businessName; // Basic validation
-    if (step.id === 'core_questions') {
-      // Check if at least 3 core questions are answered
-      const mode = answers.mode || 'business';
-      const questions = CORE_QUESTIONS[mode];
-      const answeredCount = questions.filter(q => !!answers.coreQuestions?.[q.id]).length;
-      return answeredCount >= 3;
-    }
-    if (step.id === 'ai_followup') {
-      // Must answer all generated questions
-      if (!answers.aiQuestions || answers.aiQuestions.length === 0) return false;
-      const answeredCount = answers.aiQuestions.filter(q => !!answers.aiAnswers?.[q.id]).length;
-      return answeredCount === answers.aiQuestions.length;
-    }
-    if (step.id === 'cohorts_builder') return true; // Handled by component
-    if (step.id === 'positioning_grid') return answers.positioning !== null;
-    if (step.id === 'first_moves') return !!answers.firstMove;
-    return true;
-  };
-
-  // Generate AI Questions when entering the step
-  const generateAIQuestions = async () => {
-    if (answers.aiQuestions && answers.aiQuestions.length > 0) return; // Already generated
-
-    setIsGeneratingQuestions(true);
-
-    // Simulate AI generation for now (replace with backend call later)
-    // In a real implementation, this would call /api/v1/onboarding/generate-questions
-    setTimeout(() => {
-      const mode = answers.mode || 'business';
-      let newQuestions = [];
-
-      if (mode === 'business') {
-        newQuestions = [
-          { id: 'ai_q1', question: 'When are your busiest months, and when is it usually hardest to fill capacity?' },
-          { id: 'ai_q2', question: 'Who do you MOST want to attract more of – families, couples, business groups, or something else?' },
-          { id: 'ai_q3', question: 'In one sentence, what do customers say they love most after buying from you?' }
-        ];
-      } else if (mode === 'founder') {
-        newQuestions = [
-          { id: 'ai_q1', question: 'What specific topics do you want to own in your niche?' },
-          { id: 'ai_q2', question: 'What makes you credible? (Exits, revenue, years of experience)' },
-          { id: 'ai_q3', question: 'What type of audience do you want more of? (Investors, talent, clients)' }
-        ];
-      } else {
-        newQuestions = [
-          { id: 'ai_q1', question: 'What is the typical budget range for your ideal client?' },
-          { id: 'ai_q2', question: 'Do you prefer retainer work or project-based work?' },
-          { id: 'ai_q3', question: 'What is the biggest bottleneck in your current fulfillment process?' }
-        ];
-      }
-
-      setAnswers(prev => ({ ...prev, aiQuestions: newQuestions }));
-      setIsGeneratingQuestions(false);
-    }, 2000);
-  };
-
-  const generateFirstMoves = async () => {
-    if (answers.generatedMoves && answers.generatedMoves.length > 0) return;
-
-    setIsGeneratingMoves(true);
-
-    // Simulate AI strategy generation
-    setTimeout(() => {
-      const outcomes = answers.outcomes || [];
-      const mode = answers.mode || 'business';
-      const cohortName = answers.firstCohort?.name || 'Target Audience';
-
-      let moves = [];
-
-      // Logic to pick moves based on outcomes
-      if (outcomes.includes('fill_capacity')) {
-        moves.push({
-          id: 'capacity_push',
-          title: 'Weekend Capacity Push',
-          duration: '14 days',
-          target: cohortName,
-          objective: 'Increase weekend occupancy from 60% → 80% within 6 weeks.',
-          channels: ['Instagram', 'WhatsApp', 'Google Maps'],
-          summary: 'Run a 14-day sprint focusing on weekend deals, with emotional family-time messaging and strong visuals.',
-          icon: Zap
-        });
-      }
-
-      if (outcomes.includes('grow_audience') || mode === 'founder') {
-        moves.push({
-          id: 'magnet_campaign',
-          title: 'The Magnet Campaign',
-          duration: '30 days',
-          target: 'Broad Audience',
-          objective: 'Grow email list by 500 subscribers.',
-          channels: ['LinkedIn', 'Twitter/X', 'Newsletter'],
-          summary: 'Publish high-value threads/carousels leading to a specific lead magnet to capture emails.',
-          icon: Sparkles
-        });
-      }
-
-      if (outcomes.includes('fix_leak') || outcomes.includes('clarify_message')) {
-        moves.push({
-          id: 'review_loop',
-          title: 'Review & Proof Loop',
-          duration: '28 days',
-          target: 'Past Customers',
-          objective: 'Double reviews on Google and Trustpilot.',
-          channels: ['Email', 'SMS'],
-          summary: 'Automated sequence to recent happy customers asking for specific, keyword-rich reviews.',
-          icon: CheckCircle2
-        });
-      }
-
-      if (outcomes.includes('launch')) {
-        moves.push({
-          id: 'launch_sequence',
-          title: 'The Hype Sequence',
-          duration: '21 days',
-          target: 'Waitlist / Followers',
-          objective: 'Generate $10k in opening week sales.',
-          channels: ['Email', 'Social Stories'],
-          summary: 'A structured 3-part launch: Tease, Reveal, and Open Cart with scarcity.',
-          icon: Rocket
-        });
-      }
-
-      // Fallback if we don't have enough moves
-      if (moves.length < 3) {
-        moves.push({
-          id: 'local_outreach',
-          title: 'Local Corporate Outreach',
-          duration: '14 days',
-          target: 'Local Businesses',
-          objective: 'Get 5 new B2B inquiries.',
-          channels: ['LinkedIn', 'Direct Email'],
-          summary: 'Direct outreach to local office managers for offsites and events.',
-          icon: Building2
-        });
-      }
-
-      if (moves.length < 3) {
-        moves.push({
-          id: 'sniper_outreach',
-          title: 'The Sniper Approach',
-          duration: 'Ongoing',
-          target: 'Dream Clients',
-          objective: 'Start conversations with 10 high-value prospects.',
-          channels: ['Personal Email', 'LinkedIn'],
-          summary: 'High-touch, personalized research and outreach to your top 50 dream clients.',
-          icon: Target
-        });
-      }
-
-      setAnswers(prev => ({ ...prev, generatedMoves: moves.slice(0, 3) }));
-      setIsGeneratingMoves(false);
-    }, 2500);
-  };
-
-  // Handle website analysis and auto-prefill
-  const handleWebsiteAnalysis = async (websiteUrl) => {
-    if (!websiteUrl || !isValidUrl(normalizeUrl(websiteUrl))) {
-      return;
-    }
-
-    setIsScrapingWebsite(true);
-    setWebsiteAnalysis(null);
-
+  // Handlers
+  const handleBrainDumpSubmit = async () => {
+    if (!inputs.rawText) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      const normalizedUrl = normalizeUrl(websiteUrl);
-      const analysis = await analyzeWebsite(normalizedUrl);
-
-      setWebsiteAnalysis(analysis);
-      setShowScrapedDataPreview(true);
-
-      // Auto-prefill business name if available
-      if (analysis.business_name && analysis.business_name !== 'Unknown') {
-        setAnswers(prev => ({
-          ...prev,
-          businessName: analysis.business_name
-        }));
-      }
-
-      // Auto-prefill industry if available and determine if precise location is needed
-      if (analysis.industry && analysis.industry !== 'Unknown') {
-        const industryLower = analysis.industry.toLowerCase();
-        const locationBoundIndustries = ['hospitality', 'restaurant', 'retail', 'salon', 'clinic', 'gym', 'real_estate', 'hotel', 'spa', 'fitness', 'healthcare'];
-        const needsPreciseLocation = locationBoundIndustries.some(keyword => industryLower.includes(keyword));
-
-        setAnswers(prev => ({
-          ...prev,
-          industry: analysis.industry,
-          needsPreciseLocation
-        }));
-      }
-
-      // Auto-prefill location if available
-      if (analysis.location && analysis.location !== 'Unknown') {
-        // If precise location is needed, put it in preciseLocation, otherwise in general location
-        const fieldName = answers.needsPreciseLocation ? 'preciseLocation' : 'location';
-        setAnswers(prev => ({
-          ...prev,
-          [fieldName]: analysis.location
-        }));
-      }
-
-      // Auto-prefill core questions based on analysis
-      const mode = answers.mode || 'business';
-      const coreQuestionsUpdate = {};
-
-      if (analysis.description && analysis.description !== 'Unknown') {
-        coreQuestionsUpdate['q1'] = analysis.description;
-      }
-
-      if (analysis.target_audience && analysis.target_audience !== 'Unknown') {
-        coreQuestionsUpdate['q2'] = analysis.target_audience;
-      }
-
-      if (analysis.products_services && analysis.products_services !== 'Unknown') {
-        coreQuestionsUpdate['q3'] = analysis.products_services;
-      }
-
-      if (Object.keys(coreQuestionsUpdate).length > 0) {
-        setAnswers(prev => ({
-          ...prev,
-          coreQuestions: {
-            ...prev.coreQuestions,
-            ...coreQuestionsUpdate
-          }
-        }));
-      }
-
-      console.log('Website analysis complete:', analysis);
-    } catch (error) {
-      console.error('Website analysis failed:', error);
-      // Silently fail - user can still fill manually
-    } finally {
-      setIsScrapingWebsite(false);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentStep === steps.length - 1) {
-      handleFinalComplete();
-    } else {
-      const nextStepIdx = currentStep + 1;
-      const nextStep = steps[nextStepIdx];
-
-      if (nextStep.id === 'ai_followup') {
-        generateAIQuestions();
-      }
-
-      if (nextStep.id === 'first_moves') {
-        generateFirstMoves();
-      }
-
-      setCurrentStep(prev => prev + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-    }
-  };
-
-  const handleCohortComplete = (cohortData) => {
-    // Save cohort data to state/local storage but don't finish onboarding yet
-    updateAnswer('firstCohort', cohortData);
-    handleNext();
-  };
-
-  const handleFinalComplete = async () => {
-    setIsCompleting(true);
-
-    try {
-      // Save to Supabase
-      if (user) {
-        const { error } = await supabase
-          .from('user_profiles')
-          .update({
-            onboarding_completed: true,
-            preferences: {
-              ...answers,
-              onboarding_completed_at: new Date().toISOString()
-            }
-          })
-          .eq('id', user.id);
-
-        if (error) {
-          console.error('Error saving profile to Supabase:', error);
-          // Continue anyway to not block user
-        }
-      }
-
-      // Local storage backup
-      const finalData = {
-        ...answers,
-        completedAt: new Date().toISOString()
-      };
-      localStorage.setItem('raptorflow_onboarding', JSON.stringify(finalData));
-
-      // Update context
-      await markOnboardingComplete();
-
-      // Navigate to dashboard
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 800);
-
-    } catch (err) {
-      console.error('Error completing onboarding:', err);
-      // Force navigation if something goes wrong
-      navigate('/dashboard');
-    }
-  };
-
-  const handleSkipOnboarding = async () => {
-    setShowSkipConfirmation(false);
-    setIsCompleting(true);
-
-    try {
-      // Mark as skipped in local storage
-      const skippedData = {
-        skipped: true,
-        skippedAt: new Date().toISOString()
-      };
-      localStorage.setItem('raptorflow_onboarding', JSON.stringify(skippedData));
-
-      // Update context
-      await markOnboardingComplete();
-
-      // Navigate to dashboard
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 300);
-
-    } catch (err) {
-      console.error('Error skipping onboarding:', err);
-      // Force navigation if something goes wrong
-      navigate('/dashboard');
-    }
-  };
-
-
-  const updateAnswer = (key, value) => {
-    setAnswers(prev => ({ ...prev, [key]: value }));
-  };
-
-  const updateCoreQuestion = (id, value) => {
-    setAnswers(prev => ({
-      ...prev,
-      coreQuestions: {
-        ...prev.coreQuestions,
-        [id]: value
-      }
-    }));
-  };
-
-  const updateAIAnswer = (id, value) => {
-    setAnswers(prev => ({
-      ...prev,
-      aiAnswers: {
-        ...prev.aiAnswers,
-        [id]: value
-      }
-    }));
-  };
-
-  const toggleOutcome = (value) => {
-    setAnswers(prev => {
-      const current = prev.outcomes || [];
-      if (current.includes(value)) {
-        return { ...prev, outcomes: current.filter(i => i !== value) };
-      }
-      if (current.length >= 3) return prev;
-      return { ...prev, outcomes: [...current, value] };
-    });
-  };
-
-  // Render Step Content
-  const renderStepContent = () => {
-    switch (step.type) {
-      case 'mode_selection':
-        return (
-          <div className="grid gap-4">
-            {step.options.map((option) => {
-              const Icon = option.icon;
-              const isSelected = answers.mode === option.value;
-              return (
-                <motion.button
-                  key={option.value}
-                  onClick={() => updateAnswer('mode', option.value)}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  className={`
-                    group relative p-6 border-2 rounded-lg text-left transition-all duration-200
-                    ${isSelected
-                      ? 'border-black bg-black text-white'
-                      : 'border-black/10 bg-white hover:border-black/30'
-                    }
-                  `}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className={`
-                      w-12 h-12 border flex items-center justify-center flex-shrink-0 rounded-full
-                      ${isSelected
-                        ? 'border-white/20 bg-white/10'
-                        : 'border-black/10 bg-gray-50'
-                      }
-                    `}>
-                      <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-black'}`} strokeWidth={1.5} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className={`text-xl font-serif mb-1 ${isSelected ? 'text-white' : 'text-black'}`}>
-                        {option.label}
-                      </h3>
-                      <p className={`text-sm font-medium mb-2 ${isSelected ? 'text-white/90' : 'text-gray-900'}`}>
-                        {option.subtitle}
-                      </p>
-                      <p className={`text-xs ${isSelected ? 'text-white/60' : 'text-gray-500'}`}>
-                        e.g. {option.examples}
-                      </p>
-                    </div>
-                    {isSelected && (
-                      <CheckCircle2 className="w-6 h-6 text-white flex-shrink-0" strokeWidth={2} />
-                    )}
-                  </div>
-                </motion.button>
-              );
-            })}
-          </div>
-        );
-
-      case 'multi_select':
-        return (
-          <div className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-4">
-              {step.options.map((option) => {
-                const isSelected = (answers.outcomes || []).includes(option.value);
-                return (
-                  <motion.button
-                    key={option.value}
-                    onClick={() => toggleOutcome(option.value)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`
-                      p-4 border-2 rounded-lg text-left transition-all duration-200 h-full
-                      ${isSelected
-                        ? 'border-black bg-black text-white'
-                        : 'border-black/10 bg-white hover:border-black/30'
-                      }
-                    `}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className={`font-bold ${isSelected ? 'text-white' : 'text-black'}`}>{option.label}</h3>
-                      {isSelected && <CheckCircle2 className="w-4 h-4 text-white" />}
-                    </div>
-                    <p className={`text-sm ${isSelected ? 'text-white/80' : 'text-gray-600'}`}>{option.desc}</p>
-                  </motion.button>
-                );
-              })}
-            </div>
-            {step.hasFreeText && (
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">{step.freeTextLabel}</label>
-                <textarea
-                  value={answers.outcomeFreeText || ''}
-                  onChange={(e) => updateAnswer('outcomeFreeText', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-black rounded-lg transition-all outline-none resize-none"
-                  rows={2}
-                  placeholder="e.g. I want to be fully booked on weekends..."
-                />
-              </div>
-            )}
-          </div>
-        );
-
-      case 'context_form':
-        return (
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
-                <input
-                  type="text"
-                  value={answers.businessName || ''}
-                  onChange={(e) => updateAnswer('businessName', e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
-                  placeholder="Acme Corp"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>
-                <select
-                  value={answers.industry || ''}
-                  onChange={(e) => {
-                    updateAnswer('industry', e.target.value);
-                    // Determine if precise location is needed
-                    const locationBoundIndustries = ['hospitality', 'restaurant', 'retail', 'salon', 'clinic', 'gym', 'real_estate'];
-                    const needsPreciseLocation = locationBoundIndustries.includes(e.target.value);
-                    updateAnswer('needsPreciseLocation', needsPreciseLocation);
-                  }}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
-                >
-                  <option value="">Select Industry...</option>
-                  <optgroup label="Digital / Online">
-                    <option value="saas">SaaS</option>
-                    <option value="agency">Agency</option>
-                    <option value="ecommerce">E-commerce</option>
-                    <option value="creator">Creator / Coach</option>
-                    <option value="consulting">Consulting</option>
-                  </optgroup>
-                  <optgroup label="Location-Based">
-                    <option value="restaurant">Restaurant / Café</option>
-                    <option value="hospitality">Hotel / Hospitality</option>
-                    <option value="retail">Retail Store</option>
-                    <option value="salon">Salon / Spa</option>
-                    <option value="clinic">Clinic / Healthcare</option>
-                    <option value="gym">Gym / Fitness</option>
-                    <option value="real_estate">Real Estate</option>
-                  </optgroup>
-                  <optgroup label="Other">
-                    <option value="other">Other</option>
-                  </optgroup>
-                </select>
-              </div>
-
-              {/* Smart Location Field - Shows precise location for location-bound businesses */}
-              {answers.needsPreciseLocation ? (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Precise Location
-                    <span className="text-xs text-gray-500 ml-2">(Important for local targeting)</span>
-                  </label>
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                      <input
-                        type="text"
-                        value={answers.preciseLocation || ''}
-                        onChange={(e) => updateAnswer('preciseLocation', e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
-                        placeholder="123 Main St, City, State, ZIP"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (navigator.geolocation) {
-                          navigator.geolocation.getCurrentPosition(
-                            async (position) => {
-                              const { latitude, longitude } = position.coords;
-                              // Use reverse geocoding to get address
-                              try {
-                                const response = await fetch(
-                                  `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-                                );
-                                const data = await response.json();
-                                const address = data.display_name || `${latitude}, ${longitude}`;
-                                updateAnswer('preciseLocation', address);
-                                updateAnswer('coordinates', { lat: latitude, lng: longitude });
-                              } catch (error) {
-                                updateAnswer('preciseLocation', `${latitude}, ${longitude}`);
-                                updateAnswer('coordinates', { lat: latitude, lng: longitude });
-                              }
-                            },
-                            (error) => {
-                              alert('Unable to get your location. Please enter it manually.');
-                            }
-                          );
-                        } else {
-                          alert('Geolocation is not supported by your browser.');
-                        }
-                      }}
-                      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      <Target className="w-4 h-4" />
-                      Use My Current Location
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    General Location
-                    <span className="text-xs text-gray-500 ml-2">(City or Region)</span>
-                  </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      value={answers.location || ''}
-                      onChange={(e) => updateAnswer('location', e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
-                      placeholder="City, Country"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                  <input
-                    type="url"
-                    value={answers.website || ''}
-                    onChange={(e) => {
-                      updateAnswer('website', e.target.value);
-                    }}
-                    onBlur={(e) => {
-                      const url = e.target.value;
-                      if (url && isValidUrl(normalizeUrl(url))) {
-                        handleWebsiteAnalysis(url);
-                      }
-                    }}
-                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
-                    placeholder="https://yourwebsite.com"
-                    disabled={isScrapingWebsite}
-                  />
-                  {isScrapingWebsite && (
-                    <div className="absolute right-3 top-2.5">
-                      <Loader2 className="w-4 h-4 text-black animate-spin" />
-                    </div>
-                  )}
-                </div>
-                {isScrapingWebsite && (
-                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    Analyzing your website with AI...
-                  </p>
-                )}
-                {websiteAnalysis && showScrapedDataPreview && !isScrapingWebsite && (
-                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-xs text-green-800 font-medium flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Website analyzed! We've prefilled some fields for you. Feel free to edit them.
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Budget</label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                  <select
-                    value={answers.budget || ''}
-                    onChange={(e) => updateAnswer('budget', e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
-                  >
-                    <option value="">Select Range...</option>
-                    <option value="0-1k">&lt; $1k / mo</option>
-                    <option value="1k-5k">$1k - $5k / mo</option>
-                    <option value="5k-20k">$5k - $20k / mo</option>
-                    <option value="20k+">$20k+ / mo</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'core_questions':
-        const mode = answers.mode || 'business';
-        const questions = CORE_QUESTIONS[mode];
-
-        return (
-          <div className="space-y-6">
-            <div className="grid gap-6">
-              {questions.map((q) => (
-                <div key={q.id}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <span className="text-gray-400 mr-2 font-mono text-xs uppercase tracking-wider">{q.label}</span>
-                    {q.question}
-                  </label>
-                  <input
-                    type="text"
-                    value={answers.coreQuestions?.[q.id] || ''}
-                    onChange={(e) => updateCoreQuestion(q.id, e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black focus:bg-white transition-colors"
-                    placeholder={q.placeholder}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'ai_followup':
-        if (isGeneratingQuestions) {
-          return (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mb-6"></div>
-              <h3 className="text-xl font-serif font-bold mb-2">Analyzing your business...</h3>
-              <p className="text-gray-500 text-center max-w-sm">
-                Our AI is reviewing your answers to ask the most relevant follow-up questions.
-              </p>
-            </div>
-          );
-        }
-
-        return (
-          <div className="space-y-8">
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-blue-800">
-                Based on what you told us, we have a few quick follow-ups so we don't guess.
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              {answers.aiQuestions?.map((q, index) => (
-                <motion.div
-                  key={q.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <span className="text-gray-400 mr-2 font-mono text-xs uppercase tracking-wider">Clarification {index + 1}</span>
-                    {q.question}
-                  </label>
-                  <textarea
-                    value={answers.aiAnswers?.[q.id] || ''}
-                    onChange={(e) => updateAIAnswer(q.id, e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-black focus:bg-white transition-colors resize-none"
-                    rows={2}
-                    placeholder="Your answer..."
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'positioning_grid':
-        return (
-          <div className="flex flex-col items-center justify-center py-8">
-            <div className="relative w-full max-w-md aspect-square bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-4">
-              {/* Grid Labels */}
-              <div className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-bold uppercase tracking-widest text-gray-500">Emotional / Brand</div>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-bold uppercase tracking-widest text-gray-500">Functional / Utility</div>
-              <div className="absolute left-2 top-1/2 -translate-y-1/2 -rotate-90 text-xs font-bold uppercase tracking-widest text-gray-500">Mass / Low Price</div>
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 rotate-90 text-xs font-bold uppercase tracking-widest text-gray-500">Premium / High Price</div>
-
-              {/* Grid Lines */}
-              <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 pointer-events-none">
-                <div className="border-r border-b border-gray-200"></div>
-                <div className="border-b border-gray-200"></div>
-                <div className="border-r border-gray-200"></div>
-                <div></div>
-              </div>
-
-              {/* Interactive Area */}
-              <div
-                className="absolute inset-8 cursor-crosshair"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = ((e.clientX - rect.left) / rect.width) * 100;
-                  const y = 100 - ((e.clientY - rect.top) / rect.height) * 100; // Invert Y so top is 100
-                  updateAnswer('positioning', { x, y });
-                }}
-              >
-                {/* The Dot */}
-                <motion.div
-                  layout
-                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  className="absolute w-6 h-6 bg-black rounded-full shadow-lg border-2 border-white transform -translate-x-1/2 -translate-y-1/2"
-                  style={{
-                    left: `${answers.positioning?.x || 50}%`,
-                    top: `${100 - (answers.positioning?.y || 50)}%`
-                  }}
-                >
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-1 rounded whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity">
-                    {Math.round(answers.positioning?.x || 50)}, {Math.round(answers.positioning?.y || 50)}
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-            <p className="mt-6 text-sm text-gray-500 text-center max-w-md">
-              Click to place your brand. High price & emotional? Low price & functional?
-              <br />This helps us tune your copy and strategy.
-            </p>
-          </div>
-        );
-
-      case 'first_moves':
-        if (isGeneratingMoves) {
-          return (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mb-6"></div>
-              <h3 className="text-xl font-serif font-bold mb-2">Designing your strategy...</h3>
-              <p className="text-gray-500 text-center max-w-sm">
-                We're analyzing your cohorts and goals to build your first 90-day playbook.
-              </p>
-            </div>
-          );
-        }
-
-        return (
-          <div className="space-y-6">
-            <div className="bg-green-50 border border-green-100 rounded-lg p-4 flex items-start gap-3">
-              <Target className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-green-800">
-                Here are 3 high-impact moves tailored to your goals. Select the one you want to start with.
-              </p>
-            </div>
-
-            <div className="grid gap-4">
-              {answers.generatedMoves?.map((move) => {
-                const Icon = move.icon || Target;
-                const isSelected = answers.firstMove === move.id;
-                return (
-                  <motion.button
-                    key={move.id}
-                    onClick={() => updateAnswer('firstMove', move.id)}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    className={`
-                      relative p-6 border-2 rounded-xl text-left transition-all duration-200
-                      ${isSelected
-                        ? 'border-black bg-black text-white shadow-xl'
-                        : 'border-black/10 bg-white hover:border-black/30'
-                      }
-                    `}
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-white/10' : 'bg-gray-100'}`}>
-                          <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-black'}`} />
-                        </div>
-                        <div>
-                          <h3 className={`text-lg font-bold ${isSelected ? 'text-white' : 'text-black'}`}>
-                            {move.title}
-                          </h3>
-                          <span className={`text-xs font-mono uppercase tracking-wider ${isSelected ? 'text-white/60' : 'text-gray-500'}`}>
-                            {move.duration}
-                          </span>
-                        </div>
-                      </div>
-                      {isSelected && <CheckCircle2 className="w-6 h-6 text-green-400" />}
-                    </div>
-
-                    <p className={`text-sm mb-4 leading-relaxed ${isSelected ? 'text-white/90' : 'text-gray-600'}`}>
-                      {move.summary}
-                    </p>
-
-                    <div className={`grid grid-cols-2 gap-4 mb-4 text-xs ${isSelected ? 'text-white/80' : 'text-gray-600'}`}>
-                      <div>
-                        <span className={`block font-bold mb-1 ${isSelected ? 'text-white/60' : 'text-gray-400'}`}>TARGET</span>
-                        {move.target}
-                      </div>
-                      <div>
-                        <span className={`block font-bold mb-1 ${isSelected ? 'text-white/60' : 'text-gray-400'}`}>OBJECTIVE</span>
-                        {move.objective}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {move.channels?.map(channel => (
-                        <span
-                          key={channel}
-                          className={`
-                            text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded
-                            ${isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}
-                          `}
-                        >
-                          {channel}
-                        </span>
-                      ))}
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  // If we are at the Cohorts Builder step, render it full screen
-  if (step.id === 'cohorts_builder') {
-    // Prepare initial data for CohortsBuilder from previous answers
-    const mode = answers.mode || 'business';
-    const questions = CORE_QUESTIONS[mode];
-
-    // Map core questions to business description for AI context
-    const businessDescription = questions
-      .map(q => `${q.label}: ${answers.coreQuestions?.[q.id] || 'N/A'}`)
-      .join('\n');
-
-    const combinedDescription = `
-      Business Name: ${answers.businessName}
-      Industry: ${answers.industry}
-      Location: ${answers.location}
-      Website: ${answers.website}
-      Outcomes: ${answers.outcomes?.join(', ')}
-      Wild Success: ${answers.outcomeFreeText}
+      const response = await onboardingApi.analyzeContext({
+        raw_text: inputs.rawText,
+        website: inputs.website,
+        pitch: inputs.pitch,
+        industry: inputs.industry
+      });
       
-      Core Details:
-      ${businessDescription}
-    `;
+      if (response.extraction) {
+         // Handle potential vertex AI raw response or structured JSON
+         // For now assume it's structured or we parse it
+         let extracted = response.extraction;
+         if (typeof extracted === 'string') {
+             try {
+                 // Attempt to extract JSON block from markdown
+                 const jsonMatch = extracted.match(/```json\n([\s\S]*?)\n```/) || extracted.match(/{[\s\S]*}/);
+                 if (jsonMatch) {
+                     extracted = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+                 }
+             } catch (e) {
+                 console.warn("Failed to parse JSON from AI", e);
+                 // Fallback structure
+                 extracted = {
+                     core_line: "We are a business.",
+                     narrative: { who_you_serve: "Customers", main_wound: "Problems" },
+                     category: inputs.industry || "General"
+                 };
+             }
+         }
+         setContextData(extracted);
+         setCurrentStep('context_review');
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to analyze context. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleContextConfirm = async () => {
+      setIsLoading(true);
+      try {
+          const response = await onboardingApi.generateAxes({
+              category: contextData.category,
+              narrative: contextData.narrative,
+              keywords: contextData.keywords || []
+          });
+          
+          if (response.frames) {
+              let frames = response.frames;
+               if (typeof frames === 'string') {
+                   try {
+                       const jsonMatch = frames.match(/```json\n([\s\S]*?)\n```/) || frames.match(/{[\s\S]*}/);
+                       if (jsonMatch) {
+                           const parsed = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+                           frames = parsed.frames;
+                       }
+                   } catch (e) {
+                       console.warn("Failed to parse Axes JSON", e);
+                   }
+               }
+               // Ensure frames is an array
+               if (!Array.isArray(frames) && frames.frames) frames = frames.frames;
+               
+              setAxesData(frames);
+              setSelectedFrameId(frames[0]?.id);
+              setCurrentStep('axis_selection');
+          }
+      } catch (err) {
+          console.error(err);
+          setError("Failed to generate positioning frames.");
+      } finally {
+          setIsLoading(false);
+      }
+  };
+  
+  const handleFrameSelect = () => {
+      setCurrentStep('positioning_map');
+  };
 
-    return (
-      <div className="min-h-screen bg-cream p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8 flex items-center justify-between">
-            <button
-              onClick={() => setCurrentStep(prev => prev - 1)}
-              className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-black transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Foundation
-            </button>
-            <div className="text-sm text-gray-400 font-mono uppercase tracking-widest">
-              Final Step: ICP Creation
+  const handlePositionConfirm = () => {
+      setCurrentStep('final_recap');
+  };
+  
+  const handleFinalLock = async () => {
+      setIsLoading(true);
+      try {
+          const frame = axesData.find(f => f.id === selectedFrameId);
+          
+          // Save profile partial
+          await onboardingApi.updateProfile({
+              context: contextData,
+              positioning: {
+                  frame_id: selectedFrameId,
+                  coordinates: position,
+                  frame_data: frame
+              },
+              inputs: inputs
+          });
+          
+          setCurrentStep('battlefield');
+          
+          // Trigger competitor analysis
+          fetchCompetitors(frame);
+          
+      } catch (err) {
+          console.error(err);
+          setError("Failed to save positioning.");
+          setIsLoading(false);
+      } 
+  };
+  
+  const fetchCompetitors = async (frame) => {
+      setIsLoading(true);
+      try {
+          const response = await onboardingApi.analyzeCompetitors({
+              industry: inputs.industry || contextData.category,
+              context_summary: contextData,
+              axis_frame: frame
+          });
+          
+          if (response.analysis) {
+               let data = response.analysis;
+               if (typeof data === 'string') {
+                   try {
+                       const jsonMatch = data.match(/```json\n([\s\S]*?)\n```/) || data.match(/{[\s\S]*}/);
+                       if (jsonMatch) {
+                           data = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+                       }
+                   } catch (e) { console.warn("Failed to parse competitor JSON", e); }
+               }
+               setCompetitorData(data);
+          }
+      } catch (err) {
+          console.error(err);
+          // Non-blocking error
+      } finally {
+          setIsLoading(false);
+      }
+  };
+  
+  const handleBattlefieldComplete = () => {
+      setCurrentStep('tribes');
+      fetchICPs();
+  };
+  
+  const fetchICPs = async () => {
+      setIsLoading(true);
+      try {
+          const frame = axesData.find(f => f.id === selectedFrameId);
+          const response = await onboardingApi.proposeICPs({
+              industry: inputs.industry || contextData.category,
+              context_summary: contextData,
+              positioning: {
+                  frame_data: frame,
+                  coordinates: position
+              }
+          });
+          
+          if (response.proposal) {
+               let data = response.proposal;
+               if (typeof data === 'string') {
+                   try {
+                       const jsonMatch = data.match(/```json\n([\s\S]*?)\n```/) || data.match(/{[\s\S]*}/);
+                       if (jsonMatch) {
+                           data = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+                       }
+                   } catch (e) { console.warn("Failed to parse ICP JSON", e); }
+               }
+               setIcpData(data);
+               if (data.icps) {
+                   setSelectedIcps(data.icps.map((_, i) => i)); // Select all by default
+               }
+          }
+      } catch (err) {
+          console.error(err);
+      } finally {
+          setIsLoading(false);
+      }
+  };
+  
+  const handleTribesComplete = async () => {
+      setIsLoading(true);
+      try {
+          // First save the selected tribes data
+          await onboardingApi.updateProfile({
+              competitors: competitorData,
+              icps: selectedIcps.map(i => icpData?.icps[i]),
+              onboarding_completed: true
+          });
+          
+          // Then trigger the background guild (Act IV logic)
+          if (sessionId) {
+              await onboardingApi.complete(sessionId);
+          }
+          
+          await markOnboardingComplete();
+          navigate('/dashboard');
+      } catch (err) {
+          console.error(err);
+          setError("Failed to complete onboarding.");
+      } finally {
+          setIsLoading(false);
+      }
+  };
+
+  // Renderers
+  const renderBrainDump = () => (
+    <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+        {/* Left: Inputs (Task 20) */}
+        <div className="space-y-8">
+            <div className="space-y-4">
+                <LuxeHeading level={2}>The Identity</LuxeHeading>
+                <p className="text-lg text-neutral-500 leading-relaxed">
+                    Strategy starts with the truth. Dump your pitch, your rant about competitors, or your website copy. We'll extract the signal from the noise.
+                </p>
             </div>
-          </div>
-
-          <CohortsBuilder
-            userProfile={user}
-            userPlan={subscription?.plan || 'free'}
-            cohortsLimit={100}
-            currentCohortsCount={0}
-            onComplete={handleCohortComplete}
-            initialData={{
-              businessDescription: combinedDescription,
-              goals: answers.outcomes?.join(', '),
-              location: answers.location
-            }}
-          />
+            
+            <div className="space-y-6">
+                <LuxeTextarea
+                    label="THE BRAIN DUMP *"
+                    value={inputs.rawText}
+                    onChange={e => setInputs({...inputs, rawText: e.target.value})}
+                    className="h-64 text-base p-4 bg-white"
+                    placeholder="e.g. We build software for dentists who hate technology. Our competitors are clunky and expensive..."
+                />
+                
+                <div className="grid grid-cols-2 gap-6">
+                    <LuxeInput
+                        label="Website (Optional)"
+                        value={inputs.website}
+                        onChange={e => setInputs({...inputs, website: e.target.value})}
+                        placeholder="https://..."
+                    />
+                    <LuxeInput
+                        label="Industry / Category"
+                        value={inputs.industry}
+                        onChange={e => setInputs({...inputs, industry: e.target.value})}
+                        placeholder="e.g. B2B SaaS"
+                    />
+                </div>
+                
+                <div className="pt-4">
+                    <LuxeButton
+                        onClick={handleBrainDumpSubmit}
+                        disabled={!inputs.rawText || isLoading}
+                        size="lg"
+                        className="w-full"
+                        isLoading={isLoading}
+                        icon={Sparkles}
+                    >
+                        Analyze Identity
+                    </LuxeButton>
+                </div>
+            </div>
         </div>
+
+        {/* Right: Preview / Context (Task 20) */}
+        <div className="hidden lg:block sticky top-8">
+            <div className="bg-white border border-neutral-200 p-8 rounded-xl shadow-sm space-y-8">
+                <div className="space-y-2">
+                    <div className="text-xs font-bold uppercase tracking-widest text-neutral-400">Live Preview</div>
+                    <h3 className="font-display text-2xl text-neutral-900">
+                        {inputs.industry || "Your Category"}
+                    </h3>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="p-6 bg-neutral-50 border border-neutral-100 rounded-lg">
+                        <div className="flex items-start gap-3 mb-3">
+                            <div className="w-8 h-8 rounded bg-white border border-neutral-200 flex items-center justify-center shrink-0">
+                                <Target className="w-4 h-4 text-neutral-900" />
+                            </div>
+                            <div>
+                                <div className="text-sm font-bold text-neutral-900">The Goal</div>
+                                <p className="text-sm text-neutral-500 mt-1 leading-relaxed">
+                                    We are looking for the "Single Minded Proposition" — the one thing you can own in the prospect's mind.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-6 bg-neutral-50 border border-neutral-100 rounded-lg">
+                        <div className="flex items-start gap-3 mb-3">
+                            <div className="w-8 h-8 rounded bg-white border border-neutral-200 flex items-center justify-center shrink-0">
+                                <AlertCircle className="w-4 h-4 text-neutral-900" />
+                            </div>
+                            <div>
+                                <div className="text-sm font-bold text-neutral-900">The Anti-Position</div>
+                                <p className="text-sm text-neutral-500 mt-1 leading-relaxed">
+                                    Great positioning also defines who you are NOT. We will identify your enemies (old ways, bad habits, competitors).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="pt-6 border-t border-neutral-100 text-center">
+                    <p className="text-xs text-neutral-400 uppercase tracking-widest">Powered by RaptorFlow Intelligence</p>
+                </div>
+            </div>
+        </div>
+    </div>
+  );
+  
+  const renderContextReview = () => (
+      <div className="max-w-5xl mx-auto h-full flex flex-col">
+          <div className="mb-8">
+              <LuxeHeading level={2}>The Mirror</LuxeHeading>
+              <p className="text-lg text-neutral-500 mt-2">Based on your input, this is your strategic signal.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-12 gap-8 flex-1">
+              {/* Left: Parsed Summary */}
+              <div className="md:col-span-4 space-y-6">
+                  <LuxeCard title="We Heard">
+                      <div className="space-y-4 text-sm">
+                          <div>
+                              <span className="font-bold block text-neutral-900">Category</span>
+                              <span className="text-neutral-600">{contextData?.category}</span>
+                          </div>
+                          <div>
+                              <span className="font-bold block text-neutral-900">Target</span>
+                              <span className="text-neutral-600">{contextData?.narrative?.who_you_serve}</span>
+                          </div>
+                          <div>
+                              <span className="font-bold block text-neutral-900">Main Pain</span>
+                              <span className="text-neutral-600">{contextData?.narrative?.main_wound}</span>
+                          </div>
+                      </div>
+                  </LuxeCard>
+                  
+                  <div className="bg-neutral-900 p-6 rounded-lg text-white">
+                      <div className="flex items-start gap-3">
+                          <Sparkles className="w-5 h-5 text-neutral-400 flex-shrink-0 mt-0.5" />
+                          <p className="text-sm leading-relaxed text-neutral-300">
+                              We've filtered out the noise. This is the strategic core you can build on.
+                          </p>
+                      </div>
+                  </div>
+              </div>
+              
+              {/* Right: Storycard */}
+              <div className="md:col-span-8">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white border border-neutral-200 shadow-xl rounded-xl p-8 h-full flex flex-col relative overflow-hidden"
+                  >
+                      <div className="absolute top-0 left-0 w-full h-1 bg-neutral-900" />
+                      <div className="flex-1">
+                          <div className="mb-8">
+                              <h3 className="text-3xl font-display font-medium leading-tight mb-6 text-neutral-900">
+                                  {contextData?.core_line}
+                              </h3>
+                          </div>
+                          
+                          <div className="space-y-8">
+                              <div>
+                                  <h4 className="font-bold text-sm uppercase tracking-widest text-neutral-400 mb-3 flex items-center gap-2">
+                                      The Promise
+                                  </h4>
+                                  <p className="text-lg text-neutral-700 leading-relaxed">
+                                      You help <span className="font-medium text-neutral-900">{contextData?.narrative?.who_you_serve}</span> overcome <span className="font-medium text-neutral-900">{contextData?.narrative?.main_wound}</span>.
+                                  </p>
+                              </div>
+                              
+                              <div>
+                                  <h4 className="font-bold text-sm uppercase tracking-widest text-neutral-400 mb-3 flex items-center gap-2">
+                                      The Anti-Position
+                                  </h4>
+                                  <p className="text-lg text-neutral-700 leading-relaxed">
+                                      You refuse to be: <span className="italic text-neutral-900">{contextData?.narrative?.what_you_are_not}</span>.
+                                  </p>
+                              </div>
+                              
+                              {contextData?.proof_points?.length > 0 && (
+                                  <div>
+                                      <h4 className="font-bold text-sm uppercase tracking-widest text-neutral-400 mb-3">Evidence</h4>
+                                      <ul className="space-y-2 text-neutral-600">
+                                          {contextData.proof_points.map((p, i) => (
+                                              <li key={i} className="flex items-start gap-2">
+                                                  <div className="w-1.5 h-1.5 rounded-full bg-neutral-300 mt-2 shrink-0" />
+                                                  {p}
+                                              </li>
+                                          ))}
+                                      </ul>
+                                  </div>
+                              )}
+                          </div>
+                      </div>
+                      
+                      <div className="pt-8 mt-8 border-t border-neutral-100 flex justify-end gap-4">
+                          <LuxeButton 
+                            variant="ghost"
+                            onClick={() => setCurrentStep('brain_dump')}
+                          >
+                              Edit Identity
+                          </LuxeButton>
+                          <LuxeButton 
+                            onClick={handleContextConfirm}
+                            disabled={isLoading}
+                            isLoading={isLoading}
+                            icon={CheckCircle2}
+                          >
+                             Confirm Strategy
+                          </LuxeButton>
+                      </div>
+                  </motion.div>
+              </div>
+          </div>
       </div>
-    );
-  }
+  );
+  
+  const renderAxisSelection = () => (
+      <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+              <LuxeHeading level={2} className="mb-4">Choose your Battlefield.</LuxeHeading>
+              <p className="text-lg text-neutral-500">How do you want to frame your value against competitors?</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-6">
+              {axesData?.map((frame) => {
+                  const isSelected = selectedFrameId === frame.id;
+                  return (
+                      <motion.div
+                        key={frame.id}
+                        onClick={() => setSelectedFrameId(frame.id)}
+                        whileHover={{ y: -4 }}
+                        className={`
+                            cursor-pointer text-left p-8 rounded-xl border transition-all duration-200 h-full flex flex-col
+                            ${isSelected 
+                                ? 'border-neutral-900 bg-neutral-900 text-white shadow-2xl ring-1 ring-neutral-900' 
+                                : 'border-neutral-200 bg-white hover:border-neutral-300 hover:shadow-md'
+                            }
+                        `}
+                      >
+                          <div className="mb-8">
+                              <h3 className="font-display text-xl font-medium mb-2">{frame.name}</h3>
+                          </div>
+                          
+                          <div className="space-y-4 flex-1">
+                              <div className={`p-4 rounded-lg ${isSelected ? 'bg-white/10' : 'bg-neutral-50'}`}>
+                                  <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">X-Axis</div>
+                                  <div className="font-medium text-sm">{frame.x_axis.label}</div>
+                              </div>
+                              <div className={`p-4 rounded-lg ${isSelected ? 'bg-white/10' : 'bg-neutral-50'}`}>
+                                  <div className="text-[10px] uppercase tracking-widest opacity-60 mb-1">Y-Axis</div>
+                                  <div className="font-medium text-sm">{frame.y_axis.label}</div>
+                              </div>
+                          </div>
+                          
+                          <div className="mt-8 pt-6 border-t border-white/10 flex items-center gap-3 text-sm font-medium opacity-80">
+                              <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${isSelected ? 'border-white' : 'border-neutral-300'}`}>
+                                  {isSelected && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                              </div>
+                              {isSelected ? 'Selected Frame' : 'Select Frame'}
+                          </div>
+                      </motion.div>
+                  );
+              })}
+          </div>
+          
+          <div className="mt-12 flex justify-center">
+              <LuxeButton
+                onClick={handleFrameSelect}
+                disabled={!selectedFrameId}
+                size="lg"
+                icon={ArrowRight}
+              >
+                  Map My Position
+              </LuxeButton>
+          </div>
+      </div>
+  );
+  
+  const renderPositioningMap = () => {
+      const frame = axesData?.find(f => f.id === selectedFrameId);
+      if (!frame) return null;
+      
+      return (
+          <div className="max-w-6xl mx-auto grid md:grid-cols-12 gap-12 h-full items-center">
+              {/* Controls */}
+              <div className="md:col-span-4 space-y-10">
+                  <div className="space-y-4">
+                      <LuxeHeading level={2}>Where do you sit?</LuxeHeading>
+                      <p className="text-lg text-neutral-500">Be honest. You can't be everything to everyone.</p>
+                  </div>
+                  
+                  <div className="space-y-8">
+                      <div className="space-y-4">
+                          <label className="font-bold text-sm block text-neutral-900">{frame.x_axis.question}</label>
+                          <div className="flex justify-between text-[10px] text-neutral-400 font-bold uppercase tracking-widest">
+                              <span>{frame.x_axis.left_label}</span>
+                              <span>{frame.x_axis.right_label}</span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="0" max="100" 
+                            value={position.x}
+                            onChange={e => setPosition({...position, x: parseInt(e.target.value)})}
+                            className="w-full h-1 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-neutral-900"
+                          />
+                      </div>
+                      
+                      <div className="space-y-4">
+                          <label className="font-bold text-sm block text-neutral-900">{frame.y_axis.question}</label>
+                          <div className="flex justify-between text-[10px] text-neutral-400 font-bold uppercase tracking-widest">
+                              <span>{frame.y_axis.bottom_label}</span>
+                              <span>{frame.y_axis.top_label}</span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="0" max="100" 
+                            value={position.y}
+                            onChange={e => setPosition({...position, y: parseInt(e.target.value)})}
+                            className="w-full h-1 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-neutral-900"
+                          />
+                      </div>
+                  </div>
+                  
+                  <div className="pt-4">
+                      <LuxeButton
+                        onClick={handlePositionConfirm}
+                        size="lg"
+                        className="w-full"
+                      >
+                          Confirm Position
+                      </LuxeButton>
+                  </div>
+              </div>
+              
+              {/* Map */}
+              <div className="md:col-span-8 bg-white rounded-xl border border-neutral-200 shadow-lg p-12 relative flex items-center justify-center aspect-square">
+                   <div className="relative w-full h-full border border-neutral-100">
+                       {/* Grid Lines */}
+                       <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 pointer-events-none">
+                           <div className="border-r border-b border-neutral-100"></div>
+                           <div className="border-b border-neutral-100"></div>
+                           <div className="border-r border-neutral-100"></div>
+                           <div></div>
+                       </div>
+                       
+                       {/* Axis Labels */}
+                       <div className="absolute -left-12 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 whitespace-nowrap">
+                           {frame.y_axis.label}
+                       </div>
+                       <div className="absolute bottom-[-48px] left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 whitespace-nowrap">
+                           {frame.x_axis.label}
+                       </div>
+                       
+                       {/* Quadrant Labels (Optional) */}
+                       <div className="absolute top-4 right-4 text-[10px] text-neutral-300 font-bold uppercase tracking-widest text-right">
+                           {frame.quadrants?.top_right || "Specialist / High Touch"}
+                       </div>
+                       <div className="absolute bottom-4 left-4 text-[10px] text-neutral-300 font-bold uppercase tracking-widest text-left">
+                           {frame.quadrants?.bottom_left || "General / DIY"}
+                       </div>
+                       
+                       {/* The Dot */}
+                       <motion.div
+                           className="absolute w-4 h-4 bg-neutral-900 rounded-full shadow-xl ring-4 ring-white cursor-grab active:cursor-grabbing z-10"
+                           style={{
+                               left: `${position.x}%`,
+                               bottom: `${position.y}%`, // Use bottom for Y since range 0 is typically bottom
+                               transform: 'translate(-50%, 50%)'
+                           }}
+                           drag
+                           dragMomentum={false}
+                           dragElastic={0}
+                       >
+                           <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-neutral-900 text-white text-[10px] font-bold px-2 py-1 rounded whitespace-nowrap">
+                               YOU
+                           </div>
+                       </motion.div>
+                   </div>
+              </div>
+          </div>
+      );
+  };
+  
+  const renderFinalRecap = () => (
+      <div className="max-w-3xl mx-auto text-center">
+          <div className="mb-12">
+              <div className="w-16 h-16 bg-neutral-900 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <CheckCircle2 className="w-8 h-8 text-white" />
+              </div>
+              <LuxeHeading level={1} className="mb-4">Strategy Locked.</LuxeHeading>
+              <p className="text-xl text-neutral-500">
+                  You have staked your claim. This will now drive your campaigns, ICPs, and content.
+              </p>
+          </div>
+          
+          <LuxeCard className="text-left max-w-2xl mx-auto mb-12 border-neutral-200 shadow-xl">
+              <div className="border-b border-neutral-100 pb-4 mb-6">
+                  <h3 className="font-bold text-neutral-400 uppercase tracking-widest text-xs">
+                      Your Narrative
+                  </h3>
+              </div>
+              
+              <p className="text-3xl font-display font-medium leading-tight mb-8 text-neutral-900">
+                  "{contextData?.core_line}"
+              </p>
+              
+              <div className="grid grid-cols-2 gap-6 text-sm border-t border-neutral-100 pt-6">
+                  <div>
+                      <span className="block text-neutral-400 text-[10px] uppercase tracking-widest mb-1">Competing On</span>
+                      <span className="font-medium text-neutral-900 text-lg">
+                           {position.x > 50 ? axesData?.find(f => f.id === selectedFrameId)?.x_axis.right_label : axesData?.find(f => f.id === selectedFrameId)?.x_axis.left_label}
+                      </span>
+                  </div>
+                  <div>
+                      <span className="block text-neutral-400 text-[10px] uppercase tracking-widest mb-1">Delivery Model</span>
+                      <span className="font-medium text-neutral-900 text-lg">
+                           {position.y > 50 ? axesData?.find(f => f.id === selectedFrameId)?.y_axis.top_label : axesData?.find(f => f.id === selectedFrameId)?.y_axis.bottom_label}
+                      </span>
+                  </div>
+              </div>
+          </LuxeCard>
+          
+          <LuxeButton
+            onClick={handleFinalLock}
+            disabled={isLoading}
+            isLoading={isLoading}
+            size="lg"
+            className="px-12"
+            icon={ArrowRight}
+          >
+              Enter The Battlefield
+          </LuxeButton>
+      </div>
+  );
+  
+  const renderBattlefield = () => {
+      const frame = axesData?.find(f => f.id === selectedFrameId);
+      
+      if (isLoading && !competitorData) {
+          return (
+              <div className="flex flex-col items-center justify-center h-full py-20">
+                  <Loader2 className="w-12 h-12 animate-spin mb-6 text-black" />
+                  <h3 className="text-xl font-serif font-bold">Scanning the Horizon...</h3>
+                  <p className="text-gray-500">Identifying key competitors and plotting their positions.</p>
+              </div>
+          );
+      }
+
+      return (
+          <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-10">
+                  <h1 className="text-4xl font-serif font-bold mb-4">The Battlefield</h1>
+                  <p className="text-xl text-gray-600">
+                      Here is where you stand against the noise.
+                  </p>
+              </div>
+              
+              <div className="grid md:grid-cols-12 gap-8">
+                  <div className="md:col-span-8 bg-white border-2 border-black shadow-sm rounded-xl p-8 relative aspect-square">
+                       {/* Grid Lines */}
+                       <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 pointer-events-none">
+                           <div className="border-r border-b border-gray-100"></div>
+                           <div className="border-b border-gray-100"></div>
+                           <div className="border-r border-gray-100"></div>
+                           <div></div>
+                       </div>
+                       
+                       {/* Axes */}
+                       <div className="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 text-xs font-bold uppercase tracking-widest text-gray-400 whitespace-nowrap">
+                           {frame?.y_axis.label}
+                       </div>
+                       <div className="absolute bottom-[-32px] left-1/2 -translate-x-1/2 text-xs font-bold uppercase tracking-widest text-gray-400 whitespace-nowrap">
+                           {frame?.x_axis.label}
+                       </div>
+
+                        {/* YOU */}
+                       <div
+                           className="absolute w-6 h-6 bg-black rounded-full shadow-xl border-2 border-white z-20"
+                           style={{
+                               left: `${position.x}%`,
+                               bottom: `${position.y}%`,
+                               transform: 'translate(-50%, 50%)'
+                           }}
+                       >
+                           <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] font-bold px-2 py-1 rounded whitespace-nowrap">
+                               YOU
+                           </div>
+                       </div>
+                       
+                       {/* Competitors */}
+                       {competitorData?.competitors?.map((comp, i) => (
+                           <div
+                                key={i}
+                                className="absolute w-4 h-4 bg-gray-400 rounded-full border border-white z-10 hover:bg-red-500 transition-colors cursor-help group"
+                                style={{
+                                    left: `${comp.x}%`,
+                                    bottom: `${comp.y}%`,
+                                    transform: 'translate(-50%, 50%)'
+                                }}
+                           >
+                               <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-white border border-gray-200 text-gray-900 text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                   <span className="font-bold block">{comp.name}</span>
+                                   <span className="text-[10px] text-gray-500">{comp.label}</span>
+                               </div>
+                           </div>
+                       ))}
+                       
+                       {/* Growth Vectors */}
+                       {competitorData?.growth_vectors?.map((vec, i) => (
+                           <div key={i} className="absolute z-0 pointer-events-none">
+                               <svg className="absolute top-0 left-0 overflow-visible">
+                                   <defs>
+                                       <marker id={`arrow-${i}`} markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                                           <path d="M0,0 L0,6 L9,3 z" fill="#10B981" />
+                                       </marker>
+                                   </defs>
+                                   {/* Simple line representation, converting % to approximate pixels relative to container is hard in pure SVG without knowing dimensions. 
+                                       Skipping actual SVG lines for MVP robustness, or could use inline styles if container is fixed. 
+                                       Let's just list them on the side.
+                                   */}
+                               </svg>
+                           </div>
+                       ))}
+                  </div>
+                  
+                  <div className="md:col-span-4 space-y-6">
+                      <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                              <Target className="w-4 h-4" />
+                              Competitors
+                          </h3>
+                          <ul className="space-y-3 text-sm">
+                              {competitorData?.competitors?.map((comp, i) => (
+                                  <li key={i} className="flex justify-between items-center">
+                                      <span className="font-medium">{comp.name}</span>
+                                      <span className="text-xs text-gray-500 px-2 py-1 bg-white rounded border">{comp.label}</span>
+                                  </li>
+                              ))}
+                          </ul>
+                      </div>
+                      
+                      <div className="bg-green-50 p-6 rounded-xl border border-green-100">
+                          <h3 className="font-bold text-green-900 mb-4 flex items-center gap-2">
+                              <Sparkles className="w-4 h-4" />
+                              Growth Vectors
+                          </h3>
+                          <div className="space-y-4">
+                              {competitorData?.growth_vectors?.map((vec, i) => (
+                                  <div key={i} className="text-sm">
+                                      <div className="font-bold text-green-800 mb-1">{vec.title}</div>
+                                      <p className="text-green-700 leading-snug opacity-90">{vec.description}</p>
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                      
+                      <button
+                        onClick={handleBattlefieldComplete}
+                        className="w-full py-4 bg-black text-white rounded-lg font-bold hover:bg-gray-900 transition-colors"
+                      >
+                          Confirm & Next
+                      </button>
+                  </div>
+              </div>
+          </div>
+      );
+  };
+  
+  const renderTribes = () => {
+      if (isLoading && !icpData) {
+          return (
+              <div className="flex flex-col items-center justify-center h-full py-20">
+                  <Loader2 className="w-12 h-12 animate-spin mb-6 text-black" />
+                  <h3 className="text-xl font-serif font-bold">Summoning the Tribes...</h3>
+                  <p className="text-gray-500">Defining your ideal customer profiles.</p>
+              </div>
+          );
+      }
+
+      return (
+          <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-10">
+                  <h1 className="text-4xl font-serif font-bold mb-4">The Tribes</h1>
+                  <p className="text-xl text-gray-600">
+                      Who are we fighting for? Select your core ICPs.
+                  </p>
+              </div>
+              
+              <div className="grid md:grid-cols-3 gap-6 mb-10">
+                  {icpData?.icps?.map((icp, i) => {
+                      const isSelected = selectedIcps.includes(i);
+                      return (
+                          <motion.div
+                            key={i}
+                            whileHover={{ y: -5 }}
+                            onClick={() => {
+                                if (isSelected) setSelectedIcps(selectedIcps.filter(idx => idx !== i));
+                                else setSelectedIcps([...selectedIcps, i]);
+                            }}
+                            className={`
+                                cursor-pointer p-6 rounded-xl border-2 transition-all duration-200 relative
+                                ${isSelected 
+                                    ? 'border-black bg-black text-white shadow-xl' 
+                                    : 'border-gray-200 bg-white hover:border-gray-300'
+                                }
+                            `}
+                          >
+                              {isSelected && (
+                                  <div className="absolute top-4 right-4">
+                                      <CheckCircle2 className="w-6 h-6 text-green-400" />
+                                  </div>
+                              )}
+                              
+                              <h3 className="font-bold text-xl mb-3 pr-8">{icp.title}</h3>
+                              <p className={`text-sm mb-4 leading-relaxed ${isSelected ? 'text-gray-300' : 'text-gray-600'}`}>
+                                  {icp.summary}
+                              </p>
+                              
+                              <div className={`text-xs p-3 rounded-lg ${isSelected ? 'bg-white/10' : 'bg-gray-50'}`}>
+                                  <span className={`block font-bold uppercase mb-1 ${isSelected ? 'text-gray-400' : 'text-gray-500'}`}>Why Target</span>
+                                  {icp.why_target}
+                              </div>
+                          </motion.div>
+                      );
+                  })}
+              </div>
+              
+              <div className="flex justify-center">
+                  <button
+                    onClick={handleTribesComplete}
+                    disabled={isLoading || selectedIcps.length === 0}
+                    className="px-12 py-4 bg-black text-white rounded-full font-bold text-lg hover:scale-105 transition-transform disabled:opacity-50"
+                  >
+                      {isLoading ? 'Finalizing...' : 'Enter RaptorFlow'}
+                  </button>
+              </div>
+          </div>
+      );
+  };
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center p-6">
-      {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-black/[0.02] rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-black/[0.02] rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative w-full max-w-5xl">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-mono uppercase tracking-widest text-gray-400">
-              Step {currentStep + 1} of {steps.length}
-            </span>
-            <span className="text-xs text-gray-500">
-              {Math.round(((currentStep + 1) / steps.length) * 100)}% Complete
-            </span>
-          </div>
-          <div className="h-1 bg-black/5 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-black"
-              initial={{ width: 0 }}
-              animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-              transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-            />
-          </div>
+    <div className="min-h-screen bg-white text-neutral-900 flex flex-col">
+        {/* Header (Task 19) */}
+        <div className="px-12 py-8 border-b border-neutral-100 flex justify-between items-center bg-white z-10 relative">
+            <div className="flex items-center gap-4">
+                <div className="w-8 h-8 bg-neutral-900 rounded flex items-center justify-center text-white font-bold font-serif">R</div>
+                <span className="font-display text-xl font-medium tracking-tight">Positioning Engine</span>
+            </div>
+            
+            {/* High-fashion Stepper (Task 19) */}
+            <div className="hidden md:flex items-center gap-4">
+                {steps.map((s, i) => {
+                    const isActive = s.id === currentStep;
+                    const isPast = steps.findIndex(st => st.id === currentStep) > i;
+                    
+                    return (
+                        <div key={s.id} className="flex items-center gap-2">
+                            {i > 0 && <div className={`w-8 h-px ${isPast ? 'bg-neutral-900' : 'bg-neutral-200'}`} />}
+                            <div className={`flex items-center gap-2 ${isActive ? 'opacity-100' : isPast ? 'opacity-50' : 'opacity-30'}`}>
+                                <span className={`text-xs font-bold uppercase tracking-widest ${isActive ? 'text-neutral-900' : 'text-neutral-500'}`}>
+                                    {String(i + 1).padStart(2, '0')}
+                                </span>
+                                <span className={`text-xs font-medium ${isActive ? 'text-neutral-900' : 'text-neutral-500 hidden lg:block'}`}>
+                                    {s.title}
+                                </span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
-
-        {/* Content Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white border border-black/10 rounded-2xl shadow-xl shadow-black/5 p-8 md:p-12 min-h-[600px] flex flex-col"
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-              className="flex-1 flex flex-col"
-            >
-              {/* Header */}
-              <div className="mb-8">
-                <h1 className="font-serif text-4xl md:text-5xl font-bold mb-4">{step.title}</h1>
-                <p className="text-xl text-gray-600">{step.subtitle}</p>
-                {step.description && <p className="mt-4 text-gray-500">{step.description}</p>}
-              </div>
-
-              {/* Dynamic Content */}
-              <div className="flex-1">
-                {renderStepContent()}
-              </div>
-
-              {/* Navigation */}
-              <div className="flex items-center justify-between pt-12 mt-8 border-t border-black/5">
-                <button
-                  onClick={handleBack}
-                  disabled={isFirstStep}
-                  className={`
-                    inline-flex items-center gap-2 px-6 py-3 text-sm font-medium uppercase tracking-wide
-                    transition-all duration-200
-                    ${isFirstStep
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : 'text-gray-700 hover:text-black'
-                    }
-                  `}
+        
+        {/* Main Content */}
+        <div className="flex-1 p-8 md:p-12 flex items-start justify-center relative overflow-hidden bg-neutral-50/30">
+             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100/20 rounded-full blur-3xl pointer-events-none -z-10" />
+             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-red-100/20 rounded-full blur-3xl pointer-events-none -z-10" />
+        
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={currentStep}
+                    initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="w-full"
                 >
-                  <ArrowLeft className="w-4 h-4" strokeWidth={2} />
-                  Back
-                </button>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setShowSkipConfirmation(true)}
-                    className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium uppercase tracking-wide text-gray-500 hover:text-oxblood transition-all duration-200 border border-gray-200 hover:border-oxblood/30 rounded-lg"
-                  >
-                    Skip Onboarding
-                  </button>
-
-                  <button
-                    onClick={handleNext}
-                    disabled={!canProceed() || isCompleting}
-                    className={`
-                      inline-flex items-center gap-2 px-8 py-3 text-sm font-medium uppercase tracking-wide rounded-lg
-                      transition-all duration-200
-                      ${canProceed() && !isCompleting
-                        ? 'bg-black text-white hover:bg-gray-900 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/20'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }
-                    `}
-                  >
-                    {currentStep === steps.length - 1 ? 'Finish Setup' : 'Continue'}
-                    <ArrowRight className="w-4 h-4" strokeWidth={2} />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
-
-        {/* Skip Confirmation Modal */}
-        <AnimatePresence>
-          {showSkipConfirmation && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-              onClick={() => setShowSkipConfirmation(false)}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border-2 border-black/10"
-              >
-                {/* Header */}
-                <div className="bg-oxblood/5 border-b-2 border-oxblood/20 px-8 py-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-12 h-12 rounded-full bg-oxblood/10 flex items-center justify-center">
-                      <AlertCircle className="w-6 h-6 text-oxblood" strokeWidth={2} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-mono uppercase tracking-widest text-oxblood/60">Warning</p>
-                      <h3 className="text-2xl font-serif font-bold text-black">Are you sure?</h3>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="px-8 py-6">
-                  <p className="text-gray-700 leading-relaxed mb-4">
-                    Skipping onboarding means you'll miss out on personalized setup and recommendations.
-                  </p>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    You can always configure your preferences later in Settings, but it's much easier to do it now.
-                  </p>
-                </div>
-
-                {/* Actions */}
-                <div className="bg-gray-50 px-8 py-6 flex items-center justify-end gap-3 border-t border-gray-200">
-                  <button
-                    onClick={() => setShowSkipConfirmation(false)}
-                    className="px-6 py-3 text-sm font-semibold text-gray-700 hover:text-black transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSkipOnboarding}
-                    className="px-6 py-3 bg-oxblood text-white rounded-lg text-sm font-semibold hover:bg-oxblood-dark transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-oxblood/20"
-                  >
-                    Yes, Skip Onboarding
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                    {currentStep === 'brain_dump' && renderBrainDump()}
+                    {currentStep === 'context_review' && renderContextReview()}
+                    {currentStep === 'axis_selection' && renderAxisSelection()}
+                    {currentStep === 'positioning_map' && renderPositioningMap()}
+                    {currentStep === 'final_recap' && renderFinalRecap()}
+                    {currentStep === 'battlefield' && renderBattlefield()}
+                    {currentStep === 'tribes' && renderTribes()}
+                </motion.div>
+            </AnimatePresence>
+        </div>
+        
     </div>
   );
 }

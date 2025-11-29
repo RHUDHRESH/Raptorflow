@@ -1,6 +1,5 @@
 // frontend/pages/strategy/ArchitectDashboard.tsx
-// RaptorFlow Codex - Architect Lord Dashboard
-// Phase 2A Week 4 - Strategic Planning & Architecture
+// Strategic Architecture Dashboard
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,7 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Zap, Target, Users } from 'lucide-react';
+import { Building2, Zap, Target, Users, Plus } from 'lucide-react';
+import { LuxeEmptyState, LuxeSkeleton } from '../../components/ui/PremiumUI';
+import architectApi, { InitiativeRequest } from '../../api/architect';
+import useArchitectSocket from '../../hooks/useArchitectSocket';
 
 interface MetricCard {
   title: string;
@@ -60,7 +62,7 @@ interface GuildGuidance {
 
 const ArchitectDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('initiatives');
-  const [wsConnected, setWsConnected] = useState(false);
+  const { status: wsStatus, messages: wsMessages } = useArchitectSocket();
   const [metrics, setMetrics] = useState<Record<string, any>>({
     initiatives_designed: 0,
     initiatives_approved: 0,
@@ -97,55 +99,56 @@ const ArchitectDashboard: React.FC = () => {
     title: '',
   });
   const [guidances, setGuidances] = useState<GuildGuidance[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // WebSocket Connection
+  // Handle WebSocket Messages
   useEffect(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.host}/ws/lords/architect`);
+    if (wsMessages.length > 0) {
+      const lastMessage = wsMessages[wsMessages.length - 1];
+      if (lastMessage.type === 'status_update') {
+        setMetrics(lastMessage.data?.metrics || {});
+      }
+    }
+  }, [wsMessages]);
 
-    ws.onopen = () => {
-      console.log('✅ Connected to Architect WebSocket');
-      setWsConnected(true);
-      ws.send(JSON.stringify({ type: 'subscribe', lord: 'architect' }));
-    };
-
-    ws.onmessage = (event) => {
+  // Initial Load
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
       try {
-        const message = JSON.parse(event.data);
-        if (message.type === 'status_update') {
-          setMetrics(message.data?.metrics || {});
+        const status = await architectApi.getStatus();
+        if (status?.performance) {
+          // Map performance data to metrics if needed
         }
       } catch (error) {
-        console.error('WebSocket message error:', error);
+        console.error('Failed to load architect data', error);
+      } finally {
+        setIsLoading(false);
       }
     };
-
-    ws.onclose = () => {
-      console.log('❌ Disconnected from Architect WebSocket');
-      setWsConnected(false);
-    };
-
-    return () => ws.close();
+    loadData();
   }, []);
 
   // Design Initiative
   const handleDesignInitiative = useCallback(async () => {
     setInitiativeLoading(true);
     try {
-      const response = await fetch('/lords/architect/initiatives/design', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(initiativeForm),
-      });
+      const requestData: InitiativeRequest = {
+        name: initiativeForm.title,
+        objectives: [initiativeForm.description],
+        target_guilds: [],
+        timeline_weeks: initiativeForm.timeline_weeks,
+        success_metrics: {}
+      };
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
+      const result = await architectApi.designInitiative(requestData);
+
+      if (result.data) {
           const newInitiative: StrategicInitiative = {
-            initiative_id: result.data.initiative_id,
+            initiative_id: result.data.initiative_id || 'temp-id',
             title: initiativeForm.title,
             description: initiativeForm.description,
-            status: result.data.status,
+            status: result.data.status || 'planned',
             timeline_weeks: initiativeForm.timeline_weeks,
             priority: initiativeForm.priority,
             expected_impact: result.data.expected_impact || 75,
@@ -158,7 +161,6 @@ const ArchitectDashboard: React.FC = () => {
             timeline_weeks: 8,
             priority: 'high',
           });
-        }
       }
     } catch (error) {
       console.error('Initiative design error:', error);
@@ -170,31 +172,27 @@ const ArchitectDashboard: React.FC = () => {
   // Analyze Architecture
   const handleAnalyzeArchitecture = useCallback(async () => {
     try {
-      const response = await fetch('/lords/architect/architecture/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(analysisForm),
+      const result = await architectApi.analyzeArchitecture({
+        component: analysisForm.component_name,
+        metrics: {} 
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
+      if (result.analysis) {
           const newAnalysis: ArchitectureAnalysis = {
-            analysis_id: result.data.analysis_id,
+            analysis_id: result.analysis.analysis_id || 'temp-id',
             component_type: analysisForm.component_type,
-            performance_score: result.data.performance_score || 78,
-            latency_ms: result.data.latency_ms || 45,
-            throughput_rps: result.data.throughput_rps || 5000,
-            error_rate: result.data.error_rate || 0.02,
-            status: result.data.status,
-            recommendations: result.data.recommendations || [],
+            performance_score: result.analysis.performance_score || 78,
+            latency_ms: result.analysis.latency_ms || 45,
+            throughput_rps: result.analysis.throughput_rps || 5000,
+            error_rate: result.analysis.error_rate || 0.02,
+            status: result.analysis.status || 'completed',
+            recommendations: result.analysis.recommendations || [],
           };
           setAnalyses([newAnalysis, ...analyses]);
           setAnalysisForm({
             component_type: 'api_gateway',
             component_name: '',
           });
-        }
       }
     } catch (error) {
       console.error('Architecture analysis error:', error);
@@ -204,25 +202,21 @@ const ArchitectDashboard: React.FC = () => {
   // Optimize Component
   const handleOptimizeComponent = useCallback(async () => {
     try {
-      const response = await fetch('/lords/architect/architecture/optimize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(optimizationForm),
+      const result = await architectApi.optimizeComponent({
+        component_type: optimizationForm.component_type,
+        current_metrics: {}
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
+      if (result.optimization_plan) {
           const newOptimization: OptimizationResult = {
-            optimization_id: result.data.optimization_id,
+            optimization_id: result.optimization_plan.optimization_id || 'temp-id',
             component_type: optimizationForm.component_type,
-            improvement_percentage: result.data.improvement_percentage || 35,
-            estimated_impact: result.data.estimated_impact || 'High',
-            complexity: result.data.complexity || 'Medium',
-            timeframe_days: result.data.timeframe_days || 14,
+            improvement_percentage: result.optimization_plan.improvement_percentage || 35,
+            estimated_impact: result.optimization_plan.estimated_impact || 'High',
+            complexity: result.optimization_plan.complexity || 'Medium',
+            timeframe_days: result.optimization_plan.timeframe_days || 14,
           };
           setOptimizations([newOptimization, ...optimizations]);
-        }
       }
     } catch (error) {
       console.error('Optimization error:', error);
@@ -232,29 +226,25 @@ const ArchitectDashboard: React.FC = () => {
   // Provide Guild Guidance
   const handleProvideGuidance = useCallback(async () => {
     try {
-      const response = await fetch('/lords/architect/guidance/provide', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(guidanceForm),
+      const result = await architectApi.provideGuidance({
+        guild_name: guidanceForm.guild_name,
+        topic: guidanceForm.title
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
+      if (result.guidance) {
           const newGuidance: GuildGuidance = {
-            guidance_id: result.data.guidance_id,
+            guidance_id: result.guidance.guidance_id || 'temp-id',
             guild_name: guidanceForm.guild_name,
             title: guidanceForm.title,
-            recommendations: result.data.recommendations || [],
-            implementation_notes: result.data.implementation_notes || '',
-            priority_level: result.data.priority_level || 'high',
+            recommendations: result.guidance.recommendations || [],
+            implementation_notes: result.guidance.implementation_notes || '',
+            priority_level: result.guidance.priority_level || 'high',
           };
           setGuidances([newGuidance, ...guidances]);
           setGuidanceForm({
             guild_name: '',
             title: '',
           });
-        }
       }
     } catch (error) {
       console.error('Guidance provision error:', error);
@@ -331,18 +321,18 @@ const ArchitectDashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 bg-clip-text text-transparent mb-2">
-                🏗️ Architect Lord
+                Strategic Architecture
               </h1>
-              <p className="text-slate-400">Strategic Planning & Architecture</p>
+              <p className="text-slate-400">System Design & Strategic Initiatives</p>
             </div>
             <div className="flex items-center gap-3">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  wsConnected ? 'bg-purple-500 animate-pulse' : 'bg-red-500'
+                  wsStatus === 'connected' ? 'bg-purple-500 animate-pulse' : 'bg-red-500'
                 }`}
               />
               <span className="text-sm text-slate-400">
-                {wsConnected ? 'Connected' : 'Disconnected'}
+                {wsStatus === 'connected' ? 'Connected' : 'Disconnected'}
               </span>
             </div>
           </div>
@@ -472,12 +462,19 @@ const ArchitectDashboard: React.FC = () => {
             {/* Initiatives List */}
             <div className="space-y-3">
               <h3 className="text-lg font-semibold text-purple-400">Recent Initiatives</h3>
-              {initiatives.length === 0 ? (
-                <Card className="bg-slate-800/30 border-slate-700">
-                  <CardContent className="pt-6">
-                    <p className="text-slate-400 text-center">No initiatives designed yet</p>
-                  </CardContent>
-                </Card>
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <LuxeSkeleton key={i} className="h-24 w-full bg-slate-800/50" />
+                  ))}
+                </div>
+              ) : initiatives.length === 0 ? (
+                <LuxeEmptyState
+                  icon={Building2}
+                  title="No Initiatives Yet"
+                  description="Start by designing a new strategic initiative above."
+                  className="bg-slate-800/30 border-slate-700 text-slate-300"
+                />
               ) : (
                 initiatives.map((init) => (
                   <Card key={init.initiative_id} className="bg-slate-800/50 border-slate-700">

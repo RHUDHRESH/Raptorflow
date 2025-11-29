@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { INITIAL_COHORTS, JOURNEY_STAGES } from '../../data/mockCohorts';
-import { LuxeHeading, LuxeButton, LuxeCard, LuxeInput, LuxeBadge } from '../../components/ui/PremiumUI';
+import { PageHeader, LuxeHeading, LuxeButton, LuxeCard, LuxeInput, LuxeBadge, LuxeTabs } from '../../components/ui/PremiumUI';
 import { pageTransition, fadeInUp, staggerContainer } from '../../utils/animations';
 
 // =============================================================================
@@ -203,72 +203,48 @@ export default function CohortDetail() {
             exit="exit"
             variants={pageTransition}
         >
-            {/* Header */}
+            {/* Header (Task 23) */}
             <div className="border-b border-neutral-200 bg-white sticky top-0 z-20">
                 <div className="max-w-7xl mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-4">
-                            <Link
-                                to="/strategy/cohorts"
-                                className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors"
-                            >
-                                <ArrowLeft className="w-4 h-4" />
-                            </Link>
-                            <div className="h-6 w-px bg-neutral-200" />
+                    <PageHeader
+                        backUrl="/strategy/cohorts"
+                        title={
                             <div className="flex items-center gap-3">
                                 <span className="text-3xl">{cohort.avatar}</span>
-                                <div>
-                                    <LuxeHeading level={3} className="text-xl">{cohort.name}</LuxeHeading>
-                                    <p className="text-xs text-neutral-500">{cohort.description}</p>
+                                <span>{cohort.name}</span>
+                            </div>
+                        }
+                        subtitle={cohort.description}
+                        action={
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 px-3 py-1.5 border border-neutral-200 rounded-lg bg-neutral-50">
+                                    <TrendingUp className={cn(
+                                        "w-4 h-4",
+                                        cohort.health_score >= 80 ? "text-green-600" :
+                                            cohort.health_score >= 60 ? "text-amber-600" :
+                                                "text-red-600"
+                                    )} />
+                                    <span className="text-sm font-semibold">{cohort.health_score}%</span>
                                 </div>
+                                <LuxeButton
+                                    onClick={handleSave}
+                                    isLoading={saving}
+                                    icon={Save}
+                                >
+                                    Save Changes
+                                </LuxeButton>
                             </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            {/* Health Score */}
-                            <div className="flex items-center gap-2 px-3 py-1.5 border border-neutral-200 rounded-lg bg-neutral-50">
-                                <TrendingUp className={cn(
-                                    "w-4 h-4",
-                                    cohort.health_score >= 80 ? "text-green-600" :
-                                        cohort.health_score >= 60 ? "text-amber-600" :
-                                            "text-red-600"
-                                )} />
-                                <span className="text-sm font-semibold">{cohort.health_score}%</span>
-                            </div>
-
-                            <LuxeButton
-                                onClick={handleSave}
-                                isLoading={saving}
-                                icon={Save}
-                            >
-                                Save Changes
-                            </LuxeButton>
-                        </div>
-                    </div>
+                        }
+                        className="border-none pb-4"
+                    />
 
                     {/* Tab Navigation */}
-                    <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
-                        {TABS.map((tab) => {
-                            const Icon = tab.icon;
-                            const isActive = activeTab === tab.id;
-
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={cn(
-                                        "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap",
-                                        isActive
-                                            ? "bg-neutral-900 text-white shadow-md"
-                                            : "bg-transparent text-neutral-600 hover:bg-neutral-100"
-                                    )}
-                                >
-                                    <Icon className="w-4 h-4" />
-                                    {tab.label}
-                                </button>
-                            );
-                        })}
-                    </div>
+                    <LuxeTabs
+                        tabs={TABS}
+                        activeTab={activeTab}
+                        onChange={setActiveTab}
+                        className="bg-transparent p-0"
+                    />
                 </div>
             </div>
 

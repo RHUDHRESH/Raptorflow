@@ -1,6 +1,5 @@
 // frontend/pages/strategy/AestheteDashboard.tsx
-// RaptorFlow Codex - Aesthete Lord Dashboard
-// Phase 2A Week 5 - Brand Quality & Design Consistency
+// Brand & Quality Dashboard
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Star, CheckCircle2, TrendingUp, Zap } from 'lucide-react';
+import aestheteApi, { AssessQualityRequest, CheckBrandComplianceRequest, EvaluateVisualConsistencyRequest, ProvideFeedbackRequest } from '../../api/aesthete';
+import useAestheteSocket from '../../hooks/useAestheteSocket';
 
 interface MetricCard {
   title: string;
@@ -52,7 +53,7 @@ interface BrandComplianceResult {
 
 const AestheteDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('quality');
-  const [wsConnected, setWsConnected] = useState(false);
+  const { status: wsStatus, messages: wsMessages } = useAestheteSocket();
   const [metrics, setMetrics] = useState<Record<string, any>>({
     reviews_conducted: 0,
     approval_rate: 0,
@@ -105,53 +106,45 @@ const AestheteDashboard: React.FC = () => {
   });
   const [feedbackResults, setFeedbackResults] = useState<any[]>([]);
 
-  // WebSocket Connection
+  // Handle WebSocket Messages
   useEffect(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.host}/ws/lords/aesthete`);
+    if (wsMessages.length > 0) {
+      const lastMessage = wsMessages[wsMessages.length - 1];
+      if (lastMessage.type === 'status_update') {
+        setMetrics(lastMessage.data?.metrics || {});
+      }
+    }
+  }, [wsMessages]);
 
-    ws.onopen = () => {
-      console.log('✅ Connected to Aesthete WebSocket');
-      setWsConnected(true);
-      ws.send(JSON.stringify({ type: 'subscribe', lord: 'aesthete' }));
-    };
-
-    ws.onmessage = (event) => {
+  // Initial Load
+  useEffect(() => {
+    const loadData = async () => {
       try {
-        const message = JSON.parse(event.data);
-        if (message.type === 'status_update') {
-          setMetrics(message.data?.metrics || {});
+        const status = await aestheteApi.getStatus();
+        if (status?.performance) {
+          // Update metrics
         }
       } catch (error) {
-        console.error('WebSocket message error:', error);
+        console.error('Failed to load aesthete data', error);
       }
     };
-
-    ws.onclose = () => {
-      console.log('❌ Disconnected from Aesthete WebSocket');
-      setWsConnected(false);
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    return () => ws.close();
+    loadData();
   }, []);
 
   // Assess Quality
   const handleAssessQuality = useCallback(async () => {
     setQualityLoading(true);
     try {
-      const response = await fetch('/lords/aesthete/assess-quality', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(qualityForm),
-      });
+      const requestData: AssessQualityRequest = {
+        content_id: qualityForm.content_id,
+        content_type: qualityForm.content_type,
+        guild_name: qualityForm.guild_name,
+        content_metrics: qualityForm.content_metrics,
+      };
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data && result.data.review_id) {
+      const result = await aestheteApi.assessQuality(requestData);
+
+      if (result.data && result.data.review_id) {
           const newReview: QualityReview = {
             review_id: result.data.review_id,
             content_id: qualityForm.content_id,
@@ -165,7 +158,6 @@ const AestheteDashboard: React.FC = () => {
             timestamp: new Date().toISOString(),
           };
           setQualityReviews([newReview, ...qualityReviews]);
-        }
       }
     } catch (error) {
       console.error('Quality assessment error:', error);
@@ -177,17 +169,16 @@ const AestheteDashboard: React.FC = () => {
   // Check Brand Compliance
   const handleCheckCompliance = useCallback(async () => {
     try {
-      const response = await fetch('/lords/aesthete/brand-compliance/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(complianceForm),
-      });
+      const requestData: CheckBrandComplianceRequest = {
+        content_id: complianceForm.content_id,
+        guild_name: complianceForm.guild_name,
+        content_elements: complianceForm.content_elements,
+      };
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
+      const result = await aestheteApi.checkBrandCompliance(requestData);
+
+      if (result.data) {
           setComplianceResults([result.data, ...complianceResults]);
-        }
       }
     } catch (error) {
       console.error('Compliance check error:', error);
@@ -197,17 +188,17 @@ const AestheteDashboard: React.FC = () => {
   // Evaluate Consistency
   const handleEvaluateConsistency = useCallback(async () => {
     try {
-      const response = await fetch('/lords/aesthete/consistency/evaluate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(consistencyForm),
-      });
+      const requestData: EvaluateVisualConsistencyRequest = {
+        scope: consistencyForm.scope,
+        scope_id: consistencyForm.scope_id,
+        items_count: consistencyForm.items_count,
+        consistency_data: consistencyForm.consistency_data,
+      };
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
+      const result = await aestheteApi.evaluateConsistency(requestData);
+
+      if (result.data) {
           setConsistencyReports([result.data, ...consistencyReports]);
-        }
       }
     } catch (error) {
       console.error('Consistency evaluation error:', error);
@@ -217,17 +208,17 @@ const AestheteDashboard: React.FC = () => {
   // Provide Design Feedback
   const handleProvideFeedback = useCallback(async () => {
     try {
-      const response = await fetch('/lords/aesthete/feedback/provide', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(feedbackForm),
-      });
+      const requestData: ProvideFeedbackRequest = {
+        content_id: feedbackForm.content_id,
+        content_type: feedbackForm.content_type,
+        design_elements: feedbackForm.design_elements,
+        guild_name: feedbackForm.guild_name,
+      };
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
+      const result = await aestheteApi.provideFeedback(requestData);
+
+      if (result.data) {
           setFeedbackResults([result.data, ...feedbackResults]);
-        }
       }
     } catch (error) {
       console.error('Feedback provision error:', error);
@@ -297,18 +288,18 @@ const AestheteDashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2">
-                ⭐ Aesthete Lord
+                Brand & Quality
               </h1>
-              <p className="text-slate-400">Brand Quality & Design Consistency Management</p>
+              <p className="text-slate-400">Content Quality & Design Consistency</p>
             </div>
             <div className="flex items-center gap-3">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  wsConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
+                  wsStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
                 }`}
               />
               <span className="text-sm text-slate-400">
-                {wsConnected ? 'Connected' : 'Disconnected'}
+                {wsStatus === 'connected' ? 'Connected' : 'Disconnected'}
               </span>
             </div>
           </div>

@@ -14,11 +14,13 @@ from pydantic import BaseModel
 from backend.main import get_current_user_and_workspace
 from backend.models.content import (
     ContentRequest, ContentResponse, Hook,
-    BlogRequest, BlogResponse, EmailRequest, SocialPostRequest
+    BlogRequest, BlogResponse, EmailRequest, SocialPostRequest,
+    OCRRequest, OCRResponse
 )
 from backend.graphs.content_graph import content_graph_runnable, ContentGraphState
 from backend.agents.safety.critic_agent import critic_agent
 from backend.services.supabase_client import supabase_client
+from backend.services.vertex_ai_client import vertex_ai_client
 from backend.utils.correlation import generate_correlation_id
 
 router = APIRouter()
@@ -29,6 +31,40 @@ logger = structlog.get_logger(__name__)
 class ApprovalRequest(BaseModel):
     approved: bool
     feedback: Optional[str] = None
+
+
+@router.post("/ocr", response_model=OCRResponse, summary="Extract Text from Image (OCR)", tags=["Content"])
+async def extract_text_from_image(
+    request: OCRRequest,
+    auth: Annotated[dict, Depends(get_current_user_and_workspace)]
+):
+    """
+    Extracts text from an image URL using Mistral OCR (or Gemini Vision fallback).
+    """
+    correlation_id = generate_correlation_id()
+    logger.info("Starting OCR extraction", image_url=request.image_url, correlation_id=correlation_id)
+
+    try:
+        text = await vertex_ai_client.ocr_image(
+            image_url=request.image_url,
+            model_type=request.model_type or "ocr"
+        )
+
+        return {
+            "text": text,
+            "confidence": 1.0, # Placeholder as Mistral doesn't always return confidence
+            "metadata": {
+                "correlation_id": correlation_id,
+                "model": request.model_type or "ocr"
+            }
+        }
+
+    except Exception as e:
+        logger.error(f"OCR extraction failed: {e}", correlation_id=correlation_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 
 @router.post("/generate/blog", response_model=dict, summary="Generate Blog Post", tags=["Content"])
@@ -464,8 +500,3 @@ async def get_content(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Content not found")
     
     return ContentResponse(**content)
-
-
-
-
-

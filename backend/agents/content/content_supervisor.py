@@ -130,6 +130,14 @@ class ContentSupervisor(BaseSupervisor):
                     variants=len(content_variants),
                     correlation_id=correlation_id)
 
+            # Publish event
+            await self.publish_event("content.generated", {
+                "content_id": response["content_id"],
+                "content_type": content_request.content_type,
+                "topic": content_request.topic,
+                "variant_count": len(content_variants)
+            })
+
             return response
 
         except Exception as e:

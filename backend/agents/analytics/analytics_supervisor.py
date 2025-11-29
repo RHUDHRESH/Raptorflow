@@ -14,11 +14,12 @@ from backend.services.supabase_client import supabase_client
 from backend.services.vertex_ai_client import vertex_ai_client
 from backend.utils.correlation import get_correlation_id
 from backend.utils.cache import redis_cache
+from backend.agents.base_agent import BaseSupervisor
 
 logger = structlog.get_logger(__name__)
 
 
-class AnalyticsSupervisor:
+class AnalyticsSupervisor(BaseSupervisor):
     """
     Tier-1 Supervisor for Analytics Domain.
 
@@ -37,9 +38,33 @@ class AnalyticsSupervisor:
     """
 
     def __init__(self):
+        super().__init__(name="analytics_supervisor")
         self.llm = vertex_ai_client
         self.metrics_collector = metrics_collector_agent
         self.insight_generator = insight_agent
+
+    async def execute(self, goal: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute analytics workflow based on goal.
+        
+        Args:
+            goal: "analyze_move"
+            context: Contains workspace_id, move_id
+        """
+        if "analyze" in goal.lower():
+            workspace_id_str = context.get("workspace_id")
+            move_id_str = context.get("move_id")
+            
+            if not workspace_id_str or not move_id_str:
+                return {"status": "error", "message": "Missing workspace_id or move_id"}
+                
+            return await self.analyze_move(
+                workspace_id=UUID(workspace_id_str),
+                move_id=UUID(move_id_str),
+                correlation_id=context.get("correlation_id")
+            )
+        else:
+            return {"status": "error", "message": f"Unknown goal: {goal}"}
 
     async def analyze_move(
         self,
@@ -159,6 +184,17 @@ class AnalyticsSupervisor:
             insights_count=len(insights_result.get("insights", [])),
             anomalies_count=len(insights_result.get("anomalies", [])),
             correlation_id=correlation_id
+        )
+
+        # Publish completion event
+        await self.publish_event(
+            "agent.analytics.report_generated",
+            {
+                "move_id": str(move_id),
+                "workspace_id": str(workspace_id),
+                "insights_count": len(insights_result.get("insights", [])),
+                "anomalies_count": len(insights_result.get("anomalies", []))
+            }
         )
 
         return report

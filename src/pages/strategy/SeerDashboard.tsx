@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Eye, BarChart3, Lightbulb, AlertTriangle } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import seerApi from '../../api/seer';
 
 interface MetricCard {
   title: string;
@@ -25,6 +27,7 @@ interface TrendPrediction {
   trend_direction: string;
   confidence: number;
   forecast_type: string;
+  forecast_period_days: number;
   predicted_values: number[];
   created_at: string;
 }
@@ -150,27 +153,20 @@ const SeerDashboard: React.FC = () => {
   const handlePredictTrend = useCallback(async () => {
     setTrendLoading(true);
     try {
-      const response = await fetch('/lords/seer/predict-trend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(trendForm),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
-          const newPrediction: TrendPrediction = {
+      const result = await seerApi.predictTrend(trendForm);
+      if (result.data) {
+        const newPrediction: TrendPrediction = {
             prediction_id: result.data.prediction_id,
             metric_name: result.data.metric_name,
             current_value: result.data.current_value,
             trend_direction: result.data.trend_direction,
             confidence: result.data.confidence,
             forecast_type: result.data.forecast_type,
+            forecast_period_days: trendForm.forecast_period_days,
             predicted_values: result.data.predicted_values,
             created_at: new Date().toISOString(),
           };
-          setPredictions([newPrediction, ...predictions]);
-        }
+        setPredictions([newPrediction, ...predictions]);
       }
     } catch (error) {
       console.error('Trend prediction error:', error);
@@ -182,29 +178,21 @@ const SeerDashboard: React.FC = () => {
   // Gather Intelligence
   const handleGatherIntelligence = useCallback(async () => {
     try {
-      const response = await fetch('/lords/seer/intelligence/gather', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(intelligenceForm),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
-          const newIntel: MarketIntelligence = {
-            intelligence_id: result.data.intelligence_id,
-            intelligence_type: result.data.intelligence_type,
-            title: result.data.title,
-            summary: intelligenceForm.summary,
-            impact_score: result.data.impact_score,
-            relevance_score: result.data.relevance_score,
-            threat_level: result.data.threat_level,
-            key_insights: result.data.key_insights,
-            action_items: result.data.action_items,
-            created_at: new Date().toISOString(),
-          };
-          setIntelligence([newIntel, ...intelligence]);
-        }
+      const result = await seerApi.gatherIntelligence(intelligenceForm);
+      if (result.data) {
+        const newIntel: MarketIntelligence = {
+          intelligence_id: result.data.intelligence_id,
+          intelligence_type: result.data.intelligence_type,
+          title: result.data.title,
+          summary: intelligenceForm.summary,
+          impact_score: result.data.impact_score,
+          relevance_score: result.data.relevance_score,
+          threat_level: result.data.threat_level,
+          key_insights: result.data.key_insights,
+          action_items: result.data.action_items,
+          created_at: new Date().toISOString(),
+        };
+        setIntelligence([newIntel, ...intelligence]);
       }
     } catch (error) {
       console.error('Intelligence gathering error:', error);
@@ -214,27 +202,19 @@ const SeerDashboard: React.FC = () => {
   // Analyze Performance
   const handleAnalyzePerformance = useCallback(async () => {
     try {
-      const response = await fetch('/lords/seer/analysis/performance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(analysisForm),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
-          const newAnalysis: PerformanceAnalysis = {
-            analysis_id: result.data.analysis_id,
-            scope: result.data.scope,
-            scope_id: result.data.scope_id,
-            performance_score: result.data.performance_score,
-            trend_analysis: result.data.trend_analysis,
-            strengths: result.data.strengths,
-            weaknesses: result.data.weaknesses,
-            recommendations: result.data.recommendations,
-          };
-          setAnalyses([newAnalysis, ...analyses]);
-        }
+      const result = await seerApi.analyzePerformance(analysisForm);
+      if (result.data) {
+        const newAnalysis: PerformanceAnalysis = {
+          analysis_id: result.data.analysis_id,
+          scope: result.data.scope,
+          scope_id: result.data.scope_id,
+          performance_score: result.data.performance_score,
+          trend_analysis: result.data.trend_analysis,
+          strengths: result.data.strengths,
+          weaknesses: result.data.weaknesses,
+          recommendations: result.data.recommendations,
+        };
+        setAnalyses([newAnalysis, ...analyses]);
       }
     } catch (error) {
       console.error('Performance analysis error:', error);
@@ -244,27 +224,19 @@ const SeerDashboard: React.FC = () => {
   // Generate Recommendation
   const handleGenerateRecommendation = useCallback(async () => {
     try {
-      const response = await fetch('/lords/seer/recommendations/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(recommendationForm),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data) {
-          const newRec: StrategicRecommendation = {
-            recommendation_id: result.data.recommendation_id,
-            title: result.data.title,
-            description: recommendationForm.description,
-            priority: result.data.priority,
-            expected_impact: result.data.expected_impact,
-            implementation_effort: result.data.implementation_effort,
-            success_probability: result.data.success_probability,
-            supporting_insights: result.data.supporting_insights,
-          };
-          setRecommendations([newRec, ...recommendations]);
-        }
+      const result = await seerApi.generateRecommendation(recommendationForm);
+      if (result.data) {
+        const newRec: StrategicRecommendation = {
+          recommendation_id: result.data.recommendation_id,
+          title: result.data.title,
+          description: recommendationForm.description,
+          priority: result.data.priority,
+          expected_impact: result.data.expected_impact,
+          implementation_effort: result.data.implementation_effort,
+          success_probability: result.data.success_probability,
+          supporting_insights: result.data.supporting_insights,
+        };
+        setRecommendations([newRec, ...recommendations]);
       }
     } catch (error) {
       console.error('Recommendation generation error:', error);
@@ -496,7 +468,7 @@ const SeerDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Predictions List */}
+            {/* Predictions List & Charts */}
             <div className="space-y-3">
               <h3 className="text-lg font-semibold text-purple-400">Recent Predictions</h3>
               {predictions.length === 0 ? (
@@ -540,16 +512,23 @@ const SeerDashboard: React.FC = () => {
                           </div>
                         </div>
 
+                        {/* Trend Chart */}
                         {pred.predicted_values.length > 0 && (
-                          <div>
-                            <p className="text-xs text-slate-400 mb-2">Forecast Values</p>
-                            <div className="flex gap-1 flex-wrap">
-                              {pred.predicted_values.slice(0, 10).map((val, idx) => (
-                                <span key={idx} className="text-xs bg-slate-700 text-slate-200 px-2 py-1 rounded">
-                                  {val.toFixed(1)}
-                                </span>
-                              ))}
-                            </div>
+                          <div className="mt-4 h-48 w-full">
+                            <p className="text-xs text-slate-400 mb-2">Forecast Visualization</p>
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={pred.predicted_values.map((val, idx) => ({ day: idx + 1, value: val }))}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                                <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} />
+                                <YAxis stroke="#94a3b8" fontSize={12} />
+                                <Tooltip
+                                  contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f8fafc' }}
+                                  itemStyle={{ color: '#f8fafc' }}
+                                  labelStyle={{ color: '#94a3b8' }}
+                                />
+                                <Line type="monotone" dataKey="value" stroke="#a855f7" strokeWidth={2} dot={false} />
+                              </LineChart>
+                            </ResponsiveContainer>
                           </div>
                         )}
                       </div>
@@ -629,6 +608,41 @@ const SeerDashboard: React.FC = () => {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Market Threats */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                <h3 className="text-lg font-semibold text-red-400">Active Market Threats</h3>
+              </div>
+              {intelligence.filter(i => ['critical', 'high'].includes(i.threat_level)).length === 0 ? (
+                <Card className="bg-slate-800/30 border-slate-700 border-dashed">
+                  <CardContent className="pt-6">
+                    <p className="text-slate-400 text-center text-sm">No critical or high threats detected.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {intelligence
+                    .filter(i => ['critical', 'high'].includes(i.threat_level))
+                    .map((threat) => (
+                      <Card key={threat.intelligence_id} className="bg-red-900/20 border-red-900/50">
+                        <CardContent className="pt-4 pb-4">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className="font-semibold text-red-200">{threat.title}</p>
+                              <p className="text-sm text-red-200/70">{threat.summary}</p>
+                            </div>
+                            <Badge className="bg-red-900 text-red-200 border-red-700">
+                              {threat.threat_level.toUpperCase()}
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                </div>
+              )}
+            </div>
 
             {/* Intelligence List */}
             <div className="space-y-3">

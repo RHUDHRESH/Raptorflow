@@ -1,325 +1,187 @@
 """
-Pydantic models for Campaigns (Moves, Sprints, Tasks).
-
-This module defines comprehensive schemas for campaign planning and execution
-in RaptorFlow. It includes:
-
-- Campaign (Move) planning with objectives, timelines, and KPIs
-- Sprint-based execution with tasks and dependencies
-- Lines of Operation (LOO) for multi-channel coordination
-- Asset requirements and content planning
-- Real-time performance metrics and analytics
-- Anomaly detection and decision tracking
-
-The campaign models follow military doctrine (Maneuver Warfare) adapted
-for marketing: Moves represent campaigns, Sprints are execution cycles,
-Lines of Operation organize work streams, and Tasks are actionable items.
-
-Models in this module are used by the Strategy Supervisor and Execution
-agents to orchestrate campaign planning, task management, and performance
-monitoring.
+Campaign and Move models.
 """
 
-from pydantic import BaseModel, Field, field_validator
-from typing import List, Dict, Optional, Literal, Any
+from typing import List, Optional, Dict, Any, Literal
 from uuid import UUID
-from datetime import datetime, date
+from datetime import date, datetime
+from pydantic import BaseModel, Field, validator
 
+# --- Enums ---
 
-class Task(BaseModel):
-    """
-    A single task within a campaign.
+class ObjectiveType(str):
+    AWARENESS = "awareness"
+    CONSIDERATION = "consideration"
+    CONVERSION = "conversion"
+    RETENTION = "retention"
+    ADVOCACY = "advocacy"
 
-    Tasks are the atomic units of work in a campaign. They can be assigned
-    to team members or agents, have dependencies on other tasks, and track
-    completion status and effort.
+class MoveType(str):
+    AUTHORITY = "authority"
+    CONSIDERATION = "consideration"
+    OBJECTION = "objection"
+    CONVERSION = "conversion"
+    RETENTION = "retention"
+    LAUNCH = "launch"
+    NURTURE = "nurture"
+    CUSTOM = "custom"
 
-    Task Types:
-        - content_creation: Writing, designing, or producing content
-        - publishing: Scheduling and posting content to channels
-        - engagement: Community management and response
-        - research: Market research or competitive analysis
-        - analytics_review: Reviewing performance metrics
-        - other: Miscellaneous tasks
+class ChannelRole(str):
+    REACH = "reach"
+    ENGAGE = "engage"
+    CONVERT = "convert"
+    RETAIN = "retain"
 
-    Status Workflow:
-        pending → in_progress → completed
-                ↓
-              blocked (if dependencies not met)
-                ↓
-              cancelled (if no longer needed)
+class MoveStatus(str):
+    PLANNED = "planned"
+    PREFLIGHT_FAILED = "preflight_failed"
+    READY = "ready"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
 
-    Attributes:
-        id: Unique task identifier
-        move_id: Parent campaign/move identifier
-        sprint_id: Parent sprint identifier (if sprint-based execution)
-        title: Short task title
-        description: Detailed task description
-        task_type: Type of task (content_creation, publishing, etc.)
-        status: Current status (pending, in_progress, completed, blocked, cancelled)
-        priority: Task priority (high, medium, low)
-        assigned_to: User or agent assigned to this task
-        due_date: Target completion date
-        estimated_hours: Estimated effort in hours
-        completed_at: Actual completion timestamp
-        dependencies: Task IDs that must complete before this task can start
-        metadata: Additional task-specific metadata
-        created_at: Timestamp when task was created
-    """
+class AssetStatus(str):
+    DRAFT = "draft"
+    GENERATING = "generating"
+    READY = "ready"
+    PUBLISHED = "published"
+    ERROR = "error"
 
-    id: Optional[UUID] = Field(
-        None,
-        description="Unique task identifier",
-    )
-    move_id: UUID = Field(
-        ...,
-        description="Parent campaign/move identifier",
-    )
-    sprint_id: Optional[UUID] = Field(
-        None,
-        description="Parent sprint identifier (if applicable)",
-    )
-    title: str = Field(
-        ...,
-        description="Short, descriptive task title",
-        min_length=1,
-    )
-    description: Optional[str] = Field(
-        None,
-        description="Detailed task description and acceptance criteria",
-    )
-    task_type: Literal[
-        "content_creation",
-        "publishing",
-        "engagement",
-        "research",
-        "analytics_review",
-        "other"
-    ] = Field(
-        default="other",
-        description="Type of task for categorization and routing",
-    )
-    status: Literal["pending", "in_progress", "completed", "blocked", "cancelled"] = Field(
-        default="pending",
-        description="Current task status in workflow",
-    )
-    priority: Literal["high", "medium", "low"] = Field(
-        default="medium",
-        description="Task priority for resource allocation",
-    )
-    assigned_to: Optional[str] = Field(
-        None,
-        description="User or agent assigned to this task",
-    )
-    due_date: Optional[date] = Field(
-        None,
-        description="Target completion date",
-    )
-    estimated_hours: Optional[float] = Field(
-        None,
-        description="Estimated effort in hours",
-        gt=0,
-    )
-    completed_at: Optional[datetime] = Field(
-        None,
-        description="Actual completion timestamp",
-    )
-    dependencies: List[UUID] = Field(
-        default_factory=list,
-        description="Task IDs that must complete before this task can start",
-    )
-    metadata: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Additional task-specific metadata",
-    )
-    created_at: Optional[datetime] = Field(
-        None,
-        description="Timestamp when task was created",
-    )
+# --- Positioning & Messaging (Partial models for linkage) ---
 
-
-class ChecklistItem(BaseModel):
-    """A single checklist item for daily/weekly execution."""
-    id: Optional[UUID] = None
-    task_id: Optional[UUID] = None
-    text: str
-    completed: bool = Field(default=False)
-    completed_at: Optional[datetime] = None
-    order: int = Field(default=0)
-
-
-class Sprint(BaseModel):
-    """A sprint (1-2 week execution period) within a move."""
-    id: Optional[UUID] = None
-    move_id: UUID
+class PositioningSummary(BaseModel):
+    id: UUID
     name: str
-    start_date: date
-    end_date: date
-    goal: Optional[str] = Field(None, description="Sprint-specific goal")
-    status: Literal["planned", "active", "completed", "paused"] = Field(default="planned")
-    tasks: List[Task] = Field(default_factory=list)
-    metrics: Dict[str, Any] = Field(default_factory=dict, description="Sprint performance metrics")
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    market_segment: str
+    problem_statement: Optional[str] = None
+    primary_claim: Optional[str] = None # from message_architecture
 
+# --- Campaign Models ---
 
-class LineOfOperation(BaseModel):
-    """
-    A line of operation (LOO) represents a thematic stream of work within a campaign.
-    Examples: "Thought Leadership", "Lead Generation", "Community Building"
-    """
-    id: Optional[UUID] = None
-    move_id: UUID
+class CampaignChannel(BaseModel):
+    channel: str
+    role: ChannelRole
+    budget_allocation: Optional[float] = None
+
+class CampaignCohortTarget(BaseModel):
+    cohort_id: UUID
+    journey_stage_target: str # Where we want them to end up
+    priority: int = 1
+
+class CampaignBase(BaseModel):
     name: str
     description: Optional[str] = None
-    channels: List[str] = Field(default_factory=list, description="Channels used for this LOO")
-    cohort_ids: List[UUID] = Field(default_factory=list, description="Target cohorts for this LOO")
-    weight: float = Field(default=1.0, ge=0.0, le=1.0, description="Percentage of effort allocated")
-    created_at: Optional[datetime] = None
+    objective: str
+    objective_type: ObjectiveType
+    target_metric: Optional[str] = None
+    target_value: Optional[float] = None
+    budget: Optional[float] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    positioning_id: Optional[UUID] = None
 
+class CampaignCreate(CampaignBase):
+    cohorts: List[CampaignCohortTarget] = []
+    channels: List[CampaignChannel] = []
 
-class AssetRequirement(BaseModel):
-    """Required asset for campaign execution."""
-    asset_type: Literal[
-        "blog_post", 
-        "email", 
-        "social_post", 
-        "video", 
-        "infographic", 
-        "carousel", 
-        "meme",
-        "landing_page",
-        "ebook",
-        "webinar",
-        "case_study",
-        "other"
-    ]
-    quantity: int = Field(default=1)
-    specifications: Dict[str, Any] = Field(default_factory=dict, description="Format, length, etc.")
-    assigned_cohort_ids: List[UUID] = Field(default_factory=list)
-    due_date: Optional[date] = None
+class CampaignUpdate(BaseModel):
+    name: Optional[str] = None
+    objective: Optional[str] = None
+    status: Optional[str] = None
+    target_value: Optional[float] = None
+    # Add other fields as needed
 
-
-class MoveRequest(BaseModel):
-    """Request to create a new campaign (move)."""
+class Campaign(CampaignBase):
+    id: UUID
     workspace_id: UUID
-    name: str
-    goal: str
-    timeframe_days: int = Field(ge=7, le=365, description="Campaign duration in days")
-    target_cohort_ids: List[UUID] = Field(..., min_items=1, description="At least one target cohort required")
-    channels: List[str] = Field(..., min_items=1, description="Marketing channels to use")
-    constraints: Optional[Dict[str, Any]] = None
-    budget: Optional[str] = None
-    maneuver_type_id: Optional[UUID] = None  # Links to maneuver_types table
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "workspace_id": "550e8400-e29b-41d4-a716-446655440000",
-                "name": "Q2 Demand Gen Sprint",
-                "goal": "Generate 100 qualified leads from enterprise segment",
-                "timeframe_days": 90,
-                "target_cohort_ids": ["650e8400-e29b-41d4-a716-446655440000"],
-                "channels": ["linkedin", "email", "blog"],
-                "budget": "$10,000"
-            }
-        }
-
-
-class MoveMetrics(BaseModel):
-    """Real-time campaign performance metrics."""
-    impressions: int = Field(default=0)
-    engagements: int = Field(default=0)
-    clicks: int = Field(default=0)
-    leads: int = Field(default=0)
-    conversions: int = Field(default=0)
-    revenue: float = Field(default=0.0)
-    engagement_rate: float = Field(default=0.0)
-    conversion_rate: float = Field(default=0.0)
-    cost_per_lead: Optional[float] = None
-    roi: Optional[float] = None
-    top_performing_content: List[str] = Field(default_factory=list)
-    underperforming_channels: List[str] = Field(default_factory=list)
-
-
-class MoveResponse(BaseModel):
-    """Response containing a created/retrieved campaign."""
-    move_id: UUID
-    name: str
-    goal: str
-    status: Literal["planning", "active", "paused", "completed", "archived"] = Field(default="planning")
-    start_date: date
-    end_date: date
-    target_cohort_ids: List[UUID]
-    channels: List[str]
-    
-    # Execution plan
-    sprints: List[Sprint] = Field(default_factory=list)
-    lines_of_operation: List[LineOfOperation] = Field(default_factory=list)
-    required_assets: List[AssetRequirement] = Field(default_factory=list)
-    timeline: List[Task] = Field(default_factory=list, description="All tasks across sprints")
-    daily_checklist: List[ChecklistItem] = Field(default_factory=list, description="Today's actionable items")
-    
-    # Performance
-    metrics: MoveMetrics = Field(default_factory=MoveMetrics)
-    
-    # Metadata
+    status: str
     created_at: datetime
-    updated_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    updated_at: datetime
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "move_id": "750e8400-e29b-41d4-a716-446655440000",
-                "name": "Q2 Demand Gen Sprint",
-                "goal": "Generate 100 qualified leads",
-                "status": "active",
-                "start_date": "2024-04-01",
-                "end_date": "2024-06-30",
-                "target_cohort_ids": ["650e8400-e29b-41d4-a716-446655440000"],
-                "channels": ["linkedin", "email", "blog"],
-                "sprints": [],
-                "metrics": {
-                    "impressions": 15000,
-                    "leads": 23,
-                    "engagement_rate": 0.045
-                },
-                "created_at": "2024-04-01T00:00:00Z"
-            }
-        }
+    # Relationships (optional, fetched if needed)
+    cohorts: Optional[List[CampaignCohortTarget]] = None
+    channels: Optional[List[CampaignChannel]] = None
 
+# --- Move Models ---
 
-class TaskUpdateRequest(BaseModel):
-    """Request to update a task's status."""
-    status: Literal["pending", "in_progress", "completed", "blocked", "cancelled"]
-    notes: Optional[str] = None
-    completed_at: Optional[datetime] = None
+class MoveBase(BaseModel):
+    name: str
+    move_type: MoveType
+    cohort_id: Optional[UUID] = None
+    journey_stage_from: Optional[str] = None
+    journey_stage_to: Optional[str] = None
+    message_variant_id: Optional[UUID] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    success_metric: Optional[str] = None
+    success_target: Optional[float] = None
 
+class MoveCreate(MoveBase):
+    campaign_id: UUID
 
-class MoveDecision(BaseModel):
-    """A strategic decision or pivot made during campaign execution."""
-    id: Optional[UUID] = None
+class MoveUpdate(BaseModel):
+    name: Optional[str] = None
+    status: Optional[MoveStatus] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    success_target: Optional[float] = None
+
+class Move(MoveBase):
+    id: UUID
+    workspace_id: UUID
+    campaign_id: UUID
+    status: MoveStatus
+    created_at: datetime
+    updated_at: datetime
+
+# --- Asset Models ---
+
+class CreativeBrief(BaseModel):
+    single_minded_proposition: str
+    target_cohort_slice: Optional[str] = None
+    objection_to_handle: Optional[str] = None
+    tone: Optional[str] = None
+    mandatories: Optional[List[str]] = None
+    founder_override: Optional[str] = None
+
+class AssetBase(BaseModel):
+    name: Optional[str] = None
+    format: str
+    channel: str
+    single_minded_proposition: Optional[str] = None
+    creative_brief: Optional[CreativeBrief] = None
+
+class AssetCreate(AssetBase):
     move_id: UUID
-    decision_type: Literal["pivot", "double_down", "pause", "scale", "adjust_targeting", "other"]
-    rationale: str
-    actions_taken: List[str] = Field(default_factory=list)
-    expected_impact: Optional[str] = None
-    actual_impact: Optional[str] = None
-    decided_at: datetime = Field(default_factory=datetime.utcnow)
-    decided_by: Optional[str] = None
 
-
-class MoveAnomaly(BaseModel):
-    """An AI-detected anomaly or issue in campaign performance."""
-    id: Optional[UUID] = None
+class Asset(AssetBase):
+    id: UUID
+    workspace_id: UUID
     move_id: UUID
-    anomaly_type: Literal["performance_drop", "unexpected_spike", "channel_failure", "budget_overrun", "other"]
-    severity: Literal["low", "medium", "high", "critical"]
-    description: str
-    suggested_actions: List[str] = Field(default_factory=list)
-    detected_at: datetime = Field(default_factory=datetime.utcnow)
-    resolved: bool = Field(default=False)
-    resolved_at: Optional[datetime] = None
-    resolution_notes: Optional[str] = None
+    status: AssetStatus
+    external_url: Optional[str] = None
+    performance_metrics: Dict[str, Any] = {}
+    created_at: datetime
+    updated_at: datetime
 
+# --- Agent Exchange Models ---
+
+class MovePlanSkeleton(BaseModel):
+    """Output from CampaignPlanner agent"""
+    name: str
+    move_type: MoveType
+    journey_stage_from: str
+    journey_stage_to: str
+    cohort_id: Optional[UUID]
+    channels: List[str]
+    duration_weeks: int
+    focus_message: Optional[str] = None
+
+class PreflightIssue(BaseModel):
+    code: str
+    message: str
+    severity: Literal["warn", "fail"]
+    recommendation: Optional[str] = None
+
+class PreflightResult(BaseModel):
+    status: Literal["pass", "warn", "fail"]
+    issues: List[PreflightIssue] = []

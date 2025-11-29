@@ -29,7 +29,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from pydantic import BaseModel, Field
 
-from backend.agents.base_agent_enhanced import BaseAgentEnhanced
+from backend.agents.base_agent import BaseAgentEnhanced
 from backend.services.web_scraper import web_scraper
 from backend.services.vertex_ai_client import vertex_ai_client
 import structlog

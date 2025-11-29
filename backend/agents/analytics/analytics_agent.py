@@ -12,18 +12,36 @@ import httpx
 from backend.services.vertex_ai_client import vertex_ai_client
 from backend.services.supabase_client import supabase_client
 from backend.utils.correlation import get_correlation_id
+from backend.agents.base_agent import BaseAgent
 
 logger = structlog.get_logger(__name__)
 
 
-class AnalyticsAgent:
+class AnalyticsAgent(BaseAgent):
     """
     Collects and aggregates metrics from all connected platforms.
     Stores snapshots in the database for trend analysis.
     """
     
     def __init__(self):
+        super().__init__(name="analytics_agent")
         self.llm = vertex_ai_client
+
+    async def execute(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Standard execute method for BaseAgent compatibility.
+        """
+        workspace_id = payload.get("workspace_id")
+        move_id = payload.get("move_id")
+        platforms = payload.get("platforms")
+        correlation_id = payload.get("correlation_id")
+        
+        if isinstance(workspace_id, str):
+            workspace_id = UUID(workspace_id)
+        if isinstance(move_id, str):
+            move_id = UUID(move_id)
+            
+        return await self.collect_metrics(workspace_id, move_id, platforms, correlation_id)
     
     async def collect_metrics(
         self,
@@ -81,6 +99,13 @@ class AnalyticsAgent:
                 logger.error(f"Failed to collect {platform} metrics: {e}", correlation_id=correlation_id)
                 all_metrics[platform] = {"error": str(e)}
         
+        # Publish event
+        await self.publish_event("analytics.metrics_collected", {
+            "workspace_id": str(workspace_id),
+            "platform_count": len(all_metrics),
+            "move_id": str(move_id) if move_id else None
+        })
+
         return all_metrics
     
     async def _fetch_platform_metrics(
@@ -170,8 +195,3 @@ class AnalyticsAgent:
 
 
 analytics_agent = AnalyticsAgent()
-
-
-
-
-

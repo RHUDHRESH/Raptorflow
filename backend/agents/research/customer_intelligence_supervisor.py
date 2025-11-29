@@ -202,6 +202,16 @@ class CustomerIntelligenceSupervisor(BaseSupervisor):
             results["success"] = True
             results["completed"] = True
 
+            # Publish completion event
+            await self.publish_event(
+                "agent.research.workflow_completed",
+                {
+                    "goal": goal,
+                    "steps_completed": len(results["steps"]),
+                    "workspace_id": icp_request.get("workspace_id")
+                }
+            )
+
             return results
 
         except Exception as e:

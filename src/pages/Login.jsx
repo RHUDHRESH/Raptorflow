@@ -16,7 +16,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSupabaseReady, setIsSupabaseReady] = useState(true);
 
-  const { login, loginWithGoogle, skipLoginDev, loading, error: authError, isAuthenticated } = useAuth();
+  const { login, loginWithGoogle, skipLoginDev, loading, error: authError, isAuthenticated, onboardingCompleted, subscription } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -32,9 +32,16 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated && !loading) {
-      navigate(from, { replace: true });
+      if (!onboardingCompleted) {
+        navigate('/onboarding', { replace: true });
+      } else if (!subscription || subscription.plan === 'free' || (subscription.status !== 'active' && subscription.status !== 'trialing')) {
+        // Redirect to payment/billing if no active paid subscription
+        navigate('/billing', { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     }
-  }, [isAuthenticated, loading, navigate, from]);
+  }, [isAuthenticated, loading, navigate, from, onboardingCompleted, subscription]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -49,7 +56,8 @@ const Login = () => {
     e.preventDefault();
     setErrors({});
 
-    if (import.meta.env.DEV && formData.email === 'user' && formData.password === 'pass') {
+    // Bypass auth if Supabase is not ready (Demo Mode) OR specific dev credentials
+    if (!isSupabaseReady || (import.meta.env.DEV && formData.email === 'user' && formData.password === 'pass')) {
       const result = await skipLoginDev();
       if (result.success) {
         navigate(from, { replace: true });
@@ -99,7 +107,7 @@ const Login = () => {
             <div className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-md border border-white/10 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <span className="text-xl font-bold tracking-widest uppercase font-serif">Raptorflow</span>
+            <span className="text-xl font-bold tracking-widest uppercase font-sans">Raptorflow</span>
           </div>
         </div>
 
@@ -109,9 +117,9 @@ const Login = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h1 className="text-6xl font-serif font-bold leading-tight tracking-tight mb-6">
+          <h1 className="text-6xl font-serif font-bold leading-tight tracking-tight mb-6 text-white">
             Orchestrate your <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-200 to-neutral-500">
+            <span className="text-neutral-400">
               digital empire.
             </span>
           </h1>
@@ -148,16 +156,11 @@ const Login = () => {
             <p className="text-neutral-500">Enter your credentials to access the workspace.</p>
           </div>
 
+          {/* Dev/Demo Mode implicitly handled via Sign In if config missing */}
           {!isSupabaseReady && (
-            <div className="rounded-xl bg-amber-50 p-4 border border-amber-200">
-              <div className="flex gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
-                <div className="text-sm text-amber-800">
-                  <p className="font-semibold">Configuration Missing</p>
-                  <p className="mt-1">Supabase environment variables are missing.</p>
-                </div>
-              </div>
-            </div>
+             <div className="mb-4 p-3 bg-blue-50 text-blue-700 text-sm rounded-lg border border-blue-100">
+                <strong>Demo Mode Available:</strong> Sign in with any credentials to access the dashboard.
+             </div>
           )}
 
           <div className="space-y-4">
@@ -226,7 +229,7 @@ const Login = () => {
               <LuxeButton
                 type="submit"
                 className="w-full"
-                disabled={loading || !isSupabaseReady}
+                disabled={loading}
                 isLoading={loading}
                 icon={ArrowRight}
               >

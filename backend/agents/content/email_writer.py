@@ -13,17 +13,19 @@ from backend.models.content import ContentVariant
 from backend.models.persona import ICPProfile
 from backend.utils.correlation import get_correlation_id
 from backend.utils.cache import redis_cache
+from backend.agents.base_agent import BaseAgent
 
 logger = structlog.get_logger(__name__)
 
 
-class EmailWriterAgent:
+class EmailWriterAgent(BaseAgent):
     """
     Generates email copy using proven frameworks (AIDA, PAS, etc.).
     Uses creative_fast model for rapid email generation.
     """
     
     def __init__(self):
+        super().__init__(name="email_writer")
         self.llm = vertex_ai_client
         self.copywriting_formulas = {
             "AIDA": "Attention → Interest → Desire → Action",
@@ -32,6 +34,109 @@ class EmailWriterAgent:
             "4P": "Problem → Promise → Proof → Proposal",
             "FAB": "Features → Advantages → Benefits"
         }
+
+    async def execute(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute the email writing task.
+        
+        Args:
+            payload: Dictionary containing:
+                - purpose: str
+                - icp_profile: ICPProfile (dict or object)
+                - email_type: str
+                - sequence_length: int (optional, >1 for sequence)
+                - formula: str
+                - subject_line: str
+                - cta: str
+                - brand_voice: str
+        """
+        try:
+            # Extract parameters
+            purpose = payload.get("purpose")
+            icp_data = payload.get("icp_profile")
+            
+            # Handle ICP profile being passed as dict or object
+            if isinstance(icp_data, dict):
+                icp_profile = ICPProfile(**icp_data)
+            else:
+                icp_profile = icp_data
+
+            email_type = payload.get("email_type", "nurture")
+            sequence_length = payload.get("sequence_length", 1)
+            formula = payload.get("formula", "PAS")
+            subject_line = payload.get("subject_line")
+            cta = payload.get("cta")
+            brand_voice = payload.get("brand_voice")
+            correlation_id = payload.get("correlation_id")
+
+            self.log(f"Executing email writer task: {purpose}", level="info")
+
+            if sequence_length > 1:
+                # Generate sequence
+                emails = await self.write_email_sequence(
+                    purpose=purpose,
+                    icp_profile=icp_profile,
+                    sequence_length=sequence_length,
+                    brand_voice=brand_voice,
+                    correlation_id=correlation_id
+                )
+                
+                # Publish sequence event
+                await self.publish_event(
+                    "agent.content.email_sequence_generated",
+                    {
+                        "purpose": purpose,
+                        "email_count": len(emails),
+                        "variant_ids": [str(e.id) for e in emails if hasattr(e, "id")]
+                    }
+                )
+                
+                return {
+                    "status": "success",
+                    "result": emails,
+                    "metadata": {
+                        "count": len(emails),
+                        "type": "sequence"
+                    }
+                }
+            else:
+                # Generate single email
+                variant = await self.write_email(
+                    purpose=purpose,
+                    icp_profile=icp_profile,
+                    email_type=email_type,
+                    formula=formula,
+                    subject_line=subject_line,
+                    cta=cta,
+                    brand_voice=brand_voice,
+                    correlation_id=correlation_id
+                )
+
+                # Publish email event
+                await self.publish_event(
+                    "agent.content.email_generated",
+                    {
+                        "purpose": purpose,
+                        "email_type": email_type,
+                        "variant_id": str(variant.id) if hasattr(variant, "id") else None
+                    }
+                )
+
+                return {
+                    "status": "success",
+                    "result": variant,
+                    "metadata": {
+                        "word_count": variant.word_count,
+                        "type": "single"
+                    }
+                }
+
+        except Exception as e:
+            self.log(f"Email generation failed: {str(e)}", level="error")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
     
     async def write_email(
         self,
@@ -181,4 +286,3 @@ Generate the complete email now, including subject line and body.
 
 
 email_writer_agent = EmailWriterAgent()
-
