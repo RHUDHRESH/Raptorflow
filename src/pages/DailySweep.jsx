@@ -5,9 +5,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  AlertCircle, CheckCircle, Clock, TrendingUp, Target, Zap, 
-  Filter, ChevronDown, X 
+import {
+  AlertCircle, CheckCircle, Clock, TrendingUp, Target, Zap,
+  Filter, ChevronDown, X
 } from 'lucide-react';
 import { useMoves, useICPs } from '../hooks/useMoveSystem';
 import { moveService } from '../lib/services/move-service';
@@ -28,7 +28,7 @@ export default function DailySweepIntegrated() {
     const loadDailyData = async () => {
       try {
         setLoading(true);
-        
+
         // Load anomalies for all moves
         const allAnomalies = await Promise.all(
           moves.map(move => moveService.getMoveAnomalies(move.id))
@@ -121,7 +121,7 @@ export default function DailySweepIntegrated() {
     });
 
     // 4. Capacity warnings
-    const activeMoves = moves.filter(m => 
+    const activeMoves = moves.filter(m =>
       m.status.includes('OODA') && m.status !== 'Complete'
     );
     if (activeMoves.length > 5) {
@@ -164,7 +164,7 @@ export default function DailySweepIntegrated() {
 
   const handleComplete = (winId) => {
     setCompletedItems(prev => new Set(prev).add(winId));
-    setQuickWins(prev => prev.map(win => 
+    setQuickWins(prev => prev.map(win =>
       win.id === winId ? { ...win, status: 'completed' } : win
     ));
   };
@@ -182,17 +182,17 @@ export default function DailySweepIntegrated() {
 
   const getPriorityColor = (priority) => {
     const colors = {
-      high: 'bg-red-100 text-red-900 border-red-200',
-      medium: 'bg-amber-100 text-amber-900 border-amber-200',
-      low: 'bg-green-100 text-green-900 border-green-200',
+      high: 'bg-neutral-900 text-white border-neutral-900',
+      medium: 'bg-neutral-200 text-neutral-900 border-neutral-300',
+      low: 'bg-neutral-50 text-neutral-600 border-neutral-100',
     };
     return colors[priority] || colors.low;
   };
 
   const getPriorityIcon = (priority) => {
-    if (priority === 'high') return <AlertCircle className="w-5 h-5 text-red-600" />;
-    if (priority === 'medium') return <Clock className="w-5 h-5 text-amber-600" />;
-    return <Target className="w-5 h-5 text-green-600" />;
+    if (priority === 'high') return <AlertCircle className="w-5 h-5 text-neutral-900" />;
+    if (priority === 'medium') return <Clock className="w-5 h-5 text-neutral-700" />;
+    return <Target className="w-5 h-5 text-neutral-600" />;
   };
 
   const getTypeIcon = (type) => {
@@ -254,19 +254,19 @@ export default function DailySweepIntegrated() {
           <div className="text-sm text-neutral-600">Total Items</div>
         </div>
         <div className="runway-card p-4">
-          <div className="text-2xl font-bold text-red-600 mb-1">{stats.high}</div>
+          <div className="text-2xl font-bold text-neutral-900 mb-1">{stats.high}</div>
           <div className="text-sm text-neutral-600">High Priority</div>
         </div>
         <div className="runway-card p-4">
-          <div className="text-2xl font-bold text-amber-600 mb-1">{stats.medium}</div>
+          <div className="text-2xl font-bold text-neutral-700 mb-1">{stats.medium}</div>
           <div className="text-sm text-neutral-600">Medium</div>
         </div>
         <div className="runway-card p-4">
-          <div className="text-2xl font-bold text-green-600 mb-1">{stats.low}</div>
+          <div className="text-2xl font-bold text-neutral-600 mb-1">{stats.low}</div>
           <div className="text-sm text-neutral-600">Low Priority</div>
         </div>
         <div className="runway-card p-4">
-          <div className="text-2xl font-bold text-blue-600 mb-1">{stats.completed}</div>
+          <div className="text-2xl font-bold text-neutral-900 mb-1">{stats.completed}</div>
           <div className="text-sm text-neutral-600">Completed</div>
         </div>
       </div>
@@ -299,10 +299,10 @@ export default function DailySweepIntegrated() {
       {/* Quick Wins List */}
       {filteredWins.length === 0 ? (
         <div className="runway-card p-12 text-center">
-          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+          <CheckCircle className="w-16 h-16 text-neutral-400 mx-auto mb-4" />
           <h3 className="text-2xl font-bold text-neutral-900 mb-2">All Clear!</h3>
           <p className="text-neutral-600">
-            {quickWins.length === 0 
+            {quickWins.length === 0
               ? "No quick wins available. Your moves are running smoothly."
               : "No items match your filters. Great work!"}
           </p>
@@ -402,7 +402,7 @@ export default function DailySweepIntegrated() {
                         )}
                       </>
                     ) : (
-                      <span className="flex items-center gap-2 text-sm text-green-600">
+                      <span className="flex items-center gap-2 text-sm text-neutral-700">
                         <CheckCircle className="w-4 h-4" />
                         Completed
                       </span>
