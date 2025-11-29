@@ -143,11 +143,11 @@ export default function CohortsMoves() {
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Active</p>
-              <p className="text-2xl font-bold text-blue-600">{activeMoves}</p>
+              <p className="text-2xl font-bold text-neutral-900">{activeMoves}</p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Complete</p>
-              <p className="text-2xl font-bold text-green-600">{completeMoves}</p>
+              <p className="text-2xl font-bold text-neutral-700">{completeMoves}</p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-1">Success Rate</p>

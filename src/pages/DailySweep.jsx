@@ -1,18 +1,23 @@
-/**
- * Daily Sweep - AI-Powered Quick Wins
- * Integrated with real Supabase data and AI suggestions
- */
-
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertCircle, CheckCircle, Clock, TrendingUp, Target, Zap,
-  Filter, ChevronDown, X
+  Filter, ChevronDown, X, CheckCircle2, ArrowRight
 } from 'lucide-react';
 import { useMoves, useICPs } from '../hooks/useMoveSystem';
 import { moveService } from '../lib/services/move-service';
 import { analyticsService } from '../lib/services/analytics-service';
 import { cn } from '../utils/cn';
+import {
+  HeroSection,
+  StatCard,
+  LuxeCard,
+  LuxeButton,
+  LuxeBadge,
+  FilterPills,
+  staggerContainer,
+  fadeInUp
+} from '../components/ui/PremiumUI';
 
 export default function DailySweepIntegrated() {
   const { moves, loading: movesLoading } = useMoves();
@@ -182,17 +187,17 @@ export default function DailySweepIntegrated() {
 
   const getPriorityColor = (priority) => {
     const colors = {
-      high: 'bg-neutral-900 text-white border-neutral-900',
-      medium: 'bg-neutral-200 text-neutral-900 border-neutral-300',
-      low: 'bg-neutral-50 text-neutral-600 border-neutral-100',
+      high: 'error',
+      medium: 'warning',
+      low: 'neutral',
     };
-    return colors[priority] || colors.low;
+    return colors[priority] || 'neutral';
   };
 
   const getPriorityIcon = (priority) => {
-    if (priority === 'high') return <AlertCircle className="w-5 h-5 text-neutral-900" />;
-    if (priority === 'medium') return <Clock className="w-5 h-5 text-neutral-700" />;
-    return <Target className="w-5 h-5 text-neutral-600" />;
+    if (priority === 'high') return <AlertCircle className="w-5 h-5 text-red-500" />;
+    if (priority === 'medium') return <Clock className="w-5 h-5 text-amber-500" />;
+    return <Target className="w-5 h-5 text-neutral-500" />;
   };
 
   const getTypeIcon = (type) => {
@@ -227,195 +232,232 @@ export default function DailySweepIntegrated() {
     completed: quickWins.filter(w => w.status === 'completed').length,
   };
 
+  const priorityFilters = [
+    { value: 'all', label: 'All Priorities' },
+    { value: 'high', label: 'High Priority', count: stats.high },
+    { value: 'medium', label: 'Medium Priority', count: stats.medium },
+    { value: 'low', label: 'Low Priority', count: stats.low },
+  ];
+
   return (
-    <div className="space-y-8 animate-fade-in">
+    <motion.div
+      className="max-w-[1440px] mx-auto px-6 py-8 space-y-12"
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={staggerContainer}
+    >
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="runway-card relative overflow-hidden p-10"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-neutral-50 to-white" />
-        <div className="relative z-10">
-          <p className="micro-label mb-2">Daily Sweep</p>
-          <h1 className="font-serif text-4xl md:text-6xl text-black leading-tight mb-3">
-            Today's Quick Wins
-          </h1>
-          <p className="text-base text-neutral-600 max-w-2xl">
-            AI-detected priorities and action items. Focus on high-impact, time-boxed tasks.
-          </p>
-        </div>
+      <motion.div variants={fadeInUp}>
+        <HeroSection
+          title="Today's Quick Wins"
+          subtitle="AI-detected priorities and action items. Focus on high-impact, time-boxed tasks."
+          metrics={[
+            { label: 'Total Items', value: stats.total.toString() },
+            { label: 'High Priority', value: stats.high.toString() },
+            { label: 'Completed', value: stats.completed.toString() }
+          ]}
+        />
       </motion.div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="runway-card p-4">
-          <div className="text-2xl font-bold text-neutral-900 mb-1">{stats.total}</div>
-          <div className="text-sm text-neutral-600">Total Items</div>
-        </div>
-        <div className="runway-card p-4">
-          <div className="text-2xl font-bold text-neutral-900 mb-1">{stats.high}</div>
-          <div className="text-sm text-neutral-600">High Priority</div>
-        </div>
-        <div className="runway-card p-4">
-          <div className="text-2xl font-bold text-neutral-700 mb-1">{stats.medium}</div>
-          <div className="text-sm text-neutral-600">Medium</div>
-        </div>
-        <div className="runway-card p-4">
-          <div className="text-2xl font-bold text-neutral-600 mb-1">{stats.low}</div>
-          <div className="text-sm text-neutral-600">Low Priority</div>
-        </div>
-        <div className="runway-card p-4">
-          <div className="text-2xl font-bold text-neutral-900 mb-1">{stats.completed}</div>
-          <div className="text-sm text-neutral-600">Completed</div>
-        </div>
-      </div>
+      <motion.div
+        className="grid grid-cols-2 md:grid-cols-5 gap-4"
+        variants={staggerContainer}
+      >
+        <StatCard
+          label="Total Items"
+          value={stats.total}
+          icon={Target}
+          trend="neutral"
+          className="p-6"
+        />
+        <StatCard
+          label="High Priority"
+          value={stats.high}
+          icon={AlertCircle}
+          trend={stats.high > 0 ? 'down' : 'neutral'}
+          className="p-6"
+        />
+        <StatCard
+          label="Medium"
+          value={stats.medium}
+          icon={Clock}
+          trend="neutral"
+          className="p-6"
+        />
+        <StatCard
+          label="Low Priority"
+          value={stats.low}
+          icon={CheckCircle}
+          trend="neutral"
+          className="p-6"
+        />
+        <StatCard
+          label="Completed"
+          value={stats.completed}
+          icon={CheckCircle2}
+          trend="up"
+          className="p-6"
+        />
+      </motion.div>
 
       {/* Filters */}
-      <div className="runway-card p-6">
-        <div className="flex flex-wrap gap-4">
-          <select
-            value={selectedPriority}
-            onChange={(e) => setSelectedPriority(e.target.value)}
-            className="px-4 py-2 rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-900"
-          >
-            <option value="all">All Priorities</option>
-            <option value="high">High Priority</option>
-            <option value="medium">Medium Priority</option>
-            <option value="low">Low Priority</option>
-          </select>
+      <motion.div variants={fadeInUp} className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <FilterPills
+          filters={priorityFilters}
+          activeFilter={selectedPriority}
+          onFilterChange={setSelectedPriority}
+        />
+
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-neutral-400" />
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-4 py-2 rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+            className="bg-transparent border-none text-sm font-medium text-neutral-600 focus:ring-0 cursor-pointer"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="completed">Completed</option>
           </select>
         </div>
-      </div>
+      </motion.div>
 
       {/* Quick Wins List */}
-      {filteredWins.length === 0 ? (
-        <div className="runway-card p-12 text-center">
-          <CheckCircle className="w-16 h-16 text-neutral-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-neutral-900 mb-2">All Clear!</h3>
-          <p className="text-neutral-600">
-            {quickWins.length === 0
-              ? "No quick wins available. Your moves are running smoothly."
-              : "No items match your filters. Great work!"}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {filteredWins.map((win) => (
-            <motion.div
-              key={win.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className={cn(
-                "runway-card p-6 transition-all",
-                win.status === 'completed' && "opacity-60"
-              )}
-            >
-              <div className="flex items-start gap-4">
-                {/* Priority Icon */}
-                <div className="flex-shrink-0 mt-1">
-                  {getPriorityIcon(win.priority)}
+      <motion.div variants={staggerContainer} className="space-y-4">
+        <AnimatePresence>
+          {filteredWins.length === 0 ? (
+            <motion.div variants={fadeInUp}>
+              <LuxeCard className="p-16 text-center flex flex-col items-center justify-center border-dashed">
+                <div className="w-16 h-16 rounded-full bg-neutral-50 flex items-center justify-center mb-6">
+                  <CheckCircle className="w-8 h-8 text-neutral-400" />
                 </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h3 className={cn(
-                        "text-lg font-bold text-neutral-900 mb-1",
-                        win.status === 'completed' && "line-through"
-                      )}>
-                        {win.title}
-                      </h3>
-                      <p className="text-sm text-neutral-600 mb-3">
-                        {win.description}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleDismiss(win.id)}
-                      className="p-1 hover:bg-neutral-100 rounded"
-                    >
-                      <X className="w-4 h-4 text-neutral-400" />
-                    </button>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3 mb-4">
-                    <span className={cn(
-                      "px-2 py-1 text-xs font-medium border rounded",
-                      getPriorityColor(win.priority)
+                <h3 className="text-2xl font-display font-medium text-neutral-900 mb-2">All Clear!</h3>
+                <p className="text-neutral-500 max-w-md">
+                  {quickWins.length === 0
+                    ? "No quick wins available. Your moves are running smoothly."
+                    : "No items match your filters. Great work!"}
+                </p>
+              </LuxeCard>
+            </motion.div>
+          ) : (
+            filteredWins.map((win) => (
+              <motion.div
+                key={win.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className={cn(
+                  "transition-all duration-300",
+                  win.status === 'completed' && "opacity-60 grayscale"
+                )}
+              >
+                <LuxeCard className="p-6 hover:shadow-md transition-shadow group">
+                  <div className="flex items-start gap-6">
+                    {/* Priority Icon */}
+                    <div className={cn(
+                      "w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors",
+                      win.priority === 'high' ? "bg-red-50 text-red-600" :
+                        win.priority === 'medium' ? "bg-amber-50 text-amber-600" :
+                          "bg-neutral-50 text-neutral-600"
                     )}>
-                      {win.priority}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-neutral-600">
-                      {getTypeIcon(win.type)}
-                      {win.type.replace('_', ' ')}
-                    </span>
-                    {win.timeEstimate && (
-                      <span className="flex items-center gap-1 text-xs text-neutral-600">
-                        <Clock className="w-3 h-3" />
-                        {win.timeEstimate}
-                      </span>
-                    )}
-                  </div>
+                      {getPriorityIcon(win.priority)}
+                    </div>
 
-                  {/* Suggested Topics (for content wins) */}
-                  {win.suggestedTopics && win.suggestedTopics.length > 0 && (
-                    <div className="mb-4">
-                      <p className="text-xs font-medium text-neutral-700 mb-2">Suggested Topics:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {win.suggestedTopics.map((topic, idx) => (
-                          <span key={idx} className="px-2 py-1 text-xs bg-neutral-100 text-neutral-700 rounded">
-                            {topic}
-                          </span>
-                        ))}
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <h3 className={cn(
+                              "text-lg font-medium text-neutral-900",
+                              win.status === 'completed' && "line-through text-neutral-500"
+                            )}>
+                              {win.title}
+                            </h3>
+                            <LuxeBadge variant={getPriorityColor(win.priority)} className="text-[10px] py-0.5 px-2">
+                              {win.priority}
+                            </LuxeBadge>
+                          </div>
+                          <p className="text-neutral-500 leading-relaxed">
+                            {win.description}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleDismiss(win.id)}
+                          className="p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-neutral-100">
+                        <div className="flex items-center gap-2 text-xs font-medium text-neutral-500 bg-neutral-50 px-2 py-1 rounded-md">
+                          {getTypeIcon(win.type)}
+                          <span className="capitalize">{win.type.replace('_', ' ')}</span>
+                        </div>
+
+                        {win.timeEstimate && (
+                          <div className="flex items-center gap-2 text-xs font-medium text-neutral-500 bg-neutral-50 px-2 py-1 rounded-md">
+                            <Clock className="w-3 h-3" />
+                            {win.timeEstimate}
+                          </div>
+                        )}
+
+                        {/* Suggested Topics (for content wins) */}
+                        {win.suggestedTopics && win.suggestedTopics.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-neutral-400">Topics:</span>
+                            {win.suggestedTopics.map((topic, idx) => (
+                              <span key={idx} className="text-xs text-neutral-600 bg-neutral-50 px-2 py-1 rounded-md border border-neutral-100">
+                                {topic}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex-1" />
+
+                        {/* Actions */}
+                        <div className="flex gap-3">
+                          {win.status === 'pending' ? (
+                            <>
+                              {win.move_id && (
+                                <LuxeButton
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => window.location.href = `/moves/${win.move_id}`}
+                                >
+                                  View Move
+                                </LuxeButton>
+                              )}
+                              <LuxeButton
+                                size="sm"
+                                onClick={() => handleComplete(win.id)}
+                                className="bg-neutral-900 text-white hover:bg-neutral-800"
+                              >
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                {win.action}
+                              </LuxeButton>
+                            </>
+                          ) : (
+                            <span className="flex items-center gap-2 text-sm font-medium text-green-600 bg-green-50 px-3 py-1.5 rounded-full">
+                              <CheckCircle2 className="w-4 h-4" />
+                              Completed
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex gap-2">
-                    {win.status === 'pending' ? (
-                      <>
-                        <button
-                          onClick={() => handleComplete(win.id)}
-                          className="px-4 py-2 text-sm font-medium bg-neutral-900 text-white rounded-lg hover:bg-neutral-800"
-                        >
-                          <CheckCircle className="w-4 h-4 inline mr-2" />
-                          {win.action}
-                        </button>
-                        {win.move_id && (
-                          <button
-                            onClick={() => window.location.href = `/moves/${win.move_id}`}
-                            className="px-4 py-2 text-sm font-medium border border-neutral-200 text-neutral-900 rounded-lg hover:bg-neutral-50"
-                          >
-                            View Move
-                          </button>
-                        )}
-                      </>
-                    ) : (
-                      <span className="flex items-center gap-2 text-sm text-neutral-700">
-                        <CheckCircle className="w-4 h-4" />
-                        Completed
-                      </span>
-                    )}
                   </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
-    </div>
+                </LuxeCard>
+              </motion.div>
+            ))
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   );
 }
-
-

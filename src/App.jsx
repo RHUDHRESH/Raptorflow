@@ -53,6 +53,7 @@ const AestheteDashboard = React.lazy(() => import('./pages/strategy/AestheteDash
 const SeerDashboard = React.lazy(() => import('./pages/strategy/SeerDashboard'))
 const ArbiterDashboard = React.lazy(() => import('./pages/strategy/ArbiterDashboard'))
 const HeraldDashboard = React.lazy(() => import('./pages/strategy/HeraldDashboard'))
+const ErisDashboard = React.lazy(() => import('./pages/strategy/ErisDashboard'))
 const AuthDebug = React.lazy(() => import('./pages/debug/AuthDebug'))
 const Workspace = React.lazy(() => import('./pages/Workspace'))
 const CreateWorkspace = React.lazy(() => import('./pages/CreateWorkspace.tsx'))
@@ -163,6 +164,7 @@ function App() {
                   <Route path={routes.council.seer} element={<SeerDashboard />} />
                   <Route path={routes.council.arbiter} element={<ArbiterDashboard />} />
                   <Route path={routes.council.herald} element={<HeraldDashboard />} />
+                  <Route path={routes.council.eris} element={<ErisDashboard />} />
 
                   {/* Positioning */}
                   <Route path={routes.positioning} element={<Positioning />} />

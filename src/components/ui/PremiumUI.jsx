@@ -409,3 +409,202 @@ export const LuxeSkeleton = ({ className = '', ...props }) => {
         />
     )
 }
+
+// ==================== PREMIUM ENHANCEMENTS ====================
+
+// --- Premium Stat Card with Sparkline ---
+export const StatCard = ({
+    label,
+    value,
+    change,
+    trend = 'up',
+    icon: Icon,
+    className = ''
+}) => {
+    return (
+        <div
+            className={cn(
+                "bg-white border border-neutral-200 rounded-xl p-8 hover:shadow-lg transition-all duration-200",
+                className
+            )}
+        >
+            <div className="flex items-start justify-between mb-6">
+                <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 font-medium">
+                    {label}
+                </p>
+                {Icon && (
+                    <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center">
+                        <Icon className="w-5 h-5 text-neutral-900" />
+                    </div>
+                )}
+            </div>
+
+            <div className="mb-3">
+                <div className="font-display text-5xl font-medium tracking-tight text-neutral-900">
+                    {value}
+                </div>
+            </div>
+
+            {change && (
+                <div className="flex items-center gap-2">
+                    <span className={cn(
+                        "text-sm font-medium",
+                        trend === 'up' ? 'text-neutral-900' : 'text-neutral-600'
+                    )}>
+                        {change}
+                    </span>
+                    <span className="text-xs text-neutral-500">vs last period</span>
+                </div>
+            )}
+        </div>
+    )
+}
+
+// --- Progress Ring Component ---
+export const ProgressRing = ({
+    value,
+    size = 120,
+    strokeWidth = 8,
+    label,
+    className = ''
+}) => {
+    const radius = (size - strokeWidth) / 2
+    const circumference = radius * 2 * Math.PI
+    const progress = Math.min(Math.max(value, 0), 100)
+    const offset = circumference - (progress / 100) * circumference
+
+    return (
+        <div className={cn("relative inline-flex items-center justify-center", className)}>
+            <svg width={size} height={size} className="transform -rotate-90">
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    stroke="currentColor"
+                    strokeWidth={strokeWidth}
+                    fill="none"
+                    className="text-neutral-100"
+                />
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    stroke="currentColor"
+                    strokeWidth={strokeWidth}
+                    fill="none"
+                    strokeLinecap="round"
+                    className="text-neutral-900 transition-all duration-1000 ease-out"
+                    style={{
+                        strokeDasharray: `${circumference} ${circumference}`,
+                        strokeDashoffset: offset
+                    }}
+                />
+            </svg>
+
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="font-display text-2xl font-medium text-neutral-900">
+                    {Math.round(progress)}%
+                </div>
+                {label && (
+                    <div className="text-xs text-neutral-500 mt-1">
+                        {label}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
+// --- Hero Section Component ---
+export const HeroSection = ({
+    title,
+    subtitle,
+    metrics = [],
+    actions,
+    className = ''
+}) => {
+    return (
+        <div className={cn(
+            "relative overflow-hidden rounded-2xl bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white p-12",
+            className
+        )}>
+            <div className="absolute inset-0 opacity-5">
+                <div className="absolute inset-0" style={{
+                    backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+                    backgroundSize: '40px 40px'
+                }} />
+            </div>
+
+            <div className="relative z-10">
+                <h1 className="font-display text-5xl md:text-6xl font-medium tracking-tight mb-4">
+                    {title}
+                </h1>
+
+                {subtitle && (
+                    <p className="text-xl text-neutral-300 max-w-2xl mb-8">
+                        {subtitle}
+                    </p>
+                )}
+
+                {metrics.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+                        {metrics.map((metric, index) => (
+                            <div key={index} className="border-l-2 border-white/20 pl-4">
+                                <div className="font-display text-4xl font-medium mb-1">
+                                    {metric.value}
+                                </div>
+                                <div className="text-sm text-neutral-400">
+                                    {metric.label}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {actions && (
+                    <div className="flex gap-4 mt-8">
+                        {actions}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
+// --- Filter Pills Component ---
+export const FilterPills = ({
+    filters = [],
+    activeFilter,
+    onFilterChange,
+    className = ''
+}) => {
+    return (
+        <div className={cn("flex flex-wrap gap-2", className)}>
+            {filters.map((filter) => (
+                <button
+                    key={filter.value}
+                    onClick={() => onFilterChange?.(filter.value)}
+                    className={cn(
+                        "px-4 py-2 rounded-full border-2 font-medium text-sm transition-all duration-200",
+                        activeFilter === filter.value
+                            ? "border-neutral-900 bg-neutral-900 text-white"
+                            : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-400"
+                    )}
+                >
+                    {filter.icon && <filter.icon className="w-4 h-4 inline mr-2" />}
+                    {filter.label}
+                    {filter.count !== undefined && (
+                        <span className={cn(
+                            "ml-2 px-2 py-0.5 rounded-full text-xs",
+                            activeFilter === filter.value
+                                ? "bg-white/20"
+                                : "bg-neutral-100"
+                        )}>
+                            {filter.count}
+                        </span>
+                    )}
+                </button>
+            ))}
+        </div>
+    )
+}

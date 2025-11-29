@@ -12,6 +12,7 @@ from agents.council_of_lords import LordAgent, LordRole
 from raptor_bus import RaptorBus, EventType, ChannelType, Message
 from rag_integration import RAGMemory, RAGPerformanceTracker
 from backend.services.vertex_ai_client import vertex_ai_client
+from backend.core.interfaces.agent_interface import AgentInterface
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +93,7 @@ class StrategicInitiative:
 # ARCHITECT AGENT
 # ============================================================================
 
-class ArchitectLord(LordAgent):
+class ArchitectLord(LordAgent, AgentInterface):
     """
     Architect Lord Agent - Strategic Planning & System Architecture
 
@@ -106,12 +107,14 @@ class ArchitectLord(LordAgent):
 
     def __init__(self):
         """Initialize Architect Lord"""
-        super().__init__(
+        LordAgent.__init__(
+            self,
             name="Architect",
             role=LordRole.ARCHITECT,
             description="Designs strategic initiatives and optimizes system architecture",
             council_position=1
         )
+        AgentInterface.__init__(self, agent_name="architect_lord")
 
         self.initiatives: Dict[str, StrategicInitiative] = {}
         self.performance_tracker = RAGPerformanceTracker()
@@ -208,8 +211,45 @@ class ArchitectLord(LordAgent):
                 "recommendations": "list[str]"
             }
         )
+        
+        # New SOTA Capability: Resource Validation
+        self.register_capability(
+            name="validate_resources",
+            category="analysis",
+            handler=self._validate_resources,
+            description="Validate resource availability for a plan",
+            input_schema={"plan_id": "str", "required_resources": "dict"},
+            output_schema={"is_valid": "bool", "shortfalls": "list"}
+        )
 
         logger.info(f"✅ Architect Lord initialized with {len(self.capabilities)} capabilities")
+
+    async def _execute_logic(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """SOTA Entry Point"""
+        task_name = payload.get("task")
+        params = payload.get("parameters", {})
+        
+        for capability in self.capabilities:
+            if capability.name == task_name:
+                return await capability.handler(**params)
+        
+        raise ValueError(f"Unknown capability: {task_name}")
+
+    async def _validate_resources(self, **kwargs) -> Dict[str, Any]:
+        """
+        Validate if the organization has the resources for a plan.
+        """
+        required = kwargs.get("required_resources", {})
+        
+        # Mock logic for now
+        shortfalls = []
+        if required.get("budget", 0) > 100000:
+            shortfalls.append("Budget exceeds limit")
+            
+        return {
+            "is_valid": len(shortfalls) == 0,
+            "shortfalls": shortfalls
+        }
 
     async def shutdown(self) -> None:
         """Shutdown Architect Lord"""

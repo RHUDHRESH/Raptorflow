@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { paymentAPI } from '../services/paymentAPI';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,70 +9,23 @@ import {
     CheckCircle2,
     AlertCircle,
     ArrowRight,
-    Loader2,
     Shield,
     Sparkles,
     Zap,
     Crown,
-    Star,
-    TrendingUp
+    HelpCircle
 } from 'lucide-react';
+import {
+    HeroSection,
+    LuxeCard,
+    LuxeButton,
+    LuxeBadge,
+    staggerContainer,
+    fadeInUp
+} from '../components/ui/PremiumUI';
+import { cn } from '../utils/cn';
 
-// Animated counter component
-const AnimatedCounter = ({ end, duration = 2, suffix = '', prefix = '' }) => {
-    const [count, setCount] = useState(0)
-    const nodeRef = useRef(null)
-
-    useEffect(() => {
-        let startTime = null
-        const animate = (currentTime) => {
-            if (!startTime) startTime = currentTime
-            const progress = Math.min((currentTime - startTime) / (duration * 1000), 1)
-            const easeOutQuart = 1 - Math.pow(1 - progress, 4)
-            setCount(Math.floor(easeOutQuart * end))
-
-            if (progress < 1) {
-                requestAnimationFrame(animate)
-            }
-        }
-        requestAnimationFrame(animate)
-    }, [end, duration])
-
-    return <span ref={nodeRef}>{prefix}{count}{suffix}</span>
-}
-
-// Magnetic card component
-const MagneticCard = ({ children, className }) => {
-    const [position, setPosition] = useState({ x: 0, y: 0 })
-    const cardRef = useRef(null)
-
-    const handleMouseMove = (e) => {
-        if (!cardRef.current) return
-        const rect = cardRef.current.getBoundingClientRect()
-        const x = (e.clientX - rect.left - rect.width / 2) * 0.03
-        const y = (e.clientY - rect.top - rect.height / 2) * 0.03
-        setPosition({ x, y })
-    }
-
-    const handleMouseLeave = () => {
-        setPosition({ x: 0, y: 0 })
-    }
-
-    return (
-        <motion.div
-            ref={cardRef}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            animate={{ x: position.x, y: position.y }}
-            transition={{ type: 'spring', stiffness: 150, damping: 15 }}
-            className={className}
-        >
-            {children}
-        </motion.div>
-    )
-}
-
-export default function BillingLuxe() {
+export default function Billing() {
     const { user, subscription } = useAuth();
     const [billingHistory, setBillingHistory] = useState([]);
     const [plans, setPlans] = useState([]);
@@ -94,7 +47,8 @@ export default function BillingLuxe() {
                 description: getDescription(plan.name),
                 features: formatFeatures(plan.features, plan.limits),
                 popular: plan.name === 'glide',
-                icon: plan.name === 'ascent' ? Zap : plan.name === 'glide' ? Crown : Sparkles
+                icon: plan.name === 'ascent' ? Zap : plan.name === 'glide' ? Crown : Sparkles,
+                key: plan.name // Store original key for API calls
             }));
             setPlans(plansArray);
         } catch (err) {
@@ -156,436 +110,251 @@ export default function BillingLuxe() {
     const currentPlan = subscription?.plan || 'free';
 
     return (
-        <div className="space-y-12 animate-fade-in-up">
+        <motion.div
+            className="max-w-[1440px] mx-auto px-6 py-8 space-y-8"
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={staggerContainer}
+        >
             {/* Hero Section */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="relative overflow-hidden"
-            >
-                <div className="flex items-center gap-4 mb-8">
-                    <motion.span
-                        className="text-micro text-gray-400"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 }}
-                    >
-                        Billing
-                    </motion.span>
-                    <motion.span
-                        className="h-px w-20 bg-black/10"
-                        initial={{ width: 0 }}
-                        animate={{ width: 80 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                    />
-                </div>
-                <motion.h1
-                    className="text-hero mb-4"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.6 }}
-                >
-                    Subscription & Billing
-                </motion.h1>
-                <motion.p
-                    className="text-body max-w-2xl"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                >
-                    Manage your subscription, payment methods, and billing history
-                </motion.p>
+            <motion.div variants={fadeInUp}>
+                <HeroSection
+                    title="Subscription & Billing"
+                    subtitle="Manage your subscription, payment methods, and billing history."
+                    metrics={[
+                        { label: 'Current Plan', value: currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1) },
+                        { label: 'Status', value: subscription?.status === 'active' ? 'Active' : 'Inactive' },
+                        { label: 'Next Billing', value: subscription?.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString() : 'N/A' }
+                    ]}
+                />
             </motion.div>
 
             {/* Error Alert */}
             <AnimatePresence>
                 {error && (
                     <motion.div
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        className="p-6 bg-oxblood/5 border-2 border-oxblood/20 rounded flex items-start gap-4"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700"
                     >
-                        <motion.div
-                            animate={{ rotate: [0, 5, -5, 0] }}
-                            transition={{ duration: 0.5 }}
-                        >
-                            <AlertCircle className="h-6 w-6 text-oxblood flex-shrink-0" />
-                        </motion.div>
-                        <p className="text-oxblood font-medium">{error}</p>
+                        <AlertCircle className="h-5 w-5" />
+                        <p className="font-medium">{error}</p>
                     </motion.div>
                 )}
             </AnimatePresence>
 
             {/* Current Plan Card */}
-            <MagneticCard className="relative overflow-hidden border-2 border-black bg-black text-white">
-                {/* Animated background grid */}
-                <motion.div
-                    className="absolute inset-0 opacity-[0.03]"
-                    style={{
-                        backgroundImage: `linear-gradient(to right, white 1px, transparent 1px),
-                                        linear-gradient(to bottom, white 1px, transparent 1px)`,
-                        backgroundSize: '40px 40px'
-                    }}
-                    animate={{
-                        backgroundPosition: ['0px 0px', '40px 40px'],
-                    }}
-                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                />
+            <motion.div variants={fadeInUp}>
+                <LuxeCard className="bg-neutral-900 text-white border-none p-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
 
-                {/* Floating orbs */}
-                <motion.div
-                    className="absolute top-0 right-0 w-64 h-64 bg-white/[0.05] rounded-full blur-3xl"
-                    animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.3, 0.5, 0.3],
-                    }}
-                    transition={{ duration: 4, repeat: Infinity }}
-                />
-
-                <div className="relative z-10 p-10">
-                    <motion.div
-                        className="flex items-start justify-between"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6 }}
-                    >
+                    <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                         <div>
-                            <div className="flex items-center gap-3 mb-4">
-                                <motion.div
-                                    animate={{
-                                        rotate: [0, 360],
-                                    }}
-                                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                                >
-                                    <Shield className="h-8 w-8" strokeWidth={1.5} />
-                                </motion.div>
-                                <span className="text-micro text-white/60">Current Plan</span>
+                            <div className="flex items-center gap-2 mb-4">
+                                <Shield className="h-5 w-5 text-white/60" />
+                                <span className="text-xs font-bold uppercase tracking-wider text-white/60">Current Plan</span>
                             </div>
-                            <motion.p
-                                className="font-serif text-5xl font-black mb-3 capitalize"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.7 }}
-                            >
+                            <h2 className="font-display text-4xl font-medium mb-2 capitalize">
                                 {currentPlan}
-                            </motion.p>
+                            </h2>
                             {currentPlan === 'free' && (
-                                <motion.p
-                                    className="text-white/70 text-sm max-w-md"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 0.8 }}
-                                >
+                                <p className="text-white/70 max-w-md">
                                     No active subscription. Choose a plan below to unlock premium features.
-                                </motion.p>
+                                </p>
                             )}
                         </div>
-                        <div className="text-right">
-                            <p className="text-micro text-white/60 mb-2">Next billing date</p>
-                            <motion.p
-                                className="text-2xl font-bold"
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.9, type: 'spring' }}
-                            >
+                        <div className="text-left md:text-right">
+                            <p className="text-xs font-bold uppercase tracking-wider text-white/60 mb-1">Next billing date</p>
+                            <p className="text-xl font-medium">
                                 {subscription?.current_period_end
                                     ? new Date(subscription.current_period_end).toLocaleDateString('en-US', {
-                                        month: 'short',
+                                        month: 'long',
                                         day: 'numeric',
                                         year: 'numeric'
                                     })
                                     : 'N/A'
                                 }
-                            </motion.p>
+                            </p>
                         </div>
-                    </motion.div>
-                </div>
-            </MagneticCard>
+                    </div>
+                </LuxeCard>
+            </motion.div>
 
             {/* Plans Grid */}
-            <div>
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8 }}
-                    className="mb-8"
-                >
-                    <span className="text-micro text-gray-400 block mb-2">Choose Your Altitude</span>
-                    <h2 className="text-heading">Available Plans</h2>
-                </motion.div>
+            <motion.div variants={staggerContainer}>
+                <div className="mb-6">
+                    <h2 className="font-display text-2xl font-medium text-neutral-900">Available Plans</h2>
+                    <p className="text-neutral-500">Choose the plan that fits your needs.</p>
+                </div>
 
-                <div className="grid gap-8 md:grid-cols-3">
-                    {plans.map((plan, index) => {
+                <div className="grid gap-6 md:grid-cols-3">
+                    {plans.map((plan) => {
                         const Icon = plan.icon
                         const isCurrent = currentPlan.toLowerCase() === plan.name.toLowerCase()
 
                         return (
-                            <MagneticCard
-                                key={plan.name}
-                                className={`relative border-2 ${plan.popular
-                                        ? 'border-black bg-black text-white'
-                                        : 'border-black/10 bg-white hover:border-black/30'
-                                    } transition-all duration-300 overflow-hidden group`}
-                            >
-                                <motion.div
-                                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    transition={{ delay: 1.0 + index * 0.15, type: 'spring', stiffness: 100 }}
-                                    className="relative z-10 p-8"
+                            <motion.div key={plan.name} variants={fadeInUp} className="h-full">
+                                <LuxeCard
+                                    className={cn(
+                                        "h-full flex flex-col p-8 relative overflow-hidden transition-all duration-300",
+                                        plan.popular ? "border-neutral-900 ring-1 ring-neutral-900" : "",
+                                        isCurrent ? "bg-neutral-50" : "bg-white"
+                                    )}
                                 >
-                                    {/* Popular badge */}
                                     {plan.popular && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: -10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="absolute -top-4 left-8 bg-white px-4 py-1.5 text-xs font-mono uppercase tracking-widest text-black"
-                                        >
+                                        <div className="absolute top-0 right-0 bg-neutral-900 text-white px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-bl-xl">
                                             Most Popular
-                                        </motion.div>
+                                        </div>
                                     )}
 
-                                    {/* Shimmer effect */}
-                                    <motion.div
-                                        className={`absolute inset-0 bg-gradient-to-r ${plan.popular
-                                                ? 'from-transparent via-white/10 to-transparent'
-                                                : 'from-transparent via-black/[0.02] to-transparent'
-                                            }`}
-                                        initial={{ x: '-100%' }}
-                                        whileHover={{ x: '100%' }}
-                                        transition={{ duration: 0.6 }}
-                                    />
+                                    <div className="mb-6">
+                                        <div className={cn(
+                                            "w-12 h-12 rounded-xl flex items-center justify-center mb-4",
+                                            plan.popular ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-900"
+                                        )}>
+                                            <Icon className="w-6 h-6" />
+                                        </div>
+                                        <h3 className="font-display text-2xl font-medium text-neutral-900 mb-2">{plan.name}</h3>
+                                        <p className="text-sm text-neutral-600 h-10">{plan.description}</p>
+                                    </div>
 
-                                    {/* Icon */}
-                                    <motion.div
-                                        className={`w-14 h-14 rounded-lg flex items-center justify-center mb-6 ${plan.popular ? 'bg-white/10' : 'bg-black/5'
-                                            }`}
-                                        whileHover={{ scale: 1.1, rotate: 5 }}
-                                        transition={{ type: 'spring', stiffness: 300 }}
-                                    >
-                                        <Icon className={`w-7 h-7 ${plan.popular ? 'text-white' : 'text-black'}`} strokeWidth={1.5} />
-                                    </motion.div>
-
-                                    {/* Plan details */}
                                     <div className="mb-8">
-                                        <h3 className="font-serif text-3xl font-black mb-2">{plan.name}</h3>
-                                        <p className={`text-sm mb-6 ${plan.popular ? 'text-white/70' : 'text-gray-600'}`}>
-                                            {plan.description}
-                                        </p>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="font-serif text-6xl font-black">
-                                                ₹<AnimatedCounter end={plan.price} />
-                                            </span>
-                                            <span className={plan.popular ? 'text-white/60' : 'text-gray-600'}>
-                                                /{plan.period}
-                                            </span>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="text-4xl font-display font-medium text-neutral-900">₹{plan.price}</span>
+                                            <span className="text-neutral-500">/{plan.period}</span>
                                         </div>
                                     </div>
 
-                                    {/* Features */}
-                                    <ul className="space-y-3 mb-8">
+                                    <ul className="space-y-3 mb-8 flex-1">
                                         {plan.features.map((feature, i) => (
-                                            <motion.li
-                                                key={i}
-                                                className="flex items-start gap-3"
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 1.2 + index * 0.15 + i * 0.03 }}
-                                                whileHover={{ x: 5 }}
-                                            >
-                                                <CheckCircle2 className={`h-5 w-5 flex-shrink-0 mt-0.5 ${plan.popular ? 'text-white' : 'text-black'
-                                                    }`} strokeWidth={2} />
-                                                <span className="text-sm leading-relaxed">{feature}</span>
-                                            </motion.li>
+                                            <li key={i} className="flex items-start gap-3 text-sm text-neutral-700">
+                                                <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                                                <span>{feature}</span>
+                                            </li>
                                         ))}
                                     </ul>
 
-                                    {/* CTA Button */}
-                                    <motion.button
+                                    <LuxeButton
                                         onClick={() => handleUpgrade(plan.name)}
                                         disabled={loadingPlan === plan.name || isCurrent}
-                                        whileHover={!isCurrent && !loadingPlan ? { scale: 1.02 } : {}}
-                                        whileTap={!isCurrent && !loadingPlan ? { scale: 0.98 } : {}}
-                                        className={`w-full py-4 rounded font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${isCurrent
-                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                : plan.popular
-                                                    ? 'bg-white text-black hover:bg-gray-100 button-enhanced'
-                                                    : 'border-2 border-black text-black hover:bg-black hover:text-white'
-                                            }`}
+                                        variant={isCurrent ? "secondary" : plan.popular ? "primary" : "outline"}
+                                        className="w-full justify-center"
+                                        isLoading={loadingPlan === plan.name}
                                     >
-                                        {loadingPlan === plan.name ? (
-                                            <Loader2 className="h-5 w-5 animate-spin" />
-                                        ) : isCurrent ? (
+                                        {isCurrent ? (
                                             <>
-                                                <CheckCircle2 className="h-5 w-5" />
+                                                <CheckCircle2 className="h-4 w-4 mr-2" />
                                                 Current Plan
                                             </>
                                         ) : (
                                             <>
                                                 Subscribe to {plan.name}
-                                                <motion.div
-                                                    animate={{ x: [0, 3, 0] }}
-                                                    transition={{ duration: 1.5, repeat: Infinity }}
-                                                >
-                                                    <ArrowRight className="h-5 w-5" />
-                                                </motion.div>
+                                                <ArrowRight className="h-4 w-4 ml-2" />
                                             </>
                                         )}
-                                    </motion.button>
-                                </motion.div>
-                            </MagneticCard>
+                                    </LuxeButton>
+                                </LuxeCard>
+                            </motion.div>
                         )
                     })}
                 </div>
+            </motion.div>
+
+            {/* Billing History & Payment Method */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Payment Method */}
+                <motion.div variants={fadeInUp}>
+                    <LuxeCard className="h-full p-8">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                                <CreditCard className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                                <h2 className="font-display text-xl font-medium text-neutral-900">Payment Method</h2>
+                                <p className="text-sm text-neutral-500">Secure payment via PhonePe</p>
+                            </div>
+                        </div>
+                        <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 flex items-center gap-4">
+                            <div className="w-12 h-8 bg-white border border-neutral-200 rounded flex items-center justify-center">
+                                <span className="text-xs font-bold text-neutral-900">UPI</span>
+                            </div>
+                            <div>
+                                <p className="font-medium text-neutral-900">PhonePe / UPI / Cards</p>
+                                <p className="text-xs text-neutral-500">Managed by PhonePe Gateway</p>
+                            </div>
+                        </div>
+                    </LuxeCard>
+                </motion.div>
+
+                {/* Billing History */}
+                <motion.div variants={fadeInUp}>
+                    <LuxeCard className="h-full p-8">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
+                                <Calendar className="h-5 w-5 text-purple-600" />
+                            </div>
+                            <div>
+                                <h2 className="font-display text-xl font-medium text-neutral-900">Billing History</h2>
+                                <p className="text-sm text-neutral-500">View past invoices</p>
+                            </div>
+                        </div>
+                        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                            {billingHistory.length === 0 ? (
+                                <div className="text-center py-8 text-neutral-500 text-sm">
+                                    No billing history yet
+                                </div>
+                            ) : (
+                                billingHistory.map((invoice) => (
+                                    <div
+                                        key={invoice.id}
+                                        className="flex items-center justify-between p-4 bg-white border border-neutral-100 rounded-xl hover:border-neutral-300 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
+                                                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-sm capitalize">{invoice.plan} Plan</p>
+                                                <p className="text-xs text-neutral-500">
+                                                    {new Date(invoice.created_at).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-medium text-sm">₹{invoice.amount / 100}</span>
+                                            <button className="text-neutral-400 hover:text-neutral-900 transition-colors">
+                                                <Download className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </LuxeCard>
+                </motion.div>
             </div>
 
-            {/* Payment Method */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.5 }}
-                className="card-luxe p-8"
-            >
-                <div className="flex items-center gap-3 mb-6">
-                    <motion.div
-                        className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center"
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        transition={{ type: 'spring', stiffness: 300 }}
-                    >
-                        <CreditCard className="h-6 w-6 text-white" strokeWidth={1.5} />
-                    </motion.div>
-                    <div>
-                        <span className="text-micro text-gray-400 block">Secure</span>
-                        <h2 className="text-title">Payment Method</h2>
+            {/* Support Banner */}
+            <motion.div variants={fadeInUp}>
+                <LuxeCard className="p-8 bg-neutral-50 border-neutral-200">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center shrink-0">
+                            <HelpCircle className="h-6 w-6 text-neutral-400" />
+                        </div>
+                        <div>
+                            <h3 className="font-display text-lg font-medium text-neutral-900">Need help with billing?</h3>
+                            <p className="text-sm text-neutral-600 mb-1">
+                                Our support team is here to help with any billing questions or concerns.
+                            </p>
+                            <a href="mailto:billing@raptorflow.in" className="text-sm font-bold text-neutral-900 hover:underline inline-flex items-center gap-1">
+                                Contact Support <ArrowRight className="w-3 h-3" />
+                            </a>
+                        </div>
                     </div>
-                </div>
-                <div className="flex items-center gap-4 p-6 bg-gray-50 rounded-lg">
-                    <div className="flex h-14 w-20 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600">
-                        <CreditCard className="h-7 w-7 text-white" strokeWidth={1.5} />
-                    </div>
-                    <div>
-                        <p className="font-semibold text-lg">PhonePe / UPI / Cards</p>
-                        <p className="text-sm text-gray-600">Secure payment via PhonePe</p>
-                    </div>
-                </div>
+                </LuxeCard>
             </motion.div>
-
-            {/* Billing History */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.6 }}
-                className="card-luxe p-8"
-            >
-                <div className="flex items-center gap-3 mb-6">
-                    <motion.div
-                        className="w-12 h-12 rounded-lg border border-black/10 bg-white flex items-center justify-center"
-                        animate={{ rotate: [0, 5, -5, 0] }}
-                        transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-                    >
-                        <Calendar className="h-6 w-6 text-black" strokeWidth={1.5} />
-                    </motion.div>
-                    <div>
-                        <span className="text-micro text-gray-400 block">History</span>
-                        <h2 className="text-title">Billing History</h2>
-                    </div>
-                </div>
-                <div className="space-y-3">
-                    {billingHistory.length === 0 ? (
-                        <motion.p
-                            className="text-gray-500 text-center py-12"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                        >
-                            No billing history yet
-                        </motion.p>
-                    ) : (
-                        billingHistory.map((invoice, index) => (
-                            <motion.div
-                                key={invoice.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 1.7 + index * 0.05 }}
-                                whileHover={{ x: 5, backgroundColor: 'rgba(0,0,0,0.02)' }}
-                                className="flex items-center justify-between p-5 bg-gray-50 rounded-lg transition-all duration-300 cursor-pointer"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <motion.div
-                                        className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100"
-                                        whileHover={{ scale: 1.1, rotate: 5 }}
-                                    >
-                                        <CheckCircle2 className="h-6 w-6 text-green-600" strokeWidth={2} />
-                                    </motion.div>
-                                    <div>
-                                        <p className="font-semibold capitalize">{invoice.plan} Plan</p>
-                                        <p className="text-sm text-gray-600">
-                                            {new Date(invoice.created_at).toLocaleDateString('en-US', {
-                                                month: 'long',
-                                                day: 'numeric',
-                                                year: 'numeric'
-                                            })}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <p className="font-bold text-xl">₹{invoice.amount / 100}</p>
-                                    <motion.button
-                                        className="flex items-center gap-2 text-sm font-semibold text-black hover:underline"
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
-                                        <Download className="h-4 w-4" strokeWidth={2} />
-                                        Invoice
-                                    </motion.button>
-                                </div>
-                            </motion.div>
-                        ))
-                    )}
-                </div>
-            </motion.div>
-
-            {/* Support Card */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.8 }}
-                className="card-luxe p-8 bg-gradient-to-br from-gray-50 to-white"
-            >
-                <div className="flex items-start gap-4">
-                    <motion.div
-                        className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 flex-shrink-0"
-                        animate={{
-                            boxShadow: [
-                                '0 0 0 0 rgba(59, 130, 246, 0.4)',
-                                '0 0 0 10px rgba(59, 130, 246, 0)',
-                            ],
-                        }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                    >
-                        <AlertCircle className="h-7 w-7 text-blue-600" strokeWidth={2} />
-                    </motion.div>
-                    <div>
-                        <h3 className="font-serif text-2xl font-bold mb-3">Need help with billing?</h3>
-                        <p className="text-gray-700 mb-5 leading-relaxed">
-                            Our support team is here to help with any billing questions or concerns.
-                        </p>
-                        <motion.a
-                            href="mailto:billing@raptorflow.in"
-                            className="inline-flex items-center gap-2 text-sm font-semibold text-black hover:underline group"
-                            whileHover={{ x: 5 }}
-                        >
-                            Contact Support
-                            <motion.div
-                                animate={{ x: [0, 3, 0] }}
-                                transition={{ duration: 1.5, repeat: Infinity }}
-                            >
-                                <ArrowRight className="h-4 w-4" strokeWidth={2} />
-                            </motion.div>
-                        </motion.a>
-                    </div>
-                </div>
-            </motion.div>
-        </div>
+        </motion.div>
     );
 }

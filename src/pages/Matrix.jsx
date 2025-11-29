@@ -18,6 +18,8 @@ import {
   Users,
   Zap,
   X,
+  Target,
+  Layout
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -30,9 +32,19 @@ import {
   CartesianGrid,
   Cell,
 } from "recharts";
-import { PageHeader, LuxeHeading, LuxeButton, LuxeCard, LuxeBadge, LuxeStat } from '../components/ui/PremiumUI';
-
-const cn = (...c) => c.filter(Boolean).join(" ");
+import {
+  HeroSection,
+  StatCard,
+  LuxeCard,
+  LuxeButton,
+  LuxeBadge,
+  FilterPills,
+  staggerContainer,
+  fadeInUp,
+  LuxeSkeleton
+} from '../components/ui/PremiumUI';
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "../utils/cn";
 
 // Mock data
 const CAMPAIGNS = [
@@ -96,26 +108,16 @@ const PULSE = [
   { id: "a2", title: "Scale Weekday Lunch Reels", reason: "Reels 3x baseline; add 3 more this week.", actionType: "scale" },
 ];
 
-const statusStyles = {
-  on_track: "bg-emerald-50 text-emerald-700 border-emerald-100",
-  at_risk: "bg-amber-50 text-amber-700 border-amber-100",
-  off_track: "bg-rose-50 text-rose-700 border-rose-100",
-  healthy: "bg-emerald-50 text-emerald-700 border-emerald-100",
-  weak: "bg-amber-50 text-amber-700 border-amber-100",
-  dead: "bg-neutral-100 text-neutral-600 border-neutral-200",
-};
-
-const StatusPill = ({ status, text }) => (
-  <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide", statusStyles[status] || statusStyles.dead)}>
-    {text || status}
-  </span>
-);
-
 const Progress = ({ current, total }) => {
   const pct = Math.min((current / total) * 100, 100);
   return (
-    <div className="h-1.5 w-full rounded-full bg-neutral-100">
-      <div className="h-1.5 rounded-full bg-neutral-900" style={{ width: `${pct}%` }} />
+    <div className="h-2 w-full rounded-full bg-neutral-100 overflow-hidden">
+      <motion.div
+        className="h-full bg-neutral-900"
+        initial={{ width: 0 }}
+        animate={{ width: `${pct}%` }}
+        transition={{ duration: 1, ease: "easeOut" }}
+      />
     </div>
   );
 };
@@ -158,181 +160,274 @@ export default function Matrix() {
     }
   }, [searchParams]);
 
+  const tabs = [
+    { value: "moves", label: "Moves" },
+    { value: "cohorts", label: "Cohorts" },
+    { value: "patterns", label: "Patterns" },
+    { value: "pulse", label: "Pulse" }
+  ];
+
   return (
-    <div className="space-y-8 max-w-7xl mx-auto p-6">
-      {/* Page Title (Task 24) */}
-      <PageHeader
-        title="The Matrix"
-        subtitle="Cross-campaign intelligence, pattern recognition, and anomaly detection."
-        action={
-            <nav className="hidden gap-1 md:flex p-1 bg-neutral-100 rounded-lg">
-            {["moves", "cohorts", "patterns", "pulse"].map((t) => (
-                <button
-                key={t}
-                onClick={() => { setSelectedMove(null); setTab(t); }}
-                className={cn(
-                    "rounded-md px-4 py-2 text-sm font-medium capitalize transition-all", 
-                    tab === t ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-900"
-                )}
-                >
-                {t}
-                </button>
-            ))}
-            </nav>
-        }
-      />
+    <motion.div
+      className="max-w-[1440px] mx-auto px-6 py-8 space-y-8"
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={staggerContainer}
+    >
+      {/* Page Title */}
+      <motion.div variants={fadeInUp}>
+        <HeroSection
+          title="The Matrix"
+          subtitle="Cross-campaign intelligence, pattern recognition, and anomaly detection."
+          metrics={[
+            { label: 'Active Moves', value: CAMPAIGNS.length.toString() },
+            { label: 'Cohorts', value: COHORTS.length.toString() },
+            { label: 'Signals', value: PATTERNS.length.toString() }
+          ]}
+        />
+      </motion.div>
+
       {!selectedMove ? (
         <>
-          {tab === "moves" && (
-            <div className="space-y-6">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div className="flex flex-1 items-center gap-2 rounded-full border border-neutral-200 px-3 py-2">
-                  <Search size={16} className="text-neutral-400" />
-                  <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search moves..." className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400" />
+          <motion.div variants={fadeInUp} className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <FilterPills
+              filters={tabs}
+              activeFilter={tab}
+              onFilterChange={(t) => { setSelectedMove(null); setTab(t); }}
+            />
+
+            {tab === "moves" && (
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search moves..."
+                    className="pl-9 pr-4 py-2 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900 w-64"
+                  />
                 </div>
                 <div className="flex gap-2">
                   {["all", "active"].map((s) => (
-                    <button key={s} onClick={() => setStatusFilter(s)} className={cn("rounded-full border px-3 py-1 text-xs font-semibold", statusFilter === s ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-600")}>
-                      {s}
+                    <button
+                      key={s}
+                      onClick={() => setStatusFilter(s)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
+                        statusFilter === s
+                          ? "bg-neutral-900 text-white border-neutral-900"
+                          : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300"
+                      )}
+                    >
+                      {s.charAt(0).toUpperCase() + s.slice(1)}
                     </button>
                   ))}
-                  <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-600">
-                    <Filter size={14} /> Filters
-                  </div>
                 </div>
               </div>
+            )}
+          </motion.div>
 
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <AnimatePresence mode="wait">
+            {tab === "moves" && (
+              <motion.div
+                key="moves"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="grid grid-cols-1 gap-6 lg:grid-cols-2"
+              >
                 {filteredMoves.map((move) => (
-                  <div key={move.id} className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300">
-                    <div className="absolute left-0 top-0 h-full w-1 bg-neutral-900" />
-                    <div className="flex items-start justify-between">
+                  <LuxeCard key={move.id} className="p-6 hover:shadow-md transition-shadow group">
+                    <div className="flex items-start justify-between mb-6">
                       <div>
-                        <div className="mb-2 flex items-center gap-2">
-                          <Link to={`/strategy/campaigns/${move.id}`} className="text-lg font-semibold hover:underline">{move.name}</Link>
-                          <StatusPill status={move.status} />
+                        <div className="flex items-center gap-3 mb-2">
+                          <Link to={`/strategy/campaigns/${move.id}`} className="text-lg font-medium text-neutral-900 hover:text-neutral-700 transition-colors">{move.name}</Link>
+                          <LuxeBadge variant={
+                            move.status === 'on_track' ? 'success' :
+                              move.status === 'at_risk' ? 'warning' :
+                                'error'
+                          }>
+                            {move.status.replace('_', ' ')}
+                          </LuxeBadge>
                         </div>
                         <p className="text-sm text-neutral-500">{move.goal}</p>
                       </div>
-                      <button className="text-neutral-400 hover:text-neutral-700"><MoreHorizontal size={18} /></button>
+                      <button className="text-neutral-400 hover:text-neutral-900 transition-colors"><MoreHorizontal size={20} /></button>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+                    <div className="grid grid-cols-3 gap-6 mb-6">
                       <div>
-                        <p className="text-[11px] uppercase tracking-wide text-neutral-500">Progress</p>
-                        <p className="text-lg font-semibold">{Math.round((move.current / move.target) * 100)}%</p>
+                        <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold mb-1">Progress</p>
+                        <p className="text-2xl font-display font-medium text-neutral-900 mb-2">{Math.round((move.current / move.target) * 100)}%</p>
                         <Progress current={move.current} total={move.target} />
                       </div>
                       <div>
-                        <p className="text-[11px] uppercase tracking-wide text-neutral-500">Execution</p>
-                        <p className="text-lg font-semibold">{move.tasksDone}/{move.totalTasks}</p>
+                        <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold mb-1">Execution</p>
+                        <p className="text-2xl font-display font-medium text-neutral-900">{move.tasksDone}/{move.totalTasks}</p>
                       </div>
                       <div>
-                        <p className="text-[11px] uppercase tracking-wide text-neutral-500">Top channel</p>
-                        <p className="text-lg font-semibold text-emerald-700">{move.bestChannelMultiplier}</p>
+                        <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold mb-1">Top Channel</p>
+                        <p className="text-2xl font-display font-medium text-emerald-600">{move.bestChannelMultiplier}</p>
                       </div>
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-3">
-                      <div className="flex items-center gap-2 text-xs text-neutral-500">
-                        <Users size={12} /> {move.bestCohort}
+                    <div className="flex items-center justify-between pt-4 border-t border-neutral-100">
+                      <div className="flex items-center gap-2 text-xs font-medium text-neutral-500">
+                        <Users size={14} /> {move.bestCohort}
                       </div>
-                      <div className="flex gap-2">
-                        <button className="rounded-full px-3 py-1 text-xs font-semibold text-neutral-600 hover:text-neutral-900">Review</button>
-                        <button onClick={() => setSelectedMove(move)} className="rounded-full bg-neutral-900 px-3 py-1 text-xs font-semibold text-white">View Matrix</button>
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <LuxeButton variant="ghost" size="sm">Review</LuxeButton>
+                        <LuxeButton size="sm" onClick={() => setSelectedMove(move)}>View Matrix</LuxeButton>
                       </div>
                     </div>
-                  </div>
+                  </LuxeCard>
                 ))}
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
 
-          {tab === "cohorts" && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {COHORTS.map((c) => (
-                <div key={c.id} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300">
-                  <div className="mb-3 flex items-start justify-between">
-                    <div>
-                      <p className="text-[11px] uppercase tracking-wide text-neutral-500">Cohort</p>
-                      <h3 className="text-lg font-semibold">{c.name}</h3>
-                    </div>
-                    <StatusPill status={c.health} />
-                  </div>
-                  <div className="space-y-2 text-sm text-neutral-600">
-                    <div className="flex justify-between"><span>Active moves</span><span className="font-semibold text-neutral-900">{c.activeMoves}</span></div>
-                    <div className="flex items-center justify-between">
-                      <span>Response rate</span>
-                      <span className="flex items-center gap-1 font-semibold text-neutral-900">
-                        {c.responseRate}
-                        {c.responseTrend === "up" && <TrendingUp size={14} className="text-emerald-600" />}
-                        {c.responseTrend === "down" && <TrendingDown size={14} className="text-rose-500" />}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="mt-3 space-y-1 rounded-xl bg-neutral-50 p-3 text-sm">
-                    <div className="flex items-start gap-2 text-emerald-700"><Star size={14} /> {c.bestPattern}</div>
-                    <div className="flex items-start gap-2 text-rose-600"><Skull size={14} /> {c.deadPattern}</div>
-                  </div>
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    <button className="rounded-lg border border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-700 hover:border-neutral-300">Details</button>
-                    <button onClick={() => openMuse({ cohort: c.name, pattern: c.bestPattern })} className="col-span-2 rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white hover:bg-neutral-800">Open in Muse</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {tab === "patterns" && (
-            <div className="space-y-3">
-              {PATTERNS.map((p, idx) => (
-                <div key={p.id} className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300 md:flex-row md:items-center">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-sm font-semibold text-neutral-700">#{idx + 1}</div>
-                  <div className="flex-1">
-                    <div className="mb-1 flex items-center gap-2">
-                      <h3 className="text-lg font-semibold">{p.name}</h3>
-                      <StatusPill status={p.sentiment === "positive" ? "healthy" : "off_track"} text={`${p.performance}% vs baseline`} />
-                    </div>
-                  </div>
-                  <div className="flex w-full gap-2 md:w-auto">
-                    <button className="flex-1 rounded-lg border border-neutral-200 px-4 py-2 text-xs font-semibold text-neutral-700 hover:border-neutral-300">See assets</button>
-                    {p.sentiment === "positive" && (
-                      <button onClick={() => openMuse({ pattern: p.name, sourceName: "Pattern Matrix" })} className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-xs font-semibold text-white hover:bg-neutral-800">Scale in Muse</button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {tab === "pulse" && (
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <LuxeStat label="Moves On Track" value="2" icon={Check} />
-                <LuxeStat label="Moves At Risk" value="1" icon={AlertCircle} />
-                <LuxeStat label="Moves Failing" value="1" icon={X} />
-              </div>
-              <div className="space-y-4">
-                {PULSE.map((a) => (
-                  <div key={a.id} className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-base font-semibold">{a.title}</h4>
-                        <StatusPill status={a.actionType === "kill" ? "off_track" : "healthy"} text={`${a.impact || ""} Impact`} />
+            {tab === "cohorts" && (
+              <motion.div
+                key="cohorts"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="grid grid-cols-1 gap-6 md:grid-cols-2"
+              >
+                {COHORTS.map((c) => (
+                  <LuxeCard key={c.id} className="p-6 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between mb-6">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold mb-1">Cohort</p>
+                        <h3 className="text-xl font-display font-medium text-neutral-900">{c.name}</h3>
                       </div>
-                      <p className="text-sm text-neutral-600">{a.reason}</p>
+                      <LuxeBadge variant={c.health === 'healthy' ? 'success' : 'warning'}>
+                        {c.health}
+                      </LuxeBadge>
                     </div>
-                    <div className="flex w-full gap-2 md:w-auto">
-                      <button className="flex-1 rounded-lg border border-neutral-200 px-4 py-2 text-xs font-semibold text-neutral-700 hover:border-neutral-300">Ignore</button>
-                      <button onClick={() => setPulseAction(a)} className={cn("flex-1 rounded-lg px-4 py-2 text-xs font-semibold text-white", a.actionType === "kill" ? "bg-rose-600 hover:bg-rose-500" : "bg-emerald-600 hover:bg-emerald-500")}>
-                        {a.actionType === "kill" ? "Kill Move" : "Apply"}
-                      </button>
+
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="p-3 bg-neutral-50 rounded-lg">
+                        <span className="text-xs text-neutral-500 block mb-1">Active Moves</span>
+                        <span className="text-lg font-medium text-neutral-900">{c.activeMoves}</span>
+                      </div>
+                      <div className="p-3 bg-neutral-50 rounded-lg">
+                        <span className="text-xs text-neutral-500 block mb-1">Response Rate</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-medium text-neutral-900">{c.responseRate}</span>
+                          {c.responseTrend === "up" ? (
+                            <TrendingUp size={14} className="text-emerald-600" />
+                          ) : (
+                            <TrendingDown size={14} className="text-rose-500" />
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+
+                    <div className="space-y-2 mb-6">
+                      <div className="flex items-center gap-3 text-sm p-2 rounded-lg bg-emerald-50/50 border border-emerald-100">
+                        <Star size={14} className="text-emerald-600" />
+                        <span className="font-medium text-emerald-900">{c.bestPattern}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm p-2 rounded-lg bg-rose-50/50 border border-rose-100">
+                        <Skull size={14} className="text-rose-600" />
+                        <span className="font-medium text-rose-900">{c.deadPattern}</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <LuxeButton variant="outline" size="sm">Details</LuxeButton>
+                      <LuxeButton size="sm" onClick={() => openMuse({ cohort: c.name, pattern: c.bestPattern })}>
+                        Open in Muse
+                      </LuxeButton>
+                    </div>
+                  </LuxeCard>
                 ))}
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+
+            {tab === "patterns" && (
+              <motion.div
+                key="patterns"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-4"
+              >
+                {PATTERNS.map((p, idx) => (
+                  <LuxeCard key={p.id} className="p-6 hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center gap-6">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-50 text-lg font-display font-medium text-neutral-900">
+                      #{idx + 1}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-lg font-medium text-neutral-900">{p.name}</h3>
+                        <LuxeBadge variant={p.sentiment === 'positive' ? 'success' : 'error'}>
+                          {p.performance > 0 ? '+' : ''}{p.performance}% vs baseline
+                        </LuxeBadge>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 w-full md:w-auto">
+                      <LuxeButton variant="outline" size="sm" className="flex-1 md:flex-none">See assets</LuxeButton>
+                      {p.sentiment === "positive" && (
+                        <LuxeButton
+                          size="sm"
+                          onClick={() => openMuse({ pattern: p.name, sourceName: "Pattern Matrix" })}
+                          className="flex-1 md:flex-none"
+                        >
+                          Scale in Muse
+                        </LuxeButton>
+                      )}
+                    </div>
+                  </LuxeCard>
+                ))}
+              </motion.div>
+            )}
+
+            {tab === "pulse" && (
+              <motion.div
+                key="pulse"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-8"
+              >
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                  <StatCard label="Moves On Track" value="2" icon={Check} trend="up" />
+                  <StatCard label="Moves At Risk" value="1" icon={AlertCircle} trend="down" />
+                  <StatCard label="Moves Failing" value="1" icon={X} trend="down" />
+                </div>
+                <div className="space-y-4">
+                  {PULSE.map((a) => (
+                    <LuxeCard key={a.id} className="p-6 hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-6">
+                      <div>
+                        <div className="flex items-center gap-3 mb-2">
+                          <h4 className="text-lg font-medium text-neutral-900">{a.title}</h4>
+                          <LuxeBadge variant={a.actionType === 'kill' ? 'error' : 'success'}>
+                            {a.actionType === 'kill' ? 'High Impact' : 'Opportunity'}
+                          </LuxeBadge>
+                        </div>
+                        <p className="text-neutral-500">{a.reason}</p>
+                      </div>
+                      <div className="flex gap-3 w-full md:w-auto">
+                        <LuxeButton variant="ghost" size="sm" className="flex-1 md:flex-none">Ignore</LuxeButton>
+                        <LuxeButton
+                          size="sm"
+                          onClick={() => setPulseAction(a)}
+                          className={cn(
+                            "flex-1 md:flex-none",
+                            a.actionType === "kill" ? "bg-rose-600 hover:bg-rose-700" : "bg-emerald-600 hover:bg-emerald-700"
+                          )}
+                        >
+                          {a.actionType === "kill" ? "Kill Move" : "Apply"}
+                        </LuxeButton>
+                      </div>
+                    </LuxeCard>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       ) : (
         <Detail move={selectedMove} onBack={() => setSelectedMove(null)} openMuse={openMuse} setAsset={setSelectedAsset} />
@@ -341,166 +436,179 @@ export default function Matrix() {
       {selectedAsset && <AssetInspector asset={selectedAsset} onClose={() => setSelectedAsset(null)} onOpenMuse={openMuse} />}
       {pulseAction && <StrategyModal action={pulseAction} onClose={() => setPulseAction(null)} />}
       {museContext && <MuseBridge context={museContext} onClose={() => setMuseContext(null)} />}
-    </div>
+    </motion.div>
   );
 }
 
 const Detail = ({ move, onBack, openMuse, setAsset }) => (
-  <div className="space-y-6">
-    <button onClick={onBack} className="inline-flex items-center gap-2 text-sm font-semibold text-neutral-600 hover:text-neutral-900">
-      <ChevronRight className="-ml-1 rotate-180" size={16} /> Back
+  <motion.div
+    initial={{ opacity: 0, x: 20 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: -20 }}
+    className="space-y-8"
+  >
+    <button onClick={onBack} className="inline-flex items-center gap-2 text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors">
+      <ChevronRight className="-ml-1 rotate-180" size={16} /> Back to Matrix
     </button>
 
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-      <InfoCard label="Goal Pace" value={`${move.current}/${move.target}`} pill={<StatusPill status={move.status} />} />
-      <InfoCard label="Execution" value={`${Math.round((move.tasksDone / move.totalTasks) * 100)}%`} sub={`${move.totalTasks - move.tasksDone} tasks remaining`} />
-      <InfoCard label="Top Channel" value={move.bestChannel} sub={move.bestChannelMultiplier} />
-      <InfoCard label="Health" value={`${move.healthScore}/100`} icon={<TrendingUp size={14} className="text-emerald-600" />} />
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+      <StatCard
+        label="Goal Pace"
+        value={`${move.current}/${move.target}`}
+        icon={Target}
+        trend={move.status === 'on_track' ? 'up' : 'down'}
+      />
+      <StatCard
+        label="Execution"
+        value={`${Math.round((move.tasksDone / move.totalTasks) * 100)}%`}
+        change={`${move.totalTasks - move.tasksDone} tasks remaining`}
+        icon={Activity}
+      />
+      <StatCard
+        label="Top Channel"
+        value={move.bestChannel}
+        change={move.bestChannelMultiplier}
+        icon={Zap}
+        trend="up"
+      />
+      <StatCard
+        label="Health"
+        value={`${move.healthScore}/100`}
+        icon={TrendingUp}
+        trend={move.healthScore > 80 ? 'up' : 'down'}
+      />
     </div>
 
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div className="lg:col-span-2 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between">
+      <LuxeCard className="lg:col-span-2 p-6">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-neutral-500">Channel Breakdown</p>
-            <h3 className="text-lg font-semibold">Performance</h3>
+            <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold mb-1">Channel Breakdown</p>
+            <h3 className="text-xl font-display font-medium text-neutral-900">Performance</h3>
           </div>
         </div>
-        <div className="mt-4 h-64">
+        <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={CHANNEL_DETAILS} layout="vertical" margin={{ left: 0, right: 30 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f1f1" horizontal={false} />
               <XAxis type="number" hide />
               <YAxis dataKey="name" type="category" stroke="#9ca3af" width={90} tick={{ fontSize: 12 }} />
-              <Tooltip contentStyle={{ backgroundColor: "white", borderColor: "#e5e7eb", color: "#111827" }} cursor={{ fill: "#f9fafb" }} />
-              <Bar dataKey="impressions" barSize={18} radius={[0, 6, 6, 0]}>
+              <Tooltip
+                contentStyle={{ backgroundColor: "white", borderColor: "#e5e7eb", color: "#111827", borderRadius: "8px", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
+                cursor={{ fill: "#f9fafb" }}
+              />
+              <Bar dataKey="impressions" barSize={24} radius={[0, 6, 6, 0]}>
                 {CHANNEL_DETAILS.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.sentiment === "positive" ? "#10b981" : entry.sentiment === "negative" ? "#f43f5e" : "#6b7280"} />
+                  <Cell key={`cell-${index}`} fill={entry.sentiment === "positive" ? "#10b981" : entry.sentiment === "negative" ? "#f43f5e" : "#9ca3af"} />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </LuxeCard>
 
-      <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
-          <BarChart2 size={14} /> Live Signals
+      <LuxeCard className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-800 text-white border-none">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/60 mb-4">
+          <Sparkles size={14} /> Live Signals
         </div>
-        <p className="mt-2 text-sm text-neutral-600">{move.aiSummary}</p>
-        <div className="mt-4 space-y-2">
-          <button onClick={() => openMuse({ sourceName: move.name })} className="flex w-full items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-sm font-semibold text-neutral-800 hover:border-neutral-300">
+        <p className="text-lg font-medium leading-relaxed mb-8">{move.aiSummary}</p>
+        <div className="space-y-3">
+          <button onClick={() => openMuse({ sourceName: move.name })} className="flex w-full items-center justify-between rounded-xl bg-white/10 hover:bg-white/20 px-4 py-3 text-sm font-medium transition-colors">
             Open in Muse <ArrowUpRight size={14} />
           </button>
-          <button className="flex w-full items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-sm font-semibold text-neutral-800 hover:border-neutral-300">
+          <button className="flex w-full items-center justify-between rounded-xl bg-white/10 hover:bg-white/20 px-4 py-3 text-sm font-medium transition-colors">
             Auto-create tasks <ArrowUpRight size={14} />
           </button>
         </div>
-      </div>
+      </LuxeCard>
     </div>
 
-    <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
+    <LuxeCard className="overflow-hidden">
+      <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-neutral-50/50">
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-neutral-500">Creative Assets</p>
-          <h3 className="text-lg font-semibold">Performance by asset</h3>
+          <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold mb-1">Creative Assets</p>
+          <h3 className="text-lg font-medium text-neutral-900">Performance by asset</h3>
         </div>
-        <div className="flex gap-2 text-neutral-500">
-          <button className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs font-semibold hover:border-neutral-300">
-            <Filter size={14} /> Filter
-          </button>
-        </div>
+        <LuxeButton variant="outline" size="sm">
+          <Filter size={14} className="mr-2" /> Filter
+        </LuxeButton>
       </div>
       <div className="divide-y divide-neutral-100">
         {ASSETS.map((asset) => (
-          <div key={asset.id} className="flex flex-col gap-3 px-5 py-4 transition hover:bg-neutral-50 md:flex-row md:items-center md:justify-between">
+          <div key={asset.id} className="flex flex-col gap-4 px-6 py-4 transition hover:bg-neutral-50 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="flex items-center gap-2">
-                {asset.sentiment === "winner" && <Star size={14} className="text-amber-500" />}
-                <p className="text-sm font-semibold">{asset.name}</p>
+              <div className="flex items-center gap-2 mb-1">
+                {asset.sentiment === "winner" && <Star size={14} className="text-amber-500 fill-amber-500" />}
+                <p className="text-sm font-medium text-neutral-900">{asset.name}</p>
               </div>
               <p className="text-xs text-neutral-500">{asset.type} • {asset.cohort}</p>
             </div>
-            <div className="flex flex-wrap items-center gap-4 text-sm">
+            <div className="flex flex-wrap items-center gap-8 text-sm">
               <Mini label="Reach" value={asset.exposures.toLocaleString()} />
               <Mini label="Conv." value={asset.conversions} />
               <Mini label="Score" value={asset.score} />
               <div className="flex gap-2">
-                <button className="rounded-full border border-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-700 hover:border-neutral-300">Winner</button>
-                <button className="rounded-full border border-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-700 hover:border-neutral-300">Flop</button>
-                <button onClick={() => setAsset(asset)} className="rounded-full bg-neutral-900 px-3 py-1 text-xs font-semibold text-white hover:bg-neutral-800">Open</button>
+                <LuxeButton variant="ghost" size="sm">Winner</LuxeButton>
+                <LuxeButton variant="ghost" size="sm">Flop</LuxeButton>
+                <LuxeButton size="sm" onClick={() => setAsset(asset)}>Open</LuxeButton>
               </div>
             </div>
           </div>
         ))}
       </div>
-    </div>
-  </div>
-);
-
-const InfoCard = ({ label, value, sub, pill, icon }) => (
-  <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-    <div className="mb-1 flex items-start justify-between">
-      <p className="text-[11px] uppercase tracking-wide text-neutral-500">{label}</p>
-      {pill}
-    </div>
-    <div className="text-2xl font-semibold text-neutral-900">{value}</div>
-    {sub && <p className="text-xs text-neutral-500">{sub}</p>}
-    {icon && <div className="mt-2 text-neutral-500">{icon}</div>}
-  </div>
+    </LuxeCard>
+  </motion.div>
 );
 
 const Mini = ({ label, value }) => (
   <div>
-    <p className="text-[11px] uppercase tracking-wide text-neutral-500">{label}</p>
-    <p className="text-sm font-semibold text-neutral-900">{value}</p>
+    <p className="text-[10px] uppercase tracking-wider text-neutral-400 font-bold mb-0.5">{label}</p>
+    <p className="text-sm font-medium text-neutral-900">{value}</p>
   </div>
 );
-
-const PulseStat = ({ label, value, tone }) => {
-  const tones = {
-    emerald: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    amber: "bg-amber-50 text-amber-700 border-amber-100",
-    rose: "bg-rose-50 text-rose-700 border-rose-100",
-  };
-  return (
-    <div className={cn("rounded-xl border p-4", tones[tone] || "bg-neutral-50 text-neutral-700 border-neutral-100")}>
-      <div className="text-3xl font-semibold">{value}</div>
-      <div className="text-xs font-semibold uppercase tracking-wide">{label}</div>
-    </div>
-  );
-};
 
 const AssetInspector = ({ asset, onClose, onOpenMuse }) => {
   if (!asset) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur">
-      <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="w-full max-w-3xl overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
+      >
+        <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">Asset</p>
-            <h3 className="text-lg font-semibold">{asset.name}</h3>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">Asset</p>
+            <h3 className="text-xl font-display font-medium text-neutral-900">{asset.name}</h3>
             <p className="text-xs text-neutral-500">{asset.type} • {asset.cohort}</p>
           </div>
-          <button onClick={onClose} className="rounded-full border border-neutral-200 p-2 text-neutral-500">
-            <X size={16} />
+          <button onClick={onClose} className="rounded-full p-2 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900 transition-colors">
+            <X size={20} />
           </button>
         </div>
         <div className="grid gap-0 md:grid-cols-2">
-          <div className="flex flex-col gap-2 p-5 text-sm text-neutral-700">
-            <Mini label="Reach" value={asset.exposures.toLocaleString()} />
-            <Mini label="Conversions" value={asset.conversions} />
-            <Mini label="Score" value={asset.score} />
+          <div className="flex flex-col gap-6 p-6">
+            <div className="grid grid-cols-3 gap-4">
+              <Mini label="Reach" value={asset.exposures.toLocaleString()} />
+              <Mini label="Conversions" value={asset.conversions} />
+              <Mini label="Score" value={asset.score} />
+            </div>
+            <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100">
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                AI Analysis: This asset is performing 2.4x better than average for the {asset.cohort} cohort.
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col gap-2 border-l border-neutral-100 p-5">
-            <button className="rounded-lg border border-neutral-200 px-3 py-2 text-sm font-semibold text-neutral-700 hover:border-neutral-300">Mark winner</button>
-            <button className="rounded-lg border border-neutral-200 px-3 py-2 text-sm font-semibold text-neutral-700 hover:border-neutral-300">Mark flop</button>
-            <button onClick={() => onOpenMuse(asset)} className="rounded-lg bg-neutral-900 px-3 py-2 text-sm font-semibold text-white hover:bg-neutral-800">
+          <div className="flex flex-col gap-3 border-l border-neutral-100 p-6 bg-neutral-50/30">
+            <LuxeButton variant="outline" className="justify-start">Mark as Winner</LuxeButton>
+            <LuxeButton variant="outline" className="justify-start">Mark as Flop</LuxeButton>
+            <LuxeButton onClick={() => onOpenMuse(asset)} className="justify-start">
               Open in Muse
-            </button>
+            </LuxeButton>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
@@ -508,23 +616,30 @@ const AssetInspector = ({ asset, onClose, onOpenMuse }) => {
 const StrategyModal = ({ action, onClose }) => {
   if (!action) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur">
-      <div className="w-full max-w-lg rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
-        <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="w-full max-w-lg rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl"
+      >
+        <div className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
           <Brain size={14} /> Strategy Update
         </div>
-        <h3 className="text-xl font-semibold text-neutral-900">{action.title}</h3>
-        <p className="mt-2 text-sm text-neutral-600">{action.reason}</p>
-        <div className="mt-4 space-y-2 rounded-xl border border-neutral-100 bg-neutral-50 p-4 text-sm text-neutral-800">
-          <div className="flex items-center gap-2"><Check size={14} className="text-emerald-600" /> Auto-create tasks in Moves</div>
-          <div className="flex items-center gap-2"><Check size={14} className="text-emerald-600" /> Update forecasts</div>
-          <div className="flex items-center gap-2"><Check size={14} className="text-emerald-600" /> Notify team</div>
+        <h3 className="text-xl font-display font-medium text-neutral-900 mb-2">{action.title}</h3>
+        <p className="text-sm text-neutral-600 leading-relaxed mb-6">{action.reason}</p>
+
+        <div className="space-y-3 rounded-xl border border-neutral-100 bg-neutral-50 p-4 text-sm text-neutral-800 mb-6">
+          <div className="flex items-center gap-3"><div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center"><Check size={12} className="text-emerald-600" /></div> Auto-create tasks in Moves</div>
+          <div className="flex items-center gap-3"><div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center"><Check size={12} className="text-emerald-600" /></div> Update forecasts</div>
+          <div className="flex items-center gap-3"><div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center"><Check size={12} className="text-emerald-600" /></div> Notify team</div>
         </div>
-        <div className="mt-6 flex gap-3">
-          <button onClick={onClose} className="flex-1 rounded-lg border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 hover:border-neutral-300">Cancel</button>
-          <button onClick={onClose} className="flex-1 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800">Confirm & Execute</button>
+
+        <div className="flex gap-3">
+          <LuxeButton variant="outline" onClick={onClose} className="flex-1">Cancel</LuxeButton>
+          <LuxeButton onClick={onClose} className="flex-1">Confirm & Execute</LuxeButton>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
@@ -532,27 +647,32 @@ const StrategyModal = ({ action, onClose }) => {
 const MuseBridge = ({ context, onClose }) => {
   if (!context) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur">
-      <div className="w-full max-w-xl rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
-        <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="w-full max-w-xl rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl"
+      >
+        <div className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500">
           <Sparkles size={14} /> Matrix → Muse
         </div>
-        <div className="space-y-2 text-sm text-neutral-800">
+        <div className="space-y-3 text-sm text-neutral-800 mb-6">
           <Row label="Source" value={context.sourceName || "Move analysis"} />
           <Row label="Cohort" value={context.cohort || "N/A"} />
           <Row label="Pattern" value={context.pattern || context.tag || "N/A"} />
         </div>
-        <button onClick={onClose} className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800">
-          Start ideation <ArrowUpRight size={14} />
-        </button>
-      </div>
+        <LuxeButton onClick={onClose} className="w-full">
+          Start ideation <ArrowUpRight size={14} className="ml-2" />
+        </LuxeButton>
+      </motion.div>
     </div>
   );
 };
 
 const Row = ({ label, value }) => (
-  <div className="flex items-center justify-between rounded-lg border border-neutral-100 bg-neutral-50 px-3 py-2">
-    <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{label}</span>
-    <span className="text-sm font-semibold text-neutral-900">{value}</span>
+  <div className="flex items-center justify-between rounded-lg border border-neutral-100 bg-neutral-50 px-4 py-3">
+    <span className="text-xs font-bold uppercase tracking-wide text-neutral-500">{label}</span>
+    <span className="text-sm font-medium text-neutral-900">{value}</span>
   </div>
 );

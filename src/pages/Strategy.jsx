@@ -20,7 +20,7 @@ import {
   Scale,
   Bell
 } from 'lucide-react'
-import { LuxeHeading, LuxeButton, LuxeCard, LuxeBadge } from '../components/ui/PremiumUI'
+import { LuxeHeading, LuxeButton, LuxeCard, LuxeBadge, HeroSection } from '../components/ui/PremiumUI'
 import { pageTransition, fadeInUp, staggerContainer } from '../utils/animations'
 
 const strategyTools = [
@@ -161,26 +161,16 @@ export default function Strategy() {
       variants={pageTransition}
     >
       {/* Hero */}
-      <motion.div
-        variants={fadeInUp}
-        className="relative overflow-hidden p-10 bg-white border border-neutral-200 rounded-2xl shadow-sm"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-white via-neutral-50 to-white" />
-        <div className="relative z-10 flex items-center gap-6">
-          <div className="w-16 h-16 rounded-full border border-neutral-200 bg-white flex items-center justify-center">
-            <Sparkles className="w-7 h-7 text-neutral-900" />
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-mono font-medium uppercase tracking-[0.5em] text-neutral-400">Strategy Atelier</span>
-              <span className="h-px w-16 bg-neutral-200" />
-            </div>
-            <LuxeHeading level={1}>Strategic Command Center</LuxeHeading>
-            <p className="font-sans text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400">
-              Positioning, Cohorts, and Campaign Orchestration
-            </p>
-          </div>
-        </div>
+      <motion.div variants={fadeInUp}>
+        <HeroSection
+          title="Strategic Command Center"
+          subtitle="Positioning, Cohorts, and Campaign Orchestration"
+          metrics={[
+            { label: 'Strategy Score', value: '92' },
+            { label: 'Active Moves', value: '12' },
+            { label: 'Campaigns', value: '3' }
+          ]}
+        />
       </motion.div>
 
       {/* Strategy Tools - NEW */}

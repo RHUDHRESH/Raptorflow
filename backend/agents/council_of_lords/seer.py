@@ -10,6 +10,8 @@ from abc import ABC
 import uuid
 
 from agents.base_agent import BaseAgent, AgentRole, AgentStatus, Capability, CapabilityHandler
+from backend.core.interfaces.agent_interface import AgentInterface
+from backend.services.mcp_integration import MCPIntegrationService, ToolRequest, MCPToolType
 
 logger = logging.getLogger(__name__)
 
@@ -278,14 +280,16 @@ class ForecastReport:
 # ============================================================================
 
 
-class SeerLord(BaseAgent):
+class SeerLord(BaseAgent, AgentInterface):
     """
     Seer Lord - Manages trend prediction, market intelligence, and forecasting.
     Provides strategic insights based on data analysis and pattern recognition.
     """
 
     def __init__(self):
-        super().__init__()
+        BaseAgent.__init__(self)
+        AgentInterface.__init__(self, agent_name="seer_lord")
+        
         self.name = "Seer Lord"
         self.role = AgentRole.seer
         self.status = AgentStatus.idle
@@ -298,6 +302,15 @@ class SeerLord(BaseAgent):
             Capability(name="generate_recommendation", handler=self._generate_recommendation),
             Capability(name="get_forecast_report", handler=self._get_forecast_report),
         ]
+    
+    async def _execute_logic(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        SOTA execution entry point.
+        """
+        task_name = payload.get("task")
+        params = payload.get("parameters", {})
+        
+        return await self.execute(task_name, params)
 
         # State storage
         self.trend_predictions: Dict[str, TrendPrediction] = {}
@@ -419,6 +432,22 @@ class SeerLord(BaseAgent):
         summary = kwargs.get("summary", "")
         source = kwargs.get("source", "internal_analysis")
         key_insights = kwargs.get("key_insights", [])
+        
+        # SOTA Upgrade: Use MCP for real-time web search if 'web_search' is requested
+        use_web_search = kwargs.get("use_web_search", False)
+        query = kwargs.get("query", title)
+        
+        if use_web_search:
+            search_results = await MCPIntegrationService.execute_tool(
+                ToolRequest(
+                    tool_type=MCPToolType.SEARCH,
+                    action="search",
+                    params={"query": query}
+                )
+            )
+            # Append search results to insights
+            key_insights.append(f"MCP Web Search: {str(search_results)[:100]}...")
+            source = "mcp_web_search"
 
         intelligence_id = f"intel_{uuid.uuid4().hex[:8]}"
 

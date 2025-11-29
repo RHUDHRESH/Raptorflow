@@ -2,10 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkspace } from '../context/WorkspaceContext';
 import { positioningService, type PositioningRow } from '../services/positioningService';
-import { Loader2, TrendingUp, Users, Zap, Target, Edit, ArrowRight } from 'lucide-react';
-import { LuxeHeading, LuxeStat, LuxeCard, LuxeButton, LuxeEmptyState, LuxeBadge, LuxeSkeleton } from '../components/ui/PremiumUI';
+import { Loader2, TrendingUp, Users, Zap, Target, Edit, ArrowRight, Sparkles, Layout } from 'lucide-react';
+import {
+    LuxeHeading,
+    LuxeCard,
+    LuxeButton,
+    LuxeBadge,
+    LuxeSkeleton,
+    HeroSection,
+    StatCard,
+    EmptyState,
+    fadeInUp,
+    staggerContainer
+} from '../components/ui/PremiumUI';
 import { motion } from 'framer-motion';
-import { fadeInUp } from '../utils/animations';
 
 export default function Dashboard() {
     const { currentWorkspace, loading: workspaceLoading } = useWorkspace();
@@ -54,14 +64,13 @@ export default function Dashboard() {
     // Show loading state while workspace is being determined
     if (workspaceLoading) {
         return (
-            <div className="space-y-8">
-                <LuxeSkeleton className="h-12 w-1/3 mb-8" />
+            <div className="space-y-8 max-w-[1440px] mx-auto px-6 py-8">
+                <LuxeSkeleton className="h-64 w-full rounded-2xl mb-8" />
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[...Array(4)].map((_, i) => (
-                        <LuxeSkeleton key={i} className="h-32 rounded-xl" />
+                        <LuxeSkeleton key={i} className="h-48 rounded-xl" />
                     ))}
                 </div>
-                <LuxeSkeleton className="h-96 rounded-xl" />
             </div>
         );
     }
@@ -79,63 +88,84 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="space-y-10">
-            {/* Page Header */}
-            <motion.div
-                initial="hidden"
-                animate="show"
-                variants={fadeInUp}
-                className="flex flex-col md:flex-row md:items-end justify-between gap-4"
-            >
-                <div>
-                    <LuxeHeading level={1}>Dashboard</LuxeHeading>
-                    <p className="text-neutral-500 mt-2 text-lg">
-                        Welcome to <span className="font-semibold text-neutral-900">{currentWorkspace.name}</span>
-                    </p>
-                </div>
-                <div className="flex gap-3">
-                    <LuxeButton variant="secondary" size="sm" onClick={() => navigate('/settings')}>
-                        Settings
-                    </LuxeButton>
-                    <LuxeButton size="sm" onClick={() => navigate('/campaigns/new')}>
-                        <Zap className="w-4 h-4 mr-2" />
-                        New Campaign
-                    </LuxeButton>
-                </div>
+        <motion.div
+            className="space-y-12 max-w-[1440px] mx-auto px-6 py-8"
+            initial="initial"
+            animate="animate"
+            variants={staggerContainer}
+        >
+            {/* Hero Section */}
+            <motion.div variants={fadeInUp}>
+                <HeroSection
+                    title={`Welcome back, ${currentWorkspace.name}`}
+                    subtitle="Here's what's happening across your campaigns and cohorts today."
+                    metrics={[
+                        { label: 'Active Campaigns', value: '3' },
+                        { label: 'Total Reach', value: '12.5k' },
+                        { label: 'Avg. Engagement', value: '4.2%' }
+                    ]}
+                    actions={
+                        <>
+                            <LuxeButton
+                                onClick={() => navigate('/campaigns/new')}
+                                className="bg-white text-neutral-900 hover:bg-neutral-100 border-none"
+                            >
+                                <Zap className="w-4 h-4 mr-2" />
+                                New Campaign
+                            </LuxeButton>
+                            <LuxeButton
+                                variant="outline"
+                                onClick={() => navigate('/settings')}
+                                className="text-white border-white/20 hover:bg-white/10"
+                            >
+                                Settings
+                            </LuxeButton>
+                        </>
+                    }
+                />
             </motion.div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <LuxeStat
+            <motion.div
+                variants={fadeInUp}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            >
+                <StatCard
                     icon={Target}
                     label="Positioning"
                     value={positioning ? 'Defined' : 'Not Set'}
-                    delay={0.1}
+                    change={positioning ? 'Ready to scale' : 'Action needed'}
+                    trend={positioning ? 'up' : 'neutral'}
                 />
-                <LuxeStat
+                <StatCard
                     icon={Users}
                     label="Cohorts"
                     value="0"
-                    delay={0.2}
+                    change="+0 this week"
+                    trend="neutral"
+                    sparklineData={[0, 0, 0, 0, 0, 0, 0]}
                 />
-                <LuxeStat
+                <StatCard
                     icon={Zap}
                     label="Campaigns"
                     value="0"
-                    delay={0.3}
+                    change="+0 this week"
+                    trend="neutral"
+                    sparklineData={[0, 0, 0, 0, 0, 0, 0]}
                 />
-                <LuxeStat
+                <StatCard
                     icon={TrendingUp}
                     label="Performance"
                     value="—"
-                    delay={0.4}
+                    change="No data yet"
+                    trend="neutral"
                 />
-            </div>
+            </motion.div>
 
             {/* Brand Snapshot Section */}
-            <section>
-                <div className="flex items-center justify-between mb-6">
-                    <LuxeHeading level={3}>Brand Snapshot</LuxeHeading>
+            <motion.div variants={fadeInUp} className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <LuxeHeading level={2}>Brand Snapshot</LuxeHeading>
                     {positioning && (
                         <LuxeButton variant="ghost" size="sm" onClick={() => navigate('/positioning')}>
                             <Edit className="w-4 h-4 mr-2" />
@@ -155,10 +185,6 @@ export default function Dashboard() {
                                 <LuxeSkeleton className="h-24 w-full" />
                                 <LuxeSkeleton className="h-24 w-full" />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-neutral-100">
-                                <LuxeSkeleton className="h-24 w-full" />
-                                <LuxeSkeleton className="h-24 w-full" />
-                            </div>
                         </div>
                     </LuxeCard>
                 ) : positioningError ? (
@@ -168,23 +194,20 @@ export default function Dashboard() {
                         </div>
                     </LuxeCard>
                 ) : !positioning ? (
-                    <LuxeEmptyState
+                    <EmptyState
                         icon={Target}
                         title="Define Your Positioning"
                         description="Complete the Positioning workshop to unlock your Brand Snapshot. This foundation powers all your campaigns."
-                        action={
-                            <LuxeButton onClick={() => navigate('/positioning')}>
-                                Start Positioning Workshop <ArrowRight className="w-4 h-4 ml-2" />
-                            </LuxeButton>
-                        }
+                        action={() => navigate('/positioning')}
+                        actionLabel="Start Positioning Workshop"
                     />
                 ) : (
-                    <LuxeCard className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div className="lg:col-span-1 space-y-6 border-b lg:border-b-0 lg:border-r border-neutral-100 pb-6 lg:pb-0 lg:pr-6">
+                    <LuxeCard className="grid grid-cols-1 lg:grid-cols-3 gap-12 p-8">
+                        <div className="lg:col-span-1 space-y-8 border-b lg:border-b-0 lg:border-r border-neutral-100 pb-8 lg:pb-0 lg:pr-8">
                             <div>
-                                <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">Identity</h4>
-                                <h3 className="font-serif text-2xl font-bold text-neutral-900">{positioning.name}</h3>
-                                <div className="mt-2">
+                                <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Identity</h4>
+                                <h3 className="font-display text-3xl font-medium text-neutral-900 leading-tight">{positioning.name}</h3>
+                                <div className="mt-4">
                                     <LuxeBadge variant="neutral">
                                         Last updated: {new Date(positioning.updated_at).toLocaleDateString()}
                                     </LuxeBadge>
@@ -193,52 +216,52 @@ export default function Dashboard() {
 
                             {positioning.category_frame && (
                                 <div>
-                                    <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">Category</h4>
-                                    <p className="text-neutral-900 font-medium leading-relaxed">{positioning.category_frame}</p>
+                                    <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Category</h4>
+                                    <p className="text-lg text-neutral-900 font-medium leading-relaxed">{positioning.category_frame}</p>
                                 </div>
                             )}
                         </div>
 
-                        <div className="lg:col-span-2 space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="lg:col-span-2 space-y-10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                 {positioning.who_statement && (
                                     <div>
-                                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Target Audience</h4>
-                                        <p className="text-neutral-700 leading-relaxed">{positioning.who_statement}</p>
+                                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4">Target Audience</h4>
+                                        <p className="text-neutral-600 leading-relaxed text-lg">{positioning.who_statement}</p>
                                     </div>
                                 )}
 
                                 {positioning.differentiator && (
                                     <div>
-                                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Differentiator</h4>
-                                        <p className="text-neutral-700 leading-relaxed">{positioning.differentiator}</p>
+                                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4">Differentiator</h4>
+                                        <p className="text-neutral-600 leading-relaxed text-lg">{positioning.differentiator}</p>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-neutral-100">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-8 border-t border-neutral-100">
                                 {positioning.reason_to_believe && (
                                     <div>
-                                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Reason to Believe</h4>
-                                        <p className="text-neutral-700 leading-relaxed">{positioning.reason_to_believe}</p>
+                                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4">Reason to Believe</h4>
+                                        <p className="text-neutral-600 leading-relaxed text-lg">{positioning.reason_to_believe}</p>
                                     </div>
                                 )}
 
                                 {positioning.competitive_alternative && (
                                     <div>
-                                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">Competitive Alternative</h4>
-                                        <p className="text-neutral-700 leading-relaxed">{positioning.competitive_alternative}</p>
+                                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4">Competitive Alternative</h4>
+                                        <p className="text-neutral-600 leading-relaxed text-lg">{positioning.competitive_alternative}</p>
                                     </div>
                                 )}
                             </div>
                         </div>
                     </LuxeCard>
                 )}
-            </section>
+            </motion.div>
 
             {/* Quick Actions */}
-            <section>
-                <LuxeHeading level={3} className="mb-6">Quick Actions</LuxeHeading>
+            <motion.div variants={fadeInUp} className="space-y-6">
+                <LuxeHeading level={2}>Quick Actions</LuxeHeading>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <ActionCard
@@ -263,8 +286,8 @@ export default function Dashboard() {
                         delay={0.7}
                     />
                 </div>
-            </section>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 }
 
@@ -276,16 +299,16 @@ function ActionCard({ title, description, href, icon: Icon, delay = 0 }: { title
             onClick={() => navigate(href)}
             hover={true}
             delay={delay}
-            className="group h-full flex flex-col justify-between"
+            className="group h-full flex flex-col justify-between p-8"
         >
             <div>
-                <div className="w-12 h-12 rounded-xl bg-neutral-50 flex items-center justify-center mb-4 group-hover:bg-neutral-900 group-hover:text-white transition-colors duration-300">
-                    <Icon className="w-6 h-6 text-neutral-400 group-hover:text-white transition-colors duration-300" />
+                <div className="w-14 h-14 rounded-2xl bg-neutral-50 flex items-center justify-center mb-6 group-hover:bg-neutral-900 group-hover:text-white transition-colors duration-300">
+                    <Icon className="w-7 h-7 text-neutral-400 group-hover:text-white transition-colors duration-300" />
                 </div>
-                <h3 className="font-serif text-lg font-bold text-neutral-900 mb-2 group-hover:translate-x-1 transition-transform duration-300">{title}</h3>
-                <p className="text-sm text-neutral-500 leading-relaxed">{description}</p>
+                <h3 className="font-display text-xl font-medium text-neutral-900 mb-3 group-hover:translate-x-1 transition-transform duration-300">{title}</h3>
+                <p className="text-neutral-500 leading-relaxed">{description}</p>
             </div>
-            <div className="mt-6 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+            <div className="mt-8 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
                 <ArrowRight className="w-5 h-5 text-neutral-900" />
             </div>
         </LuxeCard>

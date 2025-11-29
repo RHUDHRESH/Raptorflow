@@ -46,6 +46,7 @@ export const routes = {
     seer: '/strategy/seer',
     arbiter: '/strategy/arbiter',
     herald: '/strategy/herald',
+    eris: '/strategy/eris',
   },
 
   // Muse

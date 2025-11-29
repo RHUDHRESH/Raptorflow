@@ -91,7 +91,7 @@ export default function CampaignBuilder() {
                     <LuxeHeading level={3}>New Campaign</LuxeHeading>
                     <p className="text-sm text-neutral-500 mt-2">Design your winning strategy.</p>
                 </div>
-                
+
                 <div className="space-y-1 relative">
                     <div className="absolute left-[15px] top-4 bottom-4 w-0.5 bg-neutral-100 -z-10" />
                     {STEPS.map((step, index) => {
@@ -103,8 +103,8 @@ export default function CampaignBuilder() {
                             <div key={step.id} className="flex items-center gap-3 py-3 relative bg-white">
                                 <div className={`
                                     w-8 h-8 rounded-none flex items-center justify-center border-2 transition-colors
-                                    ${isActive ? 'border-neutral-900 bg-neutral-900 text-white' : 
-                                      isCompleted ? 'border-green-500 bg-green-500 text-white' : 'border-neutral-200 text-neutral-400'}
+                                    ${isActive ? 'border-neutral-900 bg-neutral-900 text-white' :
+                                        isCompleted ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-200 text-neutral-400'}
                                 `}>
                                     {isCompleted ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                                 </div>
@@ -139,7 +139,7 @@ export default function CampaignBuilder() {
                                         </p>
                                         <LuxeBadge>Change Positioning (Coming Soon)</LuxeBadge>
                                     </LuxeCard>
-                                    
+
                                     <div className="space-y-4">
                                         <label className="block text-sm font-medium text-neutral-700">Which proof points will we lean on?</label>
                                         <div className="flex gap-3">
@@ -156,11 +156,11 @@ export default function CampaignBuilder() {
                             {currentStep === 2 && (
                                 <div className="space-y-6">
                                     <LuxeHeading level={4} className="mb-4">Objective & Goal</LuxeHeading>
-                                    
-                                    <LuxeInput 
+
+                                    <LuxeInput
                                         label="Campaign Name"
                                         value={formData.name}
-                                        onChange={e => setFormData({...formData, name: e.target.value})}
+                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
                                         placeholder="e.g., Q1 Enterprise Expansion"
                                     />
 
@@ -170,12 +170,11 @@ export default function CampaignBuilder() {
                                             {['awareness', 'consideration', 'conversion', 'retention'].map(type => (
                                                 <button
                                                     key={type}
-                                                    onClick={() => setFormData({...formData, objective_type: type})}
-                                                    className={`px-4 py-2 rounded-none border uppercase tracking-wider text-xs font-bold transition-all ${
-                                                        formData.objective_type === type 
-                                                        ? 'bg-neutral-900 text-white border-neutral-900' 
-                                                        : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-400'
-                                                    }`}
+                                                    onClick={() => setFormData({ ...formData, objective_type: type })}
+                                                    className={`px-4 py-2 rounded-none border uppercase tracking-wider text-xs font-bold transition-all ${formData.objective_type === type
+                                                            ? 'bg-neutral-900 text-white border-neutral-900'
+                                                            : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-400'
+                                                        }`}
                                                 >
                                                     {type}
                                                 </button>
@@ -183,40 +182,40 @@ export default function CampaignBuilder() {
                                         </div>
                                     </div>
 
-                                    <LuxeInput 
+                                    <LuxeInput
                                         label="One-line Objective"
                                         value={formData.objective}
-                                        onChange={e => setFormData({...formData, objective: e.target.value})}
+                                        onChange={e => setFormData({ ...formData, objective: e.target.value })}
                                         placeholder="e.g., Increase demo requests from Enterprise CTOs by 40%"
                                     />
 
                                     <div className="grid grid-cols-2 gap-4">
-                                        <LuxeInput 
+                                        <LuxeInput
                                             label="Target Metric"
                                             value={formData.target_metric}
-                                            onChange={e => setFormData({...formData, target_metric: e.target.value})}
+                                            onChange={e => setFormData({ ...formData, target_metric: e.target.value })}
                                             placeholder="e.g., Demo Requests"
                                         />
-                                        <LuxeInput 
+                                        <LuxeInput
                                             label="Target Value"
                                             type="number"
                                             value={formData.target_value}
-                                            onChange={e => setFormData({...formData, target_value: Number(e.target.value)})}
+                                            onChange={e => setFormData({ ...formData, target_value: Number(e.target.value) })}
                                         />
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-2 gap-4">
-                                        <LuxeInput 
+                                        <LuxeInput
                                             label="Start Date"
                                             type="date"
                                             value={formData.start_date}
-                                            onChange={e => setFormData({...formData, start_date: e.target.value})}
+                                            onChange={e => setFormData({ ...formData, start_date: e.target.value })}
                                         />
-                                        <LuxeInput 
+                                        <LuxeInput
                                             label="End Date"
                                             type="date"
                                             value={formData.end_date}
-                                            onChange={e => setFormData({...formData, end_date: e.target.value})}
+                                            onChange={e => setFormData({ ...formData, end_date: e.target.value })}
                                         />
                                     </div>
                                 </div>
@@ -226,7 +225,7 @@ export default function CampaignBuilder() {
                                 <div className="space-y-6">
                                     <LuxeHeading level={4} className="mb-4">Target Cohorts</LuxeHeading>
                                     <p className="text-neutral-600">Select who this campaign is for and where we want to move them.</p>
-                                    
+
                                     <div className="border border-neutral-200 rounded-none p-4 flex items-center gap-4 bg-neutral-50">
                                         <div className="w-10 h-10 rounded-none bg-white flex items-center justify-center border border-neutral-200 text-xl">🎯</div>
                                         <div className="flex-1">
@@ -235,13 +234,13 @@ export default function CampaignBuilder() {
                                         </div>
                                         <LuxeButton size="sm" variant="secondary">Selected</LuxeButton>
                                     </div>
-                                    
+
                                     {/* Journey Stage Selector Mock */}
                                     <div className="bg-white p-4 border border-neutral-200 rounded-none">
                                         <div className="flex justify-between text-sm mb-2">
                                             <span>Current: Problem Aware</span>
                                             <ArrowRight className="w-4 h-4 text-neutral-400" />
-                                            <span className="font-bold text-green-600">Target: Most Aware</span>
+                                            <span class Name="font-bold text-neutral-900">Target: Most Aware</span>
                                         </div>
                                         <div className="h-2 bg-neutral-100 rounded-none overflow-hidden">
                                             <div className="h-full bg-gradient-to-r from-neutral-400 to-green-500 w-3/4 ml-auto rounded-none opacity-50" />
@@ -265,11 +264,11 @@ export default function CampaignBuilder() {
                                         ))}
                                     </div>
                                     <div className="mt-4">
-                                        <LuxeInput 
+                                        <LuxeInput
                                             label="Total Budget"
                                             type="number"
                                             value={formData.budget}
-                                            onChange={e => setFormData({...formData, budget: Number(e.target.value)})}
+                                            onChange={e => setFormData({ ...formData, budget: Number(e.target.value) })}
                                             icon={DollarSign}
                                         />
                                     </div>
@@ -321,17 +320,17 @@ export default function CampaignBuilder() {
 
                 {/* Footer Actions */}
                 <div className="py-4 border-t border-neutral-200 flex justify-between items-center bg-white">
-                    <LuxeButton 
-                        variant="secondary" 
+                    <LuxeButton
+                        variant="secondary"
                         onClick={handleBack}
                         disabled={currentStep === 1}
                         icon={ArrowLeft}
                     >
                         Back
                     </LuxeButton>
-                    
+
                     {currentStep === 5 ? (
-                        <LuxeButton 
+                        <LuxeButton
                             onClick={handleSubmit}
                             isLoading={isSubmitting}
                             icon={Rocket}
@@ -339,7 +338,7 @@ export default function CampaignBuilder() {
                             Launch Campaign
                         </LuxeButton>
                     ) : (
-                        <LuxeButton 
+                        <LuxeButton
                             onClick={handleNext}
                             icon={ArrowRight}
                         >
@@ -348,22 +347,22 @@ export default function CampaignBuilder() {
                     )}
                 </div>
             </div>
-            
+
             {/* Right Panel - Narrative Summary (Sticky) */}
             <div className="w-80 flex-shrink-0 hidden xl:block">
                 <div className="bg-neutral-50 border border-neutral-200 rounded-none p-6 sticky top-8">
                     <LuxeHeading level={5} className="mb-4">Campaign Narrative</LuxeHeading>
                     <div className="space-y-4 text-sm text-neutral-600">
                         <p>
-                            You're planning a <span className="font-bold text-neutral-900 uppercase">{formData.objective_type}</span> campaign 
+                            You're planning a <span className="font-bold text-neutral-900 uppercase">{formData.objective_type}</span> campaign
                             targeting <span className="font-bold text-neutral-900">Enterprise CTOs</span>.
                         </p>
                         <p>
-                            The goal is to hit <span className="font-bold text-neutral-900">{formData.target_value} {formData.target_metric}</span> 
+                            The goal is to hit <span className="font-bold text-neutral-900">{formData.target_value} {formData.target_metric}</span>
                             by {formData.end_date || 'the deadline'}.
                         </p>
                         <p>
-                            We'll use <span className="font-bold text-neutral-900">LinkedIn & Email</span> to move them from 
+                            We'll use <span className="font-bold text-neutral-900">LinkedIn & Email</span> to move them from
                             <span className="italic"> Problem Aware</span> to <span className="italic">Most Aware</span>.
                         </p>
                         <div className="pt-4 border-t border-neutral-200 mt-4">

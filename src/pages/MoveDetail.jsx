@@ -35,11 +35,11 @@ export default function MoveDetail() {
                 // In reality, moveService should return the move
                 // const moveData = await moveService.getMove(moveId);
                 // setMove(moveData);
-                
+
                 // Fetch assets
                 // const assetsData = await moveService.getAssets(moveId);
                 // setAssets(assetsData);
-                
+
                 // Mock Data for now to show UI
                 setMove({
                     id: moveId,
@@ -54,7 +54,7 @@ export default function MoveDetail() {
                     cohort: { name: 'Enterprise CTOs' },
                     message_variant: 'Strategic OS vs random hacks'
                 });
-                
+
                 setAssets([
                     { id: 'a1', name: 'Authority Post 1', format: 'post', channel: 'linkedin', status: 'draft' },
                     { id: 'a2', name: 'Value Add Email', format: 'email', channel: 'email', status: 'published', metrics: { opens: 450, clicks: 120 } }
@@ -67,7 +67,7 @@ export default function MoveDetail() {
                 setLoading(false);
             }
         };
-        
+
         fetchData();
     }, [moveId]);
 
@@ -114,12 +114,12 @@ export default function MoveDetail() {
                 action={
                     <div className="flex items-center gap-3">
                         <LuxeBadge variant={
-                            move.status === 'active' ? 'success' : 
-                            move.status === 'completed' ? 'info' : 'neutral'
+                            move.status === 'active' ? 'success' :
+                                move.status === 'completed' ? 'info' : 'neutral'
                         } className="px-3 py-1">
                             {move.status}
                         </LuxeBadge>
-                        
+
                         {move.status === 'planned' && (
                             <LuxeButton onClick={handlePreflight} variant="secondary" icon={CheckCircle2}>Run Pre-flight</LuxeButton>
                         )}
@@ -129,7 +129,7 @@ export default function MoveDetail() {
                     </div>
                 }
             />
-            
+
             {/* Tabs (Task 15) */}
             <div className="border-b border-neutral-200 pb-1">
                 <LuxeTabs
@@ -199,24 +199,23 @@ export default function MoveDetail() {
                             <LuxeCard title="Pre-flight Checklist" className="h-full bg-neutral-50/50 border-dashed">
                                 {preflightResult ? (
                                     <div className="space-y-4">
-                                        <div className={`p-4 rounded border ${
-                                            preflightResult.status === 'pass' 
-                                                ? 'bg-green-50 border-green-100 text-green-800' 
-                                                : 'bg-amber-50 border-amber-100 text-amber-800'
-                                        }`}>
+                                        <div className={`p-4 rounded border ${preflightResult.status === 'pass'
+                                                ? 'bg-neutral-100 text-neutral-800 border-neutral-200'
+                                                : 'bg-neutral-50 text-neutral-600 border-neutral-100'
+                                            }`}>
                                             <div className="flex items-center gap-2 mb-1">
                                                 {preflightResult.status === 'pass' ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
                                                 <span className="font-bold uppercase text-xs tracking-wider">Status: {preflightResult.status}</span>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="space-y-0 divide-y divide-neutral-100 border-t border-b border-neutral-100">
                                             {preflightResult.issues.map((issue, i) => (
                                                 <div key={i} className="py-3">
                                                     <div className="flex gap-3">
-                                                        {issue.severity === 'fail' 
-                                                            ? <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" /> 
-                                                            : <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                                                        {issue.severity === 'fail'
+                                                            ? <AlertTriangle className="w-4 h-4 text-neutral-700 shrink-0 mt-0.5" />
+                                                            : <CheckCircle2 className="w-4 h-4 text-neutral-900 shrink-0 mt-0.5" />
                                                         }
                                                         <div>
                                                             <p className="text-sm font-medium text-neutral-900">{issue.message}</p>
@@ -266,8 +265,8 @@ export default function MoveDetail() {
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-8 h-8 rounded bg-neutral-100 flex items-center justify-center text-neutral-500">
-                                                        {asset.format === 'post' ? <FileText className="w-4 h-4" /> : 
-                                                         asset.format === 'email' ? <Send className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                                                        {asset.format === 'post' ? <FileText className="w-4 h-4" /> :
+                                                            asset.format === 'email' ? <Send className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
                                                     </div>
                                                     <span className="font-medium text-neutral-900">{asset.name}</span>
                                                 </div>
@@ -307,7 +306,7 @@ export default function MoveDetail() {
                                 </div>
                                 <div className="text-xs text-neutral-400 mt-1 uppercase tracking-wider">Qualified Leads</div>
                             </LuxeCard>
-                            
+
                             <LuxeCard className="p-6">
                                 <div className="text-sm text-neutral-500 font-medium mb-2">Efficiency</div>
                                 <div className="text-3xl font-display font-medium text-neutral-900">$450</div>
@@ -333,7 +332,7 @@ export default function MoveDetail() {
                                     {assets.slice(0, 3).map((asset, i) => (
                                         <div key={asset.id} className="flex items-center justify-between p-3 border border-neutral-100 rounded bg-neutral-50/50">
                                             <div className="flex items-center gap-3">
-                                                <div className="font-bold text-neutral-300 text-lg">#{i+1}</div>
+                                                <div className="font-bold text-neutral-300 text-lg">#{i + 1}</div>
                                                 <div className="text-sm font-medium text-neutral-900">{asset.name}</div>
                                             </div>
                                             <div className="text-sm font-bold text-neutral-900">

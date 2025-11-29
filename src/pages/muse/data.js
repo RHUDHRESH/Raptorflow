@@ -62,7 +62,7 @@ export const ASSETS = [
 
 export const INSIGHTS = [
     "Reels with face close-up: 3.1x saves vs food-only",
-    "Story-led hooks > contrarian for "Weekend Foodies"",
+    "Story-led hooks > contrarian for 'Weekend Foodies'",
     "WA broadcasts Fri–Sun drive 70% of bookings",
 ];
 

@@ -1,10 +1,3 @@
-/**
- * Campaigns Page
- * 
- * Central view for all campaigns with health tracking, pacing indicators,
- * and quick actions.
- */
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -19,14 +12,26 @@ import {
     Clock,
     Target,
     Users,
-    Calendar,
     Zap,
-    Eye,
     Edit2,
-    Archive
+    Archive,
+    Filter,
+    LayoutGrid,
+    List
 } from 'lucide-react';
 import { cn } from '../utils/cn';
-import { PageHeader, LuxeButton, LuxeCard, LuxeBadge, LuxeInput, LuxeEmptyState, LuxeStat } from '../components/ui/PremiumUI';
+import {
+    LuxeButton,
+    LuxeCard,
+    LuxeBadge,
+    LuxeInput,
+    HeroSection,
+    StatCard,
+    EmptyState,
+    FilterPills,
+    ProgressRing,
+    LuxeSkeleton
+} from '../components/ui/PremiumUI';
 import { pageTransition, fadeInUp, staggerContainer } from '../utils/animations';
 import { campaignService } from '../services/campaignService';
 import { useWorkspace } from '../context/WorkspaceContext';
@@ -62,6 +67,7 @@ export default function Campaigns() {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
     const [filterObjective, setFilterObjective] = useState('all');
+    const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
     useEffect(() => {
         const fetchCampaigns = async () => {
@@ -97,40 +103,41 @@ export default function Campaigns() {
     const stats = {
         total: campaigns.length,
         active: campaigns.filter(c => c.status === 'active').length,
-        avg_health: Math.round(campaigns.reduce((sum, c) => sum + c.health_score, 0) / campaigns.length),
+        avg_health: Math.round(campaigns.reduce((sum, c) => sum + c.health_score, 0) / (campaigns.length || 1)),
         at_risk: campaigns.filter(c => c.health_score < 60).length,
     };
 
-    const handlePauseCampaign = (campaignId) => {
-        setCampaigns(campaigns.map(c =>
-            c.id === campaignId ? { ...c, status: 'paused' } : c
-        ));
-    };
-
-    const handleResumeCampaign = (campaignId) => {
-        setCampaigns(campaigns.map(c =>
-            c.id === campaignId ? { ...c, status: 'active' } : c
-        ));
-    };
+    const statusFilters = [
+        { value: 'all', label: 'All Statuses' },
+        { value: 'active', label: 'Active', count: campaigns.filter(c => c.status === 'active').length },
+        { value: 'draft', label: 'Draft', count: campaigns.filter(c => c.status === 'draft').length },
+        { value: 'paused', label: 'Paused', count: campaigns.filter(c => c.status === 'paused').length },
+        { value: 'completed', label: 'Completed', count: campaigns.filter(c => c.status === 'completed').length },
+    ];
 
     return (
         <motion.div
-            className="space-y-12"
+            className="space-y-12 max-w-[1440px] mx-auto px-6 py-8"
             initial="initial"
             animate="animate"
             exit="exit"
-            variants={pageTransition}
+            variants={staggerContainer}
         >
             <motion.div variants={fadeInUp}>
-                <PageHeader
+                <HeroSection
                     title="Campaigns"
                     subtitle="Orchestrate all marketing activities from positioning to execution."
-                    action={
+                    metrics={[
+                        { label: 'Total Campaigns', value: stats.total.toString() },
+                        { label: 'Active Now', value: stats.active.toString() },
+                        { label: 'Avg Health', value: `${stats.avg_health}%` }
+                    ]}
+                    actions={
                         <LuxeButton
                             onClick={() => navigate('/campaigns/new')}
-                            icon={Plus}
-                            size="lg"
+                            className="bg-white text-neutral-900 hover:bg-neutral-100 border-none"
                         >
+                            <Plus className="w-4 h-4 mr-2" />
                             New Campaign
                         </LuxeButton>
                     }
@@ -142,214 +149,104 @@ export default function Campaigns() {
                 className="grid grid-cols-1 md:grid-cols-4 gap-6"
                 variants={staggerContainer}
             >
-                <motion.div variants={fadeInUp}>
-                    <LuxeStat
-                        label="Total Campaigns"
-                        value={stats.total}
-                        icon={Target}
-                    />
-                </motion.div>
-
-                <motion.div variants={fadeInUp}>
-                    <LuxeStat
-                        label="Active"
-                        value={stats.active}
-                        icon={Play}
-                    />
-                </motion.div>
-
-                <motion.div variants={fadeInUp}>
-                    <LuxeStat
-                        label="Avg Health"
-                        value={isNaN(stats.avg_health) ? '—' : `${stats.avg_health}%`}
-                        icon={TrendingUp}
-                    />
-                </motion.div>
-
-                <motion.div variants={fadeInUp}>
-                    <LuxeStat
-                        label="At Risk"
-                        value={stats.at_risk}
-                        icon={AlertCircle}
-                    />
-                </motion.div>
+                <StatCard
+                    label="Total Campaigns"
+                    value={stats.total}
+                    icon={Target}
+                    trend="neutral"
+                />
+                <StatCard
+                    label="Active"
+                    value={stats.active}
+                    icon={Play}
+                    trend="up"
+                    change="+1 this month"
+                />
+                <StatCard
+                    label="Avg Health"
+                    value={`${stats.avg_health}%`}
+                    icon={TrendingUp}
+                    trend={stats.avg_health >= 70 ? 'up' : 'down'}
+                    sparklineData={[65, 68, 72, 75, 74, 78, stats.avg_health]}
+                />
+                <StatCard
+                    label="At Risk"
+                    value={stats.at_risk}
+                    icon={AlertCircle}
+                    trend={stats.at_risk > 0 ? 'down' : 'neutral'}
+                    change={stats.at_risk > 0 ? 'Needs attention' : 'All good'}
+                />
             </motion.div>
 
             {/* Search & Filters */}
-            <div className="flex flex-col md:flex-row gap-4 items-end">
-                <div className="flex-1">
-                    <LuxeInput
-                        icon={Search}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search campaigns..."
-                        className="h-12"
-                    />
-                </div>
-
-                <div className="relative min-w-[180px]">
-                    <select
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        className="w-full h-12 px-4 bg-white border border-neutral-200 rounded-md text-sm font-medium text-neutral-900 focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 appearance-none transition-all"
-                    >
-                        <option value="all">All Statuses</option>
-                        <option value="draft">Draft</option>
-                        <option value="active">Active</option>
-                        <option value="paused">Paused</option>
-                        <option value="completed">Completed</option>
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-500">
-                        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+            <motion.div variants={fadeInUp} className="space-y-6">
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <div className="flex-1 w-full md:max-w-md">
+                        <LuxeInput
+                            icon={Search}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Search campaigns..."
+                            className="h-12"
+                        />
                     </div>
-                </div>
 
-                <div className="relative min-w-[180px]">
-                    <select
-                        value={filterObjective}
-                        onChange={(e) => setFilterObjective(e.target.value)}
-                        className="w-full h-12 px-4 bg-white border border-neutral-200 rounded-md text-sm font-medium text-neutral-900 focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 appearance-none transition-all"
-                    >
-                        <option value="all">All Objectives</option>
-                        <option value="awareness">Awareness</option>
-                        <option value="consideration">Consideration</option>
-                        <option value="conversion">Conversion</option>
-                        <option value="retention">Retention</option>
-                        <option value="advocacy">Advocacy</option>
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-500">
-                        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            {/* Campaigns List */}
-            <motion.div
-                className="space-y-4"
-                variants={staggerContainer}
-            >
-                {filteredCampaigns.map((campaign, index) => {
-                    const statusInfo = CAMPAIGN_STATUSES[campaign.status];
-                    const pacingInfo = PACING_STATUS[campaign.pacing_status];
-                    const StatusIcon = statusInfo.icon;
-                    const PacingIcon = pacingInfo.icon;
-
-                    const progress = (campaign.current_value / campaign.target_value) * 100;
-                    const budgetProgress = (campaign.budget_spent / campaign.budget_total) * 100;
-                    const moveProgress = (campaign.completed_moves / campaign.total_moves) * 100;
-
-                    return (
-                        <motion.div
-                            key={campaign.id}
-                            variants={fadeInUp}
+                    <div className="flex items-center gap-2 bg-neutral-100 p-1 rounded-lg">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={cn(
+                                "p-2 rounded-md transition-all",
+                                viewMode === 'grid' ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500 hover:text-neutral-900"
+                            )}
                         >
-                            <LuxeCard className="p-6 hover:shadow-md transition-shadow group" onClick={() => navigate(`/campaigns/${campaign.id}`)}>
-                                <div className="flex items-start justify-between mb-6">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="font-display text-xl text-neutral-900 group-hover:text-neutral-700 transition-colors">{campaign.name}</h3>
-                                            <LuxeBadge variant={statusInfo.color === 'dark' ? "dark" : "neutral"}>
-                                                {statusInfo.label}
-                                            </LuxeBadge>
-                                            <LuxeBadge variant={pacingInfo.color === 'dark' ? "dark" : "neutral"}>
-                                                {pacingInfo.label}
-                                            </LuxeBadge>
-                                        </div>
-                                        <p className="text-sm text-neutral-500 max-w-3xl leading-relaxed">{campaign.description}</p>
-                                    </div>
+                            <LayoutGrid className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={cn(
+                                "p-2 rounded-md transition-all",
+                                viewMode === 'list' ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500 hover:text-neutral-900"
+                            )}
+                        >
+                            <List className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
 
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-right">
-                                            <div className="text-2xl font-display font-medium text-neutral-900">
-                                                {campaign.health_score}%
-                                            </div>
-                                            <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Health</div>
-                                        </div>
+                <div className="flex flex-wrap gap-4 items-center justify-between border-b border-neutral-100 pb-4">
+                    <FilterPills
+                        filters={statusFilters}
+                        activeFilter={filterStatus}
+                        onFilterChange={setFilterStatus}
+                    />
 
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); navigate(`/campaigns/${campaign.id}/edit`); }}
-                                                className="p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors"
-                                            >
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Grid Info */}
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pt-6 border-t border-neutral-100">
-                                    <div>
-                                        <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-1">Primary Metric</div>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-sm font-medium text-neutral-900">
-                                                {campaign.current_value} / {campaign.target_value}
-                                            </span>
-                                            <span className="text-xs text-neutral-500">{campaign.primary_metric}</span>
-                                        </div>
-                                        <div className="w-full h-1 bg-neutral-100 mt-2">
-                                            <div
-                                                className="h-full bg-neutral-900"
-                                                style={{ width: `${Math.min(progress, 100)}%` }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-1">Budget</div>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-sm font-medium text-neutral-900">
-                                                ${(campaign.budget_spent / 1000).toFixed(1)}k
-                                            </span>
-                                            <span className="text-xs text-neutral-500">/ ${(campaign.budget_total / 1000).toFixed(1)}k</span>
-                                        </div>
-                                        <div className="w-full h-1 bg-neutral-100 mt-2">
-                                            <div
-                                                className="h-full bg-neutral-400"
-                                                style={{ width: `${Math.min(budgetProgress, 100)}%` }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-1">Timeline</div>
-                                        <div className="text-sm font-medium text-neutral-900">
-                                            {new Date(campaign.start_date).toLocaleDateString()} — {new Date(campaign.end_date).toLocaleDateString()}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-1">Scope</div>
-                                        <div className="flex flex-wrap gap-2">
-                                            <span className="text-xs text-neutral-600 bg-neutral-50 px-2 py-0.5 rounded border border-neutral-100">
-                                                {campaign.cohorts.length} Cohorts
-                                            </span>
-                                            <span className="text-xs text-neutral-600 bg-neutral-50 px-2 py-0.5 rounded border border-neutral-100">
-                                                {campaign.channels.length} Channels
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </LuxeCard>
-                        </motion.div>
-                    );
-                })}
+                    <div className="flex items-center gap-2">
+                        <Filter className="w-4 h-4 text-neutral-400" />
+                        <select
+                            value={filterObjective}
+                            onChange={(e) => setFilterObjective(e.target.value)}
+                            className="bg-transparent border-none text-sm font-medium text-neutral-600 focus:ring-0 cursor-pointer"
+                        >
+                            <option value="all">All Objectives</option>
+                            <option value="awareness">Awareness</option>
+                            <option value="consideration">Consideration</option>
+                            <option value="conversion">Conversion</option>
+                            <option value="retention">Retention</option>
+                            <option value="advocacy">Advocacy</option>
+                        </select>
+                    </div>
+                </div>
             </motion.div>
 
-            {/* Loading State */}
-            {isLoading && (
-                <div className="flex justify-center py-20">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-900"></div>
+            {/* Campaigns List */}
+            {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3].map((i) => (
+                        <LuxeSkeleton key={i} className="h-[400px] rounded-2xl" />
+                    ))}
                 </div>
-            )}
-
-            {/* Empty State */}
-            {!isLoading && filteredCampaigns.length === 0 && (
-                <LuxeEmptyState
+            ) : filteredCampaigns.length === 0 ? (
+                <EmptyState
                     icon={Target}
                     title="No campaigns found"
                     description={searchTerm || filterStatus !== 'all' || filterObjective !== 'all'
@@ -357,15 +254,111 @@ export default function Campaigns() {
                         : 'Create your first campaign to get started with marketing orchestration.'}
                     action={
                         !searchTerm && filterStatus === 'all' && filterObjective === 'all' ? (
-                            <LuxeButton
-                                onClick={() => navigate('/campaigns/new')}
-                                icon={Plus}
-                            >
-                                Create Campaign
-                            </LuxeButton>
+                            () => navigate('/campaigns/new')
                         ) : null
                     }
+                    actionLabel="Create Campaign"
                 />
+            ) : (
+                <motion.div
+                    className={cn(
+                        "gap-6",
+                        viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "flex flex-col space-y-4"
+                    )}
+                    variants={staggerContainer}
+                >
+                    {filteredCampaigns.map((campaign) => {
+                        const statusInfo = CAMPAIGN_STATUSES[campaign.status];
+                        const pacingInfo = PACING_STATUS[campaign.pacing_status];
+                        const progress = (campaign.current_value / campaign.target_value) * 100;
+
+                        return (
+                            <motion.div
+                                key={campaign.id}
+                                variants={fadeInUp}
+                            >
+                                <LuxeCard
+                                    className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer"
+                                    onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                                >
+                                    <div className="p-6">
+                                        <div className="flex items-start justify-between mb-6">
+                                            <div className="flex gap-2">
+                                                <LuxeBadge variant={statusInfo.color === 'dark' ? "dark" : "neutral"}>
+                                                    {statusInfo.label}
+                                                </LuxeBadge>
+                                                <LuxeBadge variant="neutral">
+                                                    {pacingInfo.label}
+                                                </LuxeBadge>
+                                            </div>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); navigate(`/campaigns/${campaign.id}/edit`); }}
+                                                className="p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                            >
+                                                <Edit2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+
+                                        <h3 className="font-display text-2xl font-medium text-neutral-900 mb-2 group-hover:text-neutral-700 transition-colors line-clamp-2">
+                                            {campaign.name}
+                                        </h3>
+                                        <p className="text-sm text-neutral-500 mb-6 line-clamp-2 h-10">
+                                            {campaign.description}
+                                        </p>
+
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex -space-x-2">
+                                                    {[...Array(3)].map((_, i) => (
+                                                        <div key={i} className="w-8 h-8 rounded-full bg-neutral-100 border-2 border-white flex items-center justify-center text-xs font-medium text-neutral-600">
+                                                            {String.fromCharCode(65 + i)}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <span className="text-xs text-neutral-500 font-medium">
+                                                    {campaign.cohorts.length} Cohorts
+                                                </span>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-2xl font-display font-medium text-neutral-900">
+                                                    {campaign.health_score}%
+                                                </span>
+                                                <span className="block text-[10px] uppercase tracking-wider text-neutral-400 font-bold">
+                                                    Health
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-6 border-t border-neutral-100">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                                                    Progress
+                                                </span>
+                                                <span className="text-xs font-medium text-neutral-900">
+                                                    {Math.round(progress)}%
+                                                </span>
+                                            </div>
+                                            <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-neutral-900 rounded-full transition-all duration-1000"
+                                                    style={{ width: `${Math.min(progress, 100)}%` }}
+                                                />
+                                            </div>
+                                            <div className="flex justify-between mt-2">
+                                                <span className="text-xs text-neutral-500">
+                                                    {new Date(campaign.start_date).toLocaleDateString()}
+                                                </span>
+                                                <span className="text-xs text-neutral-500">
+                                                    {new Date(campaign.end_date).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </LuxeCard>
+                            </motion.div>
+                        );
+                    })}
+                </motion.div>
             )}
         </motion.div>
     );

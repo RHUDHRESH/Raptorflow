@@ -320,7 +320,7 @@ from backend.routers import memory  # New memory router
 # Import Council of Lords routers (Phase 2A)
 # All 7 strategic lords with graceful fallback
 lord_routers = {}
-lord_names = ["architect", "cognition", "strategos", "aesthete", "seer", "arbiter", "herald"]
+lord_names = ["architect", "cognition", "strategos", "aesthete", "seer", "arbiter", "herald", "eris"]
 
 for lord_name in lord_names:
     try:
@@ -375,12 +375,13 @@ async def health_check():
 
 
 # ============================================================================
-# WEBSOCKET ENDPOINTS - COUNCIL OF LORDS (Phase 2A)
+# WEBSOCKET ENDPOINTS - COUNCIL OF LORDS (Phase 2A) & SOTA EVENT STREAM (Phase 3/4)
 # ============================================================================
 
 from fastapi import WebSocket, WebSocketDisconnect
 from datetime import datetime
 from typing import List, Dict
+from backend.core.events.event_bus import event_bus
 
 class ConnectionManager:
     """Manages WebSocket connections for real-time lord updates (Council of 7)"""
@@ -395,11 +396,20 @@ class ConnectionManager:
             "arbiter": [],
             "herald": []
         }
+        
+        # SOTA: Dedicated stream for the Executive Brain
+        self.agent_stream_connections: List[WebSocket] = []
+        
+        # Hook into the RealTimeEventBus
+        event_bus.register_websocket_hook(self.broadcast_event)
 
     async def connect(self, websocket: WebSocket, lord: str):
         """Accept a new WebSocket connection"""
         await websocket.accept()
-        if lord in self.lord_connections:
+        if lord == "agent_stream":
+            self.agent_stream_connections.append(websocket)
+            logger.info(f"[CONNECT] WebSocket connected: agent_stream (total: {len(self.agent_stream_connections)})")
+        elif lord in self.lord_connections:
             self.lord_connections[lord].append(websocket)
             logger.info(f"[CONNECT] WebSocket connected: {lord} (total: {len(self.lord_connections[lord])})")
         else:
@@ -407,7 +417,10 @@ class ConnectionManager:
 
     async def disconnect(self, websocket: WebSocket, lord: str):
         """Remove a WebSocket connection"""
-        if lord in self.lord_connections:
+        if lord == "agent_stream":
+            if websocket in self.agent_stream_connections:
+                self.agent_stream_connections.remove(websocket)
+        elif lord in self.lord_connections:
             if websocket in self.lord_connections[lord]:
                 self.lord_connections[lord].remove(websocket)
                 logger.info(f"[DISCONNECT] WebSocket disconnected: {lord} (remaining: {len(self.lord_connections[lord])})")
@@ -421,6 +434,14 @@ class ConnectionManager:
                     await connection.send_json(message)
                 except Exception as e:
                     logger.error(f"Error broadcasting to {lord}: {e}")
+                    
+    async def broadcast_event(self, event: Dict):
+        """Broadcast SOTA events to the agent stream"""
+        for connection in self.agent_stream_connections:
+            try:
+                await connection.send_json(event)
+            except Exception as e:
+                logger.error(f"Error broadcasting event: {e}")
 
 
 manager = ConnectionManager()
@@ -489,6 +510,11 @@ async def websocket_arbiter(websocket: WebSocket):
 @app.websocket("/ws/lords/herald")
 async def websocket_herald(websocket: WebSocket):
     await websocket_handler(websocket, "herald")
+
+@app.websocket("/ws/agent_stream")
+async def websocket_agent_stream(websocket: WebSocket):
+    """Stream for SOTA Agent Thoughts and Actions"""
+    await websocket_handler(websocket, "agent_stream")
 
 
 if __name__ == "__main__":
