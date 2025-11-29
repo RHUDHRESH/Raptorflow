@@ -91,6 +91,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     useEffect(() => {
         let mounted = true;
 
+        // SQL Snippet to reset onboarding for a user:
+        // UPDATE user_profiles
+        // SET onboarding_completed = false,
+        //     onboarding_skipped = false
+        // WHERE id = 'USER_UUID_HERE';
+
         // Check for dev mode persistence
         const devMode = localStorage.getItem('rf_dev_mode');
         if (devMode === 'true' && (import.meta as any).env?.DEV) {
@@ -262,8 +268,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 .eq('id', userId)
                 .single();
 
+            console.log('[AuthContext] Fetched user profile:', { userId, profile, error: profileError });
+
             if (!profileError && profile) {
-                setOnboardingCompleted(profile.onboarding_completed || profile.onboarding_skipped);
+                const isCompleted = !!(profile.onboarding_completed || profile.onboarding_skipped);
+                console.log('[AuthContext] Setting onboardingCompleted:', isCompleted);
+                setOnboardingCompleted(isCompleted);
+            } else {
+                // If no profile found or error, assume false (safe default)
+                console.log('[AuthContext] No profile or error, defaulting onboardingCompleted to false');
+                setOnboardingCompleted(false);
             }
 
             // Fetch subscription
@@ -357,7 +371,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
 
             // Redirect to Google OAuth using auth service
-            const { error: oauthError } = await authService.signInWithOAuth('google');
+            // Redirect back to /login page so we can handle post-login routing logic
+            const { error: oauthError } = await authService.signInWithOAuth('google', `${window.location.origin}/login`);
 
             if (oauthError) {
                 throw oauthError;

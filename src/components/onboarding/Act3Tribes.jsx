@@ -1,220 +1,362 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Plus, Users, Trash2, Check } from 'lucide-react';
-import { LuxeHeading, LuxeCard, LuxeButton, LuxeInput, LuxeTextArea, LuxeBadge } from '../ui/PremiumUI';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, ArrowLeft, Users, Trash2, Check, Loader2, Edit2 } from 'lucide-react';
+import { LuxeHeading, LuxeCard, LuxeButton, LuxeInput, LuxeTextarea, LuxeBadge } from '../ui/PremiumUI';
 
-const Act3Tribes = ({ positioning, strategy, onComplete }) => {
-    const [icps, setIcps] = useState([
-        {
-            id: 'icp-1',
-            name: 'New ICP',
-            role: '',
-            stage: '',
-            wounds: '',
-            triggers: '',
-            objections: '',
-            channels: '',
-            outcome: ''
-        }
-    ]);
-    const [selectedIcpId, setSelectedIcpId] = useState('icp-1');
+const Act3Tribes = ({ positioning, strategy, onComplete, onBack }) => {
+    const [isLoading, setIsLoading] = useState(true);
+    const [icps, setIcps] = useState([]);
+    const [selectedIcpId, setSelectedIcpId] = useState(null);
 
     const selectedIcp = icps.find(icp => icp.id === selectedIcpId);
 
-    const handleAddIcp = () => {
-        if (icps.length >= 6) return;
-        const newId = `icp-${Date.now()}`;
-        setIcps(prev => [
-            ...prev,
-            {
-                id: newId,
-                name: 'New ICP',
-                role: '',
-                stage: '',
-                wounds: '',
-                triggers: '',
-                objections: '',
-                channels: '',
-                outcome: ''
-            }
-        ]);
-        setSelectedIcpId(newId);
-    };
+    // Simulate AI generating ICPs based on positioning context
+    useEffect(() => {
+        const generateICPs = async () => {
+            setIsLoading(true);
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
-    const handleDeleteIcp = (id) => {
-        setIcps(prev => prev.filter(icp => icp.id !== id));
-        if (selectedIcpId === id) {
-            setSelectedIcpId(icps[0]?.id || null);
-        }
-    };
+            // Mock AI-generated ICPs based on context
+            const proposedICPs = [
+                {
+                    id: 'icp-1',
+                    name: 'Indie SaaS Founders',
+                    label: 'Product-led, bootstrapped',
+                    keep: true,
+                    firmographics: {
+                        companySize: '$500K - $3M ARR',
+                        stage: 'Seed to Series A',
+                        geography: 'North America, Europe',
+                        teamSize: '5-20 employees'
+                    },
+                    psychographics: {
+                        motivations: ['Efficiency', 'Control', 'Speed to market'],
+                        fears: ['Vendor lock-in', 'Complexity', 'High CAC'],
+                        worldview: 'Believes in lean operations and product-market fit over growth-at-all-costs'
+                    },
+                    buyingSignals: {
+                        channels: ['Product Hunt', 'Twitter', 'Indie Hackers', 'LinkedIn'],
+                        triggers: ['Hitting scaling limits', 'Manual process pain', 'Competitor launch'],
+                        objections: ['Price vs features', 'Implementation time', 'Integration complexity']
+                    }
+                },
+                {
+                    id: 'icp-2',
+                    name: 'Enterprise RevOps Leaders',
+                    label: 'Process-driven, metrics-focused',
+                    keep: true,
+                    firmographics: {
+                        companySize: '$50M+ ARR',
+                        stage: 'Series C+',
+                        geography: 'Global',
+                        teamSize: '500+ employees'
+                    },
+                    psychographics: {
+                        motivations: ['Predictability', 'Compliance', 'ROI proof'],
+                        fears: ['Data silos', 'Audit failures', 'Team resistance'],
+                        worldview: 'Needs executive buy-in and proven ROI before any purchase'
+                    },
+                    buyingSignals: {
+                        channels: ['LinkedIn', 'Industry conferences', 'Analyst reports', 'Referrals'],
+                        triggers: ['Quarterly planning', 'System migration', 'Compliance deadline'],
+                        objections: ['Security review', 'Budget approval', 'Change management']
+                    }
+                },
+                {
+                    id: 'icp-3',
+                    name: 'Growth-Stage Marketing Teams',
+                    label: 'Data-hungry, experimental',
+                    keep: true,
+                    firmographics: {
+                        companySize: '$5M - $20M ARR',
+                        stage: 'Series A to B',
+                        geography: 'US, UK, Canada',
+                        teamSize: '50-200 employees'
+                    },
+                    psychographics: {
+                        motivations: ['Attribution clarity', 'Campaign velocity', 'Competitive edge'],
+                        fears: ['Wasted ad spend', 'Missed opportunities', 'Slow execution'],
+                        worldview: 'Willing to experiment with new tools if they promise measurable impact'
+                    },
+                    buyingSignals: {
+                        channels: ['Google search', 'Podcasts', 'Slack communities', 'Webinars'],
+                        triggers: ['New funding round', 'Hiring spree', 'Product launch'],
+                        objections: ['Learning curve', 'Stack bloat', 'Unclear differentiation']
+                    }
+                }
+            ];
 
-    const updateIcp = (field, value) => {
+            setIcps(proposedICPs);
+            setSelectedIcpId(proposedICPs[0].id);
+            setIsLoading(false);
+        };
+
+        generateICPs();
+    }, [positioning, strategy]);
+
+    const toggleKeep = (id) => {
         setIcps(prev => prev.map(icp =>
-            icp.id === selectedIcpId ? { ...icp, [field]: value } : icp
+            icp.id === id ? { ...icp, keep: !icp.keep } : icp
+        ));
+    };
+
+    const updateIcpName = (id, newName) => {
+        setIcps(prev => prev.map(icp =>
+            icp.id === id ? { ...icp, name: newName } : icp
         ));
     };
 
     const handleFinish = () => {
-        if (icps.length > 0) {
-            onComplete(icps);
+        const keptICPs = icps.filter(icp => icp.keep);
+        if (keptICPs.length > 0) {
+            onComplete(keptICPs);
         }
     };
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: 'var(--bg-app)' }}>
+                <div className="text-center space-y-6">
+                    <Loader2 className="w-12 h-12 animate-spin mx-auto" style={{ color: 'var(--ink-strong)' }} />
+                    <div>
+                        <h2 className="font-display text-3xl mb-2" style={{ fontFamily: 'var(--font-display)', color: 'var(--ink-strong)' }}>
+                            Mapping your tribes…
+                        </h2>
+                        <p className="text-base" style={{ color: 'var(--ink-soft)' }}>
+                            Analyzing your positioning to identify ideal customer profiles.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-7xl mx-auto"
+            className="w-full py-12"
         >
-            <div className="text-center mb-12">
-                <LuxeBadge variant="outline" className="mb-4">Act III</LuxeBadge>
-                <LuxeHeading level={2}>The Tribes</LuxeHeading>
-                <p className="text-neutral-500 mt-2">Define your Ideal Customer Profiles (ICPs).</p>
-            </div>
+            <div className="max-w-[1200px] mx-auto">
+                {/* Header */}
+                <div className="text-center mb-12">
+                    <LuxeBadge variant="outline" className="mb-4">Act III</LuxeBadge>
+                    <h1 className="font-display text-4xl lg:text-5xl mb-3" style={{ fontFamily: 'var(--font-display)', color: 'var(--ink-strong)' }}>
+                        The Tribes
+                    </h1>
+                    <p className="text-lg" style={{ color: 'var(--ink-soft)' }}>
+                        These are the tribes your positioning naturally speaks to. Name them and keep the ones that matter.
+                    </p>
+                </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Left: ICP List */}
-                <div className="lg:col-span-4 space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Your ICPs</h3>
-                        <button
-                            onClick={handleAddIcp}
-                            disabled={icps.length >= 6}
-                            className="text-xs font-bold text-neutral-900 uppercase tracking-widest hover:text-neutral-600 disabled:opacity-50 flex items-center gap-1"
-                        >
-                            <Plus className="w-3 h-3" /> Add ICP
-                        </button>
-                    </div>
+                {/* Two-column layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* Left: ICP List */}
+                    <div className="lg:col-span-4 space-y-4">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-soft)' }}>
+                                Your ICPs
+                            </h3>
+                            <span className="text-xs" style={{ color: 'var(--ink-soft)' }}>
+                                {icps.filter(icp => icp.keep).length} selected
+                            </span>
+                        </div>
 
-                    <div className="space-y-3">
-                        {icps.map(icp => (
-                            <div
-                                key={icp.id}
-                                onClick={() => setSelectedIcpId(icp.id)}
-                                className={`p-4 rounded-lg border cursor-pointer transition-all group relative ${selectedIcpId === icp.id
-                                        ? 'bg-neutral-900 border-neutral-900 text-white shadow-lg'
-                                        : 'bg-white border-neutral-200 hover:border-neutral-400 text-neutral-900'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${selectedIcpId === icp.id ? 'bg-white/20' : 'bg-neutral-100'
-                                        }`}>
-                                        <Users className={`w-4 h-4 ${selectedIcpId === icp.id ? 'text-white' : 'text-neutral-500'}`} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h4 className="font-bold text-sm truncate">{icp.name || 'New ICP'}</h4>
-                                        <p className={`text-xs truncate ${selectedIcpId === icp.id ? 'text-neutral-400' : 'text-neutral-500'}`}>
-                                            {icp.role || 'Define role...'}
-                                        </p>
-                                    </div>
-                                    {icps.length > 1 && (
+                        <div className="space-y-3 max-h-[600px] overflow-y-auto scrollbar-hide">
+                            {icps.map(icp => (
+                                <div
+                                    key={icp.id}
+                                    onClick={() => setSelectedIcpId(icp.id)}
+                                    className="p-4 rounded-lg cursor-pointer transition-all group relative"
+                                    style={{
+                                        border: selectedIcpId === icp.id ? '2px solid var(--ink-strong)' : '1px solid var(--border-subtle)',
+                                        backgroundColor: selectedIcpId === icp.id ? '#FAFAFA' : 'white',
+                                        opacity: icp.keep ? 1 : 0.5
+                                    }}
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div
+                                            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                                            style={{ backgroundColor: selectedIcpId === icp.id ? 'var(--ink-strong)' : '#F5F5F5' }}
+                                        >
+                                            <Users
+                                                className="w-4 h-4"
+                                                style={{ color: selectedIcpId === icp.id ? 'white' : 'var(--ink-soft)' }}
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-semibold text-sm truncate" style={{ color: 'var(--ink-strong)' }}>
+                                                {icp.name}
+                                            </h4>
+                                            <p className="text-xs truncate mt-1" style={{ color: 'var(--ink-soft)' }}>
+                                                {icp.label}
+                                            </p>
+                                            <div className="flex flex-wrap gap-1 mt-2">
+                                                <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: '#F5F5F5', color: 'var(--ink-soft)' }}>
+                                                    {icp.firmographics.companySize}
+                                                </span>
+                                            </div>
+                                        </div>
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleDeleteIcp(icp.id);
+                                                toggleKeep(icp.id);
                                             }}
-                                            className={`opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all ${selectedIcpId === icp.id ? 'text-white hover:text-red-200' : 'text-neutral-400 hover:text-red-600'
-                                                }`}
+                                            className="p-1.5 rounded transition-all"
+                                            style={{
+                                                backgroundColor: icp.keep ? 'var(--ink-strong)' : '#F5F5F5',
+                                                color: icp.keep ? 'white' : 'var(--ink-soft)'
+                                            }}
                                         >
-                                            <Trash2 className="w-3 h-3" />
+                                            <Check className="w-3 h-3" />
                                         </button>
-                                    )}
+                                    </div>
                                 </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Right: ICP Detail */}
+                    <div className="lg:col-span-8">
+                        {selectedIcp ? (
+                            <LuxeCard className="p-8 space-y-8">
+                                {/* Editable Name */}
+                                <div className="space-y-4">
+                                    <LuxeInput
+                                        label="ICP Name"
+                                        value={selectedIcp.name}
+                                        onChange={(e) => updateIcpName(selectedIcp.id, e.target.value)}
+                                        className="text-xl font-display"
+                                    />
+                                    <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
+                                        {selectedIcp.label}
+                                    </p>
+                                </div>
+
+                                {/* Firmographics */}
+                                <div className="space-y-4 pt-6" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                                    <h4 className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-soft)' }}>
+                                        Who they are
+                                    </h4>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-xs font-semibold mb-1" style={{ color: 'var(--ink-soft)' }}>Company Size</p>
+                                            <p className="text-sm" style={{ color: 'var(--ink-strong)' }}>{selectedIcp.firmographics.companySize}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold mb-1" style={{ color: 'var(--ink-soft)' }}>Stage</p>
+                                            <p className="text-sm" style={{ color: 'var(--ink-strong)' }}>{selectedIcp.firmographics.stage}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold mb-1" style={{ color: 'var(--ink-soft)' }}>Geography</p>
+                                            <p className="text-sm" style={{ color: 'var(--ink-strong)' }}>{selectedIcp.firmographics.geography}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold mb-1" style={{ color: 'var(--ink-soft)' }}>Team Size</p>
+                                            <p className="text-sm" style={{ color: 'var(--ink-strong)' }}>{selectedIcp.firmographics.teamSize}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Psychographics */}
+                                <div className="space-y-4 pt-6" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                                    <h4 className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-soft)' }}>
+                                        How they think
+                                    </h4>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--ink-soft)' }}>Motivations</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedIcp.psychographics.motivations.map((m, i) => (
+                                                    <span key={i} className="text-xs px-3 py-1 rounded-full" style={{ backgroundColor: '#F5F5F5', color: 'var(--ink-strong)' }}>
+                                                        {m}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--ink-soft)' }}>Fears</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedIcp.psychographics.fears.map((f, i) => (
+                                                    <span key={i} className="text-xs px-3 py-1 rounded-full" style={{ backgroundColor: '#F5F5F5', color: 'var(--ink-strong)' }}>
+                                                        {f}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--ink-soft)' }}>Worldview</p>
+                                            <p className="text-sm leading-relaxed" style={{ color: 'var(--ink-strong)' }}>
+                                                {selectedIcp.psychographics.worldview}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Buying Signals */}
+                                <div className="space-y-4 pt-6" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                                    <h4 className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-soft)' }}>
+                                        How they buy
+                                    </h4>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--ink-soft)' }}>Primary Channels</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedIcp.buyingSignals.channels.map((c, i) => (
+                                                    <span key={i} className="text-xs px-3 py-1 rounded-full" style={{ backgroundColor: '#F5F5F5', color: 'var(--ink-strong)' }}>
+                                                        {c}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--ink-soft)' }}>Buying Triggers</p>
+                                            <ul className="space-y-1">
+                                                {selectedIcp.buyingSignals.triggers.map((t, i) => (
+                                                    <li key={i} className="text-sm flex items-start gap-2" style={{ color: 'var(--ink-strong)' }}>
+                                                        <span className="w-1 h-1 rounded-full mt-2 flex-shrink-0" style={{ backgroundColor: 'var(--ink-soft)' }}></span>
+                                                        {t}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--ink-soft)' }}>Common Objections</p>
+                                            <ul className="space-y-1">
+                                                {selectedIcp.buyingSignals.objections.map((o, i) => (
+                                                    <li key={i} className="text-sm flex items-start gap-2" style={{ color: 'var(--ink-strong)' }}>
+                                                        <span className="w-1 h-1 rounded-full mt-2 flex-shrink-0" style={{ backgroundColor: 'var(--ink-soft)' }}></span>
+                                                        {o}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </LuxeCard>
+                        ) : (
+                            <div className="h-full flex items-center justify-center" style={{ color: 'var(--ink-soft)' }}>
+                                Select an ICP to view details
                             </div>
-                        ))}
+                        )}
                     </div>
                 </div>
 
-                {/* Right: ICP Form */}
-                <div className="lg:col-span-8">
-                    {selectedIcp ? (
-                        <LuxeCard className="p-8 space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-6">
-                                    <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest border-b border-neutral-100 pb-2">Who are they?</h4>
-                                    <LuxeInput
-                                        label="ICP Name"
-                                        placeholder="e.g. Indie SaaS Founders"
-                                        value={selectedIcp.name}
-                                        onChange={(e) => updateIcp('name', e.target.value)}
-                                    />
-                                    <LuxeInput
-                                        label="Role / Archetype"
-                                        placeholder="e.g. Founder, CEO, CTO"
-                                        value={selectedIcp.role}
-                                        onChange={(e) => updateIcp('role', e.target.value)}
-                                    />
-                                    <LuxeInput
-                                        label="Company Stage / Size"
-                                        placeholder="e.g. $1-3M ARR, <10 employees"
-                                        value={selectedIcp.stage}
-                                        onChange={(e) => updateIcp('stage', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-6">
-                                    <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest border-b border-neutral-100 pb-2">What hurts?</h4>
-                                    <LuxeTextArea
-                                        label="Key Wounds"
-                                        placeholder="What keeps them up at night?"
-                                        value={selectedIcp.wounds}
-                                        onChange={(e) => updateIcp('wounds', e.target.value)}
-                                        rows={4}
-                                    />
-                                    <LuxeTextArea
-                                        label="Objections"
-                                        placeholder="Why wouldn't they buy?"
-                                        value={selectedIcp.objections}
-                                        onChange={(e) => updateIcp('objections', e.target.value)}
-                                        rows={3}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-neutral-100">
-                                <div className="space-y-6">
-                                    <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest border-b border-neutral-100 pb-2">What moves them?</h4>
-                                    <LuxeTextArea
-                                        label="Triggers"
-                                        placeholder="What events trigger a purchase?"
-                                        value={selectedIcp.triggers}
-                                        onChange={(e) => updateIcp('triggers', e.target.value)}
-                                        rows={3}
-                                    />
-                                    <LuxeInput
-                                        label="Desired Outcome"
-                                        placeholder="What does success look like?"
-                                        value={selectedIcp.outcome}
-                                        onChange={(e) => updateIcp('outcome', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-6">
-                                    <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest border-b border-neutral-100 pb-2">Where are they?</h4>
-                                    <LuxeInput
-                                        label="Primary Channels"
-                                        placeholder="LinkedIn, Twitter, SEO..."
-                                        value={selectedIcp.channels}
-                                        onChange={(e) => updateIcp('channels', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                        </LuxeCard>
-                    ) : (
-                        <div className="h-full flex items-center justify-center text-neutral-400">
-                            Select an ICP to edit
-                        </div>
-                    )}
-
-                    <div className="pt-8 flex justify-end">
-                        <LuxeButton
-                            onClick={handleFinish}
-                            disabled={icps.length === 0}
-                            size="lg"
-                            className="w-full md:w-auto"
-                        >
-                            Save ICPs & Finish <Check className="ml-2 w-4 h-4" />
-                        </LuxeButton>
-                    </div>
+                {/* Controls */}
+                <div className="flex justify-between items-center pt-8 mt-8" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                    <LuxeButton variant="ghost" onClick={onBack}>
+                        <ArrowLeft className="mr-2 w-4 h-4" /> Back
+                    </LuxeButton>
+                    <LuxeButton
+                        onClick={handleFinish}
+                        disabled={icps.filter(icp => icp.keep).length === 0}
+                        size="lg"
+                    >
+                        Save Tribes & Finish <Check className="ml-2 w-4 h-4" />
+                    </LuxeButton>
                 </div>
             </div>
         </motion.div>

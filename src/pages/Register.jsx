@@ -8,6 +8,7 @@ import { cn } from '../utils/cn';
 import { LuxeInput, LuxeButton, LuxeHeading } from '../components/ui/PremiumUI';
 import { fadeInUp, pageTransition } from '../utils/animations';
 import { motion } from 'framer-motion';
+import { routes } from '../lib/routes';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -21,7 +22,7 @@ const Register = () => {
   const [passwordStrength, setPasswordStrength] = useState(null);
   const [isSupabaseReady, setIsSupabaseReady] = useState(true);
 
-  const { register, loginWithGoogle, loading, error: authError } = useAuth();
+  const { register, loginWithGoogle, loading, error: authError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,6 +32,14 @@ const Register = () => {
       setIsSupabaseReady(false);
     }
   }, []);
+
+  // Log on mount to verify state
+  useEffect(() => {
+    console.log('[Register] mount', { isAuthenticated, loading, path: window.location.pathname });
+  }, []);
+
+  // Removed the auto-redirect useEffect to prevent hijacking authenticated users.
+  // /register should be accessible even if logged in, or at least not auto-redirect to dashboard.
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -86,7 +95,10 @@ const Register = () => {
     );
 
     if (result.success) {
-      navigate('/', { replace: true });
+      console.log('[Register] Registration successful -> Redirecting to Login to finalize auth flow');
+      // We send to Login so redirectAfterAuth can handle the routing decision consistently
+      // once the auth state is fully settled and user profile is loaded.
+      navigate(routes.login, { replace: true });
     } else {
       setErrors({ submit: result.error });
     }
@@ -97,6 +109,10 @@ const Register = () => {
     const result = await loginWithGoogle();
     if (!result.success) {
       setErrors({ submit: result.error });
+    }
+    // If success (rare for redirect flow, but possible for popup), send to login to standardize flow
+    if (result.success) {
+       navigate(routes.login, { replace: true });
     }
   };
 

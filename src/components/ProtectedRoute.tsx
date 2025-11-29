@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { routes } from '../lib/routes';
 
 /**
  * Protected Route Props
@@ -70,12 +71,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     // 1. Onboarding is required for this route (requireOnboarding = true)
     // 2. User hasn't completed onboarding
     // 3. User is not already on the onboarding page
+    // Note: We use routes.onboardingNew as the canonical onboarding page
     if (
         requireOnboarding &&
         !onboardingCompleted &&
-        location.pathname !== '/onboarding'
+        location.pathname !== routes.onboardingNew &&
+        location.pathname !== routes.onboarding // Also allow legacy onboarding route to load if accessed directly
     ) {
-        return <Navigate to="/onboarding" state={{ from: location }} replace />;
+        console.log('[ProtectedRoute] User needs onboarding -> Redirecting to', routes.onboardingNew);
+        return <Navigate to={routes.onboardingNew} state={{ from: location }} replace />;
     }
 
     // User is authenticated and has completed onboarding (or onboarding not required)

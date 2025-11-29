@@ -10,6 +10,7 @@ export const routes = {
   // Onboarding
   onboarding: '/onboarding',
   onboardingNew: '/onboarding-new', // The new Luxe flow
+  onboardingPricing: '/onboarding-pricing',
 
   // Dashboard / Core
   dashboard: '/dashboard',

@@ -62,14 +62,14 @@ export const ASSETS = [
 
 export const INSIGHTS = [
     "Reels with face close-up: 3.1x saves vs food-only",
-    "Story-led hooks > contrarian for “Weekend Foodies”",
+    "Story-led hooks > contrarian for "Weekend Foodies"",
     "WA broadcasts Fri–Sun drive 70% of bookings",
 ];
 
 export const IDEA_STACK = [
     {
         id: "h1",
-        text: `"Your discount isn’t generosity. It’s self-sabotage."`,
+        text: `"Your discount isn't generosity. It's self-sabotage."`,
         tags: ["Hook: Spiky", "Cohort: Indie SaaS"],
     },
     {
@@ -80,8 +80,8 @@ export const IDEA_STACK = [
 ];
 
 export const STATUS_COLORS = {
-    Draft: "bg-neutral-100 text-neutral-800 border-neutral-200",
-    "In review": "bg-amber-50 text-amber-700 border-amber-100 ring-1 ring-amber-200/50",
-    Ready: "bg-emerald-50 text-emerald-700 border-emerald-100 ring-1 ring-emerald-200/50",
-    Published: "bg-blue-50 text-blue-700 border-blue-100 ring-1 ring-blue-200/50",
+    Draft: "bg-neutral-50 text-neutral-600 border-neutral-100",
+    "In review": "bg-neutral-100 text-neutral-700 border-neutral-200",
+    Ready: "bg-neutral-900 text-white border-neutral-900",
+    Published: "bg-neutral-200 text-neutral-900 border-neutral-300",
 };

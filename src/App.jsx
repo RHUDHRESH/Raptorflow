@@ -23,6 +23,7 @@ const Today = React.lazy(() => import('./pages/Today'))
 const DailySweep = React.lazy(() => import('./pages/DailySweep'))
 const Onboarding = React.lazy(() => import('./components/Onboarding'))
 const OnboardingLuxe = React.lazy(() => import('./pages/OnboardingLuxe'))
+const OnboardingPricing = React.lazy(() => import('./pages/OnboardingPricing'))
 const Strategy = React.lazy(() => import('./pages/Strategy'))
 const StrategyWizard = React.lazy(() => import('./pages/StrategyWizard'))
 const StrategyWizardEnhanced = React.lazy(() => import('./pages/StrategyWizardEnhanced'))
@@ -87,6 +88,11 @@ function App() {
                 <Route path={routes.onboardingNew} element={
                   <ProtectedRoute requireOnboarding={false}>
                     <OnboardingLuxe />
+                  </ProtectedRoute>
+                } />
+                <Route path={routes.onboardingPricing} element={
+                  <ProtectedRoute requireOnboarding={true}>
+                    <OnboardingPricing />
                   </ProtectedRoute>
                 } />
 

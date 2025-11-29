@@ -4,7 +4,7 @@ import { ArrowRight, ArrowLeft, Target, Layers, Zap, Check } from 'lucide-react'
 import { LuxeHeading, LuxeCard, LuxeButton, LuxeBadge } from '../ui/PremiumUI';
 import PositioningMap from './PositioningMap';
 
-const Act2Battlefield = ({ positioning, onComplete }) => {
+const Act2Battlefield = ({ positioning, onComplete, onBack }) => {
     const [selectedStrategy, setSelectedStrategy] = useState(null);
     const [selectedClusters, setSelectedClusters] = useState(['your-white-space']);
 
@@ -55,103 +55,134 @@ const Act2Battlefield = ({ positioning, onComplete }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-7xl mx-auto"
+            className="w-full py-12"
         >
-            <div className="text-center mb-12">
-                <LuxeBadge variant="outline" className="mb-4">Act II</LuxeBadge>
-                <LuxeHeading level={2}>The Battlefield</LuxeHeading>
-                <p className="text-neutral-500 mt-2">Choose your vector of attack.</p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                {/* Left: Map & Clusters */}
-                <div className="lg:col-span-7 space-y-8">
-                    <LuxeCard className="p-6 h-[500px] flex flex-col relative overflow-hidden">
-                        <div className="absolute top-4 left-4 z-10">
-                            <h3 className="font-serif text-lg font-bold">Market Landscape</h3>
-                        </div>
-                        <div className="flex-1 relative rounded-lg border border-neutral-100 bg-neutral-50 overflow-hidden mt-8">
-                            <PositioningMap
-                                initialX={positioning?.analysis?.coordinates?.x || 65}
-                                initialY={positioning?.analysis?.coordinates?.y || 40}
-                                readOnly={true}
-                                showClusters={true} // Assuming PositioningMap handles this prop now or ignores it safely
-                                activeClusters={selectedClusters}
-                            />
-                        </div>
-                    </LuxeCard>
-
-                    <div className="flex items-center gap-4">
-                        <span className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Market Clusters:</span>
-                        <div className="flex flex-wrap gap-2">
-                            {clusters.map(cluster => (
-                                <button
-                                    key={cluster.id}
-                                    onClick={() => toggleCluster(cluster.id)}
-                                    className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition-all border ${selectedClusters.includes(cluster.id)
-                                            ? 'bg-neutral-900 text-white border-neutral-900'
-                                            : 'bg-white text-neutral-500 border-neutral-200 hover:border-neutral-400'
-                                        }`}
-                                >
-                                    {cluster.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+            <div className="max-w-[1200px] mx-auto">
+                {/* Header */}
+                <div className="text-center mb-12">
+                    <LuxeBadge variant="outline" className="mb-4">Act II</LuxeBadge>
+                    <h1 className="font-display text-4xl lg:text-5xl mb-3" style={{ fontFamily: 'var(--font-display)', color: 'var(--ink-strong)' }}>
+                        The Battlefield
+                    </h1>
+                    <p className="text-lg" style={{ color: 'var(--ink-soft)' }}>
+                        Choose your vector of attack.
+                    </p>
                 </div>
 
-                {/* Right: Strategy Selection */}
-                <div className="lg:col-span-5 space-y-6">
-                    <div className="space-y-4">
-                        {strategies.map((strategy) => {
-                            const Icon = strategy.icon;
-                            const isSelected = selectedStrategy === strategy.id;
+                {/* Two-column layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                    {/* Left: Quadrant + Clusters */}
+                    <div className="lg:col-span-7 space-y-6">
+                        {/* Quadrant */}
+                        <LuxeCard className="p-8">
+                            <h3 className="font-semibold text-lg mb-6" style={{ color: 'var(--ink-strong)' }}>
+                                Market Landscape
+                            </h3>
+                            <div className="aspect-square relative rounded-lg bg-neutral-50 overflow-visible p-8" style={{ border: '1px solid var(--border-subtle)' }}>
+                                <PositioningMap
+                                    initialX={positioning?.analysis?.coordinates?.x || 65}
+                                    initialY={positioning?.analysis?.coordinates?.y || 40}
+                                    readOnly={true}
+                                    showClusters={true}
+                                    activeClusters={selectedClusters}
+                                />
+                            </div>
+                            <p className="text-xs mt-4 text-center" style={{ color: 'var(--ink-soft)' }}>
+                                Your position relative to the competitive landscape.
+                            </p>
+                        </LuxeCard>
 
-                            return (
-                                <div
-                                    key={strategy.id}
-                                    onClick={() => setSelectedStrategy(strategy.id)}
-                                    className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 group ${isSelected
-                                            ? 'border-neutral-900 bg-neutral-50'
-                                            : 'border-neutral-100 bg-white hover:border-neutral-300'
-                                        }`}
-                                >
-                                    <div className="flex items-start gap-4">
-                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${isSelected ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-400 group-hover:bg-neutral-200'
-                                            }`}>
-                                            <Icon className="w-5 h-5" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className={`font-serif text-lg font-bold mb-1 transition-colors ${isSelected ? 'text-neutral-900' : 'text-neutral-700'
-                                                }`}>
-                                                {strategy.title}
-                                            </h3>
-                                            <p className="text-sm text-neutral-500 leading-relaxed">
-                                                {strategy.description}
-                                            </p>
-                                        </div>
-                                        {isSelected && (
-                                            <div className="absolute top-6 right-6">
-                                                <div className="w-6 h-6 bg-neutral-900 rounded-full flex items-center justify-center">
-                                                    <Check className="w-3 h-3 text-white" />
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        {/* Market Clusters */}
+                        <div className="flex items-center gap-4 flex-wrap">
+                            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ink-soft)' }}>
+                                Market Clusters:
+                            </span>
+                            <div className="flex flex-wrap gap-2">
+                                {clusters.map(cluster => (
+                                    <button
+                                        key={cluster.id}
+                                        onClick={() => toggleCluster(cluster.id)}
+                                        className="px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition-all"
+                                        style={{
+                                            border: '1px solid var(--border-subtle)',
+                                            backgroundColor: selectedClusters.includes(cluster.id) ? 'var(--ink-strong)' : 'white',
+                                            color: selectedClusters.includes(cluster.id) ? 'white' : 'var(--ink-soft)'
+                                        }}
+                                    >
+                                        {cluster.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="pt-8 flex justify-end">
-                        <LuxeButton
-                            onClick={handleComplete}
-                            disabled={!selectedStrategy}
-                            size="lg"
-                            className="w-full md:w-auto"
-                        >
-                            Confirm Strategy <ArrowRight className="ml-2 w-4 h-4" />
-                        </LuxeButton>
+                    {/* Right: Strategy Selection */}
+                    <div className="lg:col-span-5 space-y-6">
+                        <div className="space-y-4">
+                            {strategies.map((strategy) => {
+                                const Icon = strategy.icon;
+                                const isSelected = selectedStrategy === strategy.id;
+
+                                return (
+                                    <div
+                                        key={strategy.id}
+                                        onClick={() => setSelectedStrategy(strategy.id)}
+                                        className="relative p-6 rounded-xl cursor-pointer transition-all duration-300 group"
+                                        style={{
+                                            border: isSelected ? '2px solid var(--ink-strong)' : '1px solid var(--border-subtle)',
+                                            backgroundColor: isSelected ? '#FAFAFA' : 'white'
+                                        }}
+                                    >
+                                        <div className="flex items-start gap-4">
+                                            <div
+                                                className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors"
+                                                style={{
+                                                    backgroundColor: isSelected ? 'var(--ink-strong)' : '#F5F5F5',
+                                                    color: isSelected ? 'white' : 'var(--ink-soft)'
+                                                }}
+                                            >
+                                                <Icon className="w-5 h-5" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3
+                                                    className="font-display text-lg font-medium mb-1 transition-colors"
+                                                    style={{
+                                                        fontFamily: 'var(--font-display)',
+                                                        color: 'var(--ink-strong)'
+                                                    }}
+                                                >
+                                                    {strategy.title}
+                                                </h3>
+                                                <p className="text-sm leading-relaxed" style={{ color: 'var(--ink-soft)' }}>
+                                                    {strategy.description}
+                                                </p>
+                                            </div>
+                                            {isSelected && (
+                                                <div className="absolute top-6 right-6">
+                                                    <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--ink-strong)' }}>
+                                                        <Check className="w-3 h-3 text-white" />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Controls */}
+                        <div className="flex justify-between items-center pt-4">
+                            <LuxeButton variant="ghost" onClick={onBack}>
+                                <ArrowLeft className="mr-2 w-4 h-4" /> Back
+                            </LuxeButton>
+                            <LuxeButton
+                                onClick={handleComplete}
+                                disabled={!selectedStrategy}
+                                size="lg"
+                            >
+                                Confirm Strategy <ArrowRight className="ml-2 w-4 h-4" />
+                            </LuxeButton>
+                        </div>
                     </div>
                 </div>
             </div>

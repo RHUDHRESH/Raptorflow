@@ -570,7 +570,7 @@ export default function Landing() {
             <a href="#faq" className="hover:text-gray-600 transition-colors">FAQ</a>
             <Link to="/login" className="hover:text-gray-600 transition-colors">Login</Link>
             <MagneticButton to="/register" className="!py-2 !px-6 !text-xs">
-              Start Free
+              Sign Up
             </MagneticButton>
           </div>
 

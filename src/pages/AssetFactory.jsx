@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { 
+import {
   FileText, Image, Video, Mail, Search, Filter, Plus, Eye, Edit2, Trash2, Download
 } from 'lucide-react';
 import { assetService, Asset } from '../lib/services/asset-service';
@@ -15,12 +15,12 @@ import { assetService, Asset } from '../lib/services/asset-service';
 const getWorkspaceId = () => 'YOUR_WORKSPACE_ID';
 
 export default function AssetFactory() {
-  const [assets, setAssets] = useState<Asset[]>([]);
+  const [assets, setAssets] = useState < Asset[] > ([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
-  const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
+  const [statusCounts, setStatusCounts] = useState < Record < string, number>> ({});
 
   // Load assets
   useEffect(() => {
@@ -45,13 +45,13 @@ export default function AssetFactory() {
 
   // Filter assets
   const filteredAssets = assets.filter(asset => {
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (asset.description || '').toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesType = selectedType === 'all' || asset.type === selectedType;
     const matchesStatus = selectedStatus === 'all' || asset.status === selectedStatus;
-    
+
     return matchesSearch && matchesType && matchesStatus;
   });
 
@@ -74,10 +74,10 @@ export default function AssetFactory() {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      'draft': 'bg-neutral-100 text-neutral-900 border-neutral-200',
-      'review': 'bg-amber-100 text-amber-900 border-amber-200',
-      'approved': 'bg-green-100 text-green-900 border-green-200',
-      'published': 'bg-blue-100 text-blue-900 border-blue-200',
+      'draft': 'bg-neutral-50 text-neutral-600 border-neutral-100',
+      'review': 'bg-neutral-100 text-neutral-700 border-neutral-200',
+      'approved': 'bg-neutral-900 text-white border-neutral-900',
+      'published': 'bg-neutral-200 text-neutral-900 border-neutral-300',
       'archived': 'bg-neutral-200 text-neutral-600 border-neutral-300',
     };
     return colors[status] || colors.draft;
@@ -85,7 +85,7 @@ export default function AssetFactory() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this asset?')) return;
-    
+
     try {
       await assetService.delete(id);
       setAssets(prev => prev.filter(a => a.id !== id));
@@ -99,7 +99,7 @@ export default function AssetFactory() {
     try {
       const updated = await assetService.updateStatus(id, newStatus);
       setAssets(prev => prev.map(a => a.id === id ? updated : a));
-      
+
       // Update counts
       const counts = await assetService.getStatusCounts();
       setStatusCounts(counts);
@@ -268,7 +268,7 @@ export default function AssetFactory() {
                 </button>
                 <button
                   onClick={() => handleDelete(asset.id)}
-                  className="flex items-center justify-center px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                  className="flex items-center justify-center px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -278,7 +278,7 @@ export default function AssetFactory() {
               {asset.status === 'draft' && (
                 <button
                   onClick={() => handleStatusChange(asset.id, 'review')}
-                  className="w-full mt-2 px-3 py-2 text-sm font-medium bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+                  className="w-full mt-2 px-3 py-2 text-sm font-medium bg-neutral-200 text-neutral-900 rounded-lg hover:bg-neutral-300"
                 >
                   Submit for Review
                 </button>
@@ -286,7 +286,7 @@ export default function AssetFactory() {
               {asset.status === 'review' && (
                 <button
                   onClick={() => handleStatusChange(asset.id, 'approved')}
-                  className="w-full mt-2 px-3 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  className="w-full mt-2 px-3 py-2 text-sm font-medium bg-neutral-900 text-white rounded-lg hover:bg-neutral-800"
                 >
                   Approve
                 </button>
@@ -294,7 +294,7 @@ export default function AssetFactory() {
               {asset.status === 'approved' && (
                 <button
                   onClick={() => handleStatusChange(asset.id, 'published')}
-                  className="w-full mt-2 px-3 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="w-full mt-2 px-3 py-2 text-sm font-medium bg-neutral-700 text-white rounded-lg hover:bg-neutral-600"
                 >
                   Publish
                 </button>

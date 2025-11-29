@@ -23,20 +23,20 @@ export const LuxeHeading = ({ level = 1, children, className = '', ...props }) =
 }
 
 // --- Page Structure ---
-export const PageHeader = ({ 
-    title, 
-    subtitle, 
-    backUrl, 
-    action, 
-    className = '' 
+export const PageHeader = ({
+    title,
+    subtitle,
+    backUrl,
+    action,
+    className = ''
 }) => {
     return (
         <div className={cn("flex flex-col gap-6 pb-8 border-b border-neutral-200", className)}>
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-2">
                     {backUrl && (
-                        <Link 
-                            to={backUrl} 
+                        <Link
+                            to={backUrl}
                             className="inline-flex items-center text-sm text-neutral-500 hover:text-neutral-900 transition-colors mb-2 group"
                         >
                             <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
@@ -60,11 +60,11 @@ export const PageHeader = ({
     )
 }
 
-export const SectionHeader = ({ 
-    title, 
-    description, 
-    action, 
-    className = '' 
+export const SectionHeader = ({
+    title,
+    description,
+    action,
+    className = ''
 }) => {
     return (
         <div className={cn("flex items-end justify-between gap-4 mb-6", className)}>
@@ -158,7 +158,7 @@ export const LuxeStat = ({ label, value, trend = null, icon: Icon = null, delay 
                 {trend && (
                     <span className={cn(
                         "text-xs font-medium px-1.5 py-0.5 rounded mb-1",
-                        trend > 0 ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"
+                        trend > 0 ? "text-neutral-900 bg-neutral-100" : "text-neutral-600 bg-neutral-50"
                     )}>
                         {trend > 0 ? "+" : ""}{trend}%
                     </span>
@@ -192,13 +192,17 @@ export const LuxeBadge = ({ children, variant = 'neutral', className = '', icon:
 }
 
 // --- Inputs ---
-export const LuxeInput = ({ label = '', error = '', className = '', id, ...props }) => {
+export const LuxeInput = ({ label = '', error = '', helperText = '', className = '', id, ...props }) => {
     const inputId = id || React.useId();
-    
+
     return (
-        <div className="space-y-1.5 w-full">
+        <div className="space-y-2 w-full">
             {label && (
-                <label htmlFor={inputId} className="text-sm font-medium text-neutral-700">
+                <label
+                    htmlFor={inputId}
+                    className="text-sm font-semibold block"
+                    style={{ color: 'var(--ink-strong)' }}
+                >
                     {label}
                 </label>
             )}
@@ -206,13 +210,33 @@ export const LuxeInput = ({ label = '', error = '', className = '', id, ...props
                 <input
                     id={inputId}
                     className={cn(
-                        "w-full h-10 px-3 rounded-md border border-neutral-200 bg-white text-neutral-900 placeholder:text-neutral-400 transition-all focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-none text-sm",
-                        error ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "hover:border-neutral-300",
+                        "w-full px-4 py-3 rounded-lg bg-white text-base outline-none transition-all",
+                        error ? "border-2 border-red-500 focus:border-red-600" : "border focus:border-2",
                         className
                     )}
+                    style={{
+                        borderColor: error ? undefined : 'var(--border-subtle)',
+                        color: 'var(--ink-strong)',
+                        fontFamily: 'var(--font-body)'
+                    }}
+                    onFocus={(e) => {
+                        if (!error) {
+                            e.target.style.borderColor = 'var(--ink-strong)';
+                        }
+                    }}
+                    onBlur={(e) => {
+                        if (!error) {
+                            e.target.style.borderColor = 'var(--border-subtle)';
+                        }
+                    }}
                     {...props}
                 />
             </div>
+            {helperText && !error && (
+                <p className="text-xs" style={{ color: 'var(--ink-soft)' }}>
+                    {helperText}
+                </p>
+            )}
             {error && (
                 <p className="text-xs text-red-600 font-medium flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" /> {error}
@@ -223,27 +247,53 @@ export const LuxeInput = ({ label = '', error = '', className = '', id, ...props
 }
 
 // --- Textarea ---
-export const LuxeTextarea = ({ label = '', error = '', className = '', id, ...props }) => {
+export const LuxeTextarea = ({ label = '', error = '', helperText = '', className = '', id, rows = 4, ...props }) => {
     const inputId = id || React.useId();
 
     return (
-        <div className="space-y-1.5 w-full">
+        <div className="space-y-2 w-full">
             {label && (
-                <label htmlFor={inputId} className="text-sm font-medium text-neutral-700">
+                <label
+                    htmlFor={inputId}
+                    className="text-sm font-semibold block"
+                    style={{ color: 'var(--ink-strong)' }}
+                >
                     {label}
                 </label>
             )}
             <div className="relative">
                 <textarea
                     id={inputId}
+                    rows={rows}
                     className={cn(
-                        "w-full min-h-[100px] px-3 py-2 rounded-md border border-neutral-200 bg-white text-neutral-900 placeholder:text-neutral-400 transition-all focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-none text-sm resize-y",
-                        error ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "hover:border-neutral-300",
+                        "w-full px-4 py-3 rounded-lg bg-white text-base outline-none transition-all resize-y leading-relaxed",
+                        error ? "border-2 border-red-500 focus:border-red-600" : "border focus:border-2",
                         className
                     )}
+                    style={{
+                        borderColor: error ? undefined : 'var(--border-subtle)',
+                        color: 'var(--ink-strong)',
+                        fontFamily: 'var(--font-body)',
+                        lineHeight: '1.6'
+                    }}
+                    onFocus={(e) => {
+                        if (!error) {
+                            e.target.style.borderColor = 'var(--ink-strong)';
+                        }
+                    }}
+                    onBlur={(e) => {
+                        if (!error) {
+                            e.target.style.borderColor = 'var(--border-subtle)';
+                        }
+                    }}
                     {...props}
                 />
             </div>
+            {helperText && !error && (
+                <p className="text-xs" style={{ color: 'var(--ink-soft)' }}>
+                    {helperText}
+                </p>
+            )}
             {error && (
                 <p className="text-xs text-red-600 font-medium flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" /> {error}
@@ -288,12 +338,12 @@ export const LuxeModal = ({ isOpen, onClose, title, children, size = 'md' }) => 
 
     return (
         <>
-            <div 
+            <div
                 onClick={onClose}
                 className="fixed inset-0 bg-neutral-900/20 backdrop-blur-sm z-50 transition-opacity animate-fade-in"
             />
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-                <div 
+                <div
                     className={cn(
                         "w-full bg-white border border-neutral-200 shadow-2xl rounded-lg overflow-hidden pointer-events-auto flex flex-col max-h-[90vh] animate-slide-up",
                         sizes[size]

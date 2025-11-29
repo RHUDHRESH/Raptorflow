@@ -37,17 +37,17 @@ import { useWorkspace } from '../context/WorkspaceContext';
 
 const CAMPAIGN_STATUSES = {
     draft: { label: 'Draft', color: 'neutral', icon: Clock },
-    active: { label: 'Active', color: 'green', icon: Play },
-    paused: { label: 'Paused', color: 'amber', icon: Pause },
-    completed: { label: 'Completed', color: 'blue', icon: CheckCircle2 },
+    active: { label: 'Active', color: 'dark', icon: Play },
+    paused: { label: 'Paused', color: 'neutral', icon: Pause },
+    completed: { label: 'Completed', color: 'neutral', icon: CheckCircle2 },
     archived: { label: 'Archived', color: 'neutral', icon: Archive },
 };
 
 const PACING_STATUS = {
-    ahead: { label: 'Ahead', color: 'green', icon: TrendingUp },
-    on_track: { label: 'On Track', color: 'blue', icon: CheckCircle2 },
-    behind: { label: 'Behind', color: 'amber', icon: Clock },
-    at_risk: { label: 'At Risk', color: 'red', icon: AlertCircle },
+    ahead: { label: 'Ahead', color: 'dark', icon: TrendingUp },
+    on_track: { label: 'On Track', color: 'neutral', icon: CheckCircle2 },
+    behind: { label: 'Behind', color: 'neutral', icon: Clock },
+    at_risk: { label: 'At Risk', color: 'neutral', icon: AlertCircle },
 };
 
 // =============================================================================
@@ -143,33 +143,33 @@ export default function Campaigns() {
                 variants={staggerContainer}
             >
                 <motion.div variants={fadeInUp}>
-                    <LuxeStat 
-                        label="Total Campaigns" 
-                        value={stats.total} 
+                    <LuxeStat
+                        label="Total Campaigns"
+                        value={stats.total}
                         icon={Target}
                     />
                 </motion.div>
 
                 <motion.div variants={fadeInUp}>
-                    <LuxeStat 
-                        label="Active" 
-                        value={stats.active} 
+                    <LuxeStat
+                        label="Active"
+                        value={stats.active}
                         icon={Play}
                     />
                 </motion.div>
 
                 <motion.div variants={fadeInUp}>
-                    <LuxeStat 
-                        label="Avg Health" 
-                        value={isNaN(stats.avg_health) ? '—' : `${stats.avg_health}%`} 
+                    <LuxeStat
+                        label="Avg Health"
+                        value={isNaN(stats.avg_health) ? '—' : `${stats.avg_health}%`}
                         icon={TrendingUp}
                     />
                 </motion.div>
 
                 <motion.div variants={fadeInUp}>
-                    <LuxeStat 
-                        label="At Risk" 
-                        value={stats.at_risk} 
+                    <LuxeStat
+                        label="At Risk"
+                        value={stats.at_risk}
                         icon={AlertCircle}
                     />
                 </motion.div>
@@ -201,7 +201,7 @@ export default function Campaigns() {
                     </select>
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-500">
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                     </div>
                 </div>
@@ -221,7 +221,7 @@ export default function Campaigns() {
                     </select>
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-500">
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                     </div>
                 </div>
@@ -252,18 +252,10 @@ export default function Campaigns() {
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
                                             <h3 className="font-display text-xl text-neutral-900 group-hover:text-neutral-700 transition-colors">{campaign.name}</h3>
-                                            <LuxeBadge variant={
-                                                statusInfo.color === 'green' ? "success" :
-                                                    statusInfo.color === 'amber' ? "warning" :
-                                                        statusInfo.color === 'blue' ? "info" : "neutral"
-                                            }>
+                                            <LuxeBadge variant={statusInfo.color === 'dark' ? "dark" : "neutral"}>
                                                 {statusInfo.label}
                                             </LuxeBadge>
-                                            <LuxeBadge variant={
-                                                pacingInfo.color === 'green' ? "success" :
-                                                    pacingInfo.color === 'blue' ? "info" :
-                                                        pacingInfo.color === 'amber' ? "warning" : "danger"
-                                            }>
+                                            <LuxeBadge variant={pacingInfo.color === 'dark' ? "dark" : "neutral"}>
                                                 {pacingInfo.label}
                                             </LuxeBadge>
                                         </div>
@@ -277,7 +269,7 @@ export default function Campaigns() {
                                             </div>
                                             <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Health</div>
                                         </div>
-                                        
+
                                         <div className="flex items-center gap-1">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); navigate(`/campaigns/${campaign.id}/edit`); }}

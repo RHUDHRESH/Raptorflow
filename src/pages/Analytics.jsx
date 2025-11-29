@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  TrendingUp, Target, CheckCircle2, AlertCircle, Zap, ArrowRight, 
+import {
+  TrendingUp, Target, CheckCircle2, AlertCircle, Zap, ArrowRight,
   Clock, Scale, Wrench, X, Archive, Loader2, ArrowLeft, Sparkles,
   ChevronDown, ChevronUp
 } from 'lucide-react'
@@ -38,33 +38,33 @@ const insights = [
 ]
 
 const DECISIONS = [
-  { 
-    value: 'Scale', 
-    label: 'Scale', 
-    icon: TrendingUp, 
-    color: 'green',
-    description: 'Double down - increase investment and expand scope' 
+  {
+    value: 'Scale',
+    label: 'Scale',
+    icon: TrendingUp,
+    color: 'dark',
+    description: 'Double down - increase investment and expand scope'
   },
-  { 
-    value: 'Tweak', 
-    label: 'Tweak', 
-    icon: Wrench, 
-    color: 'blue',
-    description: 'Iterate - adjust approach and continue' 
-  },
-  { 
-    value: 'Kill', 
-    label: 'Kill', 
-    icon: X, 
-    color: 'red',
-    description: 'Stop immediately - reallocate resources' 
-  },
-  { 
-    value: 'Archive', 
-    label: 'Archive', 
-    icon: Archive, 
+  {
+    value: 'Tweak',
+    label: 'Tweak',
+    icon: Wrench,
     color: 'neutral',
-    description: 'Complete - capture learnings and archive' 
+    description: 'Iterate - adjust approach and continue'
+  },
+  {
+    value: 'Kill',
+    label: 'Kill',
+    icon: X,
+    color: 'neutral',
+    description: 'Stop immediately - reallocate resources'
+  },
+  {
+    value: 'Archive',
+    label: 'Archive',
+    icon: Archive,
+    color: 'neutral',
+    description: 'Complete - capture learnings and archive'
   }
 ];
 
@@ -72,12 +72,12 @@ const DECISIONS = [
 const generateAIRecommendation = async (move) => {
   // Simulate AI analysis delay
   await new Promise(resolve => setTimeout(resolve, 1000));
-  
+
   // Simple heuristic - replace with actual AI
   const progress = move.progress_percentage || 0;
   const hasBlockers = (move.blockers || 0) > 2;
   const isHealthy = move.health_status === 'green';
-  
+
   if (progress > 75 && isHealthy) {
     return {
       decision: 'Scale',
@@ -85,7 +85,7 @@ const generateAIRecommendation = async (move) => {
       confidence: 0.85
     };
   }
-  
+
   if (hasBlockers || progress < 30) {
     return {
       decision: 'Kill',
@@ -93,7 +93,7 @@ const generateAIRecommendation = async (move) => {
       confidence: 0.7
     };
   }
-  
+
   return {
     decision: 'Tweak',
     reasoning: 'Moderate progress with room for improvement. Adjust approach and continue monitoring.',
@@ -113,9 +113,9 @@ const MoveReviewCard = ({ move, recommendation, onDecide, isCurrentMove }) => {
 
   const getHealthColor = (status) => {
     const colors = {
-      green: 'text-green-600 bg-green-50',
-      amber: 'text-yellow-600 bg-yellow-50',
-      red: 'text-red-600 bg-red-50'
+      green: 'text-neutral-900 bg-neutral-100',
+      amber: 'text-neutral-700 bg-neutral-50',
+      red: 'text-neutral-600 bg-neutral-50'
     };
     return colors[status] || colors.green;
   };
@@ -152,8 +152,8 @@ const MoveReviewCard = ({ move, recommendation, onDecide, isCurrentMove }) => {
           <p className="text-xs text-neutral-600 uppercase tracking-wider mb-1">Progress</p>
           <p className="text-2xl font-bold">{move.progress_percentage || 0}%</p>
           <div className="mt-2 h-1 bg-neutral-200 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-blue-600 transition-all"
+            <div
+              className="h-full bg-neutral-900 transition-all"
               style={{ width: `${move.progress_percentage || 0}%` }}
             />
           </div>
@@ -165,29 +165,29 @@ const MoveReviewCard = ({ move, recommendation, onDecide, isCurrentMove }) => {
         </div>
         <div className="p-4 bg-neutral-50 rounded-lg">
           <p className="text-xs text-neutral-600 uppercase tracking-wider mb-1">Blockers</p>
-          <p className="text-2xl font-bold text-red-600">{move.blockers || 0}</p>
+          <p className="text-2xl font-bold text-neutral-900">{move.blockers || 0}</p>
           <p className="text-xs text-neutral-500 mt-1">active issues</p>
         </div>
       </div>
 
       {/* AI Recommendation */}
       {recommendation && (
-        <div className="mb-6 p-4 bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg">
+        <div className="mb-6 p-4 bg-neutral-50 border-2 border-neutral-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+            <Sparkles className="w-5 h-5 text-neutral-900 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-purple-900">AI Recommendation</h4>
-                <span className="text-xs text-purple-600">
+                <h4 className="font-semibold text-neutral-900">AI Recommendation</h4>
+                <span className="text-xs text-neutral-600">
                   {Math.round(recommendation.confidence * 100)}% confidence
                 </span>
               </div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="px-3 py-1 bg-purple-600 text-white text-sm font-semibold rounded-full uppercase tracking-wider">
+                <span className="px-3 py-1 bg-neutral-900 text-white text-sm font-semibold rounded-full uppercase tracking-wider">
                   {recommendation.decision}
                 </span>
               </div>
-              <p className="text-sm text-purple-800">{recommendation.reasoning}</p>
+              <p className="text-sm text-neutral-700">{recommendation.reasoning}</p>
             </div>
           </div>
         </div>
@@ -253,7 +253,7 @@ const MoveReviewCard = ({ move, recommendation, onDecide, isCurrentMove }) => {
 export default function Analytics() {
   const navigate = useNavigate();
   const [selectedInsight, setSelectedInsight] = useState(null)
-  
+
   // Weekly Review state
   const [currentSprintMoves, setMoves] = useState([]);
   const [aiRecommendations, setRecommendations] = useState({});
@@ -270,7 +270,7 @@ export default function Analytics() {
   const loadMovesAndRecommendations = async () => {
     try {
       setIsLoadingMoves(true);
-      
+
       // Get current sprint
       const sprints = await sprintService.getActiveSprint();
       if (!sprints || sprints.length === 0) {
@@ -279,7 +279,7 @@ export default function Analytics() {
       }
 
       const currentSprint = sprints[0];
-      
+
       // Get moves for this sprint
       const moveService = new MoveService();
       const moves = await moveService.getBySprintId(currentSprint.id);
@@ -305,7 +305,7 @@ export default function Analytics() {
   const handleDecision = async (moveId, decision, notes) => {
     try {
       const moveService = new MoveService();
-      
+
       // Record decision
       await moveService.recordDecision(moveId, {
         decision,
@@ -391,7 +391,7 @@ export default function Analytics() {
                 <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center">
                   <Icon className="w-6 h-6" />
                 </div>
-                <span className="text-sm font-medium text-green-600">{metric.change}</span>
+                <span className="text-sm font-medium text-neutral-900">{metric.change}</span>
               </div>
               <div className="text-3xl font-bold text-neutral-900 mb-1">{metric.value}</div>
               <div className="text-sm text-neutral-600">{metric.label}</div>
@@ -430,9 +430,9 @@ export default function Analytics() {
                     <h3 className="text-lg font-bold text-neutral-900">{insight.title}</h3>
                     <span className={cn(
                       "px-2 py-1 text-xs font-medium rounded-lg",
-                      insight.impact === 'high' 
-                        ? "bg-red-100 text-red-700"
-                        : "bg-yellow-100 text-yellow-700"
+                      insight.impact === 'high'
+                        ? "bg-neutral-900 text-white"
+                        : "bg-neutral-200 text-neutral-900"
                     )}>
                       {insight.impact === 'high' ? 'High Impact' : 'Medium Impact'}
                     </span>
@@ -563,7 +563,7 @@ export default function Analytics() {
       {/* Loading indicator for AI recommendations */}
       {isGeneratingRecs && (
         <div className="fixed bottom-4 right-4 bg-white shadow-lg rounded-lg p-4 flex items-center gap-3">
-          <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+          <Loader2 className="w-5 h-5 animate-spin text-neutral-900" />
           <span className="text-sm">Generating AI recommendations...</span>
         </div>
       )}

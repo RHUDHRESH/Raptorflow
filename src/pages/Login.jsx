@@ -6,6 +6,7 @@ import { ArrowRight, Lock, Mail, AlertCircle, CheckCircle2, Chrome, Sparkles } f
 import { motion } from 'framer-motion';
 import { LuxeInput, LuxeButton, LuxeHeading } from '../components/ui/PremiumUI';
 import { pageTransition, fadeInUp, shimmer } from '../utils/animations';
+import { redirectAfterAuth } from '../utils/authRedirect';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -16,7 +17,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSupabaseReady, setIsSupabaseReady] = useState(true);
 
-  const { login, loginWithGoogle, skipLoginDev, loading, error: authError, isAuthenticated, onboardingCompleted, subscription } = useAuth();
+  const { login, loginWithGoogle, skipLoginDev, loading, error: authError, isAuthenticated, onboardingCompleted, subscription, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -30,18 +31,39 @@ const Login = () => {
     }
   }, []);
 
+  // Temporary logging for debugging redirect flow
   useEffect(() => {
     if (isAuthenticated && !loading) {
-      if (!onboardingCompleted) {
-        navigate('/onboarding', { replace: true });
-      } else if (!subscription || subscription.plan === 'free' || (subscription.status !== 'active' && subscription.status !== 'trialing')) {
-        // Redirect to payment/billing if no active paid subscription
-        navigate('/billing', { replace: true });
-      } else {
-        navigate(from, { replace: true });
-      }
+      console.log('[Login.useEffect]', { 
+        isAuthenticated, 
+        loading, 
+        onboardingCompleted, 
+        hasSubscription: !!subscription 
+      });
+
+      // If we have a specific 'from' location that isn't dashboard/login/register, we might want to respect it.
+      // However, the requirement is to protect against skipping onboarding.
+      // The helper handles onboarding check first.
+      // If onboarding is complete, we can respect 'from' if it's not dashboard?
+      // Actually, let's just use the helper. It defaults to dashboard if all good.
+      // If we really want to support deep linking, we could pass 'from' to the helper or handle it here.
+      // For now, let's stick to the strict spec: "If onboardingCompleted is false -> send to onboarding page."
+      // The helper does exactly that.
+
+      // Note: If 'from' is set, we might want to use it instead of dashboard IF onboarding is done.
+      // But for now, let's follow the spec which focuses on fixing the broken flow.
+      // I'll modify the helper usage slightly to respect 'from' if needed, OR just use the helper as is which enforces the happy path.
+      // Given the bug is about *skipping* onboarding, I'll prioritize the helper's logic.
+      
+      redirectAfterAuth({
+        user,
+        onboardingCompleted,
+        subscription,
+        navigate,
+        source: 'Login.useEffect'
+      });
     }
-  }, [isAuthenticated, loading, navigate, from, onboardingCompleted, subscription]);
+  }, [isAuthenticated, loading, navigate, from, onboardingCompleted, subscription, user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
