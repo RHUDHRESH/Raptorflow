@@ -38,8 +38,8 @@ from backend.models.persona import (
 )
 
 from backend.models.campaign import (
-    MoveRequest,
-    MoveResponse,
+    MoveCreate as MoveRequest,
+    Move as MoveResponse,
     MoveMetrics,
     Task,
     Sprint,

@@ -1,7 +1,16 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FileText, Calendar, Filter, Search, ArrowRight } from 'lucide-react'
+import { FileText, Calendar, Filter, Search, ArrowRight, CheckCircle2, Clock } from 'lucide-react'
 import { cn } from '../utils/cn'
+import {
+  HeroSection,
+  LuxeCard,
+  LuxeBadge,
+  FilterPills,
+  EmptyState,
+  staggerContainer,
+  fadeInUp
+} from '../components/ui/PremiumUI'
 
 const historyItems = [
   {
@@ -11,6 +20,7 @@ const historyItems = [
     title: 'Launch Product Beta',
     date: '2025-12-10',
     details: 'Move completed successfully',
+    daysAgo: 2,
   },
   {
     id: 2,
@@ -19,6 +29,7 @@ const historyItems = [
     title: 'Q4 Week 2 Review',
     date: '2025-12-08',
     details: '3 moves scaled, 1 tweaked',
+    daysAgo: 4,
   },
   {
     id: 3,
@@ -27,6 +38,7 @@ const historyItems = [
     title: 'Strategy Refresh',
     date: '2025-12-05',
     details: 'Strategy wizard completed',
+    daysAgo: 7,
   },
   {
     id: 4,
@@ -35,7 +47,16 @@ const historyItems = [
     title: 'Enterprise SaaS CTOs',
     date: '2025-12-03',
     details: 'New ICP profile added',
+    daysAgo: 9,
   },
+]
+
+const filterOptions = [
+  { label: 'All Types', value: 'all' },
+  { label: 'Moves', value: 'move' },
+  { label: 'Reviews', value: 'review' },
+  { label: 'Strategy', value: 'strategy' },
+  { label: 'ICPs', value: 'icp' },
 ]
 
 export default function History() {
@@ -50,39 +71,37 @@ export default function History() {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'move': return 'bg-neutral-100 text-neutral-900'
-      case 'review': return 'bg-neutral-100 text-neutral-900'
-      case 'strategy': return 'bg-green-100 text-green-700'
-      case 'icp': return 'bg-blue-100 text-blue-700'
-      default: return 'bg-neutral-100 text-neutral-700'
+      case 'move': return 'neutral'
+      case 'review': return 'info'
+      case 'strategy': return 'success'
+      case 'icp': return 'warning'
+      default: return 'neutral'
     }
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="runway-card relative overflow-hidden p-10 text-neutral-900"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-neutral-50 to-white" />
-        <div className="relative z-10 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full border border-neutral-200 bg-white flex items-center justify-center">
-            <FileText className="w-8 h-8 text-neutral-900" />
-          </div>
-          <div>
-            <p className="micro-label">Archive Ledger</p>
-            <h1 className="text-4xl font-display">Document the Runs</h1>
-            <p className="text-sm uppercase tracking-[0.3em] text-neutral-500">
-              Every move logged like a runway note
-            </p>
-          </div>
-        </div>
+    <motion.div
+      className="max-w-[1440px] mx-auto px-6 py-8 space-y-8"
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={staggerContainer}
+    >
+      {/* Hero */}
+      <motion.div variants={fadeInUp}>
+        <HeroSection
+          title="Activity History"
+          subtitle="Track all your moves, reviews, and strategic updates in one place."
+          metrics={[
+            { label: 'Total Activities', value: historyItems.length.toString() },
+            { label: 'This Month', value: '12' },
+            { label: 'Last Activity', value: `${historyItems[0]?.daysAgo}d ago` }
+          ]}
+        />
       </motion.div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
           <input
@@ -90,75 +109,71 @@ export default function History() {
             placeholder="Search history..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900"
+            className="w-full pl-12 pr-4 py-3 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-1 focus:ring-neutral-900 transition-all"
           />
         </div>
-        <div className="relative">
-          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="pl-12 pr-8 py-3 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900 appearance-none"
-          >
-            <option value="all">All Types</option>
-            <option value="move">Moves</option>
-            <option value="review">Reviews</option>
-            <option value="strategy">Strategy</option>
-            <option value="icp">ICPs</option>
-          </select>
-        </div>
-      </div>
+        <FilterPills
+          filters={filterOptions}
+          activeFilter={filterType}
+          onChange={setFilterType}
+        />
+      </motion.div>
 
       {/* History Timeline */}
-      <div className="runway-card p-8">
-        <div className="space-y-6">
-          {filteredItems.map((item, index) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="flex gap-6 pb-6 border-b border-neutral-200 last:border-0 last:pb-0"
-            >
-              <div className="flex flex-col items-center">
-                <div className={cn(
-                  "w-12 h-12 rounded-xl flex items-center justify-center mb-2",
-                  getTypeColor(item.type)
-                )}>
-                  <Calendar className="w-6 h-6" />
-                </div>
-                <div className="w-0.5 h-full bg-neutral-200" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={cn(
-                        "px-2 py-1 text-xs font-medium rounded-lg",
-                        getTypeColor(item.type)
-                      )}>
-                        {item.type}
-                      </span>
-                      <span className="text-sm font-medium text-neutral-600">{item.action}</span>
+      <motion.div variants={fadeInUp}>
+        <LuxeCard className="p-8">
+          {filteredItems.length === 0 ? (
+            <EmptyState
+              icon={FileText}
+              title="No activities found"
+              description="Try adjusting your search or filters."
+            />
+          ) : (
+            <div className="space-y-6">
+              {filteredItems.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="flex gap-6 pb-6 border-b border-neutral-200 last:border-0 last:pb-0 group"
+                >
+                  <div className="flex flex-col items-center shrink-0">
+                    <div className="w-12 h-12 rounded-xl bg-neutral-100 flex items-center justify-center mb-2 group-hover:bg-neutral-900 group-hover:text-white transition-colors">
+                      <Calendar className="w-6 h-6" />
                     </div>
-                    <h3 className="text-lg font-bold text-neutral-900 mb-1">{item.title}</h3>
-                    <p className="text-sm text-neutral-600">{item.details}</p>
+                    {index < filteredItems.length - 1 && (
+                      <div className="w-0.5 flex-1 bg-neutral-200 mt-2" />
+                    )}
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-neutral-900">{item.date}</div>
-                    <div className="text-xs text-neutral-500">2 days ago</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4 mb-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <LuxeBadge variant={getTypeColor(item.type)} className="capitalize">
+                            {item.type}
+                          </LuxeBadge>
+                          <span className="text-sm font-medium text-neutral-600">{item.action}</span>
+                        </div>
+                        <h3 className="text-lg font-medium text-neutral-900 mb-1">{item.title}</h3>
+                        <p className="text-sm text-neutral-600">{item.details}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-sm font-medium text-neutral-900">{item.date}</div>
+                        <div className="text-xs text-neutral-500">{item.daysAgo} days ago</div>
+                      </div>
+                    </div>
+                    <button className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 font-medium mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      View Details
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
                   </div>
-                </div>
-                <button className="flex items-center gap-2 text-sm text-neutral-900 hover:text-neutral-800 font-medium mt-2">
-                  View Details
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </LuxeCard>
+      </motion.div>
+    </motion.div>
   )
 }
-

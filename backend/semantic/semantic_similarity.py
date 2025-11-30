@@ -14,7 +14,7 @@ import numpy as np
 from typing import Any, Dict, List, Optional, Tuple
 import structlog
 
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 from backend.utils.cache import redis_cache
 from backend.utils.correlation import get_correlation_id
 
@@ -34,8 +34,8 @@ class SemanticSimilarity:
     """
 
     def __init__(self):
-        self.embedding_model = "text-embedding-3-small"  # OpenAI's latest embedding model
-        self.embedding_dimensions = 1536  # Default dimensions
+        self.embedding_model = "text-embedding-004"  # Vertex AI embedding model
+        self.embedding_dimensions = 768  # Vertex text-embedding-004 dimensions
         self.cache_ttl = 86400 * 7  # 7 days for embeddings
         self.similarity_threshold = 0.85  # Threshold for considering content similar
 
@@ -75,13 +75,11 @@ class SemanticSimilarity:
                 correlation_id=correlation_id
             )
 
-            # Generate embedding using OpenAI
-            response = await openai_client.client.embeddings.create(
-                model=self.embedding_model,
-                input=text[:8000]  # Limit to 8000 characters for embedding
+            # Generate embedding using Vertex AI
+            embedding = await vertex_ai_client.generate_embeddings(
+                text=text[:20000], # Limit to 20k chars for Vertex (approx limit)
+                model_type=self.embedding_model
             )
-
-            embedding = response.data[0].embedding
 
             # Cache the embedding
             await redis_cache.set(cache_key, embedding, ttl=self.cache_ttl)

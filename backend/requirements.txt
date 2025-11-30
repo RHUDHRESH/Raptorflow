@@ -118,3 +118,13 @@ language-tool-python>=2.7.1  # For grammar checking
 # Note: Requires special index - install with:
 # pip install --index-url https://phonepe.mycloudrepo.io/public/repositories/phonepe-pg-sdk-python --extra-index-url https://pypi.org/simple phonepe_sdk
 phonepe_sdk>=2.1.5  # PhonePe SDK for autopay and payments
+
+# Intelligence Extraction (Optimized)
+pdfplumber>=0.10.4
+paddleocr>=2.7.0
+paddlepaddle>=2.6.0
+trafilatura>=1.6.2
+playwright>=1.40.0
+imagehash>=4.3.1
+numpy>=1.26.0
+opencv-python-headless>=4.8.0  # For PaddleOCR

@@ -46,23 +46,3 @@ export const sidebarSections = [
         ],
     },
 ];
-
-/**
- * Capabilities Section (HIDDEN for now)
- *
- * Council of Lords navigation - not shown in sidebar currently.
- * Uncomment and add to sidebarSections when ready to expose.
- */
-// export const capabilitiesSection = {
-//   id: 'capabilities',
-//   label: 'Capabilities',
-//   items: [
-//     { id: 'architect', label: 'Architecture', icon: Castle, to: routes.council.architect },
-//     { id: 'cognition', label: 'Knowledge', icon: Brain, to: routes.council.cognition },
-//     { id: 'strategos', label: 'Planning', icon: Shield, to: routes.council.strategos },
-//     { id: 'aesthete', label: 'Brand', icon: Palette, to: routes.council.aesthete },
-//     { id: 'seer', label: 'Intelligence', icon: Eye, to: routes.council.seer },
-//     { id: 'arbiter', label: 'Decisions', icon: Gavel, to: routes.council.arbiter },
-//     { id: 'herald', label: 'Comms', icon: Bell, to: routes.council.herald },
-//   ],
-// };

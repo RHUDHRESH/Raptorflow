@@ -1,42 +1,36 @@
 """
-OpenAI client with retry logic, rate limiting, and error handling
+OpenAI client wrapper - DEPRECATED
+
+This module is kept for backward compatibility but redirects to Vertex AI Client.
+It mimics the OpenAI client interface but uses Vertex AI under the hood.
 """
 
 import asyncio
 from typing import Any, Dict, List, Optional
-import openai
-from openai import AsyncOpenAI
+import structlog
 from tenacity import (
     retry,
     stop_after_attempt,
     wait_exponential,
     retry_if_exception_type
 )
-from config.settings import settings
-import structlog
 
-logger = structlog.get_logger()
+from backend.services.vertex_ai_client import vertex_ai_client
+from backend.config.settings import settings
+
+logger = structlog.get_logger(__name__)
 
 
 class OpenAIClient:
-    """Async OpenAI client with automatic retries"""
+    """
+    Wrapper class that mimics OpenAIClient but routes to Vertex AI.
+    DEPRECATED: Use vertex_ai_client directly in new code.
+    """
     
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-        self.default_model = settings.OPENAI_MODEL
-        self.default_max_tokens = settings.OPENAI_MAX_TOKENS
-        self.default_temperature = settings.OPENAI_TEMPERATURE
+        self.client = None # No actual OpenAI client
+        self.default_model = "gemini-1.5-pro-002" # Map to Vertex equivalent
         
-    @retry(
-        retry=retry_if_exception_type((openai.RateLimitError, openai.APITimeoutError)),
-        wait=wait_exponential(multiplier=1, min=2, max=60),
-        stop=stop_after_attempt(settings.MAX_RETRIES),
-        before_sleep=lambda retry_state: logger.warning(
-            "Retrying OpenAI call",
-            attempt=retry_state.attempt_number,
-            wait=retry_state.next_action.sleep
-        )
-    )
     async def chat_completion(
         self,
         messages: List[Dict[str, str]],
@@ -48,51 +42,48 @@ class OpenAIClient:
         **kwargs
     ) -> Dict[str, Any]:
         """
-        Create a chat completion with retries
-        
-        Args:
-            messages: List of message dicts with 'role' and 'content'
-            model: Model to use (defaults to settings)
-            temperature: Sampling temperature
-            max_tokens: Max tokens in response
-            response_format: Optional response format (e.g., {"type": "json_object"})
-            tools: Optional function calling tools
-            **kwargs: Additional parameters for OpenAI API
-            
-        Returns:
-            Response dict with choices, usage, etc.
+        Redirect chat completion to Vertex AI
         """
+        logger.warning("Using deprecated OpenAIClient.chat_completion - redirecting to Vertex AI")
+        
         try:
-            response = await self.client.chat.completions.create(
-                model=model or self.default_model,
+            # Determine model type based on request or default
+            model_type = "fast"
+            if model and ("gpt-4" in model or "pro" in model):
+                model_type = "reasoning"
+            
+            # Call Vertex AI
+            content = await vertex_ai_client.chat_completion(
                 messages=messages,
-                temperature=temperature or self.default_temperature,
-                max_tokens=max_tokens or self.default_max_tokens,
+                model_type=model_type,
+                temperature=temperature,
+                max_tokens=max_tokens,
                 response_format=response_format,
-                tools=tools,
                 **kwargs
             )
             
-            logger.debug(
-                "OpenAI completion",
-                model=response.model,
-                tokens_used=response.usage.total_tokens if response.usage else 0
-            )
+            # Construct OpenAI-like response structure
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": content,
+                            "role": "assistant"
+                        },
+                        "finish_reason": "stop"
+                    }
+                ],
+                "usage": {
+                    "total_tokens": 0, # Placeholder
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0
+                },
+                "model": model or self.default_model
+            }
             
-            return response.model_dump()
-            
-        except openai.BadRequestError as e:
-            logger.error("Invalid OpenAI request", error=str(e))
-            raise ValueError(f"Invalid request to OpenAI: {str(e)}")
-        except openai.AuthenticationError:
-            logger.error("OpenAI authentication failed")
-            raise ValueError("OpenAI API key is invalid")
-        except openai.APIConnectionError:
-            logger.error("Failed to connect to OpenAI")
-            raise ConnectionError("Cannot reach OpenAI API")
         except Exception as e:
-            logger.error("Unexpected OpenAI error", error=str(e))
-            raise
+            logger.error("Redirect to Vertex AI failed", error=str(e))
+            raise ValueError(f"Vertex AI redirection failed: {str(e)}")
     
     async def generate_text(
         self,
@@ -100,24 +91,13 @@ class OpenAIClient:
         system_prompt: Optional[str] = None,
         **kwargs
     ) -> str:
-        """
-        Simple text generation helper
-        
-        Args:
-            prompt: User prompt
-            system_prompt: Optional system message
-            **kwargs: Additional parameters
-            
-        Returns:
-            Generated text
-        """
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
-        
-        response = await self.chat_completion(messages, **kwargs)
-        return response["choices"][0]["message"]["content"]
+        """Redirect text generation to Vertex AI"""
+        logger.warning("Using deprecated OpenAIClient.generate_text - redirecting to Vertex AI")
+        return await vertex_ai_client.generate_text(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            **kwargs
+        )
     
     async def generate_json(
         self,
@@ -125,32 +105,13 @@ class OpenAIClient:
         system_prompt: Optional[str] = None,
         **kwargs
     ) -> Dict[str, Any]:
-        """
-        Generate structured JSON output
-        
-        Args:
-            prompt: User prompt
-            system_prompt: Optional system message
-            **kwargs: Additional parameters
-            
-        Returns:
-            Parsed JSON dict
-        """
-        import json
-        
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
-        
-        response = await self.chat_completion(
-            messages,
-            response_format={"type": "json_object"},
+        """Redirect JSON generation to Vertex AI"""
+        logger.warning("Using deprecated OpenAIClient.generate_json - redirecting to Vertex AI")
+        return await vertex_ai_client.generate_json(
+            prompt=prompt,
+            system_prompt=system_prompt,
             **kwargs
         )
-        
-        content = response["choices"][0]["message"]["content"]
-        return json.loads(content)
     
     async def batch_completions(
         self,
@@ -159,26 +120,14 @@ class OpenAIClient:
         concurrency: int = 5,
         **kwargs
     ) -> List[str]:
-        """
-        Generate multiple completions concurrently
-        
-        Args:
-            prompts: List of user prompts
-            system_prompt: Optional system message for all
-            concurrency: Max concurrent requests
-            **kwargs: Additional parameters
-            
-        Returns:
-            List of generated texts
-        """
-        semaphore = asyncio.Semaphore(concurrency)
-        
-        async def limited_generate(prompt: str) -> str:
-            async with semaphore:
-                return await self.generate_text(prompt, system_prompt, **kwargs)
-        
-        tasks = [limited_generate(prompt) for prompt in prompts]
-        return await asyncio.gather(*tasks)
+        """Redirect batch completions to Vertex AI"""
+        logger.warning("Using deprecated OpenAIClient.batch_completions - redirecting to Vertex AI")
+        return await vertex_ai_client.batch_completions(
+            prompts=prompts,
+            system_prompt=system_prompt,
+            concurrency=concurrency,
+            **kwargs
+        )
     
     async def stream_completion(
         self,
@@ -186,34 +135,11 @@ class OpenAIClient:
         model: Optional[str] = None,
         **kwargs
     ):
-        """
-        Stream a chat completion (for real-time UI)
-        
-        Args:
-            messages: List of message dicts
-            model: Model to use
-            **kwargs: Additional parameters
-            
-        Yields:
-            Content chunks as they arrive
-        """
-        try:
-            stream = await self.client.chat.completions.create(
-                model=model or self.default_model,
-                messages=messages,
-                stream=True,
-                **kwargs
-            )
-            
-            async for chunk in stream:
-                if chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
-                    
-        except Exception as e:
-            logger.error("Streaming error", error=str(e))
-            raise
+        """Redirect stream completion to Vertex AI"""
+        logger.warning("Using deprecated OpenAIClient.stream_completion - redirecting to Vertex AI")
+        async for chunk in vertex_ai_client.stream_completion(messages, **kwargs):
+            yield chunk
 
 
 # Global client instance
 openai_client = OpenAIClient()
-

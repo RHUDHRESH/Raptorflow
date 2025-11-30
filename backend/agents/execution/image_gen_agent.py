@@ -94,17 +94,44 @@ class ImageGenAgent:
     
     async def _generate_imagen(self, prompt: str, dimensions: tuple) -> Dict[str, Any]:
         """Generates image using Google's Imagen on Vertex AI."""
-        # Note: In production, this would call Vertex AI's Imagen API
-        
-        logger.warning("Imagen generation is a stub - implement actual API call")
-        
-        return {
-            "image_url": "https://placeholder.example.com/image.png",
-            "model": "imagen",
-            "prompt": prompt,
-            "dimensions": dimensions,
-            "status": "generated"
-        }
+        try:
+            # Determine aspect ratio closest to dimensions
+            width, height = dimensions
+            aspect_ratio = "1:1"
+            if width > height:
+                aspect_ratio = "16:9"
+            elif height > width:
+                aspect_ratio = "9:16"
+                
+            # Call Vertex AI
+            images = await vertex_ai_client.generate_image(
+                prompt=prompt,
+                number_of_images=1,
+                aspect_ratio=aspect_ratio
+            )
+            
+            if not images:
+                raise ValueError("No images generated")
+                
+            # Currently returns base64, but for API consistency we return it as image_data
+            # In a real deployment, we would upload this to GCS/S3 and return a URL
+            return {
+                "image_data": images[0], # Base64 string
+                "model": "imagen",
+                "prompt": prompt,
+                "dimensions": dimensions,
+                "status": "generated"
+            }
+            
+        except Exception as e:
+            logger.error(f"Imagen generation failed: {e}")
+            # Fallback to placeholder if generation fails
+            return {
+                "image_url": "https://placeholder.example.com/image.png",
+                "error": str(e),
+                "model": "imagen",
+                "status": "failed"
+            }
     
     async def generate_social_graphic(
         self,
@@ -151,8 +178,3 @@ class ImageGenAgent:
 
 
 image_gen_agent = ImageGenAgent()
-
-
-
-
-

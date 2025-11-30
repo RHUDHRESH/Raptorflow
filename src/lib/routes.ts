@@ -37,18 +37,6 @@ export const routes = {
   // Cohorts
   cohorts: '/cohorts-moves', // TODO: Rename route to /cohorts in App.jsx?
 
-  // Council
-  council: {
-    architect: '/strategy/architect',
-    cognition: '/strategy/cognition',
-    strategos: '/strategy/strategos',
-    aesthete: '/strategy/aesthete',
-    seer: '/strategy/seer',
-    arbiter: '/strategy/arbiter',
-    herald: '/strategy/herald',
-    eris: '/strategy/eris',
-  },
-
   // Muse
   muse: '/muse',
   museWorkspace: '/muse/workspace',

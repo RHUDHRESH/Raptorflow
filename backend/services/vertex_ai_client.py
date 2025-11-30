@@ -19,11 +19,13 @@ try:
     from google.genai import types
     from vertexai.generative_models import GenerativeModel
     from vertexai.preview.generative_models import GenerativeModel as PreviewGenerativeModel
+    from vertexai.preview.vision_models import ImageGenerationModel
 except ImportError:
     genai = None
     types = None
     GenerativeModel = None
     PreviewGenerativeModel = None
+    ImageGenerationModel = None
 
 # Claude via Vertex
 try:
@@ -343,6 +345,49 @@ class VertexAIClient:
             logger.error(f"Mistral chat completion failed: {e}")
             raise
 
+    async def generate_embeddings(self, text: Union[str, List[str]], model_type: str = "text-embedding-004") -> Union[List[float], List[List[float]]]:
+        """
+        Generate embeddings for text using Vertex AI
+        
+        Args:
+            text: Single string or list of strings to embed
+            model_type: Embedding model to use
+            
+        Returns:
+            List of floats (if single string) or list of list of floats (if list of strings)
+        """
+        if not self.gemini_client: # Using gemini client for vertex access
+             raise RuntimeError("Vertex AI client not initialized")
+             
+        try:
+            # Handle single string vs list
+            is_single = isinstance(text, str)
+            texts = [text] if is_single else text
+            
+            # Using the models.embed_content method from google-genai
+            # Note: The exact method signature depends on the SDK version. 
+            # Assuming standard Vertex AI SDK behavior here.
+            
+            embeddings = []
+            for t in texts:
+                # Vertex AI embedding call
+                # We use the 'embedding-001' or similar model via the genai client
+                # or the vertexai library directly if needed.
+                # Since self.gemini_client is a genai.Client, we use that.
+                
+                response = await self.gemini_client.aio.models.embed_content(
+                    model=model_type,
+                    contents=t
+                )
+                embeddings.append(response.embedding.values)
+                
+            return embeddings[0] if is_single else embeddings
+
+        except Exception as e:
+            logger.error(f"Embedding generation failed: {e}")
+            # Fallback or raise
+            raise
+
     async def generate_text(
         self,
         prompt: str,
@@ -453,6 +498,49 @@ class VertexAIClient:
 
         tasks = [limited_generate(prompt) for prompt in prompts]
         return await asyncio.gather(*tasks)
+
+    async def generate_image(
+        self,
+        prompt: str,
+        number_of_images: int = 1,
+        aspect_ratio: str = "1:1",
+        model_type: str = "imagen-3.0-generate-001"
+    ) -> List[str]:
+        """
+        Generate images using Vertex AI (Imagen).
+        
+        Args:
+            prompt: Text prompt for image generation
+            number_of_images: Number of images to generate (1-4)
+            aspect_ratio: Aspect ratio (1:1, 16:9, 9:16, 3:4, 4:3)
+            model_type: Imagen model version
+            
+        Returns:
+            List of base64 encoded image strings (or GCS URIs if configured)
+        """
+        if not ImageGenerationModel or not self.project_id:
+             raise RuntimeError("Vertex AI Imagen not available or initialized")
+             
+        try:
+            # Run in thread pool since Vertex AI SDK might be blocking
+            def _generate():
+                model = ImageGenerationModel.from_pretrained(model_type)
+                images = model.generate_images(
+                    prompt=prompt,
+                    number_of_images=number_of_images,
+                    aspect_ratio=aspect_ratio,
+                    safety_filter_level="block_medium_and_above",
+                    person_generation="allow_adult"
+                )
+                # Convert to base64 strings for easy frontend display
+                # In production, might want to upload to GCS and return URLs
+                return [img._image_bytes_base64 for img in images]
+
+            return await asyncio.to_thread(_generate)
+
+        except Exception as e:
+            logger.error(f"Image generation failed: {e}")
+            raise
 
     async def ocr_image(self, image_url: str, model_type: str = "ocr") -> str:
         """

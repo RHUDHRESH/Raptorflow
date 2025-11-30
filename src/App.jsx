@@ -12,7 +12,7 @@ import LoadingScreen from './components/LoadingScreen'
 const Login = React.lazy(() => import('./pages/Login'))
 const Register = React.lazy(() => import('./pages/Register'))
 const Auth = React.lazy(() => import('./pages/Auth'))
-const Landing = React.lazy(() => import('./pages/Landing'))
+const Landing = React.lazy(() => import('./pages/Landing.tsx'))
 const Privacy = React.lazy(() => import('./pages/Privacy'))
 const Terms = React.lazy(() => import('./pages/Terms'))
 const Dashboard = React.lazy(() => import('./pages/Dashboard.tsx'))
@@ -24,6 +24,7 @@ const DailySweep = React.lazy(() => import('./pages/DailySweep'))
 const Onboarding = React.lazy(() => import('./components/Onboarding'))
 const OnboardingLuxe = React.lazy(() => import('./pages/OnboardingLuxe'))
 const OnboardingPricing = React.lazy(() => import('./pages/OnboardingPricing'))
+const UniversalOnboarding = React.lazy(() => import('./pages/UniversalOnboarding'))
 const Strategy = React.lazy(() => import('./pages/Strategy'))
 const StrategyWizard = React.lazy(() => import('./pages/StrategyWizard'))
 const StrategyWizardEnhanced = React.lazy(() => import('./pages/StrategyWizardEnhanced'))
@@ -45,15 +46,6 @@ const CohortDetail = React.lazy(() => import('./pages/strategy/CohortDetail'))
 const Campaigns = React.lazy(() => import('./pages/Campaigns'))
 const CampaignBuilder = React.lazy(() => import('./pages/CampaignBuilder'))
 const CampaignDetail = React.lazy(() => import('./pages/CampaignDetail'))
-// Council of Lords Dashboards - Phase 2A
-const ArchitectDashboard = React.lazy(() => import('./pages/strategy/ArchitectDashboard'))
-const CognitionDashboard = React.lazy(() => import('./pages/strategy/CognitionDashboard'))
-const StrategosDashboard = React.lazy(() => import('./pages/strategy/StrategosDashboard'))
-const AestheteDashboard = React.lazy(() => import('./pages/strategy/AestheteDashboard'))
-const SeerDashboard = React.lazy(() => import('./pages/strategy/SeerDashboard'))
-const ArbiterDashboard = React.lazy(() => import('./pages/strategy/ArbiterDashboard'))
-const HeraldDashboard = React.lazy(() => import('./pages/strategy/HeraldDashboard'))
-const ErisDashboard = React.lazy(() => import('./pages/strategy/ErisDashboard'))
 const AuthDebug = React.lazy(() => import('./pages/debug/AuthDebug'))
 const Workspace = React.lazy(() => import('./pages/Workspace'))
 const CreateWorkspace = React.lazy(() => import('./pages/CreateWorkspace.tsx'))
@@ -94,6 +86,11 @@ function App() {
                 <Route path={routes.onboardingPricing} element={
                   <ProtectedRoute requireOnboarding={true}>
                     <OnboardingPricing />
+                  </ProtectedRoute>
+                } />
+                <Route path="/onboarding/universal" element={
+                  <ProtectedRoute requireOnboarding={false}>
+                    <UniversalOnboarding />
                   </ProtectedRoute>
                 } />
 
@@ -155,16 +152,6 @@ function App() {
 
                   {/* Matrix */}
                   <Route path={routes.matrix} element={<Matrix />} />
-
-                  {/* Council */}
-                  <Route path={routes.council.architect} element={<ArchitectDashboard />} />
-                  <Route path={routes.council.cognition} element={<CognitionDashboard />} />
-                  <Route path={routes.council.strategos} element={<StrategosDashboard />} />
-                  <Route path={routes.council.aesthete} element={<AestheteDashboard />} />
-                  <Route path={routes.council.seer} element={<SeerDashboard />} />
-                  <Route path={routes.council.arbiter} element={<ArbiterDashboard />} />
-                  <Route path={routes.council.herald} element={<HeraldDashboard />} />
-                  <Route path={routes.council.eris} element={<ErisDashboard />} />
 
                   {/* Positioning */}
                   <Route path={routes.positioning} element={<Positioning />} />

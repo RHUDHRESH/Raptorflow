@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional, Set
 from collections import Counter
 import structlog
 
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 from backend.utils.cache import redis_cache
 from backend.utils.correlation import get_correlation_id
 
@@ -162,10 +162,11 @@ For CORPUS analysis (multiple documents), also include:
             # Build prompt
             user_prompt = self._build_single_doc_prompt(content, context)
 
-            # Extract topics using OpenAI
-            response = await openai_client.generate_json(
+            # Extract topics using Vertex AI
+            response = await vertex_ai_client.generate_json(
                 prompt=user_prompt,
                 system_prompt=self.system_prompt,
+                model_type="reasoning",
                 temperature=0.3,
                 max_tokens=2500
             )
@@ -272,9 +273,10 @@ For CORPUS analysis (multiple documents), also include:
 
         try:
             # Perform corpus-level analysis
-            response = await openai_client.generate_json(
+            response = await vertex_ai_client.generate_json(
                 prompt=user_prompt,
                 system_prompt=self.system_prompt,
+                model_type="reasoning",
                 temperature=0.3,
                 max_tokens=3500
             )

@@ -15,7 +15,7 @@ import json
 from typing import Any, Dict, List, Optional, Set, Tuple
 import structlog
 
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 from backend.utils.cache import redis_cache
 from backend.utils.correlation import get_correlation_id
 
@@ -167,10 +167,11 @@ Return your analysis as valid JSON matching this structure:
             # Build extraction prompt
             user_prompt = self._build_prompt(content, context)
 
-            # Call OpenAI for entity extraction
-            response = await openai_client.generate_json(
+            # Call Vertex AI for entity extraction
+            response = await vertex_ai_client.generate_json(
                 prompt=user_prompt,
                 system_prompt=self.system_prompt,
+                model_type="reasoning",
                 temperature=0.2,  # Low temperature for consistent extraction
                 max_tokens=3000
             )

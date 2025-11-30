@@ -15,7 +15,7 @@ import json
 from typing import Any, Dict, List, Optional
 import structlog
 
-from backend.services.openai_client import openai_client
+from backend.services.vertex_ai_client import vertex_ai_client
 from backend.utils.cache import redis_cache
 from backend.utils.correlation import get_correlation_id
 
@@ -148,10 +148,11 @@ Return your analysis as valid JSON matching this structure:
             # Build analysis prompt with context
             user_prompt = self._build_prompt(text, context)
 
-            # Call OpenAI with JSON response format
-            response = await openai_client.generate_json(
+            # Call Vertex AI with JSON response format
+            response = await vertex_ai_client.generate_json(
                 prompt=user_prompt,
                 system_prompt=self.system_prompt,
+                model_type="reasoning",
                 temperature=0.3,  # Lower temperature for more consistent analysis
                 max_tokens=2000
             )

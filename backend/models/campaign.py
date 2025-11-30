@@ -5,18 +5,19 @@ Campaign and Move models.
 from typing import List, Optional, Dict, Any, Literal
 from uuid import UUID
 from datetime import date, datetime
+from enum import Enum
 from pydantic import BaseModel, Field, validator
 
 # --- Enums ---
 
-class ObjectiveType(str):
+class ObjectiveType(str, Enum):
     AWARENESS = "awareness"
     CONSIDERATION = "consideration"
     CONVERSION = "conversion"
     RETENTION = "retention"
     ADVOCACY = "advocacy"
 
-class MoveType(str):
+class MoveType(str, Enum):
     AUTHORITY = "authority"
     CONSIDERATION = "consideration"
     OBJECTION = "objection"
@@ -26,20 +27,20 @@ class MoveType(str):
     NURTURE = "nurture"
     CUSTOM = "custom"
 
-class ChannelRole(str):
+class ChannelRole(str, Enum):
     REACH = "reach"
     ENGAGE = "engage"
     CONVERT = "convert"
     RETAIN = "retain"
 
-class MoveStatus(str):
+class MoveStatus(str, Enum):
     PLANNED = "planned"
     PREFLIGHT_FAILED = "preflight_failed"
     READY = "ready"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
 
-class AssetStatus(str):
+class AssetStatus(str, Enum):
     DRAFT = "draft"
     GENERATING = "generating"
     READY = "ready"
@@ -118,6 +119,8 @@ class MoveBase(BaseModel):
 class MoveCreate(MoveBase):
     campaign_id: UUID
 
+MoveRequest = MoveCreate
+
 class MoveUpdate(BaseModel):
     name: Optional[str] = None
     status: Optional[MoveStatus] = None
@@ -185,3 +188,27 @@ class PreflightIssue(BaseModel):
 class PreflightResult(BaseModel):
     status: Literal["pass", "warn", "fail"]
     issues: List[PreflightIssue] = []
+
+# --- Aliases for backward compatibility ---
+MoveRequest = MoveCreate
+MoveResponse = Move
+
+# --- Missing Models (Restored/Stubbed) ---
+class MoveMetrics(BaseModel):
+    pass
+class Task(BaseModel):
+    pass
+class Sprint(BaseModel):
+    pass
+class LineOfOperation(BaseModel):
+    pass
+class AssetRequirement(BaseModel):
+    pass
+class ChecklistItem(BaseModel):
+    pass
+class TaskUpdateRequest(BaseModel):
+    pass
+class MoveDecision(BaseModel):
+    pass
+class MoveAnomaly(BaseModel):
+    pass

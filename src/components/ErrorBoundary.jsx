@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { AlertCircle, RefreshCw, Home } from 'lucide-react';
-import { analytics } from '../lib/posthog';
+// import { analytics } from '../lib/posthog';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -18,11 +18,16 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log error to analytics service
-    analytics.trackError(error, {
-      componentStack: errorInfo?.componentStack,
-      errorBoundary: this.props.name || 'ErrorBoundary',
-    });
+    // Log error to analytics service (if available)
+    try {
+      // analytics.trackError(error, {
+      //   componentStack: errorInfo?.componentStack,
+      //   errorBoundary: this.props.name || 'ErrorBoundary',
+      // });
+      console.error('Error caught by boundary:', error, errorInfo);
+    } catch (e) {
+      console.error('Failed to track error:', e);
+    }
 
     this.setState({
       error,

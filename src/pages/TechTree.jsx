@@ -8,6 +8,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Unlock, CheckCircle, Target, TrendingUp } from 'lucide-react';
 import { useCapabilityNodes } from '../hooks/useMoveSystem';
 import { cn } from '../utils/cn';
+import {
+  HeroSection,
+  LuxeCard,
+  LuxeButton,
+  LuxeBadge,
+  LuxeModal,
+  staggerContainer,
+  fadeInUp
+} from '../components/ui/PremiumUI';
 
 export default function TechTreeIntegrated() {
   const { capabilityNodes, loading, unlockNode } = useCapabilityNodes();
@@ -31,12 +40,11 @@ export default function TechTreeIntegrated() {
   // Check if node can be unlocked
   const canUnlock = (node) => {
     if (node.status === 'Unlocked') return false;
-    
-    // Check if all parent nodes are unlocked
+
     if (!node.parent_node_ids || node.parent_node_ids.length === 0) {
-      return true; // Foundation nodes with no parents
+      return true;
     }
-    
+
     return node.parent_node_ids.every(parentId => {
       const parent = capabilityNodes.find(n => n.id === parentId);
       return parent && parent.status === 'Unlocked';
@@ -45,7 +53,7 @@ export default function TechTreeIntegrated() {
 
   const handleUnlock = async () => {
     if (!selectedNode) return;
-    
+
     try {
       setUnlocking(true);
       await unlockNode(selectedNode.id);
@@ -71,7 +79,7 @@ export default function TechTreeIntegrated() {
 
   const getStatusIcon = (node) => {
     if (node.status === 'Unlocked') {
-      return <CheckCircle className="w-5 h-5 text-green-600" />;
+      return <CheckCircle className="w-5 h-5 text-emerald-600" />;
     } else if (canUnlock(node)) {
       return <Unlock className="w-5 h-5 text-amber-600" />;
     } else {
@@ -91,83 +99,87 @@ export default function TechTreeIntegrated() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <motion.div
+      className="max-w-[1440px] mx-auto px-6 py-8 space-y-8"
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={staggerContainer}
+    >
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="runway-card relative overflow-hidden p-10"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-neutral-50 to-white" />
-        <div className="relative z-10">
-          <p className="micro-label mb-2">Tech Tree</p>
-          <h1 className="font-serif text-4xl md:text-6xl text-black leading-tight mb-3">
-            Capability Progression
-          </h1>
-          <p className="text-base text-neutral-600 max-w-2xl">
-            Unlock capabilities to access advanced tactical maneuvers. Each tier builds on the previous.
-          </p>
-        </div>
+      <motion.div variants={fadeInUp}>
+        <HeroSection
+          title="Tech Tree"
+          subtitle="Unlock capabilities to access advanced tactical maneuvers. Each tier builds on the previous."
+          metrics={[
+            { label: 'Total', value: totalNodes.toString() },
+            { label: 'Unlocked', value: unlockedNodes.toString() },
+            { label: 'Progress', value: `${progressPercentage}%` }
+          ]}
+        />
       </motion.div>
 
       {/* Progress Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="runway-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <Target className="w-6 h-6 text-neutral-400" />
-            <span className="text-2xl font-bold text-neutral-900">{totalNodes}</span>
-          </div>
-          <p className="text-sm text-neutral-600">Total Capabilities</p>
-        </div>
-        
-        <div className="runway-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <CheckCircle className="w-6 h-6 text-green-500" />
-            <span className="text-2xl font-bold text-green-600">{unlockedNodes}</span>
-          </div>
-          <p className="text-sm text-neutral-600">Unlocked</p>
-        </div>
-        
-        <div className="runway-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <TrendingUp className="w-6 h-6 text-neutral-400" />
-            <span className="text-2xl font-bold text-neutral-900">{progressPercentage}%</span>
-          </div>
-          <p className="text-sm text-neutral-600">Progress</p>
-          <div className="mt-3 h-2 bg-neutral-200 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-blue-500 to-green-500"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-        </div>
+        <motion.div variants={fadeInUp}>
+          <LuxeCard className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Target className="w-6 h-6 text-neutral-400" />
+              <span className="text-2xl font-display font-medium text-neutral-900">{totalNodes}</span>
+            </div>
+            <p className="text-sm text-neutral-600">Total Capabilities</p>
+          </LuxeCard>
+        </motion.div>
+
+        <motion.div variants={fadeInUp}>
+          <LuxeCard className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <CheckCircle className="w-6 h-6 text-emerald-500" />
+              <span className="text-2xl font-display font-medium text-emerald-600">{unlockedNodes}</span>
+            </div>
+            <p className="text-sm text-neutral-600">Unlocked</p>
+          </LuxeCard>
+        </motion.div>
+
+        <motion.div variants={fadeInUp}>
+          <LuxeCard className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <TrendingUp className="w-6 h-6 text-neutral-400" />
+              <span className="text-2xl font-display font-medium text-neutral-900">{progressPercentage}%</span>
+            </div>
+            <p className="text-sm text-neutral-600">Progress</p>
+            <div className="mt-3 h-2 bg-neutral-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-blue-500 to-emerald-500"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+          </LuxeCard>
+        </motion.div>
       </div>
 
       {/* Tech Tree by Tier */}
       <div className="space-y-8">
         {tierOrder.map((tier) => (
-          <div key={tier} className="space-y-4">
+          <motion.div key={tier} variants={fadeInUp} className="space-y-4">
             <div className={cn(
-              "inline-block px-4 py-2 rounded-lg font-bold text-white bg-gradient-to-r",
+              "inline-block px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r",
               getTierColor(tier)
             )}>
               {tier}
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {nodesByTier[tier]?.map((node) => {
                 const unlockable = canUnlock(node);
                 const isUnlocked = node.status === 'Unlocked';
-                
+
                 return (
                   <motion.div
                     key={node.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
                     whileHover={{ scale: unlockable && !isUnlocked ? 1.02 : 1 }}
                     className={cn(
-                      "runway-card p-6 cursor-pointer transition-all",
-                      isUnlocked && "border-2 border-green-500",
+                      "cursor-pointer transition-all",
                       !unlockable && !isUnlocked && "opacity-50"
                     )}
                     onClick={() => {
@@ -177,192 +189,93 @@ export default function TechTreeIntegrated() {
                       }
                     }}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      {getStatusIcon(node)}
-                      {isUnlocked && node.unlocked_at && (
-                        <span className="text-[10px] text-neutral-500">
-                          {new Date(node.unlocked_at).toLocaleDateString()}
-                        </span>
+                    <LuxeCard className={cn(
+                      "p-6",
+                      isUnlocked && "border-2 border-emerald-500"
+                    )}>
+                      <div className="flex items-start justify-between mb-3">
+                        {getStatusIcon(node)}
+                        {isUnlocked && node.unlocked_at && (
+                          <span className="text-[10px] text-neutral-500">
+                            {new Date(node.unlocked_at).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-sm font-bold text-neutral-900 mb-2 line-clamp-2">
+                        {node.name}
+                      </h3>
+
+                      <p className="text-xs text-neutral-600 line-clamp-3 mb-3">
+                        {node.description || 'No description'}
+                      </p>
+
+                      {node.parent_node_ids && node.parent_node_ids.length > 0 && (
+                        <div className="flex items-center gap-1 text-[10px] text-neutral-500">
+                          <Lock className="w-3 h-3" />
+                          Requires {node.parent_node_ids.length} prerequisite(s)
+                        </div>
                       )}
-                    </div>
-                    
-                    <h3 className="text-sm font-bold text-neutral-900 mb-2 line-clamp-2">
-                      {node.name}
-                    </h3>
-                    
-                    <p className="text-xs text-neutral-600 line-clamp-3 mb-3">
-                      {node.description || 'No description'}
-                    </p>
-                    
-                    {node.parent_node_ids && node.parent_node_ids.length > 0 && (
-                      <div className="flex items-center gap-1 text-[10px] text-neutral-500">
-                        <Lock className="w-3 h-3" />
-                        Requires {node.parent_node_ids.length} prerequisite(s)
-                      </div>
-                    )}
-                    
-                    {unlockable && !isUnlocked && (
-                      <div className="mt-3 pt-3 border-t border-neutral-200">
-                        <button className="w-full px-3 py-1.5 text-xs font-medium bg-neutral-900 text-white rounded hover:bg-neutral-800">
-                          Unlock Now
-                        </button>
-                      </div>
-                    )}
+
+                      {unlockable && !isUnlocked && (
+                        <div className="mt-3 pt-3 border-t border-neutral-200">
+                          <LuxeButton size="sm" className="w-full">
+                            Unlock Now
+                          </LuxeButton>
+                        </div>
+                      )}
+                    </LuxeCard>
                   </motion.div>
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
       {/* Unlock Confirmation Modal */}
-      <AnimatePresence>
-        {showUnlockModal && selectedNode && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowUnlockModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-              onClick={(e) => e.stopPropagation()}
-              className="runway-card p-8 max-w-lg w-full"
-            >
-              <h2 className="text-2xl font-bold text-neutral-900 mb-4">
-                Unlock Capability
-              </h2>
-              
-              <div className="mb-6">
-                <h3 className="text-lg font-bold text-neutral-900 mb-2">
-                  {selectedNode.name}
-                </h3>
-                <p className="text-neutral-600 mb-4">
-                  {selectedNode.description}
-                </p>
-                
-                {selectedNode.completion_criteria && (
-                  <div className="p-4 bg-neutral-50 rounded-lg">
-                    <p className="text-sm font-medium text-neutral-700 mb-2">Criteria:</p>
-                    <pre className="text-xs text-neutral-600 overflow-auto">
-                      {JSON.stringify(selectedNode.completion_criteria, null, 2)}
-                    </pre>
-                  </div>
-                )}
-              </div>
-              
-              <p className="text-sm text-neutral-600 mb-6">
-                Unlocking this capability will make new tactical maneuvers available in the Move Library.
-              </p>
-              
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowUnlockModal(false)}
-                  disabled={unlocking}
-                  className="flex-1 px-6 py-3 border border-neutral-200 text-neutral-900 rounded-lg hover:bg-neutral-50 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUnlock}
-                  disabled={unlocking}
-                  className="flex-1 px-6 py-3 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {unlocking ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Unlocking...
-                    </>
-                  ) : (
-                    <>
-                      <Unlock className="w-4 h-4" />
-                      Unlock Now
-                    </>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Detail View (when node selected but not unlocking) */}
-      <AnimatePresence>
-        {selectedNode && !showUnlockModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setSelectedNode(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-              onClick={(e) => e.stopPropagation()}
-              className="runway-card p-8 max-w-lg w-full"
-            >
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-neutral-900 mb-2">
-                    {selectedNode.name}
-                  </h2>
-                  <span className={cn(
-                    "px-3 py-1 text-sm rounded",
-                    selectedNode.status === 'Unlocked' 
-                      ? "bg-green-100 text-green-900" 
-                      : "bg-neutral-100 text-neutral-900"
-                  )}>
-                    {selectedNode.status}
-                  </span>
-                </div>
-                {getStatusIcon(selectedNode)}
-              </div>
-              
-              <p className="text-neutral-600 mb-6">
+      {showUnlockModal && selectedNode && (
+        <LuxeModal
+          isOpen={showUnlockModal}
+          onClose={() => setShowUnlockModal(false)}
+          title="Unlock Capability"
+        >
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-bold text-neutral-900 mb-2">
+                {selectedNode.name}
+              </h3>
+              <p className="text-neutral-600">
                 {selectedNode.description}
               </p>
-              
-              {selectedNode.parent_node_ids && selectedNode.parent_node_ids.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-bold text-neutral-700 mb-2">Prerequisites:</h3>
-                  <div className="space-y-2">
-                    {selectedNode.parent_node_ids.map(parentId => {
-                      const parent = capabilityNodes.find(n => n.id === parentId);
-                      return parent ? (
-                        <div key={parentId} className="flex items-center gap-2 text-sm">
-                          {parent.status === 'Unlocked' ? (
-                            <CheckCircle className="w-4 h-4 text-green-600" />
-                          ) : (
-                            <Lock className="w-4 h-4 text-neutral-400" />
-                          )}
-                          <span className={parent.status === 'Unlocked' ? 'text-neutral-900' : 'text-neutral-500'}>
-                            {parent.name}
-                          </span>
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-              )}
-              
-              <button
-                onClick={() => setSelectedNode(null)}
-                className="w-full px-6 py-3 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800"
+            </div>
+
+            <p className="text-sm text-neutral-600">
+              Unlocking this capability will make new tactical maneuvers available in the Move Library.
+            </p>
+
+            <div className="flex gap-3">
+              <LuxeButton
+                variant="outline"
+                onClick={() => setShowUnlockModal(false)}
+                disabled={unlocking}
+                className="flex-1"
               >
-                Close
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+                Cancel
+              </LuxeButton>
+              <LuxeButton
+                onClick={handleUnlock}
+                disabled={unlocking}
+                loading={unlocking}
+                className="flex-1"
+              >
+                <Unlock className="w-4 h-4 mr-2" />
+                Unlock Now
+              </LuxeButton>
+            </div>
+          </div>
+        </LuxeModal>
+      )}
+    </motion.div>
   );
 }
-
-
