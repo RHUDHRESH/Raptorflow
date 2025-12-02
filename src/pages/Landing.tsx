@@ -405,13 +405,210 @@ const HowItWorks = () => {
 const SevenPillars = () => {
   return (
     <section id="pillars" className="py-32 md:py-48 border-b border-line relative overflow-hidden">
-      <div className="max-w-6xl mx-auto px-6 md:px-8 lg:px-0 relative z-10">
-        <h2 className="font-serif text-6xl md:text-7xl text-center mb-16">
-          The 7 Pillars
-        </h2>
-        <p className="text-center text-xl text-charcoal/70 mb-20 max-w-3xl mx-auto">
-          Every campaign must answer to these seven.
-        </p>
+      {/* Dramatic Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-aubergine/10 via-canvas to-gold/10"></div>
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url(/pattern.png)', backgroundSize: '1400px' }}></div>
+
+      {/* Large animated orbs */}
+      <div className="absolute top-1/4 right-1/3 w-[600px] h-[600px] rounded-full bg-gradient-to-br from-gold/20 to-transparent blur-3xl animate-pulse" style={{ animationDuration: '7s' }}></div>
+      <div className="absolute bottom-1/4 left-1/3 w-[700px] h-[700px] rounded-full bg-gradient-to-tl from-aubergine/20 to-transparent blur-3xl animate-pulse" style={{ animationDuration: '9s', animationDelay: '3s' }}></div>
+
+      <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12 relative z-10">
+        {/* Dramatic Header */}
+        <div className="text-center max-w-4xl mx-auto mb-24">
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <div className="w-20 h-px bg-gradient-to-r from-transparent via-gold to-transparent"></div>
+            <p className="text-xs uppercase tracking-[0.4em] text-gold font-bold">
+              The 7 Pillars
+            </p>
+            <div className="w-20 h-px bg-gradient-to-r from-transparent via-gold to-transparent"></div>
+          </div>
+          <h2 className="font-serif text-6xl md:text-7xl lg:text-8xl leading-[0.95] mb-8">
+            The strategy spine<br />behind every plan.
+          </h2>
+          <p className="text-xl text-charcoal/70 leading-relaxed max-w-2xl mx-auto">
+            Every campaign, move, and brief must answer to these seven.<br className="hidden md:block" />
+            No more random tactics unlinked from positioning.
+          </p>
+        </div>
+
+        {/* ASYMMETRIC EDITORIAL LAYOUT WITH ART */}
+        <div className="relative">
+          {/* Row 1: LARGE + MEDIUM */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
+            {/* 01 - Audience - LARGE with CIRCULAR ART */}
+            <div className="md:col-span-7 group relative">
+              <div className="absolute -inset-6 bg-gradient-to-br from-aubergine/25 to-gold/25 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 blur-3xl"></div>
+              <div className="relative bg-white/70 backdrop-blur-md border-2 border-line/60 rounded-3xl p-12 hover:bg-white/90 hover:border-gold/50 hover:shadow-2xl transition-all duration-500 h-full overflow-hidden">
+                {/* Artistic Element - Concentric Circles */}
+                <div className="absolute -right-20 -top-20 w-64 h-64 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                  <div className="absolute inset-0 rounded-full border-4 border-aubergine"></div>
+                  <div className="absolute inset-8 rounded-full border-2 border-aubergine"></div>
+                  <div className="absolute inset-16 rounded-full border border-aubergine"></div>
+                </div>
+
+                <div className="mb-6">
+                  <span className="text-xs uppercase tracking-[0.3em] text-gold/60 font-bold">01</span>
+                </div>
+                <h3 className="font-serif text-4xl md:text-5xl mb-6 group-hover:text-aubergine transition-colors leading-tight">
+                  Audience
+                </h3>
+                <p className="text-lg text-charcoal/70 leading-relaxed">
+                  Know exactly who to hunt first.
+                </p>
+                <div className="absolute top-8 right-8 w-3 h-3 rounded-full bg-gold/50 group-hover:scale-[2] group-hover:bg-gold transition-all duration-500"></div>
+              </div>
+            </div>
+
+            {/* 02 - Value prop - MEDIUM with STAR ART */}
+            <div className="md:col-span-5 group relative">
+              <div className="absolute -inset-6 bg-gradient-to-br from-gold/25 to-aubergine/25 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 blur-3xl"></div>
+              <div className="relative bg-white/60 backdrop-blur-md border border-line/60 rounded-3xl p-10 hover:bg-white/85 hover:border-aubergine/50 hover:shadow-2xl transition-all duration-500 h-full overflow-hidden">
+                {/* Artistic Element - Star Burst */}
+                <div className="absolute -right-16 -bottom-16 w-48 h-48 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                  <svg viewBox="0 0 100 100" className="w-full h-full text-gold">
+                    <polygon points="50,10 61,35 89,35 67,52 75,78 50,63 25,78 33,52 11,35 39,35" fill="currentColor" opacity="0.3" />
+                    <polygon points="50,20 58,38 78,38 63,49 68,68 50,56 32,68 37,49 22,38 42,38" fill="currentColor" opacity="0.5" />
+                  </svg>
+                </div>
+
+                <div className="mb-5">
+                  <span className="text-xs uppercase tracking-[0.3em] text-aubergine/60 font-bold">02</span>
+                </div>
+                <h3 className="font-serif text-3xl md:text-4xl mb-5 group-hover:text-aubergine transition-colors leading-tight">
+                  Value prop
+                </h3>
+                <p className="text-base text-charcoal/70 leading-relaxed">
+                  Clarify why anyone should buy from you now.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: SMALL + MEDIUM + SMALL */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
+            {/* 03 - Differentiation - SMALL with LAYERED SQUARES */}
+            <div className="md:col-span-4 group relative">
+              <div className="absolute -inset-4 bg-gradient-to-br from-aubergine/20 to-gold/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 blur-2xl"></div>
+              <div className="relative bg-white/50 backdrop-blur-sm border border-line/60 rounded-3xl p-8 hover:bg-white/80 hover:border-gold/50 hover:shadow-xl transition-all duration-500 h-full overflow-hidden">
+                {/* Artistic Element - Layered Squares */}
+                <div className="absolute -left-8 -bottom-8 w-32 h-32 opacity-10 group-hover:opacity-20 transition-all duration-500 group-hover:rotate-12">
+                  <div className="absolute inset-0 border-4 border-aubergine rounded-lg rotate-12"></div>
+                  <div className="absolute inset-4 border-2 border-aubergine rounded-lg rotate-6"></div>
+                  <div className="absolute inset-8 border border-aubergine rounded-lg"></div>
+                </div>
+
+                <div className="mb-4">
+                  <span className="text-xs uppercase tracking-[0.3em] text-gold/60 font-bold">03</span>
+                </div>
+                <h3 className="font-serif text-2xl md:text-3xl mb-4 group-hover:text-aubergine transition-colors leading-tight">
+                  Differentiation
+                </h3>
+                <p className="text-sm text-charcoal/70 leading-relaxed">
+                  What you can say they can't copy in 2 weeks.
+                </p>
+              </div>
+            </div>
+
+            {/* 04 - Competition - MEDIUM with TARGET CIRCLES */}
+            <div className="md:col-span-4 group relative">
+              <div className="absolute -inset-6 bg-gradient-to-br from-gold/25 to-aubergine/25 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 blur-3xl"></div>
+              <div className="relative bg-white/60 backdrop-blur-md border border-line/60 rounded-3xl p-10 hover:bg-white/85 hover:border-aubergine/50 hover:shadow-2xl transition-all duration-500 h-full overflow-hidden">
+                {/* Artistic Element - Target Circles */}
+                <div className="absolute -right-12 top-1/2 -translate-y-1/2 w-40 h-40 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                  <div className="absolute inset-0 rounded-full border-4 border-gold"></div>
+                  <div className="absolute inset-6 rounded-full border-2 border-gold"></div>
+                  <div className="absolute inset-12 rounded-full border border-gold"></div>
+                  <div className="absolute inset-16 rounded-full bg-gold"></div>
+                </div>
+
+                <div className="mb-5">
+                  <span className="text-xs uppercase tracking-[0.3em] text-aubergine/60 font-bold">04</span>
+                </div>
+                <h3 className="font-serif text-3xl md:text-4xl mb-5 group-hover:text-aubergine transition-colors leading-tight">
+                  Competition
+                </h3>
+                <p className="text-base text-charcoal/70 leading-relaxed">
+                  Where you can flank existing alternatives.
+                </p>
+              </div>
+            </div>
+
+            {/* 05 - Discovery - SMALL with SEARCH LENS */}
+            <div className="md:col-span-4 group relative">
+              <div className="absolute -inset-4 bg-gradient-to-br from-aubergine/20 to-gold/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 blur-2xl"></div>
+              <div className="relative bg-white/50 backdrop-blur-sm border border-line/60 rounded-3xl p-8 hover:bg-white/80 hover:border-gold/50 hover:shadow-xl transition-all duration-500 h-full overflow-hidden">
+                {/* Artistic Element - Search Lens */}
+                <div className="absolute -right-10 -top-10 w-36 h-36 opacity-10 group-hover:opacity-20 transition-all duration-500 group-hover:scale-110">
+                  <div className="absolute inset-0 rounded-full border-4 border-aubergine"></div>
+                  <div className="absolute bottom-2 right-2 w-12 h-1 bg-aubergine origin-top-right rotate-45"></div>
+                </div>
+
+                <div className="mb-4">
+                  <span className="text-xs uppercase tracking-[0.3em] text-gold/60 font-bold">05</span>
+                </div>
+                <h3 className="font-serif text-2xl md:text-3xl mb-4 group-hover:text-aubergine transition-colors leading-tight">
+                  Discovery
+                </h3>
+                <p className="text-sm text-charcoal/70 leading-relaxed">
+                  How they actually find you.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 3: MEDIUM + LARGE */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+            {/* 06 - Remarkability - MEDIUM with SPARKLE */}
+            <div className="md:col-span-5 group relative">
+              <div className="absolute -inset-6 bg-gradient-to-br from-gold/25 to-aubergine/25 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 blur-3xl"></div>
+              <div className="relative bg-white/60 backdrop-blur-md border border-line/60 rounded-3xl p-10 hover:bg-white/85 hover:border-aubergine/50 hover:shadow-2xl transition-all duration-500 h-full overflow-hidden">
+                {/* Artistic Element - Sparkle Star */}
+                <div className="absolute -left-12 -top-12 w-44 h-44 opacity-10 group-hover:opacity-20 transition-all duration-500 group-hover:rotate-45">
+                  <svg viewBox="0 0 100 100" className="w-full h-full text-gold">
+                    <path d="M50 10 L55 45 L90 50 L55 55 L50 90 L45 55 L10 50 L45 45 Z" fill="currentColor" opacity="0.4" />
+                    <path d="M50 25 L53 47 L75 50 L53 53 L50 75 L47 53 L25 50 L47 47 Z" fill="currentColor" opacity="0.6" />
+                  </svg>
+                </div>
+
+                <div className="mb-5">
+                  <span className="text-xs uppercase tracking-[0.3em] text-aubergine/60 font-bold">06</span>
+                </div>
+                <h3 className="font-serif text-3xl md:text-4xl mb-5 group-hover:text-aubergine transition-colors leading-tight">
+                  Remarkability
+                </h3>
+                <p className="text-base text-charcoal/70 leading-relaxed">
+                  The story worth talking about.
+                </p>
+              </div>
+            </div>
+
+            {/* 07 - Proof - LARGE with CHECKMARK SHIELD */}
+            <div className="md:col-span-7 group relative">
+              <div className="absolute -inset-6 bg-gradient-to-br from-aubergine/25 to-gold/25 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 blur-3xl"></div>
+              <div className="relative bg-white/70 backdrop-blur-md border-2 border-line/60 rounded-3xl p-12 hover:bg-white/90 hover:border-gold/50 hover:shadow-2xl transition-all duration-500 h-full overflow-hidden">
+                {/* Artistic Element - Shield with Check */}
+                <div className="absolute -right-16 -bottom-16 w-56 h-56 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                  <svg viewBox="0 0 100 100" className="w-full h-full text-aubergine">
+                    <path d="M50 10 L80 25 L80 50 Q80 75 50 90 Q20 75 20 50 L20 25 Z" fill="currentColor" opacity="0.3" />
+                    <path d="M35 50 L45 60 L65 35" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.6" />
+                  </svg>
+                </div>
+
+                <div className="mb-6">
+                  <span className="text-xs uppercase tracking-[0.3em] text-gold/60 font-bold">07</span>
+                </div>
+                <h3 className="font-serif text-4xl md:text-5xl mb-6 group-hover:text-aubergine transition-colors leading-tight">
+                  Proof
+                </h3>
+                <p className="text-lg text-charcoal/70 leading-relaxed">
+                  Evidence that makes it believable.
+                </p>
+                <div className="absolute top-8 right-8 w-3 h-3 rounded-full bg-gold/50 group-hover:scale-[2] group-hover:bg-gold transition-all duration-500"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   )

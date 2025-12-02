@@ -3,10 +3,25 @@ import { z } from 'zod';
 import { supabaseAdmin } from '../lib/supabase';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { redis } from '../lib/redis';
+import { analyzeBattlefield, BattlefieldAnalysis } from '../lib/onboarding/analyzeBattlefield';
+import { generatePositioningBlueprint, PositioningBlueprint } from '../lib/onboarding/generatePositioningBlueprint';
 
 const router = Router();
 
 // Validation schemas
+const positioningBodySchema = z.object({
+  analysisId: z.string().uuid("Invalid analysis ID"),
+  userConfidence: z.enum(['spot_on', 'mostly', 'not_really']),
+  primaryFocus: z.enum(['revenue', 'pipeline', 'retention', 'brand']),
+});
+
+const analyzeBodySchema = z.object({
+  description: z.string().trim().min(1, "Description is required"),
+  websiteUrl: z.string().trim().optional().nullable().transform(val => val === "" ? null : val),
+  geography: z.string().trim().optional().nullable().transform(val => val === "" ? null : val),
+  industry: z.string().trim().optional().nullable().transform(val => val === "" ? null : val),
+});
+
 const intakeSectionSchema = z.enum(['goals', 'audience', 'positioning', 'execution']);
 const intakeBodySchema = z.object({
   projectId: z.string().uuid(),
@@ -232,6 +247,120 @@ router.post('/lock-and-generate', requireAuth, async (req: AuthenticatedRequest,
   } catch (err) {
     console.error('Lock and generate error:', err);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/onboarding/analyze
+router.post('/analyze', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    
+    const parseResult = analyzeBodySchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ error: parseResult.error });
+    }
+
+    const input = parseResult.data;
+
+    // Call LLM
+    const llmResult = await analyzeBattlefield(input);
+
+    // Persist to DB
+    const { data: savedAnalysis, error } = await supabaseAdmin
+      .from('onboarding_analyses')
+      .insert({
+        user_id: userId,
+        description: input.description,
+        website_url: input.websiteUrl,
+        geography: input.geography,
+        industry: input.industry,
+        analysis: llmResult
+      })
+      .select('id, created_at')
+      .single();
+
+    if (error) {
+      console.error('Database insertion error:', error);
+      return res.status(500).json({ error: 'Failed to save analysis' });
+    }
+
+    // Construct response
+    const response: BattlefieldAnalysis = {
+      analysisId: savedAnalysis.id,
+      createdAt: savedAnalysis.created_at,
+      ...llmResult
+    };
+
+    return res.json(response);
+
+  } catch (err) {
+    console.error('Analyze error:', err);
+    res.status(500).json({ error: 'Failed to analyze business data' });
+  }
+});
+
+// POST /api/onboarding/positioning
+router.post('/positioning', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+
+    const parseResult = positioningBodySchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ error: parseResult.error });
+    }
+
+    const { analysisId, userConfidence, primaryFocus } = parseResult.data;
+
+    // 1. Fetch existing analysis
+    const { data: analysisRow, error: fetchError } = await supabaseAdmin
+      .from('onboarding_analyses')
+      .select('*')
+      .eq('id', analysisId)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError || !analysisRow) {
+      return res.status(404).json({ error: 'Analysis not found or access denied' });
+    }
+
+    // 2. Generate Blueprint
+    const blueprintLLM = await generatePositioningBlueprint(
+      analysisRow.analysis,
+      userConfidence,
+      primaryFocus
+    );
+
+    // 3. Persist Blueprint
+    const { data: savedBlueprint, error: saveError } = await supabaseAdmin
+      .from('positioning_blueprints')
+      .insert({
+        user_id: userId,
+        analysis_id: analysisId,
+        primary_focus: primaryFocus,
+        user_confidence: userConfidence,
+        blueprint: blueprintLLM
+      })
+      .select('id, created_at')
+      .single();
+
+    if (saveError) {
+      console.error('Database insertion error:', saveError);
+      return res.status(500).json({ error: 'Failed to save positioning blueprint' });
+    }
+
+    // 4. Return Response
+    const response: PositioningBlueprint = {
+      blueprintId: savedBlueprint.id,
+      analysisId: analysisId,
+      createdAt: savedBlueprint.created_at,
+      ...blueprintLLM
+    };
+
+    return res.json(response);
+
+  } catch (err) {
+    console.error('Positioning generation error:', err);
+    res.status(500).json({ error: 'Failed to generate positioning blueprint' });
   }
 });
 
