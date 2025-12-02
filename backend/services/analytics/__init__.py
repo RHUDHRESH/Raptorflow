@@ -1,2 +1,0 @@
-"""Analytics platform integrations"""
-

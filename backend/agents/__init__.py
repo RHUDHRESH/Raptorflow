@@ -1,3 +1,0 @@
-"""
-RaptorFlow Agent System
-"""

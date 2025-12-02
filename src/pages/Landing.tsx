@@ -1,882 +1,608 @@
-import { Link } from 'react-router-dom'
-import {
-  Target,
-  Shield,
-  ArrowRight,
-  CheckCircle2,
-  Zap,
-  TrendingUp,
-  Brain,
-  ChevronDown,
-  Menu,
-  X,
-  Check,
-  Zap as ZapIcon,
-  Rocket,
-  Users,
-  Activity,
-  Globe,
-  BarChart3,
-  Layers
-} from 'lucide-react'
-import { motion, useScroll, useTransform, useInView, AnimatePresence, useSpring } from 'framer-motion'
-import { useRef, useState, useEffect, memo, useCallback } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowRight, Play, Sparkles, Target, Zap, Check, ChevronRight } from 'lucide-react'
 
 // ============================================================================
-// NOISE OVERLAY
+// NAVIGATION HEADER
 // ============================================================================
-const NoiseOverlay = memo(() => (
-  <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.03] mix-blend-overlay">
-    <svg className="w-full h-full">
-      <filter id="noise">
-        <feTurbulence
-          type="fractalNoise"
-          baseFrequency="0.8"
-          numOctaves="3"
-          stitchTiles="stitch"
-        />
-      </filter>
-      <rect width="100%" height="100%" filter="url(#noise)" />
-    </svg>
-  </div>
-))
-NoiseOverlay.displayName = 'NoiseOverlay'
 
-// ============================================================================
-// LIVE ACTIVITY TOAST
-// ============================================================================
-const LiveActivity = () => {
-  const [activity, setActivity] = useState<{ text: string, time: string } | null>(null)
-  
-  const activities = [
-    { text: "New cohort 'Enterprise CTOs' created", time: "2s ago" },
-    { text: "Strategy move shipped in London", time: "5s ago" },
-    { text: "Brief generated for 'Q3 Launch'", time: "12s ago" },
-    { text: "Tone drift detected and fixed", time: "Just now" }
-  ]
+const Header = () => {
+  const navigate = useNavigate()
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const randomActivity = activities[Math.floor(Math.random() * activities.length)]
-      setActivity(randomActivity)
-      setTimeout(() => setActivity(null), 4000)
-    }, 8000)
-    return () => clearInterval(interval)
+    const handleScroll = () => setScrolled(window.scrollY > 50)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   return (
-    <AnimatePresence>
-      {activity && (
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.9 }}
-          className="fixed bottom-8 left-8 z-50 bg-white border border-black/10 shadow-2xl rounded-lg p-4 flex items-center gap-4 max-w-xs hidden md:flex"
-        >
-          <div className="relative">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-20" />
+    <header className={`border-b border-line sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-canvas/95 backdrop-blur-xl shadow-sm' : 'bg-canvas/80 backdrop-blur-md'
+      }`}>
+      <nav className="max-w-6xl mx-auto px-6 md:px-8 lg:px-0 py-6 flex items-center justify-between">
+        {/* Brand */}
+        <div className="flex items-center gap-3 group cursor-pointer">
+          <div className="w-9 h-9 rounded-full border border-charcoal/20 flex items-center justify-center group-hover:border-aubergine transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+            <span className="font-serif italic text-sm text-aubergine">Rf</span>
           </div>
-          <div>
-            <p className="text-sm font-bold text-black">{activity.text}</p>
-            <p className="text-xs text-gray-500">{activity.time}</p>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
-}
-
-// ============================================================================
-// SPOTLIGHT CARD
-// ============================================================================
-const SpotlightCard = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => {
-  const divRef = useRef<HTMLDivElement>(null)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [opacity, setOpacity] = useState(0)
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!divRef.current) return
-    const rect = divRef.current.getBoundingClientRect()
-    setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top })
-  }
-
-  return (
-    <div
-      ref={divRef}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setOpacity(1)}
-      onMouseLeave={() => setOpacity(0)}
-      className={`relative overflow-hidden transition-all duration-300 ${className}`}
-    >
-      <div
-        className="pointer-events-none absolute -inset-px opacity-0 transition duration-300 z-10"
-        style={{
-          opacity,
-          background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(0,0,0,0.04), transparent 40%)`
-        }}
-      />
-      {children}
-    </div>
-  )
-}
-
-// ============================================================================
-// ANIMATED COUNTER
-// ============================================================================
-const AnimatedCounter = memo(({ end, duration = 2, suffix = '', prefix = '' }: { end: number, duration?: number, suffix?: string, prefix?: string }) => {
-  const [count, setCount] = useState(0)
-  const nodeRef = useRef(null)
-  const isInView = useInView(nodeRef, { once: true, amount: 0.5 })
-
-  useEffect(() => {
-    if (!isInView) return
-    let startTime: number | null = null
-    let rafId: number | null = null
-    const animate = (currentTime: number) => {
-      if (!startTime) startTime = currentTime
-      const progress = Math.min((currentTime - startTime) / (duration * 1000), 1)
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4)
-      setCount(Math.floor(easeOutQuart * end))
-      if (progress < 1) {
-        rafId = requestAnimationFrame(animate)
-      }
-    }
-    rafId = requestAnimationFrame(animate)
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId)
-    }
-  }, [isInView, end, duration])
-
-  return (
-    <span ref={nodeRef} className="tabular-nums">
-      {prefix}{count}{suffix}
-    </span>
-  )
-})
-AnimatedCounter.displayName = 'AnimatedCounter'
-
-// ============================================================================
-// MAGNETIC BUTTON
-// ============================================================================
-const MagneticButton = memo(({ children, className, to, onClick, variant = 'primary' }: { children: React.ReactNode, className?: string, to?: string, onClick?: () => void, variant?: 'primary' | 'secondary' | 'ghost' }) => {
-  const [position, setPosition] = useState({ x: 0, y: 0 })
-  const buttonRef = useRef<any>(null)
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!buttonRef.current) return
-    const rect = buttonRef.current.getBoundingClientRect()
-    const x = (e.clientX - rect.left - rect.width / 2) * 0.3
-    const y = (e.clientY - rect.top - rect.height / 2) * 0.3
-    setPosition({ x, y })
-  }, [])
-
-  const handleMouseLeave = useCallback(() => {
-    setPosition({ x: 0, y: 0 })
-  }, [])
-
-  const Component = to ? Link : 'button'
-  
-  const baseStyles = "relative inline-flex items-center justify-center px-8 py-4 text-base font-bold uppercase tracking-wider transition-all duration-200 overflow-hidden rounded-sm"
-  const variants = {
-    primary: "bg-black text-white hover:bg-gray-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]",
-    secondary: "bg-white text-black border-2 border-black hover:bg-gray-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]",
-    ghost: "text-black hover:bg-black/5"
-  }
-
-  return (
-    <Component
-      to={to as string}
-      ref={buttonRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onClick={onClick}
-      className={`${baseStyles} ${variants[variant]} ${className}`}
-      style={{
-        transform: `translate(${position.x}px, ${position.y}px)`,
-        transition: 'transform 0.2s ease-out'
-      }}
-    >
-      <span className="relative z-10 flex items-center gap-2">{children}</span>
-    </Component>
-  )
-})
-MagneticButton.displayName = 'MagneticButton'
-
-// ============================================================================
-// MOBILE NAV COMPONENT
-// ============================================================================
-const MobileNav = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
-            onClick={onClose}
-          />
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 bottom-0 w-80 bg-white z-[70] shadow-2xl border-l border-black/10"
-          >
-            <div className="p-6 flex flex-col h-full">
-              <div className="flex justify-between items-center mb-8">
-                <span className="font-display font-black text-xl">Menu</span>
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-black/5 rounded-lg transition-colors"
-                  aria-label="Close menu"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-              
-              <div className="space-y-6 flex-1">
-                {['Features', 'Pricing', 'FAQ'].map((item) => (
-                  <a
-                    key={item}
-                    href={`#${item.toLowerCase()}`}
-                    onClick={onClose}
-                    className="block text-2xl font-display font-bold hover:text-gray-500 transition-colors"
-                  >
-                    {item}
-                  </a>
-                ))}
-                <Link
-                  to="/login"
-                  onClick={onClose}
-                  className="block text-2xl font-display font-bold hover:text-gray-500 transition-colors"
-                >
-                  Sign In
-                </Link>
-              </div>
-
-              <Link
-                to="/register"
-                onClick={onClose}
-                className="block w-full bg-black text-white text-center py-4 font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors"
-              >
-                Get Started
-              </Link>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  )
-}
-
-// ============================================================================
-// FEATURE BENTO GRID
-// ============================================================================
-const BentoGrid = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-7xl mx-auto px-4">
-      {/* Large Card */}
-      <SpotlightCard className="md:col-span-2 row-span-2 bg-white border-2 border-black p-8 rounded-2xl relative group">
-        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-          <Target className="w-32 h-32" />
-        </div>
-        <div className="h-full flex flex-col justify-between relative z-10">
-          <div className="space-y-4">
-            <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center text-white mb-6">
-              <Target className="w-6 h-6" />
-            </div>
-            <h3 className="text-4xl font-display font-black">Precision Cohorts</h3>
-            <p className="text-xl text-gray-600 max-w-md">
-              Define your audience with surgical precision. Demographics are dead. Long live psychographics, triggers, and micro-moments.
-            </p>
-          </div>
-          <div className="mt-12 relative h-64 bg-gray-50 rounded-xl border border-black/10 overflow-hidden group-hover:border-black/30 transition-colors">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-full max-w-sm space-y-3 p-6">
-                {[1, 2, 3].map((i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ x: -20, opacity: 0 }}
-                    whileInView={{ x: 0, opacity: 1 }}
-                    transition={{ delay: i * 0.2 }}
-                    className="flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm border border-black/5"
-                  >
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <div className="h-2 bg-gray-200 rounded w-24" />
-                    <div className="h-2 bg-gray-100 rounded w-full" />
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+          <div className="font-serif text-2xl font-semibold tracking-tight text-aubergine italic">
+            Raptor<span className="not-italic text-charcoal">flow</span>
           </div>
         </div>
-      </SpotlightCard>
 
-      {/* Tall Card */}
-      <SpotlightCard className="row-span-2 bg-black text-white p-8 rounded-2xl relative overflow-hidden group min-h-[500px] md:min-h-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-800 via-black to-black opacity-50" />
-        <div className="relative z-10 h-full flex flex-col">
-          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-black mb-6">
-            <Zap className="w-6 h-6" />
-          </div>
-          <h3 className="text-3xl font-display font-black mb-4">Velocity</h3>
-          <p className="text-gray-400 mb-8">
-            Ship 3x faster with pre-built strategic moves and automated briefs.
-          </p>
-          <div className="flex-1 relative">
-            <div className="absolute inset-0 flex flex-col gap-2 overflow-hidden">
-              {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-                <motion.div
-                  key={i}
-                  initial={{ x: 100, opacity: 0 }}
-                  whileInView={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.5 + i * 0.1, type: "spring" }}
-                  className="h-12 border border-white/10 rounded-lg flex items-center px-4 gap-3 bg-white/5 backdrop-blur-sm"
-                >
-                  <div className="w-4 h-4 border border-white/20 rounded-full" />
-                  <div className="h-2 w-full bg-white/10 rounded" />
-                </motion.div>
-              ))}
-            </div>
-          </div>
+        {/* Nav Links */}
+        <div className="hidden md:flex items-center gap-10 text-xs uppercase tracking-[0.22em] text-charcoal/60">
+          <a href="#product" className="hover:text-aubergine transition-colors relative group">
+            Product
+            <span className="absolute -bottom-1 left-0 w-0 h-px bg-aubergine group-hover:w-full transition-all duration-300"></span>
+          </a>
+          <a href="#how-it-works" className="hover:text-aubergine transition-colors relative group">
+            How it works
+            <span className="absolute -bottom-1 left-0 w-0 h-px bg-aubergine group-hover:w-full transition-all duration-300"></span>
+          </a>
+          <a href="#pillars" className="hover:text-aubergine transition-colors relative group">
+            7 pillars
+            <span className="absolute -bottom-1 left-0 w-0 h-px bg-aubergine group-hover:w-full transition-all duration-300"></span>
+          </a>
+          <a href="#pricing" className="hover:text-aubergine transition-colors relative group">
+            Pricing
+            <span className="absolute -bottom-1 left-0 w-0 h-px bg-aubergine group-hover:w-full transition-all duration-300"></span>
+          </a>
         </div>
-      </SpotlightCard>
 
-      {/* Small Card 1 */}
-      <SpotlightCard className="bg-[#f8f8f8] border-2 border-black p-8 rounded-2xl group">
-        <div className="absolute top-4 right-4">
-          <Activity className="w-6 h-6 text-gray-300 group-hover:text-black transition-colors" />
-        </div>
-        <div className="space-y-4">
-          <Brain className="w-8 h-8" />
-          <h3 className="text-xl font-bold font-display">AI Sentinel</h3>
-          <p className="text-sm text-gray-600">
-            Real-time tone monitoring. Never drift off-brand again.
-          </p>
-        </div>
-      </SpotlightCard>
-
-      {/* Small Card 2 */}
-      <SpotlightCard className="bg-[#f8f8f8] border-2 border-black p-8 rounded-2xl group">
-        <div className="absolute top-4 right-4">
-          <BarChart3 className="w-6 h-6 text-gray-300 group-hover:text-black transition-colors" />
-        </div>
-        <div className="space-y-4">
-          <TrendingUp className="w-8 h-8" />
-          <h3 className="text-xl font-bold font-display">True Metrics</h3>
-          <p className="text-sm text-gray-600">
-            Track impact, not just vanity numbers. Signal over noise.
-          </p>
-        </div>
-      </SpotlightCard>
-    </div>
-  )
-}
-
-// ============================================================================
-// COMPARISON TABLE
-// ============================================================================
-const ComparisonTable = () => {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="border-b-2 border-black">
-            <th className="p-6 font-display font-black text-xl bg-white sticky left-0 z-10 w-1/3">Feature</th>
-            <th className="p-6 font-display font-bold text-gray-400 w-1/3">Traditional Tools</th>
-            <th className="p-6 font-display font-black bg-black text-white w-1/3">RaptorFlow</th>
-          </tr>
-        </thead>
-        <tbody>
-          {[
-            { feature: "Workflow", old: "Endless task lists", new: "Strategic Moves" },
-            { feature: "Audience", old: "Vague demographics", new: "Psychographic Cohorts" },
-            { feature: "Content", old: "Post every day", new: "High-impact Cadence" },
-            { feature: "Analytics", old: "Vanity metrics (likes)", new: "Impact metrics (revenue)" },
-            { feature: "Tone", old: "Manual checks", new: "AI Sentinel Guardrails" },
-            { feature: "Setup", old: "Weeks of config", new: "45 minutes" }
-          ].map((row, i) => (
-            <tr key={i} className="border-b border-black/5 hover:bg-gray-50 transition-colors">
-              <td className="p-6 font-bold bg-white sticky left-0 z-10">{row.feature}</td>
-              <td className="p-6 text-gray-500 flex items-center gap-2">
-                <X className="w-4 h-4 text-red-400" /> {row.old}
-              </td>
-              <td className="p-6 font-bold border-l-2 border-black/5 bg-black/5">
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" /> {row.new}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-// ============================================================================
-// INFINITE SCROLL LOGOS
-// ============================================================================
-const InfiniteLogos = () => {
-  return (
-    <div className="w-full overflow-hidden bg-white py-12 border-y border-black/5">
-      <div className="max-w-7xl mx-auto relative">
-        <div className="flex overflow-hidden mask-linear-fade">
-          <motion.div 
-            className="flex gap-16 items-center whitespace-nowrap"
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ duration: 20, ease: "linear", repeat: Infinity }}
-          >
-            {[...Array(16)].map((_, i) => (
-              <span key={i} className="text-2xl font-display font-black text-black/10 uppercase tracking-widest flex items-center gap-4">
-                <Globe className="w-6 h-6 opacity-20" />
-                TRUSTED BRAND {i + 1}
-              </span>
-            ))}
-          </motion.div>
-        </div>
-        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white to-transparent pointer-events-none" />
-        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white to-transparent pointer-events-none" />
-      </div>
-    </div>
-  )
-}
-
-// ============================================================================
-// FAQ ACCORDION
-// ============================================================================
-const FAQAccordion = ({ items }: { items: { q: string, a: string }[] }) => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null)
-
-  return (
-    <div className="max-w-3xl mx-auto space-y-4">
-      {items.map((item, i) => (
-        <motion.div
-          key={i}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.1 }}
-          className="border-2 border-black bg-white overflow-hidden rounded-lg"
-        >
+        {/* CTAs */}
+        <div className="flex items-center gap-4">
           <button
-            onClick={() => setOpenIndex(openIndex === i ? null : i)}
-            className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
-            aria-expanded={openIndex === i}
+            onClick={() => navigate('/login')}
+            className="hidden sm:inline-flex text-xs uppercase tracking-[0.22em] text-charcoal/60 hover:text-aubergine transition-colors"
           >
-            <span className="font-bold text-lg pr-8">{item.q}</span>
-            <motion.div
-              animate={{ rotate: openIndex === i ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ChevronDown className="w-5 h-5" />
-            </motion.div>
+            Log in
           </button>
-          <AnimatePresence>
-            {openIndex === i && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="p-6 pt-0 text-gray-600 leading-relaxed border-t border-black/5">
-                  {item.a}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-      ))}
-    </div>
-  )
-}
-
-// ============================================================================
-// PRICING CARD
-// ============================================================================
-const PricingCard = ({ title, price, features, isPopular }: { title: string, price: string, features: string[], isPopular?: boolean }) => (
-  <div className={`relative p-8 border-2 flex flex-col h-full transition-transform hover:-translate-y-2 duration-300 ${isPopular ? 'border-black bg-black text-white scale-105 shadow-2xl z-10' : 'border-black/10 bg-white text-black'}`}>
-    {isPopular && (
-      <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white text-black px-4 py-1 text-xs font-bold uppercase tracking-widest border-2 border-black shadow-lg">
-        Most Popular
-      </div>
-    )}
-    <div className="mb-8">
-      <h3 className="text-xl font-bold uppercase tracking-widest mb-4">{title}</h3>
-      <div className="flex items-baseline gap-1">
-        <span className="text-5xl font-display font-black">{price}</span>
-        <span className="opacity-60">/mo</span>
-      </div>
-    </div>
-    <div className="flex-1 mb-8 space-y-4">
-      {features.map((feat, i) => (
-        <div key={i} className="flex items-start gap-3">
-          <Check className={`w-5 h-5 flex-shrink-0 ${isPopular ? 'text-green-400' : 'text-black'}`} />
-          <span className="text-sm leading-tight opacity-80">{feat}</span>
-        </div>
-      ))}
-    </div>
-    <MagneticButton
-      to="/register"
-      variant={isPopular ? 'secondary' : 'primary'}
-      className="w-full"
-    >
-      Get Started
-    </MagneticButton>
-  </div>
-)
-
-// ============================================================================
-// MAIN LANDING COMPONENT
-// ============================================================================
-export default function Landing() {
-  const { scrollYProgress } = useScroll()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  
-  // Hero Parallax
-  const heroY = useTransform(scrollYProgress, [0, 0.5], [0, 200])
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
-
-  return (
-    <div className="min-h-screen bg-[#f8f8f8] text-black selection:bg-black selection:text-white font-sans overflow-x-hidden relative">
-      <NoiseOverlay />
-      <LiveActivity />
-      
-      {/* PROGRESS BAR */}
-      <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-black origin-left z-[50]"
-        style={{ scaleX: scrollYProgress }}
-      />
-
-      {/* MOBILE NAV */}
-      <MobileNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
-
-      {/* NAV */}
-      <nav className="fixed top-0 w-full z-40 px-4 py-4 sm:px-6 lg:px-8 backdrop-blur-md border-b border-black/5 bg-white/80">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-black text-white flex items-center justify-center rounded-lg transition-transform group-hover:rotate-12">
-              <ZapIcon className="w-6 h-6" />
-            </div>
-            <span className="text-xl font-sans font-black tracking-tight">RaptorFlow</span>
-          </Link>
-
-          <div className="hidden md:flex items-center gap-8 font-medium text-sm uppercase tracking-widest">
-            <a href="#features" className="hover:text-gray-600 transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-gray-600 transition-colors">Pricing</a>
-            <a href="#faq" className="hover:text-gray-600 transition-colors">FAQ</a>
-            <Link to="/login" className="hover:text-gray-600 transition-colors">Login</Link>
-            <MagneticButton to="/register" className="!py-2 !px-6 !text-xs">
-              Sign Up
-            </MagneticButton>
-          </div>
-
-          <button 
-            className="md:hidden p-2" 
-            onClick={() => setMobileMenuOpen(true)}
-            aria-label="Open menu"
+          <button
+            onClick={() => navigate('/start')}
+            className="text-xs uppercase tracking-[0.22em] px-5 py-2.5 rounded-full bg-charcoal text-canvas hover:bg-aubergine transition-all duration-300 hover:shadow-xl hover:scale-105"
           >
-            <Menu className="w-6 h-6" />
+            Start your plan
           </button>
         </div>
       </nav>
+    </header>
+  )
+}
 
-      {/* HERO SECTION */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-50 pointer-events-none" />
-        
-        {/* Scanning Line */}
-        <motion.div 
-          className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-black/10 to-transparent"
-          animate={{ top: ["0%", "100%"] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-        />
+// ============================================================================
+// HERO SECTION - SUBLIME & STATIONARY
+// ============================================================================
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-black/10 shadow-sm mb-8"
-          >
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Marketing OS v2.0</span>
-          </motion.div>
+const Hero = () => {
+  const navigate = useNavigate()
 
-          <motion.h1
-            style={{ y: heroY, opacity: heroOpacity }}
-            className="text-5xl sm:text-7xl lg:text-9xl font-display font-black tracking-tighter leading-[0.9] mb-8"
-          >
-            Strategy is <br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-b from-black to-gray-600">
-              Not Chaos.
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="max-w-2xl mx-auto text-xl sm:text-2xl text-gray-600 mb-12 leading-relaxed"
-          >
-            Stop the random acts of marketing. Build precise cohorts, plan strategic moves, and ship with calm consistency.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
-            <MagneticButton to="/register" className="w-full sm:w-auto">
-              Start Building <ArrowRight className="w-4 h-4 ml-2" />
-            </MagneticButton>
-            <MagneticButton to="#demo" variant="secondary" className="w-full sm:w-auto">
-              View Demo
-            </MagneticButton>
-          </motion.div>
+  return (
+    <section id="product" className="relative py-24 md:py-40 lg:py-48 border-b border-line bg-canvas overflow-hidden">
+      {/* STATIONARY Sublime Artwork - Full Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Main Artwork - STATIONARY */}
+        <div className="absolute top-0 right-0 w-full h-full md:w-[75%] md:h-[130%]">
+          <img
+            src="/hero-art.png"
+            alt=""
+            className="w-full h-full object-contain opacity-20 md:opacity-25"
+            style={{
+              filter: 'contrast(1.15) saturate(1.3) brightness(1.05)',
+              mixBlendMode: 'multiply'
+            }}
+          />
         </div>
-      </section>
 
-      {/* LOGO SCROLL */}
-      <div className="border-y border-black/5 bg-white/50 backdrop-blur-sm">
-        <InfiniteLogos />
+        {/* Layered Gradient Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-br from-canvas via-transparent to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-canvas/90 via-canvas/30 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-canvas/60 via-transparent to-transparent"></div>
+
+        {/* Animated Ambient Orbs */}
+        <div className="absolute top-1/3 right-1/3 w-[600px] h-[600px] rounded-full bg-gradient-to-br from-aubergine/15 to-gold/15 blur-3xl animate-pulse" style={{ animationDuration: '5s' }}></div>
+        <div className="absolute bottom-1/3 left-1/4 w-[700px] h-[700px] rounded-full bg-gradient-to-tr from-gold/10 to-aubergine/10 blur-3xl animate-pulse" style={{ animationDuration: '7s', animationDelay: '2.5s' }}></div>
       </div>
 
-      {/* PROBLEM STATEMENT */}
-      <section className="py-24 bg-black text-white relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10">
-           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-800 via-black to-black" />
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-display font-black mb-6 leading-tight">
-                Most teams are <br />
-                <span className="text-red-500">drowning in noise.</span>
-              </h2>
-              <div className="space-y-6 text-lg text-gray-400">
-                <p>
-                  You have 50 tabs open. Your task list is endless. You're posting because you feel guilty, not because you have a strategy.
-                </p>
-                <p>
-                  Without constraints, marketing expands to fill every waking hour. And you still feel like you're falling behind.
-                </p>
-              </div>
-            </div>
-            <div className="relative">
-              <div className="absolute -inset-4 bg-red-500/20 blur-3xl rounded-full" />
-              <div className="relative bg-gray-900 border border-white/10 p-8 rounded-2xl">
-                <div className="space-y-4 opacity-50">
-                  <div className="flex items-center gap-4 border-b border-white/5 pb-4">
-                    <X className="text-red-500 w-6 h-6" />
-                    <span>Post on LinkedIn (again)</span>
-                  </div>
-                  <div className="flex items-center gap-4 border-b border-white/5 pb-4">
-                    <X className="text-red-500 w-6 h-6" />
-                    <span>Update TikTok strategy</span>
-                  </div>
-                  <div className="flex items-center gap-4 border-b border-white/5 pb-4">
-                    <X className="text-red-500 w-6 h-6" />
-                    <span>Respond to 400 emails</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <X className="text-red-500 w-6 h-6" />
-                    <span>Panic about metrics</span>
-                  </div>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="bg-red-500 text-white px-6 py-2 font-bold uppercase tracking-widest rotate-[-12deg] shadow-xl border-2 border-white">
-                    Burnout Mode
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Subtle Texture */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url(/pattern.png)', backgroundSize: '800px' }}></div>
 
-      {/* FEATURES BENTO */}
-      <section id="features" className="py-32 bg-gray-50">
-        <div className="text-center mb-20">
-          <h2 className="text-4xl md:text-6xl font-display font-black mb-4">The Operating System</h2>
-          <p className="text-xl text-gray-600">Constraints that create freedom.</p>
-        </div>
-        <BentoGrid />
-      </section>
-
-      {/* COMPARISON */}
-      <section className="py-32 bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-6xl font-display font-black mb-4">Compare & Contrast</h2>
-            <p className="text-xl text-gray-600">Why teams switch to RaptorFlow.</p>
-          </div>
-          <ComparisonTable />
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section id="pricing" className="py-32 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-6xl font-display font-black mb-4">Simple Pricing</h2>
-            <p className="text-xl text-gray-600">Invest in clarity, not shelfware.</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 items-start">
-            <PricingCard
-              title="Ascent"
-              price="₹3,500"
-              features={['3 Active Cohorts', 'Weekly Strategy Moves', 'Basic Analytics', 'Email Support']}
-            />
-            <PricingCard
-              title="Glide"
-              price="₹7,000"
-              features={['6 Active Cohorts', 'Advanced Moves Planner', 'AI Tone Guardian', 'Priority Support', 'Team Access (3 Seats)']}
-              isPopular
-            />
-            <PricingCard
-              title="Soar"
-              price="₹10,000"
-              features={['Unlimited Cohorts', 'Full Command Center', 'Agency Whitelabeling', 'Dedicated Manager', 'API Access']}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" className="py-32 bg-white border-t border-black/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-display font-black mb-4">Straight Answers</h2>
-          </div>
-          <FAQAccordion items={[
-            { q: "Is this just a content calendar?", a: "No. A calendar tells you 'when'. RaptorFlow tells you 'who', 'what', and 'why'. It's a strategy engine first, execution tool second." },
-            { q: "How long does setup take?", a: "About 45 minutes to define your first cohort and plan your first week of moves. We force you to keep it simple." },
-            { q: "Can I invite my team?", a: "Yes. The Glide and Soar plans support team members with specific roles and permission levels." },
-            { q: "What if I hate it?", a: "Cancel anytime. Export your data. No hard feelings. We want you to win, even if it's not with us." }
-          ]} />
-        </div>
-      </section>
-
-      {/* FINAL CTA */}
-      <section className="py-32 bg-black text-white text-center relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-           <div className="absolute inset-0 bg-[linear-gradient(45deg,#ffffff33_1px,transparent_1px)] [background-size:40px_40px]" />
-        </div>
-        <div className="relative z-10 max-w-4xl mx-auto px-4">
-          <h2 className="text-5xl md:text-8xl font-display font-black mb-8 tracking-tighter text-white">
-            Ready to <br />
-            <span className="text-gray-400">
-              Get Serious?
-            </span>
-          </h2>
-          <p className="text-xl md:text-2xl text-gray-400 mb-12">
-            Join the top 1% of marketers who plan before they post.
-          </p>
-          <MagneticButton to="/register" variant="secondary" className="text-xl px-12 py-6">
-            Start Your Free Trial
-          </MagneticButton>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="bg-black text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-gray-900 via-black to-black opacity-50" />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 lg:gap-8 mb-20">
-            {/* Brand & Newsletter */}
-            <div className="lg:col-span-2 space-y-8">
-              <Link to="/" className="flex items-center gap-2 group w-fit">
-                <div className="w-10 h-10 bg-white text-black flex items-center justify-center rounded-lg transition-transform group-hover:rotate-12">
-                  <ZapIcon className="w-6 h-6" />
-                </div>
-                <span className="text-2xl font-sans font-black tracking-tight">RaptorFlow</span>
-              </Link>
-              <p className="text-gray-400 max-w-sm text-lg leading-relaxed">
-                The operating system for high-performance marketing teams. Plan, execute, and track your strategy without the chaos.
+      <div className="max-w-6xl mx-auto px-6 md:px-8 lg:px-0 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-16 md:gap-20 items-center">
+          {/* Hero Copy */}
+          <div className="md:col-span-7 space-y-8">
+            <div className="flex items-center gap-3 animate-fade-in">
+              <div className="w-1 h-1 rounded-full bg-gold animate-pulse"></div>
+              <Sparkles className="w-4 h-4 text-gold animate-pulse" />
+              <p className="text-[11px] tracking-[0.3em] uppercase text-gold font-medium">
+                Founder's Editorial — Q1 2025
               </p>
-              
-              <div className="space-y-4">
-                <h4 className="text-sm font-bold uppercase tracking-widest text-white/60">Subscribe to Updates</h4>
-                <div className="flex gap-2 max-w-md">
-                  <input 
-                    type="email" 
-                    placeholder="Enter your email" 
-                    className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-colors"
-                  />
-                  <button className="bg-white text-black px-6 py-3 rounded-lg font-bold hover:bg-gray-200 transition-colors">
-                    Join
-                  </button>
+            </div>
+
+            <h1 className="font-serif text-[3.5rem] md:text-[4.5rem] lg:text-[6rem] leading-[0.9] animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              <span className="block mb-2">From <span className="italic text-aubergine">no real plan</span></span>
+              <span className="block text-charcoal/90">to a 90-day</span>
+              <span className="block text-charcoal/90">marketing war map.</span>
+            </h1>
+
+            <p className="text-lg md:text-xl text-charcoal/70 max-w-xl leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              Raptorflow turns your business context into a structured 90-day marketing plan with
+              <strong className="text-charcoal"> 3–5 focused moves</strong>, Muse-style creative briefs, and a calm control room for tracking what's actually working.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              <button
+                onClick={() => navigate('/start')}
+                className="group inline-flex items-center gap-3 text-sm uppercase tracking-[0.2em] px-8 py-4 rounded-full bg-charcoal text-canvas hover:bg-aubergine transition-all duration-300 hover:shadow-2xl hover:scale-105"
+              >
+                Generate my 90-day outline
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button className="group inline-flex items-center gap-2 text-sm uppercase tracking-[0.2em] text-charcoal/70 hover:text-aubergine transition-colors">
+                <div className="w-8 h-8 rounded-full border border-charcoal/20 group-hover:border-aubergine flex items-center justify-center transition-colors">
+                  <Play className="w-3 h-3 fill-current" />
+                </div>
+                3-min walkthrough
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-8 text-xs uppercase tracking-[0.2em] text-charcoal/50 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <div className="flex items-center gap-2 group cursor-default">
+                <Check className="w-4 h-4 text-gold" />
+                Built for founders, not marketers
+              </div>
+              <div className="flex items-center gap-2 group cursor-default">
+                <Check className="w-4 h-4 text-gold" />
+                Organic-first, no ad spend required
+              </div>
+            </div>
+          </div>
+
+          {/* Hero Preview Card */}
+          <div className="md:col-span-5 relative animate-fade-in" style={{ animationDelay: '0.5s' }}>
+            <div className="relative bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-xl border border-line/60 rounded-3xl p-10 shadow-2xl hover:shadow-3xl transition-all duration-700 group">
+              {/* Floating Decorative Rings */}
+              <div className="absolute -top-16 -right-10 w-40 h-40 rounded-full border-2 border-gold/30 pointer-events-none group-hover:scale-110 group-hover:rotate-12 transition-all duration-700"></div>
+              <div className="absolute top-32 -right-8 w-24 h-24 rounded-full border border-aubergine/20 pointer-events-none group-hover:scale-110 group-hover:-rotate-12 transition-all duration-700"></div>
+
+              <div className="flex items-center justify-between mb-8">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-charcoal/50 font-medium">
+                  Preview — Your next 90 days
+                </p>
+                <span className="text-[10px] px-3 py-1.5 rounded-full border border-gold/30 text-gold uppercase tracking-[0.2em] bg-gold/5">
+                  Live
+                </span>
+              </div>
+
+              <div className="space-y-6 mb-8">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-charcoal/40 mb-2">
+                    Primary goal
+                  </p>
+                  <p className="font-serif text-2xl text-charcoal leading-tight">
+                    10 new paying customers in 90 days.
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-charcoal/40 mb-2">
+                    Current focus
+                  </p>
+                  <p className="text-sm text-charcoal/70 leading-relaxed">
+                    Bootstrapped B2B founders, 5–50k MRR. Outbound + founder-led content.
+                  </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-green-400">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span>All systems operational</span>
+              <div className="grid grid-cols-3 gap-5 text-xs mb-8">
+                {[
+                  { phase: '01', title: 'Foundation', desc: 'Clarify positioning. Ship 1 channel.' },
+                  { phase: '02', title: 'Activation', desc: 'Double down on what pulls demos.' },
+                  { phase: '03', title: 'Systemize', desc: 'Kill what\'s dead. Systemize follow-ups.' }
+                ].map((item, i) => (
+                  <div key={i} className="space-y-2 group/phase">
+                    <p className="uppercase tracking-[0.2em] text-charcoal/40 text-[10px]">Phase {item.phase}</p>
+                    <p className="font-serif text-base text-charcoal group-hover/phase:text-aubergine transition-colors">{item.title}</p>
+                    <p className="text-[11px] text-charcoal/60 leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-6 border-t border-charcoal/10 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-charcoal/50">
+                  <span className="w-2 h-2 rounded-full bg-gold animate-pulse"></span>
+                  3 moves • 7-pillar coverage
+                </div>
+                <button className="group/btn inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-charcoal/70 hover:text-aubergine transition-colors">
+                  See full plan
+                  <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                </button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
 
-            {/* Links Column 1 */}
-            <div>
-              <h4 className="text-sm font-bold uppercase tracking-widest text-white/60 mb-6">Product</h4>
-              <ul className="space-y-4">
-                {['Features', 'Pricing', 'Changelog', 'Docs', 'Integrations', 'API'].map((item) => (
-                  <li key={item}>
-                    <Link to="#" className="text-gray-400 hover:text-white transition-colors">{item}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+// ============================================================================
+// VALUE STRIP - ENHANCED
+// ============================================================================
 
-            {/* Links Column 2 */}
-            <div>
-              <h4 className="text-sm font-bold uppercase tracking-widest text-white/60 mb-6">Company</h4>
-              <ul className="space-y-4">
-                {['About', 'Careers', 'Blog', 'Contact', 'Partners', 'Legal'].map((item) => (
-                  <li key={item}>
-                    <Link to="#" className="text-gray-400 hover:text-white transition-colors">{item}</Link>
-                  </li>
-                ))}
-              </ul>
+const ValueStrip = () => {
+  const values = [
+    {
+      icon: Target,
+      label: 'Clarity',
+      title: "Know exactly who you're hunting.",
+      description: "The 7-pillar intake locks down your audience, value prop, and proof so your 90-day plan isn't built on vibes and buzzwords."
+    },
+    {
+      icon: Zap,
+      label: 'Focus',
+      title: '3-5 moves, not 37 random tactics.',
+      description: 'Raptorflow cuts the noise down to a small set of moves you can realistically run, given your time, team, and channels.'
+    },
+    {
+      icon: Sparkles,
+      label: 'Control',
+      title: 'A calm operations brain for marketing.',
+      description: 'The Matrix view tracks moves by status, pacing, budget, and metrics so you know what to kill and what to double, without dashboards hell.'
+    }
+  ]
+
+  return (
+    <section className="py-20 md:py-28 border-b border-line bg-gradient-to-b from-white/80 via-canvas to-white/60 relative overflow-hidden">
+      {/* Ambient Background */}
+      <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'url(/pattern.png)', backgroundSize: '1000px' }}></div>
+
+      <div className="max-w-6xl mx-auto px-6 md:px-8 lg:px-0 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
+          {values.map((value, index) => {
+            const Icon = value.icon
+            return (
+              <div
+                key={index}
+                className="group relative"
+                style={{ animationDelay: `${index * 150}ms` }}
+              >
+                {/* Glow effect on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-aubergine/5 to-gold/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
+
+                <div className="relative border border-line/80 rounded-3xl p-8 md:p-10 bg-white/70 backdrop-blur-sm hover:bg-white/90 hover:border-aubergine/30 hover:shadow-2xl transition-all duration-500">
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-aubergine/10 to-gold/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                      <Icon className="w-6 h-6 text-aubergine" />
+                    </div>
+                    <p className="text-xs uppercase tracking-[0.24em] text-charcoal/50 font-medium">
+                      {value.label}
+                    </p>
+                  </div>
+                  <h3 className="font-serif text-2xl mb-4 group-hover:text-aubergine transition-colors leading-tight">{value.title}</h3>
+                  <p className="text-sm text-charcoal/70 leading-relaxed">
+                    {value.description}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
+
+// ============================================================================
+// PULL QUOTE - IMPROVED READABILITY
+// ============================================================================
+
+const PullQuote = () => {
+  return (
+    <section className="py-28 md:py-40 border-b border-line bg-gradient-to-br from-aubergine/8 via-canvas to-gold/8 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'url(/pattern.png)', backgroundSize: '1200px' }}></div>
+
+      {/* Floating orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-gradient-to-br from-gold/20 to-transparent blur-3xl"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-gradient-to-tl from-aubergine/20 to-transparent blur-3xl"></div>
+
+      <div className="max-w-5xl mx-auto px-6 md:px-8 text-center relative z-10">
+        <div className="inline-block mb-8">
+          <span className="text-8xl md:text-9xl font-serif text-gold/20">"</span>
+        </div>
+        <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl leading-[1.2] mb-10 text-charcoal">
+          Most founders don't need{' '}
+          <span className="italic text-aubergine block md:inline">more tactics.</span>
+          <br />
+          They need a plan they can{' '}
+          <span className="italic text-aubergine block md:inline">actually execute.</span>
+        </h2>
+        <div className="flex items-center justify-center gap-4">
+          <div className="w-16 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
+          <p className="text-xs uppercase tracking-[0.35em] text-charcoal/50 font-medium">
+            The Raptorflow Philosophy
+          </p>
+          <div className="w-16 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
+// HOW IT WORKS - STUNNING NUMBERS
+// ============================================================================
+
+const HowItWorks = () => {
+  return (
+    <section id="how-it-works" className="py-24 md:py-32 border-b border-line bg-canvas relative overflow-hidden">
+      {/* Subtle background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-gradient-to-br from-gold/5 to-aubergine/5 blur-3xl"></div>
+
+      <div className="max-w-6xl mx-auto px-6 md:px-8 lg:px-0 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-16 md:gap-20">
+          <div className="md:w-2/5 md:sticky md:top-32">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-px bg-gold"></div>
+              <p className="text-xs uppercase tracking-[0.3em] text-gold font-medium">
+                How it works
+              </p>
             </div>
+            <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-6">
+              Answer a few sharp questions.<br />
+              Get a 90-day war plan back.
+            </h2>
+            <p className="text-base text-charcoal/70 leading-relaxed">
+              No jargon, no AI theatre. Just a structured conversation that turns
+              what you already know into a plan you can run on Monday.
+            </p>
           </div>
 
-          {/* Bottom Bar */}
-          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex flex-wrap gap-8 text-sm text-gray-500">
-              <span>© 2025 RaptorFlow Inc.</span>
-              <Link to="#" className="hover:text-white transition-colors">Privacy Policy</Link>
-              <Link to="#" className="hover:text-white transition-colors">Terms of Service</Link>
-              <Link to="#" className="hover:text-white transition-colors">Cookie Settings</Link>
+          <div className="md:w-3/5 space-y-16">
+            {[
+              { num: '01', title: 'Intake', desc: 'Plug in your answers, site, and deck. We map it across audience, value, differentiation, competition, discovery, remarkability, and proof.' },
+              { num: '02', title: 'War plan', desc: 'Raptorflow drafts a 90-day plan broken into 3 phases and 3–5 moves, aligned to your goals and constraints.' },
+              { num: '03', title: 'Execution briefs', desc: 'Muse-style briefs turn each move into emails, pages, scripts, and posts your team or tools can execute without re-thinking strategy.' }
+            ].map((step, index) => (
+              <div key={index} className="group relative">
+                {/* Stunning Number Design */}
+                <div className="flex items-start gap-8">
+                  <div className="relative flex-shrink-0">
+                    {/* Background glow */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-gold/20 to-aubergine/20 blur-2xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                    {/* Number container */}
+                    <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-aubergine/10 to-gold/10 border border-gold/30 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                      <span className="font-serif text-4xl font-bold bg-gradient-to-br from-aubergine to-gold bg-clip-text text-transparent">
+                        {step.num}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 pt-2">
+                    <h3 className="text-xl font-semibold uppercase tracking-[0.12em] mb-3 group-hover:text-aubergine transition-colors">
+                      {step.title}
+                    </h3>
+                    <p className="text-base text-charcoal/70 leading-relaxed">
+                      {step.desc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
+// 7 PILLARS - EDITORIAL WITH ARTISTIC ELEMENTS  
+// ============================================================================
+
+const SevenPillars = () => {
+  return (
+    <section id="pillars" className="py-32 md:py-48 border-b border-line relative overflow-hidden">
+      <div className="max-w-6xl mx-auto px-6 md:px-8 lg:px-0 relative z-10">
+        <h2 className="font-serif text-6xl md:text-7xl text-center mb-16">
+          The 7 Pillars
+        </h2>
+        <p className="text-center text-xl text-charcoal/70 mb-20 max-w-3xl mx-auto">
+          Every campaign must answer to these seven.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
+// PRICING - PREMIUM
+// ============================================================================
+
+const Pricing = () => {
+  const navigate = useNavigate()
+
+  const plans = [
+    {
+      name: 'Ascent',
+      price: '₹3,500',
+      subtitle: 'For solo builders',
+      description: 'One founder, one product, one focused 90-day war plan.',
+      features: [
+        '1 active 90-day plan',
+        '3–5 moves with weekly breakdown',
+        'Muse briefs for core assets',
+        'Email support'
+      ],
+      cta: 'Start here',
+      action: () => navigate('/start'),
+      featured: false
+    },
+    {
+      name: 'Glide',
+      price: '₹7,000',
+      subtitle: 'For small teams',
+      description: 'Run and adjust multiple moves with clearer ownership and tracking.',
+      features: [
+        '2 active 90-day plans',
+        'Moves mapped to owners',
+        'Matrix insights on what to kill/double',
+        'Priority support'
+      ],
+      cta: 'Talk to us',
+      action: () => window.open('mailto:support@raptorflow.in', '_blank'),
+      featured: true
+    },
+    {
+      name: 'Soar',
+      price: '₹10,000',
+      subtitle: 'For operators',
+      description: 'Use Raptorflow as the planning brain behind client work.',
+      features: [
+        'Multi-client war plans',
+        'Shared templates + briefs',
+        'Priority input on roadmap',
+        'Dedicated account manager'
+      ],
+      cta: 'Join the list',
+      action: () => window.open('mailto:support@raptorflow.in?subject=Soar Plan Interest', '_blank'),
+      featured: false
+    }
+  ]
+
+  return (
+    <section id="pricing" className="py-20 md:py-28 border-b border-line bg-canvas relative overflow-hidden">
+      {/* Ambient glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-br from-aubergine/10 to-gold/10 blur-3xl"></div>
+
+      <div className="max-w-6xl mx-auto px-6 md:px-8 lg:px-0 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-12 md:gap-16 mb-16">
+          <div className="md:w-2/5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-px bg-gold"></div>
+              <p className="text-xs uppercase tracking-[0.3em] text-gold font-medium">
+                Plans
+              </p>
             </div>
-            
-            <div className="flex gap-6">
-              {['Twitter', 'GitHub', 'LinkedIn', 'Discord'].map((social) => (
-                <Link key={social} to="#" className="text-gray-500 hover:text-white transition-colors">
-                  <span className="sr-only">{social}</span>
-                  {/* Placeholder icons - replace with actual social icons if desired */}
-                  <div className="w-5 h-5 bg-current rounded-sm" />
-                </Link>
-              ))}
-            </div>
+            <h2 className="font-serif text-3xl md:text-4xl leading-tight mb-5">
+              Start with one war plan. Upgrade when you're ready.
+            </h2>
+            <p className="text-base text-charcoal/70 leading-relaxed">
+              See your full 90-day plan before committing. Then choose how deep
+              you want Raptorflow in your operations.
+            </p>
+          </div>
+
+          <div className="md:w-3/5 grid grid-cols-1 md:grid-cols-3 gap-6">
+            {plans.map((plan, index) => (
+              <div
+                key={plan.name}
+                className={`relative rounded-3xl p-8 transition-all duration-500 ${plan.featured
+                  ? 'border-2 border-gold bg-white hover:shadow-2xl scale-105'
+                  : 'border border-line bg-white/40 hover:bg-white/70 hover:border-aubergine/30 hover:shadow-xl'
+                  }`}
+              >
+                {plan.featured && (
+                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs uppercase tracking-[0.24em] px-4 py-1.5 rounded-full bg-charcoal text-canvas font-medium whitespace-nowrap">
+                    Most popular
+                  </span>
+                )}
+
+                <div className="mb-6">
+                  <p className="text-xs uppercase tracking-[0.24em] text-charcoal/60 mb-2 font-medium">
+                    {plan.name}
+                  </p>
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <p className="font-serif text-4xl text-charcoal">{plan.price}</p>
+                    <p className="text-sm text-charcoal/50">/month</p>
+                  </div>
+                  <h3 className="font-serif text-xl mb-3">{plan.subtitle}</h3>
+                  <p className="text-sm text-charcoal/70 leading-relaxed">
+                    {plan.description}
+                  </p>
+                </div>
+
+                <ul className="text-sm text-charcoal/70 space-y-3 mb-8">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <Check className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={plan.action}
+                  className={`w-full text-sm uppercase tracking-[0.2em] py-3 rounded-full transition-all duration-300 ${plan.featured
+                    ? 'bg-charcoal text-canvas hover:bg-aubergine hover:shadow-lg'
+                    : 'border border-charcoal/30 hover:border-aubergine hover:bg-aubergine hover:text-canvas'
+                    }`}
+                >
+                  {plan.cta}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Giant Text Background */}
-        <div className="absolute bottom-0 left-0 right-0 overflow-hidden opacity-[0.03] pointer-events-none select-none">
-          <h1 className="text-[20vw] font-display font-black leading-[0.8] text-white whitespace-nowrap text-center transform translate-y-1/4">
-            RAPTORFLOW
-          </h1>
+        {/* Trust indicators */}
+        <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 pt-12 border-t border-line/50">
+          <div className="flex items-center gap-3 text-sm text-charcoal/60">
+            <Check className="w-5 h-5 text-gold" />
+            <span>30-day money-back guarantee</span>
+          </div>
+          <div className="flex items-center gap-3 text-sm text-charcoal/60">
+            <Check className="w-5 h-5 text-gold" />
+            <span>Cancel anytime, no questions asked</span>
+          </div>
+          <div className="flex items-center gap-3 text-sm text-charcoal/60">
+            <Check className="w-5 h-5 text-gold" />
+            <span>See full plan before payment</span>
+          </div>
         </div>
-      </footer>
+      </div>
+    </section>
+  )
+}
+
+// ============================================================================
+// FOOTER
+// ============================================================================
+
+const Footer = () => {
+  return (
+    <footer className="py-16 text-center bg-canvas border-t border-line">
+      <div className="max-w-6xl mx-auto px-6 md:px-8 lg:px-0">
+        <p className="font-serif italic text-xl mb-3 text-charcoal/70">
+          "Good marketing is just disciplined attention to the right battles."
+        </p>
+        <p className="text-xs uppercase tracking-[0.3em] text-charcoal/40 font-medium">
+          Raptorflow — 2025
+        </p>
+      </div>
+    </footer>
+  )
+}
+
+// ============================================================================
+// MAIN LANDING PAGE
+// ============================================================================
+
+export default function Landing() {
+  return (
+    <div className="min-h-screen bg-canvas antialiased selection:bg-gold selection:text-white font-sans">
+      <Header />
+      <main>
+        <Hero />
+        <ValueStrip />
+        <PullQuote />
+        <HowItWorks />
+        <SevenPillars />
+        <Pricing />
+      </main>
+      <Footer />
     </div>
   )
 }

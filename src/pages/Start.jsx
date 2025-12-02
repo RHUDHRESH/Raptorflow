@@ -5,16 +5,16 @@ import Button from '../components/Button'
 import Input from '../components/Input'
 import Card from '../components/Card'
 
-export default function Login() {
+export default function Start() {
     const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
+        name: '',
         email: '',
-        password: '',
-        remember: false
+        password: ''
     })
 
-    const handleGoogleLogin = async () => {
+    const handleGoogleSignup = async () => {
         try {
             setLoading(true)
             const { error } = await supabase.auth.signInWithOAuth({
@@ -25,8 +25,8 @@ export default function Login() {
             })
             if (error) throw error
         } catch (error) {
-            console.error('Error logging in with Google:', error.message)
-            alert('Error logging in with Google: ' + error.message)
+            console.error('Error signing up with Google:', error.message)
+            alert('Error signing up with Google: ' + error.message)
         } finally {
             setLoading(false)
         }
@@ -34,41 +34,55 @@ export default function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        const name = formData.name.trim()
         const email = formData.email.trim()
         const password = formData.password.trim()
 
-        // Dev bypass
-        if (email === 'text@example' && password === '1') {
-            console.log('Dev credentials match, navigating to onboarding...')
-            navigate('/onboarding/intro')
-            return
-        }
-
         try {
             setLoading(true)
-            const { data, error } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
+                options: {
+                    data: {
+                        full_name: name,
+                    },
+                },
             })
 
             if (error) throw error
 
             if (data.user) {
-                navigate('/onboarding/intro')
+                // Check if email confirmation is required
+                if (data.user.identities && data.user.identities.length === 0) {
+                     alert('User already exists. Please log in.')
+                     navigate('/login')
+                } else {
+                     // In many cases, signUp might require email verification.
+                     // If auto-confirm is on, we can navigate.
+                     // If not, we should show a message "Check your email".
+                     // For now, assuming we can navigate or show a message.
+                     // But given the dev environment, let's assume we want to go to onboarding if session is established.
+                     if (data.session) {
+                        navigate('/onboarding/intro')
+                     } else {
+                        alert('Please check your email to confirm your account.')
+                     }
+                }
             }
         } catch (error) {
-            console.error('Error logging in:', error.message)
-            alert('Error logging in: ' + error.message)
+            console.error('Error signing up:', error.message)
+            alert('Error signing up: ' + error.message)
         } finally {
             setLoading(false)
         }
     }
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target
+        const { name, value } = e.target
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: value
         }))
     }
 
@@ -92,14 +106,14 @@ export default function Login() {
                         {/* Editorial Content */}
                         <div className="max-w-md">
                             <p className="text-[11px] tracking-[0.28em] uppercase text-gold mb-4">
-                                Founder Access · Q1 / 2026
+                                New War Plan · ~10 Minutes
                             </p>
                             <h1 className="font-serif text-[3rem] lg:text-[3.5rem] leading-[0.95] mb-6">
-                                Back to the <span className="italic text-aubergine">war room.</span>
+                                Turn your <span className="italic text-aubergine">chaos</span> into a 90-day outline.
                             </h1>
                             <p className="text-sm md:text-base text-charcoal/70 leading-relaxed">
-                                Log in to continue refining your 90-day plan, update moves, and see what's
-                                actually working without dashboards hell.
+                                Answer a few sharp questions. We'll build your first plan before we ever
+                                ask for payment.
                             </p>
                         </div>
                     </div>
@@ -107,7 +121,7 @@ export default function Login() {
                     {/* Bottom Quote */}
                     <div className="max-w-md">
                         <p className="font-serif italic text-charcoal/60 text-sm">
-                            "The best plans are the ones you can actually run on Monday morning."
+                            "Most founders don't need more tactics. They need a plan they can actually execute."
                         </p>
                     </div>
                 </div>
@@ -129,16 +143,16 @@ export default function Login() {
                         <Card>
                             {/* Card Header */}
                             <div className="mb-8">
-                                <h2 className="font-serif text-2xl md:text-3xl mb-2">Log in to Raptorflow</h2>
+                                <h2 className="font-serif text-2xl md:text-3xl mb-2">Create your account</h2>
                                 <p className="text-sm text-charcoal/60">
-                                    Access your war plans, moves, and briefs.
+                                    We'll save your answers and plans here. No spam.
                                 </p>
                             </div>
 
                             {/* OAuth Button */}
                             <Button
                                 variant="oauth"
-                                onClick={handleGoogleLogin}
+                                onClick={handleGoogleSignup}
                                 className="mb-6"
                                 disabled={loading}
                             >
@@ -161,8 +175,18 @@ export default function Login() {
                                 </div>
                             </div>
 
-                            {/* Login Form */}
+                            {/* Signup Form */}
                             <form onSubmit={handleSubmit} className="space-y-4">
+                                <Input
+                                    label="Name"
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    placeholder="Alex Chen"
+                                    required
+                                />
+
                                 <Input
                                     label="Email"
                                     type="email"
@@ -183,40 +207,20 @@ export default function Login() {
                                     required
                                 />
 
-                                {/* Remember & Forgot */}
-                                <div className="flex items-center justify-between text-xs">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            name="remember"
-                                            checked={formData.remember}
-                                            onChange={handleChange}
-                                            className="rounded border-line text-aubergine focus:ring-aubergine"
-                                        />
-                                        <span className="text-charcoal/60">Remember me</span>
-                                    </label>
-                                    <button
-                                        type="button"
-                                        className="text-charcoal/60 hover:text-aubergine transition-colors border-b border-transparent hover:border-aubergine"
-                                    >
-                                        Forgot password?
-                                    </button>
-                                </div>
-
                                 {/* Submit Button */}
                                 <Button type="submit" variant="primary" className="w-full mt-6" disabled={loading}>
-                                    {loading ? 'Logging in...' : 'Log in'}
+                                    {loading ? 'Creating account...' : 'Start my plan'}
                                 </Button>
                             </form>
 
-                            {/* Sign Up Link */}
+                            {/* Login Link */}
                             <div className="mt-6 text-center text-sm text-charcoal/60">
-                                Don't have an account?{' '}
+                                Already have an account?{' '}
                                 <button
-                                    onClick={() => navigate('/start')}
+                                    onClick={() => navigate('/login')}
                                     className="text-charcoal border-b border-charcoal/30 hover:border-aubergine hover:text-aubergine transition-colors"
                                 >
-                                    Start your first plan
+                                    Log in
                                 </button>
                             </div>
                         </Card>
