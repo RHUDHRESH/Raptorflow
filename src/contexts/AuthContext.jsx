@@ -1,7 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext({})
+
+// Storage key for persisting auth check
+const AUTH_CHECK_KEY = 'raptorflow_auth_check'
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
@@ -286,6 +289,12 @@ export const AuthProvider = ({ children }) => {
     setProfile(profileData)
   }
 
+  // Check if onboarding is completed
+  const isOnboardingCompleted = profile?.onboarding_completed === true
+  
+  // Check if user needs to complete onboarding (authenticated but not onboarded)
+  const needsOnboarding = !!user && !isOnboardingCompleted
+
   const value = {
     user,
     profile,
@@ -293,6 +302,8 @@ export const AuthProvider = ({ children }) => {
     error,
     isAuthenticated: !!user,
     isPaid: profile?.plan && profile.plan !== 'none' && profile.plan_status === 'active',
+    isOnboardingCompleted,
+    needsOnboarding,
     signInWithGoogle,
     signInWithEmail,
     signOut,

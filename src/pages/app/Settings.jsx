@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { onboardingAPI } from '../../lib/api'
 import { 
   User, 
   Mail, 
@@ -11,17 +13,22 @@ import {
   CheckCircle2,
   AlertCircle,
   Crown,
-  Sparkles
+  Sparkles,
+  Rocket,
+  RefreshCw,
+  ChevronRight
 } from 'lucide-react'
 
 const Settings = () => {
-  const { user, profile, updateProfile, refreshProfile } = useAuth()
+  const navigate = useNavigate()
+  const { user, profile, updateProfile, refreshProfile, isOnboardingCompleted } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
   })
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [resettingOnboarding, setResettingOnboarding] = useState(false)
 
   const handleSave = async () => {
     setSaving(true)
@@ -284,12 +291,117 @@ const Settings = () => {
         )}
       </motion.div>
 
+      {/* Onboarding Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-zinc-900/50 border border-white/5 rounded-xl p-6 mb-6"
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-white/5 rounded-lg">
+            <Rocket className="w-5 h-5 text-white/60" />
+          </div>
+          <h2 className="text-xl font-medium text-white">Onboarding & Setup</h2>
+        </div>
+
+        {isOnboardingCompleted ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <div>
+                <p className="text-emerald-400 font-medium">Onboarding Completed</p>
+                <p className="text-white/40 text-sm">
+                  {profile?.onboarding_completed_at 
+                    ? `Completed on ${new Date(profile.onboarding_completed_at).toLocaleDateString()}`
+                    : 'Your setup is complete'
+                  }
+                </p>
+              </div>
+            </div>
+            
+            {/* View/Edit ICP and War Plan */}
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => navigate('/onboarding/icps')}
+                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"
+              >
+                View ICPs
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => navigate('/onboarding/war-plan')}
+                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"
+              >
+                View War Plan
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-amber-400" />
+              <div>
+                <p className="text-amber-400 font-medium">Onboarding Required</p>
+                <p className="text-white/40 text-sm">
+                  Complete your onboarding to unlock all features
+                </p>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => navigate('/onboarding')}
+              className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-medium rounded-lg transition-colors"
+            >
+              <Rocket className="w-4 h-4" />
+              Start Onboarding
+            </button>
+          </div>
+        )}
+
+        {/* Reset Onboarding (only if completed) */}
+        {isOnboardingCompleted && (
+          <div className="mt-6 pt-6 border-t border-white/5">
+            <p className="text-white/40 text-sm mb-3">
+              Want to start fresh? This will reset all your onboarding data.
+            </p>
+            <button
+              onClick={async () => {
+                if (window.confirm('Are you sure you want to reset your onboarding? This will clear all your ICP and positioning data.')) {
+                  setResettingOnboarding(true)
+                  try {
+                    await onboardingAPI.reset()
+                    await refreshProfile()
+                    navigate('/onboarding')
+                  } catch (err) {
+                    console.error('Failed to reset onboarding:', err)
+                    alert('Failed to reset onboarding. Please try again.')
+                  } finally {
+                    setResettingOnboarding(false)
+                  }
+                }
+              }}
+              disabled={resettingOnboarding}
+              className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {resettingOnboarding ? (
+                <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
+              ) : (
+                <RefreshCw className="w-4 h-4" />
+              )}
+              Reset Onboarding
+            </button>
+          </div>
+        )}
+      </motion.div>
+
       {/* Payment History */}
       {profile?.plan && profile.plan !== 'none' && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.4 }}
           className="bg-zinc-900/50 border border-white/5 rounded-xl p-6"
         >
           <div className="flex items-center gap-3 mb-6">

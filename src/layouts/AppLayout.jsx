@@ -15,18 +15,23 @@ import {
   LogOut,
   Bell,
   Search,
-  Plus
+  Plus,
+  Rocket,
+  Shield,
+  BarChart3,
+  Layers
 } from 'lucide-react'
 
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/app' },
+  { name: 'War Room', icon: Target, path: '/app/warroom' },
+  { name: 'Spikes', icon: Rocket, path: '/app/spikes' },
+  { name: 'Campaigns', icon: Layers, path: '/app/campaigns' },
   { name: 'Moves', icon: Zap, path: '/app/moves' },
   { name: 'Muse', icon: Sparkles, path: '/app/muse' },
-  { name: 'Campaigns', icon: Megaphone, path: '/app/campaigns' },
-  { name: 'Matrix', icon: Grid3X3, path: '/app/matrix' },
-  { name: 'Position', icon: Target, path: '/app/position' },
+  { name: 'Matrix', icon: BarChart3, path: '/app/matrix' },
+  { name: 'Position', icon: Megaphone, path: '/app/position' },
   { name: 'Cohorts', icon: Users, path: '/app/cohorts' },
-  { name: 'Settings', icon: Settings, path: '/app/settings' },
 ]
 
 const AppLayout = () => {

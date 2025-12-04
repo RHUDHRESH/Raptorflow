@@ -31,6 +31,9 @@ import Matrix from './pages/app/Matrix'
 import Position from './pages/app/Position'
 import Cohorts from './pages/app/Cohorts'
 import Settings from './pages/app/Settings'
+import WarRoom from './pages/app/WarRoom'
+import Spikes from './pages/app/Spikes'
+import SpikeSetup from './pages/app/SpikeSetup'
 
 // Payment pages
 import PaymentProcess from './pages/payment/PaymentProcess'
@@ -182,10 +185,15 @@ const AppRoutes = () => {
         }
       >
         <Route index element={<Dashboard />} />
+        <Route path="warroom" element={<WarRoom />} />
+        <Route path="campaigns" element={<Campaigns />} />
+        <Route path="campaigns/:id" element={<Campaigns />} />
         <Route path="moves" element={<Moves />} />
         <Route path="muse" element={<Muse />} />
-        <Route path="campaigns" element={<Campaigns />} />
         <Route path="matrix" element={<Matrix />} />
+        <Route path="spikes" element={<Spikes />} />
+        <Route path="spikes/new" element={<SpikeSetup />} />
+        <Route path="spikes/:id" element={<Spikes />} />
         <Route path="position" element={<Position />} />
         <Route path="cohorts" element={<Cohorts />} />
         <Route path="settings" element={<Settings />} />

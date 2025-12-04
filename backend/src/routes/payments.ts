@@ -5,23 +5,55 @@ import { env } from '../config/env';
 
 const router = Router();
 
-// PhonePe Configuration
+/**
+ * PhonePe Configuration
+ * Documentation: https://developer.phonepe.com/v1/docs/api-integration
+ */
 const PHONEPE_CONFIG = {
-  merchantId: env.PHONEPE_MERCHANT_ID,
-  saltKey: env.PHONEPE_SALT_KEY,
+  merchantId: env.PHONEPE_MERCHANT_ID || '',
+  saltKey: env.PHONEPE_SALT_KEY || '',
   saltIndex: '1',
-  env: env.PHONEPE_ENV as 'UAT' | 'PRODUCTION',
-  baseUrl: env.PHONEPE_ENV === 'PRODUCTION' 
-    ? 'https://api.phonepe.com/apis/hermes/pg/v1/pay'
-    : 'https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay'
+  env: (env.PHONEPE_ENV || 'UAT') as 'UAT' | 'PRODUCTION',
+  // API Endpoints
+  get payEndpoint() {
+    return this.env === 'PRODUCTION'
+      ? 'https://api.phonepe.com/apis/hermes/pg/v1/pay'
+      : 'https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay';
+  },
+  get statusEndpoint() {
+    return this.env === 'PRODUCTION'
+      ? 'https://api.phonepe.com/apis/hermes/pg/v1/status'
+      : 'https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/status';
+  }
 };
 
-// Plan pricing
-const PLANS = {
-  starter: { price: 9900, name: 'Starter', cohorts: 2 },
-  growth: { price: 24900, name: 'Growth', cohorts: 5 },
-  scale: { price: 49900, name: 'Scale', cohorts: 10 }
+// Plan pricing (in paise - 100 paise = 1 INR)
+const PLANS: Record<string, { price: number; name: string; cohorts: number }> = {
+  starter: { price: 9900, name: 'Starter', cohorts: 2 },      // ₹99
+  growth: { price: 24900, name: 'Growth', cohorts: 5 },       // ₹249
+  scale: { price: 49900, name: 'Scale', cohorts: 10 },        // ₹499
+  ascent: { price: 500000, name: 'Ascent', cohorts: 3 },      // ₹5,000
+  glide: { price: 700000, name: 'Glide', cohorts: 5 },        // ₹7,000
+  soar: { price: 1000000, name: 'Soar', cohorts: 10 }         // ₹10,000
 };
+
+/**
+ * Generate PhonePe checksum
+ * Formula: SHA256(base64Payload + "/pg/v1/pay" + saltKey) + "###" + saltIndex
+ */
+function generateChecksum(base64Payload: string, endpoint: string = '/pg/v1/pay'): string {
+  const stringToHash = base64Payload + endpoint + PHONEPE_CONFIG.saltKey;
+  const sha256Hash = crypto.createHash('sha256').update(stringToHash).digest('hex');
+  return sha256Hash + '###' + PHONEPE_CONFIG.saltIndex;
+}
+
+/**
+ * Verify webhook checksum
+ */
+function verifyChecksum(response: string, receivedChecksum: string): boolean {
+  const expectedChecksum = generateChecksum(response, '/pg/v1/status');
+  return receivedChecksum === expectedChecksum;
+}
 
 // Middleware to verify JWT token
 const verifyToken = async (req: Request, res: Response, next: Function) => {
@@ -48,49 +80,84 @@ const verifyToken = async (req: Request, res: Response, next: Function) => {
 };
 
 /**
+ * GET /api/payments/plans
+ * Get available plans
+ */
+router.get('/plans', (req: Request, res: Response) => {
+  const plans = Object.entries(PLANS).map(([id, plan]) => ({
+    id,
+    name: plan.name,
+    price: plan.price,
+    priceDisplay: `₹${(plan.price / 100).toLocaleString('en-IN')}`,
+    cohorts: plan.cohorts
+  }));
+  
+  res.json({ plans });
+});
+
+/**
  * POST /api/payments/initiate
  * Initiate a PhonePe payment
  */
 router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    const { plan } = req.body;
+    const userEmail = (req as any).user.email;
+    const { plan, phone } = req.body;
 
-    if (!plan || !PLANS[plan as keyof typeof PLANS]) {
-      return res.status(400).json({ error: 'Invalid plan' });
+    // Validate plan
+    if (!plan || !PLANS[plan]) {
+      return res.status(400).json({ error: 'Invalid plan selected' });
     }
 
-    const planDetails = PLANS[plan as keyof typeof PLANS];
-    const txnId = `RF${Date.now()}${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-    const amount = planDetails.price; // In paise
+    const planDetails = PLANS[plan];
+    
+    // Generate unique transaction ID
+    const txnId = `RF${Date.now()}${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+    
+    // Create payment record in database
+    const { data: payment, error: dbError } = await db.createPayment(
+      userId, 
+      plan, 
+      planDetails.price, 
+      txnId
+    );
 
-    // Create payment record
-    await db.createPayment(userId, plan, amount, txnId);
+    if (dbError) {
+      console.error('DB Error creating payment:', dbError);
+      return res.status(500).json({ error: 'Failed to create payment record' });
+    }
+
+    // Frontend URL for redirect
+    const frontendUrl = env.FRONTEND_PUBLIC_URL || 'http://localhost:5173';
 
     // Build PhonePe payload
     const payload = {
       merchantId: PHONEPE_CONFIG.merchantId,
       merchantTransactionId: txnId,
       merchantUserId: userId,
-      amount: amount,
-      redirectUrl: `${env.FRONTEND_PUBLIC_URL}/payment/callback?txnId=${txnId}`,
+      amount: planDetails.price, // Amount in paise
+      redirectUrl: `${frontendUrl}/payment/callback?txnId=${txnId}`,
       redirectMode: 'REDIRECT',
-      callbackUrl: `${env.FRONTEND_PUBLIC_URL}/api/payments/webhook`,
-      mobileNumber: '',
+      callbackUrl: `${frontendUrl}/api/payments/webhook`, // Server callback
+      mobileNumber: phone || '',
       paymentInstrument: {
         type: 'PAY_PAGE'
       }
     };
 
+    // Base64 encode the payload
     const base64Payload = Buffer.from(JSON.stringify(payload)).toString('base64');
-    const stringToHash = base64Payload + '/pg/v1/pay' + PHONEPE_CONFIG.saltKey;
-    const checksum = crypto.createHash('sha256').update(stringToHash).digest('hex') + '###' + PHONEPE_CONFIG.saltIndex;
+    
+    // Generate checksum
+    const checksum = generateChecksum(base64Payload);
 
-    // In production, call PhonePe API
-    // For now, return mock response for testing
-    if (PHONEPE_CONFIG.env === 'PRODUCTION' && PHONEPE_CONFIG.merchantId) {
+    // If we have valid PhonePe credentials, make the API call
+    if (PHONEPE_CONFIG.merchantId && PHONEPE_CONFIG.saltKey) {
       try {
-        const response = await fetch(PHONEPE_CONFIG.baseUrl, {
+        console.log('Calling PhonePe API:', PHONEPE_CONFIG.payEndpoint);
+        
+        const response = await fetch(PHONEPE_CONFIG.payEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -100,30 +167,51 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
         });
 
         const data = await response.json();
+        console.log('PhonePe Response:', JSON.stringify(data, null, 2));
 
         if (data.success && data.data?.instrumentResponse?.redirectInfo?.url) {
           return res.json({
             success: true,
             txnId,
             paymentUrl: data.data.instrumentResponse.redirectInfo.url,
-            amount,
-            plan
+            amount: planDetails.price,
+            amountDisplay: `₹${(planDetails.price / 100).toLocaleString('en-IN')}`,
+            plan: planDetails.name
           });
         }
-      } catch (apiError) {
-        console.error('PhonePe API error:', apiError);
+
+        // If PhonePe returns an error
+        console.error('PhonePe Error:', data);
+        
+        // Update payment with error
+        await db.updatePayment(txnId, {
+          status: 'failed',
+          error: data.message || data.code || 'PhonePe API error'
+        });
+
+        return res.status(400).json({
+          error: data.message || 'Payment initiation failed',
+          code: data.code
+        });
+
+      } catch (apiError: any) {
+        console.error('PhonePe API Error:', apiError);
+        // Fall through to mock mode
       }
     }
 
-    // Mock response for development/testing
+    // Mock mode - for development/testing without PhonePe credentials
+    console.log('Using mock payment mode');
     res.json({
       success: true,
       txnId,
-      paymentUrl: `${env.FRONTEND_PUBLIC_URL}/payment/callback?txnId=${txnId}&mock=true`,
-      amount,
-      plan,
+      paymentUrl: `${frontendUrl}/payment/callback?txnId=${txnId}&mock=true`,
+      amount: planDetails.price,
+      amountDisplay: `₹${(planDetails.price / 100).toLocaleString('en-IN')}`,
+      plan: planDetails.name,
       mock: true
     });
+
   } catch (err: any) {
     console.error('Payment initiation error:', err);
     res.status(500).json({ error: err.message });
@@ -132,62 +220,80 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
 
 /**
  * POST /api/payments/webhook
- * Handle PhonePe webhook callback
+ * Handle PhonePe server-to-server callback
  */
 router.post('/webhook', async (req: Request, res: Response) => {
   try {
+    console.log('PhonePe Webhook received:', req.body);
+    
     const { response: encodedResponse } = req.body;
     const xVerify = req.headers['x-verify'] as string;
 
     if (!encodedResponse) {
-      return res.status(400).json({ error: 'Missing response' });
+      return res.status(400).json({ error: 'Missing response payload' });
     }
 
-    // Verify signature
-    const stringToHash = encodedResponse + PHONEPE_CONFIG.saltKey;
-    const expectedChecksum = crypto.createHash('sha256').update(stringToHash).digest('hex') + '###' + PHONEPE_CONFIG.saltIndex;
-
-    // Decode response
-    const decodedResponse = JSON.parse(Buffer.from(encodedResponse, 'base64').toString('utf-8'));
-    console.log('PhonePe webhook:', decodedResponse);
+    // Decode the response
+    const decodedResponse = JSON.parse(
+      Buffer.from(encodedResponse, 'base64').toString('utf-8')
+    );
+    
+    console.log('Decoded webhook response:', decodedResponse);
 
     const txnId = decodedResponse.data?.merchantTransactionId;
+    const code = decodedResponse.code;
 
     if (!txnId) {
       return res.status(400).json({ error: 'Missing transaction ID' });
     }
 
-    if (decodedResponse.code === 'PAYMENT_SUCCESS') {
+    // Handle different payment statuses
+    if (code === 'PAYMENT_SUCCESS') {
       // Update payment status
       await db.updatePayment(txnId, {
         status: 'completed',
         completed_at: new Date().toISOString(),
+        phonepe_transaction_id: decodedResponse.data?.transactionId,
         phonepe_response: decodedResponse
       });
 
-      // Get payment details
+      // Get payment details and activate plan
       const { data: payment } = await db.getPayment(txnId);
-
+      
       if (payment) {
-        // Activate plan for user
         await db.activatePlan(
           payment.user_id,
           payment.plan,
           payment.id,
           payment.amount
         );
+
+        // Mark onboarding as complete
+        await db.updateProfile(payment.user_id, {
+          onboarding_completed: true,
+          onboarding_completed_at: new Date().toISOString()
+        });
       }
+
+      console.log('Payment successful for txn:', txnId);
+
+    } else if (code === 'PAYMENT_PENDING') {
+      await db.updatePayment(txnId, {
+        status: 'pending',
+        phonepe_response: decodedResponse
+      });
     } else {
+      // Failed or other status
       await db.updatePayment(txnId, {
         status: 'failed',
-        error: decodedResponse.code,
+        error: code,
         phonepe_response: decodedResponse
       });
     }
 
     res.json({ status: 'ok' });
   } catch (err: any) {
-    console.error('Webhook error:', err);
+    console.error('Webhook processing error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -199,37 +305,51 @@ router.post('/webhook', async (req: Request, res: Response) => {
 router.get('/status/:txnId', async (req: Request, res: Response) => {
   try {
     const { txnId } = req.params;
-    const { mock } = req.query;
 
-    // If mock payment, auto-complete
-    if (mock === 'true') {
-      const { data: payment } = await db.getPayment(txnId);
-      
-      if (payment && payment.status !== 'completed') {
-        await db.updatePayment(txnId, {
-          status: 'completed',
-          completed_at: new Date().toISOString()
-        });
-
-        await db.activatePlan(
-          payment.user_id,
-          payment.plan,
-          payment.id,
-          payment.amount
-        );
-
-        return res.json({
-          status: 'completed',
-          plan: payment.plan,
-          mock: true
-        });
-      }
-    }
-
+    // Get from database first
     const { data: payment, error } = await db.getPayment(txnId);
 
     if (error || !payment) {
       return res.status(404).json({ error: 'Payment not found' });
+    }
+
+    // If payment is not completed and we have PhonePe credentials, check with PhonePe
+    if (payment.status !== 'completed' && PHONEPE_CONFIG.merchantId && PHONEPE_CONFIG.saltKey) {
+      try {
+        const statusUrl = `${PHONEPE_CONFIG.statusEndpoint}/${PHONEPE_CONFIG.merchantId}/${txnId}`;
+        const checksum = generateChecksum('', `/pg/v1/status/${PHONEPE_CONFIG.merchantId}/${txnId}`);
+
+        const response = await fetch(statusUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-VERIFY': checksum,
+            'X-MERCHANT-ID': PHONEPE_CONFIG.merchantId
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.code === 'PAYMENT_SUCCESS' && payment.status !== 'completed') {
+          // Update payment
+          await db.updatePayment(txnId, {
+            status: 'completed',
+            completed_at: new Date().toISOString(),
+            phonepe_response: data
+          });
+
+          // Activate plan
+          await db.activatePlan(payment.user_id, payment.plan, payment.id, payment.amount);
+
+          return res.json({
+            status: 'completed',
+            plan: payment.plan,
+            amount: payment.amount
+          });
+        }
+      } catch (apiError) {
+        console.error('PhonePe status check error:', apiError);
+      }
     }
 
     res.json({
@@ -245,7 +365,7 @@ router.get('/status/:txnId', async (req: Request, res: Response) => {
 
 /**
  * POST /api/payments/verify
- * Verify payment manually (for callback page)
+ * Verify and complete payment (called from callback page)
  */
 router.post('/verify', verifyToken, async (req: Request, res: Response) => {
   try {
@@ -262,25 +382,30 @@ router.post('/verify', verifyToken, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Payment not found' });
     }
 
+    // Verify ownership
     if (payment.user_id !== userId) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    // Handle mock payment
+    // If already completed
+    if (payment.status === 'completed') {
+      return res.json({
+        success: true,
+        status: 'completed',
+        plan: payment.plan,
+        message: 'Payment already verified'
+      });
+    }
+
+    // Handle mock payment (for testing)
     if (mock === true || mock === 'true') {
       await db.updatePayment(txnId, {
         status: 'completed',
         completed_at: new Date().toISOString()
       });
 
-      await db.activatePlan(
-        payment.user_id,
-        payment.plan,
-        payment.id,
-        payment.amount
-      );
+      await db.activatePlan(userId, payment.plan, payment.id, payment.amount);
 
-      // Mark onboarding as complete
       await db.updateProfile(userId, {
         onboarding_completed: true,
         onboarding_completed_at: new Date().toISOString()
@@ -289,20 +414,27 @@ router.post('/verify', verifyToken, async (req: Request, res: Response) => {
       return res.json({
         success: true,
         status: 'completed',
-        plan: payment.plan
+        plan: payment.plan,
+        mock: true
       });
     }
 
-    // For real payments, check PhonePe API
-    if (payment.status !== 'completed' && PHONEPE_CONFIG.merchantId) {
-      const statusUrl = `${PHONEPE_CONFIG.baseUrl.replace('/pay', '/status')}/${PHONEPE_CONFIG.merchantId}/${txnId}`;
-      const stringToHash = `/pg/v1/status/${PHONEPE_CONFIG.merchantId}/${txnId}` + PHONEPE_CONFIG.saltKey;
-      const checksum = crypto.createHash('sha256').update(stringToHash).digest('hex') + '###' + PHONEPE_CONFIG.saltIndex;
-
+    // For real payments, check with PhonePe
+    if (PHONEPE_CONFIG.merchantId && PHONEPE_CONFIG.saltKey) {
       try {
+        const statusUrl = `${PHONEPE_CONFIG.statusEndpoint}/${PHONEPE_CONFIG.merchantId}/${txnId}`;
+        const stringToHash = `/pg/v1/status/${PHONEPE_CONFIG.merchantId}/${txnId}${PHONEPE_CONFIG.saltKey}`;
+        const checksum = crypto.createHash('sha256').update(stringToHash).digest('hex') + '###' + PHONEPE_CONFIG.saltIndex;
+
         const response = await fetch(statusUrl, {
-          headers: { 'X-VERIFY': checksum, 'X-MERCHANT-ID': PHONEPE_CONFIG.merchantId }
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-VERIFY': checksum,
+            'X-MERCHANT-ID': PHONEPE_CONFIG.merchantId
+          }
         });
+
         const data = await response.json();
 
         if (data.code === 'PAYMENT_SUCCESS') {
@@ -312,12 +444,7 @@ router.post('/verify', verifyToken, async (req: Request, res: Response) => {
             phonepe_response: data
           });
 
-          await db.activatePlan(
-            payment.user_id,
-            payment.plan,
-            payment.id,
-            payment.amount
-          );
+          await db.activatePlan(userId, payment.plan, payment.id, payment.amount);
 
           await db.updateProfile(userId, {
             onboarding_completed: true,
@@ -330,16 +457,33 @@ router.post('/verify', verifyToken, async (req: Request, res: Response) => {
             plan: payment.plan
           });
         }
-      } catch (apiError) {
-        console.error('PhonePe status check error:', apiError);
+
+        if (data.code === 'PAYMENT_PENDING') {
+          return res.json({
+            success: false,
+            status: 'pending',
+            message: 'Payment is still being processed'
+          });
+        }
+
+        return res.json({
+          success: false,
+          status: 'failed',
+          message: data.message || 'Payment failed'
+        });
+
+      } catch (apiError: any) {
+        console.error('PhonePe verification error:', apiError);
       }
     }
 
+    // Return current status
     res.json({
       success: payment.status === 'completed',
       status: payment.status,
       plan: payment.plan
     });
+
   } catch (err: any) {
     console.error('Payment verification error:', err);
     res.status(500).json({ error: err.message });
@@ -347,4 +491,3 @@ router.post('/verify', verifyToken, async (req: Request, res: Response) => {
 });
 
 export default router;
-

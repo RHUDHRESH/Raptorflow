@@ -1,19 +1,24 @@
 import { db } from './supabase';
 import { PositioningParseAgent } from '../agents/PositioningParseAgent';
-import { ICPBuildAgent } from '../agents/ICPBuildAgent';
-// Import other agents as needed
+import { 
+  websiteScraperTool, 
+  companyAnalyzerTool, 
+  competitorResearchTool, 
+  techStackDetectorTool,
+  icpGeneratorTool,
+  warPlanGeneratorTool 
+} from '../tools/nativeTools';
 
 /**
  * Agent Orchestrator
  * Manages the execution of agents based on onboarding step
+ * Uses NATIVE tools only - no external API keys required
  */
 export class AgentOrchestrator {
   private positioningAgent: PositioningParseAgent;
-  private icpBuildAgent: ICPBuildAgent;
 
   constructor() {
     this.positioningAgent = new PositioningParseAgent();
-    this.icpBuildAgent = new ICPBuildAgent();
   }
 
   /**
@@ -22,73 +27,72 @@ export class AgentOrchestrator {
   async processStep(intakeId: string, step: number, data: any): Promise<any> {
     console.log(`Processing step ${step} for intake ${intakeId}`);
 
-    switch (step) {
-      case 1:
-        return this.processPositioning(intakeId, data);
-      case 2:
-        return this.processCompany(intakeId, data);
-      case 3:
-        return this.processProduct(intakeId, data);
-      case 4:
-        return this.processMarket(intakeId, data);
-      case 5:
-        return this.processStrategy(intakeId, data);
-      case 6:
-        return this.generateICPs(intakeId, data);
-      case 7:
-        return this.generateWarPlan(intakeId, data);
-      default:
-        throw new Error(`Unknown step: ${step}`);
+    try {
+      switch (step) {
+        case 1:
+          return await this.processPositioning(intakeId, data);
+        case 2:
+          return await this.processCompany(intakeId, data);
+        case 3:
+          return await this.processProduct(intakeId, data);
+        case 4:
+          return await this.processMarket(intakeId, data);
+        case 5:
+          return await this.processStrategy(intakeId, data);
+        case 6:
+          return await this.generateICPs(intakeId, data);
+        case 7:
+          return await this.generateWarPlan(intakeId, data);
+        default:
+          throw new Error(`Unknown step: ${step}`);
+      }
+    } catch (error: any) {
+      console.error(`Error processing step ${step}:`, error);
+      // Return graceful fallback
+      return { success: false, error: error.message };
     }
   }
 
   /**
-   * Step 1: Process positioning data
+   * Step 1: Process positioning data using PositioningParseAgent
    */
   private async processPositioning(intakeId: string, data: any) {
     const { positioning } = data;
     
-    // Log execution
     const { data: execution } = await db.logAgentExecution(intakeId, 'PositioningParseAgent', positioning);
     
     try {
-      // Run the agent
       const result = await this.positioningAgent.analyze({
-        dan_kennedy_answer: positioning.danKennedy,
-        dunford_answer: positioning.dunford,
+        dan_kennedy_answer: positioning.danKennedy || positioning.dan_kennedy,
+        dunford_answer: positioning.dunford || positioning.april_dunford,
         company_name: data.company?.name,
         industry: data.company?.industry
       });
 
-      // Update intake with derived data
       await db.updateIntake(intakeId, {
         positioning,
         positioning_derived: result
       });
 
-      // Log success
       if (execution) {
         await db.updateAgentExecution(execution.id, result, 'completed');
       }
 
       return { success: true, derived: result };
     } catch (error: any) {
-      // Log failure
-      if (execution) {
-        await db.updateAgentExecution(execution.id, null, 'failed', error.message);
-      }
+      console.error('Positioning agent error:', error);
       
-      // Return mock data if agent fails (for demo/development)
+      // Fallback: Generate basic derived data
       const mockDerived = {
-        primary_target: 'Early-stage startup founders',
-        primary_problem: 'Lack of clear marketing strategy',
-        primary_outcome: 'Clarity and focused execution',
-        main_alternatives: ['Marketing consultants', 'DIY frameworks', 'Doing nothing'],
+        primary_target: this.extractTarget(positioning.danKennedy || positioning.dunford || ''),
+        primary_problem: 'Marketing clarity and execution',
+        primary_outcome: 'Focused growth strategy',
+        main_alternatives: ['Marketing consultants', 'DIY approaches', 'Status quo'],
         positioning_type: 'niche-subcategory' as const,
-        value_proposition: 'For startup founders who struggle with marketing clarity, RaptorFlow delivers a 90-day execution plan unlike expensive consultants.',
-        clarity_score: 65,
-        suggestions_to_improve: ['Be more specific about target audience', 'Quantify the outcome'],
-        confidence: 0.7
+        value_proposition: `For companies seeking growth, we deliver clarity and execution.`,
+        clarity_score: 50,
+        suggestions_to_improve: ['Be more specific about target audience', 'Quantify outcomes'],
+        confidence: 0.5
       };
 
       await db.updateIntake(intakeId, {
@@ -96,26 +100,87 @@ export class AgentOrchestrator {
         positioning_derived: mockDerived
       });
 
-      return { success: true, derived: mockDerived, mock: true };
+      if (execution) {
+        await db.updateAgentExecution(execution.id, mockDerived, 'completed', 'Used fallback');
+      }
+
+      return { success: true, derived: mockDerived, fallback: true };
     }
   }
 
   /**
-   * Step 2: Process company data
+   * Step 2: Process company data using native web scraping
    */
   private async processCompany(intakeId: string, data: any) {
     const { company } = data;
     
-    // For now, just store the data (enrichment agents would run here)
-    await db.updateIntake(intakeId, {
-      company,
-      company_enriched: {
-        techStack: ['Google Analytics', 'React', 'AWS'], // Mock enriched data
-        linkedInUrl: company.website ? `https://linkedin.com/company/${company.website.split('.')[0]}` : null
+    const { data: execution } = await db.logAgentExecution(intakeId, 'CompanyEnrichAgent', company);
+    
+    let enriched: any = {};
+    
+    try {
+      // Scrape website if provided
+      if (company.website) {
+        console.log('Scraping website:', company.website);
+        const scrapeResult = await websiteScraperTool.invoke({ url: company.website });
+        const scraped = JSON.parse(scrapeResult);
+        
+        if (scraped.success) {
+          // Analyze the scraped content
+          const analysisResult = await companyAnalyzerTool.invoke({
+            websiteContent: `Title: ${scraped.title}\nDescription: ${scraped.metaDescription}\nContent: ${scraped.contentPreview}`,
+            companyName: company.name
+          });
+          const analysis = JSON.parse(analysisResult);
+          
+          if (analysis.success) {
+            enriched.websiteAnalysis = analysis.analysis;
+          }
+          
+          // Detect tech stack
+          const techResult = await techStackDetectorTool.invoke({ url: company.website });
+          const tech = JSON.parse(techResult);
+          
+          if (tech.success) {
+            enriched.techStack = tech.detectedTechnologies;
+            enriched.techStackCategorized = tech.categorized;
+          }
+        }
       }
-    });
+      
+      enriched.enrichedAt = new Date().toISOString();
+      
+      await db.updateIntake(intakeId, {
+        company,
+        company_enriched: enriched
+      });
 
-    return { success: true };
+      if (execution) {
+        await db.updateAgentExecution(execution.id, enriched, 'completed');
+      }
+
+      return { success: true, enriched };
+    } catch (error: any) {
+      console.error('Company enrichment error:', error);
+      
+      // Fallback
+      enriched = {
+        techStack: ['Unknown'],
+        enrichedAt: new Date().toISOString(),
+        error: error.message
+      };
+      
+      await db.updateIntake(intakeId, {
+        company,
+        company_enriched: enriched
+      });
+
+      if (execution) {
+        await db.updateAgentExecution(execution.id, enriched, 'completed', error.message);
+      }
+
+      return { success: true, enriched, fallback: true };
+    }
   }
 
   /**
@@ -124,48 +189,99 @@ export class AgentOrchestrator {
   private async processProduct(intakeId: string, data: any) {
     const { product } = data;
     
-    // JTBD Mapper and Monetization agents would run here
-    const mockDerived = {
-      jtbd: [
-        { type: 'functional', situation: 'When planning marketing', motivation: 'get clear direction', outcome: 'execute confidently' }
-      ],
-      outcomeType: 'time',
-      likelyACV: product.priceRange ? parseInt(product.priceRange.split('-')[0]) * 12 : 5000,
-      ticketSize: 'mid',
-      saleType: 'sales-assisted'
+    // Derive JTBD and monetization insights
+    const derived = {
+      jtbd: this.deriveJTBD(product),
+      outcomeType: this.deriveOutcomeType(product),
+      likelyACV: this.estimateACV(product),
+      ticketSize: this.determineTicketSize(product),
+      saleType: this.determineSaleType(product),
+      derivedAt: new Date().toISOString()
     };
 
     await db.updateIntake(intakeId, {
       product,
-      product_derived: mockDerived
+      product_derived: derived
     });
 
-    return { success: true, derived: mockDerived };
+    return { success: true, derived };
   }
 
   /**
-   * Step 4: Process market data
+   * Step 4: Process market data using native competitor research
    */
   private async processMarket(intakeId: string, data: any) {
     const { market } = data;
     
-    // Competitor Surface agent would run here
-    const mockSystemView = {
-      competitorProfiles: market.namedCompetitors?.map((name: string, i: number) => ({
-        name,
-        tagline: `${name} - Competitor solution`,
-        mapCoordinates: { x: 30 + i * 20, y: 40 + i * 15 }
-      })) || [],
-      positioningGaps: ['Underserved early-stage segment'],
-      wedges: ['Speed of implementation']
-    };
+    const { data: execution } = await db.logAgentExecution(intakeId, 'CompetitorSurfaceAgent', market);
+    
+    let systemView: any = {};
+    
+    try {
+      // Get intake data for context
+      const { data: intake } = await db.getIntake((await db.getIntake('')).data?.user_id || '');
+      
+      // Research competitors using AI
+      const researchResult = await competitorResearchTool.invoke({
+        companyDescription: intake?.positioning?.danKennedy || market.differentiator || 'B2B company',
+        industry: intake?.company?.industry || 'Technology',
+        knownCompetitors: market.namedCompetitors || []
+      });
+      
+      const research = JSON.parse(researchResult);
+      
+      if (research.success) {
+        systemView = {
+          competitors: research.research.competitors || [],
+          marketLandscape: research.research.market_landscape || {},
+          userPerception: {
+            pricePosition: market.pricePosition,
+            complexityPosition: market.complexityPosition,
+            mainEnemy: market.alternativeAction,
+            differentiator: market.differentiator
+          },
+          analyzedAt: new Date().toISOString()
+        };
+      }
+      
+      await db.updateIntake(intakeId, {
+        market,
+        market_system_view: systemView
+      });
 
-    await db.updateIntake(intakeId, {
-      market,
-      market_system_view: mockSystemView
-    });
+      if (execution) {
+        await db.updateAgentExecution(execution.id, systemView, 'completed');
+      }
 
-    return { success: true, systemView: mockSystemView };
+      return { success: true, systemView };
+    } catch (error: any) {
+      console.error('Market analysis error:', error);
+      
+      // Fallback
+      systemView = {
+        competitors: market.namedCompetitors?.map((name: string) => ({
+          name,
+          analyzed: false
+        })) || [],
+        userPerception: {
+          pricePosition: market.pricePosition,
+          complexityPosition: market.complexityPosition,
+          mainEnemy: market.alternativeAction
+        },
+        error: error.message
+      };
+      
+      await db.updateIntake(intakeId, {
+        market,
+        market_system_view: systemView
+      });
+
+      if (execution) {
+        await db.updateAgentExecution(execution.id, systemView, 'completed', error.message);
+      }
+
+      return { success: true, systemView, fallback: true };
+    }
   }
 
   /**
@@ -174,119 +290,280 @@ export class AgentOrchestrator {
   private async processStrategy(intakeId: string, data: any) {
     const { strategy } = data;
     
-    // Strategy Profile agent would run here
-    const mockDerived = {
+    const derived = {
       strategyProfile: {
-        name: `${strategy.goalPrimary} ${strategy.demandSource}`,
-        description: 'Balanced growth approach'
+        name: `${strategy.goalPrimary || 'Balanced'} ${strategy.demandSource || 'Growth'}`,
+        goal: strategy.goalPrimary,
+        demandSource: strategy.demandSource,
+        persuasion: strategy.persuasionAxis
       },
-      impliedTradeoffs: [
-        strategy.goalPrimary === 'velocity' ? 'Accept higher CAC' : 'Focus on efficiency'
-      ],
-      recommendedProtocols: strategy.demandSource === 'creation' ? ['A', 'B'] : ['B', 'C']
+      impliedTradeoffs: this.deriveTradeoffs(strategy),
+      recommendedProtocols: this.deriveProtocols(strategy),
+      derivedAt: new Date().toISOString()
     };
 
     await db.updateIntake(intakeId, {
       strategy,
-      strategy_derived: mockDerived
+      strategy_derived: derived
     });
 
-    return { success: true, derived: mockDerived };
+    return { success: true, derived };
   }
 
   /**
-   * Step 6: Generate ICPs
+   * Step 6: Generate ICPs using native AI tool
    */
-  async generateICPs(intakeId: string, allData: any) {
-    const { data: execution } = await db.logAgentExecution(intakeId, 'ICPBuildAgent', allData);
+  async generateICPs(intakeId: string, allData?: any) {
+    // Get all intake data if not provided
+    if (!allData) {
+      const result = await db.getIntake(intakeId);
+      allData = result.data;
+    }
+    
+    const { data: execution } = await db.logAgentExecution(intakeId, 'ICPBuildAgent', { generating: true });
     
     try {
-      const result = await this.icpBuildAgent.analyze({
-        company: allData.company,
-        product: allData.product,
-        positioning: allData.positioning_derived || allData.positioning,
-        market: allData.market,
-        strategy: allData.strategy,
-        jtbd: allData.product_derived
+      const icpResult = await icpGeneratorTool.invoke({
+        companyData: allData.company || {},
+        positioningData: allData.positioning_derived || allData.positioning || {},
+        productData: allData.product_derived || allData.product || {},
+        strategyData: allData.strategy_derived || allData.strategy || {}
       });
-
-      await db.updateIntake(intakeId, { icps: result.icps });
       
-      if (execution) {
-        await db.updateAgentExecution(execution.id, result, 'completed');
-      }
-
-      return { success: true, icps: result.icps };
-    } catch (error: any) {
-      // Return mock ICPs if agent fails
-      const mockICPs = [
-        {
-          id: 'desperate-scaler',
-          label: 'Desperate Scaler',
-          summary: 'High-growth companies overwhelmed by rapid expansion',
-          fitScore: 92,
-          selected: true,
-          firmographics: { employee_range: '50-200', industries: ['SaaS', 'Tech'], stages: ['series-a', 'series-b+'], regions: ['North America'], exclude: [] },
-          technographics: { must_have: ['CRM'], nice_to_have: ['Marketing automation'], red_flags: [] },
-          psychographics: { pain_points: ['Scaling chaos'], motivations: ['Growth'], internal_triggers: ['New funding'], buying_constraints: [] },
-          behavioral_triggers: [{ signal: 'Hiring spike', source: 'LinkedIn', urgency_boost: 80 }],
-          buying_committee: [{ role: 'Decision Maker', typical_title: 'VP Growth', concerns: ['ROI'], success_criteria: ['Speed'] }],
-          category_context: { market_position: 'challenger', current_solution: 'Manual', switching_triggers: ['Growth'] },
-          fit_reasoning: 'High urgency matches product',
-          messaging_angle: 'Scale without chaos',
-          qualification_questions: ['What is your growth rate?']
-        },
-        {
-          id: 'frustrated-optimizer',
-          label: 'Frustrated Optimizer',
-          summary: 'Companies that tried other solutions and found them lacking',
-          fitScore: 78,
-          selected: true,
-          firmographics: { employee_range: '200-1000', industries: ['Enterprise'], stages: ['established-sme'], regions: ['Global'], exclude: [] },
-          technographics: { must_have: ['Enterprise CRM'], nice_to_have: [], red_flags: ['Competitor X'] },
-          psychographics: { pain_points: ['Tool fatigue'], motivations: ['Simplicity'], internal_triggers: ['Contract renewal'], buying_constraints: ['Budget'] },
-          behavioral_triggers: [{ signal: 'Competitor churn', source: 'G2', urgency_boost: 60 }],
-          buying_committee: [{ role: 'Champion', typical_title: 'Director Ops', concerns: ['Adoption'], success_criteria: ['Ease of use'] }],
-          category_context: { market_position: 'leader', current_solution: 'Competitor', switching_triggers: ['Frustration'] },
-          fit_reasoning: 'Ready to switch',
-          messaging_angle: 'Finally, something that works',
-          qualification_questions: ['What have you tried before?']
-        },
-        {
-          id: 'risk-mitigator',
-          label: 'Risk Mitigator',
-          summary: 'Conservative organizations needing proven solutions',
-          fitScore: 65,
-          selected: false,
-          firmographics: { employee_range: '500+', industries: ['Finance', 'Healthcare'], stages: ['enterprise'], regions: ['North America', 'EU'], exclude: [] },
-          technographics: { must_have: ['Compliance tools'], nice_to_have: ['SOC2'], red_flags: [] },
-          psychographics: { pain_points: ['Risk'], motivations: ['Compliance'], internal_triggers: ['Audit'], buying_constraints: ['Security'] },
-          behavioral_triggers: [{ signal: 'Regulation change', source: 'News', urgency_boost: 70 }],
-          buying_committee: [{ role: 'Economic Buyer', typical_title: 'CFO', concerns: ['Risk'], success_criteria: ['Compliance'] }],
-          category_context: { market_position: 'newcomer', current_solution: 'Legacy', switching_triggers: ['Compliance'] },
-          fit_reasoning: 'Longer sales cycle but high LTV',
-          messaging_angle: 'Enterprise-grade security',
-          qualification_questions: ['What compliance requirements do you have?']
+      const result = JSON.parse(icpResult);
+      
+      if (result.success && result.icps) {
+        // Add selection state
+        const icpsWithSelection = result.icps.map((icp: any, i: number) => ({
+          ...icp,
+          selected: i < 2 // Select first 2 by default
+        }));
+        
+        await db.updateIntake(intakeId, { icps: icpsWithSelection });
+        
+        if (execution) {
+          await db.updateAgentExecution(execution.id, { icps: icpsWithSelection }, 'completed');
         }
-      ];
-
-      await db.updateIntake(intakeId, { icps: mockICPs });
+        
+        return { success: true, icps: icpsWithSelection };
+      }
+      
+      throw new Error(result.error || 'Failed to generate ICPs');
+    } catch (error: any) {
+      console.error('ICP generation error:', error);
+      
+      // Fallback ICPs
+      const fallbackICPs = this.getFallbackICPs(allData);
+      
+      await db.updateIntake(intakeId, { icps: fallbackICPs });
       
       if (execution) {
-        await db.updateAgentExecution(execution.id, { icps: mockICPs }, 'completed', 'Used mock data');
+        await db.updateAgentExecution(execution.id, { icps: fallbackICPs }, 'completed', 'Used fallback');
       }
-
-      return { success: true, icps: mockICPs, mock: true };
+      
+      return { success: true, icps: fallbackICPs, fallback: true };
     }
   }
 
   /**
-   * Step 7: Generate War Plan
+   * Step 7: Generate War Plan using native AI tool
    */
-  async generateWarPlan(intakeId: string, allData: any) {
-    // Move Assembly agent would run here
-    const mockWarPlan = {
+  async generateWarPlan(intakeId: string, allData?: any) {
+    if (!allData) {
+      const result = await db.getIntake(intakeId);
+      allData = result.data;
+    }
+    
+    const { data: execution } = await db.logAgentExecution(intakeId, 'MoveAssemblyAgent', { generating: true });
+    
+    try {
+      const warPlanResult = await warPlanGeneratorTool.invoke({
+        icps: allData.icps || [],
+        strategyData: allData.strategy_derived || allData.strategy || {},
+        companyData: allData.company || {}
+      });
+      
+      const result = JSON.parse(warPlanResult);
+      
+      if (result.success && result.warPlan) {
+        await db.updateIntake(intakeId, { war_plan: result.warPlan });
+        
+        if (execution) {
+          await db.updateAgentExecution(execution.id, result.warPlan, 'completed');
+        }
+        
+        return { success: true, warPlan: result.warPlan };
+      }
+      
+      throw new Error(result.error || 'Failed to generate war plan');
+    } catch (error: any) {
+      console.error('War plan generation error:', error);
+      
+      // Fallback war plan
+      const fallbackWarPlan = this.getFallbackWarPlan(allData);
+      
+      await db.updateIntake(intakeId, { war_plan: fallbackWarPlan });
+      
+      if (execution) {
+        await db.updateAgentExecution(execution.id, fallbackWarPlan, 'completed', 'Used fallback');
+      }
+      
+      return { success: true, warPlan: fallbackWarPlan, fallback: true };
+    }
+  }
+
+  // ============ HELPER METHODS ============
+
+  private extractTarget(text: string): string {
+    // Simple extraction of target audience from text
+    const patterns = [
+      /for\s+([^,\.]+)/i,
+      /help\s+([^,\.]+)/i,
+      /serve\s+([^,\.]+)/i
+    ];
+    
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) return match[1].trim();
+    }
+    
+    return 'B2B companies';
+  }
+
+  private deriveJTBD(product: any): any[] {
+    return [{
+      type: 'functional',
+      situation: `When ${product.mainJob || 'doing their work'}`,
+      motivation: 'achieve better results',
+      outcome: product.mainJob || 'improved efficiency'
+    }];
+  }
+
+  private deriveOutcomeType(product: any): string {
+    const job = (product.mainJob || '').toLowerCase();
+    if (job.includes('save') || job.includes('time') || job.includes('faster')) return 'time';
+    if (job.includes('money') || job.includes('revenue') || job.includes('cost')) return 'money';
+    if (job.includes('risk') || job.includes('secure') || job.includes('complian')) return 'risk';
+    return 'efficiency';
+  }
+
+  private estimateACV(product: any): number {
+    const price = product.priceRange || '';
+    const match = price.match(/\d+/);
+    if (match) {
+      const monthlyPrice = parseInt(match[0]);
+      return monthlyPrice * 12;
+    }
+    return 5000;
+  }
+
+  private determineTicketSize(product: any): string {
+    const acv = this.estimateACV(product);
+    if (acv < 5000) return 'low';
+    if (acv < 25000) return 'mid';
+    return 'high';
+  }
+
+  private determineSaleType(product: any): string {
+    const ticketSize = this.determineTicketSize(product);
+    return ticketSize === 'low' ? 'self-serve' : 'sales-assisted';
+  }
+
+  private deriveTradeoffs(strategy: any): string[] {
+    const tradeoffs: string[] = [];
+    
+    if (strategy.goalPrimary === 'velocity') {
+      tradeoffs.push('Accept higher CAC for faster growth');
+    } else if (strategy.goalPrimary === 'efficiency') {
+      tradeoffs.push('Slower growth for better unit economics');
+    } else if (strategy.goalPrimary === 'penetration') {
+      tradeoffs.push('Heavy brand investment for market share');
+    }
+    
+    if (strategy.demandSource === 'creation') {
+      tradeoffs.push('Invest in education and content');
+    } else if (strategy.demandSource === 'capture') {
+      tradeoffs.push('Focus on in-market buyers');
+    }
+    
+    return tradeoffs;
+  }
+
+  private deriveProtocols(strategy: any): string[] {
+    const protocols: string[] = [];
+    
+    if (strategy.demandSource === 'creation') {
+      protocols.push('A', 'B'); // Authority Blitz, Trust Anchor
+    } else {
+      protocols.push('B', 'C'); // Trust Anchor, Cost of Inaction
+    }
+    
+    if (strategy.goalPrimary === 'velocity') {
+      protocols.push('D'); // Facilitator Nudge
+    }
+    
+    return [...new Set(protocols)];
+  }
+
+  private getFallbackICPs(data: any): any[] {
+    const industry = data.company?.industry || 'Technology';
+    
+    return [
+      {
+        id: 'desperate-scaler',
+        label: 'Desperate Scaler',
+        summary: `Fast-growing ${industry} companies overwhelmed by rapid expansion and need solutions now.`,
+        fitScore: 92,
+        selected: true,
+        firmographics: { employee_range: '50-200', industries: [industry], stages: ['series-a', 'series-b'], regions: ['Global'], exclude: [] },
+        technographics: { must_have: ['CRM'], nice_to_have: ['Marketing automation'], red_flags: [] },
+        psychographics: { pain_points: ['Scaling chaos', 'No clear process'], motivations: ['Growth', 'Efficiency'], internal_triggers: ['New funding'], buying_constraints: ['Speed > Price'] },
+        behavioral_triggers: [{ signal: 'Hiring spike', source: 'LinkedIn', urgency_boost: 80 }],
+        buying_committee: [{ role: 'Decision Maker', typical_title: 'VP Growth', concerns: ['ROI', 'Speed'], success_criteria: ['Pipeline growth'] }],
+        category_context: { market_position: 'challenger', current_solution: 'Manual processes', switching_triggers: ['Growth wall'] },
+        fit_reasoning: 'High urgency and immediate need matches our value prop',
+        messaging_angle: 'Scale without the chaos',
+        qualification_questions: ['What is your growth rate?', 'What have you tried?']
+      },
+      {
+        id: 'frustrated-optimizer',
+        label: 'Frustrated Optimizer',
+        summary: `${industry} companies that have tried other solutions and found them lacking.`,
+        fitScore: 78,
+        selected: true,
+        firmographics: { employee_range: '100-500', industries: [industry], stages: ['series-b', 'established'], regions: ['Global'], exclude: [] },
+        technographics: { must_have: ['Existing tools'], nice_to_have: [], red_flags: [] },
+        psychographics: { pain_points: ['Tool fatigue', 'Poor ROI'], motivations: ['Simplicity', 'Results'], internal_triggers: ['Contract renewal'], buying_constraints: ['Prove ROI'] },
+        behavioral_triggers: [{ signal: 'Competitor churn', source: 'G2/Reviews', urgency_boost: 60 }],
+        buying_committee: [{ role: 'Champion', typical_title: 'Director Ops', concerns: ['Adoption'], success_criteria: ['Ease of use'] }],
+        category_context: { market_position: 'challenger', current_solution: 'Competitor', switching_triggers: ['Frustration'] },
+        fit_reasoning: 'Ready to switch and knows what they want',
+        messaging_angle: 'Finally, something that actually works',
+        qualification_questions: ['What solutions have you tried?', 'Why are you switching?']
+      },
+      {
+        id: 'risk-mitigator',
+        label: 'Risk Mitigator',
+        summary: 'Conservative organizations that need proven solutions and security assurances.',
+        fitScore: 65,
+        selected: false,
+        firmographics: { employee_range: '500+', industries: ['Enterprise', 'Finance'], stages: ['enterprise'], regions: ['North America', 'EU'], exclude: [] },
+        technographics: { must_have: ['Enterprise systems'], nice_to_have: ['SOC2'], red_flags: [] },
+        psychographics: { pain_points: ['Risk', 'Compliance'], motivations: ['Security', 'Reliability'], internal_triggers: ['Audit'], buying_constraints: ['Security review'] },
+        behavioral_triggers: [{ signal: 'Compliance requirement', source: 'News', urgency_boost: 70 }],
+        buying_committee: [{ role: 'Economic Buyer', typical_title: 'CFO', concerns: ['Risk', 'TCO'], success_criteria: ['Compliance'] }],
+        category_context: { market_position: 'newcomer', current_solution: 'Legacy', switching_triggers: ['Compliance mandate'] },
+        fit_reasoning: 'Longer sales cycle but high LTV potential',
+        messaging_angle: 'Enterprise-grade security and reliability',
+        qualification_questions: ['What compliance requirements do you have?']
+      }
+    ];
+  }
+
+  private getFallbackWarPlan(data: any): any {
+    return {
       generated: true,
+      summary: 'A focused 90-day plan to establish market presence and generate pipeline.',
       phases: [
         {
           id: 1,
@@ -295,48 +572,52 @@ export class AgentOrchestrator {
           objectives: ['Build thought leadership', 'Establish content foundation', 'Set up tracking'],
           campaigns: ['Authority Blitz', 'Content Waterfall'],
           kpis: [
-            { name: 'Content published', target: '8-12' },
+            { name: 'Content published', target: '8-12 pieces' },
             { name: 'Website traffic', target: '+30%' }
-          ]
+          ],
+          key_tasks: ['Create pillar content', 'Set up analytics', 'Launch LinkedIn presence']
         },
         {
           id: 2,
           name: 'Launch & Validation',
           days: '31-60',
-          objectives: ['Launch demand campaigns', 'Build social proof', 'Start outbound'],
+          objectives: ['Launch demand gen', 'Build social proof', 'Start outbound'],
           campaigns: ['Trust Anchor', 'Spear Attack'],
           kpis: [
             { name: 'Demo conversion', target: '15%+' },
             { name: 'Pipeline', target: '$100k+' }
-          ]
+          ],
+          key_tasks: ['Launch paid campaigns', 'Start outbound', 'Collect testimonials']
         },
         {
           id: 3,
           name: 'Optimization & Scale',
           days: '61-90',
           objectives: ['Double down on winners', 'Kill underperformers', 'Plan Q2'],
-          campaigns: ['Expansion Plays', 'Churn Intercept'],
+          campaigns: ['Expansion Plays', 'Optimization'],
           kpis: [
-            { name: 'CAC payback', target: '<12mo' },
+            { name: 'CAC payback', target: '<12 months' },
             { name: 'Win rate', target: '25%+' }
-          ]
+          ],
+          key_tasks: ['Analyze performance', 'Optimize campaigns', 'Plan expansion']
         }
       ],
       protocols: {
-        A: { name: 'Authority Blitz', active: true },
-        B: { name: 'Trust Anchor', active: true },
-        C: { name: 'Cost of Inaction', active: false },
-        D: { name: 'Facilitator Nudge', active: true },
-        E: { name: 'Champions Armory', active: false },
-        F: { name: 'Churn Intercept', active: false }
+        A: { name: 'Authority Blitz', active: true, description: 'Build thought leadership through content' },
+        B: { name: 'Trust Anchor', active: true, description: 'Social proof and validation' },
+        C: { name: 'Cost of Inaction', active: false, description: 'Fear-based urgency messaging' },
+        D: { name: 'Facilitator Nudge', active: true, description: 'Help buyers navigate buying process' },
+        E: { name: 'Champions Armory', active: false, description: 'Enable internal champions' },
+        F: { name: 'Churn Intercept', active: false, description: 'Retention and expansion plays' }
+      },
+      recommended_budget_split: {
+        content: '30%',
+        paid_media: '40%',
+        tools: '15%',
+        events: '15%'
       }
     };
-
-    await db.updateIntake(intakeId, { war_plan: mockWarPlan });
-
-    return { success: true, warPlan: mockWarPlan };
   }
 }
 
 export const orchestrator = new AgentOrchestrator();
-
