@@ -18,42 +18,38 @@ const OAuthCallback = () => {
 
         setStatus('Checking authentication...')
 
-        // Supabase OAuth can return tokens in hash (#) or query (?)
-        // Check hash first (PKCE flow)
         const hashParams = new URLSearchParams(window.location.hash.substring(1))
         const queryParams = new URLSearchParams(window.location.search)
         
-        const accessToken = hashParams.get('access_token') || queryParams.get('access_token')
-        const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token')
+        // Check for errors first
         const errorParam = hashParams.get('error') || queryParams.get('error')
         const errorDescription = hashParams.get('error_description') || queryParams.get('error_description')
 
-        // Check for errors first
         if (errorParam) {
           console.error('OAuth error:', errorParam, errorDescription)
           navigate('/login?error=' + encodeURIComponent(errorDescription || errorParam), { replace: true })
           return
         }
 
-        if (accessToken && refreshToken) {
-          console.log('Found tokens in URL, setting session...')
-          setStatus('Setting up session...')
+        // PKCE flow returns a 'code' parameter that needs to be exchanged
+        const code = queryParams.get('code')
+        
+        if (code) {
+          console.log('Found PKCE code, exchanging for session...')
+          setStatus('Exchanging authorization code...')
           
-          // Set the session
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          })
-
+          // Exchange the code for a session
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+          
           if (error) {
-            console.error('Error setting session:', error)
+            console.error('Error exchanging code for session:', error)
             navigate('/login?error=' + encodeURIComponent(error.message), { replace: true })
             return
           }
 
           if (data.session) {
-            console.log('Session set successfully, user:', data.user?.id)
-            // Clear URL hash/query to prevent re-processing
+            console.log('Session created successfully, user:', data.user?.id)
+            // Clear URL to prevent re-processing
             window.history.replaceState({}, '', '/auth/callback')
             
             setStatus('Setting up your profile...')
@@ -68,27 +64,53 @@ const OAuthCallback = () => {
               console.warn('Profile refresh error (non-critical):', profileError)
             }
             
-            // Verify session is still valid before redirecting
-            const { data: { session: verifySession } } = await supabase.auth.getSession()
-            if (verifySession) {
-              console.log('Session verified, redirecting to app...')
-              setStatus('Success! Redirecting...')
-              navigate('/app', { replace: true })
-            } else {
-              console.error('Session lost after setting, redirecting to login')
-              navigate('/login?error=Session expired', { replace: true })
-            }
+            setStatus('Success! Redirecting...')
+            navigate('/app', { replace: true })
             return
           }
         }
 
-        // No tokens in URL, let Supabase client try to detect session from URL automatically
-        // This is important for PKCE flow where detectSessionInUrl handles the exchange
-        console.log('No tokens found directly, letting Supabase detect session...')
+        // Check for tokens directly in hash (implicit flow fallback)
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+
+        if (accessToken && refreshToken) {
+          console.log('Found tokens in URL hash, setting session...')
+          setStatus('Setting up session...')
+          
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+
+          if (error) {
+            console.error('Error setting session:', error)
+            navigate('/login?error=' + encodeURIComponent(error.message), { replace: true })
+            return
+          }
+
+          if (data.session) {
+            console.log('Session set successfully, user:', data.user?.id)
+            window.history.replaceState({}, '', '/auth/callback')
+            
+            setStatus('Setting up your profile...')
+            await new Promise(resolve => setTimeout(resolve, 1500))
+            
+            try {
+              await refreshProfile()
+            } catch (profileError) {
+              console.warn('Profile refresh error (non-critical):', profileError)
+            }
+            
+            setStatus('Success! Redirecting...')
+            navigate('/app', { replace: true })
+            return
+          }
+        }
+
+        // No code or tokens, check if session already exists
+        console.log('No code/tokens found, checking existing session...')
         setStatus('Verifying session...')
-        
-        // Wait a moment for Supabase to process the URL
-        await new Promise(resolve => setTimeout(resolve, 500))
         
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         
@@ -99,13 +121,10 @@ const OAuthCallback = () => {
         }
 
         if (session) {
-          console.log('Session found via Supabase detection, user:', session.user?.id)
-          // Clear URL to prevent re-processing
+          console.log('Existing session found, user:', session.user?.id)
           window.history.replaceState({}, '', '/auth/callback')
           
           setStatus('Setting up your profile...')
-          
-          // Wait for profile creation
           await new Promise(resolve => setTimeout(resolve, 1000))
           
           try {
@@ -117,7 +136,7 @@ const OAuthCallback = () => {
           setStatus('Success! Redirecting...')
           navigate('/app', { replace: true })
         } else {
-          console.log('No session found after all attempts, redirecting to login')
+          console.log('No session found, redirecting to login')
           navigate('/login?error=' + encodeURIComponent('Authentication failed. Please try again.'), { replace: true })
         }
       } catch (error) {
