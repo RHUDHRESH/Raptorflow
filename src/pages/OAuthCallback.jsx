@@ -102,7 +102,27 @@ const OAuthCallback = () => {
 
         setStatus('Verifying session...')
 
-        // 1. Check existing session
+        // 1. Exchange the PKCE code for a session if present
+        const authCode = params.get('code') || hashParams.get('code')
+        if (authCode) {
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession({ code: authCode })
+
+          if (exchangeError) {
+            console.error('Code exchange failed:', exchangeError)
+            setError(exchangeError.message || 'Authentication failed')
+            setTimeout(() => {
+              navigate('/login?error=' + encodeURIComponent(exchangeError.message || 'auth_failed'), { replace: true })
+            }, 2000)
+            return
+          }
+
+          if (data?.session) {
+            await handleSession(data.session)
+            return
+          }
+        }
+
+        // 2. Check existing session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
         if (session) {
@@ -115,7 +135,7 @@ const OAuthCallback = () => {
           // Don't fail yet, try listening for changes
         }
 
-        // 2. Listen for auth state changes (needed for PKCE flow completion)
+        // 3. Listen for auth state changes (needed for PKCE flow completion)
         const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
           if (event === 'SIGNED_IN' && session) {
             if (timeoutId) clearTimeout(timeoutId)
@@ -124,7 +144,7 @@ const OAuthCallback = () => {
         })
         subscription = sub.subscription
 
-        // 3. Set timeout fallback
+        // 4. Set timeout fallback
         timeoutId = setTimeout(async () => {
           // One final check
           const { data: { session: finalSession } } = await supabase.auth.getSession()
