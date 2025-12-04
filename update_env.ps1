@@ -57,3 +57,4 @@ Get-Content .env | Where-Object { $_ -match '^[A-Z_]+\s*=' } | ForEach-Object {
     Write-Host "  - $varName"
 }
 
+

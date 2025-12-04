@@ -72,3 +72,4 @@ VITE_PHONEPE_ENV=SANDBOX
 - Backend uses `VITE_PHONEPE_*` variables directly (no duplicates)
 - **Removed**: YouTube, Facebook, Instagram, LinkedIn, Twitter, Maps, PostHog, Stripe, OpenAI variables (not used in code)
 
+

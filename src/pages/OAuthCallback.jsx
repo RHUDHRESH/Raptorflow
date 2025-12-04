@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
@@ -6,9 +6,56 @@ const OAuthCallback = () => {
   const navigate = useNavigate()
   const [status, setStatus] = useState('Completing sign in...')
   const [error, setError] = useState(null)
+  const processedRef = useRef(false)
 
   useEffect(() => {
-    const handleCallback = async () => {
+    // Prevent double processing in Strict Mode
+    if (processedRef.current) return
+    processedRef.current = true
+
+    let subscription = null
+    let timeoutId = null
+
+    const handleSession = async (session) => {
+      if (!session?.user) {
+        setError('No user found in session')
+        setTimeout(() => {
+          navigate('/login', { replace: true })
+        }, 2000)
+        return
+      }
+
+      setStatus('Loading profile...')
+      
+      try {
+        // Check if user has a profile with active plan
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('plan, plan_status, onboarding_completed')
+          .eq('id', session.user.id)
+          .single()
+
+        setStatus('Redirecting...')
+        
+        // Determine where to redirect
+        if (profile?.plan && profile.plan !== 'none' && profile.plan !== 'free' && profile.plan_status === 'active') {
+          // User has active paid plan - go to app
+          navigate('/app', { replace: true })
+        } else if (profile?.onboarding_completed) {
+          // Onboarding done but no plan - go to plan selection
+          navigate('/onboarding/plan', { replace: true })
+        } else {
+          // New user or incomplete onboarding - go to onboarding start
+          navigate('/onboarding/positioning', { replace: true })
+        }
+      } catch (err) {
+        console.error('Profile check error:', err)
+        // Even if profile check fails, redirect to onboarding or app as fallback
+        navigate('/onboarding/positioning', { replace: true })
+      }
+    }
+
+    const init = async () => {
       try {
         // Check for errors in URL
         const params = new URLSearchParams(window.location.search)
@@ -24,69 +71,44 @@ const OAuthCallback = () => {
           return
         }
 
-        // Wait for Supabase to process the code exchange
         setStatus('Verifying session...')
-        
-        // Get the session - Supabase should have exchanged the code by now
+
+        // 1. Check existing session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         
-        if (sessionError) {
-          console.error('Session error:', sessionError)
-          setError(sessionError.message)
-          setTimeout(() => {
-            navigate('/login?error=' + encodeURIComponent(sessionError.message), { replace: true })
-          }, 2000)
+        if (session) {
+          await handleSession(session)
           return
         }
 
-        if (!session) {
-          // No session yet, wait a bit and check again
-          setStatus('Waiting for authentication...')
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
-          const { data: { session: retrySession } } = await supabase.auth.getSession()
-          
-          if (!retrySession) {
-            setError('Authentication failed - no session created')
-            setTimeout(() => {
-              navigate('/login?error=session_failed', { replace: true })
-            }, 2000)
-            return
-          }
+        if (sessionError) {
+          console.warn('Initial session check error:', sessionError)
+          // Don't fail yet, try listening for changes
         }
 
-        setStatus('Loading profile...')
-        
-        // Get session again to ensure we have latest
-        const { data: { session: finalSession } } = await supabase.auth.getSession()
-        
-        if (finalSession?.user) {
-          // Check if user has a profile with active plan
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('plan, plan_status, onboarding_completed')
-            .eq('id', finalSession.user.id)
-            .single()
+        // 2. Listen for auth state changes (needed for PKCE flow completion)
+        const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            if (timeoutId) clearTimeout(timeoutId)
+            await handleSession(session)
+          }
+        })
+        subscription = sub.subscription
 
-          setStatus('Redirecting...')
-          
-          // Determine where to redirect
-          if (profile?.plan && profile.plan !== 'none' && profile.plan !== 'free' && profile.plan_status === 'active') {
-            // User has active paid plan - go to app
-            navigate('/app', { replace: true })
-          } else if (profile?.onboarding_completed) {
-            // Onboarding done but no plan - go to plan selection
-            navigate('/onboarding/plan', { replace: true })
+        // 3. Set timeout fallback
+        timeoutId = setTimeout(async () => {
+          // One final check
+          const { data: { session: finalSession } } = await supabase.auth.getSession()
+          if (finalSession) {
+            await handleSession(finalSession)
           } else {
-            // New user or incomplete onboarding - go to onboarding start
-            navigate('/onboarding/positioning', { replace: true })
+            console.error('Auth timeout')
+            setError('Authentication timed out. Please try again.')
+            setTimeout(() => {
+              navigate('/login?error=session_timeout', { replace: true })
+            }, 2000)
           }
-        } else {
-          setError('No user found in session')
-          setTimeout(() => {
-            navigate('/login', { replace: true })
-          }, 2000)
-        }
+        }, 8000) // Wait up to 8 seconds
 
       } catch (err) {
         console.error('OAuth callback error:', err)
@@ -97,7 +119,12 @@ const OAuthCallback = () => {
       }
     }
 
-    handleCallback()
+    init()
+
+    return () => {
+      if (subscription) subscription.unsubscribe()
+      if (timeoutId) clearTimeout(timeoutId)
+    }
   }, [navigate])
 
   return (
