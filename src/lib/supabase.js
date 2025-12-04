@@ -4,40 +4,9 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://vpwwzsanuyhpkvgorcnc.supabase.co'
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd3d6c2FudXlocGt2Z29yY25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzOTk1OTEsImV4cCI6MjA3Nzk3NTU5MX0.-clyTrDDlCNpUGg-MEgXIki70uBt4oIFPuSA8swNuTU'
 
-// Storage key for auth
-const STORAGE_KEY = 'raptorflow-auth'
-
-// Custom storage that uses localStorage with a custom key
-const customStorage = {
-  getItem: (key) => {
-    try {
-      const item = localStorage.getItem(`${STORAGE_KEY}-${key}`)
-      return item
-    } catch (error) {
-      console.error('Storage getItem error:', error)
-      return null
-    }
-  },
-  setItem: (key, value) => {
-    try {
-      localStorage.setItem(`${STORAGE_KEY}-${key}`, value)
-    } catch (error) {
-      console.error('Storage setItem error:', error)
-    }
-  },
-  removeItem: (key) => {
-    try {
-      localStorage.removeItem(`${STORAGE_KEY}-${key}`)
-    } catch (error) {
-      console.error('Storage removeItem error:', error)
-    }
-  }
-}
-
 // Debug logging in development
 if (import.meta.env.DEV) {
   console.log('🔐 Supabase URL:', supabaseUrl)
-  console.log('🔐 Auth storage key:', STORAGE_KEY)
 }
 
 export const supabase = createClient(
@@ -49,9 +18,6 @@ export const supabase = createClient(
       persistSession: true,
       detectSessionInUrl: true,
       flowType: 'pkce',
-      storage: customStorage,
-      storageKey: 'session',
-      // Keep session alive longer
       debug: import.meta.env.DEV,
     },
     global: {
@@ -78,12 +44,6 @@ export const signInWithGoogle = async () => {
 }
 
 export const signOut = async () => {
-  // Clear custom storage
-  try {
-    localStorage.removeItem(`${STORAGE_KEY}-session`)
-  } catch (e) {
-    console.error('Failed to clear storage:', e)
-  }
   const { error } = await supabase.auth.signOut()
   return { error }
 }
@@ -101,9 +61,14 @@ export const getSession = async () => {
 // Check if we have a cached session
 export const hasCachedSession = () => {
   try {
-    const session = localStorage.getItem(`${STORAGE_KEY}-session`)
+    // Attempt to derive the project ref from the URL to check for the default storage key
+    // Default key format: sb-<project-ref>-auth-token
+    const projectRef = new URL(supabaseUrl).hostname.split('.')[0]
+    const key = `sb-${projectRef}-auth-token`
+    const session = localStorage.getItem(key)
     return !!session
-  } catch {
+  } catch (e) {
+    console.warn('Error checking cached session:', e)
     return false
   }
 }
