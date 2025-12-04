@@ -1,7 +1,9 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Load environment variables from root .env
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
 export const env = {
@@ -26,4 +28,8 @@ export const env = {
   PHONEPE_MERCHANT_ID: process.env.VITE_PHONEPE_MERCHANT_ID || '',
   PHONEPE_SALT_KEY: process.env.VITE_PHONEPE_SALT_KEY || '',
   PHONEPE_ENV: process.env.VITE_PHONEPE_ENV || 'UAT',
+
+  // External APIs
+  CLEARBIT_API_KEY: process.env.CLEARBIT_API_KEY || '',
+  BUILTWITH_API_KEY: process.env.BUILTWITH_API_KEY || '',
 };

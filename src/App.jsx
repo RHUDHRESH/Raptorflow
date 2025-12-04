@@ -7,6 +7,20 @@ import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Start from './pages/Start'
 
+// Onboarding pages
+import {
+  OnboardingLayout,
+  StepPositioning,
+  StepCompany,
+  StepProduct,
+  StepMarket,
+  StepStrategy,
+  StepICPs,
+  StepWarPlan,
+  StepPlan,
+  SharedView
+} from './pages/onboarding'
+
 // App pages
 import AppLayout from './layouts/AppLayout'
 import Dashboard from './pages/app/Dashboard'
@@ -25,7 +39,7 @@ import PaymentCallback from './pages/payment/PaymentCallback'
 // OAuth callback
 import OAuthCallback from './pages/OAuthCallback'
 
-// Protected route wrapper
+// Protected route wrapper - requires authentication
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading, user, profile } = useAuth()
   const [profileLoading, setProfileLoading] = useState(false)
@@ -65,6 +79,60 @@ const ProtectedRoute = ({ children }) => {
   return children
 }
 
+// Onboarding route wrapper - requires authentication but no paid plan
+const OnboardingRoute = ({ children }) => {
+  const { isAuthenticated, loading, user, isPaid } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-white/40 text-sm">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/start" replace />
+  }
+
+  // If user already has a paid plan, redirect to app
+  if (isPaid) {
+    return <Navigate to="/app" replace />
+  }
+
+  return children
+}
+
+// Paid route wrapper - requires paid plan
+const PaidRoute = ({ children }) => {
+  const { isAuthenticated, loading, user, isPaid } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-white/40 text-sm">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />
+  }
+
+  // If user hasn't paid, redirect to onboarding
+  if (!isPaid) {
+    return <Navigate to="/onboarding/positioning" replace />
+  }
+
+  return children
+}
+
 // App routes component (needs to be inside AuthProvider)
 const AppRoutes = () => {
   return (
@@ -81,13 +149,36 @@ const AppRoutes = () => {
       <Route path="/payment/process" element={<PaymentProcess />} />
       <Route path="/payment/callback" element={<PaymentCallback />} />
 
-      {/* Protected app routes */}
+      {/* Shared view (public - for sales-assisted flow) */}
+      <Route path="/shared/:token" element={<SharedView />} />
+
+      {/* Onboarding routes - requires auth but not paid */}
+      <Route
+        path="/onboarding"
+        element={
+          <OnboardingRoute>
+            <OnboardingLayout />
+          </OnboardingRoute>
+        }
+      >
+        <Route index element={<Navigate to="positioning" replace />} />
+        <Route path="positioning" element={<StepPositioning />} />
+        <Route path="company" element={<StepCompany />} />
+        <Route path="product" element={<StepProduct />} />
+        <Route path="market" element={<StepMarket />} />
+        <Route path="strategy" element={<StepStrategy />} />
+        <Route path="icps" element={<StepICPs />} />
+        <Route path="warplan" element={<StepWarPlan />} />
+        <Route path="plan" element={<StepPlan />} />
+      </Route>
+
+      {/* Protected app routes - requires paid plan */}
       <Route
         path="/app"
         element={
-          <ProtectedRoute>
+          <PaidRoute>
             <AppLayout />
-          </ProtectedRoute>
+          </PaidRoute>
         }
       >
         <Route index element={<Dashboard />} />
