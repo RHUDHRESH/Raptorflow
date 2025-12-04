@@ -5,6 +5,7 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
 export const env = {
+  // Application Configuration
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: process.env.PORT || '3000',
   FRONTEND_PUBLIC_URL: process.env.FRONTEND_PUBLIC_URL || 'http://localhost:5173',
@@ -16,10 +17,8 @@ export const env = {
   // Google Cloud / Vertex AI
   GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID,
   GOOGLE_CLOUD_LOCATION: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
-  GOOGLE_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID, // Alias for compatibility
-  GOOGLE_REGION: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1', // Alias for compatibility
   
-  // Redis
+  // Redis / Upstash
   UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || '',
   UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || '',
   
