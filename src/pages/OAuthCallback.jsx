@@ -12,10 +12,6 @@ const OAuthCallback = () => {
     const handleCallback = async () => {
       try {
         console.log('OAuth callback - URL:', window.location.href)
-        console.log('OAuth callback - Hash:', window.location.hash)
-        console.log('OAuth callback - Search:', window.location.search)
-        console.log('OAuth callback - Origin:', window.location.origin)
-
         setStatus('Checking authentication...')
 
         const hashParams = new URLSearchParams(window.location.hash.substring(1))
@@ -28,6 +24,20 @@ const OAuthCallback = () => {
         if (errorParam) {
           console.error('OAuth error:', errorParam, errorDescription)
           navigate('/login?error=' + encodeURIComponent(errorDescription || errorParam), { replace: true })
+          return
+        }
+
+        // IMPORTANT: Check if session already exists FIRST
+        // Supabase often exchanges the code server-side automatically
+        const { data: existingSession } = await supabase.auth.getSession()
+        if (existingSession?.session) {
+          console.log('Session already exists, skipping code exchange')
+          window.history.replaceState({}, '', '/auth/callback')
+          setStatus('Setting up your profile...')
+          await new Promise(resolve => setTimeout(resolve, 300))
+          try { await refreshProfile() } catch (e) { console.warn('Profile refresh:', e) }
+          setStatus('Success! Redirecting...')
+          navigate('/app', { replace: true })
           return
         }
 
