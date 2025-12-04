@@ -105,23 +105,44 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Get current session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        console.log('AuthContext: initializing...')
         
-        if (sessionError) {
-          console.error('Session error:', sessionError)
-          setError(sessionError.message)
+        // Get current session with timeout
+        const sessionPromise = supabase.auth.getSession()
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
+        )
+        
+        let session = null
+        try {
+          const { data, error: sessionError } = await Promise.race([sessionPromise, timeoutPromise])
+          if (sessionError) {
+            console.error('Session error:', sessionError)
+            setError(sessionError.message)
+          }
+          session = data?.session
+        } catch (e) {
+          console.error('Session fetch failed:', e)
         }
 
         if (session?.user) {
+          console.log('AuthContext: user found, fetching profile...')
           setUser(session.user)
-          const profileData = await ensureProfile(session.user)
-          setProfile(profileData)
+          try {
+            const profileData = await ensureProfile(session.user)
+            setProfile(profileData)
+          } catch (profileErr) {
+            console.error('Profile fetch error:', profileErr)
+            // Continue without profile - it can be fetched later
+          }
+        } else {
+          console.log('AuthContext: no session found')
         }
       } catch (err) {
         console.error('Auth init error:', err)
         setError(err.message)
       } finally {
+        console.log('AuthContext: setting loading to false')
         setLoading(false)
       }
     }
