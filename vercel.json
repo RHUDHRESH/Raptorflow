@@ -5,6 +5,19 @@
   "outputDirectory": "dist",
   "installCommand": "npm ci --legacy-peer-deps",
   "devCommand": "npm run dev",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.raptorflow.in"
+        }
+      ],
+      "destination": "https://raptorflow.in/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

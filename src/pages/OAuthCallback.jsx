@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 const OAuthCallback = () => {
   const navigate = useNavigate()
   const { refreshProfile } = useAuth()
+  const [status, setStatus] = useState('Processing...')
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -13,6 +14,9 @@ const OAuthCallback = () => {
         console.log('OAuth callback - URL:', window.location.href)
         console.log('OAuth callback - Hash:', window.location.hash)
         console.log('OAuth callback - Search:', window.location.search)
+        console.log('OAuth callback - Origin:', window.location.origin)
+
+        setStatus('Checking authentication...')
 
         // Supabase OAuth can return tokens in hash (#) or query (?)
         // Check hash first (PKCE flow)
@@ -32,7 +36,9 @@ const OAuthCallback = () => {
         }
 
         if (accessToken && refreshToken) {
-          console.log('Found tokens, setting session...')
+          console.log('Found tokens in URL, setting session...')
+          setStatus('Setting up session...')
+          
           // Set the session
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -50,8 +56,10 @@ const OAuthCallback = () => {
             // Clear URL hash/query to prevent re-processing
             window.history.replaceState({}, '', '/auth/callback')
             
-            // Wait a moment for profile to be created
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            setStatus('Setting up your profile...')
+            
+            // Wait a moment for profile to be created by trigger
+            await new Promise(resolve => setTimeout(resolve, 1500))
             
             // Refresh profile to ensure it's created
             try {
@@ -64,6 +72,7 @@ const OAuthCallback = () => {
             const { data: { session: verifySession } } = await supabase.auth.getSession()
             if (verifySession) {
               console.log('Session verified, redirecting to app...')
+              setStatus('Success! Redirecting...')
               navigate('/app', { replace: true })
             } else {
               console.error('Session lost after setting, redirecting to login')
@@ -73,8 +82,14 @@ const OAuthCallback = () => {
           }
         }
 
-        // No tokens in URL, check if we already have a session
-        console.log('No tokens found, checking existing session...')
+        // No tokens in URL, let Supabase client try to detect session from URL automatically
+        // This is important for PKCE flow where detectSessionInUrl handles the exchange
+        console.log('No tokens found directly, letting Supabase detect session...')
+        setStatus('Verifying session...')
+        
+        // Wait a moment for Supabase to process the URL
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         
         if (sessionError) {
@@ -84,18 +99,26 @@ const OAuthCallback = () => {
         }
 
         if (session) {
-          console.log('Session already exists, user:', session.user?.id)
+          console.log('Session found via Supabase detection, user:', session.user?.id)
           // Clear URL to prevent re-processing
           window.history.replaceState({}, '', '/auth/callback')
+          
+          setStatus('Setting up your profile...')
+          
+          // Wait for profile creation
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          
           try {
             await refreshProfile()
           } catch (profileError) {
             console.warn('Profile refresh error (non-critical):', profileError)
           }
+          
+          setStatus('Success! Redirecting...')
           navigate('/app', { replace: true })
         } else {
-          console.log('No session found, redirecting to login')
-          navigate('/login', { replace: true })
+          console.log('No session found after all attempts, redirecting to login')
+          navigate('/login?error=' + encodeURIComponent('Authentication failed. Please try again.'), { replace: true })
         }
       } catch (error) {
         console.error('OAuth callback error:', error)
@@ -110,7 +133,7 @@ const OAuthCallback = () => {
     <div className="min-h-screen bg-black flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-white/40 text-sm">Completing sign in...</p>
+        <p className="text-white/40 text-sm">{status}</p>
       </div>
     </div>
   )
