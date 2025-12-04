@@ -38,24 +38,52 @@ const OAuthCallback = () => {
           console.log('Found PKCE code, exchanging for session...')
           setStatus('Exchanging authorization code...')
           
-          // Exchange the code for a session
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+          // Exchange the code for a session with timeout
+          const exchangePromise = supabase.auth.exchangeCodeForSession(code)
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Code exchange timed out. Please try again.')), 10000)
+          )
+          
+          let data, error
+          try {
+            const result = await Promise.race([exchangePromise, timeoutPromise])
+            data = result.data
+            error = result.error
+          } catch (timeoutError) {
+            console.error('Exchange timeout:', timeoutError)
+            // Try getting existing session instead
+            const { data: sessionData } = await supabase.auth.getSession()
+            if (sessionData?.session) {
+              console.log('Found existing session after timeout')
+              data = sessionData
+            } else {
+              navigate('/login?error=' + encodeURIComponent(timeoutError.message), { replace: true })
+              return
+            }
+          }
           
           if (error) {
             console.error('Error exchanging code for session:', error)
-            navigate('/login?error=' + encodeURIComponent(error.message), { replace: true })
-            return
+            // Try getting existing session as fallback
+            const { data: sessionData } = await supabase.auth.getSession()
+            if (sessionData?.session) {
+              console.log('Found existing session after error')
+              data = sessionData
+            } else {
+              navigate('/login?error=' + encodeURIComponent(error.message), { replace: true })
+              return
+            }
           }
 
-          if (data.session) {
-            console.log('Session created successfully, user:', data.user?.id)
+          if (data?.session) {
+            console.log('Session created successfully, user:', data.session?.user?.id || data.user?.id)
             // Clear URL to prevent re-processing
             window.history.replaceState({}, '', '/auth/callback')
             
             setStatus('Setting up your profile...')
             
             // Wait a moment for profile to be created by trigger
-            await new Promise(resolve => setTimeout(resolve, 1500))
+            await new Promise(resolve => setTimeout(resolve, 500))
             
             // Refresh profile to ensure it's created
             try {
