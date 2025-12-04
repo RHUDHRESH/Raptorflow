@@ -1,6 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
 import { 
   TrendingUp, 
   Zap, 
@@ -11,7 +12,8 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
-  Sparkles
+  Sparkles,
+  Crown
 } from 'lucide-react'
 
 // Stat card component
@@ -92,6 +94,9 @@ const RecentMove = ({ title, campaign, status, date, delay }) => (
 
 const Dashboard = () => {
   const navigate = useNavigate()
+  const { user, profile } = useAuth()
+
+  const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'there'
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -101,12 +106,24 @@ const Dashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-3xl font-light text-white">
-          Welcome back
-        </h1>
-        <p className="text-white/40 mt-1">
-          Here's what's happening with your strategy
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-light text-white">
+              Welcome back{userName !== 'there' ? `, ${userName}` : ''}
+            </h1>
+            <p className="text-white/40 mt-1">
+              Here's what's happening with your strategy
+            </p>
+          </div>
+          
+          {/* Plan badge */}
+          {profile?.plan && profile.plan !== 'none' && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <Crown className="w-4 h-4 text-amber-400" />
+              <span className="text-amber-400 text-sm font-medium">{profile.plan.charAt(0).toUpperCase() + profile.plan.slice(1)}</span>
+            </div>
+          )}
+        </div>
       </motion.div>
 
       {/* Stats */}

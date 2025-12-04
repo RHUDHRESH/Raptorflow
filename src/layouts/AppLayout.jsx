@@ -26,6 +26,7 @@ const navItems = [
   { name: 'Matrix', icon: Grid3X3, path: '/app/matrix' },
   { name: 'Position', icon: Target, path: '/app/position' },
   { name: 'Cohorts', icon: Users, path: '/app/cohorts' },
+  { name: 'Settings', icon: Settings, path: '/app/settings' },
 ]
 
 const AppLayout = () => {
@@ -97,7 +98,10 @@ const AppLayout = () => {
 
         {/* Bottom section */}
         <div className="p-3 border-t border-white/5 space-y-1">
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:text-white hover:bg-white/5 transition-all">
+          <button 
+            onClick={() => navigate('/app/settings')}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:text-white hover:bg-white/5 transition-all"
+          >
             <Settings className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
             {!collapsed && <span className="text-sm font-light">Settings</span>}
           </button>
