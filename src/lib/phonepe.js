@@ -2,51 +2,31 @@
  * PhonePe Payment Gateway Integration
  * 
  * This module handles PhonePe payment integration for Raptorflow
- * Documentation: https://developer.phonepe.com/v1/docs
+ * Uses the backend API for secure payment processing
  */
 
 import { supabase } from './supabase'
 
-// PhonePe Configuration (set these in .env)
-const PHONEPE_MERCHANT_ID = import.meta.env.VITE_PHONEPE_MERCHANT_ID || ''
-const PHONEPE_SALT_KEY = import.meta.env.VITE_PHONEPE_SALT_KEY || ''
-const PHONEPE_SALT_INDEX = import.meta.env.VITE_PHONEPE_SALT_INDEX || '1'
-const PHONEPE_ENV = import.meta.env.VITE_PHONEPE_ENV || 'SANDBOX' // SANDBOX or PRODUCTION
+// API base URL
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
-// PhonePe API URLs
-const PHONEPE_API_URL = PHONEPE_ENV === 'PRODUCTION' 
-  ? 'https://api.phonepe.com/apis/hermes'
-  : 'https://api-preprod.phonepe.com/apis/pg-sandbox'
-
-// Plan prices in paise (INR smallest unit)
+// Plan prices for display
 export const PLAN_PRICES = {
-  ascent: { price: 500000, name: 'Ascent', priceDisplay: '₹5,000' },
-  glide: { price: 700000, name: 'Glide', priceDisplay: '₹7,000' },
-  soar: { price: 1000000, name: 'Soar', priceDisplay: '₹10,000' },
+  ascent: { price: 500000, name: 'Ascent', priceDisplay: '₹5,000', cohorts: 3 },
+  glide: { price: 700000, name: 'Glide', priceDisplay: '₹7,000', cohorts: 5 },
+  soar: { price: 1000000, name: 'Soar', priceDisplay: '₹10,000', cohorts: 10 },
 }
 
 /**
- * Generate a unique merchant transaction ID
+ * Get current user's auth token
  */
-export const generateTransactionId = () => {
-  return `RF_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+const getAuthToken = async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.access_token
 }
 
 /**
- * Create SHA256 hash for PhonePe checksum
- * Note: In production, this should be done on the server side
- */
-const createChecksum = async (payload, saltKey, saltIndex) => {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(payload + '/pg/v1/pay' + saltKey)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-  return hashHex + '###' + saltIndex
-}
-
-/**
- * Initialize a PhonePe payment
+ * Initialize a PhonePe payment via backend API
  * @param {Object} options - Payment options
  * @param {string} options.userId - User ID from Supabase
  * @param {string} options.plan - Plan name (ascent, glide, soar)
@@ -60,66 +40,46 @@ export const initiatePayment = async ({ userId, plan, userEmail, userPhone }) =>
       throw new Error('Invalid plan selected')
     }
 
-    const merchantTransactionId = generateTransactionId()
-    const amount = planInfo.price // in paise
-
-    // Create payment record in database
-    const { data: paymentRecord, error: dbError } = await supabase
-      .from('payments')
-      .insert({
-        user_id: userId,
-        amount: amount,
-        plan: plan,
-        phonepe_merchant_transaction_id: merchantTransactionId,
-        status: 'initiated',
-      })
-      .select()
-      .single()
-
-    if (dbError) {
-      throw new Error('Failed to create payment record: ' + dbError.message)
+    const token = await getAuthToken()
+    if (!token) {
+      throw new Error('Not authenticated')
     }
 
-    // Prepare PhonePe payload
-    const payload = {
-      merchantId: PHONEPE_MERCHANT_ID,
-      merchantTransactionId: merchantTransactionId,
-      merchantUserId: userId,
-      amount: amount,
-      redirectUrl: `${window.location.origin}/payment/callback?txnId=${merchantTransactionId}`,
-      redirectMode: 'REDIRECT',
-      callbackUrl: `${window.location.origin}/api/phonepe/callback`, // Server-side callback
-      mobileNumber: userPhone || '',
-      paymentInstrument: {
-        type: 'PAY_PAGE',
+    // Call backend API to initiate payment
+    const response = await fetch(`${API_BASE}/payments/initiate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
-    }
-
-    // Base64 encode payload
-    const base64Payload = btoa(JSON.stringify(payload))
-    
-    // Create checksum (Note: In production, do this server-side)
-    const checksum = await createChecksum(base64Payload, PHONEPE_SALT_KEY, PHONEPE_SALT_INDEX)
-
-    // In a real implementation, you would:
-    // 1. Send this to your backend
-    // 2. Backend makes the PhonePe API call
-    // 3. Backend returns the payment URL
-    // 4. Redirect user to payment URL
-
-    // For demo purposes, we'll simulate a payment flow
-    console.log('Payment initiated:', {
-      merchantTransactionId,
-      amount: planInfo.priceDisplay,
-      plan: planInfo.name,
+      body: JSON.stringify({
+        plan,
+        phone: userPhone || ''
+      })
     })
 
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Payment initiation failed')
+    }
+
+    // If real PhonePe payment URL returned, redirect to it
+    if (data.paymentUrl && !data.mock) {
+      return {
+        success: true,
+        merchantTransactionId: data.txnId,
+        redirectUrl: data.paymentUrl, // PhonePe payment page
+        isExternal: true
+      }
+    }
+
+    // For mock/test mode, redirect to our payment process page
     return {
       success: true,
-      merchantTransactionId,
-      paymentId: paymentRecord.id,
-      // In production, this would be the PhonePe payment URL
-      redirectUrl: `/payment/process?txnId=${merchantTransactionId}&plan=${plan}`,
+      merchantTransactionId: data.txnId,
+      redirectUrl: `/payment/process?txnId=${data.txnId}&plan=${plan}`,
+      isMock: data.mock
     }
 
   } catch (error) {
@@ -132,21 +92,16 @@ export const initiatePayment = async ({ userId, plan, userEmail, userPhone }) =>
 }
 
 /**
- * Check payment status
+ * Check payment status via backend API
  * @param {string} merchantTransactionId - Transaction ID to check
  */
 export const checkPaymentStatus = async (merchantTransactionId) => {
   try {
-    // In production, this would call PhonePe's status API
-    // For now, we'll check our database
-    const { data, error } = await supabase
-      .from('payments')
-      .select('*')
-      .eq('phonepe_merchant_transaction_id', merchantTransactionId)
-      .single()
+    const response = await fetch(`${API_BASE}/payments/status/${merchantTransactionId}`)
+    const data = await response.json()
 
-    if (error) {
-      throw new Error('Payment not found')
+    if (!response.ok) {
+      throw new Error(data.error || 'Status check failed')
     }
 
     return {
@@ -164,61 +119,44 @@ export const checkPaymentStatus = async (merchantTransactionId) => {
 }
 
 /**
- * Process successful payment (called after PhonePe callback)
+ * Verify and process payment completion via backend API
  * @param {string} merchantTransactionId - Transaction ID
- * @param {Object} phonepeResponse - Response from PhonePe
+ * @param {boolean} mock - Whether this is a mock payment
  */
-export const processSuccessfulPayment = async (merchantTransactionId, phonepeResponse) => {
+export const verifyPayment = async (merchantTransactionId, mock = false) => {
   try {
-    // Get payment record
-    const { data: payment, error: fetchError } = await supabase
-      .from('payments')
-      .select('*')
-      .eq('phonepe_merchant_transaction_id', merchantTransactionId)
-      .single()
-
-    if (fetchError || !payment) {
-      throw new Error('Payment record not found')
+    const token = await getAuthToken()
+    if (!token) {
+      throw new Error('Not authenticated')
     }
 
-    // Update payment record
-    const { error: updateError } = await supabase
-      .from('payments')
-      .update({
-        status: 'success',
-        phonepe_transaction_id: phonepeResponse?.transactionId,
-        phonepe_payment_instrument_type: phonepeResponse?.paymentInstrument?.type,
-        completed_at: new Date().toISOString(),
-        response_code: phonepeResponse?.code,
-        response_message: phonepeResponse?.message,
-        raw_response: phonepeResponse,
+    const response = await fetch(`${API_BASE}/payments/verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        txnId: merchantTransactionId,
+        mock
       })
-      .eq('id', payment.id)
-
-    if (updateError) {
-      throw new Error('Failed to update payment record')
-    }
-
-    // Activate user's plan
-    const { error: rpcError } = await supabase.rpc('activate_plan', {
-      p_user_id: payment.user_id,
-      p_plan: payment.plan,
-      p_payment_id: payment.id,
-      p_amount: payment.amount,
     })
 
-    if (rpcError) {
-      console.error('Failed to activate plan:', rpcError)
-      // Don't throw - payment is recorded, plan activation can be retried
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Payment verification failed')
     }
 
     return {
-      success: true,
-      plan: payment.plan,
+      success: data.success,
+      status: data.status,
+      plan: data.plan,
+      message: data.message
     }
 
   } catch (error) {
-    console.error('Payment processing failed:', error)
+    console.error('Payment verification failed:', error)
     return {
       success: false,
       error: error.message,
@@ -227,20 +165,17 @@ export const processSuccessfulPayment = async (merchantTransactionId, phonepeRes
 }
 
 /**
- * Demo: Simulate successful payment (for testing without PhonePe)
+ * Process successful payment (called after PhonePe callback)
+ * @deprecated Use verifyPayment instead
  */
-export const simulatePayment = async (merchantTransactionId) => {
-  // Simulate PhonePe success response
-  const mockResponse = {
-    success: true,
-    code: 'PAYMENT_SUCCESS',
-    message: 'Payment successful',
-    transactionId: `PHONEPE_${Date.now()}`,
-    paymentInstrument: {
-      type: 'UPI',
-    },
-  }
-
-  return processSuccessfulPayment(merchantTransactionId, mockResponse)
+export const processSuccessfulPayment = async (merchantTransactionId, phonepeResponse) => {
+  return verifyPayment(merchantTransactionId, false)
 }
 
+/**
+ * Simulate successful payment (for testing without PhonePe)
+ * This still goes through the backend for proper plan activation
+ */
+export const simulatePayment = async (merchantTransactionId) => {
+  return verifyPayment(merchantTransactionId, true)
+}

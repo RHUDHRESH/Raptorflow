@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../../contexts/AuthContext'
-import { PLAN_PRICES, simulatePayment } from '../../lib/phonepe'
-import { CreditCard, Shield, CheckCircle, ArrowLeft, Loader } from 'lucide-react'
+import { PLAN_PRICES, simulatePayment, verifyPayment } from '../../lib/phonepe'
+import { CreditCard, Shield, CheckCircle, ArrowLeft, Loader, AlertCircle } from 'lucide-react'
 
 const PaymentProcess = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { user, profile } = useAuth()
+  const { user, refreshProfile } = useAuth()
   
   const txnId = searchParams.get('txnId')
   const planId = searchParams.get('plan')
+  const isMock = searchParams.get('mock') === 'true'
   
   const [processing, setProcessing] = useState(false)
   const [status, setStatus] = useState('pending') // pending, processing, success, error
@@ -31,19 +32,28 @@ const PaymentProcess = () => {
     setError('')
 
     try {
-      // In a real implementation, this would redirect to PhonePe
-      // For demo, we'll simulate a successful payment
-      const result = await simulatePayment(txnId)
+      // Call backend to verify/complete payment
+      // For mock mode, this will mark it as completed
+      const result = await verifyPayment(txnId, isMock)
       
-      if (result.success) {
+      if (result.success && result.status === 'completed') {
         setStatus('success')
+        
+        // Refresh user profile to get updated plan
+        if (refreshProfile) {
+          await refreshProfile()
+        }
+        
         // Redirect to app after 2 seconds
         setTimeout(() => {
           navigate('/app')
         }, 2000)
+      } else if (result.status === 'pending') {
+        setStatus('error')
+        setError('Payment is still being processed. Please wait a moment and try again.')
       } else {
         setStatus('error')
-        setError(result.error || 'Payment failed')
+        setError(result.message || result.error || 'Payment verification failed')
       }
     } catch (err) {
       setStatus('error')
@@ -92,8 +102,11 @@ const PaymentProcess = () => {
                 <CheckCircle className="w-10 h-10 text-emerald-400" />
               </motion.div>
               <h1 className="text-2xl font-light text-white mb-2">Payment Successful!</h1>
-              <p className="text-white/40 mb-6">
-                Welcome to {plan.name}. Redirecting to your dashboard...
+              <p className="text-white/40 mb-4">
+                Welcome to <span className="text-amber-400">{plan.name}</span>
+              </p>
+              <p className="text-white/30 text-sm mb-6">
+                Your plan has been activated. Redirecting to your dashboard...
               </p>
               <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
             </div>
@@ -103,11 +116,11 @@ const PaymentProcess = () => {
               {/* Header */}
               <div className="bg-gradient-to-r from-amber-500/10 to-amber-600/5 border-b border-white/5 p-6">
                 <button
-                  onClick={() => navigate('/#pricing')}
+                  onClick={() => navigate('/onboarding/plan')}
                   className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-4 transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Back to pricing
+                  Back to plans
                 </button>
                 <h1 className="text-2xl font-light text-white">Complete your purchase</h1>
                 <p className="text-white/40 text-sm mt-1">
@@ -125,15 +138,29 @@ const PaymentProcess = () => {
                   <span className="text-white/40">GST included</span>
                   <span className="text-white/40">One-time payment</span>
                 </div>
-                <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                  <span className="text-white font-medium">Total</span>
-                  <span className="text-2xl font-light text-white">{plan.priceDisplay}</span>
+                <div className="mt-4 pt-4 border-t border-white/5">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-white/40 text-sm">Cohort limit</span>
+                    <span className="text-white/60 text-sm">{plan.cohorts} cohorts</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-white font-medium">Total</span>
+                    <span className="text-2xl font-light text-white">{plan.priceDisplay}</span>
+                  </div>
                 </div>
+              </div>
+
+              {/* Transaction info */}
+              <div className="px-6 py-3 bg-white/5 border-b border-white/5">
+                <p className="text-xs text-white/30">
+                  Transaction ID: <span className="text-white/50 font-mono">{txnId}</span>
+                </p>
               </div>
 
               {/* Error */}
               {error && (
-                <div className="mx-6 mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <div className="mx-6 mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                   <p className="text-red-400 text-sm">{error}</p>
                 </div>
               )}
@@ -148,15 +175,24 @@ const PaymentProcess = () => {
                   {processing ? (
                     <>
                       <Loader className="w-5 h-5 animate-spin" />
-                      Processing...
+                      Processing Payment...
                     </>
                   ) : (
                     <>
                       <CreditCard className="w-5 h-5" />
-                      Pay with PhonePe
+                      {isMock ? 'Complete Test Payment' : 'Pay with PhonePe'}
                     </>
                   )}
                 </button>
+
+                {/* Mock mode notice */}
+                {isMock && (
+                  <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                    <p className="text-amber-400 text-xs text-center">
+                      🧪 Test Mode - No real payment will be processed
+                    </p>
+                  </div>
+                )}
 
                 {/* Security note */}
                 <div className="flex items-center justify-center gap-2 mt-4 text-white/30 text-xs">
@@ -180,4 +216,3 @@ const PaymentProcess = () => {
 }
 
 export default PaymentProcess
-

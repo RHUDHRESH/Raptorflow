@@ -46,26 +46,34 @@ export const getModelForTask = (taskType: TaskType): ModelTierType => {
  * Agent to task type mapping for automatic model selection
  */
 export const AGENT_TASK_TYPES: Record<string, TaskType> = {
-  // Heavy reasoning - complex analysis
+  // Heavy reasoning - complex analysis (Gemini 2.0 Flash Thinking)
   'ICPBuildAgent': 'heavy',
   'BarrierEngineAgent': 'heavy',
   'StrategyProfileAgent': 'heavy',
+  'CohortBuilderAgent': 'heavy',
   
-  // Reasoning - structured output generation
+  // Reasoning - structured output generation (Gemini 2.5 Pro)
   'MoveAssemblyAgent': 'reasoning',
   'MuseAgent': 'reasoning',
   'PositioningParseAgent': 'reasoning',
   'MonetizationAgent': 'reasoning',
+  'RadarAgent': 'reasoning',
+  'ContentIdeaAgent': 'reasoning',
+  'CohortTagGeneratorAgent': 'reasoning',
+  'PlanGeneratorAgent': 'reasoning',
   
-  // General - enrichment and analysis
+  // General - enrichment and analysis (Gemini 2.5 Flash)
   'CompanyEnrichAgent': 'general',
   'CompetitorSurfaceAgent': 'general',
   'TechStackSeedAgent': 'general',
   'JTBDMapperAgent': 'general',
+  'TrendScraperAgent': 'general',
+  'WebsiteScraperAgent': 'general',
   
-  // Simple - parsing and extraction
+  // Simple - parsing and extraction (Gemini 1.5 Flash)
   'SimpleParser': 'simple',
-  'DataExtractor': 'simple'
+  'DataExtractor': 'simple',
+  'InputValidator': 'simple'
 };
 
 /**
@@ -183,3 +191,30 @@ export const getAvailableModels = () => ({
   taskTypes: Object.keys(TASK_TO_TIER),
   agentMappings: AGENT_TASK_TYPES
 });
+
+/**
+ * Get agent info
+ */
+export const getAgentInfo = (agentName: string) => {
+  const taskType = AGENT_TASK_TYPES[agentName];
+  if (!taskType) return null;
+  
+  return {
+    name: agentName,
+    taskType,
+    model: getModelForTask(taskType),
+    temperature: TIER_TEMPERATURES[taskType],
+    maxTokens: TIER_MAX_TOKENS[taskType]
+  };
+};
+
+/**
+ * List all registered agents
+ */
+export const listAgents = () => {
+  return Object.entries(AGENT_TASK_TYPES).map(([name, taskType]) => ({
+    name,
+    taskType,
+    model: getModelForTask(taskType)
+  }));
+};

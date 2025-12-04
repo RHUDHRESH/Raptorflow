@@ -11,6 +11,9 @@ import protocolRoutes from './routes/protocols';
 import metricRoutes from './routes/metrics';
 import spikeRoutes from './routes/spikes';
 import assetRoutes from './routes/assets';
+import enrichRoutes from './routes/enrich';
+import radarRoutes from './routes/radar';
+import cohortRoutes from './routes/cohorts';
 
 const app = express();
 
@@ -39,6 +42,9 @@ app.use('/api/protocols', protocolRoutes);
 app.use('/api/metrics', metricRoutes);
 app.use('/api/spikes', spikeRoutes);
 app.use('/api/assets', assetRoutes);
+app.use('/api/enrich', enrichRoutes);
+app.use('/api/radar', radarRoutes);
+app.use('/api/cohorts', cohortRoutes);
 
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

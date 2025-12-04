@@ -34,6 +34,7 @@ import Settings from './pages/app/Settings'
 import WarRoom from './pages/app/WarRoom'
 import Spikes from './pages/app/Spikes'
 import SpikeSetup from './pages/app/SpikeSetup'
+import Radar from './pages/app/Radar'
 
 // Payment pages
 import PaymentProcess from './pages/payment/PaymentProcess'
@@ -196,6 +197,8 @@ const AppRoutes = () => {
         <Route path="spikes/:id" element={<Spikes />} />
         <Route path="position" element={<Position />} />
         <Route path="cohorts" element={<Cohorts />} />
+        <Route path="cohorts/:id" element={<Cohorts />} />
+        <Route path="radar" element={<Radar />} />
         <Route path="settings" element={<Settings />} />
       </Route>
 
