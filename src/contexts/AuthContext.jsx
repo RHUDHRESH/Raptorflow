@@ -65,28 +65,51 @@ export const AuthProvider = ({ children }) => {
   const createProfile = async (user) => {
     try {
       console.log('Creating profile for user:', user.id)
-      
+      console.log('User metadata:', user.user_metadata)
+
+      const profileData = {
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+        avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+        onboarding_completed: false
+      }
+
+      console.log('Profile data to insert:', profileData)
+
       const { data, error } = await supabase
         .from('profiles')
-        .insert({
-          id: user.id,
-          email: user.email,
-          full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
-          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-        })
+        .insert(profileData)
         .select()
         .single()
 
       if (error) {
+        console.error('Error creating profile:', error)
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+
         // If profile already exists, fetch it
         if (error.code === '23505' || error.message?.includes('duplicate')) {
           console.log('Profile exists, fetching...')
           return await fetchProfile(user.id)
         }
-        console.error('Error creating profile:', error)
+
+        // If it's an RLS/permission error, the profile might exist but we can't see it
+        // Try fetching first
+        if (error.code === '42501' || error.message?.includes('permission') || error.message?.includes('policy')) {
+          console.log('RLS error detected, trying to fetch existing profile...')
+          return await fetchProfile(user.id)
+        }
+
+        // For other errors, still attempt to fetch
+        console.log('Attempting to fetch profile despite error...')
         return await fetchProfile(user.id)
       }
-      
+
       console.log('Profile created:', data?.id)
       setCachedProfile(user.id, data)
       return data
@@ -109,7 +132,7 @@ export const AuthProvider = ({ children }) => {
         console.error('Error fetching profile:', error)
         return null
       }
-      
+
       setCachedProfile(userId, data)
       return data
     } catch (err) {
@@ -121,21 +144,21 @@ export const AuthProvider = ({ children }) => {
   // Ensure profile exists (fetch or create)
   const ensureProfile = async (user) => {
     if (!user) return null
-    
+
     // Try cache first
     const cached = getCachedProfile(user.id)
     if (cached) {
       console.log('Using cached profile')
       return cached
     }
-    
+
     let profile = await fetchProfile(user.id)
-    
+
     if (!profile) {
       console.log('Profile not found, creating...')
       profile = await createProfile(user)
     }
-    
+
     return profile
   }
 
@@ -148,14 +171,14 @@ export const AuthProvider = ({ children }) => {
     const initAuth = async () => {
       try {
         console.log('🔐 AuthContext: initializing...')
-        
+
         // Check for cached session first for instant UI
         const hasCached = hasCachedSession()
         console.log('🔐 Has cached session:', hasCached)
-        
+
         // Get current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
+
         if (sessionError) {
           console.error('Session error:', sessionError)
           setError(sessionError.message)
@@ -166,7 +189,7 @@ export const AuthProvider = ({ children }) => {
         if (session?.user) {
           console.log('🔐 User found:', session.user.email)
           setUser(session.user)
-          
+
           // Load profile (from cache or fetch)
           const profileData = await ensureProfile(session.user)
           setProfile(profileData)
@@ -189,7 +212,7 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔐 Auth state changed:', event)
-        
+
         if (event === 'SIGNED_OUT') {
           setUser(null)
           setProfile(null)
@@ -197,17 +220,17 @@ export const AuthProvider = ({ children }) => {
           setLoading(false)
           return
         }
-        
+
         if (session?.user) {
           setUser(session.user)
-          
+
           // For sign in events, ensure profile exists
           if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
             const profileData = await ensureProfile(session.user)
             setProfile(profileData)
           }
         }
-        
+
         setLoading(false)
       }
     )
@@ -221,7 +244,7 @@ export const AuthProvider = ({ children }) => {
   const signInWithGoogle = async () => {
     setLoading(true)
     setError(null)
-    
+
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -324,7 +347,7 @@ export const AuthProvider = ({ children }) => {
   // Refresh profile data (force fetch from server)
   const refreshProfile = useCallback(async () => {
     if (!user) return null
-    
+
     // Clear cache to force fresh fetch
     clearCachedProfile()
     const profileData = await fetchProfile(user.id)
@@ -334,7 +357,7 @@ export const AuthProvider = ({ children }) => {
 
   // Check if onboarding is completed
   const isOnboardingCompleted = profile?.onboarding_completed === true
-  
+
   // Check if user has a paid plan
   const isPaid = profile?.plan && profile.plan !== 'none' && profile.plan !== 'free' && profile.plan_status === 'active'
 
