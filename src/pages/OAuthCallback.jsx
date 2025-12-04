@@ -47,12 +47,28 @@ const OAuthCallback = () => {
 
           if (data.session) {
             console.log('Session set successfully, user:', data.user?.id)
+            // Clear URL hash/query to prevent re-processing
+            window.history.replaceState({}, '', '/auth/callback')
+            
             // Wait a moment for profile to be created
-            await new Promise(resolve => setTimeout(resolve, 500))
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            
             // Refresh profile to ensure it's created
-            await refreshProfile()
-            // Redirect to app
-            navigate('/app', { replace: true })
+            try {
+              await refreshProfile()
+            } catch (profileError) {
+              console.warn('Profile refresh error (non-critical):', profileError)
+            }
+            
+            // Verify session is still valid before redirecting
+            const { data: { session: verifySession } } = await supabase.auth.getSession()
+            if (verifySession) {
+              console.log('Session verified, redirecting to app...')
+              navigate('/app', { replace: true })
+            } else {
+              console.error('Session lost after setting, redirecting to login')
+              navigate('/login?error=Session expired', { replace: true })
+            }
             return
           }
         }
@@ -69,7 +85,13 @@ const OAuthCallback = () => {
 
         if (session) {
           console.log('Session already exists, user:', session.user?.id)
-          await refreshProfile()
+          // Clear URL to prevent re-processing
+          window.history.replaceState({}, '', '/auth/callback')
+          try {
+            await refreshProfile()
+          } catch (profileError) {
+            console.warn('Profile refresh error (non-critical):', profileError)
+          }
           navigate('/app', { replace: true })
         } else {
           console.log('No session found, redirecting to login')
@@ -77,7 +99,7 @@ const OAuthCallback = () => {
         }
       } catch (error) {
         console.error('OAuth callback error:', error)
-        navigate('/login?error=' + encodeURIComponent(error.message), { replace: true })
+        navigate('/login?error=' + encodeURIComponent(error.message || 'Authentication failed'), { replace: true })
       }
     }
 

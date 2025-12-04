@@ -15,9 +15,11 @@ export default function Start() {
     })
 
     const handleGoogleSignup = async () => {
+        if (loading) return // Prevent multiple clicks
+        
         try {
             setLoading(true)
-            const { error } = await supabase.auth.signInWithOAuth({
+            const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: `${window.location.origin}/auth/callback`,
@@ -27,11 +29,16 @@ export default function Start() {
                     },
                 },
             })
-            if (error) throw error
+            if (error) {
+                console.error('Error signing up with Google:', error.message)
+                alert('Error signing up with Google: ' + error.message)
+                setLoading(false)
+            }
+            // If successful, OAuth will redirect, so don't set loading to false
+            // The page will navigate away
         } catch (error) {
             console.error('Error signing up with Google:', error.message)
             alert('Error signing up with Google: ' + error.message)
-        } finally {
             setLoading(false)
         }
     }
