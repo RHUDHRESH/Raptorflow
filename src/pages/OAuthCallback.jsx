@@ -26,17 +26,46 @@ const OAuthCallback = () => {
       }
 
       setStatus('Loading profile...')
-      
+
       try {
-        // Check if user has a profile with active plan
-        const { data: profile } = await supabase
+        // First, try to get the profile
+        let { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('plan, plan_status, onboarding_completed')
           .eq('id', session.user.id)
           .single()
 
+        // If profile doesn't exist, create it
+        if (profileError?.code === 'PGRST116' || !profile) {
+          console.log('Profile not found, creating...')
+
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              id: session.user.id,
+              email: session.user.email,
+              full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || null,
+              avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture || null,
+              onboarding_completed: false
+            })
+            .select('plan, plan_status, onboarding_completed')
+            .single()
+
+          if (createError) {
+            console.error('Failed to create profile:', createError)
+            // Still proceed, just go to onboarding
+            profile = { onboarding_completed: false, plan: 'none', plan_status: 'inactive' }
+          } else {
+            profile = newProfile
+          }
+        } else if (profileError) {
+          console.error('Profile fetch error:', profileError)
+          // If other error, assume new user
+          profile = { onboarding_completed: false, plan: 'none', plan_status: 'inactive' }
+        }
+
         setStatus('Redirecting...')
-        
+
         // Determine where to redirect
         if (profile?.plan && profile.plan !== 'none' && profile.plan !== 'free' && profile.plan_status === 'active') {
           // User has active paid plan - go to app
@@ -61,7 +90,7 @@ const OAuthCallback = () => {
         const params = new URLSearchParams(window.location.search)
         const hashParams = new URLSearchParams(window.location.hash.substring(1))
         const urlError = params.get('error') || hashParams.get('error')
-        
+
         if (urlError) {
           const errorDesc = params.get('error_description') || hashParams.get('error_description') || urlError
           setError(errorDesc)
@@ -75,7 +104,7 @@ const OAuthCallback = () => {
 
         // 1. Check existing session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
+
         if (session) {
           await handleSession(session)
           return
