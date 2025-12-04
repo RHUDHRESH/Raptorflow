@@ -1,190 +1,46 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { useAuth } from '../contexts/AuthContext'
 
 const OAuthCallback = () => {
   const navigate = useNavigate()
-  const { refreshProfile } = useAuth()
-  const [status, setStatus] = useState('Processing...')
+  const [status, setStatus] = useState('Completing sign in...')
 
   useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        console.log('OAuth callback - URL:', window.location.href)
-        setStatus('Checking authentication...')
+    // Simple approach: Just redirect to /app
+    // The Supabase client with detectSessionInUrl: true will handle the code exchange
+    // The AuthContext will detect the session via onAuthStateChange
+    
+    const timer = setTimeout(() => {
+      // Give Supabase a moment to process, then redirect
+      navigate('/app', { replace: true })
+    }, 500)
 
-        const hashParams = new URLSearchParams(window.location.hash.substring(1))
-        const queryParams = new URLSearchParams(window.location.search)
-        
-        // Check for errors first
-        const errorParam = hashParams.get('error') || queryParams.get('error')
-        const errorDescription = hashParams.get('error_description') || queryParams.get('error_description')
-
-        if (errorParam) {
-          console.error('OAuth error:', errorParam, errorDescription)
-          navigate('/login?error=' + encodeURIComponent(errorDescription || errorParam), { replace: true })
-          return
-        }
-
-        // IMPORTANT: Check if session already exists FIRST
-        // Supabase often exchanges the code server-side automatically
-        const { data: existingSession } = await supabase.auth.getSession()
-        if (existingSession?.session) {
-          console.log('Session already exists, skipping code exchange')
-          window.history.replaceState({}, '', '/auth/callback')
-          setStatus('Setting up your profile...')
-          await new Promise(resolve => setTimeout(resolve, 300))
-          try { await refreshProfile() } catch (e) { console.warn('Profile refresh:', e) }
-          setStatus('Success! Redirecting...')
-          navigate('/app', { replace: true })
-          return
-        }
-
-        // PKCE flow returns a 'code' parameter that needs to be exchanged
-        const code = queryParams.get('code')
-        
-        if (code) {
-          console.log('Found PKCE code, exchanging for session...')
-          setStatus('Exchanging authorization code...')
-          
-          // Exchange the code for a session with timeout
-          const exchangePromise = supabase.auth.exchangeCodeForSession(code)
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Code exchange timed out. Please try again.')), 10000)
-          )
-          
-          let data, error
-          try {
-            const result = await Promise.race([exchangePromise, timeoutPromise])
-            data = result.data
-            error = result.error
-          } catch (timeoutError) {
-            console.error('Exchange timeout:', timeoutError)
-            // Try getting existing session instead
-            const { data: sessionData } = await supabase.auth.getSession()
-            if (sessionData?.session) {
-              console.log('Found existing session after timeout')
-              data = sessionData
-            } else {
-              navigate('/login?error=' + encodeURIComponent(timeoutError.message), { replace: true })
-              return
-            }
-          }
-          
-          if (error) {
-            console.error('Error exchanging code for session:', error)
-            // Try getting existing session as fallback
-            const { data: sessionData } = await supabase.auth.getSession()
-            if (sessionData?.session) {
-              console.log('Found existing session after error')
-              data = sessionData
-            } else {
-              navigate('/login?error=' + encodeURIComponent(error.message), { replace: true })
-              return
-            }
-          }
-
-          if (data?.session) {
-            console.log('Session created successfully, user:', data.session?.user?.id || data.user?.id)
-            // Clear URL to prevent re-processing
-            window.history.replaceState({}, '', '/auth/callback')
-            
-            setStatus('Setting up your profile...')
-            
-            // Wait a moment for profile to be created by trigger
-            await new Promise(resolve => setTimeout(resolve, 500))
-            
-            // Refresh profile to ensure it's created
-            try {
-              await refreshProfile()
-            } catch (profileError) {
-              console.warn('Profile refresh error (non-critical):', profileError)
-            }
-            
-            setStatus('Success! Redirecting...')
-            navigate('/app', { replace: true })
-            return
-          }
-        }
-
-        // Check for tokens directly in hash (implicit flow fallback)
-        const accessToken = hashParams.get('access_token')
-        const refreshToken = hashParams.get('refresh_token')
-
-        if (accessToken && refreshToken) {
-          console.log('Found tokens in URL hash, setting session...')
-          setStatus('Setting up session...')
-          
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          })
-
-          if (error) {
-            console.error('Error setting session:', error)
-            navigate('/login?error=' + encodeURIComponent(error.message), { replace: true })
-            return
-          }
-
-          if (data.session) {
-            console.log('Session set successfully, user:', data.user?.id)
-            window.history.replaceState({}, '', '/auth/callback')
-            
-            setStatus('Setting up your profile...')
-            await new Promise(resolve => setTimeout(resolve, 1500))
-            
-            try {
-              await refreshProfile()
-            } catch (profileError) {
-              console.warn('Profile refresh error (non-critical):', profileError)
-            }
-            
-            setStatus('Success! Redirecting...')
-            navigate('/app', { replace: true })
-            return
-          }
-        }
-
-        // No code or tokens, check if session already exists
-        console.log('No code/tokens found, checking existing session...')
-        setStatus('Verifying session...')
-        
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
-        if (sessionError) {
-          console.error('Error getting session:', sessionError)
-          navigate('/login?error=' + encodeURIComponent(sessionError.message), { replace: true })
-          return
-        }
-
-        if (session) {
-          console.log('Existing session found, user:', session.user?.id)
-          window.history.replaceState({}, '', '/auth/callback')
-          
-          setStatus('Setting up your profile...')
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
-          try {
-            await refreshProfile()
-          } catch (profileError) {
-            console.warn('Profile refresh error (non-critical):', profileError)
-          }
-          
-          setStatus('Success! Redirecting...')
-          navigate('/app', { replace: true })
-        } else {
-          console.log('No session found, redirecting to login')
-          navigate('/login?error=' + encodeURIComponent('Authentication failed. Please try again.'), { replace: true })
-        }
-      } catch (error) {
-        console.error('OAuth callback error:', error)
-        navigate('/login?error=' + encodeURIComponent(error.message || 'Authentication failed'), { replace: true })
+    // Also listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('OAuth callback - auth state changed:', event)
+      if (event === 'SIGNED_IN' && session) {
+        clearTimeout(timer)
+        navigate('/app', { replace: true })
       }
+    })
+
+    // Check for errors in URL
+    const params = new URLSearchParams(window.location.search)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1))
+    const error = params.get('error') || hashParams.get('error')
+    
+    if (error) {
+      const errorDesc = params.get('error_description') || hashParams.get('error_description') || error
+      navigate('/login?error=' + encodeURIComponent(errorDesc), { replace: true })
+      return
     }
 
-    handleCallback()
-  }, [navigate, refreshProfile])
+    return () => {
+      clearTimeout(timer)
+      subscription.unsubscribe()
+    }
+  }, [navigate])
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
@@ -197,4 +53,3 @@ const OAuthCallback = () => {
 }
 
 export default OAuthCallback
-
