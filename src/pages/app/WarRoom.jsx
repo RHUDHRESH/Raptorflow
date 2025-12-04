@@ -310,42 +310,17 @@ const WarRoom = () => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        // Mock data
-        setCampaigns([
-          { id: '1', name: 'Q1 Pipeline', goal: 'velocity', status: 'active', rag_status: 'green', icp_ids: ['1', '2'], move_count: 5 },
-          { id: '2', name: 'Enterprise Push', goal: 'penetration', status: 'active', rag_status: 'amber', icp_ids: ['3'], move_count: 3 },
-          { id: '3', name: 'Activation Sprint', goal: 'efficiency', status: 'planned', rag_status: 'unknown', icp_ids: ['1'], move_count: 0 }
-        ])
-        
-        setMoves([
-          { id: '1', name: 'Content Waterfall', status: 'running', progress: 65 },
-          { id: '2', name: 'Trust Building', status: 'ready', progress: 20 },
-          { id: '3', name: 'ABM Attack', status: 'planned', progress: 0 }
-        ])
-        
-        setIcps([
-          { id: '1', label: 'Desperate Scaler', is_selected: true },
-          { id: '2', label: 'Frustrated Optimizer', is_selected: true },
-          { id: '3', label: 'Risk Mitigator', is_selected: false }
-        ])
-        
-        setGuardrails([
-          { id: '1', name: 'CAC Ceiling', is_active: true, is_triggered: false },
-          { id: '2', name: 'Payback Period', is_active: true, is_triggered: false },
-          { id: '3', name: 'Churn Alert', is_active: true, is_triggered: true }
-        ])
-        
-        setTasks([
-          { id: '1', task: 'Create pillar webinar script', status: 'in_progress', move_name: 'Content Waterfall' },
-          { id: '2', task: 'Design comparison page', status: 'pending', move_name: 'Trust Building' },
-          { id: '3', task: 'Research target accounts', status: 'pending', move_name: 'ABM Attack', due_date: 'Dec 15' }
-        ])
-        
+        // Start empty - data comes from user's campaigns, moves, etc.
+        setCampaigns([])
+        setMoves([])
+        setIcps([])
+        setGuardrails([])
+        setTasks([])
         setMetrics({
-          pipeline_value: 420000,
-          win_rate: 22,
-          cac: 4200,
-          nrr: 108
+          pipeline_value: 0,
+          win_rate: 0,
+          cac: 0,
+          nrr: 0
         })
       } catch (error) {
         console.error('Error fetching war room data:', error)

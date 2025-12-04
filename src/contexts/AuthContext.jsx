@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
+import { supabase, hasCachedSession, refreshSession } from '../lib/supabase'
 
 const AuthContext = createContext({})
 
-// Storage key for persisting auth check
-const AUTH_CHECK_KEY = 'raptorflow_auth_check'
+// Cache key for profile
+const PROFILE_CACHE_KEY = 'raptorflow-profile-cache'
+const PROFILE_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
@@ -14,58 +15,84 @@ export const useAuth = () => {
   return context
 }
 
+// Get cached profile from localStorage
+const getCachedProfile = (userId) => {
+  try {
+    const cached = localStorage.getItem(PROFILE_CACHE_KEY)
+    if (cached) {
+      const { data, timestamp, uid } = JSON.parse(cached)
+      // Check if cache is valid (same user and not expired)
+      if (uid === userId && Date.now() - timestamp < PROFILE_CACHE_TTL) {
+        return data
+      }
+    }
+  } catch (e) {
+    console.error('Cache read error:', e)
+  }
+  return null
+}
+
+// Set cached profile
+const setCachedProfile = (userId, profile) => {
+  try {
+    localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify({
+      data: profile,
+      timestamp: Date.now(),
+      uid: userId
+    }))
+  } catch (e) {
+    console.error('Cache write error:', e)
+  }
+}
+
+// Clear cached profile
+const clearCachedProfile = () => {
+  try {
+    localStorage.removeItem(PROFILE_CACHE_KEY)
+  } catch (e) {
+    console.error('Cache clear error:', e)
+  }
+}
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const initRef = useRef(false)
 
   // Create profile if it doesn't exist
   const createProfile = async (user) => {
     try {
-      console.log('Creating profile for user:', user.id, user.email)
+      console.log('Creating profile for user:', user.id)
       
       const { data, error } = await supabase
         .from('profiles')
         .insert({
           id: user.id,
           email: user.email,
-          full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.user_metadata?.full_name || null,
+          full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
           avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
         })
         .select()
         .single()
 
       if (error) {
-        // If profile already exists (unique constraint violation), fetch it
-        if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
-          console.log('Profile already exists, fetching...')
+        // If profile already exists, fetch it
+        if (error.code === '23505' || error.message?.includes('duplicate')) {
+          console.log('Profile exists, fetching...')
           return await fetchProfile(user.id)
         }
         console.error('Error creating profile:', error)
-        // Try to fetch anyway in case it was created by trigger
-        const existing = await fetchProfile(user.id)
-        if (existing) {
-          console.log('Found existing profile after error')
-          return existing
-        }
-        return null
+        return await fetchProfile(user.id)
       }
-      console.log('Profile created successfully:', data)
+      
+      console.log('Profile created:', data?.id)
+      setCachedProfile(user.id, data)
       return data
     } catch (err) {
       console.error('Error in createProfile:', err)
-      // Last resort: try to fetch
-      try {
-        const existing = await fetchProfile(user.id)
-        if (existing) {
-          console.log('Found existing profile after exception')
-          return existing
-        }
-      } catch (fetchErr) {
-        console.error('Failed to fetch profile after creation error:', fetchErr)
-      }
-      return null
+      return await fetchProfile(user.id)
     }
   }
 
@@ -82,6 +109,8 @@ export const AuthProvider = ({ children }) => {
         console.error('Error fetching profile:', error)
         return null
       }
+      
+      setCachedProfile(userId, data)
       return data
     } catch (err) {
       console.error('Error in fetchProfile:', err)
@@ -93,9 +122,15 @@ export const AuthProvider = ({ children }) => {
   const ensureProfile = async (user) => {
     if (!user) return null
     
+    // Try cache first
+    const cached = getCachedProfile(user.id)
+    if (cached) {
+      console.log('Using cached profile')
+      return cached
+    }
+    
     let profile = await fetchProfile(user.id)
     
-    // If profile doesn't exist, create it
     if (!profile) {
       console.log('Profile not found, creating...')
       profile = await createProfile(user)
@@ -106,46 +141,44 @@ export const AuthProvider = ({ children }) => {
 
   // Initialize auth state
   useEffect(() => {
+    // Prevent double initialization in React strict mode
+    if (initRef.current) return
+    initRef.current = true
+
     const initAuth = async () => {
       try {
-        console.log('AuthContext: initializing...')
+        console.log('🔐 AuthContext: initializing...')
         
-        // Get current session with timeout
-        const sessionPromise = supabase.auth.getSession()
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
-        )
+        // Check for cached session first for instant UI
+        const hasCached = hasCachedSession()
+        console.log('🔐 Has cached session:', hasCached)
         
-        let session = null
-        try {
-          const { data, error: sessionError } = await Promise.race([sessionPromise, timeoutPromise])
-          if (sessionError) {
-            console.error('Session error:', sessionError)
-            setError(sessionError.message)
-          }
-          session = data?.session
-        } catch (e) {
-          console.error('Session fetch failed:', e)
+        // Get current session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError)
+          setError(sessionError.message)
+          setLoading(false)
+          return
         }
 
         if (session?.user) {
-          console.log('AuthContext: user found, fetching profile...')
+          console.log('🔐 User found:', session.user.email)
           setUser(session.user)
-          try {
-            const profileData = await ensureProfile(session.user)
-            setProfile(profileData)
-          } catch (profileErr) {
-            console.error('Profile fetch error:', profileErr)
-            // Continue without profile - it can be fetched later
-          }
+          
+          // Load profile (from cache or fetch)
+          const profileData = await ensureProfile(session.user)
+          setProfile(profileData)
+          console.log('🔐 Profile loaded:', profileData?.plan || 'no plan')
         } else {
-          console.log('AuthContext: no session found')
+          console.log('🔐 No session found')
+          clearCachedProfile()
         }
       } catch (err) {
         console.error('Auth init error:', err)
         setError(err.message)
       } finally {
-        console.log('AuthContext: setting loading to false')
         setLoading(false)
       }
     }
@@ -155,23 +188,26 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id)
+        console.log('🔐 Auth state changed:', event)
+        
+        if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setProfile(null)
+          clearCachedProfile()
+          setLoading(false)
+          return
+        }
         
         if (session?.user) {
           setUser(session.user)
-          // Ensure profile exists (create if needed)
-          const profileData = await ensureProfile(session.user)
-          setProfile(profileData)
           
-          // If we just signed in and have a session, we're good to go
-          if (event === 'SIGNED_IN' && window.location.pathname === '/app') {
-            // Already on app page, profile should be loaded
-            console.log('Signed in, profile loaded:', profileData)
+          // For sign in events, ensure profile exists
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            const profileData = await ensureProfile(session.user)
+            setProfile(profileData)
           }
-        } else {
-          setUser(null)
-          setProfile(null)
         }
+        
         setLoading(false)
       }
     )
@@ -200,15 +236,15 @@ export const AuthProvider = ({ children }) => {
 
       if (error) {
         setError(error.message)
+        setLoading(false)
         return { error }
       }
 
       return { data }
     } catch (err) {
       setError(err.message)
-      return { error: err }
-    } finally {
       setLoading(false)
+      return { error: err }
     }
   }
 
@@ -221,21 +257,22 @@ export const AuthProvider = ({ children }) => {
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/app`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       })
 
       if (error) {
         setError(error.message)
+        setLoading(false)
         return { error }
       }
 
+      setLoading(false)
       return { data, message: 'Check your email for the login link!' }
     } catch (err) {
       setError(err.message)
-      return { error: err }
-    } finally {
       setLoading(false)
+      return { error: err }
     }
   }
 
@@ -243,6 +280,7 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     setLoading(true)
     try {
+      clearCachedProfile()
       const { error } = await supabase.auth.signOut()
       if (error) {
         setError(error.message)
@@ -276,24 +314,29 @@ export const AuthProvider = ({ children }) => {
       }
 
       setProfile(data)
+      setCachedProfile(user.id, data)
       return { data }
     } catch (err) {
       return { error: err.message }
     }
   }
 
-  // Refresh profile data
-  const refreshProfile = async () => {
-    if (!user) return
+  // Refresh profile data (force fetch from server)
+  const refreshProfile = useCallback(async () => {
+    if (!user) return null
+    
+    // Clear cache to force fresh fetch
+    clearCachedProfile()
     const profileData = await fetchProfile(user.id)
     setProfile(profileData)
-  }
+    return profileData
+  }, [user])
 
   // Check if onboarding is completed
   const isOnboardingCompleted = profile?.onboarding_completed === true
   
-  // Check if user needs to complete onboarding (authenticated but not onboarded)
-  const needsOnboarding = !!user && !isOnboardingCompleted
+  // Check if user has a paid plan
+  const isPaid = profile?.plan && profile.plan !== 'none' && profile.plan !== 'free' && profile.plan_status === 'active'
 
   const value = {
     user,
@@ -301,9 +344,9 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     isAuthenticated: !!user,
-    isPaid: profile?.plan && profile.plan !== 'none' && profile.plan_status === 'active',
+    isPaid,
     isOnboardingCompleted,
-    needsOnboarding,
+    needsOnboarding: !!user && !isOnboardingCompleted,
     signInWithGoogle,
     signInWithEmail,
     signOut,
@@ -319,4 +362,3 @@ export const AuthProvider = ({ children }) => {
 }
 
 export default AuthContext
-

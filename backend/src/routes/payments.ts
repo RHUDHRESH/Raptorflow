@@ -28,13 +28,11 @@ const PHONEPE_CONFIG = {
 };
 
 // Plan pricing (in paise - 100 paise = 1 INR)
-const PLANS: Record<string, { price: number; name: string; cohorts: number }> = {
-  starter: { price: 9900, name: 'Starter', cohorts: 2 },      // ₹99
-  growth: { price: 24900, name: 'Growth', cohorts: 5 },       // ₹249
-  scale: { price: 49900, name: 'Scale', cohorts: 10 },        // ₹499
-  ascent: { price: 500000, name: 'Ascent', cohorts: 3 },      // ₹5,000
-  glide: { price: 700000, name: 'Glide', cohorts: 5 },        // ₹7,000
-  soar: { price: 1000000, name: 'Soar', cohorts: 10 }         // ₹10,000
+// All plans are 30-day subscriptions, no proration allowed
+const PLANS: Record<string, { price: number; name: string; cohorts: number; durationDays: number }> = {
+  ascent: { price: 500000, name: 'Ascent', cohorts: 3, durationDays: 30 },      // ₹5,000
+  glide: { price: 700000, name: 'Glide', cohorts: 5, durationDays: 30 },        // ₹7,000
+  soar: { price: 1000000, name: 'Soar', cohorts: 10, durationDays: 30 }         // ₹10,000
 };
 
 /**

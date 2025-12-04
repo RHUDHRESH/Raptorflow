@@ -366,47 +366,8 @@ const Moves = () => {
     const fetchMoves = async () => {
       setLoading(true)
       try {
-        // Mock data - replace with API
-        setMoves([
-          {
-            id: '1',
-            name: 'Content Waterfall Q1',
-            description: 'Create pillar content and atomize into 30 pieces',
-            protocol: 'A_AUTHORITY_BLITZ',
-            status: 'running',
-            progress_percentage: 65,
-            ev_score: 1.2,
-            tasks: [
-              { id: '1', task: 'Research topic', status: 'completed' },
-              { id: '2', task: 'Create pillar', status: 'completed' },
-              { id: '3', task: 'Atomize content', status: 'in_progress' },
-              { id: '4', task: 'Schedule posts', status: 'pending' }
-            ]
-          },
-          {
-            id: '2',
-            name: 'Trust Building Campaign',
-            description: 'Build comparison pages and ROI calculator',
-            protocol: 'B_TRUST_ANCHOR',
-            status: 'ready',
-            progress_percentage: 20,
-            ev_score: 1.5,
-            tasks: [
-              { id: '1', task: 'Create comparison', status: 'in_progress' },
-              { id: '2', task: 'Build calculator', status: 'pending' }
-            ]
-          },
-          {
-            id: '3',
-            name: 'ABM Spear Attack',
-            description: 'Personalized outreach to top 20 accounts',
-            protocol: 'C_COST_OF_INACTION',
-            status: 'planned',
-            progress_percentage: 0,
-            ev_score: 1.8,
-            tasks: []
-          }
-        ])
+        // Start with empty - user creates their own moves
+        setMoves([])
       } catch (error) {
         console.error('Error fetching moves:', error)
       } finally {

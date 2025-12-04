@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
@@ -13,11 +13,15 @@ import {
   CheckCircle2,
   Clock,
   Sparkles,
-  Crown
+  Crown,
+  Radio,
+  Rocket,
+  Plus,
+  AlertCircle
 } from 'lucide-react'
 
 // Stat card component
-const StatCard = ({ icon: Icon, label, value, change, changeType, delay }) => (
+const StatCard = ({ icon: Icon, label, value, change, changeType, delay, loading }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -39,23 +43,35 @@ const StatCard = ({ icon: Icon, label, value, change, changeType, delay }) => (
       )}
     </div>
     <div className="mt-4">
-      <p className="text-2xl font-light text-white">{value}</p>
+      {loading ? (
+        <div className="h-8 w-16 bg-white/5 rounded animate-pulse" />
+      ) : (
+        <p className="text-2xl font-light text-white">{value}</p>
+      )}
       <p className="text-sm text-white/40 mt-1">{label}</p>
     </div>
   </motion.div>
 )
 
 // Quick action card
-const QuickAction = ({ icon: Icon, title, description, onClick, delay }) => (
+const QuickAction = ({ icon: Icon, title, description, onClick, delay, highlight }) => (
   <motion.button
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
     onClick={onClick}
-    className="group p-5 bg-zinc-900/50 border border-white/5 rounded-xl text-left hover:border-amber-500/30 hover:bg-zinc-900 transition-all"
+    className={`group p-5 border rounded-xl text-left transition-all ${
+      highlight 
+        ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20' 
+        : 'bg-zinc-900/50 border-white/5 hover:border-amber-500/30 hover:bg-zinc-900'
+    }`}
   >
-    <div className="p-2 bg-white/5 rounded-lg w-fit group-hover:bg-amber-500/10 transition-colors">
-      <Icon className="w-5 h-5 text-white/60 group-hover:text-amber-400 transition-colors" strokeWidth={1.5} />
+    <div className={`p-2 rounded-lg w-fit transition-colors ${
+      highlight ? 'bg-amber-500/20' : 'bg-white/5 group-hover:bg-amber-500/10'
+    }`}>
+      <Icon className={`w-5 h-5 transition-colors ${
+        highlight ? 'text-amber-400' : 'text-white/60 group-hover:text-amber-400'
+      }`} strokeWidth={1.5} />
     </div>
     <h3 className="mt-4 text-white font-medium">{title}</h3>
     <p className="mt-1 text-sm text-white/40">{description}</p>
@@ -66,37 +82,54 @@ const QuickAction = ({ icon: Icon, title, description, onClick, delay }) => (
   </motion.button>
 )
 
-// Recent move item
-const RecentMove = ({ title, campaign, status, date, delay }) => (
-  <motion.div
-    initial={{ opacity: 0, x: -20 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ delay }}
-    className="flex items-center gap-4 p-4 hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
-  >
-    <div className={`w-2 h-2 rounded-full ${
-      status === 'active' ? 'bg-emerald-400' : 
-      status === 'pending' ? 'bg-amber-400' : 'bg-white/20'
-    }`} />
-    <div className="flex-1 min-w-0">
-      <p className="text-white font-medium truncate">{title}</p>
-      <p className="text-sm text-white/40">{campaign}</p>
+// Empty state component
+const EmptyState = ({ icon: Icon, title, description, action, onAction }) => (
+  <div className="text-center py-8">
+    <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center mx-auto mb-4">
+      <Icon className="w-6 h-6 text-white/30" />
     </div>
-    <div className="text-right">
-      <p className="text-xs text-white/40">{date}</p>
-      <p className={`text-xs capitalize ${
-        status === 'active' ? 'text-emerald-400' : 
-        status === 'pending' ? 'text-amber-400' : 'text-white/40'
-      }`}>{status}</p>
-    </div>
-  </motion.div>
+    <h3 className="text-white/60 font-medium mb-1">{title}</h3>
+    <p className="text-white/30 text-sm mb-4">{description}</p>
+    {action && (
+      <button
+        onClick={onAction}
+        className="text-amber-400 text-sm hover:text-amber-300 flex items-center gap-2 mx-auto"
+      >
+        <Plus className="w-4 h-4" />
+        {action}
+      </button>
+    )}
+  </div>
 )
 
 const Dashboard = () => {
   const navigate = useNavigate()
   const { user, profile } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    activeMoves: 0,
+    campaigns: 0,
+    cohorts: 0,
+    radarAlerts: 0
+  })
+  const [recentMoves, setRecentMoves] = useState([])
+  const [upcomingTasks, setUpcomingTasks] = useState([])
 
   const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'there'
+  
+  // Calculate days remaining in plan
+  const daysRemaining = profile?.plan_expires_at 
+    ? Math.max(0, Math.ceil((new Date(profile.plan_expires_at) - new Date()) / (1000 * 60 * 60 * 24)))
+    : 0
+
+  useEffect(() => {
+    // Simulate loading - in real app, fetch from API
+    const timer = setTimeout(() => {
+      setLoading(false)
+      // Stats start at 0 - user needs to create data
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -112,50 +145,77 @@ const Dashboard = () => {
               Welcome back{userName !== 'there' ? `, ${userName}` : ''}
             </h1>
             <p className="text-white/40 mt-1">
-              Here's what's happening with your strategy
+              Here's your strategic command center
             </p>
           </div>
           
           {/* Plan badge */}
-          {profile?.plan && profile.plan !== 'none' && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-              <Crown className="w-4 h-4 text-amber-400" />
-              <span className="text-amber-400 text-sm font-medium">{profile.plan.charAt(0).toUpperCase() + profile.plan.slice(1)}</span>
+          {profile?.plan && profile.plan !== 'none' && profile.plan !== 'free' && (
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-xs text-white/40">Plan expires</p>
+                <p className="text-sm text-amber-400">{daysRemaining} days left</p>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                <Crown className="w-4 h-4 text-amber-400" />
+                <span className="text-amber-400 text-sm font-medium capitalize">{profile.plan}</span>
+              </div>
             </div>
           )}
         </div>
       </motion.div>
+
+      {/* Plan warning if expiring soon */}
+      {daysRemaining > 0 && daysRemaining <= 7 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-4"
+        >
+          <AlertCircle className="w-5 h-5 text-amber-400" />
+          <div className="flex-1">
+            <p className="text-amber-400 font-medium">Plan expiring soon</p>
+            <p className="text-amber-400/60 text-sm">
+              Your {profile?.plan} plan expires in {daysRemaining} days. Renew to keep access.
+            </p>
+          </div>
+          <button 
+            onClick={() => navigate('/onboarding/plan')}
+            className="px-4 py-2 bg-amber-500 text-black rounded-lg text-sm font-medium"
+          >
+            Renew Plan
+          </button>
+        </motion.div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard 
           icon={Zap} 
           label="Active Moves" 
-          value="12" 
-          change="8" 
-          changeType="up" 
+          value={stats.activeMoves}
+          loading={loading}
           delay={0.1} 
         />
         <StatCard 
           icon={Target} 
-          label="Campaign Progress" 
-          value="67%" 
-          change="12" 
-          changeType="up" 
+          label="Campaigns" 
+          value={stats.campaigns}
+          loading={loading}
           delay={0.15} 
         />
         <StatCard 
           icon={Users} 
-          label="Cohorts Tracked" 
-          value="5" 
+          label="Cohorts" 
+          value={stats.cohorts}
+          loading={loading}
           delay={0.2} 
         />
         <StatCard 
-          icon={TrendingUp} 
-          label="GTM Velocity" 
-          value="4.2x" 
-          change="23" 
-          changeType="up" 
+          icon={Radio} 
+          label="Radar Alerts" 
+          value={stats.radarAlerts}
+          loading={loading}
           delay={0.25} 
         />
       </div>
@@ -174,31 +234,32 @@ const Dashboard = () => {
           </motion.h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <QuickAction
-              icon={Zap}
-              title="Create a Move"
-              description="Launch a new tactical sprint"
-              onClick={() => navigate('/app/moves')}
+              icon={Users}
+              title="Create Your First Cohort"
+              description="Define your ideal customer profile"
+              onClick={() => navigate('/app/cohorts')}
               delay={0.35}
+              highlight={stats.cohorts === 0}
+            />
+            <QuickAction
+              icon={Rocket}
+              title="Start a Spike"
+              description="Launch a focused 30-day GTM sprint"
+              onClick={() => navigate('/app/spikes/new')}
+              delay={0.4}
+            />
+            <QuickAction
+              icon={Radio}
+              title="Check Radar"
+              description="See trending topics for your cohorts"
+              onClick={() => navigate('/app/radar')}
+              delay={0.45}
             />
             <QuickAction
               icon={Sparkles}
               title="Ask Muse"
-              description="Get AI-powered strategy insights"
+              description="Get AI-powered marketing assets"
               onClick={() => navigate('/app/muse')}
-              delay={0.4}
-            />
-            <QuickAction
-              icon={Target}
-              title="Define Position"
-              description="Refine your market positioning"
-              onClick={() => navigate('/app/position')}
-              delay={0.45}
-            />
-            <QuickAction
-              icon={Users}
-              title="Analyze Cohorts"
-              description="Deep dive into your audiences"
-              onClick={() => navigate('/app/cohorts')}
               delay={0.5}
             />
           </div>
@@ -218,43 +279,39 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className="bg-zinc-900/50 border border-white/5 rounded-xl overflow-hidden"
+            className="bg-zinc-900/50 border border-white/5 rounded-xl p-4"
           >
-            <RecentMove
-              title="LinkedIn Thought Leadership"
-              campaign="Q1 Awareness"
-              status="active"
-              date="2 hours ago"
-              delay={0.4}
-            />
-            <RecentMove
-              title="Product Hunt Launch"
-              campaign="Launch Campaign"
-              status="pending"
-              date="Yesterday"
-              delay={0.45}
-            />
-            <RecentMove
-              title="Email Nurture Sequence"
-              campaign="Q1 Awareness"
-              status="active"
-              date="2 days ago"
-              delay={0.5}
-            />
-            <RecentMove
-              title="Community Outreach"
-              campaign="Growth"
-              status="completed"
-              date="1 week ago"
-              delay={0.55}
-            />
+            {recentMoves.length > 0 ? (
+              <div className="space-y-3">
+                {recentMoves.map((move, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg transition-colors cursor-pointer">
+                    <div className={`w-2 h-2 rounded-full ${
+                      move.status === 'active' ? 'bg-emerald-400' : 
+                      move.status === 'pending' ? 'bg-amber-400' : 'bg-white/20'
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-medium truncate">{move.name}</p>
+                      <p className="text-xs text-white/40">{move.campaign}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={Zap}
+                title="No moves yet"
+                description="Create your first move to start executing"
+                action="Create Move"
+                onAction={() => navigate('/app/moves')}
+              />
+            )}
           </motion.div>
         </div>
       </div>
 
       {/* Bottom section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* Upcoming */}
+        {/* Getting started checklist */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -262,25 +319,57 @@ const Dashboard = () => {
           className="bg-zinc-900/50 border border-white/5 rounded-xl p-5"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white font-medium">Upcoming</h3>
-            <Calendar className="w-5 h-5 text-white/40" />
+            <h3 className="text-white font-medium">Getting Started</h3>
+            <span className="text-xs text-white/40">
+              {[stats.cohorts > 0, stats.campaigns > 0, stats.activeMoves > 0].filter(Boolean).length}/3 completed
+            </span>
           </div>
           <div className="space-y-3">
             {[
-              { title: 'Strategy Review', time: 'Tomorrow, 2:00 PM' },
-              { title: 'Content Calendar Planning', time: 'Wed, 10:00 AM' },
-              { title: 'Cohort Analysis', time: 'Fri, 3:00 PM' },
+              { 
+                title: 'Create your first cohort', 
+                done: stats.cohorts > 0, 
+                action: () => navigate('/app/cohorts'),
+                description: 'Define who you\'re targeting'
+              },
+              { 
+                title: 'Launch a campaign', 
+                done: stats.campaigns > 0, 
+                action: () => navigate('/app/campaigns'),
+                description: 'Organize your GTM efforts'
+              },
+              { 
+                title: 'Execute your first move', 
+                done: stats.activeMoves > 0, 
+                action: () => navigate('/app/moves'),
+                description: 'Take action with precision'
+              },
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-3 text-sm">
-                <Clock className="w-4 h-4 text-amber-400" />
-                <span className="text-white">{item.title}</span>
-                <span className="text-white/40 ml-auto">{item.time}</span>
-              </div>
+              <button 
+                key={i} 
+                onClick={item.action}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
+                  item.done ? 'bg-emerald-500/10' : 'hover:bg-white/5'
+                }`}
+              >
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                  item.done ? 'bg-emerald-500' : 'border border-white/20'
+                }`}>
+                  {item.done && <CheckCircle2 className="w-4 h-4 text-black" />}
+                </div>
+                <div className="flex-1">
+                  <span className={`text-sm ${item.done ? 'text-emerald-400 line-through' : 'text-white'}`}>
+                    {item.title}
+                  </span>
+                  <p className="text-xs text-white/40">{item.description}</p>
+                </div>
+                {!item.done && <ArrowRight className="w-4 h-4 text-white/20" />}
+              </button>
             ))}
           </div>
         </motion.div>
 
-        {/* Progress */}
+        {/* Radar preview */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -288,29 +377,34 @@ const Dashboard = () => {
           className="bg-zinc-900/50 border border-white/5 rounded-xl p-5"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white font-medium">90-Day War Map</h3>
-            <BarChart3 className="w-5 h-5 text-white/40" />
+            <h3 className="text-white font-medium flex items-center gap-2">
+              <Radio className="w-4 h-4 text-emerald-400" />
+              Radar
+            </h3>
+            <button 
+              onClick={() => navigate('/app/radar')}
+              className="text-xs text-amber-400 hover:text-amber-300"
+            >
+              View all
+            </button>
           </div>
-          <div className="space-y-4">
-            {[
-              { phase: 'Phase 1: Foundation', progress: 100 },
-              { phase: 'Phase 2: Traction', progress: 67 },
-              { phase: 'Phase 3: Scale', progress: 12 },
-            ].map((item, i) => (
-              <div key={i}>
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-white/60">{item.phase}</span>
-                  <span className="text-white/40">{item.progress}%</span>
-                </div>
-                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full"
-                    style={{ width: `${item.progress}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          
+          {stats.cohorts > 0 ? (
+            <div className="space-y-3">
+              {/* Radar would show trending matches here */}
+              <p className="text-white/40 text-sm text-center py-8">
+                Radar is scanning for opportunities based on your cohort interests...
+              </p>
+            </div>
+          ) : (
+            <EmptyState
+              icon={Radio}
+              title="Radar needs cohorts"
+              description="Create cohorts to enable trend matching"
+              action="Create Cohort"
+              onAction={() => navigate('/app/cohorts')}
+            />
+          )}
         </motion.div>
       </div>
     </div>
@@ -318,4 +412,3 @@ const Dashboard = () => {
 }
 
 export default Dashboard
-

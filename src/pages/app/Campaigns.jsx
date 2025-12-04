@@ -573,47 +573,9 @@ const Campaigns = () => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        // Mock data for now - replace with API calls
-        setCampaigns([
-          {
-            id: '1',
-            name: 'Q1 Pipeline Acceleration',
-            description: 'Build brand awareness and capture demand among tech founders scaling to Series A',
-            goal: 'velocity',
-            demand_source: 'creation',
-            persuasion_axis: 'time',
-            status: 'active',
-            protocols: ['A_AUTHORITY_BLITZ', 'B_TRUST_ANCHOR'],
-            icp_ids: ['icp-1', 'icp-2'],
-            primary_barriers: ['OBSCURITY', 'RISK'],
-            rag_status: 'green',
-            move_count: 5,
-            start_date: '2025-01-01',
-            end_date: '2025-03-31'
-          },
-          {
-            id: '2',
-            name: 'Enterprise Expansion',
-            description: 'Drive upsells and cross-sells within existing enterprise accounts',
-            goal: 'penetration',
-            demand_source: 'expansion',
-            persuasion_axis: 'money',
-            status: 'planned',
-            protocols: ['E_ENTERPRISE_WEDGE'],
-            icp_ids: ['icp-3'],
-            primary_barriers: ['CAPACITY'],
-            rag_status: 'unknown',
-            move_count: 0,
-            start_date: '2025-02-01',
-            end_date: '2025-04-30'
-          }
-        ])
-
-        setIcps([
-          { id: 'icp-1', label: 'Desperate Scaler', summary: 'Fast-growing startups overwhelmed by scale', fit_score: 92 },
-          { id: 'icp-2', label: 'Frustrated Optimizer', summary: 'Companies that tried alternatives and failed', fit_score: 78 },
-          { id: 'icp-3', label: 'Risk Mitigator', summary: 'Conservative orgs needing proof', fit_score: 65 }
-        ])
+        // Start empty - user creates their own campaigns
+        setCampaigns([])
+        setIcps([])
       } catch (error) {
         console.error('Error fetching campaigns:', error)
       } finally {

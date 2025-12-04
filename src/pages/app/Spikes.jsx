@@ -162,43 +162,8 @@ const Spikes = () => {
     const fetchSpikes = async () => {
       setLoading(true)
       try {
-        // Mock data
-        setSpikes([
-          {
-            id: '1',
-            name: 'Q1 Growth Spike',
-            status: 'active',
-            current_phase: 'week_2',
-            rag_status: 'green',
-            start_date: '2024-12-01',
-            end_date: '2024-12-30',
-            targets: {
-              target_arr_increase: 500000,
-              pipeline_target: 2500000,
-              cac_ceiling: 5000
-            },
-            pipeline_value: 1200000,
-            move_ids: ['1', '2', '3'],
-            campaign_id: '1'
-          },
-          {
-            id: '2',
-            name: 'Enterprise Expansion',
-            status: 'setup',
-            current_phase: 'setup',
-            rag_status: 'amber',
-            start_date: '2025-01-01',
-            end_date: '2025-01-30',
-            targets: {
-              target_arr_increase: 800000,
-              pipeline_target: 4000000,
-              cac_ceiling: 8000
-            },
-            pipeline_value: 0,
-            move_ids: [],
-            campaign_id: '2'
-          }
-        ])
+        // Start empty - user creates their own spikes
+        setSpikes([])
       } catch (error) {
         console.error('Error fetching spikes:', error)
       } finally {

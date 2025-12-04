@@ -2,19 +2,23 @@ import React, { useState, useEffect, lazy, Suspense } from 'react'
 import { Helmet, HelmetProvider } from 'react-helmet-async'
 import Preloader from '../components/Preloader'
 
-// Lazy load components
+// Lazy load components for better performance
 const Header = lazy(() => import('./landing/Header'))
-const Hero = lazy(() => import('./landing/Hero'))
-const ValueStrip = lazy(() => import('./landing/ValueStrip'))
-const TestimonialMarquee = lazy(() => import('./landing/TestimonialMarquee'))
-const PullQuote = lazy(() => import('./landing/PullQuote'))
+const ParticleHero = lazy(() => import('./landing/ParticleHero'))
+const ProblemStatement = lazy(() => import('./landing/ProblemStatement'))
+const FeatureShowcase = lazy(() => import('./landing/FeatureShowcase'))
+const InteractiveFlow = lazy(() => import('./landing/InteractiveFlow'))
+const DashboardPreview = lazy(() => import('./landing/DashboardPreview'))
 const Pricing = lazy(() => import('./landing/Pricing'))
+const CTASection = lazy(() => import('./landing/CTASection'))
 const FAQ = lazy(() => import('./landing/FAQ'))
 const Footer = lazy(() => import('./landing/Footer'))
 
 // Loading fallback
 const SectionLoader = () => (
-  <div className="min-h-screen bg-black" />
+  <div className="min-h-[50vh] bg-black flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+  </div>
 )
 
 // Main Landing component
@@ -34,9 +38,13 @@ const Landing: React.FC = () => {
   return (
     <HelmetProvider>
       <Helmet>
-        <title>Raptorflow | Strategy that ships</title>
-        <meta name="description" content="Transform scattered ideas into a precision 90-day execution plan. The strategic methodology trusted by 500+ founders." />
+        <title>Raptorflow | AI-First Marketing OS for Founders</title>
+        <meta name="description" content="The AI-powered marketing operating system that turns chaos into clarity. Build strategy with precision, track with Radar, execute with confidence." />
         <meta name="theme-color" content="#000000" />
+        <meta property="og:title" content="Raptorflow | AI-First Marketing OS" />
+        <meta property="og:description" content="Stop guessing. Start executing. The marketing OS built for founders who demand results." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
 
       {/* Preloader */}
@@ -44,15 +52,36 @@ const Landing: React.FC = () => {
 
       {/* Main content */}
       {!loading && (
-        <div className="bg-black min-h-screen">
+        <div className="bg-black min-h-screen overflow-x-hidden">
           <Suspense fallback={<SectionLoader />}>
+            {/* Navigation */}
             <Header />
-            <Hero />
-            <ValueStrip />
-            <PullQuote />
-            <TestimonialMarquee />
+            
+            {/* Hero with particle effects */}
+            <ParticleHero />
+            
+            {/* The Problem - why they need this */}
+            <ProblemStatement />
+            
+            {/* How it works - simple 4-step flow */}
+            <InteractiveFlow />
+            
+            {/* Feature showcase - the 6 pillars */}
+            <FeatureShowcase />
+            
+            {/* Live dashboard preview */}
+            <DashboardPreview />
+            
+            {/* Pricing - 30 day plans */}
             <Pricing />
+            
+            {/* FAQ */}
             <FAQ />
+            
+            {/* Strong CTA */}
+            <CTASection />
+            
+            {/* Magnificent footer */}
             <Footer />
           </Suspense>
         </div>

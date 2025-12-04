@@ -194,16 +194,23 @@ export const db = {
   },
 
   async activatePlan(userId: string, plan: string, paymentId: string, amount: number) {
+    // Calculate expiry date (30 days from now)
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    
     const { data, error } = await supabase
       .from('profiles')
       .update({
         plan,
         plan_status: 'active',
-        plan_started_at: new Date().toISOString(),
+        plan_started_at: now.toISOString(),
+        plan_expires_at: expiresAt.toISOString(),
         last_payment_id: paymentId,
         last_payment_amount: amount,
-        last_payment_date: new Date().toISOString(),
-        payment_status: 'completed'
+        last_payment_date: now.toISOString(),
+        payment_status: 'completed',
+        onboarding_completed: true,
+        onboarding_completed_at: now.toISOString()
       })
       .eq('id', userId)
       .select()

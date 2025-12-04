@@ -1,11 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Check, Crown, Sparkles, CreditCard, Shield, Loader2 } from 'lucide-react'
+import { ArrowLeft, Check, Crown, Sparkles, CreditCard, Shield, Loader2, Clock, Lock } from 'lucide-react'
 import useOnboardingStore from '../../store/onboardingStore'
 import { useAuth } from '../../contexts/AuthContext'
 import { initiatePayment, PLAN_PRICES } from '../../lib/phonepe'
 
+// Plans are now 30-day subscriptions
 const plans = [
   {
     id: 'ascent',
@@ -13,18 +14,18 @@ const plans = [
     tagline: 'Start building your strategy',
     price: 5000,
     priceDisplay: '₹5,000',
-    period: 'one-time',
+    period: '30 days',
     description: 'Perfect for solo founders ready to bring clarity to their chaos.',
-    cohortLimit: 2,
+    cohortLimit: 3,
     features: [
       'Complete 7-pillar strategy intake',
       '1 strategic workspace',
       'AI-powered plan generation',
       '90-day war map creation',
-      'Up to 2 cohorts/ICPs',
+      'Up to 3 cohorts',
+      'Radar trend matching',
       'PDF & Notion export',
       'Email support',
-      '30-day methodology access'
     ],
     highlighted: false,
   },
@@ -34,18 +35,17 @@ const plans = [
     tagline: 'For founders who mean business',
     price: 7000,
     priceDisplay: '₹7,000',
-    period: 'one-time',
+    period: '30 days',
     description: 'Advanced tools and ongoing support for serious operators.',
     cohortLimit: 5,
     features: [
       'Everything in Ascent',
       '3 strategic workspaces',
       'Advanced AI strategy engine',
-      'Up to 5 cohorts/ICPs',
+      'Up to 5 cohorts',
       'Real-time collaboration (up to 3)',
       'Integrations: Notion, Slack, Linear',
       'Priority support',
-      '90-day methodology access',
       'Monthly strategy review call'
     ],
     highlighted: true,
@@ -57,19 +57,18 @@ const plans = [
     tagline: 'The complete strategic arsenal',
     price: 10000,
     priceDisplay: '₹10,000',
-    period: 'one-time',
+    period: '30 days',
     description: 'For teams and founders who demand excellence at every turn.',
-    cohortLimit: null, // unlimited
+    cohortLimit: 10,
     features: [
       'Everything in Glide',
       'Unlimited workspaces',
-      'Unlimited cohorts/ICPs',
+      'Up to 10 cohorts',
       'Team collaboration (up to 10)',
       'White-label exports',
       'API access',
       'Dedicated success manager',
       '1-on-1 strategy onboarding call',
-      'Lifetime methodology access',
       'Quarterly strategy sessions'
     ],
     highlighted: false,
@@ -78,7 +77,7 @@ const plans = [
 
 const StepPlan = () => {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const { 
     selectedPlan, 
     selectPlan, 
@@ -91,16 +90,39 @@ const StepPlan = () => {
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [planLocked, setPlanLocked] = useState(false)
+  const [daysRemaining, setDaysRemaining] = useState(0)
 
-  const selectedICPCount = icps.filter(i => i.selected).length
+  const selectedICPCount = icps?.filter(i => i.selected)?.length || 0
+
+  // Check if user has an active plan (can't change until it expires)
+  useEffect(() => {
+    if (profile?.plan && profile.plan !== 'none' && profile.plan !== 'free' && profile.plan_status === 'active') {
+      // Check if plan hasn't expired
+      if (profile.plan_expires_at) {
+        const expiryDate = new Date(profile.plan_expires_at)
+        const now = new Date()
+        if (expiryDate > now) {
+          setPlanLocked(true)
+          const diffTime = expiryDate - now
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+          setDaysRemaining(diffDays)
+        }
+      }
+    }
+  }, [profile])
 
   const handleSelectPlan = async (planId) => {
+    // Block if plan is locked (no proration)
+    if (planLocked) {
+      setError(`Your current ${profile?.plan} plan is active for ${daysRemaining} more days. Upgrades/changes are available after it expires.`)
+      return
+    }
+
     selectPlan(planId)
     
     if (mode === 'sales-assisted') {
-      // Generate share link for sales flow
       const token = generateShareToken()
-      // Would save to database and generate shareable URL
       alert(`Share link generated: ${window.location.origin}/shared/${token}`)
       return
     }
@@ -118,8 +140,14 @@ const StepPlan = () => {
       })
 
       if (result.success) {
-        // Redirect to payment process page
-        navigate(result.redirectUrl)
+        // Check if it's an external URL (real PhonePe) or internal
+        if (result.isExternal) {
+          // Redirect to PhonePe
+          window.location.href = result.redirectUrl
+        } else {
+          // Navigate to our payment process page
+          navigate(result.redirectUrl)
+        }
       } else {
         setError(result.error || 'Payment initiation failed')
         setPaymentStatus('failed')
@@ -158,10 +186,31 @@ const StepPlan = () => {
             Choose your <span className="italic text-amber-200">trajectory</span>
           </h1>
           <p className="text-white/40 max-w-xl mx-auto">
-            You've created {selectedICPCount} ICP{selectedICPCount !== 1 ? 's' : ''} and a 90-day war plan. 
-            Pick a plan to unlock everything.
+            {selectedICPCount > 0 
+              ? `You've created ${selectedICPCount} cohort${selectedICPCount !== 1 ? 's' : ''} and a 90-day war plan.`
+              : "You've built your strategy foundation."
+            }
+            {' '}Pick a plan to unlock everything.
           </p>
         </motion.div>
+
+        {/* Plan locked warning */}
+        {planLocked && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="max-w-2xl mx-auto mb-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3"
+          >
+            <Lock className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-amber-400 font-medium">Active Plan: {profile?.plan}</p>
+              <p className="text-amber-400/60 text-sm mt-1">
+                Your current plan has {daysRemaining} days remaining. Plan changes are available after expiry.
+                PhonePe doesn't support proration, so upgrades are blocked until your current plan ends.
+              </p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Error message */}
         {error && (
@@ -178,6 +227,7 @@ const StepPlan = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {plans.map((plan, index) => {
             const isSelected = selectedPlan === plan.id
+            const isCurrentPlan = profile?.plan === plan.id && planLocked
             const isTooFewCohorts = plan.cohortLimit && selectedICPCount > plan.cohortLimit
             
             return (
@@ -195,11 +245,19 @@ const StepPlan = () => {
                     : 'bg-zinc-900/50 border-white/10'
                   }
                   ${isSelected ? 'ring-2 ring-amber-500' : ''}
+                  ${isCurrentPlan ? 'ring-2 ring-emerald-500' : ''}
                 `}>
                   {/* Badge */}
                   {plan.badge && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-black text-[10px] uppercase tracking-wider font-medium rounded-full">
                       {plan.badge}
+                    </div>
+                  )}
+
+                  {/* Current plan badge */}
+                  {isCurrentPlan && (
+                    <div className="absolute -top-3 right-4 px-3 py-1 bg-emerald-500 text-black text-[10px] uppercase tracking-wider font-medium rounded-full">
+                      Current Plan
                     </div>
                   )}
 
@@ -217,7 +275,10 @@ const StepPlan = () => {
                         {plan.price.toLocaleString()}
                       </span>
                     </div>
-                    <span className="text-xs text-white/30 uppercase tracking-wider">{plan.period}</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Clock className="w-3 h-3 text-white/30" />
+                      <span className="text-xs text-white/30 uppercase tracking-wider">{plan.period}</span>
+                    </div>
                   </div>
 
                   {/* Description */}
@@ -225,11 +286,19 @@ const StepPlan = () => {
                     {plan.description}
                   </p>
 
+                  {/* Cohort limit info */}
+                  <div className="mb-4 p-3 bg-white/5 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-white/40">Cohort limit</span>
+                      <span className="text-sm text-white font-medium">{plan.cohortLimit} cohorts</span>
+                    </div>
+                  </div>
+
                   {/* Cohort limit warning */}
                   {isTooFewCohorts && (
                     <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
                       <p className="text-xs text-amber-400">
-                        ⚠️ You have {selectedICPCount} ICPs but this plan supports {plan.cohortLimit}. 
+                        ⚠️ You have {selectedICPCount} cohorts but this plan supports {plan.cohortLimit}. 
                         Consider upgrading.
                       </p>
                     </div>
@@ -248,20 +317,33 @@ const StepPlan = () => {
                   {/* CTA Button */}
                   <button
                     onClick={() => handleSelectPlan(plan.id)}
-                    disabled={loading}
+                    disabled={loading || isCurrentPlan}
                     className={`
                       w-full py-4 rounded-xl font-medium text-sm tracking-wide transition-all flex items-center justify-center gap-2
-                      ${plan.highlighted
-                        ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-black hover:from-amber-400 hover:to-yellow-400'
-                        : 'bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20'
+                      ${isCurrentPlan
+                        ? 'bg-emerald-500/20 text-emerald-400 cursor-not-allowed'
+                        : plan.highlighted
+                          ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-black hover:from-amber-400 hover:to-yellow-400'
+                          : 'bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20'
                       }
                       ${loading && selectedPlan === plan.id ? 'opacity-75' : ''}
+                      ${planLocked && !isCurrentPlan ? 'opacity-50 cursor-not-allowed' : ''}
                     `}
                   >
-                    {loading && selectedPlan === plan.id ? (
+                    {isCurrentPlan ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Active ({daysRemaining}d remaining)
+                      </>
+                    ) : loading && selectedPlan === plan.id ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Processing...
+                      </>
+                    ) : planLocked ? (
+                      <>
+                        <Lock className="w-4 h-4" />
+                        Locked
                       </>
                     ) : (
                       <>
@@ -289,7 +371,7 @@ const StepPlan = () => {
           </div>
           <p className="text-white/30 text-sm">
             All prices in INR. Includes GST. 
-            <span className="text-white/50"> 7-day satisfaction guarantee.</span>
+            <span className="text-white/50"> 30-day access. No auto-renewal.</span>
           </p>
         </motion.div>
       </div>
@@ -315,4 +397,3 @@ const StepPlan = () => {
 }
 
 export default StepPlan
-

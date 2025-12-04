@@ -1,31 +1,34 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Quote } from 'lucide-react'
+import { Target, Zap, Shield, TrendingUp, Clock, Users } from 'lucide-react'
 
-// Featured testimonial cards - Masterclass style
+// Replaced fake testimonials with honest value props
 const TestimonialMarquee = () => {
-  const testimonials = [
+  const valueProps = [
     {
-      quote: "Raptorflow gave me the clarity I'd been searching for. In one weekend, I had a battle plan that my entire team could rally behind.",
-      name: "Arjun Mehta",
-      title: "Founder & CEO",
-      company: "Stackwise",
-      initials: "AM"
+      icon: Target,
+      title: "Clarity in 10 Minutes",
+      description: "Transform scattered thoughts into a structured 90-day execution plan. No fluff, just focused action.",
+      gradient: "from-blue-500/20 to-blue-700/10"
     },
     {
-      quote: "I've worked with McKinsey. I've worked with BCG. This is what strategy should feel like—actionable, clear, no bullshit.",
-      name: "Priya Sharma",
-      title: "Ex-Partner, BCG",
-      company: "Now Building",
-      initials: "PS"
+      icon: Zap,
+      title: "AI-Powered Moves",
+      description: "Every move is crafted by AI that understands your cohorts, barriers, and growth stage.",
+      gradient: "from-amber-500/20 to-amber-700/10"
     },
     {
-      quote: "We went from 47 scattered ideas to 5 focused moves. Revenue up 34% in one quarter. The ROI is insane.",
-      name: "Vikram Singh",
-      title: "Co-founder",
-      company: "Metric Labs",
-      initials: "VS"
-    },
+      icon: Shield,
+      title: "Built-in Guardrails",
+      description: "Kill switches and RAG scoring ensure you never waste budget on underperforming campaigns.",
+      gradient: "from-emerald-500/20 to-emerald-700/10"
+    }
+  ]
+
+  const principles = [
+    { icon: TrendingUp, text: "Strategy that ships" },
+    { icon: Clock, text: "Built for speed" },
+    { icon: Users, text: "Made for founders" },
   ]
 
   return (
@@ -47,7 +50,7 @@ const TestimonialMarquee = () => {
             viewport={{ once: true }}
             className="text-[10px] uppercase tracking-[0.4em] text-amber-400/60"
           >
-            Testimonials
+            Why Raptorflow
           </motion.span>
           
           <motion.h2
@@ -57,14 +60,24 @@ const TestimonialMarquee = () => {
             transition={{ duration: 0.8 }}
             className="mt-6 text-3xl md:text-4xl font-light text-white"
           >
-            Trusted by founders who
-            <span className="italic font-normal text-amber-200"> ship</span>
+            Built for founders who
+            <span className="italic font-normal text-amber-200"> demand clarity</span>
           </motion.h2>
+          
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="mt-4 text-white/40 max-w-lg mx-auto"
+          >
+            Stop guessing. Start executing with precision.
+          </motion.p>
         </div>
 
-        {/* Testimonial cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.map((testimonial, index) => (
+        {/* Value prop cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+          {valueProps.map((prop, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 40 }}
@@ -73,53 +86,54 @@ const TestimonialMarquee = () => {
               transition={{ delay: index * 0.15 }}
               className="group relative"
             >
-              <div className="relative p-8 bg-zinc-900/50 border border-white/[0.05] hover:border-white/[0.1] transition-all duration-500">
+              <div className={`relative p-8 bg-gradient-to-b ${prop.gradient} border border-white/[0.05] hover:border-white/[0.1] transition-all duration-500 rounded-xl`}>
                 
-                {/* Quote icon */}
-                <div className="mb-6">
-                  <Quote className="w-8 h-8 text-amber-500/30" />
+                {/* Icon */}
+                <div className="mb-6 w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <prop.icon className="w-6 h-6 text-amber-400" />
                 </div>
 
-                {/* Quote */}
-                <blockquote className="text-white/70 text-lg font-light leading-relaxed mb-8">
-                  "{testimonial.quote}"
-                </blockquote>
+                {/* Title */}
+                <h3 className="text-xl font-light text-white mb-3">
+                  {prop.title}
+                </h3>
 
-                {/* Author */}
-                <div className="flex items-center gap-4">
-                  {/* Avatar */}
-                  <div className="w-12 h-12 bg-gradient-to-br from-amber-500/20 to-amber-700/20 border border-amber-500/30 flex items-center justify-center">
-                    <span className="text-amber-400 font-medium text-sm">{testimonial.initials}</span>
-                  </div>
-                  
-                  <div>
-                    <div className="text-white font-medium">{testimonial.name}</div>
-                    <div className="text-white/40 text-sm">{testimonial.title}, {testimonial.company}</div>
-                  </div>
-                </div>
+                {/* Description */}
+                <p className="text-white/50 leading-relaxed">
+                  {prop.description}
+                </p>
               </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Stats bar */}
+        {/* Principles bar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.5 }}
-          className="mt-20 flex flex-wrap justify-center gap-12 md:gap-20"
+          className="flex flex-wrap justify-center gap-8 md:gap-16"
         >
-          {[
-            { value: '500+', label: 'Founders' },
-            { value: '₹2.4Cr', label: 'Revenue Generated' },
-            { value: '47%', label: 'Faster GTM' },
-          ].map((stat, i) => (
-            <div key={i} className="text-center">
-              <div className="text-3xl md:text-4xl font-light text-white">{stat.value}</div>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-white/40 mt-2">{stat.label}</div>
+          {principles.map((principle, i) => (
+            <div key={i} className="flex items-center gap-3 text-white/40">
+              <principle.icon className="w-5 h-5 text-amber-500/50" />
+              <span className="text-sm tracking-wide">{principle.text}</span>
             </div>
           ))}
+        </motion.div>
+
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.6 }}
+          className="mt-16 text-center"
+        >
+          <p className="text-white/30 text-sm">
+            Join early adopters building their GTM with precision.
+          </p>
         </motion.div>
       </div>
     </section>

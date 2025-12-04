@@ -6,7 +6,7 @@ import { Mail, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react'
 
 const Login = () => {
   const navigate = useNavigate()
-  const { signInWithGoogle, signInWithEmail, isAuthenticated, loading } = useAuth()
+  const { signInWithGoogle, signInWithEmail, isAuthenticated, isPaid, loading, profile } = useAuth()
   
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
@@ -26,10 +26,20 @@ const Login = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/app', { replace: true })
+    if (isAuthenticated && !loading) {
+      // Check where to redirect based on user state
+      if (isPaid) {
+        // Has active paid plan - go to app
+        navigate('/app', { replace: true })
+      } else if (profile?.onboarding_completed) {
+        // Onboarding done but no plan - go to plan selection
+        navigate('/onboarding/plan', { replace: true })
+      } else {
+        // New user or incomplete onboarding - start onboarding
+        navigate('/onboarding/positioning', { replace: true })
+      }
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, isPaid, profile, loading, navigate])
 
   const handleGoogleSignIn = async () => {
     if (isSubmitting) return // Prevent multiple clicks
@@ -72,7 +82,10 @@ const Login = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-white/40 text-sm">Loading...</p>
+        </div>
       </div>
     )
   }
@@ -139,7 +152,7 @@ const Login = () => {
                   ) : (
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                       <path
-                        fill="currentColor"
+                        fill="#4285F4"
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                       />
                       <path
@@ -199,9 +212,9 @@ const Login = () => {
                 {/* Terms */}
                 <p className="mt-6 text-center text-xs text-white/30">
                   By continuing, you agree to our{' '}
-                  <a href="#" className="text-white/50 hover:text-white">Terms of Service</a>
+                  <a href="/terms" className="text-white/50 hover:text-white">Terms of Service</a>
                   {' '}and{' '}
-                  <a href="#" className="text-white/50 hover:text-white">Privacy Policy</a>
+                  <a href="/privacy" className="text-white/50 hover:text-white">Privacy Policy</a>
                 </p>
               </>
             ) : (
@@ -232,10 +245,10 @@ const Login = () => {
           <p className="text-center mt-6 text-white/40 text-sm">
             Don't have an account?{' '}
             <button 
-              onClick={() => navigate('/#pricing')}
+              onClick={() => navigate('/start')}
               className="text-amber-400 hover:text-amber-300"
             >
-              View pricing
+              Start free
             </button>
           </p>
         </motion.div>
