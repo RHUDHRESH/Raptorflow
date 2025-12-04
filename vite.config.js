@@ -10,8 +10,22 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
+  // Optimize for OneDrive folders - reduce file watching overhead
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom', '@supabase/supabase-js', 'framer-motion'],
+    exclude: ['@dnd-kit/core', '@dnd-kit/sortable'],
+  },
   server: {
     port: 3000,
+    // Reduce file system polling for OneDrive
+    watch: {
+      usePolling: false,
+      interval: 1000,
+      ignored: ['**/node_modules/**', '**/.git/**', '**/dist/**'],
+    },
+    hmr: {
+      overlay: true,
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
@@ -57,7 +71,8 @@ export default defineConfig({
     setupFiles: './src/test/setup.js',
     css: true,
   },
-  define: {
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
-  }
+  // Don't override NODE_ENV - let Vite handle it automatically
+  // define: {
+  //   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+  // }
 })
