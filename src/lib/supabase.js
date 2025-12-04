@@ -1,9 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Supabase configuration
-// Using env vars with fallback to hardcoded values for production reliability
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://vpwwzsanuyhpkvgorcnc.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd3d6c2FudXlocGt2Z29yY25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzOTk1OTEsImV4cCI6MjA3Nzk3NTU5MX0.-clyTrDDlCNpUGg-MEgXIki70uBt4oIFPuSA8swNuTU'
+// Supabase configuration - HARDCODED for production reliability
+// These are the correct values from the Supabase dashboard
+const supabaseUrl = 'https://vpwwzsanuyhpkvgorcnc.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd3d6c2FudXlocGt2Z29yY25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzOTk1OTEsImV4cCI6MjA3Nzk3NTU5MX0.-clyTrDDlCNpUGg-MEgXIki70uBt4oIFPuSA8swNuTU'
+
+// Debug logging
+console.log('Supabase URL:', supabaseUrl)
+console.log('Supabase key length:', supabaseAnonKey?.length)
 
 export const supabase = createClient(
   supabaseUrl,
