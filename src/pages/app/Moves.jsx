@@ -291,19 +291,21 @@ const NewMoveModal = ({ isOpen, onClose, templates, onSubmit }) => {
             <div className="space-y-6">
               <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                 <div className="flex items-center gap-3">
-                  {selectedTemplate && (
-                    <>
-                      <div className={`w-10 h-10 rounded-lg bg-${PROTOCOLS[selectedTemplate.protocol]?.color || 'white'}-500/20 flex items-center justify-center`}>
-                        {PROTOCOLS[selectedTemplate.protocol]?.icon && (
-                          <PROTOCOLS[selectedTemplate.protocol].icon className={`w-5 h-5 text-${PROTOCOLS[selectedTemplate.protocol]?.color || 'white'}-400`} />
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-medium text-white">{selectedTemplate.name}</div>
-                        <div className="text-sm text-white/40">{PROTOCOLS[selectedTemplate.protocol]?.label}</div>
-                      </div>
-                    </>
-                  )}
+                  {selectedTemplate && (() => {
+                    const IconComponent = PROTOCOLS[selectedTemplate.protocol]?.icon
+                    const color = PROTOCOLS[selectedTemplate.protocol]?.color || 'white'
+                    return (
+                      <>
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center`} style={{ backgroundColor: `var(--${color}-500, rgba(255,255,255,0.2))` }}>
+                          {IconComponent && <IconComponent className="w-5 h-5 text-white" />}
+                        </div>
+                        <div>
+                          <div className="font-medium text-white">{selectedTemplate.name}</div>
+                          <div className="text-sm text-white/40">{PROTOCOLS[selectedTemplate.protocol]?.label}</div>
+                        </div>
+                      </>
+                    )
+                  })()}
                 </div>
               </div>
 
