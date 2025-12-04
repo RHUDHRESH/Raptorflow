@@ -39,12 +39,12 @@ https://www.raptorlow.in
 Add **ALL** of these (replace `raptorlow.in` with your actual domain):
 
 ```
-https://raptorlow.in/auth/callback
-https://raptorlow.in/app
-https://raptorlow.in/**
-https://www.raptorlow.in/auth/callback
-https://www.raptorlow.in/app
-https://www.raptorlow.in/**
+https://raptorflow.in/auth/callback
+https://raptorflow.in/app
+https://raptorflow.in/**
+https://www.raptorflow.in/auth/callback
+https://www.raptorflow.in/app
+https://www.raptorflow.in/**
 ```
 
 **Why both?** Users might access your site with or without `www`, and Supabase needs to allow redirects for both.
@@ -58,8 +58,8 @@ Go to: **Google Cloud Console → APIs & Services → Credentials → Your OAuth
 #### Authorized JavaScript origins:
 Add both (with and without www):
 ```
-https://raptorlow.in
-https://www.raptorlow.in
+https://raptorflow.in
+https://www.raptorflow.in
 ```
 
 #### Authorized redirect URIs:

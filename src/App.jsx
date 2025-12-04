@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 // Landing pages
 import Landing from './pages/Landing'
 import Login from './pages/Login'
+import Start from './pages/Start'
 
 // App pages
 import AppLayout from './layouts/AppLayout'
@@ -71,6 +72,7 @@ const AppRoutes = () => {
       {/* Public routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/start" element={<Start />} />
       
       {/* OAuth callback */}
       <Route path="/auth/callback" element={<OAuthCallback />} />
