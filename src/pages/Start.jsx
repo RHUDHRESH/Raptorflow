@@ -87,8 +87,12 @@ export default function Start() {
     }
 
     return (
-        <div className="min-h-screen bg-canvas antialiased selection:bg-gold selection:text-white font-sans">
-            <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
+        <div className="min-h-screen bg-canvas antialiased selection:bg-gold selection:text-white font-sans relative">
+            {/* Texture Overlay */}
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03] mix-blend-multiply" 
+                 style={{ backgroundImage: 'url(/pattern.png)', backgroundSize: '120px' }} />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen relative z-10">
 
                 {/* Left Editorial Section - Hidden on mobile */}
                 <div className="hidden lg:flex flex-col justify-between p-12 lg:p-16 border-r border-line">
