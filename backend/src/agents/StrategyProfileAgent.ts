@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { getLangChainModel } from "../lib/llm";
+import { getLangChainModelForAgent, logModelSelection, getModelForAgent } from "../lib/llm";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 // Input Schema
@@ -54,7 +54,9 @@ export class StrategyProfileAgent {
   private prompt;
 
   constructor() {
-    this.model = getLangChainModel("gemini-pro");
+    const agentName = 'StrategyProfileAgent';
+    this.model = getLangChainModelForAgent(agentName);
+    logModelSelection(agentName, 'heavy', getModelForAgent(agentName));
     this.parser = StructuredOutputParser.fromZodSchema(strategyProfileOutputSchema);
     this.prompt = new PromptTemplate({
       template: `You are a B2B marketing strategist. Based on the user's strategic choices:

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { getLangChainModel } from "../lib/llm";
+import { getLangChainModelForAgent, logModelSelection, getModelForAgent } from "../lib/llm";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import type { 
   ICP, 
@@ -91,7 +91,9 @@ export class MoveAssemblyAgent {
   private prompt;
 
   constructor() {
-    this.model = getLangChainModel("gemini-pro");
+    const agentName = 'MoveAssemblyAgent';
+    this.model = getLangChainModelForAgent(agentName);
+    logModelSelection(agentName, 'reasoning', getModelForAgent(agentName));
     this.parser = StructuredOutputParser.fromZodSchema(moveOutputSchema);
     this.prompt = new PromptTemplate({
       template: `You are a GTM Move architect. Create a customized tactical move for this specific campaign and ICP.

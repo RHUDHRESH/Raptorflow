@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { getLangChainModel } from "../lib/llm";
+import { getLangChainModelForAgent, logModelSelection, getModelForAgent } from "../lib/llm";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 // Input Schema
@@ -42,7 +42,9 @@ export class JTBDMapperAgent {
   private prompt;
 
   constructor() {
-    this.model = getLangChainModel("gemini-pro");
+    const agentName = 'JTBDMapperAgent';
+    this.model = getLangChainModelForAgent(agentName);
+    logModelSelection(agentName, 'general', getModelForAgent(agentName));
     this.parser = StructuredOutputParser.fromZodSchema(jtbdMapperOutputSchema);
     this.prompt = new PromptTemplate({
       template: `You are a Jobs-to-be-Done (JTBD) analyst following the frameworks of Clayton 

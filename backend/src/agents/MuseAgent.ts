@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { getLangChainModel } from "../lib/llm";
+import { getLangChainModelForAgent, logModelSelection, getModelForAgent } from "../lib/llm";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import type { ICP, ProtocolType, Asset, CreateAssetInput } from "../types";
 
@@ -187,7 +187,9 @@ export class MuseAgent {
   private basePrompt;
 
   constructor() {
-    this.model = getLangChainModel("gemini-pro");
+    const agentName = 'MuseAgent';
+    this.model = getLangChainModelForAgent(agentName);
+    logModelSelection(agentName, 'reasoning', getModelForAgent(agentName));
     this.parser = StructuredOutputParser.fromZodSchema(contentOutputSchema);
     this.basePrompt = new PromptTemplate({
       template: `You are Muse, a world-class marketing copywriter and strategist. 

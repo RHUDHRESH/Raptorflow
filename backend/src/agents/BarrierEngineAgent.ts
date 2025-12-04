@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { getLangChainModel } from "../lib/llm";
+import { getLangChainModelForAgent, logModelSelection, getModelForAgent } from "../lib/llm";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import type { BarrierType, ProtocolType, Barrier, BarrierSignal } from "../types";
 
@@ -185,7 +185,9 @@ export class BarrierEngineAgent {
   private prompt;
 
   constructor() {
-    this.model = getLangChainModel("gemini-pro");
+    const agentName = 'BarrierEngineAgent';
+    this.model = getLangChainModelForAgent(agentName);
+    logModelSelection(agentName, 'heavy', getModelForAgent(agentName));
     this.parser = StructuredOutputParser.fromZodSchema(barrierOutputSchema);
     this.prompt = new PromptTemplate({
       template: `You are a GTM diagnostic engine. Your job is to analyze metrics and classify the primary BARRIER blocking growth.

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { getLangChainModel } from "../lib/llm";
+import { getLangChainModelForAgent, logModelSelection, getModelForAgent } from "../lib/llm";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 // Input Schema
@@ -37,7 +37,9 @@ export class TechStackSeedAgent {
   private prompt;
 
   constructor() {
-    this.model = getLangChainModel("gemini-pro");
+    const agentName = 'TechStackSeedAgent';
+    this.model = getLangChainModelForAgent(agentName);
+    logModelSelection(agentName, 'general', getModelForAgent(agentName));
     this.parser = StructuredOutputParser.fromZodSchema(techStackSeedOutputSchema);
     this.prompt = new PromptTemplate({
       template: `You are a technical integration specialist. Analyze the company's technology 

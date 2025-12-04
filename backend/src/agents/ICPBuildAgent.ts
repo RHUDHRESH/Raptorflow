@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { getLangChainModel } from "../lib/llm";
+import { getLangChainModelForAgent, logModelSelection, getModelForAgent } from "../lib/llm";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import type { 
   ICP, 
@@ -193,7 +193,9 @@ export class ICPBuildAgent {
   private prompt;
 
   constructor() {
-    this.model = getLangChainModel("gemini-pro");
+    const agentName = 'ICPBuildAgent';
+    this.model = getLangChainModelForAgent(agentName);
+    logModelSelection(agentName, 'heavy', getModelForAgent(agentName));
     this.parser = StructuredOutputParser.fromZodSchema(icpOutputSchema);
     this.prompt = new PromptTemplate({
       template: `You are an expert ICP (Ideal Customer Profile) architect using the 6D Intelligence Framework.

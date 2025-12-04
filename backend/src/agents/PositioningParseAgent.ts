@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { getLangChainModel } from "../lib/llm";
+import { getLangChainModelForAgent, logModelSelection, getModelForAgent } from "../lib/llm";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 // Input Schema
@@ -32,8 +32,10 @@ export class PositioningParseAgent {
   private prompt;
 
   constructor() {
-    // Initialize the model
-    this.model = getLangChainModel("gemini-pro");
+    // Initialize the model with tiered system
+    const agentName = 'PositioningParseAgent';
+    this.model = getLangChainModelForAgent(agentName);
+    logModelSelection(agentName, 'reasoning', getModelForAgent(agentName));
     
     // Initialize parser
     this.parser = StructuredOutputParser.fromZodSchema(positioningOutputSchema);

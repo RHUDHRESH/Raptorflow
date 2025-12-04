@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createAgent } from "langchain";
-import { getLangChainModel } from "../lib/llm";
+import { getLangChainModelForAgent, logModelSelection, getModelForAgent } from "../lib/llm";
 import { webScraperTool, googleSearchTool, g2ScraperTool } from "../tools/competitorTools";
 
 // Input Schema
@@ -54,7 +54,9 @@ export class CompetitorSurfaceAgent {
   private agent: any = null;
 
   constructor() {
-    this.model = getLangChainModel("gemini-pro");
+    const agentName = 'CompetitorSurfaceAgent';
+    this.model = getLangChainModelForAgent(agentName);
+    logModelSelection(agentName, 'general', getModelForAgent(agentName));
     this.tools = [webScraperTool, googleSearchTool, g2ScraperTool];
   }
 

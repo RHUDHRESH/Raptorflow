@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createAgent } from "langchain";
-import { getLangChainModel } from "../lib/llm";
+import { getLangChainModelForAgent, logModelSelection, getModelForAgent } from "../lib/llm";
 import { clearbitTool, builtwithTool, linkedinTool } from "../tools/companyTools";
 
 // Input Schema
@@ -66,7 +66,9 @@ export class CompanyEnrichAgent {
   private agent: any = null;
 
   constructor() {
-    this.model = getLangChainModel("gemini-pro");
+    const agentName = 'CompanyEnrichAgent';
+    this.model = getLangChainModelForAgent(agentName);
+    logModelSelection(agentName, 'general', getModelForAgent(agentName));
     this.tools = [clearbitTool, builtwithTool, linkedinTool];
   }
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { getLangChainModel } from "../lib/llm";
+import { getLangChainModelForAgent, logModelSelection, getModelForAgent } from "../lib/llm";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 // Input Schema
@@ -39,7 +39,9 @@ export class MonetizationAgent {
   private prompt;
 
   constructor() {
-    this.model = getLangChainModel("gemini-pro");
+    const agentName = 'MonetizationAgent';
+    this.model = getLangChainModelForAgent(agentName);
+    logModelSelection(agentName, 'reasoning', getModelForAgent(agentName));
     this.parser = StructuredOutputParser.fromZodSchema(monetizationOutputSchema);
     this.prompt = new PromptTemplate({
       template: `You are a SaaS pricing analyst. Analyze the pricing structure to determine:
