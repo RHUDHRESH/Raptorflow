@@ -12,19 +12,36 @@ const Preloader = ({ onComplete }) => {
     const increment = 100 / steps
 
     let current = 0
+    let completed = false
+
+    const complete = () => {
+      if (completed) return
+      completed = true
+      setProgress(100)
+      setPhase('complete')
+      setTimeout(onComplete, 600)
+    }
+
     const timer = setInterval(() => {
       current += increment
       if (current >= 100) {
-        setProgress(100)
-        setPhase('complete')
         clearInterval(timer)
-        setTimeout(onComplete, 600)
+        complete()
       } else {
         setProgress(current)
       }
     }, interval)
 
-    return () => clearInterval(timer)
+    // Safety timeout - always complete after 3 seconds max
+    const safetyTimeout = setTimeout(() => {
+      clearInterval(timer)
+      complete()
+    }, 3000)
+
+    return () => {
+      clearInterval(timer)
+      clearTimeout(safetyTimeout)
+    }
   }, [onComplete])
 
   return (

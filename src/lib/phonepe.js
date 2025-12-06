@@ -10,11 +10,38 @@ import { supabase } from './supabase'
 // API base URL
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
-// Plan prices for display
+// Plan prices for display (with RBI autopay compliance)
+// RBI Regulation: Autopay without OTP only allowed up to ₹5,000
+export const RBI_AUTOPAY_LIMIT_PAISE = 500000; // ₹5,000
+
 export const PLAN_PRICES = {
-  ascent: { price: 500000, name: 'Ascent', priceDisplay: '₹5,000', cohorts: 3 },
-  glide: { price: 700000, name: 'Glide', priceDisplay: '₹7,000', cohorts: 5 },
-  soar: { price: 1000000, name: 'Soar', priceDisplay: '₹10,000', cohorts: 10 },
+  ascent: {
+    price: 500000,
+    name: 'Ascent',
+    priceDisplay: '₹5,000',
+    cohorts: 3,
+    autopayEligible: true,
+    requiresOtp: false,
+    renewalNote: 'Seamless autopay'
+  },
+  glide: {
+    price: 700000,
+    name: 'Glide',
+    priceDisplay: '₹7,000',
+    cohorts: 5,
+    autopayEligible: false,
+    requiresOtp: true,
+    renewalNote: 'Monthly payment link'
+  },
+  soar: {
+    price: 1000000,
+    name: 'Soar',
+    priceDisplay: '₹10,000',
+    cohorts: 10,
+    autopayEligible: false,
+    requiresOtp: true,
+    renewalNote: 'Monthly payment link'
+  },
 }
 
 /**

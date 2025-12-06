@@ -64,7 +64,7 @@ const PricingCard = ({ plan, index, onSelect }) => {
 
         {/* Cohort limit */}
         <div className={`
-          relative z-10 mb-8 p-4 rounded-xl border
+          relative z-10 mb-4 p-4 rounded-xl border
           ${plan.highlighted
             ? 'bg-amber-500/5 border-amber-500/15'
             : 'bg-white/[0.02] border-white/[0.05]'
@@ -79,6 +79,27 @@ const PricingCard = ({ plan, index, onSelect }) => {
               {plan.cohortLimit}
             </span>
           </div>
+        </div>
+
+        {/* RBI Autopay Indicator */}
+        <div className={`
+          relative z-10 mb-8 p-3 rounded-xl text-center
+          ${plan.autopayEligible
+            ? 'bg-emerald-500/10 border border-emerald-500/20'
+            : 'bg-amber-500/10 border border-amber-500/20'
+          }
+        `}>
+          {plan.autopayEligible ? (
+            <p className="text-emerald-400 text-xs flex items-center justify-center gap-1.5">
+              <span className="text-base">✓</span>
+              Seamless auto-renewal
+            </p>
+          ) : (
+            <p className="text-amber-400 text-xs flex items-center justify-center gap-1.5">
+              <span className="text-base">⚡</span>
+              Monthly payment link (RBI rule)
+            </p>
+          )}
         </div>
 
         {/* Description */}
@@ -136,6 +157,7 @@ const Pricing = () => {
       price: '5,000',
       period: '30 days',
       cohortLimit: 3,
+      autopayEligible: true,
       description: 'Perfect for solo founders ready to bring clarity to their chaos.',
       features: [
         'Complete 7-pillar strategy intake',
@@ -155,6 +177,7 @@ const Pricing = () => {
       price: '7,000',
       period: '30 days',
       cohortLimit: 5,
+      autopayEligible: false,
       description: 'Advanced tools and ongoing support for serious operators.',
       features: [
         'Everything in Ascent',
@@ -175,6 +198,7 @@ const Pricing = () => {
       price: '10,000',
       period: '30 days',
       cohortLimit: 10,
+      autopayEligible: false,
       description: 'For teams and founders who demand excellence at every turn.',
       features: [
         'Everything in Glide',
