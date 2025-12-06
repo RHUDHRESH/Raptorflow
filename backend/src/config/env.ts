@@ -17,19 +17,25 @@ dotenv.config(envPath ? { path: envPath } : undefined);
 export const env = {
   // Application Configuration
   NODE_ENV: process.env.NODE_ENV || 'development',
-  PORT: process.env.PORT || '3001',
+  PORT: process.env.PORT || '8080', // Cloud Run uses 8080
   FRONTEND_PUBLIC_URL: process.env.FRONTEND_PUBLIC_URL || process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
   BACKEND_PUBLIC_URL: process.env.BACKEND_PUBLIC_URL || process.env.VITE_BACKEND_PUBLIC_URL || '',
-  
+
   // Supabase
   SUPABASE_URL: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://vpwwzsanuyhpkvgorcnc.supabase.co',
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || '',
   SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '',
-  
+
   // Google Cloud / Vertex AI
-  GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.VITE_GOOGLE_CLOUD_PROJECT_ID || '',
+  GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.VITE_GOOGLE_CLOUD_PROJECT_ID || 'raptorflow-477017',
   GOOGLE_CLOUD_LOCATION: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
-  
+  VERTEX_AI_MODEL: process.env.VERTEX_AI_MODEL || 'gemini-1.5-pro-002',
+  VERTEX_AI_FLASH_MODEL: process.env.VERTEX_AI_FLASH_MODEL || 'gemini-1.5-flash-002',
+
+  // Upstash Redis
+  UPSTASH_REDIS_URL: process.env.UPSTASH_REDIS_URL || '',
+  UPSTASH_REDIS_TOKEN: process.env.UPSTASH_REDIS_TOKEN || '',
+
   // PhonePe Payment Gateway
   PHONEPE_MERCHANT_ID: process.env.PHONEPE_MERCHANT_ID || process.env.VITE_PHONEPE_MERCHANT_ID || '',
   PHONEPE_SALT_KEY: process.env.PHONEPE_SALT_KEY || process.env.VITE_PHONEPE_SALT_KEY || '',
@@ -46,7 +52,7 @@ if (env.NODE_ENV === 'production') {
     'BACKEND_PUBLIC_URL'
   ];
   const missing = required.filter(key => !env[key as keyof typeof env]);
-  
+
   if (missing.length > 0) {
     throw new Error(`Missing environment variables: ${missing.join(', ')}`);
   }
