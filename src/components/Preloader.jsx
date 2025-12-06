@@ -6,8 +6,8 @@ const Preloader = ({ onComplete }) => {
   const [phase, setPhase] = useState('loading') // loading, complete
 
   useEffect(() => {
-    const duration = 2000
-    const interval = 30
+    const duration = 800  // Much faster - 800ms instead of 2000ms
+    const interval = 25
     const steps = duration / interval
     const increment = 100 / steps
 
@@ -37,7 +37,7 @@ const Preloader = ({ onComplete }) => {
           className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
         >
           {/* Background grain */}
-          <div 
+          <div
             className="absolute inset-0 opacity-[0.03]"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`
@@ -62,7 +62,7 @@ const Preloader = ({ onComplete }) => {
             <div className="relative w-48">
               {/* Track */}
               <div className="h-px bg-white/10" />
-              
+
               {/* Fill */}
               <motion.div
                 className="absolute top-0 left-0 h-px bg-gradient-to-r from-amber-400 to-amber-200"

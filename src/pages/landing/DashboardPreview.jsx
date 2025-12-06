@@ -1,16 +1,9 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { 
-  Target, 
-  Zap, 
-  BarChart3, 
+import {
+  Target,
   CheckCircle2,
-  AlertTriangle,
-  TrendingUp,
-  Play,
-  Users,
-  Layers,
-  Sparkles
+  Layers
 } from 'lucide-react'
 
 // Animated metric card in the preview
@@ -26,10 +19,10 @@ const MetricCard = ({ label, value, status, delay }) => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
-      className="bg-white/5 rounded-lg p-3 border border-white/10"
+      className="bg-white/[0.03] rounded-lg p-3 border border-white/[0.06]"
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] text-white/40 uppercase tracking-wider">{label}</span>
+        <span className="text-[10px] text-white/35 uppercase tracking-wider">{label}</span>
         <div className={`w-2 h-2 rounded-full ${statusColors[status]}`} />
       </div>
       <div className="text-xl font-light text-white">{value}</div>
@@ -40,9 +33,9 @@ const MetricCard = ({ label, value, status, delay }) => {
 // Animated campaign item
 const CampaignItem = ({ name, protocol, status, delay }) => {
   const protocolColors = {
-    'Authority': 'text-purple-400 bg-purple-500/20',
-    'Trust': 'text-blue-400 bg-blue-500/20',
-    'Urgency': 'text-amber-400 bg-amber-500/20'
+    'Authority': 'text-purple-400 bg-purple-500/15',
+    'Trust': 'text-blue-400 bg-blue-500/15',
+    'Urgency': 'text-amber-400 bg-amber-500/15'
   }
 
   return (
@@ -50,11 +43,11 @@ const CampaignItem = ({ name, protocol, status, delay }) => {
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay, duration: 0.4 }}
-      className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10"
+      className="flex items-center justify-between p-3 bg-white/[0.03] rounded-lg border border-white/[0.06]"
     >
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center">
-          <Layers className="w-4 h-4 text-white/40" />
+        <div className="w-8 h-8 bg-white/[0.05] rounded flex items-center justify-center">
+          <Layers className="w-4 h-4 text-white/30" />
         </div>
         <div>
           <div className="text-sm text-white">{name}</div>
@@ -70,7 +63,7 @@ const CampaignItem = ({ name, protocol, status, delay }) => {
             Active
           </span>
         ) : (
-          <span className="text-xs text-white/40">Planned</span>
+          <span className="text-xs text-white/30">Planned</span>
         )}
       </div>
     </motion.div>
@@ -85,12 +78,11 @@ const TaskItem = ({ task, completed, delay }) => (
     transition={{ delay, duration: 0.4 }}
     className="flex items-center gap-3 py-2"
   >
-    <div className={`w-4 h-4 rounded border flex items-center justify-center ${
-      completed ? 'bg-emerald-500/20 border-emerald-500/30' : 'border-white/20'
-    }`}>
+    <div className={`w-4 h-4 rounded border flex items-center justify-center ${completed ? 'bg-emerald-500/15 border-emerald-500/25' : 'border-white/15'
+      }`}>
       {completed && <CheckCircle2 className="w-3 h-3 text-emerald-400" />}
     </div>
-    <span className={`text-sm ${completed ? 'text-white/40 line-through' : 'text-white/60'}`}>
+    <span className={`text-sm ${completed ? 'text-white/30 line-through' : 'text-white/50'}`}>
       {task}
     </span>
   </motion.div>
@@ -102,34 +94,33 @@ const MockDashboard = () => {
   const tabs = ['War Room', 'Campaigns', 'Matrix']
 
   return (
-    <div className="bg-[#0a0a0f] rounded-xl border border-white/10 overflow-hidden shadow-2xl">
+    <div className="bg-[#0a0a0f] rounded-xl border border-white/[0.08] overflow-hidden shadow-2xl">
       {/* Header bar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-white/10">
+      <div className="flex items-center justify-between px-4 py-3 bg-black/40 border-b border-white/[0.06]">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-red-500/60" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-            <div className="w-3 h-3 rounded-full bg-green-500/60" />
+            <div className="w-3 h-3 rounded-full bg-red-500/50" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
+            <div className="w-3 h-3 rounded-full bg-green-500/50" />
           </div>
           <div className="flex items-center gap-2 ml-4">
             <div className="w-6 h-6 bg-gradient-to-br from-amber-500 to-amber-600 rounded flex items-center justify-center">
               <span className="text-black text-[10px] font-bold">Rf</span>
             </div>
-            <span className="text-white/60 text-sm">RaptorFlow</span>
+            <span className="text-white/50 text-sm">RaptorFlow</span>
           </div>
         </div>
-        
+
         {/* Tabs */}
-        <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-white/[0.03] rounded-lg p-1">
           {tabs.map((tab, i) => (
             <button
               key={tab}
               onClick={() => setActiveTab(i)}
-              className={`px-3 py-1 rounded text-xs transition-all ${
-                activeTab === i 
-                  ? 'bg-white/10 text-white' 
-                  : 'text-white/40 hover:text-white/60'
-              }`}
+              className={`px-3 py-1 rounded text-xs transition-all ${activeTab === i
+                  ? 'bg-white/[0.08] text-white'
+                  : 'text-white/35 hover:text-white/60'
+                }`}
             >
               {tab}
             </button>
@@ -158,7 +149,7 @@ const MockDashboard = () => {
 
               {/* Campaigns */}
               <div>
-                <h4 className="text-xs uppercase tracking-wider text-white/40 mb-3">Active Campaigns</h4>
+                <h4 className="text-xs uppercase tracking-wider text-white/30 mb-3">Active Campaigns</h4>
                 <div className="space-y-2">
                   <CampaignItem name="Q1 Pipeline Acceleration" protocol="Authority" status="active" delay={0.5} />
                   <CampaignItem name="Enterprise Expansion" protocol="Trust" status="active" delay={0.6} />
@@ -178,24 +169,24 @@ const MockDashboard = () => {
             >
               <div className="grid grid-cols-2 gap-6">
                 {/* Campaign detail */}
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                <div className="bg-white/[0.03] rounded-lg p-4 border border-white/[0.06]">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-purple-500/15 rounded-lg flex items-center justify-center">
                       <Target className="w-5 h-5 text-purple-400" />
                     </div>
                     <div>
                       <h4 className="text-white font-medium">Q1 Pipeline</h4>
-                      <span className="text-xs text-white/40">Velocity Goal</span>
+                      <span className="text-xs text-white/35">Velocity Goal</span>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-white/40">Progress</span>
+                      <span className="text-white/35">Progress</span>
                       <span className="text-white">68%</span>
                     </div>
-                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                      <motion.div 
+                    <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                      <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: '68%' }}
                         transition={{ delay: 0.5, duration: 1 }}
@@ -206,8 +197,8 @@ const MockDashboard = () => {
                 </div>
 
                 {/* Tasks */}
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <h4 className="text-xs uppercase tracking-wider text-white/40 mb-3">Current Tasks</h4>
+                <div className="bg-white/[0.03] rounded-lg p-4 border border-white/[0.06]">
+                  <h4 className="text-xs uppercase tracking-wider text-white/30 mb-3">Current Tasks</h4>
                   <TaskItem task="Launch webinar campaign" completed={true} delay={0.3} />
                   <TaskItem task="Create battlecard for Acme" completed={true} delay={0.4} />
                   <TaskItem task="Deploy email sequence" completed={false} delay={0.5} />
@@ -226,26 +217,26 @@ const MockDashboard = () => {
               className="space-y-6"
             >
               {/* RAG Summary */}
-              <div className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-emerald-500/5 border border-emerald-500/15 rounded-lg">
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-8 h-8 text-emerald-400" />
                   <div>
                     <div className="text-white font-medium">Overall Health: On Track</div>
-                    <div className="text-sm text-white/40">8 of 10 metrics green</div>
+                    <div className="text-sm text-white/35">8 of 10 metrics green</div>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-light text-emerald-400">8</div>
-                    <div className="text-[10px] text-white/40">Green</div>
+                    <div className="text-[10px] text-white/35">Green</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-light text-amber-400">2</div>
-                    <div className="text-[10px] text-white/40">Amber</div>
+                    <div className="text-[10px] text-white/35">Amber</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-light text-red-400">0</div>
-                    <div className="text-[10px] text-white/40">Red</div>
+                    <div className="text-[10px] text-white/35">Red</div>
                   </div>
                 </div>
               </div>
@@ -277,34 +268,39 @@ const DashboardPreview = () => {
   const inView = useInView(sectionRef, { once: true, margin: "-100px" })
 
   return (
-    <section 
+    <section
       ref={sectionRef}
-      className="relative py-32 bg-gradient-to-b from-black via-zinc-950 to-black overflow-hidden"
+      className="relative py-32 md:py-40 bg-[#030303] overflow-hidden"
     >
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-500/3 rounded-full blur-3xl" />
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 relative z-10">
+      <div className="max-w-6xl mx-auto px-6 md:px-12 relative z-10">
         {/* Section header */}
-        <div className="text-center mb-16">
-          <motion.span
+        <div className="text-center mb-16 md:mb-20">
+          <motion.div
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
-            className="text-[10px] uppercase tracking-[0.4em] text-amber-400/60"
+            className="inline-flex items-center gap-3 mb-8"
           >
-            The Interface
-          </motion.span>
+            <span className="w-12 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
+            <span className="text-[11px] uppercase tracking-[0.4em] text-amber-400/60 font-medium">
+              The Interface
+            </span>
+            <span className="w-12 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
+          </motion.div>
 
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.1, duration: 0.6 }}
-            className="mt-6 text-4xl md:text-5xl font-light text-white"
+            transition={{ delay: 0.1, duration: 0.7 }}
+            className="text-5xl md:text-6xl lg:text-7xl font-light text-white tracking-tight mb-8"
           >
             Your{' '}
-            <span className="italic font-normal bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 bg-clip-text text-transparent">
               command center
             </span>
           </motion.h2>
@@ -313,7 +309,7 @@ const DashboardPreview = () => {
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="mt-6 text-lg text-white/40 max-w-2xl mx-auto"
+            className="text-lg md:text-xl text-white/35 max-w-2xl mx-auto"
           >
             Everything in one place. Strategy, execution, and measurement unified.
           </motion.p>
@@ -326,36 +322,13 @@ const DashboardPreview = () => {
           transition={{ delay: 0.3, duration: 0.8 }}
           className="relative"
         >
-          {/* Glow effect */}
-          <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-yellow-500/10 to-amber-500/20 rounded-2xl blur-2xl opacity-50" />
-          
+          {/* Subtle glow - reduced intensity */}
+          <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-amber-500/10 rounded-2xl blur-2xl opacity-30" />
+
           {/* Dashboard */}
           <div className="relative">
             <MockDashboard />
           </div>
-
-          {/* Floating labels */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ delay: 1, duration: 0.6 }}
-            className="absolute -left-4 top-1/4 hidden lg:block"
-          >
-            <div className="bg-black/80 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2">
-              <span className="text-xs text-white/60">Real-time RAG status</span>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ delay: 1.2, duration: 0.6 }}
-            className="absolute -right-4 top-1/3 hidden lg:block"
-          >
-            <div className="bg-black/80 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2">
-              <span className="text-xs text-white/60">Campaign tracking</span>
-            </div>
-          </motion.div>
         </motion.div>
       </div>
     </section>
@@ -363,4 +336,3 @@ const DashboardPreview = () => {
 }
 
 export default DashboardPreview
-

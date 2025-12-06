@@ -14,6 +14,12 @@ const CTASection = lazy(() => import('./landing/CTASection'))
 const FAQ = lazy(() => import('./landing/FAQ'))
 const Footer = lazy(() => import('./landing/Footer'))
 
+// Preload critical above-the-fold components
+const preloadCritical = () => {
+  import('./landing/Header')
+  import('./landing/ParticleHero')
+}
+
 // Loading fallback
 const SectionLoader = () => (
   <div className="min-h-[50vh] bg-black flex items-center justify-center">
@@ -24,6 +30,11 @@ const SectionLoader = () => (
 // Main Landing component
 const Landing: React.FC = () => {
   const [loading, setLoading] = useState(true)
+
+  // Start preloading critical components immediately
+  useEffect(() => {
+    preloadCritical()
+  }, [])
 
   useEffect(() => {
     // Disable scrolling during preloader
@@ -56,31 +67,31 @@ const Landing: React.FC = () => {
           <Suspense fallback={<SectionLoader />}>
             {/* Navigation */}
             <Header />
-            
+
             {/* Hero with particle effects */}
             <ParticleHero />
-            
+
             {/* The Problem - why they need this */}
             <ProblemStatement />
-            
+
             {/* How it works - simple 4-step flow */}
             <InteractiveFlow />
-            
+
             {/* Feature showcase - the 6 pillars */}
             <FeatureShowcase />
-            
+
             {/* Live dashboard preview */}
             <DashboardPreview />
-            
+
             {/* Pricing - 30 day plans */}
             <Pricing />
-            
+
             {/* FAQ */}
             <FAQ />
-            
+
             {/* Strong CTA */}
             <CTASection />
-            
+
             {/* Magnificent footer */}
             <Footer />
           </Suspense>

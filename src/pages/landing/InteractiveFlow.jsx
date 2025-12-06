@@ -229,33 +229,37 @@ const InteractiveFlow = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative py-32 bg-black overflow-hidden"
+      className="relative py-32 md:py-40 bg-[#050505] overflow-hidden"
     >
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        {/* Section header */}
-        <div className="text-center mb-16">
-          <motion.span
+      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
+        {/* Section header - consistent styling */}
+        <div className="text-center mb-16 md:mb-20">
+          <motion.div
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
-            className="text-[10px] uppercase tracking-[0.4em] text-amber-400/60"
+            className="inline-flex items-center gap-3 mb-8"
           >
-            The Process
-          </motion.span>
+            <span className="w-12 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
+            <span className="text-[11px] uppercase tracking-[0.4em] text-amber-400/60 font-medium">
+              The Process
+            </span>
+            <span className="w-12 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
+          </motion.div>
 
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.1, duration: 0.6 }}
-            className="mt-6 text-4xl md:text-5xl font-light text-white"
+            transition={{ delay: 0.1, duration: 0.7 }}
+            className="text-5xl md:text-6xl lg:text-7xl font-light text-white tracking-tight"
           >
             From chaos to{' '}
-            <span className="italic font-normal bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 bg-clip-text text-transparent">
               command
             </span>
           </motion.h2>
@@ -264,7 +268,7 @@ const InteractiveFlow = () => {
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="mt-6 text-lg text-white/40 max-w-2xl mx-auto"
+            className="mt-6 text-lg md:text-xl text-white/35 max-w-2xl mx-auto"
           >
             Four phases. One outcome: GTM clarity you can actually execute.
           </motion.p>

@@ -32,20 +32,20 @@ const StepVisual = ({ visual, isActive }) => {
         positioning: (
             <div className="grid grid-cols-2 gap-3 p-6">
                 <motion.div
-                    className="aspect-square bg-gradient-to-br from-amber-500/20 to-amber-600/5 rounded-2xl border border-amber-500/20 flex items-center justify-center"
+                    className="aspect-square bg-amber-500/10 rounded-2xl border border-amber-500/15 flex items-center justify-center"
                     animate={isActive ? { scale: [1, 1.02, 1], opacity: [0.6, 1, 0.6] } : {}}
                     transition={{ duration: 3, repeat: Infinity }}
                 >
-                    <span className="text-amber-400/60 text-xs uppercase tracking-wider">You</span>
+                    <span className="text-amber-400/50 text-xs uppercase tracking-wider">You</span>
                 </motion.div>
-                <div className="aspect-square bg-white/[0.02] rounded-2xl border border-white/5" />
-                <div className="aspect-square bg-white/[0.02] rounded-2xl border border-white/5" />
+                <div className="aspect-square bg-white/[0.02] rounded-2xl border border-white/[0.05]" />
+                <div className="aspect-square bg-white/[0.02] rounded-2xl border border-white/[0.05]" />
                 <motion.div
-                    className="aspect-square bg-gradient-to-br from-orange-500/20 to-red-600/5 rounded-2xl border border-orange-500/20 flex items-center justify-center"
+                    className="aspect-square bg-orange-500/10 rounded-2xl border border-orange-500/15 flex items-center justify-center"
                     animate={isActive ? { scale: [1, 1.02, 1], opacity: [0.4, 0.8, 0.4] } : {}}
                     transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
                 >
-                    <span className="text-orange-400/60 text-xs uppercase tracking-wider">Them</span>
+                    <span className="text-orange-400/50 text-xs uppercase tracking-wider">Them</span>
                 </motion.div>
             </div>
         ),
@@ -54,7 +54,7 @@ const StepVisual = ({ visual, isActive }) => {
                 {[1, 0.7, 0.5, 0.8].map((width, i) => (
                     <motion.div
                         key={i}
-                        className="h-3 bg-gradient-to-r from-white/10 to-transparent rounded-full"
+                        className="h-3 bg-gradient-to-r from-white/5 to-transparent rounded-full"
                         style={{ width: `${width * 100}%` }}
                         initial={{ opacity: 0, x: -20 }}
                         animate={isActive ? { opacity: 1, x: 0 } : { opacity: 0.3, x: 0 }}
@@ -62,12 +62,12 @@ const StepVisual = ({ visual, isActive }) => {
                     />
                 ))}
                 <motion.div
-                    className="mt-6 p-4 bg-amber-500/10 rounded-xl border border-amber-500/20"
+                    className="mt-6 p-4 bg-amber-500/5 rounded-xl border border-amber-500/10"
                     animate={isActive ? { opacity: [0.5, 1, 0.5] } : {}}
                     transition={{ duration: 2, repeat: Infinity }}
                 >
-                    <div className="h-2 w-1/2 bg-amber-500/30 rounded-full mb-2" />
-                    <div className="h-2 w-3/4 bg-amber-500/20 rounded-full" />
+                    <div className="h-2 w-1/2 bg-amber-500/20 rounded-full mb-2" />
+                    <div className="h-2 w-3/4 bg-amber-500/10 rounded-full" />
                 </motion.div>
             </div>
         ),
@@ -77,22 +77,22 @@ const StepVisual = ({ visual, isActive }) => {
                     {[40, 65, 50, 80, 70, 95].map((height, i) => (
                         <motion.div
                             key={i}
-                            className="flex-1 bg-gradient-to-t from-amber-500/40 to-amber-500/10 rounded-t-lg"
+                            className="flex-1 bg-gradient-to-t from-amber-500/30 to-amber-500/5 rounded-t-lg"
                             initial={{ height: 0 }}
                             animate={isActive ? { height: `${height}%` } : { height: `${height * 0.5}%`, opacity: 0.3 }}
                             transition={{ delay: i * 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                         />
                     ))}
                 </div>
-                <div className="mt-4 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                <div className="mt-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
             </div>
         )
     }
 
     return (
-        <div className="relative rounded-3xl bg-white/[0.02] border border-white/[0.05] overflow-hidden min-h-[280px]">
-            {/* Glow effect */}
-            <div className={`absolute inset-0 bg-gradient-radial from-amber-500/10 to-transparent transition-opacity duration-700 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
+        <div className="relative rounded-2xl bg-zinc-900/40 border border-white/[0.05] overflow-hidden min-h-[280px]">
+            {/* Subtle glow effect */}
+            <div className={`absolute inset-0 bg-gradient-radial from-amber-500/5 to-transparent transition-opacity duration-700 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
             {visualContent[visual]}
         </div>
     )
@@ -105,29 +105,29 @@ const StepItem = ({ step, index, isActive, onClick }) => {
         <motion.button
             onClick={onClick}
             className={`w-full text-left p-6 rounded-2xl border transition-all duration-500 ${isActive
-                    ? 'bg-white/[0.03] border-amber-500/30 shadow-[0_0_60px_rgba(245,158,11,0.1)]'
-                    : 'bg-transparent border-white/[0.05] hover:border-white/10'
+                ? 'bg-zinc-900/50 border-amber-500/20'
+                : 'bg-transparent border-white/[0.05] hover:border-white/[0.08]'
                 }`}
             whileHover={{ x: isActive ? 0 : 4 }}
         >
             <div className="flex items-start gap-5">
-                {/* Number */}
-                <div className={`text-4xl font-light transition-colors duration-500 ${isActive ? 'text-amber-400' : 'text-white/20'}`}>
+                {/* Number - editorial style */}
+                <div className={`text-5xl font-extralight transition-colors duration-500 ${isActive ? 'text-amber-400/80' : 'text-white/15'}`}>
                     {step.number}
                 </div>
 
-                <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-500 ${isActive ? 'bg-amber-500/20 border border-amber-500/30' : 'bg-white/5 border border-white/10'
+                <div className="flex-1 pt-1">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 ${isActive ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-white/[0.03] border border-white/[0.06]'
                             }`}>
-                            <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-amber-400' : 'text-white/40'}`} weight="duotone" />
+                            <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-amber-400' : 'text-white/30'}`} weight="regular" />
                         </div>
-                        <h3 className={`text-xl font-light transition-colors ${isActive ? 'text-white' : 'text-white/60'}`}>
+                        <h3 className={`text-xl font-light transition-colors ${isActive ? 'text-white' : 'text-white/50'}`}>
                             {step.title}
                         </h3>
                     </div>
 
-                    <p className={`text-sm leading-relaxed transition-all duration-500 ${isActive ? 'text-white/60 max-h-20 opacity-100' : 'text-white/30 max-h-0 opacity-0 overflow-hidden'}`}>
+                    <p className={`text-sm leading-relaxed transition-all duration-500 ${isActive ? 'text-white/50 max-h-20 opacity-100' : 'text-white/25 max-h-0 opacity-0 overflow-hidden'}`}>
                         {step.description}
                     </p>
                 </div>
@@ -150,11 +150,11 @@ const HowItWorks = () => {
     }, [])
 
     return (
-        <section ref={ref} className="py-32 relative">
-            {/* Background elements */}
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-1/4 left-0 w-96 h-96 bg-gradient-radial from-amber-500/5 to-transparent blur-3xl" />
-                <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-gradient-radial from-orange-500/5 to-transparent blur-3xl" />
+        <section id="how-it-works" ref={ref} className="py-32 md:py-40 bg-[#050505] relative">
+            {/* Background */}
+            <div className="absolute inset-0">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
             </div>
 
             <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
@@ -164,17 +164,19 @@ const HowItWorks = () => {
                     initial={{ opacity: 0, y: 30 }}
                     animate={isInView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.8 }}
-                    className="text-center mb-20"
+                    className="text-center mb-20 md:mb-24"
                 >
-                    <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.4em] text-amber-400 font-medium mb-6">
-                        <span className="w-8 h-px bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
-                        The Process
-                        <span className="w-8 h-px bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
-                    </span>
+                    <div className="inline-flex items-center gap-3 mb-8">
+                        <span className="w-12 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
+                        <span className="text-[11px] uppercase tracking-[0.4em] text-amber-400/60 font-medium">
+                            The Process
+                        </span>
+                        <span className="w-12 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
+                    </div>
 
-                    <h2 className="text-5xl md:text-6xl font-light text-white leading-tight">
-                        From chaos to
-                        <span className="block italic bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 text-transparent bg-clip-text">
+                    <h2 className="text-5xl md:text-6xl lg:text-7xl font-light text-white tracking-tight mb-6">
+                        From chaos to{' '}
+                        <span className="bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 bg-clip-text text-transparent">
                             strategic clarity
                         </span>
                     </h2>
@@ -213,13 +215,13 @@ const HowItWorks = () => {
                             isActive={true}
                         />
 
-                        {/* Progress bar */}
+                        {/* Progress indicators */}
                         <div className="mt-8 flex gap-2">
                             {steps.map((_, i) => (
                                 <button
                                     key={i}
                                     onClick={() => setActiveStep(i)}
-                                    className={`h-1 flex-1 rounded-full transition-all duration-500 ${i === activeStep ? 'bg-amber-500' : 'bg-white/10 hover:bg-white/20'
+                                    className={`h-1 flex-1 rounded-full transition-all duration-500 ${i === activeStep ? 'bg-amber-500/70' : 'bg-white/[0.08] hover:bg-white/[0.12]'
                                         }`}
                                 />
                             ))}
@@ -232,3 +234,4 @@ const HowItWorks = () => {
 }
 
 export default HowItWorks
+
