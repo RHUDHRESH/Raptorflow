@@ -6,8 +6,8 @@ const Preloader = ({ onComplete }) => {
   const [phase, setPhase] = useState('loading') // loading, complete
 
   useEffect(() => {
-    const duration = 800  // Much faster - 800ms instead of 2000ms
-    const interval = 25
+    const duration = 2000  // Safe timing for React StrictMode
+    const interval = 30
     const steps = duration / interval
     const increment = 100 / steps
 
