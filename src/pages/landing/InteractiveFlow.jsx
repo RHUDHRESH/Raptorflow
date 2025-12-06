@@ -1,9 +1,9 @@
 import React, { useRef, useState } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { 
-  MessageSquare, 
-  Brain, 
-  Rocket, 
+import {
+  MessageSquare,
+  Brain,
+  Rocket,
   BarChart3,
   ArrowRight,
   CheckCircle2,
@@ -13,13 +13,13 @@ import {
 // Step connector with animation
 const StepConnector = ({ active }) => (
   <div className="hidden lg:flex items-center justify-center w-24 relative">
-    <motion.div 
+    <motion.div
       className="h-px w-full bg-white/10"
       initial={{ scaleX: 0 }}
       animate={{ scaleX: 1 }}
       transition={{ duration: 0.6, delay: 0.3 }}
     />
-    <motion.div 
+    <motion.div
       className={`absolute h-px bg-gradient-to-r from-amber-500 to-yellow-500 left-0 right-0`}
       initial={{ scaleX: 0 }}
       animate={{ scaleX: active ? 1 : 0 }}
@@ -55,15 +55,15 @@ const StepCard = ({ step, index, isActive, onClick }) => {
     >
       {/* Card */}
       <motion.div
-        animate={{ 
+        animate={{
           scale: isActive ? 1.02 : 1,
           y: isActive ? -8 : 0
         }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
         className={`
           relative p-6 rounded-2xl border transition-all duration-300
-          ${isActive 
-            ? 'bg-gradient-to-br from-amber-500/10 to-yellow-500/5 border-amber-500/30' 
+          ${isActive
+            ? 'bg-gradient-to-br from-amber-500/10 to-yellow-500/5 border-amber-500/30'
             : 'bg-white/5 border-white/10 hover:border-white/20'
           }
         `}
@@ -71,8 +71,8 @@ const StepCard = ({ step, index, isActive, onClick }) => {
         {/* Step number */}
         <div className={`
           absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-          ${isActive 
-            ? 'bg-gradient-to-br from-amber-500 to-yellow-500 text-black' 
+          ${isActive
+            ? 'bg-gradient-to-br from-amber-500 to-yellow-500 text-black'
             : 'bg-zinc-800 text-white/60 border border-white/10'
           }
         `}>
@@ -82,8 +82,8 @@ const StepCard = ({ step, index, isActive, onClick }) => {
         {/* Icon */}
         <div className={`
           w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors
-          ${isActive 
-            ? 'bg-amber-500/20' 
+          ${isActive
+            ? 'bg-amber-500/20'
             : 'bg-white/5 group-hover:bg-white/10'
           }
         `}>
@@ -101,8 +101,8 @@ const StepCard = ({ step, index, isActive, onClick }) => {
         {/* Duration badge */}
         <div className={`
           mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs
-          ${isActive 
-            ? 'bg-amber-500/20 text-amber-300' 
+          ${isActive
+            ? 'bg-amber-500/20 text-amber-300'
             : 'bg-white/5 text-white/40'
           }
         `}>
@@ -138,7 +138,7 @@ const DetailPanel = ({ step }) => (
           <div className="flex-1">
             <h4 className="text-xl font-medium text-white mb-4">{step.detailTitle}</h4>
             <p className="text-white/50 leading-relaxed mb-6">{step.detailDescription}</p>
-            
+
             {/* Deliverables */}
             <div className="space-y-3">
               <span className="text-xs uppercase tracking-wider text-amber-400/60">What you get:</span>
@@ -227,7 +227,7 @@ const InteractiveFlow = () => {
   ]
 
   return (
-    <section 
+    <section
       ref={sectionRef}
       className="relative py-32 bg-black overflow-hidden"
     >
@@ -300,8 +300,8 @@ const InteractiveFlow = () => {
               onClick={() => setActiveStep(index)}
               className={`
                 w-2 h-2 rounded-full transition-all duration-300
-                ${activeStep === index 
-                  ? 'w-8 bg-amber-400' 
+                ${activeStep === index
+                  ? 'w-8 bg-amber-400'
                   : 'bg-white/20 hover:bg-white/40'
                 }
               `}

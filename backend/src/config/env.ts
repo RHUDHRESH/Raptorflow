@@ -1,16 +1,25 @@
 import dotenv from 'dotenv';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Load environment variables from root .env
+// Resolve the repo root .env (backend/src/config -> ../../../.env)
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
+const envCandidates = [
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(__dirname, '../../../.env'),
+  path.resolve(__dirname, '../../../../.env')
+];
+
+const envPath = envCandidates.find(fs.existsSync);
+dotenv.config(envPath ? { path: envPath } : undefined);
 
 export const env = {
   // Application Configuration
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: process.env.PORT || '3001',
   FRONTEND_PUBLIC_URL: process.env.FRONTEND_PUBLIC_URL || process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+  BACKEND_PUBLIC_URL: process.env.BACKEND_PUBLIC_URL || process.env.VITE_BACKEND_PUBLIC_URL || '',
   
   // Supabase
   SUPABASE_URL: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://vpwwzsanuyhpkvgorcnc.supabase.co',
@@ -30,21 +39,27 @@ export const env = {
 
 // Validate required environment variables in production
 if (env.NODE_ENV === 'production') {
-  const required = ['SUPABASE_SERVICE_ROLE_KEY', 'GOOGLE_CLOUD_PROJECT_ID'];
+  const required = [
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'GOOGLE_CLOUD_PROJECT_ID',
+    'FRONTEND_PUBLIC_URL',
+    'BACKEND_PUBLIC_URL'
+  ];
   const missing = required.filter(key => !env[key as keyof typeof env]);
   
   if (missing.length > 0) {
-    console.warn(`⚠️ Missing environment variables: ${missing.join(', ')}`);
+    throw new Error(`Missing environment variables: ${missing.join(', ')}`);
   }
 }
 
 // Log configuration (development only)
 if (env.NODE_ENV === 'development') {
-  console.log('📦 Environment Configuration:');
+  console.log('dY"İ Environment Configuration:');
   console.log(`   Port: ${env.PORT}`);
   console.log(`   Frontend URL: ${env.FRONTEND_PUBLIC_URL}`);
+  console.log(`   Backend URL: ${env.BACKEND_PUBLIC_URL || '(not set)'}`);
   console.log(`   Supabase URL: ${env.SUPABASE_URL}`);
   console.log(`   Google Cloud Project: ${env.GOOGLE_CLOUD_PROJECT_ID || '(not set)'}`);
-  console.log(`   PhonePe Merchant ID: ${env.PHONEPE_MERCHANT_ID ? '✓ Set' : '(not set - mock mode)'}`);
+  console.log(`   PhonePe Merchant ID: ${env.PHONEPE_MERCHANT_ID ? 'ƒo" Set' : '(not set - mock mode)'}`);
   console.log(`   PhonePe Environment: ${env.PHONEPE_ENV}`);
 }

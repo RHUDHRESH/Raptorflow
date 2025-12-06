@@ -81,7 +81,7 @@ const ProblemCard = ({ icon: Icon, stat, label, description, delay, color = "red
     >
       {/* Hover glow */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl" />
-      
+
       <div className="relative z-10">
         <Icon className="w-8 h-8 mb-4 opacity-60" />
         <div className="text-4xl font-light text-white mb-2">
@@ -124,7 +124,7 @@ const ProblemStatement = () => {
   ]
 
   return (
-    <section 
+    <section
       ref={sectionRef}
       className="relative py-32 bg-black overflow-hidden"
     >
@@ -132,9 +132,9 @@ const ProblemStatement = () => {
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        
+
         {/* Subtle warning pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `repeating-linear-gradient(
@@ -179,7 +179,7 @@ const ProblemStatement = () => {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="text-lg text-white/50 max-w-2xl mx-auto leading-relaxed"
           >
-            Scattered campaigns. Disconnected metrics. No clear strategy. 
+            Scattered campaigns. Disconnected metrics. No clear strategy.
             You're flying blind and burning cash.
           </motion.p>
         </div>

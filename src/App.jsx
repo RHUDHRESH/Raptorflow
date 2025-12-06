@@ -7,6 +7,16 @@ import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Start from './pages/Start'
 
+// Public pages (footer links)
+import About from './pages/About'
+import Blog from './pages/Blog'
+import Careers from './pages/Careers'
+import Contact from './pages/Contact'
+import Privacy from './pages/Privacy'
+import Terms from './pages/Terms'
+import Refunds from './pages/Refunds'
+import Manifesto from './pages/Manifesto'
+
 // Onboarding pages
 import {
   OnboardingLayout,
@@ -145,10 +155,20 @@ const AppRoutes = () => {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/start" element={<Start />} />
-      
+
+      {/* Footer link pages */}
+      <Route path="/about" element={<About />} />
+      <Route path="/blog" element={<Blog />} />
+      <Route path="/careers" element={<Careers />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/refunds" element={<Refunds />} />
+      <Route path="/manifesto" element={<Manifesto />} />
+
       {/* OAuth callback */}
       <Route path="/auth/callback" element={<OAuthCallback />} />
-      
+
       {/* Payment routes */}
       <Route path="/payment/process" element={<PaymentProcess />} />
       <Route path="/payment/callback" element={<PaymentCallback />} />

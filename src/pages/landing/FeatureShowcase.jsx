@@ -1,11 +1,11 @@
 import React, { useRef, useState } from 'react'
 import { motion, useInView, useMotionValue, useSpring, useTransform } from 'framer-motion'
-import { 
-  Target, 
-  Shield, 
-  Zap, 
-  BarChart3, 
-  Sparkles, 
+import {
+  Target,
+  Shield,
+  Zap,
+  BarChart3,
+  Sparkles,
   Layers,
   Users,
   TrendingUp,
@@ -17,7 +17,7 @@ import {
 const TiltCard = ({ children, className = "" }) => {
   const ref = useRef(null)
   const [hovering, setHovering] = useState(false)
-  
+
   const x = useMotionValue(0)
   const y = useMotionValue(0)
 
@@ -60,8 +60,8 @@ const TiltCard = ({ children, className = "" }) => {
         transition={{ duration: 0.3 }}
         className="absolute -inset-px bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 rounded-2xl blur-xl"
       />
-      
-      <div 
+
+      <div
         className="relative bg-zinc-900/80 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden h-full"
         style={{ transform: "translateZ(40px)" }}
       >
@@ -185,7 +185,7 @@ const FeatureShowcase = () => {
   ]
 
   return (
-    <section 
+    <section
       id="features"
       ref={sectionRef}
       className="relative py-32 bg-black overflow-hidden"
@@ -194,7 +194,7 @@ const FeatureShowcase = () => {
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        
+
         {/* Gradient orbs */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />

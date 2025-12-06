@@ -3,22 +3,12 @@ import { env } from '../config/env';
 
 // Create Supabase client with service role key for backend operations
 const supabaseUrl = env.SUPABASE_URL || 'https://vpwwzsanuyhpkvgorcnc.supabase.co';
-const DEFAULT_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd3d6c2FudXlocGt2Z29yY25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzOTk1OTEsImV4cCI6MjA3Nzk3NTU5MX0.-clyTrDDlCNpUGg-MEgXIki70uBt4oIFPuSA8swNuTU';
 const isValidKey = (key?: string) => !!key && key.split('.').length === 3;
-const supabaseServiceKey = [
-  env.SUPABASE_SERVICE_ROLE_KEY,
-  env.SUPABASE_ANON_KEY,
-  DEFAULT_ANON_KEY
-].find(isValidKey);
+const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseServiceKey) {
-  throw new Error('Supabase API key missing. Set SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_KEY.');
+if (!isValidKey(supabaseServiceKey)) {
+  throw new Error('Supabase service role key missing or malformed. Set SUPABASE_SERVICE_ROLE_KEY.');
 }
-
-if (!isValidKey(env.SUPABASE_SERVICE_ROLE_KEY)) {
-  console.warn('⚠️ SUPABASE_SERVICE_ROLE_KEY is missing or malformed. Using anon key fallback – set the service role key for full backend access.');
-}
-
 export const supabase: SupabaseClient = createClient(
   supabaseUrl,
   supabaseServiceKey,
@@ -230,4 +220,6 @@ export const db = {
 };
 
 export default supabase;
+
+
 

@@ -1,27 +1,310 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion'
-import { 
-  Twitter, 
-  Linkedin, 
-  Mail, 
-  ArrowUpRight, 
+import React, { useState, useRef, useEffect, useMemo } from 'react'
+import { motion, useMotionValue, useSpring, useTransform, AnimatePresence, useInView } from 'framer-motion'
+import {
+  Twitter,
+  Linkedin,
+  Mail,
+  ArrowUpRight,
   Sparkles,
   ChevronUp,
   Send,
   Check,
   Copy,
-  Heart
+  Heart,
+  Zap,
+  Star,
+  ArrowRight,
+  ExternalLink
 } from 'lucide-react'
 
-// Magnetic button that follows cursor
-const MagneticLink = ({ children, href, className = '' }) => {
+// Floating orbs background
+const FloatingOrbs = () => {
+  const orbs = useMemo(() => [
+    { size: 300, x: '10%', y: '20%', duration: 25, delay: 0, color: 'from-amber-500/8 to-orange-600/5' },
+    { size: 200, x: '80%', y: '60%', duration: 20, delay: 5, color: 'from-amber-400/6 to-yellow-500/4' },
+    { size: 400, x: '50%', y: '80%', duration: 30, delay: 10, color: 'from-orange-500/5 to-amber-600/3' },
+    { size: 150, x: '70%', y: '10%', duration: 22, delay: 8, color: 'from-yellow-400/8 to-amber-500/5' },
+  ], [])
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {orbs.map((orb, i) => (
+        <motion.div
+          key={i}
+          className={`absolute rounded-full bg-gradient-radial ${orb.color} blur-3xl`}
+          style={{
+            width: orb.size,
+            height: orb.size,
+            left: orb.x,
+            top: orb.y,
+            transform: 'translate(-50%, -50%)',
+          }}
+          animate={{
+            x: [0, 50, -30, 0],
+            y: [0, -40, 30, 0],
+            scale: [1, 1.1, 0.9, 1],
+          }}
+          transition={{
+            duration: orb.duration,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: orb.delay,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+// Premium noise texture overlay
+const NoiseOverlay = () => (
+  <div
+    className="absolute inset-0 opacity-[0.015] pointer-events-none mix-blend-overlay"
+    style={{
+      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+    }}
+  />
+)
+
+// Animated text reveal
+const RevealText = ({ children, className = '', delay = 0 }) => {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-100px' })
+
+  return (
+    <div ref={ref} className="overflow-hidden">
+      <motion.div
+        initial={{ y: '100%', opacity: 0 }}
+        animate={isInView ? { y: 0, opacity: 1 } : { y: '100%', opacity: 0 }}
+        transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
+        className={className}
+      >
+        {children}
+      </motion.div>
+    </div>
+  )
+}
+
+// Large typographic statement
+const FooterStatement = () => {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-100px' })
+
+  return (
+    <div ref={ref} className="relative text-center mb-24">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ duration: 1 }}
+        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+      >
+        <div className="w-[600px] h-[600px] bg-gradient-radial from-amber-500/10 via-amber-500/5 to-transparent blur-3xl" />
+      </motion.div>
+
+      <RevealText className="inline-block">
+        <span className="text-display-xl font-light text-white/90 tracking-tight">
+          Stop guessing.
+        </span>
+      </RevealText>
+      <br />
+      <RevealText delay={0.1} className="inline-block">
+        <span className="text-display-xl font-light tracking-tight">
+          Start <span className="bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 text-transparent bg-clip-text italic font-normal">winning.</span>
+        </span>
+      </RevealText>
+
+      <RevealText delay={0.3}>
+        <p className="text-white/40 text-lg mt-8 max-w-xl mx-auto leading-relaxed">
+          Join thousands of founders building legendary brands with AI-powered clarity
+        </p>
+      </RevealText>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+        className="mt-10"
+      >
+        <motion.a
+          href="/signup"
+          className="group relative inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-400 text-black font-medium rounded-full overflow-hidden"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-amber-400 to-yellow-400"
+            initial={{ x: '-100%' }}
+            whileHover={{ x: 0 }}
+            transition={{ duration: 0.3 }}
+          />
+          <span className="relative z-10 flex items-center gap-2">
+            Get started free
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </span>
+        </motion.a>
+      </motion.div>
+    </div>
+  )
+}
+
+// Premium glass card
+const GlassCard = ({ children, className = '' }) => (
+  <div className={`relative rounded-2xl bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] p-6 ${className}`}>
+    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
+    {children}
+  </div>
+)
+
+// Interactive link with glow
+const FooterLink = ({ href, children, external = false }) => {
+  const [isHovered, setIsHovered] = useState(false)
+
+  return (
+    <motion.a
+      href={href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+      className="group relative inline-flex items-center gap-1.5 text-white/40 hover:text-white text-sm transition-colors duration-300"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      whileHover={{ x: 4 }}
+    >
+      <motion.span
+        className="absolute -left-3 w-1.5 h-1.5 rounded-full bg-amber-400"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: isHovered ? 1 : 0, opacity: isHovered ? 1 : 0 }}
+        transition={{ duration: 0.2 }}
+      />
+      {children}
+      {external && (
+        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+      )}
+    </motion.a>
+  )
+}
+
+// Newsletter with premium styling
+const PremiumNewsletter = () => {
+  const [email, setEmail] = useState('')
+  const [status, setStatus] = useState('idle')
+  const [isFocused, setIsFocused] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!email) return
+
+    setStatus('loading')
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    setStatus('success')
+    setEmail('')
+    setTimeout(() => setStatus('idle'), 3000)
+  }
+
+  return (
+    <GlassCard className="relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-amber-500/10 to-transparent blur-2xl" />
+
+      <div className="relative z-10">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-black" />
+          </div>
+          <h4 className="text-white font-medium">Join the inner circle</h4>
+        </div>
+
+        <p className="text-white/40 text-sm mb-5">
+          Weekly insights on AI marketing, positioning, and founder growth.
+        </p>
+
+        <form onSubmit={handleSubmit}>
+          <motion.div
+            className={`
+              relative flex items-center gap-2 p-1 rounded-xl border transition-all duration-300
+              ${isFocused
+                ? 'border-amber-500/40 bg-amber-500/5 shadow-[0_0_30px_rgba(245,158,11,0.1)]'
+                : 'border-white/10 bg-white/5'
+              }
+            `}
+          >
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              placeholder="Your email"
+              className="flex-1 px-4 py-3 bg-transparent text-white placeholder:text-white/30 focus:outline-none text-sm"
+              disabled={status !== 'idle'}
+            />
+
+            <motion.button
+              type="submit"
+              disabled={status !== 'idle' || !email}
+              className="px-5 py-3 bg-white text-black font-medium rounded-lg text-sm flex items-center gap-2 disabled:opacity-50 transition-all hover:bg-white/90"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <AnimatePresence mode="wait">
+                {status === 'loading' ? (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0, rotate: 0 }}
+                    animate={{ opacity: 1, rotate: 360 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5, repeat: Infinity }}
+                    className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full"
+                  />
+                ) : status === 'success' ? (
+                  <motion.div
+                    key="success"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                  >
+                    <Check className="w-4 h-4" />
+                  </motion.div>
+                ) : (
+                  <motion.span
+                    key="text"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    Subscribe
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          </motion.div>
+        </form>
+
+        <AnimatePresence>
+          {status === 'success' && (
+            <motion.p
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="text-emerald-400 text-xs mt-3 flex items-center gap-1"
+            >
+              <Star className="w-3 h-3" />
+              Welcome to the inner circle!
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+    </GlassCard>
+  )
+}
+
+// Social link with magnetic effect
+const SocialLink = ({ href, icon: Icon, label }) => {
   const ref = useRef(null)
   const [isHovered, setIsHovered] = useState(false)
-  
+
   const x = useMotionValue(0)
   const y = useMotionValue(0)
-  
-  const springConfig = { damping: 15, stiffness: 150 }
+
+  const springConfig = { damping: 15, stiffness: 200 }
   const xSpring = useSpring(x, springConfig)
   const ySpring = useSpring(y, springConfig)
 
@@ -30,12 +313,8 @@ const MagneticLink = ({ children, href, className = '' }) => {
     const rect = ref.current.getBoundingClientRect()
     const centerX = rect.left + rect.width / 2
     const centerY = rect.top + rect.height / 2
-    
-    const distanceX = e.clientX - centerX
-    const distanceY = e.clientY - centerY
-    
-    x.set(distanceX * 0.3)
-    y.set(distanceY * 0.3)
+    x.set((e.clientX - centerX) * 0.2)
+    y.set((e.clientY - centerY) * 0.2)
   }
 
   const handleMouseLeave = () => {
@@ -50,27 +329,41 @@ const MagneticLink = ({ children, href, className = '' }) => {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative inline-flex items-center gap-2 group ${className}`}
+      className="group relative"
       style={{ x: xSpring, y: ySpring }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
     >
-      {children}
-      <motion.span
-        className="absolute -inset-2 bg-amber-500/10 rounded-lg -z-10"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: isHovered ? 1 : 0, opacity: isHovered ? 1 : 0 }}
-        transition={{ duration: 0.2 }}
-      />
+      <motion.div
+        className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-colors duration-300 group-hover:border-amber-500/30 group-hover:bg-amber-500/5"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <Icon className="w-5 h-5 text-white/40 group-hover:text-amber-400 transition-colors" />
+      </motion.div>
+
+      {/* Tooltip */}
+      <AnimatePresence>
+        {isHovered && (
+          <motion.span
+            initial={{ opacity: 0, y: 5, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 5, scale: 0.9 }}
+            className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-white text-black text-xs font-medium rounded-lg whitespace-nowrap pointer-events-none"
+          >
+            {label}
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45" />
+          </motion.span>
+        )}
+      </AnimatePresence>
     </motion.a>
   )
 }
 
-// Interactive email with copy functionality
-const EmailCopy = () => {
+// Email copy button
+const EmailButton = () => {
   const [copied, setCopied] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
   const email = 'hello@raptorflow.com'
 
   const handleCopy = async () => {
@@ -86,33 +379,21 @@ const EmailCopy = () => {
   return (
     <motion.button
       onClick={handleCopy}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="relative flex items-center gap-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl group overflow-hidden"
+      className="group flex items-center gap-3 px-5 py-3 bg-white/5 border border-white/10 rounded-xl hover:border-amber-500/30 hover:bg-amber-500/5 transition-all duration-300"
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
     >
-      {/* Animated background gradient */}
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20"
-        initial={{ x: '-100%' }}
-        animate={{ x: isHovered ? '100%' : '-100%' }}
-        transition={{ duration: 0.6, ease: 'easeInOut' }}
-      />
-      
-      <Mail className="w-5 h-5 text-amber-400 relative z-10" />
-      <span className="text-white/70 group-hover:text-white transition-colors relative z-10">
+      <Mail className="w-4 h-4 text-amber-400" />
+      <span className="text-white/70 group-hover:text-white transition-colors text-sm">
         {email}
       </span>
-      
       <AnimatePresence mode="wait">
         {copied ? (
           <motion.div
             key="check"
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            exit={{ scale: 0, rotate: 180 }}
-            className="relative z-10"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
           >
             <Check className="w-4 h-4 text-emerald-400" />
           </motion.div>
@@ -122,7 +403,6 @@ const EmailCopy = () => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
-            className="relative z-10"
           >
             <Copy className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors" />
           </motion.div>
@@ -132,7 +412,47 @@ const EmailCopy = () => {
   )
 }
 
-// Animated scroll to top button
+// Animated logo
+const AnimatedLogo = () => {
+  const [isHovered, setIsHovered] = useState(false)
+
+  return (
+    <motion.a
+      href="/"
+      className="flex items-center gap-3"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <motion.div
+        className="relative w-11 h-11 bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 rounded-xl flex items-center justify-center overflow-hidden"
+        animate={{
+          rotate: isHovered ? [0, -5, 5, 0] : 0,
+          scale: isHovered ? 1.05 : 1
+        }}
+        transition={{ duration: 0.4 }}
+      >
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent"
+          animate={{ opacity: isHovered ? 0.3 : 0 }}
+        />
+        <span className="text-black font-bold text-lg relative z-10">Rf</span>
+      </motion.div>
+      <div className="text-2xl text-white font-light tracking-tight">
+        Raptor<motion.span
+          className="italic font-normal"
+          animate={{
+            color: isHovered ? '#fcd34d' : '#fde68a'
+          }}
+          transition={{ duration: 0.3 }}
+        >
+          flow
+        </motion.span>
+      </div>
+    </motion.a>
+  )
+}
+
+// Scroll to top
 const ScrollToTop = () => {
   const [isVisible, setIsVisible] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -141,9 +461,7 @@ const ScrollToTop = () => {
     const handleScroll = () => {
       const scrollTop = window.scrollY
       const docHeight = document.documentElement.scrollHeight - window.innerHeight
-      const scrollPercent = scrollTop / docHeight
-      
-      setProgress(scrollPercent)
+      setProgress(scrollTop / docHeight)
       setIsVisible(scrollTop > 500)
     }
 
@@ -165,22 +483,21 @@ const ScrollToTop = () => {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 w-12 h-12 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center group"
+          className="fixed bottom-8 right-8 z-50 w-14 h-14 rounded-full bg-zinc-900/90 backdrop-blur-xl border border-white/10 flex items-center justify-center group shadow-2xl"
         >
-          {/* Progress ring */}
           <svg className="absolute inset-0 w-full h-full -rotate-90">
             <circle
-              cx="24"
-              cy="24"
-              r="22"
+              cx="28"
+              cy="28"
+              r="26"
               fill="none"
-              stroke="rgba(245, 158, 11, 0.2)"
+              stroke="rgba(245, 158, 11, 0.15)"
               strokeWidth="2"
             />
             <motion.circle
-              cx="24"
-              cy="24"
-              r="22"
+              cx="28"
+              cy="28"
+              r="26"
               fill="none"
               stroke="rgb(245, 158, 11)"
               strokeWidth="2"
@@ -191,9 +508,9 @@ const ScrollToTop = () => {
               }}
             />
           </svg>
-          
+
           <motion.div
-            animate={{ y: [0, -3, 0] }}
+            animate={{ y: [0, -2, 0] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           >
             <ChevronUp className="w-5 h-5 text-white/60 group-hover:text-amber-400 transition-colors" />
@@ -204,337 +521,159 @@ const ScrollToTop = () => {
   )
 }
 
-// Social link with ripple effect
-const SocialLink = ({ href, icon: Icon, label }) => {
-  const [ripples, setRipples] = useState([])
-
-  const handleClick = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    
-    const newRipple = { x, y, id: Date.now() }
-    setRipples(prev => [...prev, newRipple])
-    
-    setTimeout(() => {
-      setRipples(prev => prev.filter(r => r.id !== newRipple.id))
-    }, 600)
-  }
-
-  return (
-    <motion.a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={handleClick}
-      className="relative w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden group"
-      whileHover={{ scale: 1.1, borderColor: 'rgba(245, 158, 11, 0.3)' }}
-      whileTap={{ scale: 0.95 }}
-    >
-      {/* Ripples */}
-      {ripples.map(ripple => (
-        <motion.span
-          key={ripple.id}
-          className="absolute bg-amber-500/30 rounded-full pointer-events-none"
-          initial={{ width: 0, height: 0, x: ripple.x, y: ripple.y, opacity: 1 }}
-          animate={{ width: 100, height: 100, x: ripple.x - 50, y: ripple.y - 50, opacity: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-        />
-      ))}
-      
-      <Icon className="w-5 h-5 text-white/50 group-hover:text-amber-400 transition-colors relative z-10" />
-      
-      {/* Tooltip */}
-      <motion.span
-        className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-zinc-800 text-white text-xs rounded whitespace-nowrap pointer-events-none"
-        initial={{ opacity: 0, y: 5 }}
-        whileHover={{ opacity: 1, y: 0 }}
-      >
-        {label}
-      </motion.span>
-    </motion.a>
-  )
-}
-
-// Newsletter signup with animation
-const NewsletterSignup = () => {
-  const [email, setEmail] = useState('')
-  const [status, setStatus] = useState('idle') // idle, loading, success, error
-  const [isFocused, setIsFocused] = useState(false)
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!email) return
-    
-    setStatus('loading')
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    setStatus('success')
-    setEmail('')
-    
-    setTimeout(() => setStatus('idle'), 3000)
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="relative">
-      <motion.div
-        className={`
-          relative flex items-center gap-2 p-1.5 rounded-xl border transition-colors
-          ${isFocused ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/10 bg-white/5'}
-        `}
-        animate={{
-          boxShadow: isFocused ? '0 0 20px rgba(245, 158, 11, 0.1)' : '0 0 0px rgba(245, 158, 11, 0)'
-        }}
-      >
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          placeholder="Enter your email"
-          className="flex-1 px-4 py-2.5 bg-transparent text-white placeholder:text-white/30 focus:outline-none text-sm"
-          disabled={status === 'loading' || status === 'success'}
-        />
-        
-        <motion.button
-          type="submit"
-          disabled={status === 'loading' || status === 'success' || !email}
-          className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-medium rounded-lg text-sm flex items-center gap-2 disabled:opacity-50 transition-colors"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <AnimatePresence mode="wait">
-            {status === 'loading' ? (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0 }}
-                className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"
-              />
-            ) : status === 'success' ? (
-              <motion.div
-                key="success"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0 }}
-              >
-                <Check className="w-4 h-4" />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="send"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0 }}
-              >
-                <Send className="w-4 h-4" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <span>{status === 'success' ? 'Subscribed!' : 'Subscribe'}</span>
-        </motion.button>
-      </motion.div>
-      
-      {/* Success message */}
-      <AnimatePresence>
-        {status === 'success' && (
-          <motion.p
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute -bottom-6 left-0 text-emerald-400 text-xs flex items-center gap-1"
-          >
-            <Sparkles className="w-3 h-3" />
-            Welcome to the inner circle!
-          </motion.p>
-        )}
-      </AnimatePresence>
-    </form>
-  )
-}
-
-// Animated logo
-const AnimatedLogo = () => {
-  const [isHovered, setIsHovered] = useState(false)
-
-  return (
-    <motion.div
-      className="flex items-center gap-3 cursor-pointer"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <motion.div 
-        className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex items-center justify-center"
-        animate={{ 
-          rotate: isHovered ? [0, -10, 10, -5, 5, 0] : 0,
-          scale: isHovered ? 1.1 : 1
-        }}
-        transition={{ duration: 0.5 }}
-      >
-        <span className="text-black font-bold">Rf</span>
-      </motion.div>
-      <div className="text-2xl text-white font-light tracking-tight">
-        Raptor<motion.span 
-          className="italic text-amber-200"
-          animate={{ 
-            textShadow: isHovered ? '0 0 20px rgba(245, 158, 11, 0.5)' : '0 0 0px rgba(245, 158, 11, 0)' 
-          }}
-        >
-          flow
-        </motion.span>
-      </div>
-    </motion.div>
-  )
-}
-
 // Main Footer component
 const Footer = () => {
   const currentYear = new Date().getFullYear()
-  
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-100px' })
+
   const footerLinks = {
     product: [
       { name: 'Features', href: '#features' },
-      { name: 'Pricing', href: '#pricing' },
-      { name: 'Radar', href: '#radar' },
-      { name: 'Cohorts', href: '#cohorts' },
+      { name: 'Pricing', href: '/pricing' },
+      { name: 'How it Works', href: '#how-it-works' },
+      { name: 'Manifesto', href: '/manifesto' },
     ],
     company: [
       { name: 'About', href: '/about' },
-      { name: 'Blog', href: '/blog' },
+      { name: 'Blog', href: '/blog', external: true },
       { name: 'Careers', href: '/careers' },
       { name: 'Contact', href: '/contact' },
     ],
     legal: [
-      { name: 'Privacy', href: '/privacy' },
-      { name: 'Terms', href: '/terms' },
-      { name: 'Refunds', href: '/refunds' },
+      { name: 'Privacy Policy', href: '/privacy' },
+      { name: 'Terms of Service', href: '/terms' },
+      { name: 'Refund Policy', href: '/refunds' },
     ]
   }
 
   return (
     <>
       <ScrollToTop />
-      
-      <footer className="relative bg-black border-t border-white/5 overflow-hidden">
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div
-            className="absolute -top-1/2 left-1/4 w-[600px] h-[600px] bg-gradient-radial from-amber-900/10 via-transparent to-transparent"
-            animate={{
-              x: [0, 50, 0],
-              y: [0, 30, 0],
-            }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-          />
-          <motion.div
-            className="absolute -bottom-1/2 right-1/4 w-[400px] h-[400px] bg-gradient-radial from-amber-800/5 via-transparent to-transparent"
-            animate={{
-              x: [0, -30, 0],
-              y: [0, -50, 0],
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-          />
-        </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
-          {/* Top section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-            {/* Left - Brand & Newsletter */}
-            <div className="space-y-8">
-              <AnimatedLogo />
-              
-              <p className="text-white/50 max-w-md leading-relaxed">
-                The AI-first marketing operating system for founders who refuse to guess. 
-                Build strategy, not spreadsheets.
-              </p>
-              
-              <div className="space-y-3">
-                <p className="text-white/70 text-sm font-medium">Join the insider list</p>
-                <NewsletterSignup />
-              </div>
-            </div>
+      <footer ref={ref} className="relative bg-[#050505] overflow-hidden">
+        {/* Background elements */}
+        <FloatingOrbs />
+        <NoiseOverlay />
 
-            {/* Right - Links */}
-            <div className="grid grid-cols-3 gap-8">
-              <div>
-                <h4 className="text-white font-medium mb-4">Product</h4>
-                <ul className="space-y-3">
-                  {footerLinks.product.map((link) => (
-                    <li key={link.name}>
-                      <MagneticLink href={link.href} className="text-white/40 hover:text-amber-400 text-sm transition-colors">
-                        {link.name}
-                      </MagneticLink>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div>
-                <h4 className="text-white font-medium mb-4">Company</h4>
-                <ul className="space-y-3">
-                  {footerLinks.company.map((link) => (
-                    <li key={link.name}>
-                      <MagneticLink href={link.href} className="text-white/40 hover:text-amber-400 text-sm transition-colors">
-                        {link.name}
-                      </MagneticLink>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div>
-                <h4 className="text-white font-medium mb-4">Legal</h4>
-                <ul className="space-y-3">
-                  {footerLinks.legal.map((link) => (
-                    <li key={link.name}>
-                      <MagneticLink href={link.href} className="text-white/40 hover:text-amber-400 text-sm transition-colors">
-                        {link.name}
-                      </MagneticLink>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+        {/* Top gradient line */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+        <div className="relative z-10">
+          {/* Statement section */}
+          <div className="max-w-7xl mx-auto px-6 pt-24 pb-8">
+            <FooterStatement />
           </div>
 
-          {/* Middle section - Contact & Social */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 py-8 border-y border-white/5">
-            <EmailCopy />
-            
-            <div className="flex items-center gap-3">
-              <SocialLink href="https://twitter.com/raptorflow" icon={Twitter} label="Twitter" />
-              <SocialLink href="https://linkedin.com/company/raptorflow" icon={Linkedin} label="LinkedIn" />
-            </div>
-          </div>
-
-          {/* Bottom section */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8">
-            <motion.p 
-              className="text-white/30 text-sm flex items-center gap-1"
-              whileHover={{ color: 'rgba(255,255,255,0.5)' }}
+          {/* Main content */}
+          <div className="max-w-7xl mx-auto px-6 pb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+              transition={{ duration: 0.8 }}
+              className="grid grid-cols-1 lg:grid-cols-12 gap-12"
             >
-              © {currentYear} Raptorflow. Made with 
-              <motion.span
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
+              {/* Left - Brand, Newsletter */}
+              <div className="lg:col-span-5 space-y-8">
+                <AnimatedLogo />
+
+                <p className="text-white/40 max-w-sm leading-relaxed">
+                  The AI-first marketing operating system for founders who refuse to guess.
+                  Build strategy, not spreadsheets.
+                </p>
+
+                <PremiumNewsletter />
+              </div>
+
+              {/* Right - Links Grid */}
+              <div className="lg:col-span-7">
+                <div className="grid grid-cols-3 gap-8">
+                  <div>
+                    <h4 className="text-white/80 font-medium mb-6 text-sm uppercase tracking-wider">Product</h4>
+                    <ul className="space-y-4">
+                      {footerLinks.product.map((link) => (
+                        <li key={link.name}>
+                          <FooterLink href={link.href} external={link.external}>
+                            {link.name}
+                          </FooterLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="text-white/80 font-medium mb-6 text-sm uppercase tracking-wider">Company</h4>
+                    <ul className="space-y-4">
+                      {footerLinks.company.map((link) => (
+                        <li key={link.name}>
+                          <FooterLink href={link.href} external={link.external}>
+                            {link.name}
+                          </FooterLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="text-white/80 font-medium mb-6 text-sm uppercase tracking-wider">Legal</h4>
+                    <ul className="space-y-4">
+                      {footerLinks.legal.map((link) => (
+                        <li key={link.name}>
+                          <FooterLink href={link.href}>
+                            {link.name}
+                          </FooterLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="border-t border-white/5">
+            <div className="max-w-7xl mx-auto px-6 py-6">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="flex flex-col md:flex-row items-center justify-between gap-6"
               >
-                <Heart className="w-3 h-3 text-red-400 fill-red-400 inline mx-1" />
-              </motion.span>
-              in India.
-            </motion.p>
-            
-            <motion.p 
-              className="text-white/20 text-xs"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              Building the future of marketing, one founder at a time.
-            </motion.p>
+                {/* Left - Contact */}
+                <div className="flex items-center gap-4">
+                  <EmailButton />
+
+                  <div className="flex items-center gap-2">
+                    <SocialLink href="https://twitter.com/raptorflow" icon={Twitter} label="Twitter" />
+                    <SocialLink href="https://linkedin.com/company/raptorflow" icon={Linkedin} label="LinkedIn" />
+                  </div>
+                </div>
+
+                {/* Right - Copyright */}
+                <div className="flex flex-col md:flex-row items-center gap-4 text-sm">
+                  <motion.p
+                    className="text-white/30 flex items-center gap-1"
+                    whileHover={{ color: 'rgba(255,255,255,0.5)' }}
+                  >
+                    © {currentYear} Raptorflow. Crafted with
+                    <motion.span
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 1.2, repeat: Infinity }}
+                    >
+                      <Heart className="w-3.5 h-3.5 text-red-400 fill-red-400 mx-0.5" />
+                    </motion.span>
+                    in India
+                  </motion.p>
+
+                  <span className="hidden md:block text-white/10">•</span>
+
+                  <p className="text-white/20 text-xs">
+                    Building legendary brands, one founder at a time.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
           </div>
         </div>
       </footer>

@@ -12,7 +12,7 @@ const router = Router();
 const PHONEPE_CONFIG = {
   merchantId: env.PHONEPE_MERCHANT_ID || '',
   saltKey: env.PHONEPE_SALT_KEY || '',
-  saltIndex: '1',
+  saltIndex: env.PHONEPE_SALT_INDEX || '1',
   env: (env.PHONEPE_ENV || 'UAT') as 'UAT' | 'PRODUCTION',
   // API Endpoints
   get payEndpoint() {
@@ -128,6 +128,7 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
 
     // Frontend URL for redirect
     const frontendUrl = env.FRONTEND_PUBLIC_URL || 'http://localhost:5173';
+    const backendUrl = env.BACKEND_PUBLIC_URL || 'http://localhost:3001';
 
     // Build PhonePe payload
     const payload = {
@@ -137,7 +138,7 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
       amount: planDetails.price, // Amount in paise
       redirectUrl: `${frontendUrl}/payment/callback?txnId=${txnId}`,
       redirectMode: 'REDIRECT',
-      callbackUrl: `${frontendUrl}/api/payments/webhook`, // Server callback
+      callbackUrl: `${backendUrl}/api/payments/webhook`, // Server callback
       mobileNumber: phone || '',
       paymentInstrument: {
         type: 'PAY_PAGE'
@@ -229,6 +230,19 @@ router.post('/webhook', async (req: Request, res: Response) => {
 
     if (!encodedResponse) {
       return res.status(400).json({ error: 'Missing response payload' });
+    }
+
+    if (!PHONEPE_CONFIG.saltKey || !PHONEPE_CONFIG.merchantId) {
+      return res.status(500).json({ error: 'Payment gateway not configured' });
+    }
+
+    if (!xVerify) {
+      return res.status(401).json({ error: 'Missing verification header' });
+    }
+
+    if (!verifyChecksum(encodedResponse, xVerify)) {
+      console.error('Invalid webhook checksum', { received: xVerify });
+      return res.status(401).json({ error: 'Invalid signature' });
     }
 
     // Decode the response
@@ -417,12 +431,15 @@ router.post('/verify', verifyToken, async (req: Request, res: Response) => {
       });
     }
 
+    if (!PHONEPE_CONFIG.merchantId || !PHONEPE_CONFIG.saltKey) {
+      return res.status(500).json({ error: 'Payment gateway not configured' });
+    }
+
     // For real payments, check with PhonePe
     if (PHONEPE_CONFIG.merchantId && PHONEPE_CONFIG.saltKey) {
       try {
         const statusUrl = `${PHONEPE_CONFIG.statusEndpoint}/${PHONEPE_CONFIG.merchantId}/${txnId}`;
-        const stringToHash = `/pg/v1/status/${PHONEPE_CONFIG.merchantId}/${txnId}${PHONEPE_CONFIG.saltKey}`;
-        const checksum = crypto.createHash('sha256').update(stringToHash).digest('hex') + '###' + PHONEPE_CONFIG.saltIndex;
+        const checksum = generateChecksum('', `/pg/v1/status/${PHONEPE_CONFIG.merchantId}/${txnId}`);
 
         const response = await fetch(statusUrl, {
           method: 'GET',

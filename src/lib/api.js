@@ -6,7 +6,7 @@
 import { supabase } from './supabase';
 
 // API Base URL - uses Vite proxy in development, direct URL in production
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_API_URL || '/api';
 
 /**
  * Get the current auth token

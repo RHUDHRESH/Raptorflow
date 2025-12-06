@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
-import { Check, Sparkles, Users, Clock, Zap, Shield, ArrowRight } from 'lucide-react'
+import { Check, Sparkle, Users, Clock, Lightning, ShieldCheck, ArrowRight } from '@phosphor-icons/react'
+
 
 // 3D tilt card effect
 const PricingCard = ({ plan, index, onSelect }) => {
@@ -50,27 +51,27 @@ const PricingCard = ({ plan, index, onSelect }) => {
       {/* Card */}
       <div className={`
         relative h-full p-8 lg:p-10 rounded-2xl border transition-all duration-300
-        ${plan.highlighted 
-          ? 'bg-gradient-to-b from-amber-950/50 to-zinc-900/90 border-amber-500/30' 
+        ${plan.highlighted
+          ? 'bg-gradient-to-b from-amber-950/50 to-zinc-900/90 border-amber-500/30'
           : 'bg-zinc-900/70 border-white/[0.05] hover:border-white/10'
         }
       `}>
-        
+
         {/* Badge */}
         {plan.badge && (
-          <motion.div 
+          <motion.div
             className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-black text-[10px] uppercase tracking-wider font-semibold rounded-full shadow-lg shadow-amber-500/30"
             animate={{ y: isHovered ? -2 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <Sparkles className="w-3 h-3 inline mr-1" />
+            <Sparkle weight="fill" className="w-3 h-3 inline mr-1" />
             {plan.badge}
           </motion.div>
         )}
 
         {/* Hover glow overlay */}
-        <motion.div 
-          className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" 
+        <motion.div
+          className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
         />
 
         {/* Plan header */}
@@ -83,7 +84,7 @@ const PricingCard = ({ plan, index, onSelect }) => {
         <div className="relative z-10 mb-2">
           <div className="flex items-baseline gap-1">
             <span className="text-sm text-white/40">₹</span>
-            <motion.span 
+            <motion.span
               className="text-5xl font-light text-white tracking-tight"
               animate={{ scale: isHovered ? 1.02 : 1 }}
               transition={{ duration: 0.2 }}
@@ -92,7 +93,7 @@ const PricingCard = ({ plan, index, onSelect }) => {
             </motion.span>
           </div>
         </div>
-        
+
         {/* Period with icon */}
         <div className="relative z-10 flex items-center gap-2 mb-6">
           <Clock className="w-3.5 h-3.5 text-white/30" />
@@ -100,7 +101,7 @@ const PricingCard = ({ plan, index, onSelect }) => {
         </div>
 
         {/* Cohort limit highlight */}
-        <motion.div 
+        <motion.div
           className={`relative z-10 mb-6 p-3 rounded-xl border ${plan.highlighted ? 'bg-amber-500/10 border-amber-500/20' : 'bg-white/5 border-white/5'}`}
           whileHover={{ scale: 1.02 }}
         >
@@ -123,8 +124,8 @@ const PricingCard = ({ plan, index, onSelect }) => {
         {/* Features */}
         <ul className="relative z-10 space-y-3 mb-8">
           {plan.features.map((feature, i) => (
-            <motion.li 
-              key={i} 
+            <motion.li
+              key={i}
               className="flex items-start gap-3"
               initial={{ opacity: 0, x: -10 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -160,7 +161,7 @@ const PricingCard = ({ plan, index, onSelect }) => {
             whileHover={{ x: '100%' }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
           />
-          
+
           <span className="relative z-10">Start with {plan.name}</span>
           <ArrowRight className="w-4 h-4 relative z-10 group-hover/btn:translate-x-1 transition-transform" />
         </motion.button>
@@ -243,7 +244,7 @@ const Pricing = () => {
       </div>
 
       {/* Grid pattern */}
-      <div 
+      <div
         className="absolute inset-0 opacity-[0.02]"
         style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
@@ -252,7 +253,7 @@ const Pricing = () => {
       />
 
       <div className="max-w-6xl mx-auto px-6 relative z-10">
-        
+
         {/* Header */}
         <div className="text-center mb-20">
           <motion.span
@@ -261,10 +262,10 @@ const Pricing = () => {
             viewport={{ once: true }}
             className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-[10px] uppercase tracking-[0.3em] text-amber-400/80 mb-6"
           >
-            <Zap className="w-3 h-3" />
+            <Lightning weight="fill" className="w-3 h-3" />
             Investment
           </motion.span>
-          
+
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -275,7 +276,7 @@ const Pricing = () => {
             Choose your
             <span className="italic font-normal text-amber-200"> trajectory</span>
           </motion.h2>
-          
+
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -290,7 +291,7 @@ const Pricing = () => {
         {/* Plans */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-4">
           {plans.map((plan, index) => (
-            <PricingCard 
+            <PricingCard
               key={plan.name}
               plan={plan}
               index={index}
@@ -309,15 +310,15 @@ const Pricing = () => {
           {/* Trust badges */}
           <div className="flex flex-wrap items-center justify-center gap-6 mb-8">
             <div className="flex items-center gap-2 text-white/30 text-sm">
-              <Shield className="w-4 h-4 text-emerald-400" />
+              <ShieldCheck weight="duotone" className="w-4 h-4 text-emerald-400" />
               <span>Secured by PhonePe</span>
             </div>
             <div className="flex items-center gap-2 text-white/30 text-sm">
-              <Clock className="w-4 h-4 text-amber-400" />
+              <Clock weight="duotone" className="w-4 h-4 text-amber-400" />
               <span>30-day access</span>
             </div>
             <div className="flex items-center gap-2 text-white/30 text-sm">
-              <Sparkles className="w-4 h-4 text-blue-400" />
+              <Sparkle weight="fill" className="w-4 h-4 text-blue-400" />
               <span>GST included</span>
             </div>
           </div>
