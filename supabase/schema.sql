@@ -1054,17 +1054,17 @@ $$ LANGUAGE plpgsql;
 
 -- Insert plans
 INSERT INTO public.plans (code, name, description, price_monthly_paise, price_yearly_paise, cohort_limit, member_limit, storage_limit_mb, features, is_featured, sort_order) VALUES
-('free', 'Free', 'Get started for free', 0, 0, 1, 1, 100, 
-  '["1 cohort", "1 member", "100MB storage", "Basic analytics"]', 
+('free', 'Free', 'Get started for free', 0, 0, 1, 1, 100,
+  '["1 cohort", "1 member", "100MB storage", "Basic analytics"]',
   false, 0),
-('starter', 'Starter', 'For small teams', 350000, 3500000, 5, 3, 1000, 
-  '["5 cohorts", "3 members", "1GB storage", "Email support", "Basic integrations"]', 
+('starter', 'Starter', 'For small teams', 500000, 5000000, 5, 3, 1000,
+  '["5 cohorts", "3 members", "1GB storage", "Email support", "Basic integrations"]',
   false, 1),
-('growth', 'Growth', 'For growing businesses', 700000, 7000000, 20, 10, 10000, 
-  '["20 cohorts", "10 members", "10GB storage", "Priority support", "All integrations", "API access"]', 
+('growth', 'Growth', 'For growing businesses', 700000, 7000000, 20, 10, 10000,
+  '["20 cohorts", "10 members", "10GB storage", "Priority support", "All integrations", "API access"]',
   true, 2),
-('enterprise', 'Enterprise', 'For large organizations', 1500000, 15000000, 100, 50, 100000, 
-  '["Unlimited cohorts", "50 members", "100GB storage", "Dedicated support", "Custom integrations", "SSO", "Audit logs"]', 
+('enterprise', 'Enterprise', 'For large organizations', 1000000, 10000000, 100, 50, 100000,
+  '["Unlimited cohorts", "50 members", "100GB storage", "Dedicated support", "Custom integrations", "SSO", "Audit logs"]',
   false, 3)
 ON CONFLICT (code) DO UPDATE SET
   price_monthly_paise = EXCLUDED.price_monthly_paise,
