@@ -35,6 +35,8 @@ const PLANS: Record<string, { price: number; name: string; cohorts: number; dura
   soar: { price: 1000000, name: 'Soar', cohorts: 10, durationDays: 30 }         // ₹10,000
 };
 
+const formatPrice = (paise: number) => `INR ${(paise / 100).toLocaleString('en-IN')}`;
+
 /**
  * Generate PhonePe checksum
  * Formula: SHA256(base64Payload + "/pg/v1/pay" + saltKey) + "###" + saltIndex
@@ -86,7 +88,7 @@ router.get('/plans', (req: Request, res: Response) => {
     id,
     name: plan.name,
     price: plan.price,
-    priceDisplay: `₹${(plan.price / 100).toLocaleString('en-IN')}`,
+    priceDisplay: formatPrice(plan.price),
     cohorts: plan.cohorts
   }));
   
@@ -171,12 +173,12 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
         if (data.success && data.data?.instrumentResponse?.redirectInfo?.url) {
           return res.json({
             success: true,
-            txnId,
-            paymentUrl: data.data.instrumentResponse.redirectInfo.url,
-            amount: planDetails.price,
-            amountDisplay: `₹${(planDetails.price / 100).toLocaleString('en-IN')}`,
-            plan: planDetails.name
-          });
+           txnId,
+           paymentUrl: data.data.instrumentResponse.redirectInfo.url,
+           amount: planDetails.price,
+           amountDisplay: formatPrice(planDetails.price),
+           plan: planDetails.name
+         });
         }
 
         // If PhonePe returns an error
@@ -206,7 +208,7 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
       txnId,
       paymentUrl: `${frontendUrl}/payment/callback?txnId=${txnId}&mock=true`,
       amount: planDetails.price,
-      amountDisplay: `₹${(planDetails.price / 100).toLocaleString('en-IN')}`,
+      amountDisplay: formatPrice(planDetails.price),
       plan: planDetails.name,
       mock: true
     });
@@ -314,15 +316,20 @@ router.post('/webhook', async (req: Request, res: Response) => {
  * GET /api/payments/status/:txnId
  * Check payment status
  */
-router.get('/status/:txnId', async (req: Request, res: Response) => {
+router.get('/status/:txnId', verifyToken, async (req: Request, res: Response) => {
   try {
     const { txnId } = req.params;
+    const userId = (req as any).user.id;
 
     // Get from database first
     const { data: payment, error } = await db.getPayment(txnId);
 
     if (error || !payment) {
       return res.status(404).json({ error: 'Payment not found' });
+    }
+
+    if (payment.user_id !== userId) {
+      return res.status(403).json({ error: 'Unauthorized' });
     }
 
     // If payment is not completed and we have PhonePe credentials, check with PhonePe

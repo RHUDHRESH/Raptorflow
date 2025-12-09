@@ -1,25 +1,31 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const Preloader = ({ onComplete }) => {
   const [progress, setProgress] = useState(0)
   const [phase, setPhase] = useState('loading') // loading, complete
+  const onCompleteRef = useRef(onComplete)
+  const hasCompletedRef = useRef(false)
+
+  // Keep the ref updated
+  useEffect(() => {
+    onCompleteRef.current = onComplete
+  }, [onComplete])
 
   useEffect(() => {
-    const duration = 2000  // Safe timing for React StrictMode
+    const duration = 2000  // 2 second animation
     const interval = 30
     const steps = duration / interval
     const increment = 100 / steps
 
     let current = 0
-    let completed = false
 
     const complete = () => {
-      if (completed) return
-      completed = true
+      if (hasCompletedRef.current) return
+      hasCompletedRef.current = true
       setProgress(100)
       setPhase('complete')
-      setTimeout(onComplete, 600)
+      setTimeout(() => onCompleteRef.current?.(), 600)
     }
 
     const timer = setInterval(() => {
@@ -42,7 +48,7 @@ const Preloader = ({ onComplete }) => {
       clearInterval(timer)
       clearTimeout(safetyTimeout)
     }
-  }, [onComplete])
+  }, []) // Empty dependency array - run only once
 
   return (
     <AnimatePresence>
