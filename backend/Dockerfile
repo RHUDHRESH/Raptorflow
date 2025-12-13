@@ -3,7 +3,7 @@
 # =====================================================
 
 # Multi-stage build for optimal image size and security
-FROM node:20-alpine AS base
+FROM node:25-alpine AS base
 
 # Install security updates and required packages
 RUN apk update && apk upgrade && \
