@@ -58,7 +58,7 @@ resource "aws_kms_alias" "main" {
 
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0"
+  version = "~> 6.5"
 
   name = "raptorflow-${var.environment}"
   cidr = "10.0.0.0/16"
