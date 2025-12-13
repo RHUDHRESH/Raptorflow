@@ -254,7 +254,7 @@ jobs:
           # npx artillery run performance-test.yml || echo "Performance tests not configured"
 
       - name: Upload performance results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: performance-results
           path: backend/performance-results.json
