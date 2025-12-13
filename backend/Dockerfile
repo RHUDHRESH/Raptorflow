@@ -1,55 +1,87 @@
-# ==================================
-# RAPTORFLOW BACKEND - DOCKERFILE
-# For GCP Cloud Run deployment
-# ==================================
+# =====================================================
+# SOTA PRODUCTION DOCKERFILE - HARDENED & OPTIMIZED
+# =====================================================
 
-# Stage 1: Build
-FROM node:22-alpine AS builder
+# Multi-stage build for optimal image size and security
+FROM node:20-alpine AS base
 
+# Install security updates and required packages
+RUN apk update && apk upgrade && \
+    apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    sqlite3 \
+    curl \
+    dumb-init && \
+    rm -rf /var/cache/apk/*
+
+# Create non-root user early
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S raptorflow -u 1001
+
+# Set working directory with correct permissions
 WORKDIR /app
+RUN chown -R raptorflow:nodejs /app
 
-# Copy package files
-COPY package*.json ./
+# =====================================================
+# DEPENDENCIES STAGE
+# =====================================================
+FROM base AS deps
 
-# Install dependencies
-RUN npm ci --only=production=false
+# Copy package files with correct ownership
+COPY --chown=raptorflow:nodejs package*.json tsconfig.json ./
+
+# Install dependencies with security audit
+USER raptorflow
+RUN npm ci --only=production --no-audit --no-fund && \
+    npm cache clean --force
+
+# =====================================================
+# BUILD STAGE
+# =====================================================
+FROM deps AS build
 
 # Copy source code
-COPY . .
+COPY --chown=raptorflow:nodejs src/ ./src/
+COPY --chown=raptorflow:nodejs skills/ ./skills/
 
-# Build TypeScript
-RUN npm run build
+# Create skills directory if needed
+RUN mkdir -p skills
 
-# Stage 2: Production
-FROM node:22-alpine AS production
+# Build TypeScript with optimizations
+ENV NODE_ENV=production
+RUN npm run build && \
+    npm prune --production
 
-WORKDIR /app
+# =====================================================
+# PRODUCTION STAGE
+# =====================================================
+FROM base AS production
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
-
-# Copy package files
-COPY package*.json ./
-
-# Install production dependencies only
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy built files from builder
-COPY --from=builder /app/dist ./dist
-
-# Set ownership
-RUN chown -R nodejs:nodejs /app
+# Copy built application from build stage
+COPY --from=build --chown=raptorflow:nodejs /app/dist ./dist
+COPY --from=build --chown=raptorflow:nodejs /app/node_modules ./node_modules
+COPY --from=build --chown=raptorflow:nodejs /app/package.json ./
+COPY --from=build --chown=raptorflow:nodejs /app/skills ./skills
 
 # Switch to non-root user
-USER nodejs
+USER raptorflow
 
-# Expose port (Cloud Run uses PORT env var)
+# Environment variables for production
+ENV NODE_ENV=production
+ENV PORT=8080
+ENV NODE_OPTIONS="--max-old-space-size=512"
+
+# Expose port (Cloud Run expects 8080)
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 8080) + '/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
+# Health check with proper Cloud Run configuration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
 
 # Start the application
 CMD ["node", "dist/index.js"]

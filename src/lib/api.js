@@ -189,6 +189,60 @@ export const sharedAPI = {
   },
 };
 
+// ============ MUSE API ============
+
+export const museAPI = {
+  /**
+   * Generate a new asset using Muse AI
+   */
+  async generateAsset(assetType, icpId = null, options = {}) {
+    return apiRequest('/muse/generate', {
+      method: 'POST',
+      body: JSON.stringify({
+        asset_type: assetType,
+        icp_id: icpId,
+        ...options,
+      }),
+    });
+  },
+
+  /**
+   * Get the status of an asset generation job
+   */
+  async getGenerationStatus(jobId) {
+    return apiRequest(`/muse/generate/${jobId}`);
+  },
+
+  /**
+   * Generate a PDF from asset content
+   */
+  async generatePDF(content, title, assetType, metadata = {}) {
+    return apiRequest('/muse/pdf/generate', {
+      method: 'POST',
+      body: JSON.stringify({
+        content,
+        title,
+        assetType,
+        metadata,
+      }),
+    });
+  },
+
+  /**
+   * Get list of available agents (for future use)
+   */
+  async getAgents() {
+    return apiRequest('/muse/agents');
+  },
+
+  /**
+   * Get agent capabilities (for future use)
+   */
+  async getCapabilities() {
+    return apiRequest('/muse/capabilities');
+  },
+};
+
 // ============ HEALTH CHECK ============
 
 export async function checkAPIHealth() {
@@ -206,6 +260,7 @@ export default {
   onboarding: onboardingAPI,
   payments: paymentsAPI,
   shared: sharedAPI,
+  muse: museAPI,
   checkHealth: checkAPIHealth,
 };
 

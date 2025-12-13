@@ -1,6 +1,7 @@
 import { VertexAI, GenerativeModel } from '@google-cloud/vertexai';
 import { ChatVertexAI } from "@langchain/google-vertexai";
 import { env } from '../config/env';
+import { llmService, CostAwareRequest } from '../services/llmService';
 
 // =====================================================
 // TIERED MODEL SYSTEM
@@ -198,7 +199,7 @@ export const getAvailableModels = () => ({
 export const getAgentInfo = (agentName: string) => {
   const taskType = AGENT_TASK_TYPES[agentName];
   if (!taskType) return null;
-  
+
   return {
     name: agentName,
     taskType,
@@ -206,6 +207,40 @@ export const getAgentInfo = (agentName: string) => {
     temperature: TIER_TEMPERATURES[taskType],
     maxTokens: TIER_MAX_TOKENS[taskType]
   };
+};
+
+/**
+ * Cost-optimized LLM generation with automatic model selection
+ */
+export const generateWithCostControl = async (request: CostAwareRequest) => {
+  return await llmService.generate(request);
+};
+
+/**
+ * Batch generate multiple requests efficiently
+ */
+export const generateBatchWithCostControl = async (requests: CostAwareRequest[]) => {
+  const batchRequests = requests.map((req, index) => ({
+    ...req,
+    batchId: `batch_${Date.now()}`,
+    batchSize: requests.length
+  }));
+
+  return await llmService.generateBatch(batchRequests);
+};
+
+/**
+ * Check if a request would exceed budget before executing
+ */
+export const checkLLMBudget = async (request: CostAwareRequest) => {
+  return await llmService.checkBudget(request);
+};
+
+/**
+ * Get LLM cost metrics and analytics
+ */
+export const getLLMCostMetrics = async (hours: number = 24) => {
+  return await llmService.getCostMetrics(hours);
 };
 
 /**

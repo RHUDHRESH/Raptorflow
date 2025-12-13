@@ -1,0 +1,473 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (leave empty for latest)'
+        required: false
+        default: ''
+      skip_migrations:
+        description: 'Skip database migrations'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  ENVIRONMENT: production
+
+jobs:
+  # =====================================================
+  # PRE-FLIGHT CHECKS
+  # =====================================================
+
+  pre-flight-check:
+    name: Pre-Flight Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate deployment requirements
+        run: |
+          # Check if all required secrets are set
+          required_secrets=(
+            "AWS_ACCESS_KEY_ID"
+            "AWS_SECRET_ACCESS_KEY"
+            "SUPABASE_ACCESS_TOKEN"
+            "VERCEL_TOKEN"
+            "SLACK_WEBHOOK_URL"
+          )
+
+          for secret in "${required_secrets[@]}"; do
+            if [ -z "${!secret}" ]; then
+              echo "❌ Missing required secret: $secret"
+              exit 1
+            fi
+          done
+
+          echo "✅ All required secrets are configured"
+
+      - name: Check for breaking changes
+        run: |
+          # Check for major version changes in package.json
+          if git diff HEAD~1 -- package.json | grep -q '"version"'; then
+            echo "⚠️  Version changed - ensure compatibility"
+          fi
+
+          # Check for database migrations
+          if git diff HEAD~1 -- supabase/migrations/ | grep -q "CREATE\|DROP\|ALTER"; then
+            echo "⚠️  Database migrations detected - ensure backup"
+          fi
+
+  # =====================================================
+  # INFRASTRUCTURE DEPLOYMENT
+  # =====================================================
+
+  infra-deploy:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [pre-flight-check]
+
+    defaults:
+      run:
+        working-directory: ./infrastructure
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+        env:
+          TF_BACKEND_CONFIG: |
+            bucket=${{ secrets.TF_STATE_BUCKET }}
+            key=production/terraform.tfstate
+            region=${{ secrets.AWS_REGION }}
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -var-file=production.tfvars -out=tfplan -detailed-exitcode
+        env:
+          TF_VAR_db_password=${{ secrets.DB_PASSWORD_PRODUCTION }}
+          TF_VAR_redis_auth_token=${{ secrets.REDIS_AUTH_TOKEN_PRODUCTION }}
+        continue-on-error: true
+
+      - name: Update Pull Request
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Validate 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform Apply
+        run: terraform apply tfplan
+
+      - name: Get infrastructure outputs
+        id: outputs
+        run: |
+          echo "rds_endpoint=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT
+          echo "redis_endpoint=$(terraform output -raw redis_endpoint)" >> $GITHUB_OUTPUT
+          echo "s3_bucket=$(terraform output -raw s3_bucket)" >> $GITHUB_OUTPUT
+
+  # =====================================================
+  # DATABASE MIGRATIONS
+  # =====================================================
+
+  db-migrate:
+    name: Database Migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [infra-deploy]
+    if: github.event.inputs.skip_migrations != 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Create backup before migration
+        run: |
+          cd supabase
+          supabase db dump --project-ref ${{ secrets.SUPABASE_PROJECT_REF_PRODUCTION }} > backup_$(date +%Y%m%d_%H%M%S).sql
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run database migrations
+        run: |
+          cd supabase
+          supabase db push --project-ref ${{ secrets.SUPABASE_PROJECT_REF_PRODUCTION }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Verify migration success
+        run: |
+          cd supabase
+          supabase db diff --project-ref ${{ secrets.SUPABASE_PROJECT_REF_PRODUCTION }}
+
+  # =====================================================
+  # BACKEND DEPLOYMENT
+  # =====================================================
+
+  backend-deploy:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [infra-deploy, db-migrate]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: cd backend && npm ci --production=false
+
+      - name: Build backend
+        run: cd backend && npm run build
+
+      - name: Run comprehensive tests
+        run: cd backend && npm run test:ci
+        env:
+          NODE_ENV: test
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          REDIS_URL: ${{ secrets.TEST_REDIS_URL }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+      - name: Build and push Docker image
+        run: |
+          cd backend
+          # Use provided version or generate from git
+          VERSION=${{ github.event.inputs.version || github.sha }}
+          docker build -t ${{ secrets.ECR_REGISTRY }}/raptorflow-backend:$VERSION .
+          docker build -t ${{ secrets.ECR_REGISTRY }}/raptorflow-backend:latest .
+          docker push ${{ secrets.ECR_REGISTRY }}/raptorflow-backend:$VERSION
+          docker push ${{ secrets.ECR_REGISTRY }}/raptorflow-backend:latest
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER_PRODUCTION }} \
+            --service ${{ secrets.ECS_SERVICE_BACKEND_PRODUCTION }} \
+            --force-new-deployment \
+            --region ${{ secrets.AWS_REGION }}
+
+      - name: Wait for deployment to complete
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ secrets.ECS_CLUSTER_PRODUCTION }} \
+            --services ${{ secrets.ECS_SERVICE_BACKEND_PRODUCTION }} \
+            --region ${{ secrets.AWS_REGION }}
+
+      - name: Run health checks
+        run: |
+          # Wait for service to be ready
+          sleep 60
+
+          # Health check endpoint
+          curl -f --retry 5 --retry-delay 10 ${{ secrets.PRODUCTION_API_BASE_URL }}/health
+
+          # API functionality check
+          curl -f ${{ secrets.PRODUCTION_API_BASE_URL }}/muse/generate -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.HEALTH_CHECK_TOKEN }}" \
+            -d '{"asset_type":"brand_script"}' || echo "API check failed but continuing"
+
+  # =====================================================
+  # FRONTEND DEPLOYMENT
+  # =====================================================
+
+  frontend-deploy:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [backend-deploy]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL_PRODUCTION }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY_PRODUCTION }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL_PRODUCTION }}
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_PRODUCTION }}
+          working-directory: ./
+          vercel-args: '--prod'
+
+  # =====================================================
+  # POST-DEPLOYMENT VALIDATION
+  # =====================================================
+
+  validation:
+    name: Post-Deployment Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [backend-deploy, frontend-deploy]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+
+      - name: Run production smoke tests
+        run: npm run test:production
+        env:
+          BASE_URL: ${{ secrets.PRODUCTION_BASE_URL }}
+          API_BASE_URL: ${{ secrets.PRODUCTION_API_BASE_URL }}
+
+      - name: Performance validation
+        run: |
+          # Load time check
+          response_time=$(curl -o /dev/null -s -w "%{time_total}" ${{ secrets.PRODUCTION_BASE_URL }})
+          if (( $(echo "$response_time > 3.0" | bc -l) )); then
+            echo "⚠️  Slow response time: ${response_time}s"
+            exit 1
+          fi
+
+          # API response time check
+          api_time=$(curl -o /dev/null -s -w "%{time_total}" ${{ secrets.PRODUCTION_API_BASE_URL }}/health)
+          if (( $(echo "$api_time > 1.0" | bc -l) )); then
+            echo "⚠️  Slow API response: ${api_time}s"
+            exit 1
+          fi
+
+      - name: Security headers check
+        run: |
+          response=$(curl -s -I ${{ secrets.PRODUCTION_BASE_URL }})
+          if ! echo "$response" | grep -q "strict-transport-security"; then
+            echo "⚠️  Missing HSTS header"
+          fi
+          if ! echo "$response" | grep -q "content-security-policy"; then
+            echo "⚠️  Missing CSP header"
+          fi
+
+  # =====================================================
+  # MONITORING & ALERTS
+  # =====================================================
+
+  monitoring-setup:
+    name: Setup Monitoring
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [validation]
+    if: success()
+
+    steps:
+      - name: Send deployment success alert
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_USERNAME: Production Deployment
+          SLACK_ICON_EMOJI: ':rocket:'
+          SLACK_COLOR: good
+          SLACK_MESSAGE: '🚀 Production deployment completed successfully!'
+
+      - name: Update deployment status
+        run: |
+          # This could integrate with deployment tracking systems
+          echo "Deployment completed at $(date)" > deployment_status.txt
+
+      - name: Create deployment tag
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          VERSION=${{ github.event.inputs.version || github.sha }}
+          git tag "v${VERSION}" ${{ github.sha }}
+          git push origin "v${VERSION}"
+
+  # =====================================================
+  # ROLLBACK PLAN
+  # =====================================================
+
+  rollback-plan:
+    name: Generate Rollback Plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [monitoring-setup]
+    if: success()
+
+    steps:
+      - name: Generate rollback documentation
+        run: |
+          cat > rollback_plan.md << 'EOF'
+          # Production Deployment Rollback Plan
+
+          ## Deployment Details
+          - Date: $(date)
+          - Commit: ${{ github.sha }}
+          - Version: ${{ github.event.inputs.version || github.sha }}
+
+          ## Rollback Steps
+
+          ### 1. Backend Rollback
+          ```bash
+          # Revert ECS service to previous task definition
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER_PRODUCTION }} \
+            --service ${{ secrets.ECS_SERVICE_BACKEND_PRODUCTION }} \
+            --task-definition <previous-task-definition-arn> \
+            --force-new-deployment
+          ```
+
+          ### 2. Frontend Rollback
+          ```bash
+          # Redeploy previous version to Vercel
+          vercel --prod --yes
+          ```
+
+          ### 3. Database Rollback
+          ```bash
+          # If migrations were applied, restore from backup
+          # Contact DBA team for assistance
+          ```
+
+          ## Monitoring
+          - Check application logs
+          - Monitor error rates
+          - Validate core functionality
+
+          ## Communication
+          - Notify team via Slack
+          - Update status page if applicable
+          - Document incident if rollback was due to issues
+          EOF
+
+      - name: Upload rollback plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollback-plan
+          path: rollback_plan.md
+

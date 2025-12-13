@@ -1,0 +1,83 @@
+# =====================================================
+# CODEOWNERS Configuration
+# =====================================================
+# This file defines who owns different parts of the codebase
+# and who should review PRs affecting those areas.
+
+# =====================================================
+# Global Owners (must review all changes)
+# =====================================================
+* @your-org/engineering-leads
+
+# =====================================================
+# Frontend Ownership
+# =====================================================
+/src/                                    @your-org/frontend-team
+/src/pages/app/Muse.jsx                  @your-org/frontend-team @your-org/ai-team
+/src/lib/api.js                          @your-org/frontend-team @your-org/backend-team
+/package.json                            @your-org/frontend-team @your-org/devops-team
+/vite.config.js                          @your-org/frontend-team @your-org/devops-team
+
+# =====================================================
+# Backend Ownership
+# =====================================================
+/backend/                                @your-org/backend-team
+/backend/src/orchestrator/               @your-org/backend-team @your-org/ai-team
+/backend/src/v2/agents/                  @your-org/ai-team
+/backend/src/v2/llm/                     @your-org/ai-team
+/backend/src/services/                   @your-org/backend-team
+/backend/package.json                    @your-org/backend-team @your-org/devops-team
+
+# =====================================================
+# Infrastructure Ownership
+# =====================================================
+/infrastructure/                         @your-org/devops-team @your-org/backend-team
+/infrastructure/modules/rds/             @your-org/devops-team
+/infrastructure/modules/elasticache/     @your-org/devops-team
+/infrastructure/modules/s3/              @your-org/devops-team
+
+# =====================================================
+# Database Ownership
+# =====================================================
+/supabase/                               @your-org/backend-team @your-org/data-team
+/supabase/migrations/                    @your-org/backend-team @your-org/data-team
+
+# =====================================================
+# CI/CD Ownership
+# =====================================================
+/.github/                                @your-org/devops-team
+/.github/workflows/                      @your-org/devops-team
+/.github/dependabot.yml                  @your-org/devops-team
+/.lighthouserc.json                      @your-org/devops-team
+
+# =====================================================
+# Configuration Files
+# =====================================================
+/eslint.config.js                        @your-org/devops-team
+/.prettierrc                             @your-org/devops-team
+/tsconfig.json                           @your-org/devops-team
+/vitest.config.js                        @your-org/devops-team
+
+# =====================================================
+# Documentation
+# =====================================================
+/README.md                               @your-org/tech-writers
+/docs/                                   @your-org/tech-writers
+
+# =====================================================
+# Security Critical Files
+# =====================================================
+# These require additional security review
+/package-lock.json                       @your-org/security-team
+/backend/package-lock.json               @your-org/security-team
+/.env*                                   @your-org/security-team
+/infrastructure/**/*.tf                  @your-org/security-team
+
+# =====================================================
+# AI/ML Specific Files
+# =====================================================
+# Require AI team review for any changes
+**/*prompt*.ts                           @your-org/ai-team
+**/*agent*.ts                            @your-org/ai-team
+**/*llm*.ts                              @your-org/ai-team
+

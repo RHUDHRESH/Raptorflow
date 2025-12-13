@@ -1,0 +1,131 @@
+version: 2
+updates:
+  # Frontend dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "your-team"
+    assignees:
+      - "your-team"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react*"
+      ui-libraries:
+        patterns:
+          - "@radix-ui/*"
+          - "lucide-react"
+          - "framer-motion"
+      testing:
+        patterns:
+          - "vitest"
+          - "@testing-library/*"
+          - "playwright"
+      build-tools:
+        patterns:
+          - "vite"
+          - "esbuild"
+          - "rollup"
+
+  # Backend dependencies
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "your-team"
+    assignees:
+      - "your-team"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    groups:
+      langchain:
+        patterns:
+          - "@langchain/*"
+          - "langchain"
+      ai-ml:
+        patterns:
+          - "@google-cloud/vertexai"
+          - "openai"
+      database:
+        patterns:
+          - "@supabase/*"
+          - "pg"
+          - "redis"
+      aws:
+        patterns:
+          - "aws-sdk"
+          - "@aws-sdk/*"
+      testing:
+        patterns:
+          - "vitest"
+          - "@testing-library/*"
+      dev-tools:
+        patterns:
+          - "typescript"
+          - "tsx"
+          - "nodemon"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "your-team"
+    assignees:
+      - "your-team"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+
+  # Docker
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "your-team"
+    assignees:
+      - "your-team"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+
+  # Terraform
+  - package-ecosystem: "terraform"
+    directory: "/infrastructure"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "your-team"
+    assignees:
+      - "your-team"
+    commit-message:
+      prefix: "infra"
+      include: "scope"
