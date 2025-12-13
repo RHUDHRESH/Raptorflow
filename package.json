@@ -31,7 +31,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@google-cloud/vertexai": "^1.10.0",
-    "@langchain/core": "^1.1.2",
+    "@langchain/core": "^1.1.5",
     "@langchain/google-vertexai": "^2.0.2",
     "@magicuidesign/mcp": "^1.0.6",
     "@phosphor-icons/react": "^2.1.10",
