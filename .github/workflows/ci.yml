@@ -193,7 +193,7 @@ jobs:
           VITE_SUPABASE_ANON_KEY: test-anon-key
 
       - name: Upload test artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: test-results
@@ -234,14 +234,14 @@ jobs:
         run: npm run build
 
       - name: Upload backend artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend-dist
           path: backend/dist/
           retention-days: 7
 
       - name: Upload frontend artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-dist
           path: dist/
