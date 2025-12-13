@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Plus, 
-  Sparkles, 
-  FileText, 
-  Mail, 
-  Video, 
+import {
+  Plus,
+  Sparkles,
+  FileText,
+  Mail,
+  Video,
   BarChart,
   MessageSquare,
   CheckCircle2,
@@ -24,6 +24,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import { museAPI } from '../../lib/api'
 
 // Asset type categories and icons
 const ASSET_CATEGORIES = {
@@ -32,7 +33,8 @@ const ASSET_CATEGORIES = {
   sales: { label: 'Sales Enablement', icon: BarChart, color: 'amber' },
   lifecycle: { label: 'Lifecycle', icon: Mail, color: 'green' },
   abm: { label: 'ABM', icon: Video, color: 'cyan' },
-  tools: { label: 'Tools & Calculators', icon: Sparkles, color: 'pink' }
+  tools: { label: 'Tools & Calculators', icon: Sparkles, color: 'pink' },
+  images: { label: 'Images & Visuals', icon: Wand2, color: 'rose' }
 }
 
 const ASSET_TYPES = [
@@ -45,7 +47,13 @@ const ASSET_TYPES = [
   { type: 'battlecard', label: 'Sales Battlecard', category: 'sales', description: 'Competitive positioning for sales' },
   { type: 'comparison_page', label: 'Comparison Page', category: 'sales', description: 'Us vs competitors content' },
   { type: 'case_study', label: 'Case Study', category: 'sales', description: 'Customer success story' },
-  { type: 'roi_calculator_spec', label: 'ROI Calculator', category: 'tools', description: 'Value calculator specs' }
+  { type: 'roi_calculator_spec', label: 'ROI Calculator', category: 'tools', description: 'Value calculator specs' },
+  { type: 'social_media_image', label: 'Social Media Image', category: 'images', description: 'Eye-catching visuals for social platforms' },
+  { type: 'hero_banner', label: 'Hero Banner', category: 'images', description: 'Large banner images for websites' },
+  { type: 'product_image', label: 'Product Image', category: 'images', description: 'Product photography and illustrations' },
+  { type: 'brand_logo_concept', label: 'Logo Concept', category: 'images', description: 'Brand identity and logo designs' },
+  { type: 'infographic', label: 'Infographic', category: 'images', description: 'Data visualization and information graphics' },
+  { type: 'website_hero', label: 'Website Hero', category: 'images', description: 'Hero section images for landing pages' }
 ]
 
 // Status configuration
@@ -63,6 +71,7 @@ const AssetCard = ({ asset, onClick, onAction }) => {
   const category = ASSET_CATEGORIES[asset.category] || ASSET_CATEGORIES.pillar
   const statusConfig = STATUS_CONFIG[asset.status] || STATUS_CONFIG.draft
   const CategoryIcon = category.icon
+  const isImageAsset = asset.category === 'images' || asset.asset_type?.includes('image')
 
   return (
     <motion.div
@@ -74,22 +83,56 @@ const AssetCard = ({ asset, onClick, onAction }) => {
       className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-white/20 transition-all group"
     >
       {/* Preview area */}
-      <div 
-        className="h-32 bg-gradient-to-br from-white/5 to-white/0 p-4 cursor-pointer"
+      <div
+        className={`${isImageAsset ? 'h-48' : 'h-32'} bg-gradient-to-br from-white/5 to-white/0 p-4 cursor-pointer`}
         onClick={onClick}
       >
-        <div className="flex items-start justify-between">
-          <div className={`w-10 h-10 rounded-lg bg-${category.color}-500/20 flex items-center justify-center`}>
-            <CategoryIcon className={`w-5 h-5 text-${category.color}-400`} />
+        {isImageAsset && asset.imageUrl ? (
+          <div className="h-full flex flex-col">
+            <div className="flex items-start justify-between mb-2">
+              <div className={`w-8 h-8 rounded-lg bg-${category.color}-500/20 flex items-center justify-center`}>
+                <CategoryIcon className={`w-4 h-4 text-${category.color}-400`} />
+              </div>
+              <span className={`px-2 py-0.5 rounded text-xs ${statusConfig.color}`}>
+                {statusConfig.label}
+              </span>
+            </div>
+            <div className="flex-1 rounded-lg overflow-hidden bg-white/10">
+              <img
+                src={asset.imageUrl}
+                alt={asset.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = `data:image/svg+xml;base64,${btoa(`
+                    <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="200" height="200" fill="#1a1a1a"/>
+                      <circle cx="100" cy="80" r="20" fill="#${category.color === 'rose' ? 'ec4899' : '8b5cf6'}"/>
+                      <path d="M70 140 Q100 120 130 140" stroke="#${category.color === 'rose' ? 'ec4899' : '8b5cf6'}" stroke-width="3" fill="none"/>
+                    </svg>
+                  `)}`;
+                }}
+              />
+            </div>
+            <h3 className="font-medium text-white text-sm mt-2 line-clamp-1">{asset.name}</h3>
           </div>
-          <span className={`px-2 py-0.5 rounded text-xs ${statusConfig.color}`}>
-            {statusConfig.label}
-          </span>
-        </div>
-        <div className="mt-3">
-          <h3 className="font-medium text-white line-clamp-1">{asset.name}</h3>
-          <p className="text-sm text-white/40 mt-1 line-clamp-2">{asset.content?.slice(0, 100)}...</p>
-        </div>
+        ) : (
+          <>
+            <div className="flex items-start justify-between">
+              <div className={`w-10 h-10 rounded-lg bg-${category.color}-500/20 flex items-center justify-center`}>
+                <CategoryIcon className={`w-5 h-5 text-${category.color}-400`} />
+              </div>
+              <span className={`px-2 py-0.5 rounded text-xs ${statusConfig.color}`}>
+                {statusConfig.label}
+              </span>
+            </div>
+            <div className="mt-3">
+              <h3 className="font-medium text-white line-clamp-1">{asset.name}</h3>
+              <p className="text-sm text-white/40 mt-1 line-clamp-2">
+                {asset.content?.slice(0, 100) || 'Generated content...'}{asset.content?.length > 100 ? '...' : ''}
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Footer */}
@@ -128,13 +171,40 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
   const [selectedType, setSelectedType] = useState(null)
   const [selectedICP, setSelectedICP] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [icps, setIcps] = useState([])
+  const [loadingICPs, setLoadingICPs] = useState(false)
+  const [imageStyle, setImageStyle] = useState('realistic')
+  const [imageDimensions, setImageDimensions] = useState('square')
 
-  // Mock ICPs
-  const icps = [
-    { id: '1', label: 'Desperate Scaler', summary: 'Fast-growing startups' },
-    { id: '2', label: 'Frustrated Optimizer', summary: 'Companies switching tools' },
-    { id: '3', label: 'Risk Mitigator', summary: 'Conservative enterprises' }
-  ]
+  // Fetch ICPs when modal opens
+  useEffect(() => {
+    if (isOpen && step === 2 && icps.length === 0) {
+      fetchICPs()
+    }
+  }, [isOpen, step])
+
+  const fetchICPs = async () => {
+    setLoadingICPs(true)
+    try {
+      // TODO: Fetch ICPs from backend
+      // For now, use mock data
+      setIcps([
+        { id: '1', label: 'Desperate Scaler', summary: 'Fast-growing startups seeking rapid growth' },
+        { id: '2', label: 'Frustrated Optimizer', summary: 'Companies frustrated with current tools' },
+        { id: '3', label: 'Risk Mitigator', summary: 'Conservative enterprises focused on stability' },
+        { id: '4', label: 'Innovation Seeker', summary: 'Forward-thinking companies embracing change' },
+        { id: '5', label: 'Cost Cutter', summary: 'Budget-conscious organizations' }
+      ])
+    } catch (error) {
+      console.error('Error fetching ICPs:', error)
+      // Fallback to basic ICPs
+      setIcps([
+        { id: '1', label: 'General Audience', summary: 'Broad target audience' }
+      ])
+    } finally {
+      setLoadingICPs(false)
+    }
+  }
 
   const handleGenerate = async () => {
     setIsGenerating(true)
@@ -181,15 +251,37 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
             <span className="text-sm">Asset Type</span>
           </div>
           <ChevronRight className="w-4 h-4 text-white/20" />
-          <div className={`flex items-center gap-2 ${step >= 2 ? 'text-white' : 'text-white/40'}`}>
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? 'bg-white/20' : 'bg-white/10'}`}>2</div>
-            <span className="text-sm">Target ICP</span>
-          </div>
-          <ChevronRight className="w-4 h-4 text-white/20" />
-          <div className={`flex items-center gap-2 ${step >= 3 ? 'text-white' : 'text-white/40'}`}>
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? 'bg-white/20' : 'bg-white/10'}`}>3</div>
-            <span className="text-sm">Generate</span>
-          </div>
+          {ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' && (
+            <>
+              <div className={`flex items-center gap-2 ${step >= 2 ? 'text-white' : 'text-white/40'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? 'bg-white/20' : 'bg-white/10'}`}>2</div>
+                <span className="text-sm">Image Style</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-white/20" />
+              <div className={`flex items-center gap-2 ${step >= 3 ? 'text-white' : 'text-white/40'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? 'bg-white/20' : 'bg-white/10'}`}>3</div>
+                <span className="text-sm">Target ICP</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-white/20" />
+              <div className={`flex items-center gap-2 ${step >= 4 ? 'text-white' : 'text-white/40'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 4 ? 'bg-white/20' : 'bg-white/10'}`}>4</div>
+                <span className="text-sm">Generate</span>
+              </div>
+            </>
+          )}
+          {(!selectedType || ASSET_TYPES.find(t => t.type === selectedType?.type)?.category !== 'images') && (
+            <>
+              <div className={`flex items-center gap-2 ${step >= 2 ? 'text-white' : 'text-white/40'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? 'bg-white/20' : 'bg-white/10'}`}>2</div>
+                <span className="text-sm">Target ICP</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-white/20" />
+              <div className={`flex items-center gap-2 ${step >= 3 ? 'text-white' : 'text-white/40'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? 'bg-white/20' : 'bg-white/10'}`}>3</div>
+                <span className="text-sm">Generate</span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Content */}
@@ -233,24 +325,71 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
               <p className="text-sm text-white/60 mb-4">
                 Select which ICP this content should be tailored for
               </p>
-              {icps.map(icp => (
-                <button
-                  key={icp.id}
-                  onClick={() => setSelectedICP(icp)}
-                  className={`w-full p-4 rounded-lg border text-left transition-all ${
-                    selectedICP?.id === icp.id
-                      ? 'bg-white/10 border-white/30'
-                      : 'bg-white/5 border-white/10 hover:border-white/20'
-                  }`}
-                >
-                  <div className="font-medium text-white">{icp.label}</div>
-                  <div className="text-sm text-white/40 mt-1">{icp.summary}</div>
-                </button>
-              ))}
+              {loadingICPs ? (
+                <div className="text-center py-8">
+                  <RefreshCw className="w-6 h-6 text-purple-400 animate-spin mx-auto mb-2" />
+                  <p className="text-white/60">Loading audience profiles...</p>
+                </div>
+              ) : (
+                icps.map(icp => (
+                  <button
+                    key={icp.id}
+                    onClick={() => setSelectedICP(icp)}
+                    className={`w-full p-4 rounded-lg border text-left transition-all ${
+                      selectedICP?.id === icp.id
+                        ? 'bg-white/10 border-white/30'
+                        : 'bg-white/5 border-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="font-medium text-white">{icp.label}</div>
+                    <div className="text-sm text-white/40 mt-1">{icp.summary}</div>
+                  </button>
+                ))
+              )}
             </div>
           )}
 
-          {step === 3 && (
+          {step === 2 && ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' && (
+            <div className="space-y-4">
+              <p className="text-sm text-white/60 mb-4">
+                Customize your image settings
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-white mb-2">Visual Style</label>
+                  <select
+                    value={imageStyle}
+                    onChange={(e) => setImageStyle(e.target.value)}
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-white/30 outline-none"
+                  >
+                    <option value="realistic">Realistic (Photography)</option>
+                    <option value="illustrative">Illustrative (Clean Art)</option>
+                    <option value="minimalist">Minimalist (Simple)</option>
+                    <option value="bold">Bold (Vibrant)</option>
+                    <option value="vibrant">Vibrant (Colorful)</option>
+                    <option value="monochrome">Monochrome (B&W)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-white mb-2">Dimensions</label>
+                  <select
+                    value={imageDimensions}
+                    onChange={(e) => setImageDimensions(e.target.value)}
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-white/30 outline-none"
+                  >
+                    <option value="square">Square (1:1) - Social Media</option>
+                    <option value="landscape">Landscape (16:9) - Banners</option>
+                    <option value="portrait">Portrait (9:16) - Stories</option>
+                    <option value="banner">Banner (3:1) - Headers</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === (ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' ? 3 : 2) && (
             <div className="text-center py-8">
               {isGenerating ? (
                 <div>
@@ -264,12 +403,21 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
                 </div>
               ) : (
                 <div>
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Sparkles className="w-8 h-8 text-purple-400" />
+                  <div className={`w-16 h-16 ${ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' ? 'bg-gradient-to-br from-rose-500/20 to-pink-500/20' : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20'} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                    {ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' ? (
+                      <Wand2 className="w-8 h-8 text-rose-400" />
+                    ) : (
+                      <Sparkles className="w-8 h-8 text-purple-400" />
+                    )}
                   </div>
                   <h3 className="text-lg font-medium text-white mb-2">Ready to generate</h3>
                   <p className="text-white/40 mb-6">
                     {selectedType?.label} tailored for {selectedICP?.label}
+                    {ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' && (
+                      <span className="block text-sm mt-1">
+                        Style: {imageStyle} • Dimensions: {imageDimensions}
+                      </span>
+                    )}
                   </p>
                   <button
                     onClick={handleGenerate}
@@ -285,7 +433,7 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
         </div>
 
         {/* Footer */}
-        {step < 3 && (
+        {step < (ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' ? 3 : 2) && (
           <div className="flex items-center justify-between p-6 border-t border-white/10 bg-white/5">
             <button
               onClick={() => step === 1 ? onClose() : setStep(s => s - 1)}
@@ -295,7 +443,10 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
             </button>
             <button
               onClick={() => setStep(s => s + 1)}
-              disabled={(step === 1 && !selectedType) || (step === 2 && !selectedICP)}
+              disabled={
+                (step === 1 && !selectedType) ||
+                (step === 2 && ASSET_TYPES.find(t => t.type === selectedType?.type)?.category !== 'images' && !selectedICP)
+              }
               className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Continue
@@ -309,7 +460,7 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
 
 // Main Muse page
 const Muse = () => {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [assets, setAssets] = useState([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState('grid')
@@ -322,47 +473,12 @@ const Muse = () => {
     const fetchAssets = async () => {
       setLoading(true)
       try {
-        // Mock data
-        setAssets([
-          {
-            id: '1',
-            name: 'Q1 Authority Building Webinar Script',
-            asset_type: 'pillar_webinar_script',
-            category: 'pillar',
-            status: 'approved',
-            content: 'Welcome to our webinar on scaling without chaos. Today we\'ll explore three key strategies...',
-            created_at: '2024-12-01'
-          },
-          {
-            id: '2',
-            name: 'LinkedIn Post: Growth Mindset',
-            asset_type: 'linkedin_post',
-            category: 'micro',
-            status: 'deployed',
-            content: 'Most founders think growth is about working harder. But here\'s what I learned from scaling...',
-            created_at: '2024-12-03'
-          },
-          {
-            id: '3',
-            name: 'Competitor Battlecard: Acme Inc',
-            asset_type: 'battlecard',
-            category: 'sales',
-            status: 'needs_review',
-            content: 'Quick win: We\'re 3x faster at implementation. Key differentiator: Built-in analytics...',
-            created_at: '2024-12-05'
-          },
-          {
-            id: '4',
-            name: 'Welcome Email Sequence',
-            asset_type: 'email_sequence',
-            category: 'lifecycle',
-            status: 'draft',
-            content: 'Email 1: Welcome aboard! Here\'s what to do first...',
-            created_at: '2024-12-06'
-          }
-        ])
+        // TODO: Implement asset storage and retrieval
+        // For now, start with empty assets list
+        setAssets([])
       } catch (error) {
         console.error('Error fetching assets:', error)
+        setAssets([])
       } finally {
         setLoading(false)
       }
@@ -371,30 +487,150 @@ const Muse = () => {
     fetchAssets()
   }, [])
 
-  const handleGenerate = (data) => {
-    console.log('Generating asset:', data)
-    const newAsset = {
-      id: `asset-${Date.now()}`,
-      name: `New ${ASSET_TYPES.find(t => t.type === data.asset_type)?.label || 'Asset'}`,
-      asset_type: data.asset_type,
-      category: ASSET_TYPES.find(t => t.type === data.asset_type)?.category || 'pillar',
-      status: 'generating',
-      content: 'Generating content...',
-      created_at: new Date().toISOString()
+  const handleGenerate = async (data) => {
+    try {
+      // Create generating asset placeholder
+      const generatingAsset = {
+        id: `temp-${Date.now()}`,
+        name: `Generating ${ASSET_TYPES.find(t => t.type === data.asset_type)?.label || 'Asset'}`,
+        asset_type: data.asset_type,
+        category: ASSET_TYPES.find(t => t.type === data.asset_type)?.category || 'pillar',
+        status: 'generating',
+        content: 'AI is crafting your content...',
+        created_at: new Date().toISOString()
+      }
+      setAssets([generatingAsset, ...assets])
+
+      // Call orchestrator API
+      const response = await museAPI.generateAsset(data.asset_type, data.icp_id, {
+        asset_type: data.asset_type,
+        icp_id: data.icp_id,
+        brandProfileId: profile?.organization_id || profile?.id, // Use organization ID as brand profile ID
+        inputOverrides: {
+          style: ASSET_TYPES.find(t => t.type === data.asset_type)?.category === 'images' ? imageStyle : undefined,
+          dimensions: ASSET_TYPES.find(t => t.type === data.asset_type)?.category === 'images' ? imageDimensions : undefined,
+          brandColors: ['#6366f1', '#8b5cf6', '#ec4899'], // TODO: Get from brand profile
+          targetAudience: selectedICP?.label,
+          mood: 'professional',
+          assetType: data.asset_type,
+          // Additional generation parameters
+        },
+        contextSnapshot: {
+          userId: user?.id,
+          organizationId: profile?.organization_id,
+          imageStyle: ASSET_TYPES.find(t => t.type === data.asset_type)?.category === 'images' ? imageStyle : undefined,
+          imageDimensions: ASSET_TYPES.find(t => t.type === data.asset_type)?.category === 'images' ? imageDimensions : undefined,
+          // Additional context
+        }
+      })
+
+      const { job_id } = response.data
+
+      // Poll for completion
+      const pollForResult = async (jobId) => {
+        try {
+          const statusResponse = await museAPI.getGenerationStatus(jobId)
+
+          if (statusResponse.data.status === 'completed' && statusResponse.data.asset) {
+            // Replace generating asset with completed asset
+            setAssets(prevAssets =>
+              prevAssets.map(asset =>
+                asset.id === generatingAsset.id ? statusResponse.data.asset : asset
+              )
+            )
+          } else if (statusResponse.data.status === 'failed') {
+            // Mark as failed
+            setAssets(prevAssets =>
+              prevAssets.map(asset =>
+                asset.id === generatingAsset.id
+                  ? { ...asset, status: 'failed', content: 'Generation failed. Please try again.' }
+                  : asset
+              )
+            )
+          } else {
+            // Still processing, poll again
+            setTimeout(() => pollForResult(jobId), 2000)
+          }
+        } catch (error) {
+          console.error('Error polling for result:', error)
+          setAssets(prevAssets =>
+            prevAssets.map(asset =>
+              asset.id === generatingAsset.id
+                ? { ...asset, status: 'failed', content: 'Generation failed. Please try again.' }
+                : asset
+            )
+          )
+        }
+      }
+
+      // Start polling
+      pollForResult(job_id)
+
+    } catch (error) {
+      console.error('Error generating asset:', error)
+      // Remove failed generating asset
+      setAssets(prevAssets => prevAssets.filter(asset => asset.id !== `temp-${Date.now()}`))
+      // TODO: Show error toast
     }
-    setAssets([newAsset, ...assets])
   }
 
-  const handleAssetAction = (action, asset) => {
+  const handleAssetAction = async (action, asset) => {
     switch (action) {
       case 'copy':
-        navigator.clipboard.writeText(asset.content || '')
+        try {
+          if (asset.category === 'images') {
+            // For images, copy the image URL
+            await navigator.clipboard.writeText(asset.imageUrl || '')
+          } else {
+            // For text content, copy the text
+            await navigator.clipboard.writeText(asset.content || '')
+          }
+          // TODO: Show success toast
+        } catch (error) {
+          console.error('Failed to copy:', error)
+          // TODO: Show error toast
+        }
         break
       case 'edit':
         console.log('Edit:', asset)
+        // TODO: Open edit modal or navigate to editor
         break
       case 'download':
-        console.log('Download:', asset)
+        try {
+          if (asset.category === 'images') {
+            // Download image directly
+            const link = document.createElement('a')
+            link.href = asset.imageUrl
+            link.download = `${asset.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.png`
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+          } else {
+            // Generate PDF from asset content
+            const pdfResponse = await museAPI.generatePDF(asset.content, asset.name, asset.asset_type, {
+              content: asset.content,
+              title: asset.name,
+              assetType: asset.asset_type,
+              metadata: {
+                generatedAt: asset.created_at,
+                source: 'muse_page'
+              }
+            })
+
+            if (pdfResponse.data.url) {
+              // Download the PDF
+              const link = document.createElement('a')
+              link.href = pdfResponse.data.url
+              link.download = `${asset.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`
+              document.body.appendChild(link)
+              link.click()
+              document.body.removeChild(link)
+            }
+          }
+        } catch (error) {
+          console.error('Failed to download:', error)
+          // TODO: Show error toast
+        }
         break
       default:
         break

@@ -22,8 +22,8 @@ const preloadCritical = () => {
 
 // Loading fallback
 const SectionLoader = () => (
-  <div className="min-h-[50vh] bg-black flex items-center justify-center">
-    <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+  <div className="min-h-[50vh] bg-background flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-primary/30 border-t-primary animate-spin" />
   </div>
 )
 
@@ -63,7 +63,7 @@ const Landing: React.FC = () => {
 
       {/* Main content */}
       {!loading && (
-        <div className="bg-black min-h-screen overflow-x-hidden">
+        <div className="bg-background min-h-screen overflow-x-hidden">
           <Suspense fallback={<SectionLoader />}>
             {/* Navigation */}
             <Header />

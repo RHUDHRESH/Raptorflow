@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 
 // Landing pages
-import Landing from './pages/Landing'
+import PremiumLanding from './pages/PremiumLanding'
 import Login from './pages/Login'
 import Start from './pages/Start'
 
@@ -152,7 +152,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<PremiumLanding />} />
       <Route path="/login" element={<Login />} />
       <Route path="/start" element={<Start />} />
 

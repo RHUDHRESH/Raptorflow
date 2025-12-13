@@ -7,8 +7,9 @@
 
 import { z } from "zod";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { getLangChainModelForAgent, logModelSelection, getModelForAgent } from "../lib/llm";
+import { getLangChainModelForAgent, logModelSelection, getModelForAgent, generateWithCostControl } from "../lib/llm";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
+import { responseCache } from "../services/responseCacheService";
 
 export interface PlanGeneratorInput {
   company_name: string;
@@ -231,7 +232,7 @@ Be SPECIFIC. Be PRACTICAL. Be HONEST about time requirements.
 
   async generatePlan(input: PlanGeneratorInput): Promise<FullPlan> {
     const chain = this.prompt.pipe(this.model).pipe(this.parser);
-    
+
     return await chain.invoke({
       company_name: input.company_name,
       positioning: JSON.stringify(input.positioning),
@@ -245,5 +246,53 @@ Be SPECIFIC. Be PRACTICAL. Be HONEST about time requirements.
       team_size: input.team_size || 1
     });
   }
+
+  /**
+   * Cost-optimized version with budget controls and caching
+   */
+  async generatePlanOptimized(input: PlanGeneratorInput, options?: {
+    maxCost?: number;
+    priority?: 'speed' | 'cost' | 'balanced';
+    useCache?: boolean;
+  }): Promise<FullPlan> {
+    const promptText = this.prompt.format({
+      company_name: input.company_name,
+      positioning: JSON.stringify(input.positioning),
+      cohorts: JSON.stringify(input.cohorts),
+      protocols: input.protocols.join(', '),
+      campaigns: JSON.stringify(input.campaigns),
+      primary_goal: input.goals.primary,
+      metrics: input.goals.metrics.join(', '),
+      timeline: input.goals.timeline,
+      budget: input.budget?.monthly ? `₹${input.budget.monthly.toLocaleString()}` : 'Not specified',
+      team_size: input.team_size || 1
+    });
+
+    // Create cache key for expensive operations
+    const cacheKey = options?.useCache ? responseCache.generatePlanKey(
+      input.company_name,
+      [input.goals.primary, ...input.goals.metrics],
+      input.team_size || 1
+    ) : undefined;
+
+    const response = await generateWithCostControl({
+      messages: [{ role: 'user', content: promptText }],
+      agentName: 'PlanGeneratorAgent',
+      maxCost: options?.maxCost || 0.15, // Max $0.15 for plan generation
+      priority: options?.priority || 'balanced',
+      cacheKey,
+      maxTokens: 8192
+    });
+
+    // Parse the structured response
+    try {
+      const parsed = await this.parser.parse(response.content);
+      return parsed;
+    } catch (error) {
+      console.error('Failed to parse plan response:', error);
+      throw new Error('Failed to generate structured plan output');
+    }
+  }
+
 }
 

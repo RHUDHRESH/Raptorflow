@@ -42,7 +42,7 @@
         "isolatedModules": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,\n    "noImplicitAny": false
     },
     "include": [
         "src/**/*",

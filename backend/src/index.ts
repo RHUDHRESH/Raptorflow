@@ -15,6 +15,12 @@ import enrichRoutes from './routes/enrich';
 import radarRoutes from './routes/radar';
 import cohortRoutes from './routes/cohorts';
 
+// Advanced Agentic API Routes (LangChain Highest Level) - temporarily disabled
+// import advancedApiRoutes from './v2/advanced_api';
+
+// Unified V3 API Routes (V1 + V2 orchestration)
+import v3ApiRoutes from './v3/api';
+
 const app = express();
 
 // Trust proxy for Cloud Run
@@ -97,17 +103,35 @@ app.use('/api/enrich', enrichRoutes);
 app.use('/api/radar', radarRoutes);
 app.use('/api/cohorts', cohortRoutes);
 
+// API Routes - Advanced Agentic (LangChain Highest Level) - temporarily disabled
+// app.use('/api/v2', advancedApiRoutes);
+
+// API Routes - Unified V3 Orchestration (V1 + V2)
+app.use('/api/v3', v3ApiRoutes);
+
+// API Routes - Muse Orchestrator (New AI Content Generation System)
+import museOrchestratorRoutes from './orchestrator/server';
+app.use('/api/muse', museOrchestratorRoutes);
+
+// Start Muse Orchestrator Worker (for async job processing)
+import { startWorker } from './orchestrator/worker';
+startWorker().catch(error => {
+  console.error('❌ Failed to start Muse orchestrator worker:', error);
+  process.exit(1);
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found', path: req.path });
 });
 
 // Error handler
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error | unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Error:', err);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal server error',
-    ...(env.NODE_ENV === 'development' && { stack: err.stack })
+  const error = err as any;
+  res.status(error.status || 500).json({
+    error: error.message || 'Internal server error',
+    ...(env.NODE_ENV === 'development' && { stack: error.stack })
   });
 });
 

@@ -17,7 +17,7 @@ dotenv.config(envPath ? { path: envPath } : undefined);
 export const env = {
   // Application Configuration
   NODE_ENV: process.env.NODE_ENV || 'development',
-  PORT: process.env.PORT || '3001', // Use 3001 locally; Cloud Run injects PORT=8080
+  PORT: process.env.PORT || '8080', // Changed to 8080 to avoid conflict with frontend on 3001
   FRONTEND_PUBLIC_URL: process.env.FRONTEND_PUBLIC_URL || process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
   BACKEND_PUBLIC_URL: process.env.BACKEND_PUBLIC_URL || process.env.VITE_BACKEND_PUBLIC_URL || '',
 
@@ -41,6 +41,11 @@ export const env = {
   PHONEPE_SALT_KEY: process.env.PHONEPE_SALT_KEY || process.env.VITE_PHONEPE_SALT_KEY || '',
   PHONEPE_SALT_INDEX: process.env.PHONEPE_SALT_INDEX || process.env.VITE_PHONEPE_SALT_INDEX || '1',
   PHONEPE_ENV: process.env.PHONEPE_ENV || process.env.VITE_PHONEPE_ENV || 'UAT', // UAT or PRODUCTION
+
+  // AWS Configuration (for Bedrock models)
+  AWS_REGION: process.env.AWS_REGION || process.env.VITE_AWS_REGION || 'us-east-1',
+  AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || '',
+  AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || '',
 };
 
 // Validate required environment variables in production
