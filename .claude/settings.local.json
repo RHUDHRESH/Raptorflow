@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__supabase__list_organizations",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__get_project",
+      "mcp__supabase__list_tables",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "mcp__vercel__deploy_to_vercel",
+      "Bash(vercel deploy:*)",
+      "Bash(npm install:*)",
+      "Bash(git push:*)",
+      "mcp__vercel__list_teams",
+      "mcp__vercel__list_projects",
+      "mcp__vercel__list_deployments",
+      "mcp__vercel__get_project",
+      "Bash(vercel link:*)",
+      "Bash(VERCEL_TOKEN=iGKpsfTyrOn5XlT6s9X2PNAj vercel deploy:*)",
+      "Bash(npm run build:*)",
+      "Bash(cat:*)",
+      "Bash(dir:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(python -m pip:*)",
+      "Bash(python -m venv:*)",
+      "Bash(venvScriptsactivate.bat)",
+      "Bash(venvScriptspython.exe -m pip install:*)",
+      "Bash(\"venv/Scripts/python.exe\" -m pip install -r requirements.txt)",
+      "Bash(ls:*)",
+      "Bash(curl:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs:*)",
+      "Bash(timeout 10 bash -c 'while true; do curl -s http://localhost:8000/health 2>&1 && break; done')",
+      "Bash(pkill:*)",
+      "Bash(timeout 15 bash:*)",
+      "Bash(done)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "mcpServers": {
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=vpwwzsanuyhpkvgorcnc"
+    }
+  }
+}

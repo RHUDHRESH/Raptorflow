@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist/orchestrator",
+    "rootDir": "./src"
+  },
+  "include": [
+    "src/orchestrator/**/*",
+    "src/v2/**/*",
+    "src/services/**/*",
+    "src/types/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/agents/**/*",
+    "src/routes/**/*",
+    "src/lib/**/*"
+  ]
+}
+
