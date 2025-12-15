@@ -45,7 +45,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -77,12 +77,12 @@ jobs:
         run: npx eslint . --ext .ts --config .eslintrc.js --format json --output-file eslint-results.json || true
 
       - name: CodeQL Analysis
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: javascript
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
 
   # =====================================================
   # CONTAINER SECURITY SCANNING
@@ -123,7 +123,7 @@ jobs:
           output: 'trivy-image-results.sarif'
 
       - name: Upload image scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-image-results.sarif'
