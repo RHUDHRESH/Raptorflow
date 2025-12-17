@@ -3,6 +3,8 @@ import cors from 'cors';
 import { env } from './config/env';
 import onboardingRoutes from './routes/onboarding';
 import paymentRoutes from './routes/payments';
+import subscriptionRoutes from './routes/subscriptions';
+import teamRoutes from './routes/team';
 import sharedRoutes from './routes/shared';
 import icpRoutes from './routes/icps';
 import campaignRoutes from './routes/campaigns';
@@ -89,6 +91,8 @@ app.get('/ready', (req, res) => {
 // API Routes - Core
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/team', teamRoutes);
 app.use('/api/shared', sharedRoutes);
 
 // API Routes - Platform

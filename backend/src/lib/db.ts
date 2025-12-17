@@ -5,6 +5,21 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { env } from '../config/env';
+import type {
+  ICP, CreateICPInput,
+  Cohort,
+  Barrier, BarrierType,
+  Protocol, ProtocolType,
+  MoveTemplate,
+  Campaign, CreateCampaignInput, CampaignStatus,
+  Move, CreateMoveInput, MoveStatus,
+  Asset, CreateAssetInput, AssetStatus,
+  Metric, CreateMetricInput,
+  Spike, CreateSpikeInput, SpikeStatus,
+  Guardrail, CreateGuardrailInput,
+  GuardrailEvent,
+  Experiment
+} from '../types';
 
 // Create Supabase client
 const supabaseUrl = env.SUPABASE_URL || 'https://vpwwzsanuyhpkvgorcnc.supabase.co';
@@ -24,21 +39,25 @@ export const supabase = createClient(
     }
   }
 );
-import type {
-  ICP, CreateICPInput,
-  Cohort,
-  Barrier, BarrierType,
-  Protocol, ProtocolType,
-  MoveTemplate,
-  Campaign, CreateCampaignInput, CampaignStatus,
-  Move, CreateMoveInput, MoveStatus,
-  Asset, CreateAssetInput, AssetStatus,
-  Metric, CreateMetricInput,
-  Spike, CreateSpikeInput, SpikeStatus,
-  Guardrail, CreateGuardrailInput,
-  GuardrailEvent,
-  Experiment
-} from '../types';
+
+async function getCurrentOrgId(userId: string): Promise<string> {
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('current_org_id')
+    .eq('id', userId)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const orgId = (profile as any)?.current_org_id;
+  if (!orgId) {
+    throw new Error('No workspace selected (profiles.current_org_id missing).');
+  }
+
+  return String(orgId);
+}
 
 // =====================================================
 // ICP OPERATIONS
@@ -321,10 +340,12 @@ export const moveTemplateDb = {
 
 export const campaignDb = {
   async list(userId: string, filters?: { status?: CampaignStatus }) {
+    const orgId = await getCurrentOrgId(userId);
     let query = supabase
       .from('campaigns')
       .select('*')
-      .eq('user_id', userId);
+      .eq('organization_id', orgId)
+      .is('deleted_at', null);
     
     if (filters?.status) {
       query = query.eq('status', filters.status);
@@ -334,20 +355,24 @@ export const campaignDb = {
   },
 
   async getById(id: string, userId: string) {
+    const orgId = await getCurrentOrgId(userId);
     return supabase
       .from('campaigns')
       .select('*')
       .eq('id', id)
-      .eq('user_id', userId)
+      .eq('organization_id', orgId)
+      .is('deleted_at', null)
       .single();
   },
 
   async getWithRelations(id: string, userId: string) {
+    const orgId = await getCurrentOrgId(userId);
     const { data: campaign, error } = await supabase
       .from('campaigns')
       .select('*')
       .eq('id', id)
-      .eq('user_id', userId)
+      .eq('organization_id', orgId)
+      .is('deleted_at', null)
       .single();
 
     if (error || !campaign) return { data: null, error };
@@ -357,7 +382,7 @@ export const campaignDb = {
       .from('moves')
       .select('*')
       .eq('campaign_id', id)
-      .eq('user_id', userId);
+      .eq('organization_id', orgId);
 
     // Get related ICPs
     const { data: icps } = campaign.icp_ids?.length > 0
@@ -374,44 +399,47 @@ export const campaignDb = {
   },
 
   async create(userId: string, data: CreateCampaignInput) {
+    const orgId = await getCurrentOrgId(userId);
     return supabase
       .from('campaigns')
       .insert({
-        user_id: userId,
-        ...data,
-        budget_plan: data.budget_plan || { total: 0, currency: 'INR', allocation: {} },
-        targets: data.targets || {}
+        organization_id: orgId,
+        created_by: userId,
+        ...data
       })
       .select()
       .single();
   },
 
   async update(id: string, userId: string, data: Partial<Campaign>) {
+    const orgId = await getCurrentOrgId(userId);
     return supabase
       .from('campaigns')
       .update(data)
       .eq('id', id)
-      .eq('user_id', userId)
+      .eq('organization_id', orgId)
       .select()
       .single();
   },
 
   async updateStatus(id: string, userId: string, status: CampaignStatus) {
+    const orgId = await getCurrentOrgId(userId);
     return supabase
       .from('campaigns')
       .update({ status })
       .eq('id', id)
-      .eq('user_id', userId)
+      .eq('organization_id', orgId)
       .select()
       .single();
   },
 
   async delete(id: string, userId: string) {
+    const orgId = await getCurrentOrgId(userId);
     return supabase
       .from('campaigns')
       .delete()
       .eq('id', id)
-      .eq('user_id', userId);
+      .eq('organization_id', orgId);
   }
 };
 
@@ -421,10 +449,11 @@ export const campaignDb = {
 
 export const moveDb = {
   async list(userId: string, filters?: { campaign_id?: string; spike_id?: string; status?: MoveStatus }) {
+    const orgId = await getCurrentOrgId(userId);
     let query = supabase
       .from('moves')
       .select('*, template:move_templates(*), icp:icps(*)')
-      .eq('user_id', userId);
+      .eq('organization_id', orgId);
     
     if (filters?.campaign_id) {
       query = query.eq('campaign_id', filters.campaign_id);
@@ -440,39 +469,44 @@ export const moveDb = {
   },
 
   async getById(id: string, userId: string) {
+    const orgId = await getCurrentOrgId(userId);
     return supabase
       .from('moves')
       .select('*, template:move_templates(*), icp:icps(*), assets(*)')
       .eq('id', id)
-      .eq('user_id', userId)
+      .eq('organization_id', orgId)
       .single();
   },
 
   async create(userId: string, data: CreateMoveInput) {
+    const orgId = await getCurrentOrgId(userId);
     return supabase
       .from('moves')
       .insert({
-        user_id: userId,
+        organization_id: orgId,
+        created_by: userId,
         ...data,
-        channels: data.channels || [],
-        tasks: [],
-        kpis: {}
+        channels: (data as any).channels || [],
+        tasks: (data as any).tasks || [],
+        kpis: (data as any).kpis || {}
       })
       .select()
       .single();
   },
 
   async update(id: string, userId: string, data: Partial<Move>) {
+    const orgId = await getCurrentOrgId(userId);
     return supabase
       .from('moves')
       .update(data)
       .eq('id', id)
-      .eq('user_id', userId)
+      .eq('organization_id', orgId)
       .select()
       .single();
   },
 
   async updateStatus(id: string, userId: string, status: MoveStatus) {
+    const orgId = await getCurrentOrgId(userId);
     const updates: Partial<Move> = { status };
     
     if (status === 'running' && !updates.actual_start) {
@@ -487,12 +521,13 @@ export const moveDb = {
       .from('moves')
       .update(updates)
       .eq('id', id)
-      .eq('user_id', userId)
+      .eq('organization_id', orgId)
       .select()
       .single();
   },
 
   async updateTasks(id: string, userId: string, tasks: Move['tasks']) {
+    const orgId = await getCurrentOrgId(userId);
     // Calculate progress based on completed tasks
     const completedTasks = tasks.filter(t => t.status === 'completed').length;
     const progress_percentage = tasks.length > 0 
@@ -503,17 +538,18 @@ export const moveDb = {
       .from('moves')
       .update({ tasks, progress_percentage })
       .eq('id', id)
-      .eq('user_id', userId)
+      .eq('organization_id', orgId)
       .select()
       .single();
   },
 
   async delete(id: string, userId: string) {
+    const orgId = await getCurrentOrgId(userId);
     return supabase
       .from('moves')
       .delete()
       .eq('id', id)
-      .eq('user_id', userId);
+      .eq('organization_id', orgId);
   }
 };
 

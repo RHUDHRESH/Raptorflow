@@ -162,22 +162,33 @@ export const UseCases = () => {
             <div className="max-w-7xl mx-auto px-6 relative z-10">
                 {/* Section Header */}
                 <div className="max-w-3xl mx-auto text-center mb-20">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-600 mb-6"
+                    >
+                        <span className="w-8 h-px bg-amber-400" />
+                        Your Battle Station
+                        <span className="w-8 h-px bg-amber-400" />
+                    </motion.div>
                     <motion.h2
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
+                        transition={{ delay: 0.1 }}
                         className="text-4xl md:text-6xl font-serif text-black mb-6"
                     >
-                        Built for founders who <span className="text-amber-600 italic">execute</span>.
+                        Built for founders who <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-500 to-orange-500 italic font-bold">execute</span>.
                     </motion.h2>
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ delay: 0.1 }}
+                        transition={{ delay: 0.2 }}
                         className="text-xl text-zinc-600"
                     >
-                        Whether you're solo, a startup, or running a small business—RaptorFlow gives you the war plan.
+                        No more excuses. No more "I'll figure it out later." Pick your path. Get your plan.
                     </motion.p>
                 </div>
 

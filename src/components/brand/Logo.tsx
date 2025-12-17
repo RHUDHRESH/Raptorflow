@@ -48,58 +48,49 @@ export const RaptorFlowLogo = ({
                 transition={{ type: "spring", stiffness: 300 }}
             >
                 {/* Background */}
-                <rect width="48" height="48" rx="10" fill="hsl(var(--primary))" />
-
-                {/* Stylized R */}
-                <path
-                    d="M14 12V36"
-                    stroke="hsl(var(--primary-foreground))"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                />
-                <path
-                    d="M14 12H26C30.418 12 34 15.134 34 19C34 22.866 30.418 26 26 26H14"
-                    stroke="hsl(var(--primary-foreground))"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                />
-                <path
-                    d="M24 26L34 38"
-                    stroke="hsl(var(--primary-foreground))"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                />
-
-                {/* Claw accent marks - top right */}
-                <motion.path
-                    d="M32 6L42 16"
-                    stroke="hsl(var(--primary-foreground))"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    opacity="0.6"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ delay: 0.3, duration: 0.4 }}
-                />
-                <motion.path
-                    d="M36 4L44 12"
-                    stroke="hsl(var(--primary-foreground))"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    opacity="0.4"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ delay: 0.4, duration: 0.3 }}
-                />
+                <rect width="48" height="48" rx="10" fill="hsl(var(--primary))" data-component-name="RaptorFlowLogo" />
+                
+                {/* R Letter */}
+                <path d="M14 12V36" stroke="hsl(var(--primary-foreground))" strokeWidth="4" strokeLinecap="round" />
+                <path d="M14 12H26C30.418 12 34 15.134 34 19C34 22.866 30.418 26 26 26H14" 
+                    stroke="hsl(var(--primary-foreground))" 
+                    strokeWidth="4" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    fill="none" />
+                <path d="M24 26L34 38" 
+                    stroke="hsl(var(--primary-foreground))" 
+                    strokeWidth="4" 
+                    strokeLinecap="round" />
+                
+                {/* Claw Marks */}
+                <path 
+                    d="M32 6L42 16" 
+                    stroke="hsl(var(--primary-foreground))" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    opacity="0.6" 
+                    pathLength="1" 
+                    strokeDashoffset="0px" 
+                    strokeDasharray="1px 1px"
+                    data-component-name="MotionDOMComponent" />
+                    
+                <path 
+                    d="M36 4L44 12" 
+                    stroke="hsl(var(--primary-foreground))" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    opacity="0.4" 
+                    pathLength="1" 
+                    strokeDashoffset="0px" 
+                    strokeDasharray="1px 1px" />
             </motion.svg>
 
             {/* Wordmark */}
             {showText && (
                 <div className="leading-none">
-                    <span className={`font-serif font-semibold tracking-tight ${text}`}>
-                        Raptor<span className="text-primary">Flow</span>
+                    <span className={`font-serif font-semibold tracking-tight ${text}`} data-component-name="RaptorFlowLogo">
+                    Raptor<span className="text-primary">Flow</span>
                     </span>
                 </div>
             )}

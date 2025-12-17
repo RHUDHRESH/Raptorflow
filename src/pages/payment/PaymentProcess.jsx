@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../../contexts/AuthContext'
-import { PLAN_PRICES, simulatePayment, verifyPayment } from '../../lib/phonepe'
+import { PLAN_PRICES, verifyPayment } from '../../lib/phonepe'
 import { CreditCard, Shield, CheckCircle, ArrowLeft, Loader, AlertCircle } from 'lucide-react'
 
 const PaymentProcess = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { user, refreshProfile } = useAuth()
+  const { refreshProfile } = useAuth()
   
   const txnId = searchParams.get('txnId')
   const planId = searchParams.get('plan')

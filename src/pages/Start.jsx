@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import Button from '../components/Button'
 import Input from '../components/Input'
 import Card from '../components/Card'
+import { RaptorFlowLogo } from '../components/brand/Logo'
 
 export default function Start() {
     const navigate = useNavigate()
@@ -131,12 +132,7 @@ export default function Start() {
                             className="flex items-center gap-3 mb-20 text-left"
                             aria-label="Go to home"
                         >
-                            <div className="w-9 h-9 rounded-full border border-charcoal/20 flex items-center justify-center">
-                                <span className="font-serif italic text-sm text-aubergine">Rf</span>
-                            </div>
-                            <div className="font-serif text-2xl font-semibold tracking-tight text-aubergine italic">
-                                Raptor<span className="not-italic text-charcoal">flow</span>
-                            </div>
+                            <RaptorFlowLogo size="md" animated={false} linkTo="/" />
                         </button>
 
                         {/* Editorial Content */}
@@ -173,12 +169,7 @@ export default function Start() {
                             className="lg:hidden flex items-center gap-3 mb-8 text-left"
                             aria-label="Go to home"
                         >
-                            <div className="w-9 h-9 rounded-full border border-charcoal/20 flex items-center justify-center">
-                                <span className="font-serif italic text-sm text-aubergine">Rf</span>
-                            </div>
-                            <div className="font-serif text-2xl font-semibold tracking-tight text-aubergine italic">
-                                Raptor<span className="not-italic text-charcoal">flow</span>
-                            </div>
+                            <RaptorFlowLogo size="md" animated={false} linkTo="/" />
                         </button>
 
                         <button

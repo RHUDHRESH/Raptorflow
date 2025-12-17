@@ -314,7 +314,6 @@ const SignalDetail = ({ signal }) => {
     params.set('new', '1')
     params.set('signalId', signal.id)
     params.set('name', signal.title || 'Signal move')
-    params.set('durationDays', '7')
 
     const cohort = signal?.cohortIds?.[0]
     const channel = signal?.channelIds?.[0]

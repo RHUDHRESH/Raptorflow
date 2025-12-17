@@ -216,6 +216,11 @@ The move should be immediately actionable - someone should be able to execute it
     // Calculate EV score
     const ev_score = (output.move.estimated_impact * 0.5) / Math.max(output.move.estimated_effort, 1);
 
+    const dayMs = 24 * 60 * 60 * 1000;
+    const startRaw = input.timeframe?.start ? new Date(String(input.timeframe.start)) : new Date();
+    const start = Number.isNaN(startRaw.getTime()) ? new Date() : startRaw;
+    const end = new Date(start.getTime() + 90 * dayMs);
+
     return {
       name: output.move.name,
       description: output.move.description,
@@ -229,8 +234,8 @@ The move should be immediately actionable - someone should be able to execute it
       impact_score: output.move.estimated_impact,
       effort_score: output.move.estimated_effort,
       ev_score,
-      planned_start: input.timeframe?.start,
-      planned_end: input.timeframe?.end
+      planned_start: start.toISOString().slice(0, 10),
+      planned_end: end.toISOString().slice(0, 10)
     } as any;
   }
 

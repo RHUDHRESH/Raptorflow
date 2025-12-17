@@ -29,7 +29,7 @@ export type DemandSourceType = 'capture' | 'creation' | 'expansion';
 
 export type PersuasionAxisType = 'money' | 'time' | 'risk_image';
 
-export type CampaignStatus = 'draft' | 'planned' | 'active' | 'paused' | 'completed' | 'cancelled';
+export type CampaignStatus = 'draft' | 'planned' | 'active' | 'paused' | 'completed' | 'cancelled' | 'archived';
 
 export type MoveStatus = 'planned' | 'generating_assets' | 'ready' | 'running' | 'paused' | 'completed' | 'failed';
 

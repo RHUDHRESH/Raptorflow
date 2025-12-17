@@ -4,13 +4,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, Menu, X } from 'lucide-react'
 
 // Reuse MagneticButton locally or import it if shared
-interface MagneticButtonProps {
-  children: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
-}
-
-const MagneticButton = ({ children, className = "", onClick }: MagneticButtonProps) => {
+const MagneticButton = ({ children, className = "", onClick = undefined }) => {
   const ref = useRef(null)
   const x = useMotionValue(0)
   const y = useMotionValue(0)

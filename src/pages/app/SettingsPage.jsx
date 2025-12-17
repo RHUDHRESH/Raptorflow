@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
-  Settings, 
-  FileText, 
-  CreditCard, 
-  Users, 
+import {
+  Settings,
+  FileText,
+  CreditCard,
+  Users,
   BarChart3,
   Lock,
   Plus,
@@ -18,6 +18,8 @@ import {
 import useRaptorflowStore, { PLAN_LIMITS } from '../../store/raptorflowStore'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase, supabaseConfigured } from '../../lib/supabase'
+import { EnhancedBillingTab } from '../../components/billing/BillingComponents'
+import { EnhancedTeamTab } from '../../components/team/TeamComponents'
 
 // Settings tabs
 const SETTINGS_TABS = [
@@ -34,11 +36,10 @@ const TabNav = ({ activeTab, onTabChange }) => (
       <button
         key={tab.id}
         onClick={() => onTabChange(tab.id)}
-        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-editorial ${
-          activeTab === tab.id
-            ? 'bg-signal-muted text-primary'
-            : 'text-ink-400 hover:text-ink hover:bg-paper-200'
-        }`}
+        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-editorial ${activeTab === tab.id
+          ? 'bg-signal-muted text-primary'
+          : 'text-ink-400 hover:text-ink hover:bg-paper-200'
+          }`}
       >
         <tab.icon className="w-5 h-5" strokeWidth={1.5} />
         <div>
@@ -422,11 +423,10 @@ const StrategyTab = () => {
       )}
 
       {bundleStatus && (
-        <div className={`p-4 rounded-xl border text-body-sm ${
-          bundleStatus.ok
-            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-            : 'bg-amber-50 border-amber-200 text-amber-800'
-        }`}>
+        <div className={`p-4 rounded-xl border text-body-sm ${bundleStatus.ok
+          ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+          : 'bg-amber-50 border-amber-200 text-amber-800'
+          }`}>
           {bundleStatus.message}
         </div>
       )}
@@ -446,9 +446,8 @@ const StrategyTab = () => {
             <button
               key={k.id}
               onClick={() => setActiveKitType(k.id)}
-              className={`p-4 rounded-xl border text-left transition-editorial ${
-                isActive ? 'border-primary bg-signal-muted' : 'border-border bg-card hover:bg-paper-200'
-              }`}
+              className={`p-4 rounded-xl border text-left transition-editorial ${isActive ? 'border-primary bg-signal-muted' : 'border-border bg-card hover:bg-paper-200'
+                }`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -456,15 +455,14 @@ const StrategyTab = () => {
                   <div className="text-body-xs text-ink-400 mt-1">{k.description}</div>
                 </div>
                 <div className="text-right">
-                  <div className={`inline-flex items-center px-2 py-0.5 rounded text-body-xs capitalize ${
-                    status === 'locked'
-                      ? 'bg-emerald-50 text-emerald-700'
-                      : status === 'review'
+                  <div className={`inline-flex items-center px-2 py-0.5 rounded text-body-xs capitalize ${status === 'locked'
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : status === 'review'
+                      ? 'bg-amber-50 text-amber-700'
+                      : status === 'draft'
                         ? 'bg-amber-50 text-amber-700'
-                        : status === 'draft'
-                          ? 'bg-amber-50 text-amber-700'
-                          : 'bg-red-50 text-red-700'
-                  }`}>
+                        : 'bg-red-50 text-red-700'
+                    }`}>
                     {status}
                   </div>
                   {displayVersion && (
@@ -622,7 +620,7 @@ const BillingTab = () => {
             <div className="text-body-xs text-ink-400">per month</div>
           </div>
         </div>
-        
+
         <div className="pt-4 border-t border-border-light">
           <div className="grid grid-cols-3 gap-4 text-body-sm">
             <div>
@@ -648,13 +646,12 @@ const BillingTab = () => {
           {plans.map(plan => {
             const limits = PLAN_LIMITS[plan.id]
             const isCurrent = currentPlan === plan.id
-            
+
             return (
               <div
                 key={plan.id}
-                className={`p-4 rounded-xl border ${
-                  isCurrent ? 'border-primary bg-signal-muted' : 'border-border bg-card'
-                }`}
+                className={`p-4 rounded-xl border ${isCurrent ? 'border-primary bg-signal-muted' : 'border-border bg-card'
+                  }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-body-sm text-ink font-medium">{plan.name}</span>
@@ -799,7 +796,7 @@ const UsageTab = () => {
           const percentage = Math.round((metric.used / metric.limit) * 100)
           const isNearLimit = percentage >= 80
           const isAtLimit = percentage >= 100
-          
+
           return (
             <div key={metric.name} className="bg-card border border-border rounded-xl p-5">
               <div className="flex items-center justify-between mb-3">
@@ -814,17 +811,16 @@ const UsageTab = () => {
                   <div className="text-body-xs text-ink-400">{metric.period}</div>
                 </div>
               </div>
-              
+
               <div className="h-3 bg-muted rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(percentage, 100)}%` }}
-                  className={`h-full rounded-full ${
-                    isAtLimit ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : 'bg-primary'
-                  }`}
+                  className={`h-full rounded-full ${isAtLimit ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : 'bg-primary'
+                    }`}
                 />
               </div>
-              
+
               {isNearLimit && !isAtLimit && (
                 <div className="flex items-center gap-2 mt-3 text-body-xs text-amber-600">
                   <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -892,7 +888,7 @@ const SettingsPage = () => {
       {/* Content */}
       <div className="flex gap-8">
         <TabNav activeTab={activeTab} onTabChange={handleTabChange} />
-        
+
         <motion.div
           key={activeTab}
           initial={{ opacity: 0, x: 20 }}
@@ -900,8 +896,8 @@ const SettingsPage = () => {
           className="flex-1 min-w-0"
         >
           {activeTab === 'strategy' && <StrategyTab />}
-          {activeTab === 'billing' && <BillingTab />}
-          {activeTab === 'team' && <TeamTab />}
+          {activeTab === 'billing' && <EnhancedBillingTab />}
+          {activeTab === 'team' && <EnhancedTeamTab />}
           {activeTab === 'usage' && <UsageTab />}
         </motion.div>
       </div>

@@ -109,9 +109,8 @@ const PricingCard = ({ plan, index, onSelect, highlighted = false }) => {
         {/* Price */}
         <div className="mb-8">
           <div className="flex items-baseline gap-1">
-            <span className="text-lg text-zinc-500">₹</span>
             <span className={`text-5xl font-light tracking-tight text-black`}>
-              {plan.price}
+              {plan.priceDisplay || `₹${plan.price.toLocaleString('en-IN')}`}
             </span>
             <span className="text-sm text-zinc-600 font-medium ml-2">/ month</span>
           </div>
@@ -149,59 +148,25 @@ const PricingCard = ({ plan, index, onSelect, highlighted = false }) => {
   )
 }
 
+import { PLANS, PLAN_ORDER, COMPARISON_FEATURES } from '@/config/plans'
+
 const Pricing = () => {
   const navigate = useNavigate()
   const [showMatrix, setShowMatrix] = useState(false)
 
-  const plans = [
-    {
-      name: 'Ascent',
-      icon: PlantIcon,
-      tagline: 'The Genesis',
-      price: '5,000',
-      description: 'For solo founders ready to execute.',
-      features: [
-        'Matrix Dashboard Access',
-        '1 Active War Plan',
-        '3 Active Cohorts',
-        '20 Battle Moves / mo',
-        'PDF Export'
-      ],
-      highlighted: false
-    },
-    {
-      name: 'Glide',
-      icon: MountainIcon,
-      tagline: 'The Climb',
-      price: '7,000',
-      description: 'For growing teams with momentum.',
-      features: [
-        'Everything in Ascent',
-        '3 Active War Plans',
-        '5 Active Cohorts',
-        'Black Box A/B Testing',
-        'Priority Intel Support'
-      ],
-      highlighted: true,
-      badge: 'RECOMMENDED'
-    },
-    {
-      name: 'Soar',
-      icon: RocketIcon,
-      tagline: 'The Orbit',
-      price: '10,000',
-      description: 'For agencies and scale-ups.',
-      features: [
-        'Everything in Glide',
-        'Unlimited War Plans',
-        'Unlimited Cohorts',
-        'API Tactics Access',
-        'White-label Reports',
-        'Dedicated Strategist'
-      ],
-      highlighted: false
-    }
-  ]
+  // Map plan IDs to icons
+  const planIcons = {
+    ascent: PlantIcon,
+    glide: MountainIcon,
+    soar: RocketIcon
+  }
+
+  const plans = PLAN_ORDER.map(id => ({
+    ...PLANS[id],
+    icon: planIcons[id],
+    highlighted: PLANS[id].recommended || false,
+    badge: PLANS[id].recommended ? 'RECOMMENDED' : undefined
+  }))
 
   return (
     <section id="pricing" className="relative py-32 overflow-hidden bg-gradient-to-b from-[#FDFBF7] to-[#F5F2EA]">
@@ -259,12 +224,14 @@ const Pricing = () => {
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {[
-                      ['War Room Access', true, true, true],
-                      ['Muse AI Generations', '200', '600', '1,500'],
-                      ['Campaign Slots', '1', '3', '10'],
+                      ['Matrix Access', true, true, true],
+                      ['Active Campaigns', '3', '6', '9'],
+                      ['Moves / month', '20', '60', '150'],
+                      ['Muse Generations / mo', '60', '200', '700'],
+                      ['Lab Duels / mo', '8', '25', '80'],
+                      ['Radar Scans / day', '3', '6', '15'],
                       ['Team Seats', '1', '2', '5'],
-                      ['Support Level', 'Standard', 'Priority', 'Dedicated'],
-                      ['API Access', false, false, true]
+                      ['Support Level', 'Email', 'Priority', 'Dedicated']
                     ].map((row, i) => (
                       <tr key={i} className="group hover:bg-white/[0.02] transition-colors">
                         <td className="py-4 text-zinc-300 text-sm font-medium">{row[0]}</td>

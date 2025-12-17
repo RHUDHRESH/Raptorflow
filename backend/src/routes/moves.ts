@@ -6,6 +6,41 @@ import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
+function normalize90DayWindow(input: { planned_start?: any; planned_end?: any }) {
+  const startRaw = input.planned_start;
+  const endRaw = input.planned_end;
+
+  const start = startRaw ? new Date(String(startRaw)) : null;
+  const end = endRaw ? new Date(String(endRaw)) : null;
+
+  const startValid = start && !Number.isNaN(start.getTime()) ? start : null;
+  const endValid = end && !Number.isNaN(end.getTime()) ? end : null;
+
+  const dayMs = 24 * 60 * 60 * 1000;
+  if (startValid) {
+    const computedEnd = new Date(startValid.getTime() + 90 * dayMs);
+    return {
+      planned_start: startValid.toISOString().slice(0, 10),
+      planned_end: computedEnd.toISOString().slice(0, 10),
+    };
+  }
+
+  if (endValid) {
+    const computedStart = new Date(endValid.getTime() - 90 * dayMs);
+    return {
+      planned_start: computedStart.toISOString().slice(0, 10),
+      planned_end: endValid.toISOString().slice(0, 10),
+    };
+  }
+
+  const today = new Date();
+  const computedEnd = new Date(today.getTime() + 90 * dayMs);
+  return {
+    planned_start: today.toISOString().slice(0, 10),
+    planned_end: computedEnd.toISOString().slice(0, 10),
+  };
+}
+
 // Middleware to verify JWT token
 const verifyToken = async (req: Request, res: Response, next: Function) => {
   const authHeader = req.headers.authorization;
@@ -148,6 +183,14 @@ router.post('/', verifyToken, async (req: Request, res: Response) => {
         moveData.protocol = moveData.protocol || template.protocol_type;
       }
     }
+
+    const window = normalize90DayWindow({
+      planned_start: (moveData as any).planned_start,
+      planned_end: (moveData as any).planned_end,
+    });
+
+    (moveData as any).planned_start = window.planned_start;
+    (moveData as any).planned_end = window.planned_end;
     
     const { data, error } = await db.moves.create(userId, moveData);
     
@@ -210,8 +253,10 @@ router.post('/from-template', verifyToken, async (req: Request, res: Response) =
         acc[m.metric] = { target: m.target, unit: m.unit };
         return acc;
       }, {}),
-      planned_start: customizations?.planned_start,
-      planned_end: customizations?.planned_end
+      ...normalize90DayWindow({
+        planned_start: customizations?.planned_start,
+        planned_end: customizations?.planned_end,
+      })
     };
     
     const { data, error } = await db.moves.create(userId, moveData as any);
@@ -235,6 +280,15 @@ router.patch('/:id', verifyToken, async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
     const { id } = req.params;
     const updates = req.body;
+
+    if (Object.prototype.hasOwnProperty.call(updates || {}, 'planned_start') || Object.prototype.hasOwnProperty.call(updates || {}, 'planned_end')) {
+      const window = normalize90DayWindow({
+        planned_start: (updates as any).planned_start,
+        planned_end: (updates as any).planned_end,
+      });
+      (updates as any).planned_start = window.planned_start;
+      (updates as any).planned_end = window.planned_end;
+    }
     
     const { data, error } = await db.moves.update(id, userId, updates);
     

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
+import { RaptorFlowLogo } from '../components/brand/Logo'
 import { Mail, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react'
 
 const Login = () => {
@@ -117,12 +118,7 @@ const Login = () => {
 
       {/* Header */}
       <header className="relative z-10 p-6">
-        <button 
-          onClick={() => navigate('/')}
-          className="text-white text-xl tracking-tight font-light"
-        >
-          Raptor<span className="italic font-normal text-white/80">flow</span>
-        </button>
+        <RaptorFlowLogo size="md" animated={false} linkTo="/" />
       </header>
 
       {/* Main content */}

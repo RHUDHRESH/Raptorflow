@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, ArrowLeft, Crosshair, Plus, X, AlertCircle } from 'lucide-react'
@@ -13,7 +13,7 @@ const alternativeActions = [
 
 const StepMarket = () => {
   const navigate = useNavigate()
-  const { market, updateMarket, addCompetitor, removeCompetitor, nextStep, prevStep } = useOnboardingStore()
+  const { market, updateMarket, nextStep, prevStep } = useOnboardingStore()
   
   const [form, setForm] = useState({
     alternativeAction: market.alternativeAction || '',

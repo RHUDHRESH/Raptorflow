@@ -1,96 +1,9 @@
-import React from 'react'
 import { motion } from 'framer-motion'
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // RAPTORFLOW BRAND SYSTEM
 // Premium icons, logo, and visual identity
 // ═══════════════════════════════════════════════════════════════════════════════
-
-// ───────────────────────────────────────────────────────────────────────────────
-// MAIN LOGO
-// Bold serif "R" with a raptor claw strike through and lightning accent
-// ───────────────────────────────────────────────────────────────────────────────
-
-export const RaptorFlowLogo = ({
-    className = '',
-    size = 40,
-    showText = true,
-    variant = 'default' // 'default' | 'light' | 'dark'
-}: {
-    className?: string
-    size?: number
-    showText?: boolean
-    variant?: 'default' | 'light' | 'dark'
-}) => {
-    const colors = {
-        default: { primary: 'hsl(var(--primary))', secondary: 'hsl(var(--foreground))' },
-        light: { primary: '#F59E0B', secondary: '#FFFFFF' },
-        dark: { primary: '#F59E0B', secondary: '#0A0A0A' }
-    }
-
-    const c = colors[variant]
-
-    return (
-        <div className={`flex items-center gap-3 ${className}`}>
-            {/* Icon Mark */}
-            <svg
-                width={size}
-                height={size}
-                viewBox="0 0 48 48"
-                fill="none"
-                className="flex-shrink-0"
-            >
-                {/* Background rounded square */}
-                <rect width="48" height="48" rx="12" fill={c.primary} />
-
-                {/* Stylized R with claw marks */}
-                <path
-                    d="M14 12H26C31.523 12 36 16.477 36 22C36 26.5 33 30.5 28 31L36 40"
-                    stroke={variant === 'light' ? '#0A0A0A' : '#FFFFFF'}
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                />
-                <path
-                    d="M14 12V40"
-                    stroke={variant === 'light' ? '#0A0A0A' : '#FFFFFF'}
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                />
-
-                {/* Claw accent marks - dynamic slash */}
-                <path
-                    d="M30 8L42 20"
-                    stroke={variant === 'light' ? '#0A0A0A' : '#FFFFFF'}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    opacity="0.6"
-                />
-                <path
-                    d="M34 6L44 16"
-                    stroke={variant === 'light' ? '#0A0A0A' : '#FFFFFF'}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    opacity="0.4"
-                />
-            </svg>
-
-            {/* Wordmark */}
-            {showText && (
-                <span
-                    className="font-serif font-semibold tracking-tight"
-                    style={{
-                        fontSize: size * 0.6,
-                        color: c.secondary
-                    }}
-                >
-                    Raptor<span style={{ color: c.primary }}>Flow</span>
-                </span>
-            )}
-        </div>
-    )
-}
 
 // ───────────────────────────────────────────────────────────────────────────────
 // ICON SYSTEM - Premium Luxe SVG Icons

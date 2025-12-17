@@ -21,7 +21,7 @@ async function getAuthToken() {
  */
 async function apiRequest(endpoint, options = {}) {
   const token = await getAuthToken();
-  
+
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers: {
@@ -161,11 +161,11 @@ export const sharedAPI = {
   async getData(token) {
     const response = await fetch(`${API_BASE}/shared/${token}`);
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.error || 'Failed to get shared data');
     }
-    
+
     return data;
   },
 
@@ -178,13 +178,13 @@ export const sharedAPI = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ plan, email, phone }),
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.error || 'Payment initiation failed');
     }
-    
+
     return data;
   },
 };
@@ -255,12 +255,158 @@ export async function checkAPIHealth() {
   }
 }
 
+// ============ SUBSCRIPTIONS API ============
+
+export const subscriptionsAPI = {
+  /**
+   * Get current subscription details
+   */
+  async getCurrent() {
+    return apiRequest('/subscriptions/current');
+  },
+
+  /**
+   * Preview proration for an upgrade (no charge)
+   */
+  async previewUpgrade(planId) {
+    return apiRequest('/subscriptions/preview-upgrade', {
+      method: 'POST',
+      body: JSON.stringify({ planId }),
+    });
+  },
+
+  /**
+   * Upgrade to a higher plan (immediate charge)
+   */
+  async upgrade(planId) {
+    return apiRequest('/subscriptions/upgrade', {
+      method: 'POST',
+      body: JSON.stringify({ planId }),
+    });
+  },
+
+  /**
+   * Schedule downgrade for next billing cycle
+   */
+  async downgrade(planId) {
+    return apiRequest('/subscriptions/downgrade', {
+      method: 'POST',
+      body: JSON.stringify({ planId }),
+    });
+  },
+
+  /**
+   * Cancel subscription
+   */
+  async cancel(immediate = false, reason = '') {
+    return apiRequest('/subscriptions/cancel', {
+      method: 'POST',
+      body: JSON.stringify({ immediate, reason }),
+    });
+  },
+
+  /**
+   * Pause subscription (retention tactic)
+   */
+  async pause(pauseUntil = null) {
+    return apiRequest('/subscriptions/pause', {
+      method: 'POST',
+      body: JSON.stringify({ pauseUntil }),
+    });
+  },
+
+  /**
+   * Resume a paused subscription
+   */
+  async resume() {
+    return apiRequest('/subscriptions/resume', {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Reactivate a subscription scheduled for cancellation
+   */
+  async reactivate() {
+    return apiRequest('/subscriptions/reactivate', {
+      method: 'POST',
+    });
+  },
+};
+
+// ============ TEAM API ============
+
+export const teamAPI = {
+  /**
+   * Get all team members
+   */
+  async getMembers() {
+    return apiRequest('/team/members');
+  },
+
+  /**
+   * Invite a new team member
+   */
+  async invite(email, role = 'viewer') {
+    return apiRequest('/team/invite', {
+      method: 'POST',
+      body: JSON.stringify({ email, role }),
+    });
+  },
+
+  /**
+   * Get pending invites
+   */
+  async getInvites() {
+    return apiRequest('/team/invites');
+  },
+
+  /**
+   * Revoke a pending invite
+   */
+  async revokeInvite(inviteId) {
+    return apiRequest(`/team/invites/${inviteId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  /**
+   * Accept an invite by token
+   */
+  async acceptInvite(token) {
+    return apiRequest('/team/accept-invite', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  },
+
+  /**
+   * Update a member's role
+   */
+  async updateRole(memberId, role) {
+    return apiRequest(`/team/members/${memberId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    });
+  },
+
+  /**
+   * Remove a team member
+   */
+  async removeMember(memberId) {
+    return apiRequest(`/team/members/${memberId}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
 // Export default object for convenience
 export default {
   onboarding: onboardingAPI,
   payments: paymentsAPI,
+  subscriptions: subscriptionsAPI,
+  team: teamAPI,
   shared: sharedAPI,
   muse: museAPI,
   checkHealth: checkAPIHealth,
 };
-

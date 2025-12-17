@@ -17,7 +17,6 @@ import {
   Layers,
   Radio,
   Box,
-  Crosshair,
   Command
 } from 'lucide-react'
 import ThemeToggle from '../components/ui/ThemeToggle'
@@ -36,10 +35,10 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from '../components/ui/sidebar'
-import MuseDrawer from '../components/MuseDrawer'
+import { RaptorFlowLogo } from '../components/brand/Logo'
 
 // Navigation organized by hierarchy - Editorial styling
-// Based on spec: Matrix, Campaigns, Moves, Radar, Black Box, Trail, Settings
+// Based on spec: Matrix, Campaigns, Moves, Radar, Lab, Settings
 const navSections = [
   {
     label: 'Command',
@@ -50,8 +49,9 @@ const navSections = [
   {
     label: 'Strategy',
     items: [
-      { name: 'Campaigns', icon: Layers, path: '/app/campaigns', description: 'War plans' },
+      { name: 'Campaigns', icon: Layers, path: '/app/campaigns', description: 'Mission containers' },
       { name: 'Moves', icon: Zap, path: '/app/moves', description: 'Tactical strikes' },
+      { name: 'Muse', icon: Sparkles, path: '/app/muse', description: 'Asset studio' },
     ]
   },
   {
@@ -59,13 +59,7 @@ const navSections = [
     items: [
       { name: 'Radar', icon: Radio, path: '/app/radar', description: 'Trend scanner' },
       { name: 'Signals', icon: Target, path: '/app/signals', description: 'Leverage map' },
-      { name: 'Black Box', icon: Box, path: '/app/black-box', description: 'Duel arena' },
-    ]
-  },
-  {
-    label: 'Outbound',
-    items: [
-      { name: 'Trail', icon: Crosshair, path: '/app/trail', description: 'Target pursuit' },
+      { name: 'Lab', icon: Box, path: '/app/black-box', description: 'A/B Duels' },
     ]
   }
 ]
@@ -141,17 +135,14 @@ const AppLayout = () => {
   const planLimits = getPlanLimits()
   const planName = planLimits?.name || profile?.plan || 'Glide'
 
+  const isFullBleedPage = location.pathname === '/app/muse'
+
   return (
     <SidebarProvider defaultOpen={true}>
       <Sidebar variant="inset">
         <SidebarHeader>
-          <div className="flex items-center gap-3 px-2 py-2">
-            <div className="w-8 h-8 bg-ink rounded-editorial flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-serif text-sm font-medium">Rf</span>
-            </div>
-            <span className="font-serif text-lg text-ink whitespace-nowrap">
-              Raptor<span className="italic text-ink-400">flow</span>
-            </span>
+          <div className="flex items-center gap-3 px-2 py-2" data-component-name="AppLayout">
+            <RaptorFlowLogo size="sm" animated={false} linkTo="/app" />
           </div>
         </SidebarHeader>
 
@@ -217,17 +208,17 @@ const AppLayout = () => {
         <SidebarRail />
       </Sidebar>
 
-      <SidebarInset>
-        {/* Top bar */}
-        <header className="h-16 bg-paper/80 backdrop-blur-xl border-b border-border-light flex items-center justify-between px-6 sticky top-0 z-40">
+      <SidebarInset className="main-inset-saas">
+        {/* Top bar - Premium SaaS styling */}
+        <header className="h-16 header-saas flex items-center justify-between px-6 sticky top-0 z-40">
           <div className="flex items-center gap-4">
-            <SidebarTrigger className="h-7 w-7" />
+            <SidebarTrigger className="h-8 w-8 text-muted-foreground hover:text-foreground transition-colors" />
             {/* Search */}
             <div className="relative">
-              <button aria-label="Search" className="flex items-center gap-2 px-4 py-2 bg-paper-200 border border-border-light rounded-editorial text-ink-400 hover:text-ink hover:border-border transition-editorial">
+              <button aria-label="Search" className="flex items-center gap-2 px-4 py-2.5 bg-muted/50 border border-border/50 rounded-xl text-muted-foreground hover:text-foreground hover:border-border hover:bg-muted transition-all duration-200">
                 <Search className="w-4 h-4" strokeWidth={1.5} />
-                <span className="text-body-sm">Search...</span>
-                <kbd className="ml-6 px-1.5 py-0.5 bg-paper-300 rounded text-[10px] text-ink-400 font-mono">⌘K</kbd>
+                <span className="text-sm">Search...</span>
+                <kbd className="ml-4 px-2 py-0.5 bg-background/80 rounded-md text-[10px] text-muted-foreground font-medium border border-border/50">⌘K</kbd>
               </button>
             </div>
           </div>
@@ -243,11 +234,11 @@ const AppLayout = () => {
                 aria-haspopup="menu"
                 aria-expanded={notificationsOpen}
                 onClick={() => setNotificationsOpen((v) => !v)}
-                className="relative p-2 text-ink-400 hover:text-ink transition-editorial rounded-editorial hover:bg-paper-200"
+                className="relative p-2.5 text-muted-foreground hover:text-foreground transition-all duration-200 rounded-xl hover:bg-muted/50"
               >
                 <Bell className="w-5 h-5" strokeWidth={1.5} />
                 {notifications.some((n) => n.unread) && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-ink-300 rounded-full" />
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full ring-2 ring-background" />
                 )}
               </button>
 
@@ -255,7 +246,7 @@ const AppLayout = () => {
                 <div
                   role="menu"
                   aria-label="Notifications"
-                  className="absolute right-0 mt-2 w-[360px] bg-paper border border-border-light rounded-editorial shadow-xl p-2 z-50"
+                  className="absolute right-0 mt-2 w-[380px] bg-card border border-border rounded-2xl shadow-2xl p-3 z-50 dark:bg-[hsl(213_28%_14%)] dark:border-[hsl(213_28%_24%)]"
                 >
                   <div className="px-2 py-2 flex items-center justify-between gap-3">
                     <div className="text-ink font-serif">Notifications</div>
@@ -394,18 +385,17 @@ const AppLayout = () => {
             <button
               aria-label="Account and plan"
               onClick={() => navigate('/app/settings')}
-              className="flex items-center gap-2 px-3 py-2 bg-paper-200 border border-border-light rounded-editorial hover:border-border-dark transition-editorial"
+              className="flex items-center gap-2.5 px-3 py-2 bg-muted/50 border border-border/50 rounded-xl hover:border-border hover:bg-muted transition-all duration-200"
             >
-              <div className="w-7 h-7 bg-paper-300 border border-border rounded-editorial flex items-center justify-center flex-shrink-0">
-                <span className="text-ink text-body-xs font-medium">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-foreground text-sm font-medium">
                   {profile?.full_name?.[0] || profile?.email?.[0]?.toUpperCase() || 'U'}
                 </span>
               </div>
-              <span className="text-body-sm text-ink max-w-[120px] truncate">
+              <span className="text-sm text-foreground max-w-[120px] truncate">
                 {profile?.full_name?.split(' ')?.[0] || 'Account'}
               </span>
-              <span className="text-ink-300">•</span>
-              <span className="px-2 py-0.5 bg-paper-300 border border-border-light rounded-lg text-body-xs text-ink font-medium capitalize">
+              <span className="badge-saas badge-saas-warning text-[10px] py-0.5">
                 {planName}
               </span>
             </button>
@@ -413,13 +403,14 @@ const AppLayout = () => {
         </header>
 
         {/* Page content */}
-        <div className="p-6">
+        {isFullBleedPage ? (
           <Outlet />
-        </div>
+        ) : (
+          <div className="p-6">
+            <Outlet />
+          </div>
+        )}
       </SidebarInset>
-
-      {/* Muse Drawer - contextual asset generator */}
-      <MuseDrawer />
     </SidebarProvider>
   )
 }

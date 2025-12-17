@@ -28,8 +28,13 @@ import { museAPI } from '../../lib/api'
 
 import { cn } from '@/lib/utils'
 import { EmptyState } from '@/components/EmptyState'
-
-import { Modal } from '@/components/system/Modal'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 
 // Asset type categories and icons
 const ASSET_CATEGORIES = {
@@ -228,223 +233,228 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
   }
 
   return (
-    <Modal
+    <Sheet
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) onClose()
       }}
-      title="Generate asset"
-      description="Create content with Muse AI."
-      contentClassName="max-w-3xl"
     >
-      <div className="space-y-5">
-        {/* Progress */}
-        <div className="flex flex-wrap items-center gap-3 rounded-card border border-border bg-muted px-4 py-3">
-          <div className={`flex items-center gap-2 ${step >= 1 ? 'text-foreground' : 'text-muted-foreground'}`}>
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 1 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>1</div>
-            <span className="text-sm">Asset type</span>
-          </div>
-          <ChevronRight className="w-4 h-4 text-border" />
-          {ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' && (
-            <>
-              <div className={`flex items-center gap-2 ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>2</div>
-                <span className="text-sm">Image style</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-border" />
-              <div className={`flex items-center gap-2 ${step >= 3 ? 'text-foreground' : 'text-muted-foreground'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>3</div>
-                <span className="text-sm">Target ICP</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-border" />
-              <div className={`flex items-center gap-2 ${step >= 4 ? 'text-foreground' : 'text-muted-foreground'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 4 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>4</div>
-                <span className="text-sm">Generate</span>
-              </div>
-            </>
-          )}
-          {(!selectedType || ASSET_TYPES.find(t => t.type === selectedType?.type)?.category !== 'images') && (
-            <>
-              <div className={`flex items-center gap-2 ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>2</div>
-                <span className="text-sm">Target ICP</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-border" />
-              <div className={`flex items-center gap-2 ${step >= 3 ? 'text-foreground' : 'text-muted-foreground'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>3</div>
-                <span className="text-sm">Generate</span>
-              </div>
-            </>
-          )}
-        </div>
+      <SheetContent side="right" className="bg-card border-border w-full sm:max-w-2xl p-0">
+        <div className="h-full flex flex-col">
+          <SheetHeader className="p-6 border-b border-border bg-muted">
+            <SheetTitle className="font-serif text-headline-sm text-foreground">Generate asset</SheetTitle>
+            <SheetDescription className="text-body-sm text-muted-foreground">Create content with Muse AI.</SheetDescription>
+          </SheetHeader>
 
-        {/* Content */}
-        <div className="max-h-[50vh] overflow-y-auto pr-1">
-          {step === 1 && (
-            <div className="space-y-4">
-              {Object.entries(ASSET_CATEGORIES).map(([key, category]) => {
-                const types = ASSET_TYPES.filter(t => t.category === key)
-                const CategoryIcon = category.icon
-                
-                return (
-                  <div key={key}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <CategoryIcon className="w-4 h-4 text-ink-400" />
-                      <span className="text-sm font-medium text-ink-400">{category.label}</span>
+          <div className="flex-1 overflow-auto p-6">
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-center gap-3 rounded-card border border-border bg-muted px-4 py-3">
+                <div className={`flex items-center gap-2 ${step >= 1 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 1 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>1</div>
+                  <span className="text-sm">Asset type</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-border" />
+                {ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' && (
+                  <>
+                    <div className={`flex items-center gap-2 ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>2</div>
+                      <span className="text-sm">Image style</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {types.map(type => (
+                    <ChevronRight className="w-4 h-4 text-border" />
+                    <div className={`flex items-center gap-2 ${step >= 3 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>3</div>
+                      <span className="text-sm">Target ICP</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-border" />
+                    <div className={`flex items-center gap-2 ${step >= 4 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 4 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>4</div>
+                      <span className="text-sm">Generate</span>
+                    </div>
+                  </>
+                )}
+                {(!selectedType || ASSET_TYPES.find(t => t.type === selectedType?.type)?.category !== 'images') && (
+                  <>
+                    <div className={`flex items-center gap-2 ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>2</div>
+                      <span className="text-sm">Target ICP</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-border" />
+                    <div className={`flex items-center gap-2 ${step >= 3 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>3</div>
+                      <span className="text-sm">Generate</span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="max-h-[55vh] overflow-y-auto pr-1">
+                {step === 1 && (
+                  <div className="space-y-4">
+                    {Object.entries(ASSET_CATEGORIES).map(([key, category]) => {
+                      const types = ASSET_TYPES.filter(t => t.category === key)
+                      const CategoryIcon = category.icon
+
+                      return (
+                        <div key={key}>
+                          <div className="flex items-center gap-2 mb-3">
+                            <CategoryIcon className="w-4 h-4 text-ink-400" />
+                            <span className="text-sm font-medium text-ink-400">{category.label}</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            {types.map(type => (
+                              <button
+                                key={type.type}
+                                onClick={() => setSelectedType(type)}
+                                className={`p-3 rounded-lg border text-left transition-all ${
+                                  selectedType?.type === type.type
+                                    ? 'bg-signal-muted border-primary/20'
+                                    : 'bg-background border-border hover:border-border-dark'
+                                }`}
+                              >
+                                <div className="font-medium text-ink text-sm">{type.label}</div>
+                                <div className="text-xs text-ink-400 mt-1">{type.description}</div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {step === 2 && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-ink-400 mb-4">
+                      Select which ICP this content should be tailored for
+                    </p>
+                    {loadingICPs ? (
+                      <div className="text-center py-8">
+                        <RefreshCw className="w-6 h-6 text-primary animate-spin mx-auto mb-2" />
+                        <p className="text-ink-400">Loading audience profiles...</p>
+                      </div>
+                    ) : (
+                      icps.map(icp => (
                         <button
-                          key={type.type}
-                          onClick={() => setSelectedType(type)}
-                          className={`p-3 rounded-lg border text-left transition-all ${
-                            selectedType?.type === type.type
+                          key={icp.id}
+                          onClick={() => setSelectedICP(icp)}
+                          className={`w-full p-4 rounded-lg border text-left transition-all ${
+                            selectedICP?.id === icp.id
                               ? 'bg-signal-muted border-primary/20'
                               : 'bg-background border-border hover:border-border-dark'
                           }`}
                         >
-                          <div className="font-medium text-ink text-sm">{type.label}</div>
-                          <div className="text-xs text-ink-400 mt-1">{type.description}</div>
+                          <div className="font-medium text-ink">{icp.label}</div>
+                          <div className="text-sm text-ink-400 mt-1">{icp.summary}</div>
                         </button>
-                      ))}
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {step === 2 && ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-ink-400 mb-4">
+                      Customize your image settings
+                    </p>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-ink mb-2">Visual style</label>
+                        <select
+                          value={imageStyle}
+                          onChange={(e) => setImageStyle(e.target.value)}
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <option value="realistic">Realistic (Photography)</option>
+                          <option value="illustrative">Illustrative (Clean Art)</option>
+                          <option value="minimalist">Minimalist (Simple)</option>
+                          <option value="bold">Bold (Vibrant)</option>
+                          <option value="vibrant">Vibrant (Colorful)</option>
+                          <option value="monochrome">Monochrome (B&W)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-ink mb-2">Dimensions</label>
+                        <select
+                          value={imageDimensions}
+                          onChange={(e) => setImageDimensions(e.target.value)}
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <option value="square">Square (1:1) - Social Media</option>
+                          <option value="landscape">Landscape (16:9) - Banners</option>
+                          <option value="portrait">Portrait (9:16) - Stories</option>
+                          <option value="banner">Banner (3:1) - Headers</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          )}
+                )}
 
-          {step === 2 && (
-            <div className="space-y-3">
-              <p className="text-sm text-ink-400 mb-4">
-                Select which ICP this content should be tailored for
-              </p>
-              {loadingICPs ? (
-                <div className="text-center py-8">
-                  <RefreshCw className="w-6 h-6 text-primary animate-spin mx-auto mb-2" />
-                  <p className="text-ink-400">Loading audience profiles...</p>
-                </div>
-              ) : (
-                icps.map(icp => (
-                  <button
-                    key={icp.id}
-                    onClick={() => setSelectedICP(icp)}
-                    className={`w-full p-4 rounded-lg border text-left transition-all ${
-                      selectedICP?.id === icp.id
-                        ? 'bg-signal-muted border-primary/20'
-                        : 'bg-background border-border hover:border-border-dark'
-                    }`}
-                  >
-                    <div className="font-medium text-ink">{icp.label}</div>
-                    <div className="text-sm text-ink-400 mt-1">{icp.summary}</div>
-                  </button>
-                ))
-              )}
-            </div>
-          )}
-
-          {step === 2 && ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' && (
-            <div className="space-y-4">
-              <p className="text-sm text-ink-400 mb-4">
-                Customize your image settings
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-ink mb-2">Visual style</label>
-                  <select
-                    value={imageStyle}
-                    onChange={(e) => setImageStyle(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <option value="realistic">Realistic (Photography)</option>
-                    <option value="illustrative">Illustrative (Clean Art)</option>
-                    <option value="minimalist">Minimalist (Simple)</option>
-                    <option value="bold">Bold (Vibrant)</option>
-                    <option value="vibrant">Vibrant (Colorful)</option>
-                    <option value="monochrome">Monochrome (B&W)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-ink mb-2">Dimensions</label>
-                  <select
-                    value={imageDimensions}
-                    onChange={(e) => setImageDimensions(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <option value="square">Square (1:1) - Social Media</option>
-                    <option value="landscape">Landscape (16:9) - Banners</option>
-                    <option value="portrait">Portrait (9:16) - Stories</option>
-                    <option value="banner">Banner (3:1) - Headers</option>
-                  </select>
-                </div>
+                {step === (ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' ? 3 : 2) && (
+                  <div className="text-center py-8">
+                    {isGenerating ? (
+                      <div>
+                        <div className="w-16 h-16 bg-signal-muted rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20">
+                          <RefreshCw className="w-8 h-8 text-primary animate-spin" strokeWidth={1.5} />
+                        </div>
+                        <h3 className="font-serif text-headline-sm text-ink mb-2">Generating your asset…</h3>
+                        <p className="text-ink-400">
+                          Creating {selectedType?.label} for {selectedICP?.label}
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="w-16 h-16 bg-signal-muted rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20">
+                          <Sparkles className="w-8 h-8 text-primary" strokeWidth={1.5} />
+                        </div>
+                        <h3 className="font-serif text-headline-sm text-ink mb-2">Ready to generate</h3>
+                        <p className="text-ink-400 mb-6">
+                          {selectedType?.label} tailored for {selectedICP?.label}
+                          {ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' && (
+                            <span className="block text-sm mt-1">
+                              Style: {imageStyle}, Size: {imageDimensions}
+                            </span>
+                          )}
+                        </p>
+                        <button
+                          onClick={handleGenerate}
+                          className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-95 transition-editorial flex items-center gap-2 mx-auto"
+                        >
+                          <Wand2 className="w-4 h-4" strokeWidth={1.5} />
+                          Generate
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </div>
 
-          {step === (ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' ? 3 : 2) && (
-            <div className="text-center py-8">
-              {isGenerating ? (
-                <div>
-                  <div className="w-16 h-16 bg-signal-muted rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20">
-                    <RefreshCw className="w-8 h-8 text-primary animate-spin" strokeWidth={1.5} />
-                  </div>
-                  <h3 className="font-serif text-headline-sm text-ink mb-2">Generating your asset…</h3>
-                  <p className="text-ink-400">
-                    Creating {selectedType?.label} for {selectedICP?.label}
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <div className="w-16 h-16 bg-signal-muted rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20">
-                    <Sparkles className="w-8 h-8 text-primary" strokeWidth={1.5} />
-                  </div>
-                  <h3 className="font-serif text-headline-sm text-ink mb-2">Ready to generate</h3>
-                  <p className="text-ink-400 mb-6">
-                    {selectedType?.label} tailored for {selectedICP?.label}
-                    {ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' && (
-                      <span className="block text-sm mt-1">
-                        Style: {imageStyle}, Size: {imageDimensions}
-                      </span>
-                    )}
-                  </p>
-                  <button
-                    onClick={handleGenerate}
-                    className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-95 transition-editorial flex items-center gap-2 mx-auto"
-                  >
-                    <Wand2 className="w-4 h-4" strokeWidth={1.5} />
-                    Generate
-                  </button>
-                </div>
-              )}
+          {step < (ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' ? 3 : 2) && (
+            <div className="flex items-center justify-between p-6 border-t border-border bg-muted">
+              <button
+                onClick={() => step === 1 ? onClose() : setStep(s => s - 1)}
+                className="px-4 py-2 text-ink-400 hover:text-ink transition-editorial"
+              >
+                {step === 1 ? 'Cancel' : 'Back'}
+              </button>
+              <button
+                onClick={() => setStep(s => s + 1)}
+                disabled={
+                  (step === 1 && !selectedType) ||
+                  (step === 2 && ASSET_TYPES.find(t => t.type === selectedType?.type)?.category !== 'images' && !selectedICP)
+                }
+                className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-95 transition-editorial disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Continue
+              </button>
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        {step < (ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' ? 3 : 2) && (
-          <div className="flex items-center justify-between p-6 border-t border-border bg-muted">
-            <button
-              onClick={() => step === 1 ? onClose() : setStep(s => s - 1)}
-              className="px-4 py-2 text-ink-400 hover:text-ink transition-editorial"
-            >
-              {step === 1 ? 'Cancel' : 'Back'}
-            </button>
-            <button
-              onClick={() => setStep(s => s + 1)}
-              disabled={
-                (step === 1 && !selectedType) ||
-                (step === 2 && ASSET_TYPES.find(t => t.type === selectedType?.type)?.category !== 'images' && !selectedICP)
-              }
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-95 transition-editorial disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Continue
-            </button>
-          </div>
-        )}
-      </div>
-    </Modal>
+      </SheetContent>
+    </Sheet>
   )
 }
 

@@ -150,7 +150,7 @@ const MoveCard = ({ move, campaign, onNavigate, onOpenMuse, week }) => {
           {move.channel}
         </span>
         <span className="px-2 py-0.5 bg-paper-200 rounded text-body-xs text-ink-400">
-          {move.durationDays}d
+          90d
         </span>
       </div>
       
@@ -295,7 +295,7 @@ const MatrixDashboard = () => {
 
   const buildWeekPreview = (move) => {
     const dayNumber = getMoveDayNumber?.(move.id) || 1
-    const durationDays = move?.plan?.durationDays || move?.durationDays || 7
+    const durationDays = 90
     const end = Math.min(durationDays, dayNumber + 6)
     const days = []
     for (let day = dayNumber; day <= end; day += 1) {

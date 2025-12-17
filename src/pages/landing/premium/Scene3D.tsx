@@ -1,10 +1,10 @@
 import React, { useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { MeshDistortMaterial, Float, Environment, Stars, Points } from '@react-three/drei'
+import { MeshDistortMaterial, Float, Environment, Stars } from '@react-three/drei'
 import * as THREE from 'three'
 
 const LiquidChrome = (props) => {
-  const meshRef = useRef<THREE.Mesh | null>(null)
+  const meshRef = useRef()
   
   useFrame((state) => {
     if (!meshRef.current) return
@@ -35,7 +35,7 @@ const LiquidChrome = (props) => {
 }
 
 const BackgroundParticles = () => {
-  const ref = useRef<THREE.Points | null>(null)
+  const ref = useRef()
   useFrame((state, delta) => {
     if (ref.current) {
       ref.current.rotation.x -= delta / 10
@@ -50,8 +50,8 @@ const BackgroundParticles = () => {
 }
 
 // Simple custom points implementation if not using drei's specialized ones or to keep it light
-const AtmosphereParticles = React.forwardRef<THREE.Points, {}>(function AtmosphereParticles(props, ref) {
-  
+const Points = React.forwardRef(({ positions, stride = 3 }, ref) => {
+  const pointsRef = useRef()
   
   // Generate random points on mount
   const p = React.useMemo(() => {
@@ -68,13 +68,13 @@ const AtmosphereParticles = React.forwardRef<THREE.Points, {}>(function Atmosphe
   }, [])
 
   useFrame((state, delta) => {
-  if (ref && 'current' in ref && ref.current) {
-    ref.current.rotation.y += delta * 0.05
-  }
-})
+    if (pointsRef.current) {
+      pointsRef.current.rotation.y += delta * 0.05
+    }
+  })
 
   return (
-    <points ref={ref}>
+    <points ref={pointsRef}>
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
@@ -109,7 +109,7 @@ const Scene3D = () => {
         <LiquidChrome position={[2.5, 0, 0]} />
         
         {/* Atmosphere */}
-        <AtmosphereParticles />
+        <Points />
         
         {/* High quality environment map for reflections */}
         <Environment preset="city" />

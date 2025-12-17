@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/sonner'
 
 // Landing pages
 import LandingPage from './pages/LandingPage'
-import PremiumLanding from './pages/PremiumLanding'
+import PremiumLanding from './pages/PremiumLanding.tsx'
 import Login from './pages/Login'
 import Start from './pages/Start'
 
@@ -48,6 +48,7 @@ import {
 // App pages
 import AppLayout from './layouts/AppLayout'
 import MovesPage from './pages/app/MovesPage'
+import MoveBuilder from './pages/app/moves/MoveBuilder.jsx'
 import CampaignsPage from './pages/app/CampaignsPage'
 import RadarPage from './pages/app/RadarPage'
 import BlackBoxPage from './pages/app/BlackBoxPage'
@@ -58,7 +59,6 @@ import SignalsPage from './pages/app/SignalsPage'
 // Legacy pages (keeping for backwards compatibility)
 import Dashboard from './pages/app/Dashboard'
 import Moves from './pages/app/Moves'
-import Muse from './pages/app/Muse'
 import Campaigns from './pages/app/Campaigns'
 import Matrix from './pages/app/Matrix'
 import Position from './pages/app/Position'
@@ -68,6 +68,7 @@ import WarRoom from './pages/app/WarRoom'
 import Spikes from './pages/app/Spikes'
 import SpikeSetup from './pages/app/SpikeSetup'
 import Radar from './pages/app/Radar'
+import MuseChatPage from './pages/app/MuseChatPage'
 
 // Payment pages
 import PaymentProcess from './pages/payment/PaymentProcess'
@@ -83,12 +84,9 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading, user, profile } = useAuth()
   const [profileLoading, setProfileLoading] = useState(false)
 
-  if (AUTH_DISABLED) {
-    return children
-  }
-
   // Wait for profile to be created (with timeout)
   useEffect(() => {
+    if (AUTH_DISABLED) return
     if (user && !profile && !loading) {
       setProfileLoading(true)
       // Give profile creation up to 3 seconds
@@ -96,10 +94,13 @@ const ProtectedRoute = ({ children }) => {
         setProfileLoading(false)
       }, 3000)
       return () => clearTimeout(timer)
-    } else {
-      setProfileLoading(false)
     }
+    setProfileLoading(false)
   }, [user, profile, loading])
+
+  if (AUTH_DISABLED) {
+    return children
+  }
 
   if (loading || profileLoading) {
     return (
@@ -315,9 +316,16 @@ const AppRoutes = () => {
           <Route path="campaigns" element={<CampaignsPage />} />
           <Route path="campaigns/new" element={<CampaignsPage />} />
           <Route path="campaigns/:id" element={<CampaignsPage />} />
+
+          {/* Moves System */}
           <Route path="moves" element={<MovesPage />} />
+          <Route path="moves/new/:step" element={<MoveBuilder />} />
+          <Route path="moves/library" element={<MovesPage />} />
           <Route path="moves/:id" element={<MovesPage />} />
+          <Route path="moves/:id/:tab" element={<MovesPage />} />
+
           <Route path="radar" element={<RadarPage />} />
+          <Route path="muse" element={<MuseChatPage />} />
           <Route path="signals" element={<SignalsPage />} />
           <Route path="signals/:id" element={<SignalsPage />} />
           <Route path="black-box" element={<BlackBoxPage />} />
@@ -329,7 +337,6 @@ const AppRoutes = () => {
           {/* Legacy routes - kept for backwards compatibility */}
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="warroom" element={<WarRoom />} />
-          <Route path="muse" element={<Muse />} />
           <Route path="matrix-old" element={<Matrix />} />
           <Route path="spikes" element={<Spikes />} />
           <Route path="spikes/new" element={<SpikeSetup />} />

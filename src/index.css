@@ -118,11 +118,18 @@
     --error: 14 40% 45%;
     /* Truffle-based muted */
 
-    /* Semantic colors (hex) */
-    --color-success: #4A5B6D;
-    /* Muted blue-gray */
-    --color-warning: #A89A7A;
-    /* Oatmeal-based */
+    --muse-bg-base: #FAF9F6;
+    --muse-bg-surface: #FFFFFF;
+    --muse-bg-surface-muted: rgba(255, 255, 255, 0.65);
+    --muse-text-primary: #1E1E1E;
+    --muse-text-secondary: #6B6B6B;
+    --muse-text-muted: #9A9A9A;
+    --muse-border-soft: rgba(0, 0, 0, 0.08);
+    --muse-border-hover: rgba(0, 0, 0, 0.12);
+    --muse-accent-primary: hsl(var(--primary));
+    --muse-accent-danger: #C0392B;
+    --muse-success: #2E8B57;
+
     --color-error: #A35139;
     /* Truffle Trouble */
 
@@ -164,6 +171,7 @@
     --duration-slow: 300ms;
     --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
     /* Sidebar - uses Palladian/BlueFant palette */
     --sidebar-background: 38 26% 91%;
     /* Palladian */
@@ -178,6 +186,11 @@
     /* Oatmeal */
     --sidebar-ring: 32 100% 69%;
     /* Burning Flame */
+  }
+
+  .muse-theme {
+    background: var(--muse-bg-base);
+    color: var(--muse-text-primary);
   }
 
   * {
@@ -978,5 +991,362 @@
 
   .scrollbar-dark::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* ============================================
+     PREMIUM SAAS SIDEBAR
+     ============================================ */
+  .sidebar-premium {
+    background: linear-gradient(180deg,
+        hsl(var(--sidebar-background)) 0%,
+        hsl(var(--sidebar-background) / 0.95) 100%);
+    border-right: 1px solid hsl(var(--sidebar-border) / 0.5);
+  }
+
+  .dark .sidebar-premium {
+    background: linear-gradient(180deg,
+        hsl(213 28% 12%) 0%,
+        hsl(213 28% 10%) 100%);
+    border-right: 1px solid hsl(213 28% 20% / 0.5);
+  }
+
+  /* Premium nav item states */
+  .nav-item-premium {
+    position: relative;
+    border-radius: 0.5rem;
+    transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  .nav-item-premium::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 0;
+    background: hsl(var(--primary));
+    border-radius: 0 2px 2px 0;
+    transition: height 0.2s ease;
+  }
+
+  .nav-item-premium[data-active="true"]::before,
+  .nav-item-premium:hover::before {
+    height: 60%;
+  }
+
+  .nav-item-premium[data-active="true"] {
+    background: hsl(var(--sidebar-accent));
+  }
+
+  /* ============================================
+     PREMIUM SAAS CARDS
+     ============================================ */
+  .card-saas {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 1rem;
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.05),
+      0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  .card-saas:hover {
+    border-color: hsl(var(--border-dark));
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.08),
+      0 12px 32px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+  }
+
+  .dark .card-saas {
+    background: linear-gradient(135deg,
+        hsl(213 28% 16%) 0%,
+        hsl(213 28% 14%) 100%);
+    border-color: hsl(213 28% 24%);
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .dark .card-saas:hover {
+    border-color: hsl(213 28% 30%);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* ============================================
+     PREMIUM SAAS HEADER
+     ============================================ */
+  .header-saas {
+    background: hsl(var(--background) / 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .dark .header-saas {
+    background: hsl(212 31% 12% / 0.85);
+    border-bottom: 1px solid hsl(213 28% 24% / 0.5);
+  }
+
+  /* ============================================
+     PREMIUM SAAS BUTTONS
+     ============================================ */
+  .btn-saas-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(32 100% 60%) 100%);
+    color: hsl(var(--primary-foreground));
+    border: none;
+    border-radius: 0.625rem;
+    padding: 0.625rem 1.25rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    box-shadow:
+      0 2px 8px rgba(255, 177, 98, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .btn-saas-primary:hover {
+    box-shadow:
+      0 4px 16px rgba(255, 177, 98, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .btn-saas-primary:active {
+    transform: translateY(0);
+    box-shadow:
+      0 1px 4px rgba(255, 177, 98, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .btn-saas-secondary {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.625rem;
+    padding: 0.625rem 1.25rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .btn-saas-secondary:hover {
+    background: hsl(var(--accent));
+    border-color: hsl(var(--border-dark));
+  }
+
+  /* ============================================
+     PREMIUM SAAS INPUTS
+     ============================================ */
+  .input-saas {
+    background: hsl(var(--background));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.625rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.9375rem;
+    color: hsl(var(--foreground));
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+
+  .input-saas::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .input-saas:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.15);
+  }
+
+  .dark .input-saas {
+    background: hsl(213 28% 14%);
+    border-color: hsl(213 28% 24%);
+  }
+
+  .dark .input-saas:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+  }
+
+  /* ============================================
+     PREMIUM SAAS STATS/METRICS
+     ============================================ */
+  .stat-saas {
+    background: linear-gradient(135deg,
+        hsl(var(--card)) 0%,
+        hsl(var(--card) / 0.8) 100%);
+    border: 1px solid hsl(var(--border));
+    border-radius: 1rem;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-saas::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle at top right,
+        hsl(var(--primary) / 0.08) 0%,
+        transparent 60%);
+    pointer-events: none;
+  }
+
+  .dark .stat-saas {
+    background: linear-gradient(135deg,
+        hsl(213 28% 16%) 0%,
+        hsl(213 28% 13%) 100%);
+    border-color: hsl(213 28% 24%);
+  }
+
+  .dark .stat-saas::before {
+    background: radial-gradient(circle at top right,
+        hsl(var(--primary) / 0.1) 0%,
+        transparent 60%);
+  }
+
+  /* ============================================
+     PREMIUM SAAS BADGES
+     ============================================ */
+  .badge-saas {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .badge-saas-success {
+    background: hsl(142 76% 36% / 0.1);
+    color: hsl(142 76% 36%);
+    border-color: hsl(142 76% 36% / 0.2);
+  }
+
+  .badge-saas-warning {
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+    border-color: hsl(var(--primary) / 0.2);
+  }
+
+  .badge-saas-danger {
+    background: hsl(0 84% 60% / 0.1);
+    color: hsl(0 84% 60%);
+    border-color: hsl(0 84% 60% / 0.2);
+  }
+
+  /* ============================================
+     PREMIUM SAAS PAGE LAYOUT
+     ============================================ */
+  .page-saas {
+    min-height: 100%;
+    padding: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .page-saas {
+      padding: 2rem;
+    }
+  }
+
+  .page-header-saas {
+    margin-bottom: 2rem;
+  }
+
+  .page-title-saas {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.875rem;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+    letter-spacing: -0.01em;
+  }
+
+  .page-subtitle-saas {
+    font-size: 0.9375rem;
+    color: hsl(var(--muted-foreground));
+    margin-top: 0.5rem;
+  }
+
+  /* ============================================
+     PREMIUM INSET MAIN AREA
+     ============================================ */
+  .main-inset-saas {
+    background: hsl(var(--background));
+    border-radius: 1rem;
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.03),
+      0 4px 12px rgba(0, 0, 0, 0.02);
+    min-height: calc(100vh - 1rem);
+  }
+
+  .dark .main-inset-saas {
+    background: linear-gradient(180deg,
+        hsl(212 31% 14%) 0%,
+        hsl(212 31% 12%) 100%);
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  }
+
+  /* ============================================
+     PREMIUM EMPTY STATES
+     ============================================ */
+  .empty-state-saas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    text-align: center;
+  }
+
+  .empty-state-saas-icon {
+    width: 4rem;
+    height: 4rem;
+    background: hsl(var(--muted));
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .dark .empty-state-saas-icon {
+    background: hsl(213 28% 18%);
+  }
+
+  .empty-state-saas-icon svg {
+    width: 2rem;
+    height: 2rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .empty-state-saas-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state-saas-description {
+    font-size: 0.9375rem;
+    color: hsl(var(--muted-foreground));
+    max-width: 300px;
+    line-height: 1.5;
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 import { Check, ArrowRight, Play, XCircle } from 'lucide-react'
@@ -6,21 +6,19 @@ import { motion } from 'framer-motion'
 import { MarketingLayout } from '@/components/MarketingLayout'
 
 // Components
-import { UseCases } from '@/pages/landing/UseCases'
 import { StickyCTABar } from '@/pages/landing/StickyCTABar'
 import { HeroSection } from '@/pages/landing/components/HeroSection'
 import { InteractiveArt } from '@/pages/landing/components/InteractiveArt'
 import { InteractivePlayground } from '@/pages/landing/InteractivePlayground'
-
-// Restored Components
+import { WarRoomSection } from '@/pages/landing/WarRoomSection'
+import { OutcomePathsSection } from '@/pages/landing/OutcomePathsSection'
 import { FounderStory } from '@/pages/landing/FounderStory'
 import { ComparisonTable } from '@/pages/landing/ComparisonTable'
-import Pricing from '@/pages/landing/Pricing' // Default export
-import FAQ from '@/pages/landing/FAQ' // Default export
+import Pricing from '@/pages/landing/Pricing'
+import FAQ from '@/pages/landing/FAQ'
 import { LegendaryFooter } from '@/components/landing/LegendaryFooter'
-
-// Data Layer
-import { FEATURES } from '@/data/landing-content'
+import { WarRoomBackground } from '@/components/ui/WarRoomBackground'
+import { Magnetic } from '@/components/ui/Magnetic'
 
 // Inline Sub-components
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
@@ -29,8 +27,6 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   </div>
 )
 
-import { WarRoomBackground } from '@/components/ui/WarRoomBackground'
-import { Magnetic } from '@/components/ui/Magnetic'
 
 const LandingPage = () => {
   return (
@@ -169,97 +165,14 @@ const LandingPage = () => {
         {/* 4. FOUNDER STORY (Restored - Trust Bridge) */}
         <FounderStory />
 
-        {/* 5. THE SYSTEM (Features) */}
-        <section id="features" className="relative py-24 md:py-32 bg-gradient-to-b from-card to-background border-y border-border overflow-hidden">
-          {/* Background pattern */}
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(245,158,11,0.08),transparent_50%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(251,146,60,0.06),transparent_50%)]" />
-          </div>
-
-          <div className="container-editorial relative z-10">
-            <motion.div
-              className="text-center max-w-3xl mx-auto mb-20"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <SectionLabel>The System</SectionLabel>
-              <h2 className="font-serif text-4xl md:text-6xl font-medium bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-foreground/80">
-                How we win the war
-              </h2>
-              <p className="mt-6 text-xl text-muted-foreground">Four steps. Daily execution. No guesswork.</p>
-            </motion.div>
-
-            {/* Feature grid with connecting line */}
-            <div className="relative">
-              {/* Connecting flow line */}
-              <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent -translate-y-1/2" />
-
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4">
-                {FEATURES.map((feature, i) => (
-                  <motion.div
-                    key={i}
-                    className="group relative"
-                    initial={{ opacity: 0, y: 40 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1, duration: 0.5 }}
-                  >
-                    {/* Card */}
-                    <div className="relative h-full p-8 rounded-3xl bg-background/80 backdrop-blur-sm border border-border group-hover:border-primary/50 transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-xl group-hover:shadow-primary/10">
-                      {/* Hover glow */}
-                      <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                      {/* Step number badge */}
-                      <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-primary/25">
-                        {feature.step}
-                      </div>
-
-                      {/* Icon with animated background */}
-                      <motion.div
-                        className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-orange-500/20 flex items-center justify-center mb-6 border border-primary/20"
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        <motion.div
-                          className="absolute inset-0 rounded-2xl bg-primary/10"
-                          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.2, 0.5] }}
-                          transition={{ duration: 3, repeat: Infinity, delay: i * 0.5 }}
-                        />
-                        <feature.icon className="w-8 h-8 text-primary relative z-10" />
-                      </motion.div>
-
-                      <h3 className="text-xl font-bold mb-3 text-foreground group-hover:text-primary transition-colors">{feature.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed mb-4">{feature.description}</p>
-
-                      {feature.details && (
-                        <ul className="space-y-2 pt-4 border-t border-border/50">
-                          {feature.details.map((detail: string, j: number) => (
-                            <li key={j} className="text-sm text-muted-foreground/80 flex items-center gap-2">
-                              <motion.span
-                                className="w-1.5 h-1.5 rounded-full bg-primary"
-                                animate={{ scale: [1, 1.3, 1] }}
-                                transition={{ duration: 2, repeat: Infinity, delay: j * 0.2 }}
-                              />
-                              {detail}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* 5. WAR ROOM - Scroll-driven features */}
+        <WarRoomSection />
 
         {/* 6. COMPARISON TABLE (Restored) */}
         <ComparisonTable />
 
-        {/* 7. USE CASES (Restored) */}
-        <UseCases />
+        {/* 7. OUTCOME PATHS - Goal-based selection */}
+        <OutcomePathsSection />
 
         {/* 8. PRICING (Restored) */}
         <Pricing />

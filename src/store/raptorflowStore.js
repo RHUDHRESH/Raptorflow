@@ -88,7 +88,8 @@ const generateId = () => `${Date.now()}_${Math.random().toString(36).substring(2
 const emitNotification = (notification, options) => {
   try {
     useNotificationsStore.getState().addNotification(notification, options)
-  } catch {
+  } catch (error) {
+    console.error('Failed to emit notification:', error)
   }
 }
 
@@ -135,12 +136,12 @@ const normalizeCampaign = (campaign) => {
   const timeline = campaign?.timeline || (
     Array.isArray(campaign?.sequencing)
       ? {
-          weeks: campaign.sequencing.map(w => ({
-            week: w.week,
-            phase: w.phase,
-            moveIds: w.moves || []
-          }))
-        }
+        weeks: campaign.sequencing.map(w => ({
+          week: w.week,
+          phase: w.phase,
+          moveIds: w.moves || []
+        }))
+      }
       : { weeks: [] }
   )
 
@@ -169,9 +170,9 @@ const normalizeCampaign = (campaign) => {
 
   const phases = Array.isArray(rawBlueprint?.phases) && rawBlueprint.phases.length
     ? rawBlueprint.phases.map(p => ({
-        ...buildDefaultPhase(p?.phase || 'Awareness'),
-        ...p,
-      }))
+      ...buildDefaultPhase(p?.phase || 'Awareness'),
+      ...p,
+    }))
     : defaultBlueprint.phases
 
   const blueprint = {
@@ -331,129 +332,129 @@ const generateMockCohorts = () => [
   }
 ]
 
- const normalizePipelineItem = (item) => {
-   const now = new Date().toISOString()
-   const base = item || {}
+const normalizePipelineItem = (item) => {
+  const now = new Date().toISOString()
+  const base = item || {}
 
-   return {
-     pipeline_item_id: base.pipeline_item_id || base.id || generateId(),
-     title: base.title || 'Untitled work item',
-     description: base.description || null,
-     work_type: base.work_type || 'other',
-     channel_id: base.channel_id || null,
-     linked: {
-       move_id: base?.linked?.move_id || null,
-       campaign_id: base?.linked?.campaign_id || null,
-       signal_id: base?.linked?.signal_id || null,
-       duel_id: base?.linked?.duel_id || null,
-     },
-     inputs: {
-       asset_refs: Array.isArray(base?.inputs?.asset_refs) ? base.inputs.asset_refs : [],
-       proof_claim_ids: Array.isArray(base?.inputs?.proof_claim_ids) ? base.inputs.proof_claim_ids : [],
-     },
-     execution: {
-       status: base?.execution?.status || 'backlog',
-       owner_user_id: base?.execution?.owner_user_id || null,
-       reviewer_user_id: base?.execution?.reviewer_user_id || null,
-       approver_user_id: base?.execution?.approver_user_id || null,
-       due_at: base?.execution?.due_at || null,
-       scheduled_for: base?.execution?.scheduled_for || null,
-       shipped_at: base?.execution?.shipped_at || null,
-     },
-     approvals: {
-       required: Boolean(base?.approvals?.required),
-       state: base?.approvals?.state || 'not_requested',
-       requested_at: base?.approvals?.requested_at || null,
-       approved_at: base?.approvals?.approved_at || null,
-       approved_by_user_id: base?.approvals?.approved_by_user_id || null,
-     },
-     receipt: base.receipt
-       ? {
-         type: base.receipt.type || 'other',
-         value: base.receipt.value || '',
-         submitted_at: base.receipt.submitted_at || now,
-       }
-       : null,
-     metrics_hook: {
-       primary_metric: base?.metrics_hook?.primary_metric || null,
-       events: Array.isArray(base?.metrics_hook?.events) ? base.metrics_hook.events : [],
-     },
-     created_at: base.created_at || now,
-     updated_at: base.updated_at || now,
-   }
- }
+  return {
+    pipeline_item_id: base.pipeline_item_id || base.id || generateId(),
+    title: base.title || 'Untitled work item',
+    description: base.description || null,
+    work_type: base.work_type || 'other',
+    channel_id: base.channel_id || null,
+    linked: {
+      move_id: base?.linked?.move_id || null,
+      campaign_id: base?.linked?.campaign_id || null,
+      signal_id: base?.linked?.signal_id || null,
+      duel_id: base?.linked?.duel_id || null,
+    },
+    inputs: {
+      asset_refs: Array.isArray(base?.inputs?.asset_refs) ? base.inputs.asset_refs : [],
+      proof_claim_ids: Array.isArray(base?.inputs?.proof_claim_ids) ? base.inputs.proof_claim_ids : [],
+    },
+    execution: {
+      status: base?.execution?.status || 'backlog',
+      owner_user_id: base?.execution?.owner_user_id || null,
+      reviewer_user_id: base?.execution?.reviewer_user_id || null,
+      approver_user_id: base?.execution?.approver_user_id || null,
+      due_at: base?.execution?.due_at || null,
+      scheduled_for: base?.execution?.scheduled_for || null,
+      shipped_at: base?.execution?.shipped_at || null,
+    },
+    approvals: {
+      required: Boolean(base?.approvals?.required),
+      state: base?.approvals?.state || 'not_requested',
+      requested_at: base?.approvals?.requested_at || null,
+      approved_at: base?.approvals?.approved_at || null,
+      approved_by_user_id: base?.approvals?.approved_by_user_id || null,
+    },
+    receipt: base.receipt
+      ? {
+        type: base.receipt.type || 'other',
+        value: base.receipt.value || '',
+        submitted_at: base.receipt.submitted_at || now,
+      }
+      : null,
+    metrics_hook: {
+      primary_metric: base?.metrics_hook?.primary_metric || null,
+      events: Array.isArray(base?.metrics_hook?.events) ? base.metrics_hook.events : [],
+    },
+    created_at: base.created_at || now,
+    updated_at: base.updated_at || now,
+  }
+}
 
- const generateMockPipelineItems = () => {
-   const now = Date.now()
-   return [
-     normalizePipelineItem({
-       pipeline_item_id: 'pipe_1',
-       title: 'LinkedIn post: proof-led angle (Time-to-value)',
-       description: 'Turn the TTV insight into a single proof-led post. Include a clear CTA.',
-       work_type: 'post',
-       channel_id: 'linkedin',
-       execution: {
-         status: 'review',
-         owner_user_id: 'me',
-         reviewer_user_id: 'reviewer',
-         due_at: new Date(now + 2 * 24 * 60 * 60 * 1000).toISOString(),
-       },
-       approvals: {
-         required: false,
-         state: 'not_requested',
-       },
-     }),
-     normalizePipelineItem({
-       pipeline_item_id: 'pipe_2',
-       title: 'Landing page: demo request variant B',
-       description: 'Swap hero headline to cost-of-inaction and add proof bar. Needs approval.',
-       work_type: 'landing_page',
-       channel_id: 'web',
-       execution: {
-         status: 'approval',
-         owner_user_id: 'me',
-         approver_user_id: 'approver',
-         due_at: new Date(now + 3 * 24 * 60 * 60 * 1000).toISOString(),
-       },
-       approvals: {
-         required: true,
-         state: 'pending',
-         requested_at: new Date(now - 6 * 60 * 60 * 1000).toISOString(),
-       },
-     }),
-     normalizePipelineItem({
-       pipeline_item_id: 'pipe_3',
-       title: 'Ad creative set: 3 hooks + 2 visuals',
-       work_type: 'ad',
-       channel_id: 'meta',
-       execution: {
-         status: 'scheduled',
-         owner_user_id: 'me',
-         scheduled_for: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
-       },
-     }),
-     normalizePipelineItem({
-       pipeline_item_id: 'pipe_4',
-       title: 'Email: reactivation sequence (3-step)',
-       work_type: 'email',
-       channel_id: 'email',
-       execution: {
-         status: 'backlog',
-       },
-     }),
-     normalizePipelineItem({
-       pipeline_item_id: 'pipe_5',
-       title: 'Ship: LinkedIn post (receipt required)',
-       work_type: 'post',
-       channel_id: 'linkedin',
-       execution: {
-         status: 'in_production',
-         owner_user_id: 'me',
-         due_at: new Date(now + 1 * 24 * 60 * 60 * 1000).toISOString(),
-       },
-     }),
-   ]
- }
+const generateMockPipelineItems = () => {
+  const now = Date.now()
+  return [
+    normalizePipelineItem({
+      pipeline_item_id: 'pipe_1',
+      title: 'LinkedIn post: proof-led angle (Time-to-value)',
+      description: 'Turn the TTV insight into a single proof-led post. Include a clear CTA.',
+      work_type: 'post',
+      channel_id: 'linkedin',
+      execution: {
+        status: 'review',
+        owner_user_id: 'me',
+        reviewer_user_id: 'reviewer',
+        due_at: new Date(now + 2 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      approvals: {
+        required: false,
+        state: 'not_requested',
+      },
+    }),
+    normalizePipelineItem({
+      pipeline_item_id: 'pipe_2',
+      title: 'Landing page: demo request variant B',
+      description: 'Swap hero headline to cost-of-inaction and add proof bar. Needs approval.',
+      work_type: 'landing_page',
+      channel_id: 'web',
+      execution: {
+        status: 'approval',
+        owner_user_id: 'me',
+        approver_user_id: 'approver',
+        due_at: new Date(now + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      approvals: {
+        required: true,
+        state: 'pending',
+        requested_at: new Date(now - 6 * 60 * 60 * 1000).toISOString(),
+      },
+    }),
+    normalizePipelineItem({
+      pipeline_item_id: 'pipe_3',
+      title: 'Ad creative set: 3 hooks + 2 visuals',
+      work_type: 'ad',
+      channel_id: 'meta',
+      execution: {
+        status: 'scheduled',
+        owner_user_id: 'me',
+        scheduled_for: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
+      },
+    }),
+    normalizePipelineItem({
+      pipeline_item_id: 'pipe_4',
+      title: 'Email: reactivation sequence (3-step)',
+      work_type: 'email',
+      channel_id: 'email',
+      execution: {
+        status: 'backlog',
+      },
+    }),
+    normalizePipelineItem({
+      pipeline_item_id: 'pipe_5',
+      title: 'Ship: LinkedIn post (receipt required)',
+      work_type: 'post',
+      channel_id: 'linkedin',
+      execution: {
+        status: 'in_production',
+        owner_user_id: 'me',
+        due_at: new Date(now + 1 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    }),
+  ]
+}
 
 const generateMockCampaigns = () => [
   {
@@ -716,7 +717,7 @@ const generateMockSignals = () => []
 const initialState = {
   // Current plan
   currentPlan: 'glide',
-  
+
   // Usage tracking
   usage: {
     // ...
@@ -725,28 +726,28 @@ const initialState = {
     museGenerationsThisMonth: 45,
     lastReset: new Date().toISOString()
   },
-  
+
   // Strategy versions
   strategyVersions: [generateMockStrategy()],
   currentStrategyVersion: 1,
-  
+
   // Cohorts/ICPs
   cohorts: generateMockCohorts(),
-  
+
   // Campaigns
   campaigns: generateMockCampaigns(),
 
   primaryCampaignId: null,
-  
+
   // Moves
   moves: generateMockMoves(),
-  
+
   // Assets
   assets: generateMockAssets(),
-  
+
   // Radar scans
   radarScans: generateMockRadarScans(),
-  
+
   // Black Box duels
   duels: generateMockDuels(),
 
@@ -755,10 +756,10 @@ const initialState = {
 
   // Execution (Pipeline)
   pipelineItems: generateMockPipelineItems(),
-  
+
   // Trail targets
   trailTargets: generateMockTrailTargets(),
-  
+
   // UI state
   museDrawerOpen: false,
   museContext: null, // { moveId, campaignId, assetType }
@@ -777,19 +778,19 @@ const useRaptorflowStore = create(
       // PLAN & LIMITS
       // ============================================
       getPlanLimits: () => PLAN_LIMITS[get().currentPlan] || PLAN_LIMITS.glide,
-      
+
       canUseRadar: () => {
         const { usage, currentPlan } = get()
         const limits = PLAN_LIMITS[currentPlan]
         return usage.radarScansToday < limits.radarScansPerDay
       },
-      
+
       canUseBlackBox: () => {
         const { usage, currentPlan } = get()
         const limits = PLAN_LIMITS[currentPlan]
         return usage.blackBoxDuelsThisMonth < limits.blackBoxDuelsPerMonth
       },
-      
+
       canUseMuse: () => {
         const { usage, currentPlan } = get()
         const limits = PLAN_LIMITS[currentPlan]
@@ -803,7 +804,7 @@ const useRaptorflowStore = create(
         const { strategyVersions, currentStrategyVersion } = get()
         return strategyVersions.find(s => s.versionNumber === currentStrategyVersion)
       },
-      
+
       createStrategyDraft: () => {
         const { strategyVersions } = get()
         const currentVersion = get().getCurrentStrategy()
@@ -818,7 +819,7 @@ const useRaptorflowStore = create(
         set({ strategyVersions: [...strategyVersions, newVersion] })
         return newVersion
       },
-      
+
       updateStrategyDraft: (versionNumber, payload) => {
         set(state => ({
           strategyVersions: state.strategyVersions.map(s =>
@@ -828,7 +829,7 @@ const useRaptorflowStore = create(
           )
         }))
       },
-      
+
       lockStrategy: (versionNumber) => {
         set(state => ({
           strategyVersions: state.strategyVersions.map(s =>
@@ -881,7 +882,7 @@ const useRaptorflowStore = create(
         const found = get().campaigns.find(c => c.id === id)
         return found ? normalizeCampaign(found) : undefined
       },
-      
+
       getActiveCampaigns: () => get().campaigns.filter(c => c.status === 'active').map(normalizeCampaign),
 
       setPrimaryCampaignId: (id) => set({ primaryCampaignId: id || null }),
@@ -1041,7 +1042,7 @@ const useRaptorflowStore = create(
           }
         })
       },
-      
+
       createCampaign: (campaign) => {
         const newCampaign = normalizeCampaign({
           id: generateId(),
@@ -1074,7 +1075,7 @@ const useRaptorflowStore = create(
 
         return newCampaign
       },
-      
+
       updateCampaign: (id, updates) => {
         const prev = get().campaigns.find(c => c.id === id)
         set(state => ({
@@ -1097,7 +1098,7 @@ const useRaptorflowStore = create(
           )
         }
       },
-      
+
       deleteCampaign: (id) => {
         const prev = get().campaigns.find(c => c.id === id)
         set(state => ({
@@ -1114,7 +1115,7 @@ const useRaptorflowStore = create(
           { toast: true }
         )
       },
-      
+
       getChannelFit: (cohortId, channel) => {
         const cohort = get().cohorts.find(c => c.id === cohortId)
         if (!cohort) return 'risky'
@@ -1128,9 +1129,9 @@ const useRaptorflowStore = create(
         const found = get().moves.find(m => m.id === id)
         return found ? normalizeMove(found) : undefined
       },
-      
+
       getMovesByCampaign: (campaignId) => get().moves.filter(m => m.campaignId === campaignId).map(normalizeMove),
-      
+
       getActiveMoves: () => get().moves.filter(m => m.status === 'active').map(normalizeMove),
 
       getGeneratingMoves: () => get().moves.filter(m => m.status === 'generating').map(normalizeMove),
@@ -1263,14 +1264,14 @@ const useRaptorflowStore = create(
           moves: state.moves.map(m =>
             m.id === moveId
               ? {
-                  ...m,
-                  status: 'generating',
-                  generation: {
-                    status: 'running',
-                    startedAt: new Date().toISOString(),
-                    step: 'planning',
-                  },
-                }
+                ...m,
+                status: 'generating',
+                generation: {
+                  status: 'running',
+                  startedAt: new Date().toISOString(),
+                  step: 'planning',
+                },
+              }
               : m
           )
         }))
@@ -1291,35 +1292,35 @@ const useRaptorflowStore = create(
 
         return { ok: true }
       },
-      
+
       getTodayChecklist: () => {
         const activeMoves = get().getActiveMoves()
         const tasks = []
         activeMoves.forEach(move => {
           const durationDays = move?.plan?.durationDays || move?.durationDays || 7
           const today = getDayNumberFromStart(move?.plan?.startDate || move?.startDate, durationDays)
-          ;(move.tasks || [])
-            .filter(t => (t.day || 1) === today)
-            .filter(t => t.status !== 'done')
-            .forEach(t => {
-              tasks.push({
-                id: t.id,
-                text: t.text,
-                done: t.status === 'done',
-                day: t.day || 1,
-                moveId: move.id,
-                moveName: move.name,
+            ; (move.tasks || [])
+              .filter(t => (t.day || 1) === today)
+              .filter(t => t.status !== 'done')
+              .forEach(t => {
+                tasks.push({
+                  id: t.id,
+                  text: t.text,
+                  done: t.status === 'done',
+                  day: t.day || 1,
+                  moveId: move.id,
+                  moveName: move.name,
+                })
               })
-            })
         })
         return tasks
       },
-      
+
       createMove: (move) => {
         const newMove = normalizeMove({
           id: generateId(),
           ...move,
-          status: 'pending',
+          status: move.status || 'pending',
           checklistItems: move.checklistItems || toChecklistFromMoveTasks(move.tasks || []),
           assets: [],
           createdAt: new Date().toISOString()
@@ -1387,7 +1388,7 @@ const useRaptorflowStore = create(
           { toast: true }
         )
       },
-      
+
       updateMove: (id, updates) => {
         const prev = get().moves.find(m => m.id === id)
         set(state => ({
@@ -1397,7 +1398,7 @@ const useRaptorflowStore = create(
             const next = { ...m, ...updates }
             const nextStatus = updates?.status
             if (nextStatus === 'active') {
-              const durationDays = next?.plan?.durationDays || next?.durationDays || 7
+              const durationDays = 90
               const hasStart = Boolean(next?.plan?.startDate || next?.startDate)
               const startDate = hasStart ? (next?.plan?.startDate || next?.startDate) : new Date().toISOString()
               const endDate = next?.plan?.endDate || next?.endDate || new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString()
@@ -1453,6 +1454,94 @@ const useRaptorflowStore = create(
             return { ...m, tasks: nextTasks, checklistItems: nextChecklist }
           })
         }))
+      },
+
+      addTrackingUpdate: (moveId, update) => {
+        set(state => ({
+          moves: state.moves.map(m => {
+            if (m.id !== moveId) return m
+            // Ensure tracking object exists
+            const tracking = m.tracking || { metric: m.metric || '', updates: [] }
+            const updates = [...(tracking.updates || []), update]
+
+            return {
+              ...m,
+              tracking: {
+                ...tracking,
+                updates
+              }
+            }
+          })
+        }))
+
+        emitNotification(
+          {
+            level: 'success',
+            title: 'Progress logged',
+            detail: `Value: ${update.value}`,
+            href: `/app/moves/${moveId}/scoreboard`,
+          },
+          { toast: true }
+        )
+      },
+
+      updateMoveCheckpoint: (moveId, type, data) => {
+        set(state => ({
+          moves: state.moves.map(m => {
+            if (m.id !== moveId) return m
+
+            const checkpoints = m.checkpoints || {}
+
+            return {
+              ...m,
+              checkpoints: {
+                ...checkpoints,
+                [type]: data
+              }
+            }
+          })
+        }))
+
+        emitNotification(
+          {
+            level: 'success',
+            title: 'Checkpoint complete',
+            detail: 'Review saved.',
+            href: `/app/moves/${moveId}/review`,
+          },
+          { toast: true }
+        )
+      },
+
+      completeMove: (moveId, resultData) => {
+        const prev = get().moves.find(m => m.id === moveId)
+
+        set(state => ({
+          moves: state.moves.map(m => {
+            if (m.id !== moveId) return m
+
+            return {
+              ...m,
+              status: 'completed',
+              result: {
+                ...(m.result || {}),
+                ...resultData,
+                completedAt: new Date().toISOString()
+              },
+              completedAt: new Date().toISOString()
+            }
+          })
+        }))
+
+        emitNotification(
+          {
+            level: 'success',
+            title: 'Move Completed!',
+            detail: prev?.name || 'Great work finishing this move.',
+            href: `/app/moves/${moveId}/review`,
+          },
+          { toast: true }
+        )
       },
 
       // ============================================
@@ -1772,7 +1861,7 @@ const useRaptorflowStore = create(
           { toast: true }
         )
       },
-      
+
       toggleTaskDone: (moveId, taskId) => {
         const prevMove = get().moves.find(m => m.id === moveId)
         const prevTask = prevMove?.checklistItems?.find(t => t.id === taskId)
@@ -1780,14 +1869,14 @@ const useRaptorflowStore = create(
           moves: state.moves.map(m =>
             m.id === moveId
               ? {
-                  ...m,
-                  checklistItems: (m.checklistItems || []).map(t =>
-                    t.id === taskId ? { ...t, done: !t.done } : t
-                  ),
-                  tasks: (Array.isArray(m.tasks) ? m.tasks : toMoveTasksFromChecklist(m.checklistItems || [])).map(t =>
-                    t.id === taskId ? { ...t, status: t.status === 'done' ? 'todo' : 'done' } : t
-                  )
-                }
+                ...m,
+                checklistItems: (m.checklistItems || []).map(t =>
+                  t.id === taskId ? { ...t, done: !t.done } : t
+                ),
+                tasks: (Array.isArray(m.tasks) ? m.tasks : toMoveTasksFromChecklist(m.checklistItems || [])).map(t =>
+                  t.id === taskId ? { ...t, status: t.status === 'done' ? 'todo' : 'done' } : t
+                )
+              }
               : m
           )
         }))
@@ -1820,7 +1909,7 @@ const useRaptorflowStore = create(
           }
         }
       },
-      
+
       addTaskToMove: (moveId, taskText) => {
         const id = generateId()
         const day = get().getMoveDayNumber?.(moveId) || 1
@@ -1830,10 +1919,10 @@ const useRaptorflowStore = create(
           moves: state.moves.map(m =>
             m.id === moveId
               ? {
-                  ...m,
-                  checklistItems: [...(m.checklistItems || []), newChecklist],
-                  tasks: [...(Array.isArray(m.tasks) ? m.tasks : toMoveTasksFromChecklist(m.checklistItems || [])), newTask]
-                }
+                ...m,
+                checklistItems: [...(m.checklistItems || []), newChecklist],
+                tasks: [...(Array.isArray(m.tasks) ? m.tasks : toMoveTasksFromChecklist(m.checklistItems || [])), newTask]
+              }
               : m
           )
         }))
@@ -1855,7 +1944,7 @@ const useRaptorflowStore = create(
           })
         }))
       },
-      
+
       deleteMove: (id) => {
         set(state => ({
           moves: state.moves.filter(m => m.id !== id),
@@ -1869,11 +1958,11 @@ const useRaptorflowStore = create(
       openMuseDrawer: (context) => {
         set({ museDrawerOpen: true, museContext: context })
       },
-      
+
       closeMuseDrawer: () => {
         set({ museDrawerOpen: false, museContext: null })
       },
-      
+
       generateAsset: (moveId, assetType, channel) => {
         // Increment usage
         set(state => ({
@@ -1882,7 +1971,7 @@ const useRaptorflowStore = create(
             museGenerationsThisMonth: state.usage.museGenerationsThisMonth + 1
           }
         }))
-        
+
         // Generate mock asset
         const templates = {
           post: `🎯 Here's a powerful insight for {{cohort}}...
@@ -1946,7 +2035,7 @@ No pitch, just insights. Interested?`,
 
 [CTA Button: Action + Benefit]`
         }
-        
+
         const newAsset = {
           id: generateId(),
           moveId,
@@ -1955,7 +2044,7 @@ No pitch, just insights. Interested?`,
           content: templates[assetType] || templates.post,
           createdAt: new Date().toISOString()
         }
-        
+
         set(state => ({
           assets: [...state.assets, newAsset],
           moves: state.moves.map(m =>
@@ -1964,12 +2053,12 @@ No pitch, just insights. Interested?`,
               : m
           )
         }))
-        
+
         return newAsset
       },
-      
+
       getAssetsByMove: (moveId) => get().assets.filter(a => a.moveId === moveId),
-      
+
       updateAsset: (id, content) => {
         set(state => ({
           assets: state.assets.map(a =>
@@ -1977,11 +2066,11 @@ No pitch, just insights. Interested?`,
           )
         }))
       },
-      
+
       deleteAsset: (id) => {
         const asset = get().assets.find(a => a.id === id)
         if (!asset) return
-        
+
         set(state => ({
           assets: state.assets.filter(a => a.id !== id),
           moves: state.moves.map(m =>
@@ -1997,12 +2086,12 @@ No pitch, just insights. Interested?`,
       // ============================================
       runRadarScan: (type, cohortId, focus) => {
         if (!get().canUseRadar()) return null
-        
+
         // Increment usage
         set(state => ({
           usage: { ...state.usage, radarScansToday: state.usage.radarScansToday + 1 }
         }))
-        
+
         const cohortIds = Array.isArray(cohortId) ? cohortId : [cohortId]
         const primaryCohortId = cohortIds[0]
         const cohort = get().cohorts.find(c => c.id === primaryCohortId)
@@ -2032,14 +2121,14 @@ No pitch, just insights. Interested?`,
           }
         }
         const focusPack = focusPhrases[focusKey] || focusPhrases.trends
-        
+
         // Generate mock scan results
         const smallOutputs = [
           { type: 'post', content: focusPack.small, channel: 'linkedin' },
           { type: 'post', content: 'Industry event coming up - opportunity for a proof-led breakdown', channel: 'linkedin' },
           { type: 'post', content: 'Short contrarian take: what most teams get wrong this week (then your framework)', channel: 'twitter' }
         ]
-        
+
         const bigOutputs = [
           {
             type: 'move',
@@ -2054,7 +2143,7 @@ No pitch, just insights. Interested?`,
             }
           }
         ]
-        
+
         const newScan = {
           id: generateId(),
           type,
@@ -2064,18 +2153,18 @@ No pitch, just insights. Interested?`,
           createdAt: new Date().toISOString(),
           outputs: type === 'small' ? smallOutputs : bigOutputs
         }
-        
+
         set(state => ({ radarScans: [newScan, ...state.radarScans] }))
         return newScan
       },
-      
+
       convertRadarToMove: (scanId, campaignId) => {
         const scan = get().radarScans.find(s => s.id === scanId)
         if (!scan) return null
-        
+
         const suggestedMove = scan.outputs.find(o => o.type === 'move')?.suggestedMove
         if (!suggestedMove) return null
-        
+
         return get().createMove({
           ...suggestedMove,
           campaignId,
@@ -2091,7 +2180,7 @@ No pitch, just insights. Interested?`,
       // BLACK BOX (Duels)
       // ============================================
       getDuel: (id) => get().duels.find(d => d.id === id),
-      
+
       getActiveDuels: () => get().duels.filter(d => d.status === 'running'),
 
       toggleDuelPaused: (duelId) => {
@@ -2137,10 +2226,10 @@ No pitch, just insights. Interested?`,
           )
         }))
       },
-      
+
       createDuel: (duel) => {
         if (!get().canUseBlackBox()) return null
-        
+
         // Increment usage
         set(state => ({
           usage: {
@@ -2148,7 +2237,7 @@ No pitch, just insights. Interested?`,
             blackBoxDuelsThisMonth: state.usage.blackBoxDuelsThisMonth + 1
           }
         }))
-        
+
         const newDuel = {
           id: generateId(),
           ...duel,
@@ -2169,32 +2258,32 @@ No pitch, just insights. Interested?`,
           winner: null,
           createdAt: new Date().toISOString()
         }
-        
+
         set(state => ({ duels: [newDuel, ...state.duels] }))
         return newDuel
       },
-      
+
       simulateClicks: (duelId, variantId, clicks, leads = 0) => {
         set(state => ({
           duels: state.duels.map(d =>
             d.id === duelId
               ? {
-                  ...d,
-                  variants: d.variants.map(v =>
-                    v.id === variantId
-                      ? { ...v, clicks: v.clicks + clicks, leads: v.leads + leads }
-                      : v
-                  )
-                }
+                ...d,
+                variants: d.variants.map(v =>
+                  v.id === variantId
+                    ? { ...v, clicks: v.clicks + clicks, leads: v.leads + leads }
+                    : v
+                )
+              }
               : d
           )
         }))
       },
-      
+
       crownWinner: (duelId) => {
         const duel = get().getDuel(duelId)
         if (!duel) return null
-        
+
         // Find winner based on goal
         let winner
         if (duel.goal === 'clicks') {
@@ -2202,7 +2291,7 @@ No pitch, just insights. Interested?`,
         } else {
           winner = duel.variants.reduce((a, b) => a.leads > b.leads ? a : b)
         }
-        
+
         set(state => ({
           duels: state.duels.map(d =>
             d.id === duelId
@@ -2210,14 +2299,14 @@ No pitch, just insights. Interested?`,
               : d
           )
         }))
-        
+
         return winner
       },
-      
+
       promoteWinner: (duelId) => {
         const duel = get().getDuel(duelId)
         if (!duel || !duel.winner) return
-        
+
         set(state => ({
           duels: state.duels.map(d =>
             d.id === duelId
@@ -2225,7 +2314,7 @@ No pitch, just insights. Interested?`,
               : d
           )
         }))
-        
+
         // In a real app, this would update Strategy defaults
         console.log('Winner promoted to Strategy defaults')
       },
@@ -2366,7 +2455,7 @@ No pitch, just insights. Interested?`,
         set(state => ({ trailTargets: [...state.trailTargets, newTarget] }))
         return newTarget
       },
-      
+
       updateTargetStatus: (id, status) => {
         set(state => ({
           trailTargets: state.trailTargets.map(t =>
@@ -2374,7 +2463,7 @@ No pitch, just insights. Interested?`,
           )
         }))
       },
-      
+
       deleteTrailTarget: (id) => {
         set(state => ({
           trailTargets: state.trailTargets.filter(t => t.id !== id)
@@ -2393,7 +2482,7 @@ No pitch, just insights. Interested?`,
       // RESET
       // ============================================
       resetStore: () => set(initialState),
-      
+
       seedDemoData: () => {
         set({
           strategyVersions: [generateMockStrategy()],

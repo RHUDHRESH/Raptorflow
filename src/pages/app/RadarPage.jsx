@@ -518,7 +518,7 @@ const MoveSuggestion = ({ suggestion, onConvert, campaigns, focus }) => {
       suggestion?.channel ? `Channel: ${suggestion.channel}` : null,
       suggestion?.cta ? `CTA: ${suggestion.cta}` : null,
       suggestion?.metric ? `Metric: ${suggestion.metric}` : null,
-      suggestion?.durationDays ? `Duration: ${suggestion.durationDays} days` : null,
+      'Duration: 90 days',
       suggestion?.reason ? `Why now: ${suggestion.reason}` : null
     ]
       .filter(Boolean)
@@ -560,7 +560,7 @@ const MoveSuggestion = ({ suggestion, onConvert, campaigns, focus }) => {
           </div>
           <div>
             <span className="text-ink-400">Duration</span>
-            <div className="text-ink">{suggestion.durationDays} days</div>
+            <div className="text-ink">90 days</div>
           </div>
           <div>
             <span className="text-ink-400">CTA</span>
