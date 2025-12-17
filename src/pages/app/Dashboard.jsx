@@ -2,104 +2,73 @@ import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { 
-  TrendingUp, 
-  Zap, 
-  Target, 
-  Users, 
+import {
+  Target,
+  Users,
   ArrowRight,
-  BarChart3,
-  Calendar,
   CheckCircle2,
-  Clock,
   Sparkles,
-  Crown,
   Radio,
-  Rocket,
-  Plus,
-  AlertCircle
+  Rocket
 } from 'lucide-react'
+import { BRAND_ICONS } from '@/components/brand/BrandSystem'
 
-// Stat card component
+import { EmptyState } from '@/components/EmptyState'
+
+// Editorial Stat Card
 const StatCard = ({ icon: Icon, label, value, change, changeType, delay, loading }) => (
   <motion.div
-    initial={{ opacity: 0, y: 20 }}
+    initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ delay }}
-    className="bg-zinc-900/50 border border-white/5 rounded-xl p-5 hover:border-white/10 transition-colors"
+    transition={{ delay, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+    className="card-editorial p-6"
   >
     <div className="flex items-start justify-between">
-      <div className="p-2 bg-amber-500/10 rounded-lg">
-        <Icon className="w-5 h-5 text-amber-400" strokeWidth={1.5} />
+      <div className="w-10 h-10 bg-paper-200 rounded-editorial flex items-center justify-center">
+        <Icon className="w-5 h-5 text-ink-400" strokeWidth={1.5} />
       </div>
       {change && (
-        <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-          changeType === 'up' 
-            ? 'bg-emerald-500/10 text-emerald-400' 
-            : 'bg-red-500/10 text-red-400'
-        }`}>
+        <span className={`pill-editorial ${changeType === 'up' ? 'pill-success' : 'pill-error'
+          }`}>
           {changeType === 'up' ? '+' : ''}{change}%
         </span>
       )}
     </div>
-    <div className="mt-4">
+    <div className="mt-5">
       {loading ? (
-        <div className="h-8 w-16 bg-white/5 rounded animate-pulse" />
+        <div className="h-9 w-16 skeleton" />
       ) : (
-        <p className="text-2xl font-light text-white">{value}</p>
+        <p className="font-serif text-3xl text-ink">{value}</p>
       )}
-      <p className="text-sm text-white/40 mt-1">{label}</p>
+      <p className="text-body-sm text-ink-400 mt-1">{label}</p>
     </div>
   </motion.div>
 )
 
-// Quick action card
+// Editorial Quick Action Card
 const QuickAction = ({ icon: Icon, title, description, onClick, delay, highlight }) => (
   <motion.button
-    initial={{ opacity: 0, y: 20 }}
+    initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ delay }}
+    transition={{ delay, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
     onClick={onClick}
-    className={`group p-5 border rounded-xl text-left transition-all ${
-      highlight 
-        ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20' 
-        : 'bg-zinc-900/50 border-white/5 hover:border-amber-500/30 hover:bg-zinc-900'
-    }`}
+    className={`group p-6 border rounded-card text-left transition-editorial w-full ${highlight
+      ? 'bg-signal-muted border-primary/20 hover:border-primary/40'
+      : 'bg-white border-border-light hover:border-border hover:shadow-editorial'
+      }`}
   >
-    <div className={`p-2 rounded-lg w-fit transition-colors ${
-      highlight ? 'bg-amber-500/20' : 'bg-white/5 group-hover:bg-amber-500/10'
-    }`}>
-      <Icon className={`w-5 h-5 transition-colors ${
-        highlight ? 'text-amber-400' : 'text-white/60 group-hover:text-amber-400'
-      }`} strokeWidth={1.5} />
+    <div className={`w-10 h-10 rounded-editorial flex items-center justify-center transition-editorial ${highlight ? 'bg-signal-muted' : 'bg-paper-200 group-hover:bg-paper-300'
+      }`}>
+      <Icon className={`w-5 h-5 transition-editorial ${highlight ? 'text-primary' : 'text-ink-400 group-hover:text-ink'
+        }`} strokeWidth={1.5} />
     </div>
-    <h3 className="mt-4 text-white font-medium">{title}</h3>
-    <p className="mt-1 text-sm text-white/40">{description}</p>
-    <div className="mt-4 flex items-center gap-2 text-amber-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+    <h3 className="mt-4 text-ink font-medium">{title}</h3>
+    <p className="mt-1 text-body-sm text-ink-400">{description}</p>
+    <div className="mt-4 flex items-center gap-2 text-primary text-body-sm opacity-0 group-hover:opacity-100 transition-opacity">
       <span>Get started</span>
       <ArrowRight className="w-4 h-4" />
     </div>
   </motion.button>
-)
-
-// Empty state component
-const EmptyState = ({ icon: Icon, title, description, action, onAction }) => (
-  <div className="text-center py-8">
-    <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center mx-auto mb-4">
-      <Icon className="w-6 h-6 text-white/30" />
-    </div>
-    <h3 className="text-white/60 font-medium mb-1">{title}</h3>
-    <p className="text-white/30 text-sm mb-4">{description}</p>
-    {action && (
-      <button
-        onClick={onAction}
-        className="text-amber-400 text-sm hover:text-amber-300 flex items-center gap-2 mx-auto"
-      >
-        <Plus className="w-4 h-4" />
-        {action}
-      </button>
-    )}
-  </div>
 )
 
 const Dashboard = () => {
@@ -116,11 +85,6 @@ const Dashboard = () => {
   const [upcomingTasks, setUpcomingTasks] = useState([])
 
   const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'there'
-  
-  // Calculate days remaining in plan
-  const daysRemaining = profile?.plan_expires_at 
-    ? Math.max(0, Math.ceil((new Date(profile.plan_expires_at) - new Date()) / (1000 * 60 * 60 * 24)))
-    : 0
 
   useEffect(() => {
     // Simulate loading - in real app, fetch from API
@@ -132,107 +96,75 @@ const Dashboard = () => {
   }, [])
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Header */}
+    <div className="max-w-6xl mx-auto">
+      {/* Editorial Header */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+        className="mb-10"
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-light text-white">
+            <h1 className="font-serif text-headline-lg text-ink">
               Welcome back{userName !== 'there' ? `, ${userName}` : ''}
             </h1>
-            <p className="text-white/40 mt-1">
-              Here's your strategic command center
+            <p className="text-body-md text-ink-400 mt-2">
+              Your strategic command center
             </p>
           </div>
-          
+
           {/* Plan badge */}
-          {profile?.plan && profile.plan !== 'none' && profile.plan !== 'free' && (
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-xs text-white/40">Plan expires</p>
-                <p className="text-sm text-amber-400">{daysRemaining} days left</p>
-              </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                <Crown className="w-4 h-4 text-amber-400" />
-                <span className="text-amber-400 text-sm font-medium capitalize">{profile.plan}</span>
-              </div>
-            </div>
-          )}
         </div>
       </motion.div>
 
       {/* Plan warning if expiring soon */}
-      {daysRemaining > 0 && daysRemaining <= 7 && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-4"
-        >
-          <AlertCircle className="w-5 h-5 text-amber-400" />
-          <div className="flex-1">
-            <p className="text-amber-400 font-medium">Plan expiring soon</p>
-            <p className="text-amber-400/60 text-sm">
-              Your {profile?.plan} plan expires in {daysRemaining} days. Renew to keep access.
-            </p>
-          </div>
-          <button 
-            onClick={() => navigate('/onboarding/plan')}
-            className="px-4 py-2 bg-amber-500 text-black rounded-lg text-sm font-medium"
-          >
-            Renew Plan
-          </button>
-        </motion.div>
-      )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard 
-          icon={Zap} 
-          label="Active Moves" 
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+        <StatCard
+          icon={BRAND_ICONS.speed}
+          label="Active Moves"
           value={stats.activeMoves}
           loading={loading}
-          delay={0.1} 
+          delay={0.1}
         />
-        <StatCard 
-          icon={Target} 
-          label="Campaigns" 
+        <StatCard
+          icon={Target}
+          label="Campaigns"
           value={stats.campaigns}
           loading={loading}
-          delay={0.15} 
+          delay={0.15}
         />
-        <StatCard 
-          icon={Users} 
-          label="Cohorts" 
+        <StatCard
+          icon={Users}
+          label="Cohorts"
           value={stats.cohorts}
           loading={loading}
-          delay={0.2} 
+          delay={0.2}
         />
-        <StatCard 
-          icon={Radio} 
-          label="Radar Alerts" 
+        <StatCard
+          icon={Radio}
+          label="Radar Alerts"
           value={stats.radarAlerts}
           loading={loading}
-          delay={0.25} 
+          delay={0.25}
         />
       </div>
 
       {/* Main grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Quick actions */}
         <div className="lg:col-span-2">
           <motion.h2
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-lg font-medium text-white mb-4"
+            className="font-serif text-headline-xs text-ink mb-5"
           >
             Quick Actions
           </motion.h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <QuickAction
               icon={Users}
               title="Create Your First Cohort"
@@ -271,34 +203,33 @@ const Dashboard = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-lg font-medium text-white mb-4"
+            className="font-serif text-headline-xs text-ink mb-5"
           >
             Recent Moves
           </motion.h2>
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            className="bg-zinc-900/50 border border-white/5 rounded-xl p-4"
+            transition={{ delay: 0.35, duration: 0.4 }}
+            className="card-editorial p-5"
           >
             {recentMoves.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {recentMoves.map((move, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg transition-colors cursor-pointer">
-                    <div className={`w-2 h-2 rounded-full ${
-                      move.status === 'active' ? 'bg-emerald-400' : 
-                      move.status === 'pending' ? 'bg-amber-400' : 'bg-white/20'
-                    }`} />
+                  <div key={i} className="flex items-center gap-3 p-3 hover:bg-paper-200 rounded-editorial transition-editorial cursor-pointer">
+                    <div className={`w-2 h-2 rounded-full ${move.status === 'active' ? 'bg-primary' :
+                      move.status === 'pending' ? 'bg-ink-300' : 'bg-ink-200'
+                      }`} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-medium truncate">{move.name}</p>
-                      <p className="text-xs text-white/40">{move.campaign}</p>
+                      <p className="text-ink text-body-sm font-medium truncate">{move.name}</p>
+                      <p className="text-body-xs text-ink-400">{move.campaign}</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <EmptyState
-                icon={Zap}
+                icon={BRAND_ICONS.speed}
                 title="No moves yet"
                 description="Create your first move to start executing"
                 action="Create Move"
@@ -310,60 +241,58 @@ const Dashboard = () => {
       </div>
 
       {/* Bottom section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
         {/* Getting started checklist */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-zinc-900/50 border border-white/5 rounded-xl p-5"
+          transition={{ delay: 0.6, duration: 0.4 }}
+          className="card-editorial p-6"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white font-medium">Getting Started</h3>
-            <span className="text-xs text-white/40">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="font-serif text-headline-xs text-ink">Getting Started</h3>
+            <span className="pill-editorial pill-neutral">
               {[stats.cohorts > 0, stats.campaigns > 0, stats.activeMoves > 0].filter(Boolean).length}/3 completed
             </span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[
-              { 
-                title: 'Create your first cohort', 
-                done: stats.cohorts > 0, 
+              {
+                title: 'Create your first cohort',
+                done: stats.cohorts > 0,
                 action: () => navigate('/app/cohorts'),
                 description: 'Define who you\'re targeting'
               },
-              { 
-                title: 'Launch a campaign', 
-                done: stats.campaigns > 0, 
+              {
+                title: 'Launch a campaign',
+                done: stats.campaigns > 0,
                 action: () => navigate('/app/campaigns'),
                 description: 'Organize your GTM efforts'
               },
-              { 
-                title: 'Execute your first move', 
-                done: stats.activeMoves > 0, 
+              {
+                title: 'Execute your first move',
+                done: stats.activeMoves > 0,
                 action: () => navigate('/app/moves'),
                 description: 'Take action with precision'
               },
             ].map((item, i) => (
-              <button 
-                key={i} 
+              <button
+                key={i}
                 onClick={item.action}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
-                  item.done ? 'bg-emerald-500/10' : 'hover:bg-white/5'
-                }`}
+                className={`w-full flex items-center gap-4 p-4 rounded-editorial transition-editorial text-left ${item.done ? 'bg-signal-muted' : 'hover:bg-paper-200'
+                  }`}
               >
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                  item.done ? 'bg-emerald-500' : 'border border-white/20'
-                }`}>
-                  {item.done && <CheckCircle2 className="w-4 h-4 text-black" />}
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${item.done ? 'bg-primary' : 'border border-border-dark'
+                  }`}>
+                  {item.done && <CheckCircle2 className="w-4 h-4 text-primary-foreground" />}
                 </div>
                 <div className="flex-1">
-                  <span className={`text-sm ${item.done ? 'text-emerald-400 line-through' : 'text-white'}`}>
+                  <span className={`text-body-sm font-medium ${item.done ? 'text-ink-400 line-through' : 'text-ink'}`}>
                     {item.title}
                   </span>
-                  <p className="text-xs text-white/40">{item.description}</p>
+                  <p className="text-body-xs text-ink-400">{item.description}</p>
                 </div>
-                {!item.done && <ArrowRight className="w-4 h-4 text-white/20" />}
+                {!item.done && <ArrowRight className="w-4 h-4 text-ink-300" />}
               </button>
             ))}
           </div>
@@ -371,28 +300,27 @@ const Dashboard = () => {
 
         {/* Radar preview */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.65 }}
-          className="bg-zinc-900/50 border border-white/5 rounded-xl p-5"
+          transition={{ delay: 0.65, duration: 0.4 }}
+          className="card-editorial p-6"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white font-medium flex items-center gap-2">
-              <Radio className="w-4 h-4 text-emerald-400" />
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="font-serif text-headline-xs text-ink flex items-center gap-2">
+              <Radio className="w-4 h-4 text-ink-400" strokeWidth={1.5} />
               Radar
             </h3>
-            <button 
+            <button
               onClick={() => navigate('/app/radar')}
-              className="text-xs text-amber-400 hover:text-amber-300"
+              className="text-body-sm text-primary hover:text-primary/80 transition-editorial"
             >
               View all
             </button>
           </div>
-          
+
           {stats.cohorts > 0 ? (
             <div className="space-y-3">
-              {/* Radar would show trending matches here */}
-              <p className="text-white/40 text-sm text-center py-8">
+              <p className="text-ink-400 text-body-sm text-center py-10">
                 Radar is scanning for opportunities based on your cohort interests...
               </p>
             </div>

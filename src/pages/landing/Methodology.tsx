@@ -1,8 +1,4 @@
 import React from 'react'
-import { ReactLenis } from 'lenis/react'
-import Header from './Header'
-import Footer from './Footer'
-import CustomCursor from '../../components/CustomCursor'
 import { motion } from 'framer-motion'
 import { Brain, Target, Layers, ArrowRight } from 'lucide-react'
 

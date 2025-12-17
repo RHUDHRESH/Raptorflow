@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
+import { ErrorState } from '@/components/ErrorState'
+
 const OAuthCallback = () => {
   const navigate = useNavigate()
   const [status, setStatus] = useState('Completing sign in...')
@@ -28,10 +30,39 @@ const OAuthCallback = () => {
       setStatus('Loading profile...')
 
       try {
+        const mapDbPlanCodeToFrontendPlan = (planCode) => {
+          const normalized = String(planCode || '').toLowerCase()
+          if (normalized === 'starter') return 'ascent'
+          if (normalized === 'growth') return 'glide'
+          if (normalized === 'enterprise') return 'soar'
+          if (normalized === 'free') return 'free'
+          return normalized
+        }
+
+        const fetchLatestOrgSubscription = async (organizationId) => {
+          if (!organizationId) return null
+
+          const { data, error } = await supabase
+            .from('subscriptions')
+            .select('id, status, current_period_start, current_period_end, plan:plans(code)')
+            .eq('organization_id', organizationId)
+            .is('deleted_at', null)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+
+          if (error) {
+            console.warn('Failed to fetch subscription:', error)
+            return null
+          }
+
+          return data || null
+        }
+
         // First, try to get the profile
         let { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('plan, plan_status, onboarding_completed')
+          .select('plan, onboarding_completed, current_org_id')
           .eq('id', session.user.id)
           .single()
 
@@ -48,26 +79,31 @@ const OAuthCallback = () => {
               avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture || null,
               onboarding_completed: false
             })
-            .select('plan, plan_status, onboarding_completed')
+            .select('plan, onboarding_completed, current_org_id')
             .single()
 
           if (createError) {
             console.error('Failed to create profile:', createError)
             // Still proceed, just go to onboarding
-            profile = { onboarding_completed: false, plan: 'none', plan_status: 'inactive' }
+            profile = { onboarding_completed: false, plan: 'none', current_org_id: null }
           } else {
             profile = newProfile
           }
         } else if (profileError) {
           console.error('Profile fetch error:', profileError)
           // If other error, assume new user
-          profile = { onboarding_completed: false, plan: 'none', plan_status: 'inactive' }
+          profile = { onboarding_completed: false, plan: 'none', current_org_id: null }
         }
+
+        const subscription = await fetchLatestOrgSubscription(profile?.current_org_id)
+        const planCode = subscription?.plan?.code
+        const derivedPlan = planCode ? mapDbPlanCodeToFrontendPlan(planCode) : (profile?.plan || 'free')
+        const isPaidActive = subscription?.status === 'active' && derivedPlan !== 'free'
 
         setStatus('Redirecting...')
 
         // Determine where to redirect
-        if (profile?.plan && profile.plan !== 'none' && profile.plan !== 'free' && profile.plan_status === 'active') {
+        if (isPaidActive) {
           // User has active paid plan - go to app
           navigate('/app', { replace: true })
         } else if (profile?.onboarding_completed) {
@@ -177,23 +213,24 @@ const OAuthCallback = () => {
   }, [navigate])
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4 text-center px-6">
+    <div className="min-h-screen bg-paper flex items-center justify-center px-6">
+      <div className="w-full max-w-2xl">
         {error ? (
           <>
-            <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
-              <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </div>
-            <p className="text-red-400 text-sm">{error}</p>
-            <p className="text-white/30 text-xs">Redirecting to login...</p>
+            <ErrorState
+              title="Couldn't complete sign-in"
+              description={`${error} Redirecting to login…`}
+              action={{
+                label: 'Back to login',
+                onClick: () => navigate('/login', { replace: true })
+              }}
+            />
           </>
         ) : (
-          <>
-            <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-white/60 text-sm">{status}</p>
-          </>
+          <div className="rounded-card border border-border bg-card p-8 md:p-10 text-center">
+            <div className="mx-auto h-10 w-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <p className="mt-4 text-body-sm text-ink-400">{status}</p>
+          </div>
         )}
       </div>
     </div>

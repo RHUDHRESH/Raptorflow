@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { 
-  Plus, 
-  Zap, 
-  Target, 
-  Users, 
+import {
+  Plus,
+  Target,
+  Users,
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
@@ -21,6 +20,7 @@ import {
   Activity,
   BarChart3
 } from 'lucide-react'
+import { BrandIcon, BRAND_ICONS } from '@/components/brand/BrandSystem'
 import { useAuth } from '../../contexts/AuthContext'
 
 // Phase colors and labels
@@ -56,7 +56,7 @@ const SpikeCard = ({ spike, onClick }) => {
   const statusConfig = STATUS_CONFIG[spike.status] || STATUS_CONFIG.draft
   const currentWeek = Math.min(4, Math.floor((Date.now() - new Date(spike.start_date).getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1)
   const progress = spike.status === 'completed' ? 100 : Math.min(100, (currentWeek / 4) * 100)
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -69,7 +69,7 @@ const SpikeCard = ({ spike, onClick }) => {
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl flex items-center justify-center">
-            <Zap className="w-6 h-6 text-amber-400" />
+            <BrandIcon name="speed" className="w-6 h-6 text-amber-400" />
           </div>
           <div>
             <h3 className="text-lg font-medium text-white">{spike.name}</h3>
@@ -96,7 +96,7 @@ const SpikeCard = ({ spike, onClick }) => {
         </div>
         <div className="h-2 bg-white/10 rounded-full overflow-hidden flex">
           {[1, 2, 3, 4].map(week => (
-            <div 
+            <div
               key={week}
               className={`flex-1 ${week <= currentWeek ? 'bg-amber-500' : 'bg-white/5'} ${week < 4 ? 'border-r border-white/10' : ''}`}
             />
@@ -174,8 +174,8 @@ const Spikes = () => {
     fetchSpikes()
   }, [])
 
-  const filteredSpikes = filter === 'all' 
-    ? spikes 
+  const filteredSpikes = filter === 'all'
+    ? spikes
     : spikes.filter(s => s.status === filter)
 
   // Stats
@@ -196,7 +196,7 @@ const Spikes = () => {
         >
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl flex items-center justify-center">
-              <Zap className="w-6 h-6 text-amber-400" />
+              <BrandIcon name="speed" className="w-6 h-6 text-amber-400" />
             </div>
             <div>
               <h1 className="text-3xl font-light text-white">Spikes</h1>
@@ -224,7 +224,7 @@ const Spikes = () => {
         transition={{ delay: 0.1 }}
         className="grid grid-cols-4 gap-4 mb-8"
       >
-        <StatsCard icon={Zap} label="Total Spikes" value={stats.total} color="amber" />
+        <StatsCard icon={BRAND_ICONS.speed} label="Total Spikes" value={stats.total} color="amber" />
         <StatsCard icon={Play} label="Active" value={stats.active} color="emerald" />
         <StatsCard icon={TrendingUp} label="Total Pipeline" value={`₹${(stats.totalPipeline / 100000).toFixed(1)}L`} color="blue" />
         <StatsCard icon={Target} label="Target ARR" value={`₹${(stats.totalTargetARR / 100000).toFixed(1)}L`} color="purple" />
@@ -244,7 +244,7 @@ const Spikes = () => {
           <div>
             <h3 className="text-lg font-medium text-white mb-1">The RaptorFlow Command Spike</h3>
             <p className="text-white/60 text-sm mb-3">
-              A 30-day focused GTM implant that gives you clarity, control, and protection. 
+              A 30-day focused GTM implant that gives you clarity, control, and protection.
               No wasteful spending. No guessing. Just execution with guardrails.
             </p>
             <div className="flex items-center gap-4 text-sm">
@@ -276,11 +276,10 @@ const Spikes = () => {
           <button
             key={status}
             onClick={() => setFilter(status)}
-            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-              filter === status
-                ? 'bg-white/10 text-white'
-                : 'text-white/40 hover:text-white/60'
-            }`}
+            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${filter === status
+              ? 'bg-white/10 text-white'
+              : 'text-white/40 hover:text-white/60'
+              }`}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </button>
@@ -311,7 +310,7 @@ const Spikes = () => {
           className="text-center py-16"
         >
           <div className="w-16 h-16 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Zap className="w-8 h-8 text-amber-400" />
+            <BrandIcon name="speed" className="w-8 h-8 text-amber-400" />
           </div>
           <h3 className="text-lg font-medium text-white mb-2">No spikes yet</h3>
           <p className="text-white/40 mb-6">Launch your first 30-day GTM spike</p>

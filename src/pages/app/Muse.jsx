@@ -26,6 +26,11 @@ import {
 import { useAuth } from '../../contexts/AuthContext'
 import { museAPI } from '../../lib/api'
 
+import { cn } from '@/lib/utils'
+import { EmptyState } from '@/components/EmptyState'
+
+import { Modal } from '@/components/system/Modal'
+
 // Asset type categories and icons
 const ASSET_CATEGORIES = {
   pillar: { label: 'Pillar Content', icon: FileText, color: 'purple' },
@@ -58,12 +63,12 @@ const ASSET_TYPES = [
 
 // Status configuration
 const STATUS_CONFIG = {
-  draft: { label: 'Draft', color: 'bg-white/10 text-white/60' },
-  generating: { label: 'Generating', color: 'bg-purple-500/20 text-purple-400' },
-  needs_review: { label: 'Needs Review', color: 'bg-amber-500/20 text-amber-400' },
-  approved: { label: 'Approved', color: 'bg-emerald-500/20 text-emerald-400' },
-  deployed: { label: 'Deployed', color: 'bg-blue-500/20 text-blue-400' },
-  archived: { label: 'Archived', color: 'bg-white/10 text-white/40' }
+  draft: { label: 'Draft', color: 'bg-muted text-muted-foreground border border-border' },
+  generating: { label: 'Generating', color: 'bg-signal-muted text-primary border border-primary/20' },
+  needs_review: { label: 'Needs review', color: 'bg-signal-muted text-primary border border-primary/20' },
+  approved: { label: 'Approved', color: 'bg-muted text-foreground border border-border' },
+  deployed: { label: 'Deployed', color: 'bg-muted text-foreground border border-border' },
+  archived: { label: 'Archived', color: 'bg-muted text-muted-foreground border border-border' }
 }
 
 // Asset card component
@@ -80,24 +85,27 @@ const AssetCard = ({ asset, onClick, onAction }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -2 }}
-      className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-white/20 transition-all group"
+      className="bg-card border border-border rounded-xl overflow-hidden hover:border-border-dark transition-editorial group"
     >
       {/* Preview area */}
       <div
-        className={`${isImageAsset ? 'h-48' : 'h-32'} bg-gradient-to-br from-white/5 to-white/0 p-4 cursor-pointer`}
+        className={cn(
+          isImageAsset ? 'h-48' : 'h-32',
+          'bg-muted p-4 cursor-pointer'
+        )}
         onClick={onClick}
       >
         {isImageAsset && asset.imageUrl ? (
           <div className="h-full flex flex-col">
             <div className="flex items-start justify-between mb-2">
-              <div className={`w-8 h-8 rounded-lg bg-${category.color}-500/20 flex items-center justify-center`}>
-                <CategoryIcon className={`w-4 h-4 text-${category.color}-400`} />
+              <div className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center">
+                <CategoryIcon className="w-4 h-4 text-ink-400" strokeWidth={1.5} />
               </div>
               <span className={`px-2 py-0.5 rounded text-xs ${statusConfig.color}`}>
                 {statusConfig.label}
               </span>
             </div>
-            <div className="flex-1 rounded-lg overflow-hidden bg-white/10">
+            <div className="flex-1 rounded-lg overflow-hidden bg-background border border-border">
               <img
                 src={asset.imageUrl}
                 alt={asset.name}
@@ -105,29 +113,30 @@ const AssetCard = ({ asset, onClick, onAction }) => {
                 onError={(e) => {
                   e.target.src = `data:image/svg+xml;base64,${btoa(`
                     <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect width="200" height="200" fill="#1a1a1a"/>
-                      <circle cx="100" cy="80" r="20" fill="#${category.color === 'rose' ? 'ec4899' : '8b5cf6'}"/>
-                      <path d="M70 140 Q100 120 130 140" stroke="#${category.color === 'rose' ? 'ec4899' : '8b5cf6'}" stroke-width="3" fill="none"/>
+                      <rect width="200" height="200" fill="#f5f3f0"/>
+                      <rect x="32" y="36" width="136" height="128" rx="14" fill="#faf9f7" stroke="#e5e2dd"/>
+                      <path d="M58 126 L90 98 L114 118 L142 92" stroke="#4d4d4d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="82" cy="78" r="8" fill="#4d4d4d"/>
                     </svg>
                   `)}`;
                 }}
               />
             </div>
-            <h3 className="font-medium text-white text-sm mt-2 line-clamp-1">{asset.name}</h3>
+            <h3 className="font-medium text-ink text-sm mt-2 line-clamp-1">{asset.name}</h3>
           </div>
         ) : (
           <>
             <div className="flex items-start justify-between">
-              <div className={`w-10 h-10 rounded-lg bg-${category.color}-500/20 flex items-center justify-center`}>
-                <CategoryIcon className={`w-5 h-5 text-${category.color}-400`} />
+              <div className="w-10 h-10 rounded-lg bg-background border border-border flex items-center justify-center">
+                <CategoryIcon className="w-5 h-5 text-ink-400" strokeWidth={1.5} />
               </div>
               <span className={`px-2 py-0.5 rounded text-xs ${statusConfig.color}`}>
                 {statusConfig.label}
               </span>
             </div>
             <div className="mt-3">
-              <h3 className="font-medium text-white line-clamp-1">{asset.name}</h3>
-              <p className="text-sm text-white/40 mt-1 line-clamp-2">
+              <h3 className="font-medium text-ink line-clamp-1">{asset.name}</h3>
+              <p className="text-sm text-ink-400 mt-1 line-clamp-2">
                 {asset.content?.slice(0, 100) || 'Generated content...'}{asset.content?.length > 100 ? '...' : ''}
               </p>
             </div>
@@ -136,28 +145,28 @@ const AssetCard = ({ asset, onClick, onAction }) => {
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between">
-        <div className="text-xs text-white/40">
+      <div className="px-4 py-3 border-t border-border flex items-center justify-between">
+        <div className="text-xs text-ink-400">
           {new Date(asset.created_at).toLocaleDateString()}
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button 
             onClick={(e) => { e.stopPropagation(); onAction('copy', asset); }}
-            className="p-1.5 hover:bg-white/10 rounded"
+            className="p-1.5 hover:bg-muted rounded transition-editorial"
           >
-            <Copy className="w-3.5 h-3.5 text-white/40" />
+            <Copy className="w-3.5 h-3.5 text-ink-400" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); onAction('edit', asset); }}
-            className="p-1.5 hover:bg-white/10 rounded"
+            className="p-1.5 hover:bg-muted rounded transition-editorial"
           >
-            <Edit className="w-3.5 h-3.5 text-white/40" />
+            <Edit className="w-3.5 h-3.5 text-ink-400" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); onAction('download', asset); }}
-            className="p-1.5 hover:bg-white/10 rounded"
+            className="p-1.5 hover:bg-muted rounded transition-editorial"
           >
-            <Download className="w-3.5 h-3.5 text-white/40" />
+            <Download className="w-3.5 h-3.5 text-ink-400" />
           </button>
         </div>
       </div>
@@ -218,66 +227,51 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
     setSelectedICP(null)
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-[#0a0a0f] border border-white/10 rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center">
-              <Wand2 className="w-5 h-5 text-purple-400" />
-            </div>
-            <div>
-              <h2 className="text-xl font-medium text-white">Generate Asset</h2>
-              <p className="text-sm text-white/40">Create content with Muse AI</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg">
-            <X className="w-5 h-5 text-white/60" />
-          </button>
-        </div>
-
+    <Modal
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
+      title="Generate asset"
+      description="Create content with Muse AI."
+      contentClassName="max-w-3xl"
+    >
+      <div className="space-y-5">
         {/* Progress */}
-        <div className="flex items-center gap-4 px-6 py-4 bg-white/5 border-b border-white/10">
-          <div className={`flex items-center gap-2 ${step >= 1 ? 'text-white' : 'text-white/40'}`}>
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 1 ? 'bg-white/20' : 'bg-white/10'}`}>1</div>
-            <span className="text-sm">Asset Type</span>
+        <div className="flex flex-wrap items-center gap-3 rounded-card border border-border bg-muted px-4 py-3">
+          <div className={`flex items-center gap-2 ${step >= 1 ? 'text-foreground' : 'text-muted-foreground'}`}>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 1 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>1</div>
+            <span className="text-sm">Asset type</span>
           </div>
-          <ChevronRight className="w-4 h-4 text-white/20" />
+          <ChevronRight className="w-4 h-4 text-border" />
           {ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' && (
             <>
-              <div className={`flex items-center gap-2 ${step >= 2 ? 'text-white' : 'text-white/40'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? 'bg-white/20' : 'bg-white/10'}`}>2</div>
-                <span className="text-sm">Image Style</span>
+              <div className={`flex items-center gap-2 ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>2</div>
+                <span className="text-sm">Image style</span>
               </div>
-              <ChevronRight className="w-4 h-4 text-white/20" />
-              <div className={`flex items-center gap-2 ${step >= 3 ? 'text-white' : 'text-white/40'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? 'bg-white/20' : 'bg-white/10'}`}>3</div>
+              <ChevronRight className="w-4 h-4 text-border" />
+              <div className={`flex items-center gap-2 ${step >= 3 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>3</div>
                 <span className="text-sm">Target ICP</span>
               </div>
-              <ChevronRight className="w-4 h-4 text-white/20" />
-              <div className={`flex items-center gap-2 ${step >= 4 ? 'text-white' : 'text-white/40'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 4 ? 'bg-white/20' : 'bg-white/10'}`}>4</div>
+              <ChevronRight className="w-4 h-4 text-border" />
+              <div className={`flex items-center gap-2 ${step >= 4 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 4 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>4</div>
                 <span className="text-sm">Generate</span>
               </div>
             </>
           )}
           {(!selectedType || ASSET_TYPES.find(t => t.type === selectedType?.type)?.category !== 'images') && (
             <>
-              <div className={`flex items-center gap-2 ${step >= 2 ? 'text-white' : 'text-white/40'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? 'bg-white/20' : 'bg-white/10'}`}>2</div>
+              <div className={`flex items-center gap-2 ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>2</div>
                 <span className="text-sm">Target ICP</span>
               </div>
-              <ChevronRight className="w-4 h-4 text-white/20" />
-              <div className={`flex items-center gap-2 ${step >= 3 ? 'text-white' : 'text-white/40'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? 'bg-white/20' : 'bg-white/10'}`}>3</div>
+              <ChevronRight className="w-4 h-4 text-border" />
+              <div className={`flex items-center gap-2 ${step >= 3 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? 'bg-signal-muted text-primary' : 'bg-background text-muted-foreground'}`}>3</div>
                 <span className="text-sm">Generate</span>
               </div>
             </>
@@ -285,7 +279,7 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[50vh]">
+        <div className="max-h-[50vh] overflow-y-auto pr-1">
           {step === 1 && (
             <div className="space-y-4">
               {Object.entries(ASSET_CATEGORIES).map(([key, category]) => {
@@ -295,8 +289,8 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
                 return (
                   <div key={key}>
                     <div className="flex items-center gap-2 mb-3">
-                      <CategoryIcon className={`w-4 h-4 text-${category.color}-400`} />
-                      <span className="text-sm font-medium text-white/60">{category.label}</span>
+                      <CategoryIcon className="w-4 h-4 text-ink-400" />
+                      <span className="text-sm font-medium text-ink-400">{category.label}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {types.map(type => (
@@ -305,12 +299,12 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
                           onClick={() => setSelectedType(type)}
                           className={`p-3 rounded-lg border text-left transition-all ${
                             selectedType?.type === type.type
-                              ? 'bg-white/10 border-white/30'
-                              : 'bg-white/5 border-white/10 hover:border-white/20'
+                              ? 'bg-signal-muted border-primary/20'
+                              : 'bg-background border-border hover:border-border-dark'
                           }`}
                         >
-                          <div className="font-medium text-white text-sm">{type.label}</div>
-                          <div className="text-xs text-white/40 mt-1">{type.description}</div>
+                          <div className="font-medium text-ink text-sm">{type.label}</div>
+                          <div className="text-xs text-ink-400 mt-1">{type.description}</div>
                         </button>
                       ))}
                     </div>
@@ -322,13 +316,13 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
 
           {step === 2 && (
             <div className="space-y-3">
-              <p className="text-sm text-white/60 mb-4">
+              <p className="text-sm text-ink-400 mb-4">
                 Select which ICP this content should be tailored for
               </p>
               {loadingICPs ? (
                 <div className="text-center py-8">
-                  <RefreshCw className="w-6 h-6 text-purple-400 animate-spin mx-auto mb-2" />
-                  <p className="text-white/60">Loading audience profiles...</p>
+                  <RefreshCw className="w-6 h-6 text-primary animate-spin mx-auto mb-2" />
+                  <p className="text-ink-400">Loading audience profiles...</p>
                 </div>
               ) : (
                 icps.map(icp => (
@@ -337,12 +331,12 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
                     onClick={() => setSelectedICP(icp)}
                     className={`w-full p-4 rounded-lg border text-left transition-all ${
                       selectedICP?.id === icp.id
-                        ? 'bg-white/10 border-white/30'
-                        : 'bg-white/5 border-white/10 hover:border-white/20'
+                        ? 'bg-signal-muted border-primary/20'
+                        : 'bg-background border-border hover:border-border-dark'
                     }`}
                   >
-                    <div className="font-medium text-white">{icp.label}</div>
-                    <div className="text-sm text-white/40 mt-1">{icp.summary}</div>
+                    <div className="font-medium text-ink">{icp.label}</div>
+                    <div className="text-sm text-ink-400 mt-1">{icp.summary}</div>
                   </button>
                 ))
               )}
@@ -351,17 +345,17 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
 
           {step === 2 && ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' && (
             <div className="space-y-4">
-              <p className="text-sm text-white/60 mb-4">
+              <p className="text-sm text-ink-400 mb-4">
                 Customize your image settings
               </p>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Visual Style</label>
+                  <label className="block text-sm font-medium text-ink mb-2">Visual style</label>
                   <select
                     value={imageStyle}
                     onChange={(e) => setImageStyle(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-white/30 outline-none"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <option value="realistic">Realistic (Photography)</option>
                     <option value="illustrative">Illustrative (Clean Art)</option>
@@ -373,11 +367,11 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Dimensions</label>
+                  <label className="block text-sm font-medium text-ink mb-2">Dimensions</label>
                   <select
                     value={imageDimensions}
                     onChange={(e) => setImageDimensions(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-white/30 outline-none"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <option value="square">Square (1:1) - Social Media</option>
                     <option value="landscape">Landscape (16:9) - Banners</option>
@@ -393,38 +387,34 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
             <div className="text-center py-8">
               {isGenerating ? (
                 <div>
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <RefreshCw className="w-8 h-8 text-purple-400 animate-spin" />
+                  <div className="w-16 h-16 bg-signal-muted rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20">
+                    <RefreshCw className="w-8 h-8 text-primary animate-spin" strokeWidth={1.5} />
                   </div>
-                  <h3 className="text-lg font-medium text-white mb-2">Generating your asset...</h3>
-                  <p className="text-white/40">
+                  <h3 className="font-serif text-headline-sm text-ink mb-2">Generating your asset…</h3>
+                  <p className="text-ink-400">
                     Creating {selectedType?.label} for {selectedICP?.label}
                   </p>
                 </div>
               ) : (
                 <div>
-                  <div className={`w-16 h-16 ${ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' ? 'bg-gradient-to-br from-rose-500/20 to-pink-500/20' : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20'} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                    {ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' ? (
-                      <Wand2 className="w-8 h-8 text-rose-400" />
-                    ) : (
-                      <Sparkles className="w-8 h-8 text-purple-400" />
-                    )}
+                  <div className="w-16 h-16 bg-signal-muted rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20">
+                    <Sparkles className="w-8 h-8 text-primary" strokeWidth={1.5} />
                   </div>
-                  <h3 className="text-lg font-medium text-white mb-2">Ready to generate</h3>
-                  <p className="text-white/40 mb-6">
+                  <h3 className="font-serif text-headline-sm text-ink mb-2">Ready to generate</h3>
+                  <p className="text-ink-400 mb-6">
                     {selectedType?.label} tailored for {selectedICP?.label}
                     {ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' && (
                       <span className="block text-sm mt-1">
-                        Style: {imageStyle} • Dimensions: {imageDimensions}
+                        Style: {imageStyle}, Size: {imageDimensions}
                       </span>
                     )}
                   </p>
                   <button
                     onClick={handleGenerate}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center gap-2 mx-auto"
+                    className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-95 transition-editorial flex items-center gap-2 mx-auto"
                   >
-                    <Wand2 className="w-4 h-4" />
-                    Generate with Muse
+                    <Wand2 className="w-4 h-4" strokeWidth={1.5} />
+                    Generate
                   </button>
                 </div>
               )}
@@ -434,10 +424,10 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
 
         {/* Footer */}
         {step < (ASSET_TYPES.find(t => t.type === selectedType?.type)?.category === 'images' ? 3 : 2) && (
-          <div className="flex items-center justify-between p-6 border-t border-white/10 bg-white/5">
+          <div className="flex items-center justify-between p-6 border-t border-border bg-muted">
             <button
               onClick={() => step === 1 ? onClose() : setStep(s => s - 1)}
-              className="px-4 py-2 text-white/60 hover:text-white transition-colors"
+              className="px-4 py-2 text-ink-400 hover:text-ink transition-editorial"
             >
               {step === 1 ? 'Cancel' : 'Back'}
             </button>
@@ -447,14 +437,14 @@ const GenerateModal = ({ isOpen, onClose, onGenerate }) => {
                 (step === 1 && !selectedType) ||
                 (step === 2 && ASSET_TYPES.find(t => t.type === selectedType?.type)?.category !== 'images' && !selectedICP)
               }
-              className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-95 transition-editorial disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Continue
             </button>
           </div>
         )}
-      </motion.div>
-    </div>
+      </div>
+    </Modal>
   )
 }
 
@@ -489,6 +479,9 @@ const Muse = () => {
 
   const handleGenerate = async (data) => {
     try {
+      const requestedImageStyle = data?.imageStyle ?? data?.image_style
+      const requestedImageDimensions = data?.imageDimensions ?? data?.image_dimensions
+
       // Create generating asset placeholder
       const generatingAsset = {
         id: `temp-${Date.now()}`,
@@ -507,10 +500,10 @@ const Muse = () => {
         icp_id: data.icp_id,
         brandProfileId: profile?.organization_id || profile?.id, // Use organization ID as brand profile ID
         inputOverrides: {
-          style: ASSET_TYPES.find(t => t.type === data.asset_type)?.category === 'images' ? imageStyle : undefined,
-          dimensions: ASSET_TYPES.find(t => t.type === data.asset_type)?.category === 'images' ? imageDimensions : undefined,
+          style: ASSET_TYPES.find(t => t.type === data.asset_type)?.category === 'images' ? requestedImageStyle : undefined,
+          dimensions: ASSET_TYPES.find(t => t.type === data.asset_type)?.category === 'images' ? requestedImageDimensions : undefined,
           brandColors: ['#6366f1', '#8b5cf6', '#ec4899'], // TODO: Get from brand profile
-          targetAudience: selectedICP?.label,
+          targetAudience: data?.icp_label ?? data?.icpLabel,
           mood: 'professional',
           assetType: data.asset_type,
           // Additional generation parameters
@@ -518,8 +511,8 @@ const Muse = () => {
         contextSnapshot: {
           userId: user?.id,
           organizationId: profile?.organization_id,
-          imageStyle: ASSET_TYPES.find(t => t.type === data.asset_type)?.category === 'images' ? imageStyle : undefined,
-          imageDimensions: ASSET_TYPES.find(t => t.type === data.asset_type)?.category === 'images' ? imageDimensions : undefined,
+          imageStyle: ASSET_TYPES.find(t => t.type === data.asset_type)?.category === 'images' ? requestedImageStyle : undefined,
+          imageDimensions: ASSET_TYPES.find(t => t.type === data.asset_type)?.category === 'images' ? requestedImageDimensions : undefined,
           // Additional context
         }
       })
@@ -662,12 +655,12 @@ const Muse = () => {
           animate={{ opacity: 1, y: 0 }}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-purple-400" />
+            <div className="w-10 h-10 bg-signal-muted rounded-xl flex items-center justify-center border border-primary/20">
+              <Sparkles className="w-5 h-5 text-primary" strokeWidth={1.5} />
             </div>
             <div>
-              <h1 className="text-3xl font-light text-white">Muse</h1>
-              <p className="text-white/40">AI-powered asset factory</p>
+              <h1 className="font-serif text-headline-md text-ink">Muse</h1>
+              <p className="text-body-sm text-ink-400">AI-powered asset factory</p>
             </div>
           </div>
         </motion.div>
@@ -677,9 +670,9 @@ const Muse = () => {
           animate={{ opacity: 1, scale: 1 }}
           whileHover={{ scale: 1.02 }}
           onClick={() => setShowGenerateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-95 transition-editorial"
         >
-          <Wand2 className="w-4 h-4" />
+          <Wand2 className="w-4 h-4" strokeWidth={1.5} />
           Generate
         </motion.button>
       </div>
@@ -691,21 +684,21 @@ const Muse = () => {
         transition={{ delay: 0.1 }}
         className="grid grid-cols-4 gap-4 mb-8"
       >
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
-          <div className="text-2xl font-medium text-white">{stats.total}</div>
-          <div className="text-sm text-white/40">Total Assets</div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <div className="text-2xl font-medium text-ink">{stats.total}</div>
+          <div className="text-sm text-ink-400">Total assets</div>
         </div>
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
-          <div className="text-2xl font-medium text-white">{stats.drafts}</div>
-          <div className="text-sm text-white/40">Drafts</div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <div className="text-2xl font-medium text-ink">{stats.drafts}</div>
+          <div className="text-sm text-ink-400">Drafts</div>
         </div>
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
-          <div className="text-2xl font-medium text-white">{stats.approved}</div>
-          <div className="text-sm text-white/40">Approved</div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <div className="text-2xl font-medium text-ink">{stats.approved}</div>
+          <div className="text-sm text-ink-400">Approved</div>
         </div>
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
-          <div className="text-2xl font-medium text-white">{stats.deployed}</div>
-          <div className="text-sm text-white/40">Deployed</div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <div className="text-2xl font-medium text-ink">{stats.deployed}</div>
+          <div className="text-sm text-ink-400">Deployed</div>
         </div>
       </motion.div>
 
@@ -718,13 +711,13 @@ const Muse = () => {
       >
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" strokeWidth={1.5} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search assets..."
-            className="pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:border-white/30 outline-none w-64"
+            className="pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-64"
           />
         </div>
 
@@ -733,7 +726,7 @@ const Muse = () => {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-white/30 outline-none"
+            className="px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <option value="all">All Categories</option>
             {Object.entries(ASSET_CATEGORIES).map(([key, cat]) => (
@@ -749,8 +742,8 @@ const Muse = () => {
                 onClick={() => setFilter(status)}
                 className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                   filter === status
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/40 hover:text-white/60'
+                    ? 'bg-signal-muted text-primary'
+                    : 'text-ink-400 hover:text-ink'
                 }`}
               >
                 {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -800,19 +793,15 @@ const Muse = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center py-16"
+          className="py-10"
         >
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-purple-400" />
-          </div>
-          <h3 className="text-lg font-medium text-white mb-2">No assets yet</h3>
-          <p className="text-white/40 mb-6">Generate your first asset with Muse AI</p>
-          <button
-            onClick={() => setShowGenerateModal(true)}
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
-          >
-            Generate Asset
-          </button>
+          <EmptyState
+            icon={Sparkles}
+            title="No assets yet"
+            description="Generate your first asset with Muse."
+            action="Generate asset"
+            onAction={() => setShowGenerateModal(true)}
+          />
         </motion.div>
       )}
 

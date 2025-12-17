@@ -1,6 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Target, Zap, Shield, TrendingUp, Clock, Users } from 'lucide-react'
+import { Target, Shield, TrendingUp, Clock, Users } from 'lucide-react'
+import { BRAND_ICONS } from '@/components/brand/BrandSystem'
 
 // Replaced fake testimonials with honest value props
 const TestimonialMarquee = () => {
@@ -12,7 +13,7 @@ const TestimonialMarquee = () => {
       gradient: "from-blue-500/20 to-blue-700/10"
     },
     {
-      icon: Zap,
+      icon: BRAND_ICONS.speed,
       title: "AI-Powered Moves",
       description: "Every move is crafted by AI that understands your cohorts, barriers, and growth stage.",
       gradient: "from-amber-500/20 to-amber-700/10"
@@ -35,13 +36,13 @@ const TestimonialMarquee = () => {
     <section className="relative py-32 bg-black overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black" />
-      
+
       {/* Decorative lines */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        
+
         {/* Section header */}
         <div className="text-center mb-20">
           <motion.span
@@ -52,7 +53,7 @@ const TestimonialMarquee = () => {
           >
             Why Raptorflow
           </motion.span>
-          
+
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -63,7 +64,7 @@ const TestimonialMarquee = () => {
             Built for founders who
             <span className="italic font-normal text-amber-200"> demand clarity</span>
           </motion.h2>
-          
+
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -87,7 +88,7 @@ const TestimonialMarquee = () => {
               className="group relative"
             >
               <div className={`relative p-8 bg-gradient-to-b ${prop.gradient} border border-white/[0.05] hover:border-white/[0.1] transition-all duration-500 rounded-xl`}>
-                
+
                 {/* Icon */}
                 <div className="mb-6 w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <prop.icon className="w-6 h-6 text-amber-400" />

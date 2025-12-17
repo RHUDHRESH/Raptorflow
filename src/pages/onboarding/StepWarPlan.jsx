@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight, ArrowLeft, Map, Sparkles, Target, Zap, Shield, Users, Clock, ChevronRight, Check, TrendingUp, DollarSign, PieChart, BarChart3, Eye, Lightbulb } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Map, Sparkles, Target, Shield, Users, Clock, ChevronRight, Check, TrendingUp, DollarSign, PieChart, BarChart3, Eye, Lightbulb } from 'lucide-react'
 import useOnboardingStore from '../../store/onboardingStore'
+import { BRAND_ICONS } from '@/components/brand/BrandSystem'
+
+import { HairlineTable } from '@/components/system/HairlineTable'
 
 const protocols = {
   A: { name: 'Authority Blitz', icon: Sparkles, desc: 'Build thought leadership fast', color: 'text-purple-400 bg-purple-500/10' },
   B: { name: 'Trust Anchor', icon: Shield, desc: 'Validation and social proof', color: 'text-blue-400 bg-blue-500/10' },
   C: { name: 'Cost of Inaction', icon: Target, desc: 'Create urgency to act', color: 'text-red-400 bg-red-500/10' },
-  D: { name: 'Facilitator Nudge', icon: Zap, desc: 'Smooth onboarding & activation', color: 'text-green-400 bg-green-500/10' },
+  D: { name: 'Facilitator Nudge', icon: BRAND_ICONS.speed, desc: 'Smooth onboarding & activation', color: 'text-green-400 bg-green-500/10' },
   E: { name: 'Champions Armory', icon: Users, desc: 'Arm your internal advocates', color: 'text-amber-400 bg-amber-500/10' },
   F: { name: 'Churn Intercept', icon: Clock, desc: 'Retention & expansion plays', color: 'text-pink-400 bg-pink-500/10' },
 }
@@ -18,12 +21,12 @@ const generateMarketInsights = (company, icps) => {
   const isMidMarket = selectedICPs.some(i => i.id === 'frustrated-optimizer')
   const isEnterprise = selectedICPs.some(i => i.id === 'risk-mitigator')
   const isStartup = selectedICPs.some(i => i.id === 'desperate-scaler')
-  
+
   // Generate realistic TAM/SAM/SOM based on ICP mix
   let tam = 50000000
   let sam = 5000000
   let som = 250000
-  
+
   if (isEnterprise) {
     tam = 100000000
     sam = 15000000
@@ -37,7 +40,7 @@ const generateMarketInsights = (company, icps) => {
     sam = 5000000
     som = 200000
   }
-  
+
   return {
     tam,
     sam,
@@ -55,11 +58,11 @@ const generateFinancialProjections = (company, icps, strategy) => {
   const selectedICPs = icps.filter(i => i.selected)
   const budget = parseInt(company.budget || 5000) * 100 // Monthly spend
   const avgContractValue = selectedICPs.length > 0 ? 50000 : 30000
-  
+
   const months = []
   let cumulativeRevenue = 0
   let cumulativeLeads = 0
-  
+
   for (let i = 0; i < 12; i++) {
     // Ramp curve: slow start, accelerates
     const rampFactor = Math.pow(1.15, i) // 15% month-over-month growth
@@ -67,10 +70,10 @@ const generateFinancialProjections = (company, icps, strategy) => {
     const conversionRate = 0.15 + (i * 0.01) // Improves over time
     const closedDeals = Math.floor(monthlyLeads * conversionRate)
     const monthlyRevenue = closedDeals * avgContractValue
-    
+
     cumulativeLeads += monthlyLeads
     cumulativeRevenue += monthlyRevenue
-    
+
     months.push({
       month: `M${i + 1}`,
       leads: monthlyLeads,
@@ -81,7 +84,7 @@ const generateFinancialProjections = (company, icps, strategy) => {
       efficiency: i > 0 ? (monthlyRevenue / budget).toFixed(1) : 0,
     })
   }
-  
+
   return {
     months,
     totalProjectedRevenue: cumulativeRevenue,
@@ -94,7 +97,7 @@ const generateFinancialProjections = (company, icps, strategy) => {
 
 const generateWarPlan = (strategy, icps) => {
   const selectedICPs = icps.filter(i => i.selected)
-  
+
   return {
     phases: [
       {
@@ -153,7 +156,7 @@ const generateWarPlan = (strategy, icps) => {
 const StepWarPlan = () => {
   const navigate = useNavigate()
   const { company, strategy, icps, warPlan, setWarPlan, toggleProtocol, nextStep, prevStep } = useOnboardingStore()
-  
+
   const [isGenerating, setIsGenerating] = useState(true)
   const [activePhase, setActivePhase] = useState(1)
   const [activeTab, setActiveTab] = useState('overview')
@@ -167,10 +170,10 @@ const StepWarPlan = () => {
         const plan = generateWarPlan(strategy, icps)
         const insights = generateMarketInsights(company, icps)
         const projections = generateFinancialProjections(company, icps, strategy)
-        
+
         setMarketInsights(insights)
         setFinancials(projections)
-        
+
         setWarPlan({
           generated: true,
           phases: plan.phases,
@@ -407,7 +410,7 @@ const StepWarPlan = () => {
                 <div className="text-4xl font-light text-blue-300 mb-2">₹{(marketInsights.tam / 10000000).toFixed(1)}Cr</div>
                 <div className="text-xs text-blue-400/40">Entire market opportunity</div>
               </motion.div>
-              
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -418,7 +421,7 @@ const StepWarPlan = () => {
                 <div className="text-4xl font-light text-amber-300 mb-2">₹{(marketInsights.sam / 1000000).toFixed(1)}Cr</div>
                 <div className="text-xs text-amber-400/40">Reachable segment for you</div>
               </motion.div>
-              
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -574,33 +577,49 @@ const StepWarPlan = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="p-6 bg-zinc-900/50 border border-white/10 rounded-2xl"
+              className="p-6 bg-card border border-border rounded-2xl"
             >
-              <h3 className="text-sm uppercase tracking-[0.15em] text-white/40 mb-4">Monthly Breakdown</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="text-left py-3 px-4 text-white/40">Month</th>
-                      <th className="text-right py-3 px-4 text-white/40">Leads</th>
-                      <th className="text-right py-3 px-4 text-white/40">Closed Deals</th>
-                      <th className="text-right py-3 px-4 text-white/40">Monthly Revenue</th>
-                      <th className="text-right py-3 px-4 text-white/40">Cumulative</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {financials.months.map((month) => (
-                      <tr key={month.month} className="border-b border-white/5 hover:bg-white/5">
-                        <td className="py-3 px-4 text-white">{month.month}</td>
-                        <td className="text-right py-3 px-4 text-white/60">{month.leads}</td>
-                        <td className="text-right py-3 px-4 text-white/60">{month.deals}</td>
-                        <td className="text-right py-3 px-4 text-green-400">₹{(month.revenue / 100000).toFixed(1)}Lac</td>
-                        <td className="text-right py-3 px-4 text-amber-400 font-medium">₹{(month.cumulativeRevenue / 100000).toFixed(1)}Lac</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <h3 className="text-sm uppercase tracking-[0.15em] text-ink-400 mb-4">Monthly breakdown</h3>
+              <HairlineTable
+                columns={[
+                  {
+                    key: 'month',
+                    header: 'Month',
+                    render: (row) => <span className="text-ink">{row.month}</span>
+                  },
+                  {
+                    key: 'leads',
+                    header: 'Leads',
+                    align: 'right',
+                    render: (row) => <span className="text-ink">{row.leads}</span>
+                  },
+                  {
+                    key: 'deals',
+                    header: 'Closed deals',
+                    align: 'right',
+                    render: (row) => <span className="text-ink">{row.deals}</span>
+                  },
+                  {
+                    key: 'revenue',
+                    header: 'Monthly revenue',
+                    align: 'right',
+                    render: (row) => (
+                      <span className="font-mono text-ink">₹{(row.revenue / 100000).toFixed(1)}Lac</span>
+                    )
+                  },
+                  {
+                    key: 'cumulativeRevenue',
+                    header: 'Cumulative',
+                    align: 'right',
+                    render: (row) => (
+                      <span className="font-mono text-primary">₹{(row.cumulativeRevenue / 100000).toFixed(1)}Lac</span>
+                    )
+                  }
+                ]}
+                data={financials.months}
+                emptyTitle="No projection"
+                emptyDescription="Add inputs to see the monthly breakdown."
+              />
             </motion.div>
           </motion.div>
         )}

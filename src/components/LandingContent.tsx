@@ -194,8 +194,8 @@ export const USE_CASES_CONTENT = {
         'No learning curve',
         'Scales with you'
       ],
-      cta: 'Start Free',
-      link: '/register'
+      cta: 'Get started',
+      link: '/signup'
     },
     {
       title: 'Lean Marketing Teams',
@@ -206,8 +206,8 @@ export const USE_CASES_CONTENT = {
         'Async-friendly',
         'No tool sprawl'
       ],
-      cta: 'Start Free',
-      link: '/register'
+      cta: 'Get started',
+      link: '/signup'
     },
     {
       title: 'Agencies',
@@ -218,8 +218,8 @@ export const USE_CASES_CONTENT = {
         'Template library',
         'White-label ready'
       ],
-      cta: 'Start Free',
-      link: '/register'
+      cta: 'Get started',
+      link: '/signup'
     },
     {
       title: 'Product Teams',
@@ -230,8 +230,8 @@ export const USE_CASES_CONTENT = {
         'Feature adoption',
         'User feedback loops'
       ],
-      cta: 'Start Free',
-      link: '/register'
+      cta: 'Get started',
+      link: '/signup'
     }
   ]
 };
@@ -239,7 +239,7 @@ export const USE_CASES_CONTENT = {
 export const PRICING_CONTENT = {
   title: "Simple, Honest Pricing",
   subtitle: "Choose your altitude. Scale as you grow.",
-  footer: "Annual plans: 2 months free • Monthly billing • Cancel anytime"
+  footer: "Annual plans: save 2 months • Monthly billing • Cancel anytime"
 };
 
 export const FAQ_CONTENT = {

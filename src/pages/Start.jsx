@@ -14,6 +14,11 @@ export default function Start() {
         password: ''
     })
 
+    const handleBack = () => {
+        if (window.history.length > 1) navigate(-1)
+        else navigate('/')
+    }
+
     const handleGoogleSignup = async () => {
         if (loading) return // Prevent multiple clicks
         
@@ -55,6 +60,7 @@ export default function Start() {
                 email,
                 password,
                 options: {
+                    emailRedirectTo: `${window.location.origin}/auth/callback`,
                     data: {
                         full_name: name,
                     },
@@ -75,7 +81,7 @@ export default function Start() {
                      // For now, assuming we can navigate or show a message.
                      // But given the dev environment, let's assume we want to go to onboarding if session is established.
                      if (data.session) {
-                        navigate('/onboarding/intro')
+                        navigate('/onboarding/positioning')
                      } else {
                         alert('Please check your email to confirm your account.')
                      }
@@ -108,15 +114,30 @@ export default function Start() {
                 {/* Left Editorial Section - Hidden on mobile */}
                 <div className="hidden lg:flex flex-col justify-between p-12 lg:p-16 border-r border-line">
                     <div>
+                        <button
+                            type="button"
+                            onClick={handleBack}
+                            className="mb-10 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-charcoal/50 hover:text-charcoal transition-colors"
+                            aria-label="Go back"
+                        >
+                            <span aria-hidden="true">←</span>
+                            Back
+                        </button>
+
                         {/* Brand */}
-                        <div className="flex items-center gap-3 mb-20">
+                        <button
+                            type="button"
+                            onClick={() => navigate('/')}
+                            className="flex items-center gap-3 mb-20 text-left"
+                            aria-label="Go to home"
+                        >
                             <div className="w-9 h-9 rounded-full border border-charcoal/20 flex items-center justify-center">
                                 <span className="font-serif italic text-sm text-aubergine">Rf</span>
                             </div>
                             <div className="font-serif text-2xl font-semibold tracking-tight text-aubergine italic">
                                 Raptor<span className="not-italic text-charcoal">flow</span>
                             </div>
-                        </div>
+                        </button>
 
                         {/* Editorial Content */}
                         <div className="max-w-md">
@@ -146,14 +167,29 @@ export default function Start() {
                     <div className="w-full max-w-md">
 
                         {/* Mobile Brand - Shown only on mobile */}
-                        <div className="lg:hidden flex items-center gap-3 mb-8">
+                        <button
+                            type="button"
+                            onClick={() => navigate('/')}
+                            className="lg:hidden flex items-center gap-3 mb-8 text-left"
+                            aria-label="Go to home"
+                        >
                             <div className="w-9 h-9 rounded-full border border-charcoal/20 flex items-center justify-center">
                                 <span className="font-serif italic text-sm text-aubergine">Rf</span>
                             </div>
                             <div className="font-serif text-2xl font-semibold tracking-tight text-aubergine italic">
                                 Raptor<span className="not-italic text-charcoal">flow</span>
                             </div>
-                        </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleBack}
+                            className="mb-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-charcoal/50 hover:text-charcoal transition-colors"
+                            aria-label="Go back"
+                        >
+                            <span aria-hidden="true">←</span>
+                            Back
+                        </button>
 
                         <Card>
                             {/* Card Header */}

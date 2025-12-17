@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
+import {
   Radar as RadarIcon,
   Search,
   TrendingUp,
-  Zap,
   Clock,
   AlertTriangle,
   CheckCircle2,
@@ -32,6 +31,7 @@ import {
   Instagram,
   Linkedin
 } from 'lucide-react'
+import { BrandIcon } from '@/components/brand/BrandSystem'
 
 // Animated radar sweep
 const RadarSweep = ({ isScanning }) => (
@@ -198,7 +198,7 @@ const OpportunityCard = ({ opportunity, onGenerateContent, onExpand, isExpanded 
             onClick={() => onGenerateContent(opportunity)}
             className="flex-1 py-2 bg-amber-500/20 hover:bg-amber-500/30 rounded-lg text-sm text-amber-400 transition-colors flex items-center justify-center gap-2"
           >
-            <Zap className="w-4 h-4" />
+            <BrandIcon name="speed" className="w-4 h-4" />
             Generate Content
           </button>
         </div>
@@ -224,11 +224,10 @@ const OpportunityCard = ({ opportunity, onGenerateContent, onExpand, isExpanded 
                       <div key={i} className="p-3 bg-white/5 rounded-lg">
                         <div className="flex items-start justify-between mb-2">
                           <span className="text-white font-medium text-sm">{angle.angle}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded ${
-                            angle.estimated_engagement === 'viral_potential' ? 'bg-amber-500/20 text-amber-400' :
+                          <span className={`text-xs px-2 py-0.5 rounded ${angle.estimated_engagement === 'viral_potential' ? 'bg-amber-500/20 text-amber-400' :
                             angle.estimated_engagement === 'high' ? 'bg-emerald-500/20 text-emerald-400' :
-                            'bg-zinc-500/20 text-zinc-400'
-                          }`}>
+                              'bg-zinc-500/20 text-zinc-400'
+                            }`}>
                             {angle.estimated_engagement}
                           </span>
                         </div>
@@ -324,7 +323,7 @@ const Radar = () => {
 
   const handleScan = async () => {
     if (!selectedCohort) return
-    
+
     setIsScanning(true)
     setOpportunities([])
 
@@ -488,10 +487,10 @@ const Radar = () => {
           className="lg:col-span-1 bg-zinc-900/50 border border-white/10 rounded-xl p-6 flex flex-col items-center justify-center min-h-[400px]"
         >
           <RadarSweep isScanning={isScanning} />
-          
+
           <div className="text-center mt-6">
             <p className="text-white/60 text-sm">
-              {isScanning 
+              {isScanning
                 ? 'Scanning news, social media, and trends...'
                 : opportunities.length > 0
                   ? `${opportunities.length} opportunities found`

@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Rocket, Globe, DiamondsFour, Dna, Sparkle, Check, EnvelopeSimple } from '@phosphor-icons/react'
-import PremiumPageLayout, { GlassCard } from '../components/PremiumPageLayout'
+import { Check, Globe2, Mail, Rocket, Sparkles } from 'lucide-react'
+
+import { MarketingLayout } from '@/components/MarketingLayout'
+
 import careersRocketArt from '../assets/careers_perk_rocket.png'
 
 const perks = [
@@ -9,25 +11,25 @@ const perks = [
         icon: Rocket,
         title: 'Move Fast',
         description: 'Small team, big ambitions. Every person makes an outsized impact.',
-        color: 'from-orange-500/20 to-red-500/10'
+        tone: 'pill-editorial pill-neutral'
     },
     {
-        icon: Globe,
+        icon: Globe2,
         title: 'Remote-First',
         description: 'Work from anywhere. We care about output, not office hours.',
-        color: 'from-blue-500/20 to-cyan-500/10'
+        tone: 'pill-editorial pill-neutral'
     },
     {
-        icon: DiamondsFour,
+        icon: Sparkles,
         title: 'Cutting Edge',
         description: 'Work with the latest AI tech. Push boundaries daily.',
-        color: 'from-purple-500/20 to-pink-500/10'
+        tone: 'pill-editorial pill-neutral'
     },
     {
-        icon: Dna,
+        icon: Sparkles,
         title: 'Founder DNA',
         description: 'We think like founders. Equity, ownership, and skin in the game.',
-        color: 'from-amber-500/20 to-orange-500/10'
+        tone: 'pill-editorial pill-neutral'
     }
 ]
 
@@ -41,17 +43,17 @@ const PerkCard = ({ perk, index }) => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
         >
-            <GlassCard className="p-6 h-full group">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${perk.color} border border-white/10 flex items-center justify-center mb-5 group-hover:scale-110 group-hover:border-amber-500/30 transition-all duration-500`}>
-                    <Icon className="w-6 h-6 text-amber-400" weight="duotone" />
+            <div className="h-full rounded-card border border-border bg-card p-6 shadow-editorial-sm transition-editorial hover:shadow-editorial">
+                <div className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-card border border-border bg-muted text-muted-foreground">
+                        <Icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                        <div className="text-editorial-caption">{perk.title}</div>
+                        <p className="mt-2 text-body-sm text-muted-foreground leading-relaxed">{perk.description}</p>
+                    </div>
                 </div>
-                <h3 className="text-lg font-medium text-white mb-2 group-hover:text-amber-300 transition-colors">
-                    {perk.title}
-                </h3>
-                <p className="text-white/50 text-sm leading-relaxed group-hover:text-white/70 transition-colors">
-                    {perk.description}
-                </p>
-            </GlassCard>
+            </div>
         </motion.div>
     )
 }
@@ -72,159 +74,133 @@ const Careers = () => {
     }
 
     return (
-        <PremiumPageLayout>
-            <div className="pt-32 pb-24">
-
-                {/* Hero */}
-                <section className="max-w-4xl mx-auto px-6 md:px-12 mb-24 text-center relative">
-                    {/* Background artwork */}
-                    <div className="absolute top-0 right-0 w-64 h-64 opacity-20 pointer-events-none">
-                        <img src={careersRocketArt} alt="" className="w-full h-full object-contain" />
+        <MarketingLayout>
+            <div className="container-editorial py-16 md:py-24">
+                <header className="relative">
+                    <div className="pointer-events-none absolute -right-8 -top-8 hidden h-40 w-40 opacity-25 md:block">
+                        <img src={careersRocketArt} alt="" className="h-full w-full object-contain" />
                     </div>
 
                     <motion.div
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                        className="relative z-10"
+                        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                        className="max-w-3xl"
                     >
-                        <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.4em] text-amber-400 font-medium mb-8">
-                            <Sparkle weight="fill" className="w-4 h-4" />
-                            Careers
-                        </span>
-
-                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-light text-white leading-tight mb-8">
-                            Build the future of
+                        <div className="text-editorial-caption">Company</div>
+                        <h1 className="mt-3 font-serif text-headline-xl md:text-[4.25rem] leading-[1.06] text-foreground">
+                            Careers.
                             <br />
-                            <span className="italic bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 text-transparent bg-clip-text">
-                                founder marketing
-                            </span>
+                            <span className="italic text-primary">Built for builders.</span>
                         </h1>
-
-                        <p className="text-xl text-white/50 max-w-2xl mx-auto leading-relaxed">
-                            We're assembling a small, exceptional team to build something that matters.
-                            If you're passionate about AI, marketing, and helping founders win—we should talk.
+                        <p className="mt-6 text-body-lg text-muted-foreground leading-relaxed max-w-[70ch]">
+                            We’re assembling a small team to build a calmer marketing operating system for founders.
+                            If you care about craft, constraint, and compounding execution—stay close.
                         </p>
                     </motion.div>
+                </header>
+
+                <section className="mt-14">
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="h-px w-12 bg-border" />
+                        <div className="text-editorial-caption">How we work</div>
+                    </div>
+
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {perks.map((perk, index) => (
+                            <PerkCard key={perk.title} perk={perk} index={index} />
+                        ))}
+                    </div>
                 </section>
 
-                {/* Culture */}
-                <section className="max-w-5xl mx-auto px-6 md:px-12 mb-24">
-                    <motion.div
-                        initial={{ opacity: 0, y: 40 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        <div className="text-center mb-12">
-                            <span className="text-xs uppercase tracking-[0.3em] text-amber-400 font-medium mb-4 block">
-                                Culture
-                            </span>
-                            <h2 className="text-3xl md:text-4xl font-light text-white">
-                                Why join us?
-                            </h2>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-6">
-                            {perks.map((perk, index) => (
-                                <PerkCard key={perk.title} perk={perk} index={index} />
-                            ))}
-                        </div>
-                    </motion.div>
-                </section>
-
-                {/* Open Roles */}
-                <section className="max-w-3xl mx-auto px-6 md:px-12 mb-24">
-                    <motion.div
-                        initial={{ opacity: 0, y: 40 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8 }}
-                        className="text-center"
-                    >
-                        <GlassCard className="p-12 relative overflow-hidden">
-                            {/* Background glow */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-radial from-amber-500/10 to-transparent blur-3xl" />
-
-                            <div className="relative z-10">
-                                <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/20 flex items-center justify-center">
-                                    <Sparkle weight="fill" className="w-8 h-8 text-amber-400" />
-                                </div>
-
-                                <h2 className="text-2xl md:text-3xl font-light text-white mb-4">
-                                    No open roles right now
-                                </h2>
-
-                                <p className="text-white/50 mb-8 max-w-md mx-auto">
-                                    We're not actively hiring, but we're always looking for exceptional people.
-                                    Drop your email and we'll reach out when the right opportunity opens.
-                                </p>
-
-                                {/* Email Signup */}
-                                <form onSubmit={handleSubmit} className="max-w-md mx-auto mb-6">
-                                    <div className={`
-                                        flex items-center gap-2 p-1.5 rounded-xl border transition-all duration-300
-                                        ${status === 'success'
-                                            ? 'border-emerald-500/40 bg-emerald-500/5'
-                                            : 'border-white/10 bg-white/5 focus-within:border-amber-500/40 focus-within:bg-amber-500/5 focus-within:shadow-[0_0_30px_rgba(245,158,11,0.1)]'
-                                        }
-                                    `}>
-                                        <input
-                                            type="email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            placeholder="Enter your email"
-                                            className="flex-1 px-4 py-3 bg-transparent text-white placeholder:text-white/30 focus:outline-none text-sm"
-                                            disabled={status !== 'idle'}
-                                        />
-
-                                        <motion.button
-                                            type="submit"
-                                            disabled={status !== 'idle' || !email}
-                                            className="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-black font-medium rounded-lg text-sm flex items-center gap-2 disabled:opacity-50 transition-all"
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            <AnimatePresence mode="wait">
-                                                {status === 'loading' ? (
-                                                    <motion.div
-                                                        key="loading"
-                                                        className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"
-                                                    />
-                                                ) : status === 'success' ? (
-                                                    <Check className="w-4 h-4" weight="bold" />
-                                                ) : (
-                                                    <span>Notify me</span>
-                                                )}
-                                            </AnimatePresence>
-                                        </motion.button>
-                                    </div>
-
-                                    {status === 'success' && (
-                                        <motion.p
-                                            initial={{ opacity: 0, y: -10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="text-emerald-400 text-sm mt-3"
-                                        >
-                                            You're on the list! We'll be in touch.
-                                        </motion.p>
-                                    )}
-                                </form>
-
-                                {/* Direct contact */}
-                                <p className="text-white/30 text-sm flex items-center justify-center gap-2">
-                                    Or reach out directly at{' '}
-                                    <a href="mailto:careers@raptorflow.com" className="text-amber-400 hover:text-amber-300 transition-colors inline-flex items-center gap-1">
-                                        <EnvelopeSimple weight="duotone" className="w-4 h-4" />
-                                        careers@raptorflow.com
-                                    </a>
+                <section className="mt-14">
+                    <div className="rounded-card border border-border bg-card p-8">
+                        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                            <div>
+                                <div className="text-editorial-caption">Open roles</div>
+                                <div className="mt-2 font-serif text-headline-sm text-foreground">No open roles right now.</div>
+                                <p className="mt-2 text-body-sm text-muted-foreground leading-relaxed max-w-[65ch]">
+                                    We’re not actively hiring, but we’re always looking for exceptional people.
+                                    Leave your email and we’ll reach out when the right opportunity opens.
                                 </p>
                             </div>
-                        </GlassCard>
-                    </motion.div>
+
+                            <div className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-body-xs text-muted-foreground">
+                                <Mail className="h-4 w-4" />
+                                careers@raptorflow.com
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="mt-8 max-w-xl">
+                            <div className="flex items-stretch gap-2">
+                                <label className="sr-only" htmlFor="careers-email">
+                                    Email
+                                </label>
+                                <input
+                                    id="careers-email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="you@company.com"
+                                    className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                    disabled={status !== 'idle'}
+                                />
+
+                                <motion.button
+                                    type="submit"
+                                    disabled={status !== 'idle' || !email}
+                                    className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.99 }}
+                                >
+                                    <AnimatePresence mode="wait">
+                                        {status === 'loading' ? (
+                                            <motion.div
+                                                key="loading"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                className="text-sm"
+                                            >
+                                                Saving…
+                                            </motion.div>
+                                        ) : status === 'success' ? (
+                                            <motion.div
+                                                key="success"
+                                                initial={{ scale: 0.9, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                className="inline-flex items-center gap-2"
+                                            >
+                                                <Check className="h-4 w-4" />
+                                                Saved
+                                            </motion.div>
+                                        ) : (
+                                            <motion.div
+                                                key="default"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                className="inline-flex items-center gap-2"
+                                            >
+                                                <Sparkles className="h-4 w-4" />
+                                                Notify me
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.button>
+                            </div>
+
+                            {status === 'success' && (
+                                <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="mt-3 text-body-xs text-muted-foreground">
+                                    You’re on the list.
+                                </motion.p>
+                            )}
+                        </form>
+                    </div>
                 </section>
             </div>
-        </PremiumPageLayout>
+        </MarketingLayout>
     )
 }
 

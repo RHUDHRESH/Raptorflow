@@ -6,9 +6,11 @@ import { Mail, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react'
 
 const Login = () => {
   const navigate = useNavigate()
-  const { signInWithGoogle, signInWithEmail, isAuthenticated, isPaid, loading, profile } = useAuth()
+  const { signInWithGoogle, signInWithEmail, signInWithPassword, isAuthenticated, isPaid, loading, profile } = useAuth()
   
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [usePassword, setUsePassword] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -68,33 +70,49 @@ const Login = () => {
     setError('')
     setIsSubmitting(true)
 
-    const { error, message } = await signInWithEmail(email)
-    
-    if (error) {
-      setError(error.message || 'Failed to send login link')
-    } else {
-      setEmailSent(true)
+    try {
+      if (usePassword) {
+        const { error } = await signInWithPassword(email, password)
+        if (error) {
+          setError(error.message || 'Failed to sign in')
+          setIsSubmitting(false)
+          return
+        }
+        setIsSubmitting(false)
+        return
+      }
+
+      const { error } = await signInWithEmail(email)
+
+      if (error) {
+        setError(error.message || 'Failed to send login link')
+      } else {
+        setEmailSent(true)
+      }
+
+      setIsSubmitting(false)
+    } catch (err) {
+      setError(err.message || 'Failed to sign in')
+      setIsSubmitting(false)
     }
-    
-    setIsSubmitting(false)
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-ink-700 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-white/40 text-sm">Loading...</p>
+          <div className="w-8 h-8 border-2 border-signal-raw border-t-transparent rounded-full animate-spin" />
+          <p className="text-paper-400 text-sm">Loading...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="min-h-screen bg-ink-700 flex flex-col">
       {/* Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-amber-900/20 via-transparent to-transparent" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-white/10 via-transparent to-transparent" />
       </div>
 
       {/* Header */}
@@ -103,7 +121,7 @@ const Login = () => {
           onClick={() => navigate('/')}
           className="text-white text-xl tracking-tight font-light"
         >
-          Raptor<span className="italic font-normal text-amber-200">flow</span>
+          Raptor<span className="italic font-normal text-white/80">flow</span>
         </button>
       </header>
 
@@ -115,7 +133,7 @@ const Login = () => {
           className="w-full max-w-md"
         >
           {/* Card */}
-          <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-8 backdrop-blur-xl">
+          <div className="bg-ink-600/50 border border-paper-400/20 rounded-2xl p-8 backdrop-blur-xl">
             
             {!emailSent ? (
               <>
@@ -134,10 +152,11 @@ const Login = () => {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-3"
+                    id="login-error"
+                    className="mb-6 p-4 bg-white/5 border border-white/10 rounded-lg flex items-center gap-3"
                   >
-                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-                    <p className="text-red-400 text-sm">{error}</p>
+                    <AlertCircle className="w-5 h-5 text-white/70 flex-shrink-0" />
+                    <p className="text-white/70 text-sm">{error}</p>
                   </motion.div>
                 )}
 
@@ -181,31 +200,64 @@ const Login = () => {
 
                 {/* Email Sign In */}
                 <form onSubmit={handleEmailSignIn}>
+                  <label htmlFor="login-email" className="sr-only">Email address</label>
                   <div className="relative mb-4">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                     <input
+                      id="login-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter your email"
-                      className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:border-amber-500/50 focus:outline-none transition-colors"
+                      aria-invalid={Boolean(error) || undefined}
+                      aria-describedby={error ? 'login-error' : undefined}
+                      className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:border-white/30 focus:outline-none transition-colors"
                       required
                     />
                   </div>
+
+                  {usePassword && (
+                    <div className="relative mb-4">
+                      <input
+                        id="login-password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        aria-invalid={Boolean(error) || undefined}
+                        aria-describedby={error ? 'login-error' : undefined}
+                        className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:border-white/30 focus:outline-none transition-colors"
+                        required
+                      />
+                    </div>
+                  )}
                   
                   <button
                     type="submit"
-                    disabled={isSubmitting || !email}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-amber-500 hover:bg-amber-400 text-black font-medium rounded-xl transition-colors disabled:opacity-50"
+                    disabled={isSubmitting || !email || (usePassword && !password)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-white hover:bg-white/90 text-black font-medium rounded-xl transition-colors disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                     ) : (
                       <>
-                        Continue with Email
+                        {usePassword ? 'Sign in' : 'Continue with Email'}
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUsePassword((v) => !v)
+                      setError('')
+                      setEmailSent(false)
+                      setPassword('')
+                    }}
+                    className="mt-3 w-full text-center text-xs text-white/40 hover:text-white/60 transition-colors"
+                  >
+                    {usePassword ? 'Use magic link instead' : 'Use password instead'}
                   </button>
                 </form>
 
@@ -224,8 +276,8 @@ const Login = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-8"
               >
-                <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle className="w-8 h-8 text-emerald-400" />
+                <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="w-8 h-8 text-white/80" />
                 </div>
                 <h2 className="text-xl font-light text-white mb-2">Check your email</h2>
                 <p className="text-white/40 text-sm mb-6">
@@ -233,7 +285,7 @@ const Login = () => {
                 </p>
                 <button
                   onClick={() => setEmailSent(false)}
-                  className="text-amber-400 hover:text-amber-300 text-sm"
+                  className="text-white/70 hover:text-white text-sm"
                 >
                   Use a different email
                 </button>
@@ -246,9 +298,9 @@ const Login = () => {
             Don't have an account?{' '}
             <button 
               onClick={() => navigate('/start')}
-              className="text-amber-400 hover:text-amber-300"
+              className="text-white/70 hover:text-white"
             >
-              Start free
+              Get started
             </button>
           </p>
         </motion.div>

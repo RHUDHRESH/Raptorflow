@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { 
-  Target, 
-  Zap, 
-  Users, 
+import {
+  Target,
+  Users,
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
@@ -20,6 +19,7 @@ import {
   Layers,
   ArrowUpRight
 } from 'lucide-react'
+import { BrandIcon } from '@/components/brand/BrandSystem'
 import { useAuth } from '../../contexts/AuthContext'
 
 // Protocol badges
@@ -40,9 +40,9 @@ const RAGBadge = ({ status, size = 'sm' }) => {
     red: { bg: 'bg-red-500/20', text: 'text-red-400', label: 'Critical' },
     unknown: { bg: 'bg-white/10', text: 'text-white/40', label: 'Unknown' }
   }
-  
+
   const { bg, text, label } = config[status] || config.unknown
-  
+
   return (
     <span className={`px-2 py-0.5 rounded ${size === 'lg' ? 'text-sm' : 'text-xs'} ${bg} ${text}`}>
       {label}
@@ -55,14 +55,14 @@ const StrategySnapshot = ({ campaigns, moves, icps }) => {
   const activeCampaigns = campaigns.filter(c => c.status === 'active').length
   const activeMoves = moves.filter(m => m.status === 'running').length
   const selectedICPs = icps.filter(i => i.is_selected).length
-  
+
   // Goal distribution
   const goalDist = {
     velocity: campaigns.filter(c => c.goal === 'velocity').length,
     efficiency: campaigns.filter(c => c.goal === 'efficiency').length,
     penetration: campaigns.filter(c => c.goal === 'penetration').length
   }
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -70,7 +70,7 @@ const StrategySnapshot = ({ campaigns, moves, icps }) => {
       className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6"
     >
       <h3 className="text-lg font-medium text-white mb-4">Strategy Snapshot</h3>
-      
+
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="text-center">
           <div className="text-3xl font-medium text-white">{activeCampaigns}</div>
@@ -85,7 +85,7 @@ const StrategySnapshot = ({ campaigns, moves, icps }) => {
           <div className="text-sm text-white/40">Target ICPs</div>
         </div>
       </div>
-      
+
       {/* Goal distribution */}
       <div>
         <div className="text-sm text-white/60 mb-2">Goal Distribution</div>
@@ -120,7 +120,7 @@ const CampaignBoardItem = ({ campaign, onClick }) => {
     paused: 'border-amber-500/30',
     completed: 'border-purple-500/30'
   }
-  
+
   return (
     <motion.div
       whileHover={{ y: -2 }}
@@ -146,15 +146,14 @@ const CampaignBoardItem = ({ campaign, onClick }) => {
 const KillSwitchPanel = ({ guardrails }) => {
   const triggeredCount = guardrails.filter(g => g.is_triggered).length
   const activeCount = guardrails.filter(g => g.is_active).length
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className={`bg-white/5 backdrop-blur-sm border rounded-xl p-6 ${
-        triggeredCount > 0 ? 'border-red-500/30' : 'border-white/10'
-      }`}
+      className={`bg-white/5 backdrop-blur-sm border rounded-xl p-6 ${triggeredCount > 0 ? 'border-red-500/30' : 'border-white/10'
+        }`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -167,7 +166,7 @@ const KillSwitchPanel = ({ guardrails }) => {
           </span>
         )}
       </div>
-      
+
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="bg-white/5 rounded-lg p-3">
           <div className="text-2xl font-medium text-white">{activeCount}</div>
@@ -180,7 +179,7 @@ const KillSwitchPanel = ({ guardrails }) => {
           <div className="text-xs text-white/40">Triggered</div>
         </div>
       </div>
-      
+
       {/* Recent triggers */}
       {triggeredCount > 0 && (
         <div className="space-y-2">
@@ -192,7 +191,7 @@ const KillSwitchPanel = ({ guardrails }) => {
           ))}
         </div>
       )}
-      
+
       {triggeredCount === 0 && (
         <div className="flex items-center gap-2 text-emerald-400 text-sm">
           <CheckCircle2 className="w-4 h-4" />
@@ -207,7 +206,7 @@ const KillSwitchPanel = ({ guardrails }) => {
 const TaskQueue = ({ tasks }) => {
   const pendingTasks = tasks.filter(t => t.status === 'pending')
   const inProgressTasks = tasks.filter(t => t.status === 'in_progress')
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -221,16 +220,15 @@ const TaskQueue = ({ tasks }) => {
           {pendingTasks.length + inProgressTasks.length} pending
         </span>
       </div>
-      
+
       <div className="space-y-2 max-h-64 overflow-y-auto">
         {inProgressTasks.concat(pendingTasks).slice(0, 6).map((task, i) => (
-          <div 
+          <div
             key={task.id || i}
             className="flex items-center gap-3 p-3 bg-white/5 rounded-lg"
           >
-            <div className={`w-2 h-2 rounded-full ${
-              task.status === 'in_progress' ? 'bg-blue-400' : 'bg-white/30'
-            }`} />
+            <div className={`w-2 h-2 rounded-full ${task.status === 'in_progress' ? 'bg-blue-400' : 'bg-white/30'
+              }`} />
             <div className="flex-1">
               <div className="text-sm text-white">{task.task}</div>
               <div className="text-xs text-white/40">{task.move_name || 'Move task'}</div>
@@ -243,7 +241,7 @@ const TaskQueue = ({ tasks }) => {
             )}
           </div>
         ))}
-        
+
         {pendingTasks.length + inProgressTasks.length === 0 && (
           <div className="text-center py-8 text-white/40 text-sm">
             No pending tasks
@@ -257,12 +255,12 @@ const TaskQueue = ({ tasks }) => {
 // Quick stats row
 const QuickStats = ({ metrics }) => {
   const statCards = [
-    { label: 'Pipeline', value: metrics.pipeline_value, format: 'currency', trend: 'up' },
+    { label: 'Sales Pipeline', value: metrics.pipeline_value, format: 'currency', trend: 'up' },
     { label: 'Win Rate', value: metrics.win_rate, format: 'percent', trend: 'flat' },
     { label: 'CAC', value: metrics.cac, format: 'currency', trend: 'down' },
     { label: 'NRR', value: metrics.nrr, format: 'percent', trend: 'up' }
   ]
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -279,10 +277,9 @@ const QuickStats = ({ metrics }) => {
               {stat.value?.toLocaleString() || '—'}
               {stat.format === 'percent' && '%'}
             </div>
-            <div className={`flex items-center gap-1 text-xs ${
-              stat.trend === 'up' ? 'text-emerald-400' : 
+            <div className={`flex items-center gap-1 text-xs ${stat.trend === 'up' ? 'text-emerald-400' :
               stat.trend === 'down' ? 'text-red-400' : 'text-white/40'
-            }`}>
+              }`}>
               {stat.trend === 'up' && <TrendingUp className="w-3 h-3" />}
               {stat.trend === 'down' && <TrendingUp className="w-3 h-3 rotate-180" />}
               {stat.trend === 'flat' && '—'}
@@ -375,7 +372,7 @@ const WarRoom = () => {
           <div className="col-span-2 space-y-6">
             {/* Strategy Snapshot */}
             <StrategySnapshot campaigns={campaigns} moves={moves} icps={icps} />
-            
+
             {/* Campaign Board */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -385,7 +382,7 @@ const WarRoom = () => {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-white">Campaign Board</h3>
-                <button 
+                <button
                   onClick={() => navigate('/app/campaigns')}
                   className="flex items-center gap-1 text-sm text-white/40 hover:text-white transition-colors"
                 >
@@ -393,7 +390,7 @@ const WarRoom = () => {
                   <ArrowUpRight className="w-4 h-4" />
                 </button>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 {Object.entries(campaignColumns).slice(0, 2).map(([status, statusCampaigns]) => (
                   <div key={status}>
@@ -422,7 +419,7 @@ const WarRoom = () => {
           <div className="space-y-6">
             {/* Kill Switch Panel */}
             <KillSwitchPanel guardrails={guardrails} />
-            
+
             {/* Task Queue */}
             <TaskQueue tasks={tasks} />
           </div>
@@ -436,16 +433,16 @@ const WarRoom = () => {
         transition={{ delay: 0.2 }}
         className="mt-6 grid grid-cols-4 gap-4"
       >
-        <button 
+        <button
           onClick={() => navigate('/app/spikes/new')}
           className="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 transition-all group"
         >
-          <Zap className="w-5 h-5 text-amber-400 mb-2" />
+          <BrandIcon name="speed" className="w-5 h-5 text-amber-400 mb-2" />
           <div className="text-sm font-medium text-white">Launch Spike</div>
           <div className="text-xs text-white/40">30-day GTM sprint</div>
         </button>
-        
-        <button 
+
+        <button
           onClick={() => navigate('/app/campaigns')}
           className="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 transition-all group"
         >
@@ -453,8 +450,8 @@ const WarRoom = () => {
           <div className="text-sm font-medium text-white">New Campaign</div>
           <div className="text-xs text-white/40">Strategic initiative</div>
         </button>
-        
-        <button 
+
+        <button
           onClick={() => navigate('/app/matrix')}
           className="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 transition-all group"
         >
@@ -462,8 +459,8 @@ const WarRoom = () => {
           <div className="text-sm font-medium text-white">View Metrics</div>
           <div className="text-xs text-white/40">RAG dashboard</div>
         </button>
-        
-        <button 
+
+        <button
           onClick={() => navigate('/app/muse')}
           className="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 transition-all group"
         >

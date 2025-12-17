@@ -37,6 +37,9 @@ import {
   Tags
 } from 'lucide-react'
 
+import { Modal } from '@/components/system/Modal'
+import { EmptyState } from '@/components/EmptyState'
+
 // 6D Cohort Dimensions
 const COHORT_DIMENSIONS = {
   firmographics: {
@@ -222,7 +225,7 @@ const PositioningGraph = ({ cohorts }) => {
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: cohortColors[index % cohortColors.length] }}
             />
-            <span className="text-white/60 truncate max-w-[120px]">{cohort.label}</span>
+            <span className="text-ink-400 truncate max-w-[120px]">{cohort.label}</span>
           </div>
         ))}
       </div>
@@ -235,26 +238,8 @@ const DimensionSection = ({ dimension, data, color }) => {
   const [expanded, setExpanded] = useState(false)
   const Icon = COHORT_DIMENSIONS[dimension]?.icon || Target
 
-  const colorClasses = {
-    amber: 'border-amber-500/30 bg-amber-500/5',
-    blue: 'border-blue-500/30 bg-blue-500/5',
-    purple: 'border-purple-500/30 bg-purple-500/5',
-    emerald: 'border-emerald-500/30 bg-emerald-500/5',
-    pink: 'border-pink-500/30 bg-pink-500/5',
-    cyan: 'border-cyan-500/30 bg-cyan-500/5'
-  }
-
-  const iconColorClasses = {
-    amber: 'text-amber-400 bg-amber-500/20',
-    blue: 'text-blue-400 bg-blue-500/20',
-    purple: 'text-purple-400 bg-purple-500/20',
-    emerald: 'text-emerald-400 bg-emerald-500/20',
-    pink: 'text-pink-400 bg-pink-500/20',
-    cyan: 'text-cyan-400 bg-cyan-500/20'
-  }
-
   const renderContent = () => {
-    if (!data) return <p className="text-white/30 text-sm">No data available</p>
+    if (!data) return <p className="text-ink-400 text-sm">No data available</p>
 
     switch (dimension) {
       case 'firmographics':
@@ -262,22 +247,22 @@ const DimensionSection = ({ dimension, data, color }) => {
           <div className="grid grid-cols-2 gap-4">
             {data.employee_range && (
               <div>
-                <span className="text-xs text-white/40">Company Size</span>
-                <p className="text-white">{data.employee_range}</p>
+                <span className="text-xs text-ink-400">Company size</span>
+                <p className="text-ink">{data.employee_range}</p>
               </div>
             )}
             {data.revenue_range && (
               <div>
-                <span className="text-xs text-white/40">Revenue</span>
-                <p className="text-white">{data.revenue_range}</p>
+                <span className="text-xs text-ink-400">Revenue</span>
+                <p className="text-ink">{data.revenue_range}</p>
               </div>
             )}
             {data.industries?.length > 0 && (
               <div className="col-span-2">
-                <span className="text-xs text-white/40">Industries</span>
+                <span className="text-xs text-ink-400">Industries</span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {data.industries.map((ind, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-white/5 rounded text-xs text-white/60">
+                    <span key={i} className="px-2 py-0.5 bg-muted rounded text-xs text-ink-400">
                       {ind}
                     </span>
                   ))}
@@ -286,10 +271,10 @@ const DimensionSection = ({ dimension, data, color }) => {
             )}
             {data.stages?.length > 0 && (
               <div className="col-span-2">
-                <span className="text-xs text-white/40">Stages</span>
+                <span className="text-xs text-ink-400">Stages</span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {data.stages.map((stage, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-amber-500/10 rounded text-xs text-amber-300">
+                    <span key={i} className="px-2 py-0.5 bg-signal-muted rounded text-xs text-primary">
                       {stage}
                     </span>
                   ))}
@@ -304,12 +289,12 @@ const DimensionSection = ({ dimension, data, color }) => {
           <div className="space-y-4">
             {data.must_have?.length > 0 && (
               <div>
-                <span className="text-xs text-emerald-400/60 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Must Have
+                <span className="text-xs text-ink-400 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-primary" strokeWidth={1.5} /> Must have
                 </span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {data.must_have.map((tech, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-emerald-500/10 rounded text-xs text-emerald-300">
+                    <span key={i} className="px-2 py-0.5 bg-muted rounded text-xs text-ink">
                       {tech}
                     </span>
                   ))}
@@ -318,10 +303,10 @@ const DimensionSection = ({ dimension, data, color }) => {
             )}
             {data.nice_to_have?.length > 0 && (
               <div>
-                <span className="text-xs text-blue-400/60">Nice to Have</span>
+                <span className="text-xs text-ink-400">Nice to have</span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {data.nice_to_have.map((tech, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-blue-500/10 rounded text-xs text-blue-300">
+                    <span key={i} className="px-2 py-0.5 bg-muted rounded text-xs text-ink-400">
                       {tech}
                     </span>
                   ))}
@@ -330,12 +315,12 @@ const DimensionSection = ({ dimension, data, color }) => {
             )}
             {data.red_flags?.length > 0 && (
               <div>
-                <span className="text-xs text-red-400/60 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> Red Flags
+                <span className="text-xs text-ink-400 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3 text-primary" strokeWidth={1.5} /> Red flags
                 </span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {data.red_flags.map((flag, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-red-500/10 rounded text-xs text-red-300">
+                    <span key={i} className="px-2 py-0.5 bg-signal-muted rounded text-xs text-primary">
                       {flag}
                     </span>
                   ))}
@@ -350,11 +335,11 @@ const DimensionSection = ({ dimension, data, color }) => {
           <div className="space-y-4">
             {data.pain_points?.length > 0 && (
               <div>
-                <span className="text-xs text-white/40">Pain Points</span>
+                <span className="text-xs text-ink-400">Pain points</span>
                 <ul className="mt-2 space-y-1">
                   {data.pain_points.map((pain, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-white/60">
-                      <span className="text-red-400 mt-1">•</span> {pain}
+                    <li key={i} className="flex items-start gap-2 text-sm text-ink-400">
+                      <span className="text-primary mt-1">•</span> {pain}
                     </li>
                   ))}
                 </ul>
@@ -362,11 +347,11 @@ const DimensionSection = ({ dimension, data, color }) => {
             )}
             {data.motivations?.length > 0 && (
               <div>
-                <span className="text-xs text-white/40">Motivations</span>
+                <span className="text-xs text-ink-400">Motivations</span>
                 <ul className="mt-2 space-y-1">
                   {data.motivations.map((mot, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-white/60">
-                      <span className="text-emerald-400 mt-1">•</span> {mot}
+                    <li key={i} className="flex items-start gap-2 text-sm text-ink-400">
+                      <span className="text-primary mt-1">•</span> {mot}
                     </li>
                   ))}
                 </ul>
@@ -377,21 +362,21 @@ const DimensionSection = ({ dimension, data, color }) => {
 
       case 'behavioral':
         if (!Array.isArray(data) || data.length === 0) {
-          return <p className="text-white/30 text-sm">No behavioral triggers defined</p>
+          return <p className="text-ink-400 text-sm">No behavioral triggers defined</p>
         }
         return (
           <div className="space-y-3">
             {data.map((trigger, i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-lg border border-border">
                 <div className="flex-1">
-                  <p className="text-sm text-white">{trigger.signal}</p>
-                  <p className="text-xs text-white/40">{trigger.source}</p>
+                  <p className="text-sm text-ink">{trigger.signal}</p>
+                  <p className="text-xs text-ink-400">{trigger.source}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-emerald-400">+{trigger.urgency_boost}%</span>
-                  <div className="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                  <span className="text-xs text-primary">+{trigger.urgency_boost}%</span>
+                  <div className="w-16 h-2 bg-background rounded-full overflow-hidden border border-border">
                     <div 
-                      className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full"
+                      className="h-full bg-primary rounded-full"
                       style={{ width: `${Math.min(100, trigger.urgency_boost)}%` }}
                     />
                   </div>
@@ -403,19 +388,19 @@ const DimensionSection = ({ dimension, data, color }) => {
 
       case 'buying_committee':
         if (!Array.isArray(data) || data.length === 0) {
-          return <p className="text-white/30 text-sm">No buying committee defined</p>
+          return <p className="text-ink-400 text-sm">No buying committee defined</p>
         }
         return (
           <div className="space-y-4">
             {data.map((person, i) => (
-              <div key={i} className="p-4 bg-white/5 rounded-lg border border-white/5">
+              <div key={i} className="p-4 bg-muted rounded-lg border border-border">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white/60" />
+                  <div className="w-8 h-8 bg-background rounded-full flex items-center justify-center border border-border">
+                    <User className="w-4 h-4 text-ink-400" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white">{person.role}</p>
-                    <p className="text-xs text-white/40">{person.typical_title}</p>
+                    <p className="text-sm font-medium text-ink">{person.role}</p>
+                    <p className="text-xs text-ink-400">{person.typical_title}</p>
                   </div>
                 </div>
               </div>
@@ -428,22 +413,22 @@ const DimensionSection = ({ dimension, data, color }) => {
           <div className="space-y-4">
             {data.market_position && (
               <div>
-                <span className="text-xs text-white/40">Market Position</span>
-                <p className="text-white capitalize">{data.market_position}</p>
+                <span className="text-xs text-ink-400">Market position</span>
+                <p className="text-ink capitalize">{data.market_position}</p>
               </div>
             )}
             {data.current_solution && (
               <div>
-                <span className="text-xs text-white/40">Current Solution</span>
-                <p className="text-white text-sm">{data.current_solution}</p>
+                <span className="text-xs text-ink-400">Current solution</span>
+                <p className="text-ink text-sm">{data.current_solution}</p>
               </div>
             )}
             {data.switching_triggers?.length > 0 && (
               <div>
-                <span className="text-xs text-white/40">Switching Triggers</span>
+                <span className="text-xs text-ink-400">Switching triggers</span>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {data.switching_triggers.map((trig, i) => (
-                    <span key={i} className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-300">
+                    <span key={i} className="px-3 py-1.5 bg-signal-muted border border-primary/20 rounded-lg text-xs text-primary">
                       {trig}
                     </span>
                   ))}
@@ -462,22 +447,22 @@ const DimensionSection = ({ dimension, data, color }) => {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`border rounded-xl overflow-hidden ${colorClasses[color] || colorClasses.amber}`}
+      className="border border-border rounded-xl overflow-hidden bg-card"
     >
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+        className="w-full p-4 flex items-center justify-between hover:bg-muted transition-editorial"
       >
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconColorClasses[color]}`}>
-            <Icon className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-muted border border-border">
+            <Icon className="w-5 h-5 text-ink-400" strokeWidth={1.5} />
           </div>
           <div className="text-left">
-            <h4 className="text-white font-medium">{COHORT_DIMENSIONS[dimension]?.label}</h4>
-            <p className="text-xs text-white/40">{COHORT_DIMENSIONS[dimension]?.description}</p>
+            <h4 className="text-ink font-medium">{COHORT_DIMENSIONS[dimension]?.label}</h4>
+            <p className="text-xs text-ink-400">{COHORT_DIMENSIONS[dimension]?.description}</p>
           </div>
         </div>
-        <ChevronDown className={`w-5 h-5 text-white/40 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-5 h-5 text-ink-400 transition-transform ${expanded ? 'rotate-180' : ''}`} strokeWidth={1.5} />
       </button>
 
       <AnimatePresence>
@@ -487,7 +472,7 @@ const DimensionSection = ({ dimension, data, color }) => {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="border-t border-white/5"
+            className="border-t border-border"
           >
             <div className="p-4">
               {renderContent()}
@@ -501,74 +486,68 @@ const DimensionSection = ({ dimension, data, color }) => {
 
 // Full Cohort Card
 const FullCohortCard = ({ cohort, index, isExpanded, onToggle }) => {
-  const colors = ['amber', 'blue', 'purple', 'emerald', 'pink']
-  const baseColor = colors[index % colors.length]
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className={`
-        bg-zinc-900/50 border rounded-2xl overflow-hidden transition-all
-        ${cohort.selected ? 'border-amber-500/30' : 'border-white/5'}
-      `}
+      className="bg-card border border-border rounded-2xl overflow-hidden transition-editorial"
     >
       {/* Header */}
       <div 
-        className="p-6 cursor-pointer hover:bg-white/5 transition-colors"
+        className="p-6 cursor-pointer hover:bg-muted transition-editorial"
         onClick={onToggle}
       >
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-4">
-            <div className={`w-14 h-14 rounded-xl bg-${baseColor}-500/20 flex items-center justify-center`}>
-              <span className="text-2xl font-light text-white">{cohort.fit_score}</span>
+            <div className="w-14 h-14 rounded-xl bg-signal-muted border border-primary/20 flex items-center justify-center">
+              <span className="text-2xl font-light text-primary">{cohort.fit_score}</span>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-medium text-white">{cohort.label}</h3>
+                <h3 className="text-xl font-medium text-ink">{cohort.label}</h3>
                 {cohort.selected && (
-                  <span className="px-2 py-0.5 bg-emerald-500/20 rounded text-xs text-emerald-400">
+                  <span className="px-2 py-0.5 bg-signal-muted rounded text-xs text-primary border border-primary/20">
                     Active
                   </span>
                 )}
               </div>
-              <p className="text-sm text-white/40 mt-1">{cohort.summary}</p>
+              <p className="text-sm text-ink-400 mt-1">{cohort.summary}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <Radio className="w-4 h-4 text-white/40" />
+            <button className="p-2 hover:bg-muted rounded-lg transition-editorial">
+              <Radio className="w-4 h-4 text-ink-400" strokeWidth={1.5} />
             </button>
-            <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <Tags className="w-4 h-4 text-white/40" />
+            <button className="p-2 hover:bg-muted rounded-lg transition-editorial">
+              <Tags className="w-4 h-4 text-ink-400" strokeWidth={1.5} />
             </button>
-            <ChevronDown className={`w-5 h-5 text-white/40 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-5 h-5 text-ink-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} strokeWidth={1.5} />
           </div>
         </div>
 
         {/* Quick stats */}
         <div className="flex items-center gap-6 text-sm">
           <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-amber-400/60" />
-            <span className="text-white/60">Fit: {cohort.fit_score}%</span>
+            <Target className="w-4 h-4 text-ink-400" strokeWidth={1.5} />
+            <span className="text-ink-400">Fit: {cohort.fit_score}%</span>
           </div>
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-emerald-400/60" />
-            <span className="text-white/60">
+            <Activity className="w-4 h-4 text-ink-400" strokeWidth={1.5} />
+            <span className="text-ink-400">
               {cohort.behavioral_triggers?.length || 0} triggers
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-blue-400/60" />
-            <span className="text-white/60">
+            <Users className="w-4 h-4 text-ink-400" strokeWidth={1.5} />
+            <span className="text-ink-400">
               {cohort.buying_committee?.length || 0} personas
             </span>
           </div>
           {cohort.tags?.length > 0 && (
             <div className="flex items-center gap-2">
-              <Tags className="w-4 h-4 text-purple-400/60" />
-              <span className="text-white/60">
+              <Tags className="w-4 h-4 text-ink-400" strokeWidth={1.5} />
+              <span className="text-ink-400">
                 {cohort.tags.length} tags
               </span>
             </div>
@@ -577,9 +556,9 @@ const FullCohortCard = ({ cohort, index, isExpanded, onToggle }) => {
 
         {/* Messaging angle */}
         {cohort.messaging_angle && (
-          <div className="mt-4 p-3 bg-white/5 rounded-lg">
-            <span className="text-xs text-white/40">Messaging Angle</span>
-            <p className="text-white mt-1 italic">"{cohort.messaging_angle}"</p>
+          <div className="mt-4 p-3 bg-muted rounded-lg border border-border">
+            <span className="text-xs text-ink-400">Messaging angle</span>
+            <p className="text-ink mt-1 italic">"{cohort.messaging_angle}"</p>
           </div>
         )}
       </div>
@@ -592,32 +571,32 @@ const FullCohortCard = ({ cohort, index, isExpanded, onToggle }) => {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="border-t border-white/5"
+            className="border-t border-border"
           >
             <div className="p-6 space-y-4">
               {/* Fit reasoning */}
               {cohort.fit_reasoning && (
-                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                  <span className="text-xs text-emerald-400 font-medium">Fit Reasoning</span>
-                  <p className="text-white/80 mt-1">{cohort.fit_reasoning}</p>
+                <div className="p-4 bg-signal-muted border border-primary/20 rounded-xl">
+                  <span className="text-xs text-primary font-medium">Fit reasoning</span>
+                  <p className="text-ink mt-1">{cohort.fit_reasoning}</p>
                 </div>
               )}
 
               {/* Tags */}
               {cohort.tags?.length > 0 && (
-                <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
-                  <span className="text-xs text-purple-400 font-medium flex items-center gap-2">
-                    <Tags className="w-4 h-4" />
-                    Tags of Interest ({cohort.tags.length})
+                <div className="p-4 bg-card border border-border rounded-xl">
+                  <span className="text-xs text-ink font-medium flex items-center gap-2">
+                    <Tags className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                    Tags of interest ({cohort.tags.length})
                   </span>
                   <div className="flex flex-wrap gap-2 mt-3">
                     {cohort.tags.slice(0, 20).map((tag, i) => (
-                      <span key={i} className="px-2 py-1 bg-purple-500/20 rounded-lg text-xs text-purple-300">
+                      <span key={i} className="px-2 py-1 bg-muted rounded-lg text-xs text-ink">
                         {tag}
                       </span>
                     ))}
                     {cohort.tags.length > 20 && (
-                      <span className="px-2 py-1 bg-white/5 rounded-lg text-xs text-white/40">
+                      <span className="px-2 py-1 bg-muted rounded-lg text-xs text-ink-400">
                         +{cohort.tags.length - 20} more
                       </span>
                     )}
@@ -660,18 +639,18 @@ const FullCohortCard = ({ cohort, index, isExpanded, onToggle }) => {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-3 pt-4 border-t border-white/5">
-                <button className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-sm text-white/60 transition-colors flex items-center justify-center gap-2">
-                  <Download className="w-4 h-4" />
-                  Export Profile
+              <div className="flex items-center gap-3 pt-4 border-t border-border">
+                <button className="flex-1 py-3 bg-card border border-border hover:border-border-dark rounded-xl text-sm text-ink-400 transition-editorial flex items-center justify-center gap-2">
+                  <Download className="w-4 h-4" strokeWidth={1.5} />
+                  Export profile
                 </button>
-                <button className="flex-1 py-3 bg-purple-500/20 hover:bg-purple-500/30 rounded-xl text-sm text-purple-400 transition-colors flex items-center justify-center gap-2">
-                  <Radio className="w-4 h-4" />
+                <button className="flex-1 py-3 bg-muted border border-border hover:border-border-dark rounded-xl text-sm text-ink transition-editorial flex items-center justify-center gap-2">
+                  <Radio className="w-4 h-4 text-primary" strokeWidth={1.5} />
                   Open in Radar
                 </button>
-                <button className="flex-1 py-3 bg-amber-500/20 hover:bg-amber-500/30 rounded-xl text-sm text-amber-400 transition-colors flex items-center justify-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Create Campaign
+                <button className="flex-1 py-3 bg-primary text-primary-foreground hover:opacity-95 rounded-xl text-sm transition-editorial flex items-center justify-center gap-2">
+                  <Sparkles className="w-4 h-4" strokeWidth={1.5} />
+                  Create campaign
                 </button>
               </div>
             </div>
@@ -692,115 +671,112 @@ const CreateCohortModal = ({ isOpen, onClose, onSubmit, isLoading }) => {
     revenue_range: ''
   })
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-6">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-zinc-900 border border-white/10 rounded-2xl max-w-lg w-full p-6"
-      >
-        <h2 className="text-xl font-medium text-white mb-4">Create New Cohort</h2>
-        <p className="text-white/40 text-sm mb-6">
-          Define your ideal customer profile. AI will generate the full 6D profile and 50 tags of interest.
-        </p>
+    <Modal
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
+      title="Create cohort"
+      description="Define your ideal customer profile. We'll generate the full 6D profile and tags."
+      contentClassName="max-w-lg"
+    >
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm text-muted-foreground mb-2">Cohort name *</label>
+          <input
+            type="text"
+            value={formData.label}
+            onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+            placeholder="e.g., Growth-stage SaaS founders"
+            className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
 
-        <div className="space-y-4">
+        <div>
+          <label className="block text-sm text-muted-foreground mb-2">Description *</label>
+          <textarea
+            value={formData.summary}
+            onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+            placeholder="Describe this cohort in detail. The more specific, the better the tags."
+            rows={4}
+            className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-white/60 mb-2">Cohort Name *</label>
-            <input
-              type="text"
-              value={formData.label}
-              onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-              placeholder="e.g., Growth-Stage SaaS Founders"
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:border-amber-500/50 focus:outline-none"
-            />
+            <label className="block text-sm text-muted-foreground mb-2">Company size</label>
+            <select
+              value={formData.employee_range}
+              onChange={(e) => setFormData({ ...formData, employee_range: e.target.value })}
+              className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="">Select size</option>
+              <option value="1-10">1-10 employees</option>
+              <option value="11-50">11-50 employees</option>
+              <option value="51-200">51-200 employees</option>
+              <option value="201-1000">201-1000 employees</option>
+              <option value="1000+">1000+ employees</option>
+            </select>
           </div>
-
           <div>
-            <label className="block text-sm text-white/60 mb-2">Description *</label>
-            <textarea
-              value={formData.summary}
-              onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-              placeholder="Describe this cohort in detail. The more specific, the better the AI can generate tags and insights."
-              rows={4}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:border-amber-500/50 focus:outline-none resize-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-white/60 mb-2">Company Size</label>
-              <select
-                value={formData.employee_range}
-                onChange={(e) => setFormData({ ...formData, employee_range: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-amber-500/50 focus:outline-none"
-              >
-                <option value="">Select size</option>
-                <option value="1-10">1-10 employees</option>
-                <option value="11-50">11-50 employees</option>
-                <option value="51-200">51-200 employees</option>
-                <option value="201-1000">201-1000 employees</option>
-                <option value="1000+">1000+ employees</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm text-white/60 mb-2">Revenue Range</label>
-              <select
-                value={formData.revenue_range}
-                onChange={(e) => setFormData({ ...formData, revenue_range: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-amber-500/50 focus:outline-none"
-              >
-                <option value="">Select range</option>
-                <option value="Pre-revenue">Pre-revenue</option>
-                <option value="$0-$1M">$0-$1M</option>
-                <option value="$1M-$5M">$1M-$5M</option>
-                <option value="$5M-$20M">$5M-$20M</option>
-                <option value="$20M+">$20M+</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm text-white/60 mb-2">Industries (comma separated)</label>
-            <input
-              type="text"
-              value={formData.industries}
-              onChange={(e) => setFormData({ ...formData, industries: e.target.value })}
-              placeholder="e.g., SaaS, Fintech, E-commerce"
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:border-amber-500/50 focus:outline-none"
-            />
+            <label className="block text-sm text-muted-foreground mb-2">Revenue range</label>
+            <select
+              value={formData.revenue_range}
+              onChange={(e) => setFormData({ ...formData, revenue_range: e.target.value })}
+              className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="">Select range</option>
+              <option value="Pre-revenue">Pre-revenue</option>
+              <option value="$0-$1M">$0-$1M</option>
+              <option value="$1M-$5M">$1M-$5M</option>
+              <option value="$5M-$20M">$5M-$20M</option>
+              <option value="$20M+">$20M+</option>
+            </select>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mt-6">
+        <div>
+          <label className="block text-sm text-muted-foreground mb-2">Industries (comma separated)</label>
+          <input
+            type="text"
+            value={formData.industries}
+            onChange={(e) => setFormData({ ...formData, industries: e.target.value })}
+            placeholder="e.g., SaaS, Fintech, E-commerce"
+            className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
+
+        <div className="pt-2 flex items-center justify-end gap-3">
           <button
+            type="button"
             onClick={onClose}
-            className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white/60 transition-colors"
+            className="px-4 py-2 rounded-md border border-border bg-transparent text-foreground hover:bg-muted transition-editorial"
           >
             Cancel
           </button>
           <button
+            type="button"
             onClick={() => onSubmit(formData)}
             disabled={isLoading || !formData.label || !formData.summary}
-            className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 rounded-xl text-black font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:opacity-95 transition-editorial disabled:opacity-50 inline-flex items-center gap-2"
           >
             {isLoading ? (
               <>
                 <RefreshCw className="w-4 h-4 animate-spin" />
-                Creating...
+                Creating…
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                Create Cohort
+                Create cohort
               </>
             )}
           </button>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </Modal>
   )
 }
 
@@ -863,25 +839,23 @@ const Cohorts = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-3xl font-light text-white">Cohorts</h1>
-          <p className="text-white/40 mt-1">
-            6-Dimensional Ideal Customer Profiles
-          </p>
+          <h1 className="font-serif text-headline-md text-ink">Cohorts</h1>
+          <p className="text-body-sm text-ink-400 mt-1">6-dimensional ideal customer profiles</p>
         </motion.div>
 
         <div className="flex items-center gap-3">
           {/* Plan info */}
-          <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg">
-            <span className="text-xs text-white/40">
+          <div className="px-4 py-2 bg-card border border-border rounded-lg">
+            <span className="text-xs text-ink-400">
               {cohorts.length} / {cohortLimit} cohorts
             </span>
           </div>
 
-          <div className="flex items-center bg-white/5 rounded-lg p-1">
+          <div className="flex items-center bg-muted border border-border rounded-lg p-1">
             <button
               onClick={() => setView('cards')}
               className={`px-4 py-2 rounded text-sm transition-colors ${
-                view === 'cards' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/60'
+                view === 'cards' ? 'bg-background text-foreground' : 'text-ink-400 hover:text-ink'
               }`}
             >
               Cards
@@ -889,7 +863,7 @@ const Cohorts = () => {
             <button
               onClick={() => setView('graph')}
               className={`px-4 py-2 rounded text-sm transition-colors ${
-                view === 'graph' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/60'
+                view === 'graph' ? 'bg-background text-foreground' : 'text-ink-400 hover:text-ink'
               }`}
             >
               Graph
@@ -903,19 +877,19 @@ const Cohorts = () => {
             disabled={!canCreateMore}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-colors ${
               canCreateMore 
-                ? 'bg-amber-500 hover:bg-amber-400 text-black' 
-                : 'bg-white/5 text-white/30 cursor-not-allowed'
+                ? 'bg-primary text-primary-foreground hover:opacity-95 transition-editorial' 
+                : 'bg-muted text-ink-300 cursor-not-allowed'
             }`}
           >
             {canCreateMore ? (
               <>
-                <Plus className="w-4 h-4" />
-                Create Cohort
+                <Plus className="w-4 h-4" strokeWidth={1.5} />
+                Create cohort
               </>
             ) : (
               <>
-                <Lock className="w-4 h-4" />
-                Limit Reached
+                <Lock className="w-4 h-4" strokeWidth={1.5} />
+                Limit reached
               </>
             )}
           </motion.button>
@@ -927,16 +901,16 @@ const Cohorts = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3"
+          className="mb-6 p-4 bg-signal-muted border border-primary/20 rounded-xl flex items-center gap-3"
         >
-          <Lock className="w-5 h-5 text-amber-400" />
+          <Lock className="w-5 h-5 text-primary" strokeWidth={1.5} />
           <div className="flex-1">
-            <p className="text-amber-400 font-medium">Cohort limit reached</p>
-            <p className="text-amber-400/60 text-sm">
+            <p className="text-ink font-medium">Cohort limit reached</p>
+            <p className="text-ink-400 text-sm">
               Your {planName} plan allows up to {cohortLimit} cohorts. Upgrade to create more.
             </p>
           </div>
-          <button className="px-4 py-2 bg-amber-500 text-black rounded-lg text-sm font-medium">
+          <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-95 transition-editorial">
             Upgrade Plan
           </button>
         </motion.div>
@@ -950,21 +924,21 @@ const Cohorts = () => {
         className="flex items-center gap-4 mb-6"
       >
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-400" strokeWidth={1.5} />
           <input
             type="text"
             placeholder="Search cohorts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-zinc-900/50 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:border-amber-500/50 focus:outline-none transition-colors"
+            className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-editorial"
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white/60 hover:border-white/20 transition-colors">
-          <Filter className="w-4 h-4" />
+        <button className="flex items-center gap-2 px-4 py-3 bg-card border border-border rounded-xl text-ink-400 hover:text-ink hover:border-border-dark transition-editorial">
+          <Filter className="w-4 h-4" strokeWidth={1.5} />
           Filter
         </button>
-        <button className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white/60 hover:border-white/20 transition-colors">
-          <Download className="w-4 h-4" />
+        <button className="flex items-center gap-2 px-4 py-3 bg-card border border-border rounded-xl text-ink-400 hover:text-ink hover:border-border-dark transition-editorial">
+          <Download className="w-4 h-4" strokeWidth={1.5} />
           Export All
         </button>
       </motion.div>
@@ -983,13 +957,13 @@ const Cohorts = () => {
             { label: 'Avg Fit Score', value: filteredCohorts.length > 0 ? `${Math.round(filteredCohorts.reduce((s, i) => s + i.fit_score, 0) / filteredCohorts.length)}%` : '-', icon: Target },
             { label: 'Active Triggers', value: filteredCohorts.reduce((s, i) => s + (i.behavioral_triggers?.length || 0), 0), icon: Activity },
           ].map((stat, i) => (
-            <div key={i} className="bg-zinc-900/30 border border-white/5 rounded-xl p-4">
+            <div key={i} className="bg-card border border-border rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-light text-white">{stat.value}</p>
-                  <p className="text-xs text-white/40 mt-1">{stat.label}</p>
+                  <p className="text-2xl font-light text-ink">{stat.value}</p>
+                  <p className="text-xs text-ink-400 mt-1">{stat.label}</p>
                 </div>
-                <stat.icon className="w-8 h-8 text-white/10" />
+                <stat.icon className="w-8 h-8 text-ink-300" strokeWidth={1.5} />
               </div>
             </div>
           ))}
@@ -1003,7 +977,7 @@ const Cohorts = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h3 className="text-sm text-white/40 mb-4">Cohort Positioning Map</h3>
+          <h3 className="text-sm text-ink-400 mb-4">Cohort positioning map</h3>
           <PositioningGraph cohorts={filteredCohorts} />
         </motion.div>
       )}
@@ -1025,23 +999,15 @@ const Cohorts = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center py-20 bg-zinc-900/30 border border-white/5 rounded-2xl"
+          className="py-10"
         >
-          <Users className="w-16 h-16 text-white/10 mx-auto mb-4" />
-          <h3 className="text-xl text-white mb-2">No cohorts yet</h3>
-          <p className="text-white/40 mb-6 max-w-md mx-auto">
-            Create your first cohort to define your ideal customer profile. 
-            AI will generate 50 tags of interest for Radar matching.
-          </p>
-          {canCreateMore && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-medium rounded-xl transition-colors inline-flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Create Your First Cohort
-            </button>
-          )}
+          <EmptyState
+            icon={Users}
+            title="No cohorts yet"
+            description="Create your first cohort to define your ideal customer profile."
+            action={canCreateMore ? 'Create your first cohort' : undefined}
+            onAction={canCreateMore ? () => setShowCreateModal(true) : undefined}
+          />
         </motion.div>
       )}
 

@@ -12,8 +12,8 @@ const plans = [
     id: 'ascent',
     name: 'Ascent',
     tagline: 'Start building your strategy',
-    price: 5000,
-    priceDisplay: '₹5,000',
+    price: 4999,
+    priceDisplay: '₹4,999',
     period: '30 days',
     description: 'Perfect for solo founders ready to bring clarity to their chaos.',
     cohortLimit: 3,
@@ -33,8 +33,8 @@ const plans = [
     id: 'glide',
     name: 'Glide',
     tagline: 'For founders who mean business',
-    price: 7000,
-    priceDisplay: '₹7,000',
+    price: 6999,
+    priceDisplay: '₹6,999',
     period: '30 days',
     description: 'Advanced tools and ongoing support for serious operators.',
     cohortLimit: 5,
@@ -55,8 +55,8 @@ const plans = [
     id: 'soar',
     name: 'Soar',
     tagline: 'The complete strategic arsenal',
-    price: 10000,
-    priceDisplay: '₹10,000',
+    price: 11999,
+    priceDisplay: '₹11,999',
     period: '30 days',
     description: 'For teams and founders who demand excellence at every turn.',
     cohortLimit: 10,
@@ -92,6 +92,7 @@ const StepPlan = () => {
   const [error, setError] = useState('')
   const [planLocked, setPlanLocked] = useState(false)
   const [daysRemaining, setDaysRemaining] = useState(0)
+  const [autopayOptIn, setAutopayOptIn] = useState(true)
 
   const selectedICPCount = icps?.filter(i => i.selected)?.length || 0
 
@@ -133,10 +134,15 @@ const StepPlan = () => {
     setPaymentStatus('processing')
 
     try {
+      const planInfo = PLAN_PRICES[planId]
+      const autopayRequested = !!autopayOptIn && !!planInfo?.autopayEligible
+
       const result = await initiatePayment({
         userId: user?.id,
         plan: planId,
         userEmail: user?.email,
+        autopayRequested,
+        billingCycle: 'monthly',
       })
 
       if (result.success) {
@@ -247,6 +253,23 @@ const StepPlan = () => {
                   ${isSelected ? 'ring-2 ring-amber-500' : ''}
                   ${isCurrentPlan ? 'ring-2 ring-emerald-500' : ''}
                 `}>
+                  {plan.id === 'ascent' && !planLocked && (
+                    <div className="mb-6 rounded-xl border border-white/10 bg-white/5 p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-sm text-white/80">Enable autopay (₹5,000 RBI limit)</p>
+                          <p className="text-xs text-white/40 mt-1">Recommended for seamless renewals. You can revoke anytime.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setAutopayOptIn(v => !v)}
+                          className={`h-6 w-11 rounded-full border transition-all ${autopayOptIn ? 'bg-amber-500/70 border-amber-400/50' : 'bg-white/10 border-white/20'}`}
+                        >
+                          <span className={`block h-5 w-5 rounded-full bg-white transition-transform ${autopayOptIn ? 'translate-x-5' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   {/* Badge */}
                   {plan.badge && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-black text-[10px] uppercase tracking-wider font-medium rounded-full">

@@ -16,6 +16,15 @@ const router = Router();
 const tagGeneratorAgent = new CohortTagGeneratorAgent();
 const cohortBuilderAgent = new CohortBuilderAgent();
 
+const hydrateCohort = (row: any) => {
+  const meta = row?.rules && typeof row.rules === 'object' && !Array.isArray(row.rules) ? row.rules : {};
+  return {
+    ...row,
+    ...meta,
+    user_id: row?.created_by,
+  };
+};
+
 // Tier limits
 const TIER_LIMITS = {
   'ascent': 3,
@@ -51,18 +60,25 @@ const verifyToken = async (req: Request, res: Response, next: Function) => {
 router.get('/', verifyToken, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const userEmail = (req as any).user.email;
+
+    const { data: organizationId, error: orgError } = await db.getOrCreateCurrentOrgId(userId, userEmail);
+    if (orgError || !organizationId) {
+      return res.status(500).json({ error: 'Failed to resolve organization' });
+    }
     
     const { data, error } = await supabase
       .from('cohorts')
       .select('*')
-      .eq('user_id', userId)
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
 
     res.json({ 
       success: true, 
-      data: data || [],
+      data: (data || []).map(hydrateCohort),
       count: data?.length || 0
     });
   } catch (err: any) {
@@ -78,19 +94,26 @@ router.get('/', verifyToken, async (req: Request, res: Response) => {
 router.get('/:id', verifyToken, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const userEmail = (req as any).user.email;
     const { id } = req.params;
+
+    const { data: organizationId, error: orgError } = await db.getOrCreateCurrentOrgId(userId, userEmail);
+    if (orgError || !organizationId) {
+      return res.status(500).json({ error: 'Failed to resolve organization' });
+    }
 
     const { data, error } = await supabase
       .from('cohorts')
       .select('*')
       .eq('id', id)
-      .eq('user_id', userId)
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null)
       .single();
 
     if (error) throw error;
     if (!data) return res.status(404).json({ error: 'Cohort not found' });
 
-    res.json({ success: true, data });
+    res.json({ success: true, data: hydrateCohort(data) });
   } catch (err: any) {
     console.error('Get cohort error:', err);
     res.status(500).json({ error: err.message });
@@ -104,6 +127,7 @@ router.get('/:id', verifyToken, async (req: Request, res: Response) => {
 router.post('/', verifyToken, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const userEmail = (req as any).user.email;
     const { 
       name, 
       description,
@@ -116,24 +140,27 @@ router.post('/', verifyToken, async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'name and description are required' });
     }
 
-    // Check tier limits
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('plan')
-      .eq('id', userId)
-      .single();
+    const { data: organizationId, error: orgError } = await db.getOrCreateCurrentOrgId(userId, userEmail);
+    if (orgError || !organizationId) {
+      return res.status(500).json({ error: 'Failed to resolve organization' });
+    }
 
-    const userPlan = profile?.plan || 'free';
-    const limit = TIER_LIMITS[userPlan as keyof typeof TIER_LIMITS] || 1;
+    const { data: limits, error: limitsError } = await db.getOrgPlanCohortLimit(organizationId);
+    if (limitsError) {
+      return res.status(500).json({ error: 'Failed to resolve plan limits' });
+    }
+
+    const limit = (limits as any)?.cohortLimit || 1;
 
     const { count } = await supabase
       .from('cohorts')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null);
 
     if ((count || 0) >= limit) {
       return res.status(403).json({ 
-        error: `Cohort limit reached. Your ${userPlan} plan allows ${limit} cohorts.`,
+        error: `Cohort limit reached. Your plan allows ${limit} cohorts.`,
         limit,
         current: count,
         upgrade_needed: true
@@ -161,16 +188,18 @@ router.post('/', verifyToken, async (req: Request, res: Response) => {
     const { data, error } = await supabase
       .from('cohorts')
       .insert({
-        user_id: userId,
+        organization_id: organizationId,
+        created_by: userId,
         name,
         description,
-        firmographics: firmographics || {},
-        psychographics: psychographics || {},
-        interest_tags,
-        tags_count: interest_tags.length,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        rules: {
+          firmographics: firmographics || {},
+          psychographics: psychographics || {},
+          interest_tags,
+          tags_count: interest_tags.length,
+          status: 'active'
+        },
+        is_active: true,
       })
       .select()
       .single();
@@ -179,7 +208,7 @@ router.post('/', verifyToken, async (req: Request, res: Response) => {
 
     res.status(201).json({ 
       success: true, 
-      data,
+      data: hydrateCohort(data),
       tags_generated: interest_tags.length
     });
   } catch (err: any) {
@@ -195,25 +224,66 @@ router.post('/', verifyToken, async (req: Request, res: Response) => {
 router.put('/:id', verifyToken, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const userEmail = (req as any).user.email;
     const { id } = req.params;
     const updates = req.body;
 
-    // Don't allow updating user_id
+    const { data: organizationId, error: orgError } = await db.getOrCreateCurrentOrgId(userId, userEmail);
+    if (orgError || !organizationId) {
+      return res.status(500).json({ error: 'Failed to resolve organization' });
+    }
+
+    // Don't allow updating ownership
     delete updates.user_id;
-    updates.updated_at = new Date().toISOString();
+    delete updates.created_by;
+    delete updates.organization_id;
+
+    const { data: existing, error: fetchError } = await supabase
+      .from('cohorts')
+      .select('*')
+      .eq('id', id)
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const meta = existing?.rules && typeof existing.rules === 'object' && !Array.isArray(existing.rules)
+      ? { ...existing.rules }
+      : {};
+
+    const nextMeta = {
+      ...meta,
+      ...(updates.firmographics ? { firmographics: updates.firmographics } : {}),
+      ...(updates.psychographics ? { psychographics: updates.psychographics } : {}),
+      ...(updates.behavioral_triggers ? { behavioral_triggers: updates.behavioral_triggers } : {}),
+      ...(updates.buying_committee ? { buying_committee: updates.buying_committee } : {}),
+      ...(updates.category_context ? { category_context: updates.category_context } : {}),
+      ...(updates.fit_score ? { fit_score: updates.fit_score } : {}),
+      ...(updates.messaging_angle ? { messaging_angle: updates.messaging_angle } : {}),
+      ...(updates.qualification_questions ? { qualification_questions: updates.qualification_questions } : {}),
+      ...(updates.interest_tags ? { interest_tags: updates.interest_tags, tags_count: updates.interest_tags.length } : {}),
+    };
+
+    const updatePayload: any = {
+      ...(typeof updates.name === 'string' ? { name: updates.name } : {}),
+      ...(typeof updates.description === 'string' ? { description: updates.description } : {}),
+      rules: nextMeta,
+    };
 
     const { data, error } = await supabase
       .from('cohorts')
-      .update(updates)
+      .update(updatePayload)
       .eq('id', id)
-      .eq('user_id', userId)
+      .eq('organization_id', organizationId)
+      .eq('created_by', userId)
       .select()
       .single();
 
     if (error) throw error;
     if (!data) return res.status(404).json({ error: 'Cohort not found' });
 
-    res.json({ success: true, data });
+    res.json({ success: true, data: hydrateCohort(data) });
   } catch (err: any) {
     console.error('Update cohort error:', err);
     res.status(500).json({ error: err.message });
@@ -227,13 +297,20 @@ router.put('/:id', verifyToken, async (req: Request, res: Response) => {
 router.delete('/:id', verifyToken, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const userEmail = (req as any).user.email;
     const { id } = req.params;
+
+    const { data: organizationId, error: orgError } = await db.getOrCreateCurrentOrgId(userId, userEmail);
+    if (orgError || !organizationId) {
+      return res.status(500).json({ error: 'Failed to resolve organization' });
+    }
 
     const { error } = await supabase
       .from('cohorts')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('user_id', userId);
+      .eq('organization_id', organizationId)
+      .eq('created_by', userId);
 
     if (error) throw error;
 
@@ -251,35 +328,48 @@ router.delete('/:id', verifyToken, async (req: Request, res: Response) => {
 router.post('/:id/regenerate-tags', verifyToken, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const userEmail = (req as any).user.email;
     const { id } = req.params;
+
+    const { data: organizationId, error: orgError } = await db.getOrCreateCurrentOrgId(userId, userEmail);
+    if (orgError || !organizationId) {
+      return res.status(500).json({ error: 'Failed to resolve organization' });
+    }
 
     // Get cohort
     const { data: cohort, error: fetchError } = await supabase
       .from('cohorts')
       .select('*')
       .eq('id', id)
-      .eq('user_id', userId)
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null)
       .single();
 
     if (fetchError) throw fetchError;
     if (!cohort) return res.status(404).json({ error: 'Cohort not found' });
 
+    const meta = cohort?.rules && typeof cohort.rules === 'object' && !Array.isArray(cohort.rules)
+      ? cohort.rules
+      : {};
+
     // Regenerate tags
     const tagResult = await tagGeneratorAgent.generateTags({
       cohort_name: cohort.name,
       cohort_description: cohort.description,
-      firmographics: cohort.firmographics,
-      psychographics: cohort.psychographics,
-      existing_tags: cohort.interest_tags?.map((t: any) => t.tag)
+      firmographics: meta.firmographics,
+      psychographics: meta.psychographics,
+      existing_tags: meta.interest_tags?.map((t: any) => t.tag)
     });
 
     // Update cohort with new tags
     const { data, error } = await supabase
       .from('cohorts')
       .update({
-        interest_tags: tagResult.tags,
-        tags_count: tagResult.tags.length,
-        updated_at: new Date().toISOString()
+        rules: {
+          ...meta,
+          interest_tags: tagResult.tags,
+          tags_count: tagResult.tags.length,
+        }
       })
       .eq('id', id)
       .select()
@@ -289,7 +379,7 @@ router.post('/:id/regenerate-tags', verifyToken, async (req: Request, res: Respo
 
     res.json({ 
       success: true, 
-      data,
+      data: hydrateCohort(data),
       tags_generated: tagResult.tags.length,
       meta: tagResult.meta
     });
@@ -306,30 +396,34 @@ router.post('/:id/regenerate-tags', verifyToken, async (req: Request, res: Respo
 router.post('/generate-from-description', verifyToken, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const userEmail = (req as any).user.email;
     const { description } = req.body;
 
     if (!description) {
       return res.status(400).json({ error: 'description is required' });
     }
 
-    // Check tier limits first
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('plan')
-      .eq('id', userId)
-      .single();
+    const { data: organizationId, error: orgError } = await db.getOrCreateCurrentOrgId(userId, userEmail);
+    if (orgError || !organizationId) {
+      return res.status(500).json({ error: 'Failed to resolve organization' });
+    }
 
-    const userPlan = profile?.plan || 'free';
-    const limit = TIER_LIMITS[userPlan as keyof typeof TIER_LIMITS] || 1;
+    const { data: limits, error: limitsError } = await db.getOrgPlanCohortLimit(organizationId);
+    if (limitsError) {
+      return res.status(500).json({ error: 'Failed to resolve plan limits' });
+    }
+
+    const limit = (limits as any)?.cohortLimit || 1;
 
     const { count } = await supabase
       .from('cohorts')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null);
 
     if ((count || 0) >= limit) {
       return res.status(403).json({ 
-        error: `Cohort limit reached. Your ${userPlan} plan allows ${limit} cohorts.`,
+        error: `Cohort limit reached. Your plan allows ${limit} cohorts.`,
         limit,
         current: count,
         upgrade_needed: true
@@ -343,30 +437,32 @@ router.post('/generate-from-description', verifyToken, async (req: Request, res:
     const tagResult = await tagGeneratorAgent.generateTags({
       cohort_name: cohortData.name,
       cohort_description: cohortData.description,
-      firmographics: cohortData.firmographics,
-      psychographics: cohortData.psychographics
+      firmographics: cohortData.firmographics as any,
+      psychographics: cohortData.psychographics as any
     });
 
     // Create cohort
     const { data, error } = await supabase
       .from('cohorts')
       .insert({
-        user_id: userId,
+        organization_id: organizationId,
+        created_by: userId,
         name: cohortData.name,
         description: cohortData.description,
-        firmographics: cohortData.firmographics,
-        psychographics: cohortData.psychographics,
-        behavioral_triggers: cohortData.behavioral_triggers,
-        buying_committee: cohortData.buying_committee,
-        category_context: cohortData.category_context,
-        interest_tags: tagResult.tags,
-        tags_count: tagResult.tags.length,
-        fit_score: cohortData.fit_score,
-        messaging_angle: cohortData.messaging_angle,
-        qualification_questions: cohortData.qualification_questions,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        rules: {
+          firmographics: cohortData.firmographics,
+          psychographics: cohortData.psychographics,
+          behavioral_triggers: cohortData.behavioral_triggers,
+          buying_committee: cohortData.buying_committee,
+          category_context: cohortData.category_context,
+          interest_tags: tagResult.tags,
+          tags_count: tagResult.tags.length,
+          fit_score: cohortData.fit_score,
+          messaging_angle: cohortData.messaging_angle,
+          qualification_questions: cohortData.qualification_questions,
+          status: 'active'
+        },
+        is_active: true,
       })
       .select()
       .single();
@@ -375,7 +471,7 @@ router.post('/generate-from-description', verifyToken, async (req: Request, res:
 
     res.status(201).json({ 
       success: true, 
-      data,
+      data: hydrateCohort(data),
       tags_generated: tagResult.tags.length,
       ai_generated: true
     });
@@ -393,22 +489,27 @@ router.get('/limits/check', verifyToken, async (req: Request, res: Response) => 
   try {
     const userId = (req as any).user.id;
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('plan')
-      .eq('id', userId)
-      .single();
+    const { data: organizationId, error: orgError } = await db.getOrCreateCurrentOrgId(userId);
+    if (orgError || !organizationId) {
+      return res.status(500).json({ error: 'Failed to resolve organization' });
+    }
 
-    const userPlan = profile?.plan || 'free';
-    const limit = TIER_LIMITS[userPlan as keyof typeof TIER_LIMITS] || 1;
+    const { data: limits, error: limitsError } = await db.getOrgPlanCohortLimit(organizationId);
+    if (limitsError) {
+      return res.status(500).json({ error: 'Failed to resolve plan limits' });
+    }
+
+    const limit = (limits as any)?.cohortLimit || 1;
+    const plan = (limits as any)?.planCode || 'free';
 
     const { count } = await supabase
       .from('cohorts')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null);
 
     res.json({
-      plan: userPlan,
+      plan,
       limit,
       used: count || 0,
       remaining: limit - (count || 0),

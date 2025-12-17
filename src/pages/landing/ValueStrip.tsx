@@ -1,6 +1,7 @@
 import React, { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { Target, Compass, Map, Zap, BarChart3, Rocket } from 'lucide-react'
+import { Target, Compass, Map, BarChart3, Rocket } from 'lucide-react'
+import { BRAND_ICONS } from '@/components/brand/BrandSystem'
 
 // Curriculum item
 const CurriculumItem = ({ number, icon: Icon, title, description, delay }) => (
@@ -55,7 +56,7 @@ const ValueStrip = () => {
       description: "Transform strategy into a visual execution plan. Every move mapped, every milestone clear, every week accounted for."
     },
     {
-      icon: Zap,
+      icon: BRAND_ICONS.speed,
       title: "Select Your Winning Moves",
       description: "Cut 37 random tactics down to 3-5 focused plays. The moves you can actually execute with your current resources."
     },
@@ -132,7 +133,7 @@ const ValueStrip = () => {
                   </div>
                 ))}
               </div>
-              <span className="text-caption text-muted-foreground">500+ founders using Raptorflow</span>
+              <span className="text-caption text-muted-foreground">Founders who ship, not spin 🚀</span>
             </motion.div>
           </div>
 

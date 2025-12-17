@@ -1,13 +1,42 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="32" height="32" rx="8" fill="black"/>
-  <path d="M9 8H17C20.866 8 24 11.134 24 15C24 18.866 20.866 22 17 22H9V8Z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M17 22L23 30" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Background with rounded corners -->
+  <rect width="32" height="32" rx="8" fill="#F59E0B"/>
+  
+  <!-- Stylized R lettermark -->
+  <path 
+    d="M9 8V24" 
+    stroke="#0A0A0A" 
+    stroke-width="3" 
+    stroke-linecap="round"
+  />
+  <path 
+    d="M9 8H17C20.866 8 24 10.5 24 14C24 17.5 20.866 20 17 20H9" 
+    stroke="#0A0A0A" 
+    stroke-width="3" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <path 
+    d="M17 20L24 28" 
+    stroke="#0A0A0A" 
+    stroke-width="3" 
+    stroke-linecap="round"
+  />
+  
+  <!-- Dynamic claw accent marks -->
+  <path 
+    d="M20 4L28 12" 
+    stroke="#0A0A0A" 
+    stroke-width="1.5" 
+    stroke-linecap="round"
+    opacity="0.5"
+  />
+  <path 
+    d="M23 3L29 9" 
+    stroke="#0A0A0A" 
+    stroke-width="1" 
+    stroke-linecap="round"
+    opacity="0.3"
+  />
 </svg>
-
-
-
-
-
-
-
-

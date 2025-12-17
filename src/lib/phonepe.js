@@ -8,7 +8,7 @@
 import { supabase } from './supabase'
 
 // API base URL
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
 // Plan prices for display (with RBI autopay compliance)
 // RBI Regulation: Autopay without OTP only allowed up to ₹5,000
@@ -16,27 +16,27 @@ export const RBI_AUTOPAY_LIMIT_PAISE = 500000; // ₹5,000
 
 export const PLAN_PRICES = {
   ascent: {
-    price: 500000,
+    price: 499900,
     name: 'Ascent',
-    priceDisplay: '₹5,000',
+    priceDisplay: '₹4,999',
     cohorts: 3,
     autopayEligible: true,
     requiresOtp: false,
     renewalNote: 'Seamless autopay'
   },
   glide: {
-    price: 700000,
+    price: 699900,
     name: 'Glide',
-    priceDisplay: '₹7,000',
+    priceDisplay: '₹6,999',
     cohorts: 5,
     autopayEligible: false,
     requiresOtp: true,
     renewalNote: 'Monthly payment link'
   },
   soar: {
-    price: 1000000,
+    price: 1199900,
     name: 'Soar',
-    priceDisplay: '₹10,000',
+    priceDisplay: '₹11,999',
     cohorts: 10,
     autopayEligible: false,
     requiresOtp: true,
@@ -60,11 +60,19 @@ const getAuthToken = async () => {
  * @param {string} options.userEmail - User email
  * @param {string} options.userPhone - User phone (optional)
  */
-export const initiatePayment = async ({ userId, plan, userEmail, userPhone }) => {
+export const initiatePayment = async ({ userId, plan, userEmail, userPhone, autopayRequested = false, billingCycle = 'monthly' }) => {
   try {
     const planInfo = PLAN_PRICES[plan]
     if (!planInfo) {
       throw new Error('Invalid plan selected')
+    }
+
+    if (autopayRequested && String(billingCycle).toLowerCase() !== 'monthly') {
+      throw new Error('Autopay is only supported for monthly plans')
+    }
+
+    if (autopayRequested && !planInfo.autopayEligible) {
+      throw new Error('This plan is not eligible for autopay (RBI limit ₹5,000)')
     }
 
     const token = await getAuthToken()
@@ -81,7 +89,9 @@ export const initiatePayment = async ({ userId, plan, userEmail, userPhone }) =>
       },
       body: JSON.stringify({
         plan,
-        phone: userPhone || ''
+        phone: userPhone || '',
+        autopayRequested: !!autopayRequested,
+        billingCycle
       })
     })
 
@@ -124,7 +134,16 @@ export const initiatePayment = async ({ userId, plan, userEmail, userPhone }) =>
  */
 export const checkPaymentStatus = async (merchantTransactionId) => {
   try {
-    const response = await fetch(`${API_BASE}/payments/status/${merchantTransactionId}`)
+    const token = await getAuthToken()
+    if (!token) {
+      throw new Error('Not authenticated')
+    }
+
+    const response = await fetch(`${API_BASE}/payments/status/${merchantTransactionId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
     const data = await response.json()
 
     if (!response.ok) {

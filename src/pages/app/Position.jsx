@@ -1,15 +1,15 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { 
-  Target, 
-  Edit3, 
+import {
+  Target,
+  Edit3,
   Save,
   Sparkles,
   Users,
-  Zap,
   TrendingUp,
   CheckCircle2
 } from 'lucide-react'
+import { BRAND_ICONS } from '@/components/brand/BrandSystem'
 
 const PositionCard = ({ title, content, onEdit, isEditing, onSave, onChange }) => (
   <motion.div
@@ -178,7 +178,7 @@ const Position = () => {
       >
         {[
           { icon: Users, label: 'Cohorts Using', value: '5' },
-          { icon: Zap, label: 'Moves Aligned', value: '12' },
+          { icon: BRAND_ICONS.speed, label: 'Moves Aligned', value: '12' },
           { icon: TrendingUp, label: 'Message Variants', value: '8' },
         ].map((stat, i) => (
           <div key={i} className="bg-zinc-900/30 border border-white/5 rounded-lg p-4 text-center">

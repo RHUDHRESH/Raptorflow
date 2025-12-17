@@ -68,24 +68,17 @@ const PaymentProcess = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
-      {/* Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-amber-900/20 via-transparent to-transparent" />
-      </div>
-
-      {/* Header */}
-      <header className="relative z-10 p-6">
-        <button 
+    <div className="min-h-screen bg-paper flex flex-col">
+      <header className="p-6">
+        <button
           onClick={() => navigate('/')}
-          className="text-white text-xl tracking-tight font-light"
+          className="text-ink text-xl tracking-tight font-serif"
         >
-          Raptor<span className="italic font-normal text-amber-200">flow</span>
+          Raptorflow
         </button>
       </header>
 
-      {/* Main content */}
-      <main className="flex-1 flex items-center justify-center px-6 relative z-10">
+      <main className="flex-1 flex items-center justify-center px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -93,75 +86,75 @@ const PaymentProcess = () => {
         >
           {status === 'success' ? (
             // Success state
-            <div className="bg-zinc-900/50 border border-emerald-500/30 rounded-2xl p-8 text-center">
+            <div className="rounded-card border border-border bg-card p-8 text-center">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6"
+                className="w-20 h-20 bg-signal-muted rounded-full flex items-center justify-center mx-auto mb-6"
               >
-                <CheckCircle className="w-10 h-10 text-emerald-400" />
+                <CheckCircle className="w-10 h-10 text-primary" />
               </motion.div>
-              <h1 className="text-2xl font-light text-white mb-2">Payment Successful!</h1>
-              <p className="text-white/40 mb-4">
-                Welcome to <span className="text-amber-400">{plan.name}</span>
+              <h1 className="font-serif text-headline-sm text-ink mb-2">Payment confirmed</h1>
+              <p className="text-body-sm text-ink-400 mb-4">
+                Welcome to <span className="text-primary">{plan.name}</span>
               </p>
-              <p className="text-white/30 text-sm mb-6">
-                Your plan has been activated. Redirecting to your dashboard...
+              <p className="text-body-xs text-ink-400 mb-6">
+                Your plan has been activated. Redirecting to your dashboard…
               </p>
-              <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
+              <div className="w-8 h-8 border-2 border-primary/40 border-t-primary rounded-full animate-spin mx-auto" />
             </div>
           ) : (
             // Payment form
-            <div className="bg-zinc-900/50 border border-white/10 rounded-2xl overflow-hidden">
+            <div className="rounded-card border border-border bg-card overflow-hidden">
               {/* Header */}
-              <div className="bg-gradient-to-r from-amber-500/10 to-amber-600/5 border-b border-white/5 p-6">
+              <div className="bg-muted border-b border-border p-6">
                 <button
                   onClick={() => navigate('/onboarding/plan')}
-                  className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-4 transition-colors"
+                  className="flex items-center gap-2 text-ink-400 hover:text-ink text-sm mb-4 transition-editorial"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Back to plans
                 </button>
-                <h1 className="text-2xl font-light text-white">Complete your purchase</h1>
-                <p className="text-white/40 text-sm mt-1">
-                  You're getting the <span className="text-amber-400">{plan.name}</span> plan
+                <h1 className="font-serif text-headline-sm text-ink">Complete your purchase</h1>
+                <p className="text-body-sm text-ink-400 mt-1">
+                  You're getting the <span className="text-primary">{plan.name}</span> plan
                 </p>
               </div>
 
               {/* Order summary */}
-              <div className="p-6 border-b border-white/5">
+              <div className="p-6 border-b border-border">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-white/60">{plan.name} Plan</span>
-                  <span className="text-white font-medium">{plan.priceDisplay}</span>
+                  <span className="text-ink">{plan.name} plan</span>
+                  <span className="text-ink font-medium">{plan.priceDisplay}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-white/40">GST included</span>
-                  <span className="text-white/40">One-time payment</span>
+                  <span className="text-ink-400">GST included</span>
+                  <span className="text-ink-400">One-time payment</span>
                 </div>
-                <div className="mt-4 pt-4 border-t border-white/5">
+                <div className="mt-4 pt-4 border-t border-border">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-white/40 text-sm">Cohort limit</span>
-                    <span className="text-white/60 text-sm">{plan.cohorts} cohorts</span>
+                    <span className="text-ink-400 text-sm">Cohort limit</span>
+                    <span className="text-ink-400 text-sm">{plan.cohorts} cohorts</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-white font-medium">Total</span>
-                    <span className="text-2xl font-light text-white">{plan.priceDisplay}</span>
+                    <span className="text-ink font-medium">Total</span>
+                    <span className="text-2xl font-light text-ink">{plan.priceDisplay}</span>
                   </div>
                 </div>
               </div>
 
               {/* Transaction info */}
-              <div className="px-6 py-3 bg-white/5 border-b border-white/5">
-                <p className="text-xs text-white/30">
-                  Transaction ID: <span className="text-white/50 font-mono">{txnId}</span>
+              <div className="px-6 py-3 bg-muted border-b border-border">
+                <p className="text-xs text-ink-400">
+                  Transaction ID: <span className="text-ink font-mono">{txnId}</span>
                 </p>
               </div>
 
               {/* Error */}
               {error && (
-                <div className="mx-6 mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-red-400 text-sm">{error}</p>
+                <div className="mx-6 mt-6 p-4 bg-signal-muted border border-primary/20 rounded-lg flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <p className="text-ink text-sm">{error}</p>
                 </div>
               )}
 
@@ -170,7 +163,7 @@ const PaymentProcess = () => {
                 <button
                   onClick={handlePayment}
                   disabled={processing}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-amber-500 hover:bg-amber-400 text-black font-medium rounded-xl transition-colors disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary hover:opacity-95 text-primary-foreground font-medium rounded-xl transition-editorial disabled:opacity-50"
                 >
                   {processing ? (
                     <>
@@ -187,15 +180,15 @@ const PaymentProcess = () => {
 
                 {/* Mock mode notice */}
                 {isMock && (
-                  <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                    <p className="text-amber-400 text-xs text-center">
-                      🧪 Test Mode - No real payment will be processed
+                  <div className="mt-4 p-3 bg-muted border border-border rounded-lg">
+                    <p className="text-ink-400 text-xs text-center">
+                      Test mode — no real payment will be processed
                     </p>
                   </div>
                 )}
 
                 {/* Security note */}
-                <div className="flex items-center justify-center gap-2 mt-4 text-white/30 text-xs">
+                <div className="flex items-center justify-center gap-2 mt-4 text-ink-400 text-xs">
                   <Shield className="w-4 h-4" />
                   <span>Secured by PhonePe Payment Gateway</span>
                 </div>
@@ -203,7 +196,7 @@ const PaymentProcess = () => {
 
               {/* Features */}
               <div className="px-6 pb-6">
-                <p className="text-xs text-white/30 text-center">
+                <p className="text-xs text-ink-400 text-center">
                   7-day satisfaction guarantee. Cancel anytime.
                 </p>
               </div>

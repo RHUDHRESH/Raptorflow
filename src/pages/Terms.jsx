@@ -1,6 +1,8 @@
-import React from 'react'
 import { motion } from 'framer-motion'
-import { FileText } from 'lucide-react'
+import { ArrowRight, Mail } from 'lucide-react'
+import { Link } from 'react-router-dom'
+
+import { MarketingLayout } from '@/components/MarketingLayout'
 
 /* ═══════════════════════════════════════════════════════════════════════════
    TERMS - HIGH FASHION EDITORIAL DESIGN
@@ -20,9 +22,15 @@ const sections = [
     { title: '10. Contact', content: ['legal@raptorflow.com'] },
 ]
 
+const sectionToId = (title) =>
+    title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+
 const Terms = () => (
-    <div className="min-h-screen bg-background">
-        <div className="max-w-3xl mx-auto px-6 py-24 md:py-32">
+    <MarketingLayout>
+        <div className="container-editorial py-16 md:py-24">
             {/* Header */}
             <motion.header
                 initial={{ opacity: 0, y: -20 }}
@@ -30,17 +38,34 @@ const Terms = () => (
                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 className="mb-16"
             >
-                <p className="text-caption text-muted-foreground mb-4">Legal</p>
-                <h1 className="text-display text-4xl md:text-5xl text-foreground mb-4">Terms of Service</h1>
+                <p className="text-editorial-caption mb-4">Legal</p>
+                <h1 className="font-serif text-headline-lg text-foreground mb-4">Terms of Service</h1>
                 <p className="text-muted-foreground">Last updated: December 1, 2024</p>
             </motion.header>
+
+            <section className="mb-12">
+                <div className="rounded-card border border-border bg-card p-6">
+                    <div className="text-editorial-caption">Quick links</div>
+                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+                        {sections.slice(0, 9).map((s) => (
+                            <a
+                                key={s.title}
+                                href={`#${sectionToId(s.title)}`}
+                                className="text-body-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                            >
+                                {s.title}
+                            </a>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
             {/* Intro */}
             <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="bg-card border border-border/50 p-6 mb-12"
+                className="rounded-card border border-border bg-card p-6 mb-12"
             >
                 <p className="text-foreground leading-relaxed">
                     These Terms of Service govern your use of Raptorflow. Please read them carefully.
@@ -58,7 +83,9 @@ const Terms = () => (
                         transition={{ delay: index * 0.02 }}
                         className="border-b border-border/30 pb-8"
                     >
-                        <h2 className="text-headline text-foreground mb-4">{section.title}</h2>
+                        <h2 id={sectionToId(section.title)} className="font-serif text-headline-sm text-foreground mb-4">
+                            {section.title}
+                        </h2>
                         <ul className="space-y-2">
                             {section.content.map((item, i) => (
                                 <li key={i} className="text-muted-foreground leading-relaxed flex items-start gap-3">
@@ -70,8 +97,50 @@ const Terms = () => (
                     </motion.div>
                 ))}
             </div>
+
+            <section className="mt-16 border-t border-border pt-12">
+                <div className="rounded-card border border-border bg-card p-8">
+                    <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <div className="text-editorial-caption">Next steps</div>
+                            <div className="mt-2 font-serif text-headline-sm text-foreground">Questions about terms?</div>
+                            <p className="mt-2 text-body-sm text-muted-foreground max-w-[65ch] leading-relaxed">
+                                If you need clarification, reach out. For billing topics, see refunds. For tracking, see cookies.
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            <Link
+                                to="/contact"
+                                className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-editorial hover:opacity-90"
+                            >
+                                <Mail className="mr-2 h-4 w-4" />
+                                Contact
+                            </Link>
+                            <Link
+                                to="/refunds"
+                                className="inline-flex items-center justify-center rounded-md border border-border bg-transparent px-5 py-2 text-sm font-medium text-foreground transition-editorial hover:bg-muted"
+                            >
+                                Refunds
+                            </Link>
+                            <Link
+                                to="/cookies"
+                                className="inline-flex items-center justify-center rounded-md border border-border bg-transparent px-5 py-2 text-sm font-medium text-foreground transition-editorial hover:bg-muted"
+                            >
+                                Cookies
+                            </Link>
+                            <Link
+                                to="/start"
+                                className="inline-flex items-center justify-center rounded-md border border-border bg-transparent px-5 py-2 text-sm font-medium text-foreground transition-editorial hover:bg-muted"
+                            >
+                                Get started
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
-    </div>
+    </MarketingLayout>
 )
 
 export default Terms

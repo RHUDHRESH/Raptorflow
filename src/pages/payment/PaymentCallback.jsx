@@ -3,7 +3,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { verifyPayment, checkPaymentStatus } from '../../lib/phonepe'
 import { useAuth } from '../../contexts/AuthContext'
-import { CheckCircle, XCircle, Clock, RefreshCw } from 'lucide-react'
+import { CheckCircle, Clock } from 'lucide-react'
+
+import { ErrorState } from '@/components/ErrorState'
 
 const PaymentCallback = () => {
   const navigate = useNavigate()
@@ -147,94 +149,76 @@ const PaymentCallback = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-amber-900/20 via-transparent to-transparent" />
-      </div>
-
+    <div className="min-h-screen bg-paper flex flex-col items-center justify-center px-6">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative z-10 text-center max-w-md"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-2xl"
       >
-        {/* Checking / Loading state */}
         {status === 'checking' && (
-          <div>
-            <div className="w-20 h-20 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mx-auto mb-6" />
-            <h1 className="text-2xl font-light text-white mb-2">Verifying Payment</h1>
-            <p className="text-white/40">Please wait while we confirm your payment...</p>
+          <div className="rounded-card border border-border bg-card p-8 md:p-10 text-center">
+            <div className="mx-auto h-12 w-12 rounded-full border-2 border-primary/40 border-t-primary animate-spin" />
+            <h1 className="mt-5 font-serif text-headline-sm text-ink">Verifying payment</h1>
+            <p className="mt-2 text-body-sm text-ink-400">Please wait while we confirm your payment.</p>
           </div>
         )}
 
-        {/* Pending state */}
         {status === 'pending' && (
-          <div>
+          <div className="rounded-card border border-border bg-card p-8 md:p-10 text-center">
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              className="w-20 h-20 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6"
+              className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-signal-muted"
             >
-              <Clock className="w-10 h-10 text-amber-400" />
+              <Clock className="h-6 w-6 text-primary" />
             </motion.div>
-            <h1 className="text-2xl font-light text-white mb-2">Processing Payment</h1>
-            <p className="text-white/40 mb-4">{message}</p>
-            <p className="text-white/30 text-sm">
-              Attempt {retryCount + 1}/5
-            </p>
+            <h1 className="font-serif text-headline-sm text-ink">Processing payment</h1>
+            <p className="mt-2 text-body-sm text-ink-400">{message}</p>
+            <p className="mt-4 text-caption text-ink-400">Attempt {retryCount + 1}/5</p>
           </div>
         )}
 
-        {/* Success state */}
         {status === 'success' && (
-          <div>
+          <div className="rounded-card border border-border bg-card p-8 md:p-10 text-center">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6"
+              className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-signal-muted"
             >
-              <CheckCircle className="w-10 h-10 text-emerald-400" />
+              <CheckCircle className="h-6 w-6 text-primary" />
             </motion.div>
-            <h1 className="text-2xl font-light text-white mb-2">Payment Successful!</h1>
-            <p className="text-white/40 mb-6">{message}</p>
-            <p className="text-amber-400 text-sm">Redirecting to your dashboard...</p>
+            <h1 className="font-serif text-headline-sm text-ink">Payment confirmed</h1>
+            <p className="mt-2 text-body-sm text-ink-400">{message}</p>
+            <p className="mt-6 text-body-sm text-primary">Redirecting to your dashboard…</p>
           </div>
         )}
 
-        {/* Failed state */}
         {status === 'failed' && (
-          <div>
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6"
-            >
-              <XCircle className="w-10 h-10 text-red-400" />
-            </motion.div>
-            <h1 className="text-2xl font-light text-white mb-2">Payment Issue</h1>
-            <p className="text-white/40 mb-6">{message}</p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                onClick={handleRetry}
-                className="flex items-center gap-2 px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Try Again
-              </button>
-              <button
-                onClick={() => navigate('/onboarding/plan')}
-                className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black rounded-lg transition-colors"
-              >
-                Back to Plans
-              </button>
+          <div className="space-y-4">
+            <ErrorState
+              title="We couldn't verify your payment"
+              description={message}
+              action={{
+                label: 'Try again',
+                onClick: handleRetry
+              }}
+              secondaryAction={{
+                label: 'Back to plans',
+                onClick: () => navigate('/onboarding/plan')
+              }}
+            />
+
+            <div className="rounded-card border border-border bg-card px-6 py-4">
+              <p className="text-body-xs text-ink-400">
+                Transaction ID: <span className="font-mono text-ink">{txnId}</span>
+              </p>
+              <p className="mt-2 text-body-xs text-ink-400">
+                Need help?{' '}
+                <a href="mailto:support@raptorflow.com" className="text-primary hover:text-primary/80 transition-editorial">
+                  Contact support
+                </a>
+              </p>
             </div>
-            
-            <p className="text-white/30 text-xs mt-6">
-              Transaction ID: <span className="font-mono">{txnId}</span>
-            </p>
-            <p className="text-white/30 text-xs mt-2">
-              Need help? <a href="mailto:support@raptorflow.com" className="text-amber-400 hover:underline">Contact support</a>
-            </p>
           </div>
         )}
       </motion.div>

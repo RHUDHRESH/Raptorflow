@@ -42,6 +42,20 @@ export const env = {
   PHONEPE_SALT_INDEX: process.env.PHONEPE_SALT_INDEX || process.env.VITE_PHONEPE_SALT_INDEX || '1',
   PHONEPE_ENV: process.env.PHONEPE_ENV || process.env.VITE_PHONEPE_ENV || 'UAT', // UAT or PRODUCTION
 
+  // PhonePe Standard Checkout (OAuth) - preferred integration mode
+  PHONEPE_CLIENT_ID: process.env.PHONEPE_CLIENT_ID || '',
+  PHONEPE_CLIENT_SECRET: process.env.PHONEPE_CLIENT_SECRET || '',
+  PHONEPE_CLIENT_VERSION: process.env.PHONEPE_CLIENT_VERSION || '1',
+
+  // Optional override for Standard Checkout API base URL (primarily for production)
+  // Example: https://api.phonepe.com/apis
+  PHONEPE_STANDARD_API_BASE: process.env.PHONEPE_STANDARD_API_BASE || '',
+
+  // PhonePe Webhook verification (Standard Checkout + Autopay)
+  // PhonePe sends: Authorization: SHA256(username:password)
+  PHONEPE_WEBHOOK_USERNAME: process.env.PHONEPE_WEBHOOK_USERNAME || '',
+  PHONEPE_WEBHOOK_PASSWORD: process.env.PHONEPE_WEBHOOK_PASSWORD || '',
+
   // AWS Configuration (for Bedrock models)
   AWS_REGION: process.env.AWS_REGION || process.env.VITE_AWS_REGION || 'us-east-1',
   AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || '',

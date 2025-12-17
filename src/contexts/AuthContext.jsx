@@ -1,11 +1,129 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
-import { supabase, hasCachedSession, refreshSession } from '../lib/supabase'
+import { supabase, hasCachedSession, refreshSession, supabaseConfigured } from '../lib/supabase'
+import { AUTH_DISABLED } from '../config/auth'
 
 const AuthContext = createContext({})
 
 // Cache key for profile
 const PROFILE_CACHE_KEY = 'raptorflow-profile-cache'
 const PROFILE_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
+const mapDbPlanCodeToFrontendPlan = (planCode) => {
+  const normalized = String(planCode || '').toLowerCase()
+  if (normalized === 'starter') return 'ascent'
+  if (normalized === 'growth') return 'glide'
+  if (normalized === 'enterprise') return 'soar'
+  if (normalized === 'free') return 'free'
+  return normalized
+}
+
+const fetchLatestOrgSubscription = async (organizationId) => {
+  if (!organizationId) return null
+
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('id, status, current_period_start, current_period_end, autopay_enabled, mandate_id, plan:plans(code)')
+    .eq('organization_id', organizationId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    console.warn('Failed to fetch subscription:', error)
+    return null
+  }
+
+  return data || null
+}
+
+const fetchMandateForSubscription = async ({ mandateId, subscriptionId, organizationId }) => {
+  if (mandateId) {
+    const { data, error } = await supabase
+      .from('payment_mandates')
+      .select('id, status, mandate_type, provider, provider_mandate_id, max_amount_paise, valid_from, valid_until, created_at')
+      .eq('id', mandateId)
+      .maybeSingle()
+
+    if (error) {
+      console.warn('Failed to fetch mandate by id:', error)
+    }
+
+    if (data) return data
+  }
+
+  if (subscriptionId) {
+    const { data, error } = await supabase
+      .from('payment_mandates')
+      .select('id, status, mandate_type, provider, provider_mandate_id, max_amount_paise, valid_from, valid_until, created_at')
+      .eq('subscription_id', subscriptionId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      console.warn('Failed to fetch mandate by subscription:', error)
+    }
+
+    if (data) return data
+  }
+
+  if (organizationId) {
+    const { data, error } = await supabase
+      .from('payment_mandates')
+      .select('id, status, mandate_type, provider, provider_mandate_id, max_amount_paise, valid_from, valid_until, created_at')
+      .eq('organization_id', organizationId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      console.warn('Failed to fetch mandate by org:', error)
+    }
+
+    return data || null
+  }
+
+  return null
+}
+
+const enrichProfileWithSubscription = async (profileRow) => {
+  if (!profileRow) return null
+
+  const organizationId = profileRow.current_org_id || profileRow.organization_id || null
+  const subscription = await fetchLatestOrgSubscription(organizationId)
+  const mandate = subscription
+    ? await fetchMandateForSubscription({
+        mandateId: subscription?.mandate_id || null,
+        subscriptionId: subscription?.id || null,
+        organizationId,
+      })
+    : null
+
+  const planCode = subscription?.plan?.code
+  const derivedPlan = planCode ? mapDbPlanCodeToFrontendPlan(planCode) : (profileRow.plan || 'free')
+  const derivedStatus = subscription?.status === 'active' && derivedPlan !== 'free' ? 'active' : 'inactive'
+
+  return {
+    ...profileRow,
+    current_org_id: organizationId,
+    plan: derivedPlan,
+    plan_status: derivedStatus,
+    plan_started_at: subscription?.current_period_start || null,
+    plan_expires_at: subscription?.current_period_end || null,
+    subscription_status: subscription?.status || null,
+    subscription_id: subscription?.id || null,
+    autopay_enabled: subscription?.autopay_enabled === true,
+    mandate_id: subscription?.mandate_id || null,
+    mandate_status: mandate?.status || null,
+    mandate_type: mandate?.mandate_type || null,
+    mandate_provider: mandate?.provider || null,
+    mandate_provider_id: mandate?.provider_mandate_id || null,
+    mandate_max_amount_paise: mandate?.max_amount_paise || null,
+    mandate_valid_from: mandate?.valid_from || null,
+    mandate_valid_until: mandate?.valid_until || null,
+  }
+}
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
@@ -61,6 +179,8 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null)
   const initRef = useRef(false)
 
+  const previewMode = import.meta.env.DEV && !supabaseConfigured
+
   // Create profile if it doesn't exist
   const createProfile = async (user) => {
     try {
@@ -111,8 +231,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       console.log('Profile created:', data?.id)
-      setCachedProfile(user.id, data)
-      return data
+      const enriched = await enrichProfileWithSubscription(data)
+      setCachedProfile(user.id, enriched)
+      return enriched
     } catch (err) {
       console.error('Error in createProfile:', err)
       return await fetchProfile(user.id)
@@ -133,8 +254,9 @@ export const AuthProvider = ({ children }) => {
         return null
       }
 
-      setCachedProfile(userId, data)
-      return data
+      const enriched = await enrichProfileWithSubscription(data)
+      setCachedProfile(userId, enriched)
+      return enriched
     } catch (err) {
       console.error('Error in fetchProfile:', err)
       return null
@@ -149,7 +271,12 @@ export const AuthProvider = ({ children }) => {
     const cached = getCachedProfile(user.id)
     if (cached) {
       console.log('Using cached profile')
-      return cached
+      if (cached.plan_status || cached.subscription_status || cached.subscription_id) {
+        return cached
+      }
+      const enriched = await enrichProfileWithSubscription(cached)
+      setCachedProfile(user.id, enriched)
+      return enriched
     }
 
     let profile = await fetchProfile(user.id)
@@ -167,6 +294,52 @@ export const AuthProvider = ({ children }) => {
     // Prevent double initialization in React strict mode
     if (initRef.current) return
     initRef.current = true
+
+    if (AUTH_DISABLED || (import.meta.env.DEV && !supabaseConfigured)) {
+      console.log('🔓 Auth disabled or preview mode active. Using mock user.')
+      const now = new Date()
+      const mockUser = {
+        id: 'preview-user',
+        email: 'preview@raptorflow.local',
+        aud: 'authenticated',
+        role: 'authenticated',
+        created_at: now.toISOString(),
+        user_metadata: {
+          full_name: 'Preview User',
+          name: 'Preview User',
+          avatar_url: null
+        },
+      }
+
+      const mockProfile = {
+        id: mockUser.id,
+        email: mockUser.email,
+        full_name: mockUser.user_metadata.full_name,
+        plan: 'ascent', // Use a premium plan by default for preview
+        plan_status: 'active',
+        plan_started_at: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+        plan_expires_at: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 21).toISOString(),
+        onboarding_completed: true,
+        onboarding_completed_at: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+        current_org_id: 'preview-org',
+        subscription_status: 'active',
+        subscription_id: 'preview-subscription',
+        autopay_enabled: false,
+        mandate_id: null,
+        mandate_status: null,
+        mandate_type: null,
+        mandate_provider: null,
+        mandate_provider_id: null,
+        mandate_max_amount_paise: null,
+        mandate_valid_from: null,
+        mandate_valid_until: null,
+      }
+
+      setUser(mockUser)
+      setProfile(mockProfile)
+      setLoading(false)
+      return
+    }
 
     const initAuth = async () => {
       try {
@@ -242,7 +415,6 @@ export const AuthProvider = ({ children }) => {
 
   // Sign in with Google
   const signInWithGoogle = async () => {
-    setLoading(true)
     setError(null)
 
     try {
@@ -255,6 +427,28 @@ export const AuthProvider = ({ children }) => {
             prompt: 'consent',
           },
         },
+      })
+
+      if (error) {
+        setError(error.message)
+        return { error }
+      }
+
+      return { data }
+    } catch (err) {
+      setError(err.message)
+      return { error: err }
+    }
+  }
+
+  // Sign in with email + password
+  const signInWithPassword = async (email, password) => {
+    setError(null)
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       })
 
       if (error) {
@@ -273,7 +467,6 @@ export const AuthProvider = ({ children }) => {
 
   // Sign in with email OTP
   const signInWithEmail = async (email) => {
-    setLoading(true)
     setError(null)
 
     try {
@@ -286,15 +479,11 @@ export const AuthProvider = ({ children }) => {
 
       if (error) {
         setError(error.message)
-        setLoading(false)
         return { error }
       }
-
-      setLoading(false)
       return { data, message: 'Check your email for the login link!' }
     } catch (err) {
       setError(err.message)
-      setLoading(false)
       return { error: err }
     }
   }
@@ -336,9 +525,10 @@ export const AuthProvider = ({ children }) => {
         return { error: error.message }
       }
 
-      setProfile(data)
-      setCachedProfile(user.id, data)
-      return { data }
+      const enriched = await enrichProfileWithSubscription(data)
+      setProfile(enriched)
+      setCachedProfile(user.id, enriched)
+      return { data: enriched }
     } catch (err) {
       return { error: err.message }
     }
@@ -372,6 +562,7 @@ export const AuthProvider = ({ children }) => {
     needsOnboarding: !!user && !isOnboardingCompleted,
     signInWithGoogle,
     signInWithEmail,
+    signInWithPassword,
     signOut,
     updateProfile,
     refreshProfile,

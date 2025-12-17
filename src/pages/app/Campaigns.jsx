@@ -24,14 +24,17 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 
+import { Modal } from '@/components/system/Modal'
+import { HairlineTable } from '@/components/system/HairlineTable'
+
 // Protocol badges with colors
 const PROTOCOL_BADGES = {
-  A_AUTHORITY_BLITZ: { label: 'Authority Blitz', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
-  B_TRUST_ANCHOR: { label: 'Trust Anchor', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  C_COST_OF_INACTION: { label: 'Cost of Inaction', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
-  D_HABIT_HARDCODE: { label: 'Habit Hardcode', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  E_ENTERPRISE_WEDGE: { label: 'Enterprise Wedge', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
-  F_CHURN_INTERCEPT: { label: 'Churn Intercept', color: 'bg-red-500/20 text-red-400 border-red-500/30' }
+  A_AUTHORITY_BLITZ: { label: 'Authority Blitz' },
+  B_TRUST_ANCHOR: { label: 'Trust Anchor' },
+  C_COST_OF_INACTION: { label: 'Cost of Inaction' },
+  D_HABIT_HARDCODE: { label: 'Habit Hardcode' },
+  E_ENTERPRISE_WEDGE: { label: 'Enterprise Wedge' },
+  F_CHURN_INTERCEPT: { label: 'Churn Intercept' }
 }
 
 // Goal options
@@ -58,101 +61,22 @@ const PERSUASION_AXES = [
 // RAG status badge
 const RAGBadge = ({ status }) => {
   const colors = {
-    green: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    amber: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-    red: 'bg-red-500/20 text-red-400 border-red-500/30',
-    unknown: 'bg-white/10 text-white/40 border-white/20'
+    green: 'pill-neutral',
+    amber: 'pill-accent',
+    red: 'pill-accent',
+    unknown: 'pill-neutral'
   }
   
   return (
-    <span className={`px-2 py-0.5 rounded text-xs border ${colors[status] || colors.unknown}`}>
-      {status?.toUpperCase() || 'N/A'}
+    <span className={`pill-editorial ${colors[status] || colors.unknown}`}>
+      {status || 'unknown'}
     </span>
   )
 }
 
-// Campaign card component
-const CampaignCard = ({ campaign, onSelect }) => {
-  const statusColors = {
-    draft: 'bg-white/10 text-white/60',
-    planned: 'bg-blue-500/20 text-blue-400',
-    active: 'bg-emerald-500/20 text-emerald-400',
-    paused: 'bg-amber-500/20 text-amber-400',
-    completed: 'bg-purple-500/20 text-purple-400',
-    cancelled: 'bg-red-500/20 text-red-400'
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
-      onClick={() => onSelect(campaign)}
-      className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 cursor-pointer hover:border-white/20 transition-all"
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-medium text-white">{campaign.name}</h3>
-          <p className="text-white/40 text-sm mt-1 line-clamp-2">{campaign.description}</p>
-        </div>
-        <span className={`px-2 py-1 rounded text-xs ${statusColors[campaign.status]}`}>
-          {campaign.status}
-        </span>
-      </div>
-
-      {/* Strategy badges */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <span className="px-2 py-1 bg-white/5 rounded text-xs text-white/60">
-          {campaign.goal}
-        </span>
-        <span className="px-2 py-1 bg-white/5 rounded text-xs text-white/60">
-          {campaign.demand_source}
-        </span>
-      </div>
-
-      {/* Protocol badges */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {campaign.protocols?.slice(0, 2).map((protocol) => (
-          <span 
-            key={protocol}
-            className={`px-2 py-1 rounded text-xs border ${PROTOCOL_BADGES[protocol]?.color || 'bg-white/10'}`}
-          >
-            {PROTOCOL_BADGES[protocol]?.label || protocol}
-          </span>
-        ))}
-        {campaign.protocols?.length > 2 && (
-          <span className="px-2 py-1 bg-white/5 rounded text-xs text-white/40">
-            +{campaign.protocols.length - 2} more
-          </span>
-        )}
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/10">
-        <div>
-          <div className="text-xs text-white/40">ICPs</div>
-          <div className="text-lg font-medium text-white">{campaign.icp_ids?.length || 0}</div>
-        </div>
-        <div>
-          <div className="text-xs text-white/40">Moves</div>
-          <div className="text-lg font-medium text-white">{campaign.move_count || 0}</div>
-        </div>
-        <div>
-          <div className="text-xs text-white/40">RAG</div>
-          <RAGBadge status={campaign.rag_status} />
-        </div>
-      </div>
-
-      {/* Date range */}
-      {campaign.start_date && (
-        <div className="flex items-center gap-2 mt-4 text-xs text-white/40">
-          <Calendar className="w-3 h-3" />
-          {campaign.start_date} → {campaign.end_date || 'Ongoing'}
-        </div>
-      )}
-    </motion.div>
-  )
+const StatusPill = ({ status }) => {
+  const tone = status === 'active' ? 'pill-accent' : 'pill-neutral'
+  return <span className={`pill-editorial ${tone}`}>{status || 'draft'}</span>
 }
 
 // Campaign wizard step
@@ -161,16 +85,16 @@ const WizardStep = ({ step, current, title, description }) => {
   const isComplete = step < current
   
   return (
-    <div className={`flex items-center gap-3 ${isActive ? 'text-white' : 'text-white/40'}`}>
+    <div className={`flex items-center gap-3 ${isActive ? 'text-ink' : 'text-ink-400'}`}>
       <div className={`
         w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-        ${isComplete ? 'bg-emerald-500 text-white' : isActive ? 'bg-white/20 text-white' : 'bg-white/10'}
+        ${isComplete ? 'bg-primary text-primary-foreground' : isActive ? 'bg-signal-muted text-primary' : 'bg-muted text-ink-400'}
       `}>
-        {isComplete ? <CheckCircle2 className="w-4 h-4" /> : step}
+        {isComplete ? <CheckCircle2 className="w-4 h-4" strokeWidth={1.5} /> : step}
       </div>
       <div>
         <div className="font-medium">{title}</div>
-        <div className="text-xs text-white/40">{description}</div>
+        <div className="text-xs text-ink-400">{description}</div>
       </div>
     </div>
   )
@@ -218,343 +142,335 @@ const NewCampaignWizard = ({ isOpen, onClose, icps = [], onSubmit }) => {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-[#0a0a0f] border border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
-          <div>
-            <h2 className="text-xl font-medium text-white">Create Campaign</h2>
-            <p className="text-sm text-white/40">Define your strategic marketing battle</p>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg">
-            <X className="w-5 h-5 text-white/60" />
-          </button>
-        </div>
+    <Modal
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
+      title="Create campaign"
+      description="Define your strategic marketing plan."
+      contentClassName="max-w-3xl"
+    >
+      {/* Progress */}
+      <div className="flex flex-wrap items-center gap-3 rounded-card border border-border bg-muted px-4 py-3">
+        <WizardStep step={1} current={step} title="Strategy" description="Goal & approach" />
+        <ChevronRight className="w-4 h-4 text-border" strokeWidth={1.5} />
+        <WizardStep step={2} current={step} title="Targeting" description="ICPs & barriers" />
+        <ChevronRight className="w-4 h-4 text-border" strokeWidth={1.5} />
+        <WizardStep step={3} current={step} title="Timing" description="Schedule & budget" />
+        <ChevronRight className="w-4 h-4 text-border" strokeWidth={1.5} />
+        <WizardStep step={4} current={step} title="Review" description="Confirm & launch" />
+      </div>
 
-        {/* Progress */}
-        <div className="flex items-center justify-between px-6 py-4 bg-white/5 border-b border-white/10">
-          <WizardStep step={1} current={step} title="Strategy" description="Goal & approach" />
-          <ChevronRight className="w-4 h-4 text-white/20" />
-          <WizardStep step={2} current={step} title="Targeting" description="ICPs & barriers" />
-          <ChevronRight className="w-4 h-4 text-white/20" />
-          <WizardStep step={3} current={step} title="Timing" description="Schedule & budget" />
-          <ChevronRight className="w-4 h-4 text-white/20" />
-          <WizardStep step={4} current={step} title="Review" description="Confirm & launch" />
-        </div>
+      {/* Content */}
+      <div className="mt-5 max-h-[55vh] overflow-y-auto pr-1">
+        {/* Step 1: Strategy */}
+        {step === 1 && (
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm text-muted-foreground mb-2">Campaign name</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Q1 Pipeline Acceleration"
+                className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[50vh]">
-          {/* Step 1: Strategy */}
-          {step === 1 && (
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm text-white/60 mb-2">Campaign Name</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Q1 Pipeline Acceleration"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:border-white/30 outline-none"
-                />
-              </div>
+            <div>
+              <label className="block text-sm text-muted-foreground mb-2">Description</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Brief description of campaign objectives..."
+                rows={3}
+                className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm text-white/60 mb-2">Description</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Brief description of campaign objectives..."
-                  rows={3}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:border-white/30 outline-none resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-white/60 mb-3">Primary Goal</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {GOAL_OPTIONS.map((option) => {
-                    const Icon = option.icon
-                    return (
-                      <button
-                        key={option.value}
-                        onClick={() => setFormData({ ...formData, goal: option.value })}
-                        className={`p-4 rounded-xl border text-left transition-all ${
-                          formData.goal === option.value
-                            ? 'bg-white/10 border-white/30'
-                            : 'bg-white/5 border-white/10 hover:border-white/20'
-                        }`}
-                      >
-                        <Icon className={`w-5 h-5 mb-2 ${formData.goal === option.value ? 'text-white' : 'text-white/40'}`} />
-                        <div className="font-medium text-white">{option.label}</div>
-                        <div className="text-xs text-white/40 mt-1">{option.description}</div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-white/60 mb-3">Demand Source</label>
-                  <div className="space-y-2">
-                    {DEMAND_SOURCES.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => setFormData({ ...formData, demand_source: option.value })}
-                        className={`w-full p-3 rounded-lg border text-left transition-all ${
-                          formData.demand_source === option.value
-                            ? 'bg-white/10 border-white/30'
-                            : 'bg-white/5 border-white/10 hover:border-white/20'
-                        }`}
-                      >
-                        <div className="font-medium text-white text-sm">{option.label}</div>
-                        <div className="text-xs text-white/40">{option.description}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-white/60 mb-3">Persuasion Axis</label>
-                  <div className="space-y-2">
-                    {PERSUASION_AXES.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => setFormData({ ...formData, persuasion_axis: option.value })}
-                        className={`w-full p-3 rounded-lg border text-left transition-all ${
-                          formData.persuasion_axis === option.value
-                            ? 'bg-white/10 border-white/30'
-                            : 'bg-white/5 border-white/10 hover:border-white/20'
-                        }`}
-                      >
-                        <div className="font-medium text-white text-sm">{option.label}</div>
-                        <div className="text-xs text-white/40">{option.description}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            <div>
+              <label className="block text-sm text-muted-foreground mb-3">Primary goal</label>
+              <div className="grid grid-cols-3 gap-3">
+                {GOAL_OPTIONS.map((option) => {
+                  const Icon = option.icon
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => setFormData({ ...formData, goal: option.value })}
+                      className={`p-4 rounded-xl border text-left transition-all ${
+                        formData.goal === option.value
+                          ? 'bg-signal-muted border-primary/20'
+                          : 'bg-background border-border hover:border-border-dark'
+                      }`}
+                    >
+                      <Icon className={`w-5 h-5 mb-2 ${formData.goal === option.value ? 'text-primary' : 'text-ink-400'}`} strokeWidth={1.5} />
+                      <div className="font-medium text-ink">{option.label}</div>
+                      <div className="text-xs text-ink-400 mt-1">{option.description}</div>
+                    </button>
+                  )
+                })}
               </div>
             </div>
-          )}
 
-          {/* Step 2: Targeting */}
-          {step === 2 && (
-            <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-white/60 mb-3">Select Target ICPs</label>
+                <label className="block text-sm text-muted-foreground mb-3">Demand source</label>
                 <div className="space-y-2">
-                  {icps.length > 0 ? icps.map((icp) => (
+                  {DEMAND_SOURCES.map((option) => (
                     <button
-                      key={icp.id}
-                      onClick={() => {
-                        const newIds = formData.icp_ids.includes(icp.id)
-                          ? formData.icp_ids.filter(id => id !== icp.id)
-                          : [...formData.icp_ids, icp.id]
-                        setFormData({ ...formData, icp_ids: newIds })
-                      }}
-                      className={`w-full p-4 rounded-lg border text-left transition-all ${
-                        formData.icp_ids.includes(icp.id)
-                          ? 'bg-white/10 border-white/30'
-                          : 'bg-white/5 border-white/10 hover:border-white/20'
+                      key={option.value}
+                      onClick={() => setFormData({ ...formData, demand_source: option.value })}
+                      className={`w-full p-3 rounded-lg border text-left transition-all ${
+                        formData.demand_source === option.value
+                          ? 'bg-signal-muted border-primary/20'
+                          : 'bg-background border-border hover:border-border-dark'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-white">{icp.label}</div>
-                          <div className="text-xs text-white/40 mt-1">{icp.summary}</div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-white/60">Fit: {icp.fit_score}%</span>
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                            formData.icp_ids.includes(icp.id)
-                              ? 'bg-emerald-500 border-emerald-500'
-                              : 'border-white/30'
-                          }`}>
-                            {formData.icp_ids.includes(icp.id) && (
-                              <CheckCircle2 className="w-3 h-3 text-white" />
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                      <div className="font-medium text-ink text-sm">{option.label}</div>
+                      <div className="text-xs text-ink-400">{option.description}</div>
                     </button>
-                  )) : (
-                    <div className="p-8 text-center text-white/40 border border-dashed border-white/20 rounded-lg">
-                      No ICPs generated yet. Complete onboarding first.
-                    </div>
-                  )}
+                  ))}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-white/60 mb-3">Primary Barriers</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {['OBSCURITY', 'RISK', 'INERTIA', 'FRICTION', 'CAPACITY', 'ATROPHY'].map((barrier) => (
+                <label className="block text-sm text-muted-foreground mb-3">Persuasion axis</label>
+                <div className="space-y-2">
+                  {PERSUASION_AXES.map((option) => (
                     <button
-                      key={barrier}
-                      onClick={() => {
-                        const newBarriers = formData.primary_barriers.includes(barrier)
-                          ? formData.primary_barriers.filter(b => b !== barrier)
-                          : [...formData.primary_barriers, barrier]
-                        setFormData({ ...formData, primary_barriers: newBarriers })
-                      }}
-                      className={`p-3 rounded-lg border text-left transition-all ${
-                        formData.primary_barriers.includes(barrier)
-                          ? 'bg-white/10 border-white/30'
-                          : 'bg-white/5 border-white/10 hover:border-white/20'
+                      key={option.value}
+                      onClick={() => setFormData({ ...formData, persuasion_axis: option.value })}
+                      className={`w-full p-3 rounded-lg border text-left transition-all ${
+                        formData.persuasion_axis === option.value
+                          ? 'bg-signal-muted border-primary/20'
+                          : 'bg-background border-border hover:border-border-dark'
                       }`}
                     >
-                      <div className="font-medium text-white text-sm">{barrier}</div>
+                      <div className="font-medium text-ink text-sm">{option.label}</div>
+                      <div className="text-xs text-ink-400">{option.description}</div>
                     </button>
                   ))}
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Step 3: Timing & Budget */}
-          {step === 3 && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-white/60 mb-2">Start Date</label>
-                  <input
-                    type="date"
-                    value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-white/30 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-white/60 mb-2">End Date</label>
-                  <input
-                    type="date"
-                    value={formData.end_date}
-                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:border-white/30 outline-none"
-                  />
-                </div>
+        {/* Step 2: Targeting */}
+        {step === 2 && (
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm text-muted-foreground mb-3">Select Target ICPs</label>
+              <div className="space-y-2">
+                {icps.length > 0 ? icps.map((icp) => (
+                  <button
+                    key={icp.id}
+                    onClick={() => {
+                      const newIds = formData.icp_ids.includes(icp.id)
+                        ? formData.icp_ids.filter(id => id !== icp.id)
+                        : [...formData.icp_ids, icp.id]
+                      setFormData({ ...formData, icp_ids: newIds })
+                    }}
+                    className={`w-full p-4 rounded-lg border text-left transition-all ${
+                      formData.icp_ids.includes(icp.id)
+                        ? 'bg-signal-muted border-primary/20'
+                        : 'bg-background border-border hover:border-border-dark'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-ink">{icp.label}</div>
+                        <div className="text-xs text-ink-400 mt-1">{icp.summary}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-ink-400">Fit: {icp.fit_score}%</span>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          formData.icp_ids.includes(icp.id)
+                            ? 'bg-emerald-500 border-emerald-500'
+                            : 'border-border'
+                        }`}>
+                          {formData.icp_ids.includes(icp.id) && (
+                            <CheckCircle2 className="w-3 h-3 text-white" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                )) : (
+                  <div className="p-8 text-center text-ink-400 border border-dashed border-border rounded-lg">
+                    No ICPs generated yet. Complete onboarding first.
+                  </div>
+                )}
               </div>
+            </div>
 
+            <div>
+              <label className="block text-sm text-muted-foreground mb-3">Primary barriers</label>
+              <div className="grid grid-cols-2 gap-2">
+                {['OBSCURITY', 'RISK', 'INERTIA', 'FRICTION', 'CAPACITY', 'ATROPHY'].map((barrier) => (
+                  <button
+                    key={barrier}
+                    onClick={() => {
+                      const newBarriers = formData.primary_barriers.includes(barrier)
+                        ? formData.primary_barriers.filter(b => b !== barrier)
+                        : [...formData.primary_barriers, barrier]
+                      setFormData({ ...formData, primary_barriers: newBarriers })
+                    }}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      formData.primary_barriers.includes(barrier)
+                        ? 'bg-signal-muted border-primary/20'
+                        : 'bg-background border-border hover:border-border-dark'
+                    }`}
+                  >
+                    <div className="font-medium text-ink text-sm">{barrier}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Timing & Budget */}
+        {step === 3 && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-white/60 mb-2">Total Budget (INR)</label>
+                <label className="block text-sm text-muted-foreground mb-2">Start date</label>
                 <input
-                  type="number"
-                  value={formData.budget_plan.total}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    budget_plan: { ...formData.budget_plan, total: parseInt(e.target.value) || 0 }
-                  })}
-                  placeholder="500000"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:border-white/30 outline-none"
+                  type="date"
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
-
-              <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle className="w-4 h-4 text-amber-400" />
-                  <span className="text-sm text-white/60">Budget allocation</span>
-                </div>
-                <p className="text-xs text-white/40">
-                  Detailed budget allocation can be configured after campaign creation.
-                </p>
+              <div>
+                <label className="block text-sm text-muted-foreground mb-2">End date</label>
+                <input
+                  type="date"
+                  value={formData.end_date}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
               </div>
             </div>
-          )}
 
-          {/* Step 4: Review */}
-          {step === 4 && (
-            <div className="space-y-6">
-              <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                <h3 className="font-medium text-white mb-4">Campaign Summary</h3>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-white/40">Name</span>
-                    <span className="text-white">{formData.name || 'Untitled'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/40">Goal</span>
-                    <span className="text-white capitalize">{formData.goal || 'Not set'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/40">Demand Source</span>
-                    <span className="text-white capitalize">{formData.demand_source?.replace('_', ' ') || 'Not set'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/40">Persuasion</span>
-                    <span className="text-white capitalize">{formData.persuasion_axis?.replace('_', ' ') || 'Not set'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/40">Target ICPs</span>
-                    <span className="text-white">{formData.icp_ids.length} selected</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/40">Barriers</span>
-                    <span className="text-white">{formData.primary_barriers.join(', ') || 'None'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/40">Duration</span>
-                    <span className="text-white">
-                      {formData.start_date && formData.end_date 
-                        ? `${formData.start_date} → ${formData.end_date}`
-                        : 'Not scheduled'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/40">Budget</span>
-                    <span className="text-white">₹{formData.budget_plan.total.toLocaleString()}</span>
-                  </div>
-                </div>
+            <div>
+              <label className="block text-sm text-muted-foreground mb-2">Total budget (INR)</label>
+              <input
+                type="number"
+                value={formData.budget_plan.total}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  budget_plan: { ...formData.budget_plan, total: parseInt(e.target.value) || 0 }
+                })}
+                placeholder="500000"
+                className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+
+            <div className="p-4 bg-muted rounded-lg border border-border">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                <span className="text-sm text-ink-400">Budget allocation</span>
               </div>
+              <p className="text-xs text-ink-400">
+                Detailed budget allocation can be configured after campaign creation.
+              </p>
+            </div>
+          </div>
+        )}
 
-              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-                <div className="flex items-center gap-2 text-emerald-400">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span className="text-sm">Ready to create campaign</span>
+        {/* Step 4: Review */}
+        {step === 4 && (
+          <div className="space-y-6">
+            <div className="p-4 bg-card rounded-lg border border-border">
+              <h3 className="font-medium text-ink mb-4">Campaign summary</h3>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-ink-400">Name</span>
+                  <span className="text-ink">{formData.name || 'Untitled'}</span>
                 </div>
-                <p className="text-xs text-white/40 mt-1">
-                  You can add moves and generate assets after creation.
-                </p>
+                <div className="flex justify-between">
+                  <span className="text-ink-400">Goal</span>
+                  <span className="text-ink capitalize">{formData.goal || 'Not set'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-ink-400">Demand source</span>
+                  <span className="text-ink capitalize">{formData.demand_source?.replace('_', ' ') || 'Not set'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-ink-400">Persuasion</span>
+                  <span className="text-ink capitalize">{formData.persuasion_axis?.replace('_', ' ') || 'Not set'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-ink-400">Target ICPs</span>
+                  <span className="text-ink">{formData.icp_ids.length} selected</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-ink-400">Barriers</span>
+                  <span className="text-ink">{formData.primary_barriers.join(', ') || 'None'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-ink-400">Duration</span>
+                  <span className="text-ink">
+                    {formData.start_date && formData.end_date 
+                      ? `${formData.start_date} → ${formData.end_date}`
+                      : 'Not scheduled'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-ink-400">Budget</span>
+                  <span className="text-ink">₹{formData.budget_plan.total.toLocaleString()}</span>
+                </div>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-white/10 bg-white/5">
+            <div className="p-4 bg-signal-muted border border-primary/20 rounded-lg">
+              <div className="flex items-center gap-2 text-primary">
+                <CheckCircle2 className="w-4 h-4" strokeWidth={1.5} />
+                <span className="text-sm">Ready to create campaign</span>
+              </div>
+              <p className="text-xs text-ink-400 mt-1">
+                You can add moves and generate assets after creation.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={step === 1 ? onClose : handleBack}
+          className="btn-editorial btn-ghost"
+        >
+          {step === 1 ? 'Cancel' : 'Back'}
+        </button>
+
+        {step < 4 ? (
           <button
-            onClick={step === 1 ? onClose : handleBack}
-            className="px-4 py-2 text-white/60 hover:text-white transition-colors"
+            type="button"
+            onClick={handleNext}
+            disabled={step === 1 && (!formData.name || !formData.goal)}
+            className="btn-editorial btn-primary"
           >
-            {step === 1 ? 'Cancel' : 'Back'}
+            Continue
+            <ArrowRight className="w-4 h-4" />
           </button>
-          
-          {step < 4 ? (
-            <button
-              onClick={handleNext}
-              disabled={step === 1 && (!formData.name || !formData.goal)}
-              className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              Continue
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              className="px-6 py-2 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 transition-colors flex items-center gap-2"
-            >
-              Create Campaign
-              <CheckCircle2 className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </motion.div>
-    </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="btn-editorial btn-primary"
+          >
+            Create campaign
+            <CheckCircle2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </Modal>
   )
 }
 
@@ -619,10 +535,8 @@ const Campaigns = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-3xl font-light text-white">Campaigns</h1>
-          <p className="text-white/40 mt-1">
-            Strategic marketing battles across your ICPs
-          </p>
+          <h1 className="font-serif text-headline-md text-ink">Campaigns</h1>
+          <p className="text-body-sm text-ink-400 mt-1">Strategic marketing plans across your ICPs</p>
         </motion.div>
 
         <motion.button
@@ -630,124 +544,87 @@ const Campaigns = () => {
           animate={{ opacity: 1, scale: 1 }}
           whileHover={{ scale: 1.02 }}
           onClick={() => setShowWizard(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-lg font-medium hover:bg-white/90 transition-colors"
+          className="btn-editorial btn-primary"
         >
-          <Plus className="w-4 h-4" />
-          New Campaign
+          <Plus className="w-4 h-4" strokeWidth={1.5} />
+          New campaign
         </motion.button>
       </div>
 
-      {/* Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-4 gap-4 mb-8"
-      >
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
-              <Layers className="w-5 h-5 text-white/60" />
-            </div>
-            <div>
-              <div className="text-2xl font-medium text-white">{stats.total}</div>
-              <div className="text-sm text-white/40">Total</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <Play className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div>
-              <div className="text-2xl font-medium text-white">{stats.active}</div>
-              <div className="text-sm text-white/40">Active</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div>
-              <div className="text-2xl font-medium text-white">{stats.green}</div>
-              <div className="text-sm text-white/40">On Track</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
-              <AlertCircle className="w-5 h-5 text-amber-400" />
-            </div>
-            <div>
-              <div className="text-2xl font-medium text-white">{stats.atRisk}</div>
-              <div className="text-sm text-white/40">At Risk</div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="flex items-center gap-2 mb-6"
-      >
-        {['all', 'active', 'planned', 'draft', 'completed'].map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilter(status)}
-            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-              filter === status
-                ? 'bg-white/10 text-white'
-                : 'text-white/40 hover:text-white/60'
-            }`}
-          >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </button>
-        ))}
-      </motion.div>
-
-      {/* Campaign grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-64 bg-white/5 rounded-xl animate-pulse" />
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          {['all', 'active', 'planned', 'draft', 'completed'].map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilter(status)}
+              className={`px-3 py-2 rounded-editorial text-body-sm transition-editorial ${
+                filter === status
+                  ? 'bg-muted text-ink'
+                  : 'text-ink-400 hover:text-ink hover:bg-muted'
+              }`}
+            >
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </button>
           ))}
         </div>
-      ) : filteredCampaigns.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredCampaigns.map((campaign, index) => (
-            <CampaignCard
-              key={campaign.id}
-              campaign={campaign}
-              onSelect={(c) => navigate(`/app/campaigns/${c.id}`)}
-            />
-          ))}
+
+        <div className="text-body-xs text-ink-400">
+          {stats.active} active · {stats.total} total
         </div>
-      ) : (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-16"
-        >
-          <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Target className="w-8 h-8 text-white/20" />
-          </div>
-          <h3 className="text-lg font-medium text-white mb-2">No campaigns yet</h3>
-          <p className="text-white/40 mb-6">Create your first campaign to start executing your strategy</p>
-          <button
-            onClick={() => setShowWizard(true)}
-            className="px-4 py-2 bg-white text-black rounded-lg font-medium hover:bg-white/90 transition-colors"
-          >
-            Create Campaign
-          </button>
-        </motion.div>
-      )}
+      </div>
+
+      <HairlineTable
+        loading={loading}
+        data={filteredCampaigns}
+        onRowClick={(row) => navigate(`/app/campaigns/${row.id}`)}
+        emptyTitle="No campaigns yet"
+        emptyDescription="Create your first campaign to start executing your strategy."
+        emptyAction="Create campaign"
+        onEmptyAction={() => setShowWizard(true)}
+        columns={[
+          {
+            key: 'name',
+            header: 'Campaign',
+            render: (row) => (
+              <div>
+                <div className="text-ink">{row.name}</div>
+                <div className="text-xs text-ink-400 line-clamp-1">{row.description}</div>
+              </div>
+            )
+          },
+          {
+            key: 'status',
+            header: 'Status',
+            render: (row) => <StatusPill status={row.status} />
+          },
+          {
+            key: 'rag_status',
+            header: 'Signal',
+            render: (row) => <RAGBadge status={row.rag_status} />
+          },
+          {
+            key: 'icps',
+            header: 'ICPs',
+            align: 'right',
+            render: (row) => <span className="font-mono text-ink">{row.icp_ids?.length || 0}</span>
+          },
+          {
+            key: 'moves',
+            header: 'Moves',
+            align: 'right',
+            render: (row) => <span className="font-mono text-ink">{row.move_count || 0}</span>
+          },
+          {
+            key: 'start_date',
+            header: 'Dates',
+            render: (row) => (
+              <span className="text-ink-400 text-body-sm">
+                {row.start_date ? `${row.start_date} → ${row.end_date || 'Ongoing'}` : '—'}
+              </span>
+            )
+          }
+        ]}
+      />
 
       {/* New Campaign Wizard */}
       <AnimatePresence>

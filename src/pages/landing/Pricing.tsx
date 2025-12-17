@@ -1,126 +1,131 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, useInView } from 'framer-motion'
-import { Check, Sparkle, Users, Clock, ShieldCheck, ArrowRight } from '@phosphor-icons/react'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
+import { ArrowRight, Check, X } from 'lucide-react'
 
-// Premium pricing card - no tilt, refined hover
-const PricingCard = ({ plan, index, onSelect }) => {
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRICING - "WAR ROOM" EDITION (DARK MODE)
+   Tactical, high-contrast, premium glassmorphism.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+// Custom Premium Art for Plans (Nanobana Style - Dark Mode Inverted)
+
+// 1. Sprouting Plant (Starter/Ascent)
+const PlantIcon = ({ className = '' }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className}>
+    <path d="M24 44V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path d="M24 38C24 38 34 36 34 26C34 19 28 18 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M24 32C24 32 14 30 14 20C14 13 20 12 24 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M24 20C24 20 20 14 22 10C24 6 26 8 26 12C26 14 24 20 24 20Z" fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    <circle cx="20" cy="14" r="1.5" fill="currentColor" fillOpacity="0.8" />
+    <path d="M16 42H32" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.3" />
+    {/* Glow */}
+    <circle cx="24" cy="20" r="12" fill="currentColor" fillOpacity="0.05" blur="10" />
+  </svg>
+)
+
+// 2. Mountain (Glide/Growth)
+const MountainIcon = ({ className = '' }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className}>
+    <path d="M4 40L20 12L32 30" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M24 26L34 10L44 40" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M20 12L24 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M4 40H44" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="34" cy="10" r="2" fill="currentColor" />
+    <path d="M30 16L34 10L36 14" fill="currentColor" fillOpacity="0.2" />
+    <circle cx="10" cy="8" r="1" fill="currentColor" fillOpacity="0.4" />
+    {/* Summit glow */}
+    <circle cx="34" cy="10" r="8" fill="currentColor" fillOpacity="0.1" />
+  </svg>
+)
+
+// 3. Flying Rocket (Soar/Scale)
+const RocketIcon = ({ className = '' }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className}>
+    <path d="M24 6C24 6 18 16 18 24C18 30 20 34 24 34C28 34 30 30 30 24C30 16 24 6 24 6Z" fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    <path d="M18 24L14 28V34L18 32" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M30 24L34 28V34L30 32" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M24 34V40" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path d="M24 40L22 44M24 40L26 44" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="24" cy="18" r="3" fill="currentColor" fillOpacity="0.3" />
+    {/* Motion lines - stylized exhaust */}
+    <path d="M24 44L24 54" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="2 4" opacity="0.5" />
+    {/* Engine glow */}
+    <circle cx="24" cy="24" r="14" fill="currentColor" fillOpacity="0.05" />
+  </svg>
+)
+
+const CheckIcon = ({ className = '' }) => (
+  <svg viewBox="0 0 16 16" fill="none" className={className}>
+    <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1" />
+    <path d="M5 8L7 10L11 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+// Pricing Card Component
+const PricingCard = ({ plan, index, onSelect, highlighted = false }) => {
   const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: "-50px" })
 
   return (
     <motion.div
       ref={ref}
       initial={{ opacity: 0, y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ delay: index * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className={`relative group ${plan.highlighted ? 'lg:-mt-4 lg:mb-4' : ''}`}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ delay: index * 0.1, duration: 0.5 }}
+      className={`relative group h-full flex flex-col ${highlighted ? 'lg:-mt-4 lg:mb-4' : ''}`}
     >
-      {/* Subtle glow for highlighted */}
-      {plan.highlighted && (
-        <div className="absolute -inset-px bg-gradient-to-b from-amber-500/20 to-amber-500/5 rounded-2xl blur-xl opacity-50" />
+      {/* Highlight Effects */}
+      {highlighted && (
+        <div className="absolute -inset-px bg-gradient-to-b from-amber-500/20 to-amber-500/5 rounded-2xl blur-md opacity-75 group-hover:opacity-100 transition-opacity" />
       )}
 
-      {/* Card */}
+      {/* Card Content */}
       <div className={`
-        relative h-full p-8 lg:p-10 rounded-2xl border transition-all duration-500
-        ${plan.highlighted
-          ? 'bg-zinc-900/60 border-amber-500/20'
-          : 'bg-zinc-900/40 border-white/[0.05] hover:border-white/[0.1]'
+        relative h-full flex flex-col p-8 rounded-2xl border transition-all duration-300
+        ${highlighted
+          ? 'bg-white border-amber-500/40 shadow-xl shadow-amber-500/10'
+          : 'bg-white/50 border-black/5 hover:border-black/10 hover:bg-white/80 hover:shadow-lg'
         }
-        hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]
       `}>
-        {/* Subtle hover gradient */}
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
         {/* Badge */}
         {plan.badge && (
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-amber-400 text-black text-[10px] uppercase tracking-[0.1em] font-semibold rounded-full">
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-500 text-white text-[10px] uppercase tracking-[0.15em] font-bold rounded-full shadow-lg">
             {plan.badge}
           </div>
         )}
 
-        {/* Plan header */}
-        <div className="relative z-10 mb-8">
-          <h3 className="text-2xl font-light text-white mb-2">{plan.name}</h3>
-          <p className="text-xs text-white/35 tracking-wide">{plan.tagline}</p>
+        {/* Header */}
+        <div className="flex items-start justify-between mb-8">
+          <div>
+            <h3 className={`text-2xl font-medium mb-1 text-black`}>{plan.name}</h3>
+            <p className="text-xs text-zinc-500 uppercase tracking-wider">{plan.tagline}</p>
+          </div>
+          <div className={`w-12 h-12 flex items-center justify-center rounded-xl bg-black/5 ${highlighted ? 'text-amber-600' : 'text-zinc-600'}`}>
+            <plan.icon className="w-8 h-8" />
+          </div>
         </div>
 
         {/* Price */}
-        <div className="relative z-10 mb-2">
+        <div className="mb-8">
           <div className="flex items-baseline gap-1">
-            <span className="text-sm text-white/30">₹</span>
-            <span className="text-5xl font-extralight text-white tracking-tight">
+            <span className="text-lg text-zinc-500">₹</span>
+            <span className={`text-5xl font-light tracking-tight text-black`}>
               {plan.price}
             </span>
+            <span className="text-sm text-zinc-600 font-medium ml-2">/ month</span>
           </div>
         </div>
 
-        {/* Period */}
-        <div className="relative z-10 flex items-center gap-2 mb-8">
-          <Clock className="w-3.5 h-3.5 text-white/25" weight="regular" />
-          <span className="text-[11px] text-white/35 uppercase tracking-[0.15em]">{plan.period}</span>
-        </div>
-
-        {/* Cohort limit */}
-        <div className={`
-          relative z-10 mb-4 p-4 rounded-xl border
-          ${plan.highlighted
-            ? 'bg-amber-500/5 border-amber-500/15'
-            : 'bg-white/[0.02] border-white/[0.05]'
-          }
-        `}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className={`w-4 h-4 ${plan.highlighted ? 'text-amber-400/60' : 'text-white/30'}`} weight="regular" />
-              <span className="text-sm text-white/50">Cohorts</span>
-            </div>
-            <span className={`text-lg font-light ${plan.highlighted ? 'text-amber-300' : 'text-white'}`}>
-              {plan.cohortLimit}
-            </span>
-          </div>
-        </div>
-
-        {/* RBI Autopay Indicator */}
-        <div className={`
-          relative z-10 mb-8 p-3 rounded-xl text-center
-          ${plan.autopayEligible
-            ? 'bg-emerald-500/10 border border-emerald-500/20'
-            : 'bg-amber-500/10 border border-amber-500/20'
-          }
-        `}>
-          {plan.autopayEligible ? (
-            <p className="text-emerald-400 text-xs flex items-center justify-center gap-1.5">
-              <span className="text-base">✓</span>
-              Seamless auto-renewal
-            </p>
-          ) : (
-            <p className="text-amber-400 text-xs flex items-center justify-center gap-1.5">
-              <span className="text-base">⚡</span>
-              Monthly payment link (RBI rule)
-            </p>
-          )}
-        </div>
-
-        {/* Description */}
-        <p className="relative z-10 text-sm text-white/40 leading-relaxed mb-8">
-          {plan.description}
-        </p>
+        {/* Divider */}
+        <div className="h-px w-full bg-black/5 mb-8" />
 
         {/* Features */}
-        <ul className="relative z-10 space-y-3 mb-10">
+        <ul className="space-y-4 mb-8 flex-grow">
           {plan.features.map((feature, i) => (
             <li key={i} className="flex items-start gap-3">
-              <div className={`
-                w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0
-                ${plan.highlighted ? 'bg-amber-500/15' : 'bg-white/[0.05]'}
-              `}>
-                <Check
-                  className={`w-3 h-3 ${plan.highlighted ? 'text-amber-400' : 'text-white/35'}`}
-                  weight="bold"
-                />
-              </div>
-              <span className="text-sm text-white/50">{feature}</span>
+              <Check className={`w-4 h-4 mt-0.5 flex-shrink-0 ${highlighted ? 'text-amber-600' : 'text-zinc-400'}`} />
+              <span className={`text-sm text-zinc-600`}>{feature}</span>
             </li>
           ))}
         </ul>
@@ -129,16 +134,15 @@ const PricingCard = ({ plan, index, onSelect }) => {
         <button
           onClick={onSelect}
           className={`
-            relative z-10 w-full py-4 font-medium text-sm tracking-wide 
-            flex items-center justify-center gap-2 overflow-hidden group/btn transition-all duration-300
-            ${plan.highlighted
-              ? 'bg-white text-black hover:bg-amber-50'
-              : 'bg-white/[0.05] text-white/60 border border-white/[0.08] hover:border-white/[0.15] hover:text-white'
+            w-full py-4 text-sm font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 group/btn transition-all
+            ${highlighted
+              ? 'bg-black text-white hover:bg-zinc-800'
+              : 'bg-black/5 text-zinc-600 border border-black/5 hover:bg-black/10 hover:text-black'
             }
           `}
         >
-          <span>Start with {plan.name}</span>
-          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" weight="bold" />
+          <span>Select Plan</span>
+          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
         </button>
       </div>
     </motion.div>
@@ -147,160 +151,147 @@ const PricingCard = ({ plan, index, onSelect }) => {
 
 const Pricing = () => {
   const navigate = useNavigate()
-  const sectionRef = useRef(null)
-  const inView = useInView(sectionRef, { once: true, margin: "-100px" })
+  const [showMatrix, setShowMatrix] = useState(false)
 
   const plans = [
     {
       name: 'Ascent',
-      tagline: 'Start building your strategy',
+      icon: PlantIcon,
+      tagline: 'The Genesis',
       price: '5,000',
-      period: '30 days',
-      cohortLimit: 3,
-      autopayEligible: true,
-      description: 'Perfect for solo founders ready to bring clarity to their chaos.',
+      description: 'For solo founders ready to execute.',
       features: [
-        'Complete 7-pillar strategy intake',
-        '1 strategic workspace',
-        'AI-powered plan generation',
-        '90-day war map creation',
-        'Up to 3 cohorts',
-        'Radar trend matching',
-        'PDF & Notion export',
-        'Email support'
+        'Matrix Dashboard Access',
+        '1 Active War Plan',
+        '3 Active Cohorts',
+        '20 Battle Moves / mo',
+        'PDF Export'
       ],
       highlighted: false
     },
     {
       name: 'Glide',
-      tagline: 'For founders who mean business',
+      icon: MountainIcon,
+      tagline: 'The Climb',
       price: '7,000',
-      period: '30 days',
-      cohortLimit: 5,
-      autopayEligible: false,
-      description: 'Advanced tools and ongoing support for serious operators.',
+      description: 'For growing teams with momentum.',
       features: [
         'Everything in Ascent',
-        '3 strategic workspaces',
-        'Advanced AI strategy engine',
-        'Up to 5 cohorts',
-        'Real-time collaboration (up to 3)',
-        'Integrations: Notion, Slack, Linear',
-        'Priority support',
-        'Monthly strategy review call'
+        '3 Active War Plans',
+        '5 Active Cohorts',
+        'Black Box A/B Testing',
+        'Priority Intel Support'
       ],
       highlighted: true,
-      badge: 'Most Popular'
+      badge: 'RECOMMENDED'
     },
     {
       name: 'Soar',
-      tagline: 'The complete strategic arsenal',
+      icon: RocketIcon,
+      tagline: 'The Orbit',
       price: '10,000',
-      period: '30 days',
-      cohortLimit: 10,
-      autopayEligible: false,
-      description: 'For teams and founders who demand excellence at every turn.',
+      description: 'For agencies and scale-ups.',
       features: [
         'Everything in Glide',
-        'Unlimited workspaces',
-        'Up to 10 cohorts',
-        'Team collaboration (up to 10)',
-        'White-label exports',
-        'API access',
-        'Dedicated success manager',
-        '1-on-1 strategy onboarding call',
-        'Quarterly strategy sessions'
+        'Unlimited War Plans',
+        'Unlimited Cohorts',
+        'API Tactics Access',
+        'White-label Reports',
+        'Dedicated Strategist'
       ],
       highlighted: false
     }
   ]
 
   return (
-    <section id="pricing" ref={sectionRef} className="relative py-32 md:py-40 bg-[#050505] overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-radial from-amber-950/10 to-transparent blur-3xl" />
+    <section id="pricing" className="relative py-32 overflow-hidden bg-gradient-to-b from-[#FDFBF7] to-[#F5F2EA]">
+      {/* Light Tactical Background */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 md:px-12 relative z-10">
-        {/* Header */}
-        <div className="text-center mb-20 md:mb-24">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={inView ? { opacity: 1 } : {}}
-            className="inline-flex items-center gap-3 mb-8"
-          >
-            <span className="w-12 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
-            <span className="text-[11px] uppercase tracking-[0.4em] text-amber-400/60 font-medium">
-              Investment
-            </span>
-            <span className="w-12 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
-          </motion.div>
-
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.1, duration: 0.7 }}
-            className="text-5xl md:text-6xl lg:text-7xl font-light text-white tracking-tight mb-8"
-          >
-            Choose your{' '}
-            <span className="bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 bg-clip-text text-transparent">
-              trajectory
-            </span>
-          </motion.h2>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={inView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-lg md:text-xl text-white/35 max-w-xl mx-auto"
-          >
-            30 days of strategic clarity. No auto-renewal. No surprises.
-          </motion.p>
+      <div className="container-editorial relative z-10 max-w-7xl mx-auto px-6">
+        <div className="text-center mb-24">
+          <h2 className="text-4xl md:text-6xl font-serif text-black mb-6">
+            Direct <span className="text-amber-600">Capital</span> Injection.
+          </h2>
+          <p className="text-xl text-zinc-600 max-w-2xl mx-auto">
+            Small price for a war machine. ROI measured in days, not quarters.
+          </p>
         </div>
 
-        {/* Plans */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
-            <PricingCard
-              key={plan.name}
-              plan={plan}
-              index={index}
-              onSelect={() => navigate('/start')}
-            />
+            <PricingCard key={index} plan={plan} index={index} highlighted={plan.highlighted} onSelect={() => navigate('/signup')} />
           ))}
         </div>
 
-        {/* Bottom section */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="mt-16 text-center"
-        >
-          {/* Trust badges */}
-          <div className="flex flex-wrap items-center justify-center gap-8 mb-6">
-            <div className="flex items-center gap-2 text-white/25 text-sm">
-              <ShieldCheck weight="regular" className="w-4 h-4 text-emerald-400/60" />
-              <span>Secured by PhonePe</span>
-            </div>
-            <div className="flex items-center gap-2 text-white/25 text-sm">
-              <Clock weight="regular" className="w-4 h-4 text-amber-400/60" />
-              <span>30-day access</span>
-            </div>
-            <div className="flex items-center gap-2 text-white/25 text-sm">
-              <Sparkle weight="fill" className="w-4 h-4 text-blue-400/60" />
-              <span>GST included</span>
-            </div>
-          </div>
+        {/* Feature Matrix Toggle */}
+        <div className="mt-20 text-center">
+          <button
+            onClick={() => setShowMatrix(!showMatrix)}
+            className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-white transition-colors uppercase tracking-widest font-bold"
+          >
+            {showMatrix ? 'Hide Full Intel' : 'View Full Mission Intel'}
+            <ArrowRight className={`w-4 h-4 transition-transform ${showMatrix ? 'rotate-90' : ''}`} />
+          </button>
+        </div>
 
-          <p className="text-white/20 text-sm">
-            All prices in INR. Plan expires after 30 days.
-            <span className="text-white/30"> Renew anytime to continue.</span>
-          </p>
-        </motion.div>
+        {/* Animated Feature Matrix */}
+        <AnimatePresence>
+          {showMatrix && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="mt-12 bg-zinc-900/40 border border-white/5 rounded-2xl p-8 backdrop-blur-md overflow-x-auto">
+                <table className="w-full text-left min-w-[600px]">
+                  <thead>
+                    <tr className="border-b border-white/5">
+                      <th className="pb-4 text-xs uppercase text-zinc-600 font-bold">Feature Payload</th>
+                      <th className="pb-4 text-center text-xs uppercase text-zinc-500 font-medium">Ascent</th>
+                      <th className="pb-4 text-center text-xs uppercase text-amber-500 font-bold">Glide</th>
+                      <th className="pb-4 text-center text-xs uppercase text-zinc-500 font-medium">Soar</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {[
+                      ['War Room Access', true, true, true],
+                      ['Muse AI Generations', '200', '600', '1,500'],
+                      ['Campaign Slots', '1', '3', '10'],
+                      ['Team Seats', '1', '2', '5'],
+                      ['Support Level', 'Standard', 'Priority', 'Dedicated'],
+                      ['API Access', false, false, true]
+                    ].map((row, i) => (
+                      <tr key={i} className="group hover:bg-white/[0.02] transition-colors">
+                        <td className="py-4 text-zinc-300 text-sm font-medium">{row[0]}</td>
+                        <td className="py-4 text-center text-zinc-500 text-sm">
+                          {typeof row[1] === 'boolean'
+                            ? (row[1] ? <Check className="w-4 h-4 text-emerald-500 mx-auto" /> : <X className="w-4 h-4 text-zinc-800 mx-auto" />)
+                            : row[1]}
+                        </td>
+                        <td className="py-4 text-center text-zinc-300 text-sm font-bold">
+                          {typeof row[2] === 'boolean'
+                            ? (row[2] ? <Check className="w-4 h-4 text-amber-500 mx-auto" /> : <X className="w-4 h-4 text-zinc-800 mx-auto" />)
+                            : row[2]}
+                        </td>
+                        <td className="py-4 text-center text-zinc-500 text-sm">
+                          {typeof row[3] === 'boolean'
+                            ? (row[3] ? <Check className="w-4 h-4 text-emerald-500 mx-auto" /> : <X className="w-4 h-4 text-zinc-800 mx-auto" />)
+                            : row[3]}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </div>
     </section>
   )

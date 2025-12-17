@@ -30,5 +30,5 @@
     "noImplicitAny": false
   },
   "include": ["src/**/*", "vite.config.js"],
-  "exclude": ["node_modules", "dist", "backend"]
+  "exclude": ["node_modules", "dist", "backend", "src/pages/app/app_campaigns.tsx"]
 }

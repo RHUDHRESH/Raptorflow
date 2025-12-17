@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight, Lightbulb, Target, Zap, AlertCircle } from 'lucide-react'
+import { ArrowRight, Lightbulb, Target, AlertCircle } from 'lucide-react'
+import { BrandIcon } from '@/components/brand/BrandSystem'
 import useOnboardingStore from '../../store/onboardingStore'
 
 const promptChips = {
@@ -24,7 +25,7 @@ const promptChips = {
 const StepPositioning = () => {
   const navigate = useNavigate()
   const { positioning, updatePositioning, nextStep } = useOnboardingStore()
-  
+
   const [danKennedy, setDanKennedy] = useState(positioning.danKennedy || '')
   const [dunford, setDunford] = useState(positioning.dunford || '')
   const [activeField, setActiveField] = useState('kennedy')
@@ -47,7 +48,7 @@ const StepPositioning = () => {
     const newErrors = {}
     if (!kennedyValid) newErrors.kennedy = 'Please write at least 50 characters'
     if (!dunfordValid) newErrors.dunford = 'Please write at least 50 characters'
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       return
@@ -98,25 +99,22 @@ const StepPositioning = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`relative p-6 md:p-8 rounded-2xl border transition-colors ${
-              activeField === 'kennedy' 
-                ? 'bg-amber-500/5 border-amber-500/30' 
-                : 'bg-zinc-900/50 border-white/5 hover:border-white/10'
-            }`}
+            className={`relative p-6 md:p-8 rounded-2xl border transition-colors ${activeField === 'kennedy'
+              ? 'bg-amber-500/5 border-amber-500/30'
+              : 'bg-zinc-900/50 border-white/5 hover:border-white/10'
+              }`}
             onClick={() => setActiveField('kennedy')}
           >
             <div className="flex items-start gap-4 mb-6">
-              <div className="p-2 bg-white/5 rounded-lg flex-shrink-0">
-                <Zap className="w-5 h-5 text-amber-400" />
-              </div>
-              <div>
-                <h2 className="text-lg font-medium text-white mb-1">
-                  The Dan Kennedy Question
-                </h2>
-                <p className="text-white/50 text-sm leading-relaxed">
-                  "Why should I choose you over every other option – including doing nothing?"
-                </p>
-              </div>
+              <BrandIcon name="speed" className="w-5 h-5 text-amber-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-medium text-white mb-1">
+                The Dan Kennedy Question
+              </h2>
+              <p className="text-white/50 text-sm leading-relaxed">
+                "Why should I choose you over every other option – including doing nothing?"
+              </p>
             </div>
 
             <textarea
@@ -156,68 +154,67 @@ const StepPositioning = () => {
             )}
           </motion.div>
 
-          {/* April Dunford Question */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className={`relative p-6 md:p-8 rounded-2xl border transition-colors ${
-              activeField === 'dunford' 
-                ? 'bg-amber-500/5 border-amber-500/30' 
-                : 'bg-zinc-900/50 border-white/5 hover:border-white/10'
-            }`}
-            onClick={() => setActiveField('dunford')}
-          >
-            <div className="flex items-start gap-4 mb-6">
-              <div className="p-2 bg-white/5 rounded-lg flex-shrink-0">
-                <Lightbulb className="w-5 h-5 text-amber-400" />
-              </div>
-              <div>
-                <h2 className="text-lg font-medium text-white mb-1">
-                  The April Dunford Question
-                </h2>
-                <p className="text-white/50 text-sm leading-relaxed">
-                  "Who is your product <span className="text-amber-300">obviously better</span> for – and in what situations?"
-                </p>
-              </div>
-            </div>
+      {/* April Dunford Question */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className={`relative p-6 md:p-8 rounded-2xl border transition-colors ${activeField === 'dunford'
+          ? 'bg-amber-500/5 border-amber-500/30'
+          : 'bg-zinc-900/50 border-white/5 hover:border-white/10'
+          }`}
+        onClick={() => setActiveField('dunford')}
+      >
+        <div className="flex items-start gap-4 mb-6">
+          <div className="p-2 bg-white/5 rounded-lg flex-shrink-0">
+            <Lightbulb className="w-5 h-5 text-amber-400" />
+          </div>
+          <div>
+            <h2 className="text-lg font-medium text-white mb-1">
+              The April Dunford Question
+            </h2>
+            <p className="text-white/50 text-sm leading-relaxed">
+              "Who is your product <span className="text-amber-300">obviously better</span> for – and in what situations?"
+            </p>
+          </div>
+        </div>
 
-            <textarea
-              value={dunford}
-              onChange={(e) => {
-                setDunford(e.target.value)
-                setErrors(prev => ({ ...prev, dunford: null }))
-              }}
-              onFocus={() => setActiveField('dunford')}
-              placeholder="Example: 'We're better than HubSpot for B2B SaaS teams with long sales cycles and complex buying committees.'"
-              className="w-full h-40 bg-black/30 border border-white/10 rounded-xl p-4 text-white placeholder:text-white/20 resize-none focus:outline-none focus:border-amber-500/50 transition-colors"
-            />
+        <textarea
+          value={dunford}
+          onChange={(e) => {
+            setDunford(e.target.value)
+            setErrors(prev => ({ ...prev, dunford: null }))
+          }}
+          onFocus={() => setActiveField('dunford')}
+          placeholder="Example: 'We're better than HubSpot for B2B SaaS teams with long sales cycles and complex buying committees.'"
+          className="w-full h-40 bg-black/30 border border-white/10 rounded-xl p-4 text-white placeholder:text-white/20 resize-none focus:outline-none focus:border-amber-500/50 transition-colors"
+        />
 
-            {/* Character count & error */}
-            <div className="flex items-center justify-between mt-3">
-              <div className="flex flex-wrap gap-2">
-                {promptChips.dunford.slice(0, 3).map((chip, i) => (
-                  <button
-                    key={i}
-                    onClick={() => insertChip(chip)}
-                    className="text-xs px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/60 rounded-full transition-colors"
-                  >
-                    {chip}
-                  </button>
-                ))}
-              </div>
-              <span className={`text-xs ${dunfordValid ? 'text-emerald-400' : 'text-white/30'}`}>
-                {dunfordLength}/50 min
-              </span>
-            </div>
+        {/* Character count & error */}
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex flex-wrap gap-2">
+            {promptChips.dunford.slice(0, 3).map((chip, i) => (
+              <button
+                key={i}
+                onClick={() => insertChip(chip)}
+                className="text-xs px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/60 rounded-full transition-colors"
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+          <span className={`text-xs ${dunfordValid ? 'text-emerald-400' : 'text-white/30'}`}>
+            {dunfordLength}/50 min
+          </span>
+        </div>
 
-            {errors.dunford && (
-              <div className="flex items-center gap-2 mt-3 text-red-400 text-sm">
-                <AlertCircle className="w-4 h-4" />
-                {errors.dunford}
-              </div>
-            )}
-          </motion.div>
+        {errors.dunford && (
+          <div className="flex items-center gap-2 mt-3 text-red-400 text-sm">
+            <AlertCircle className="w-4 h-4" />
+            {errors.dunford}
+          </div>
+        )}
+      </motion.div>
         </div>
       </div>
 

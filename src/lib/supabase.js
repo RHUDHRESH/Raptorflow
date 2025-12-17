@@ -4,28 +4,57 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://vpwwzsanuyhpkvgorcnc.supabase.co'
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
-if (!supabaseAnonKey) {
-  throw new Error('VITE_SUPABASE_ANON_KEY is required')
+const createMockSupabase = () => {
+  const notConfiguredError = { message: 'Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.' }
+
+  const mockAuth = {
+    getSession: async () => ({ data: { session: null }, error: null }),
+    getUser: async () => ({ data: { user: null }, error: null }),
+    signOut: async () => ({ error: null }),
+    signInWithOAuth: async () => ({ data: null, error: notConfiguredError }),
+    signInWithOtp: async () => ({ data: null, error: notConfiguredError }),
+    refreshSession: async () => ({ data: { session: null }, error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+  }
+
+  const mockQuery = {
+    select: () => mockQuery,
+    insert: () => mockQuery,
+    update: () => mockQuery,
+    eq: () => mockQuery,
+    single: async () => ({ data: null, error: notConfiguredError }),
+  }
+
+  return {
+    auth: mockAuth,
+    from: () => mockQuery,
+  }
 }
 
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey,
-  {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,
-      flowType: 'pkce',
-      debug: import.meta.env.DEV,
-    },
-    global: {
-      headers: {
-        'x-client-info': 'raptorflow-web'
-      }
-    }
-  }
-)
+const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
+
+export const supabaseConfigured = isSupabaseConfigured
+
+if (!isSupabaseConfigured) {
+  console.warn('[supabase] Missing env vars; running in preview mode without Supabase auth.')
+}
+
+export const supabase = isSupabaseConfigured
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        flowType: 'pkce',
+        debug: import.meta.env.DEV,
+      },
+      global: {
+        headers: {
+          'x-client-info': 'raptorflow-web',
+        },
+      },
+    })
+  : createMockSupabase()
 
 // Helper functions for auth
 export const signInWithGoogle = async () => {

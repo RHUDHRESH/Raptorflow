@@ -1,245 +1,223 @@
-import React, { useRef, useState } from 'react'
-import { motion, useInView, AnimatePresence } from 'framer-motion'
-import {
-  MessageSquare,
-  Brain,
-  Rocket,
-  BarChart3,
-  ArrowRight,
-  CheckCircle2,
-  Play
-} from 'lucide-react'
+import React, { useRef, useState, useEffect } from 'react'
+import { motion, useInView } from 'framer-motion'
 
-// Step connector with animation
-const StepConnector = ({ active }) => (
-  <div className="hidden lg:flex items-center justify-center w-24 relative">
-    <motion.div
-      className="h-px w-full bg-white/10"
-      initial={{ scaleX: 0 }}
-      animate={{ scaleX: 1 }}
-      transition={{ duration: 0.6, delay: 0.3 }}
-    />
-    <motion.div
-      className={`absolute h-px bg-gradient-to-r from-amber-500 to-yellow-500 left-0 right-0`}
-      initial={{ scaleX: 0 }}
-      animate={{ scaleX: active ? 1 : 0 }}
-      transition={{ duration: 0.8 }}
-      style={{ transformOrigin: 'left' }}
-    />
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: active ? 1 : 0.3, x: 0 }}
-      transition={{ delay: 0.5 }}
-      className="absolute"
-    >
-      <ArrowRight className={`w-4 h-4 ${active ? 'text-amber-400' : 'text-white/20'}`} />
-    </motion.div>
-  </div>
+/* ═══════════════════════════════════════════════════════════════════════════
+   INTERACTIVE FLOW - Simplified 4-step process with cleaner cards
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+// Nanobana-style step icons
+const IntakeIcon = ({ className = '' }) => (
+  <svg viewBox="0 0 32 32" fill="none" className={className}>
+    <circle cx="16" cy="16" r="12" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M16 10V22M10 16H22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
 )
 
-// Interactive step card
-const StepCard = ({ step, index, isActive, onClick }) => {
-  const Icon = step.icon
+const BrainIcon = ({ className = '' }) => (
+  <svg viewBox="0 0 32 32" fill="none" className={className}>
+    <circle cx="16" cy="16" r="10" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M12 12C14 10 18 10 20 12M12 20C14 22 18 22 20 20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="12" cy="16" r="2" fill="currentColor" fillOpacity="0.5" />
+    <circle cx="20" cy="16" r="2" fill="currentColor" fillOpacity="0.5" />
+  </svg>
+)
+
+const RocketIcon = ({ className = '' }) => (
+  <svg viewBox="0 0 32 32" fill="none" className={className}>
+    <path d="M16 4L22 16L16 28L10 16L16 4Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    <circle cx="16" cy="14" r="3" fill="currentColor" fillOpacity="0.3" />
+    <path d="M6 22L10 18M26 22L22 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+)
+
+const ChartIcon = ({ className = '' }) => (
+  <svg viewBox="0 0 32 32" fill="none" className={className}>
+    <rect x="4" y="18" width="6" height="10" rx="1" stroke="currentColor" strokeWidth="1.5" />
+    <rect x="12" y="12" width="6" height="16" rx="1" stroke="currentColor" strokeWidth="1.5" />
+    <rect x="20" y="6" width="6" height="22" rx="1" stroke="currentColor" strokeWidth="1.5" />
+  </svg>
+)
+
+// Animated checkmark icon with slow tick effect
+const AnimatedCheckmark = () => (
+  <motion.svg
+    viewBox="0 0 16 16"
+    className="w-4 h-4"
+    fill="none"
+  >
+    <motion.path
+      d="M3 8L7 12L13 4"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      initial={{ pathLength: 0 }}
+      animate={{ pathLength: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+    />
+  </motion.svg>
+)
+
+// Sparkle particle for clarity effect
+const SparkleParticle = ({ delay = 0 }) => (
+  <motion.div
+    className="absolute w-1 h-1 bg-amber-300 rounded-full"
+    style={{
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+    }}
+    initial={{ opacity: 0, scale: 0 }}
+    animate={{
+      opacity: [0, 1, 0],
+      scale: [0, 1.5, 0],
+    }}
+    transition={{
+      duration: 1.5,
+      repeat: Infinity,
+      delay: delay,
+      repeatDelay: Math.random() * 2,
+    }}
+  />
+)
+
+// Step card component with animated checkmarks
+const StepCard = ({ step, index, isActive, isCompleted, onClick }) => {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: "-50px" })
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.15, duration: 0.6 }}
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ delay: index * 0.1, duration: 0.5 }}
       onClick={onClick}
-      className={`
-        relative flex-1 min-w-[250px] cursor-pointer group
-        ${isActive ? 'z-10' : 'z-0'}
-      `}
+      className="cursor-pointer group"
     >
-      {/* Card */}
-      <motion.div
-        animate={{
-          scale: isActive ? 1.02 : 1,
-          y: isActive ? -8 : 0
-        }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className={`
-          relative p-6 rounded-2xl border transition-all duration-300
-          ${isActive
-            ? 'bg-gradient-to-br from-amber-500/10 to-yellow-500/5 border-amber-500/30'
-            : 'bg-white/5 border-white/10 hover:border-white/20'
-          }
-        `}
-      >
-        {/* Step number */}
-        <div className={`
-          absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-          ${isActive
-            ? 'bg-gradient-to-br from-amber-500 to-yellow-500 text-black'
-            : 'bg-zinc-800 text-white/60 border border-white/10'
-          }
-        `}>
-          {index + 1}
-        </div>
+      <div className={`
+        relative p-6 rounded-xl border transition-all duration-300
+        ${isActive
+          ? 'bg-zinc-900/60 border-amber-500/25 shadow-lg shadow-amber-500/10'
+          : 'bg-zinc-900/40 border-white/[0.06] hover:border-white/[0.12]'
+        }
+      `}>
+        {/* Step number or animated checkmark */}
+        <motion.div
+          className={`
+            absolute -top-3 -left-3 w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium
+            ${isCompleted
+              ? 'bg-emerald-500 text-white'
+              : isActive
+                ? 'bg-amber-500 text-black'
+                : 'bg-zinc-800 text-white/50 border border-white/[0.1]'
+            }
+          `}
+          animate={{
+            scale: isCompleted ? [1, 1.2, 1] : 1,
+            boxShadow: isCompleted ? ['0 0 0 rgba(52,211,153,0)', '0 0 12px rgba(52,211,153,0.5)', '0 0 0 rgba(52,211,153,0)'] : 'none'
+          }}
+          transition={{ duration: 0.5 }}
+        >
+          {isCompleted ? <AnimatedCheckmark /> : index + 1}
+        </motion.div>
 
         {/* Icon */}
-        <div className={`
-          w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors
-          ${isActive
-            ? 'bg-amber-500/20'
-            : 'bg-white/5 group-hover:bg-white/10'
-          }
-        `}>
-          <Icon className={`w-6 h-6 ${isActive ? 'text-amber-400' : 'text-white/40'}`} />
-        </div>
+        <motion.div
+          className={`w-10 h-10 mb-4 ${isActive ? 'text-amber-400' : isCompleted ? 'text-emerald-400/60' : 'text-white/30'}`}
+          animate={{
+            scale: isActive ? [1, 1.08, 1] : 1,
+            rotate: isActive && index === 1 ? [0, 5, -5, 0] : 0, // Brain icon subtle wobble
+          }}
+          transition={{ duration: 1.5, repeat: isActive ? Infinity : 0 }}
+        >
+          <step.icon className="w-full h-full" />
+        </motion.div>
 
         {/* Content */}
-        <h3 className={`text-lg font-medium mb-2 ${isActive ? 'text-white' : 'text-white/80'}`}>
+        <h3 className={`text-lg font-medium mb-2 ${isActive ? 'text-white' : isCompleted ? 'text-white/60' : 'text-white/70'}`}>
           {step.title}
         </h3>
-        <p className={`text-sm leading-relaxed ${isActive ? 'text-white/60' : 'text-white/40'}`}>
+        <p className={`text-sm leading-relaxed ${isActive ? 'text-white/50' : 'text-white/30'}`}>
           {step.description}
         </p>
 
-        {/* Duration badge */}
+        {/* Duration */}
         <div className={`
-          mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs
-          ${isActive
-            ? 'bg-amber-500/20 text-amber-300'
-            : 'bg-white/5 text-white/40'
-          }
+          mt-4 inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs
+          ${isActive ? 'bg-amber-500/15 text-amber-300' : isCompleted ? 'bg-emerald-500/10 text-emerald-300' : 'bg-white/5 text-white/30'}
         `}>
-          <Play className="w-3 h-3" />
           {step.duration}
         </div>
-
-        {/* Active glow */}
-        {isActive && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-500/10 via-transparent to-yellow-500/10 blur-xl -z-10"
-          />
-        )}
-      </motion.div>
+      </div>
     </motion.div>
   )
 }
 
-// Detail panel that appears below
-const DetailPanel = ({ step }) => (
-  <motion.div
-    initial={{ opacity: 0, height: 0 }}
-    animate={{ opacity: 1, height: 'auto' }}
-    exit={{ opacity: 0, height: 0 }}
-    transition={{ duration: 0.4 }}
-    className="overflow-hidden"
-  >
-    <div className="pt-8 pb-4">
-      <div className="max-w-3xl mx-auto bg-zinc-900/50 border border-white/10 rounded-2xl p-8">
-        <div className="flex items-start gap-6">
-          <div className="flex-1">
-            <h4 className="text-xl font-medium text-white mb-4">{step.detailTitle}</h4>
-            <p className="text-white/50 leading-relaxed mb-6">{step.detailDescription}</p>
-
-            {/* Deliverables */}
-            <div className="space-y-3">
-              <span className="text-xs uppercase tracking-wider text-amber-400/60">What you get:</span>
-              {step.deliverables.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 text-sm text-white/60">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400/60 flex-shrink-0" />
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Visual */}
-          <div className="hidden md:block w-64 h-48 bg-gradient-to-br from-amber-500/10 to-transparent rounded-xl border border-white/10 flex items-center justify-center">
-            <step.icon className="w-16 h-16 text-amber-400/20" />
-          </div>
-        </div>
-      </div>
-    </div>
-  </motion.div>
-)
-
-// Main InteractiveFlow component
 const InteractiveFlow = () => {
   const sectionRef = useRef(null)
   const inView = useInView(sectionRef, { once: true, margin: "-100px" })
   const [activeStep, setActiveStep] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
+
+  // Auto-advance timer
+  useEffect(() => {
+    if (!inView || isPaused) return
+
+    const timer = setInterval(() => {
+      setActiveStep(prev => (prev + 1) % 4)
+    }, 4000)
+
+    return () => clearInterval(timer)
+  }, [inView, isPaused])
 
   const steps = [
     {
-      icon: MessageSquare,
-      title: "Intake & Discovery",
+      icon: IntakeIcon,
+      title: "Strategic Intake",
       description: "Answer strategic questions. We extract your positioning, ICPs, and market context.",
-      duration: "15 minutes",
-      detailTitle: "The Strategic Intake",
-      detailDescription: "Our AI-powered intake process asks the right questions to understand your business deeply. Positioning frameworks from Dan Kennedy and April Dunford. Market analysis. Competitor landscape. All synthesized into actionable intelligence.",
-      deliverables: [
-        "Positioning statement with clarity score",
-        "3 distinct ICP profiles with fit scores",
-        "Barrier classification for each ICP",
-        "Protocol recommendations"
-      ]
+      duration: "15 minutes"
     },
     {
-      icon: Brain,
+      icon: BrainIcon,
       title: "AI Strategy Build",
       description: "Our agents analyze, score, and generate your complete GTM battle plan.",
-      duration: "Instant",
-      detailTitle: "The Intelligence Layer",
-      detailDescription: "Multiple AI agents work in concert: ICPBuildAgent creates detailed profiles. BarrierEngine classifies obstacles. StrategyProfile recommends protocols. All using tiered Gemini models for optimal reasoning.",
-      deliverables: [
-        "Complete campaign architecture",
-        "Move templates pre-loaded",
-        "Asset briefs ready for Muse",
-        "Metrics framework configured"
-      ]
+      duration: "Instant"
     },
     {
-      icon: Rocket,
+      icon: RocketIcon,
       title: "Launch Your Spike",
       description: "Activate your 30-day GTM sprint with guardrails and kill switches in place.",
-      duration: "30 days",
-      detailTitle: "The Execution Phase",
-      detailDescription: "Your Spike is a focused 30-day GTM implant. Protocols activate. Moves execute. Assets deploy. All with automated guardrails that pause spend if metrics breach thresholds. No runaway budgets. No wasteful experiments.",
-      deliverables: [
-        "Weekly RAG status reviews",
-        "Automated kill switch protection",
-        "Revenue simulation tracking",
-        "Real-time campaign adjustments"
-      ]
+      duration: "30 days"
     },
     {
-      icon: BarChart3,
+      icon: ChartIcon,
       title: "Measure & Iterate",
       description: "Track RAG metrics. Review performance. Learn and improve continuously.",
-      duration: "Ongoing",
-      detailTitle: "The Feedback Loop",
-      detailDescription: "Every metric flows into your Matrix dashboard. See what's working, what's not, and why. The Pattern Library captures successful moves. Your next Spike starts smarter than the last.",
-      deliverables: [
-        "Comprehensive performance report",
-        "Win/loss pattern analysis",
-        "Updated ICP refinements",
-        "Next Spike recommendations"
-      ]
+      duration: "Ongoing"
     }
   ]
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative py-32 md:py-40 bg-[#050505] overflow-hidden"
-    >
+    <section ref={sectionRef} className="relative py-32 md:py-40 bg-[#050505] overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+
+        {/* Subtle flow lines */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.05]">
+          <defs>
+            <pattern id="flow-dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+              <circle cx="20" cy="20" r="0.5" fill="#F59E0B" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#flow-dots)" />
+        </svg>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
-        {/* Section header - consistent styling */}
-        <div className="text-center mb-16 md:mb-20">
+      <div className="max-w-6xl mx-auto px-6 md:px-12 relative z-10">
+        {/* Header */}
+        <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
@@ -258,9 +236,23 @@ const InteractiveFlow = () => {
             transition={{ delay: 0.1, duration: 0.7 }}
             className="text-5xl md:text-6xl lg:text-7xl font-light text-white tracking-tight"
           >
-            From chaos to{' '}
-            <span className="bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 bg-clip-text text-transparent">
-              command
+            From{' '}
+            <motion.span
+              className="relative inline-block text-red-400/80"
+              whileHover={{ scale: 1.05, rotate: [-1, 1, -1, 0] }}
+              transition={{ duration: 0.3 }}
+            >
+              chaos
+            </motion.span>
+            {' '}to{' '}
+            <span className="relative inline-block">
+              <span className="bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 bg-clip-text text-transparent">
+                clarity
+              </span>
+              {/* Sparkle particles */}
+              {[...Array(6)].map((_, i) => (
+                <SparkleParticle key={i} delay={i * 0.3} />
+              ))}
             </span>
           </motion.h2>
 
@@ -274,43 +266,69 @@ const InteractiveFlow = () => {
           </motion.p>
         </div>
 
-        {/* Steps row */}
-        <div className="flex flex-col lg:flex-row items-stretch justify-center gap-4 lg:gap-0">
-          {steps.map((step, index) => (
-            <React.Fragment key={index}>
+        {/* Steps grid with connecting lines */}
+        <div
+          className="relative"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          {/* Connecting lines (desktop only) */}
+          <div className="hidden lg:block absolute top-1/2 left-0 right-0 -translate-y-1/2">
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            {/* Animated pulse */}
+            <motion.div
+              className="absolute top-0 h-1 w-16 bg-gradient-to-r from-amber-500/0 via-amber-500/60 to-amber-500/0 rounded-full -translate-y-1/2"
+              animate={{
+                left: [`${activeStep * 25}%`, `${((activeStep + 1) % 4) * 25}%`]
+              }}
+              transition={{ duration: 4, ease: "linear" }}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {steps.map((step, index) => (
               <StepCard
+                key={step.title}
                 step={step}
                 index={index}
                 isActive={activeStep === index}
+                isCompleted={index < activeStep}
                 onClick={() => setActiveStep(index)}
               />
-              {index < steps.length - 1 && (
-                <StepConnector active={activeStep > index} />
-              )}
-            </React.Fragment>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Detail panel */}
-        <AnimatePresence mode="wait">
-          <DetailPanel key={activeStep} step={steps[activeStep]} />
-        </AnimatePresence>
-
-        {/* Progress indicator */}
-        <div className="flex justify-center gap-2 mt-8">
-          {steps.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setActiveStep(index)}
-              className={`
-                w-2 h-2 rounded-full transition-all duration-300
-                ${activeStep === index
-                  ? 'w-8 bg-amber-400'
-                  : 'bg-white/20 hover:bg-white/40'
-                }
-              `}
-            />
-          ))}
+        {/* Progress dots with auto-play indicator */}
+        <div className="flex items-center justify-center gap-4 mt-12">
+          <div className="flex gap-2">
+            {steps.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setActiveStep(index)}
+                className={`
+                  h-2 rounded-full transition-all duration-300
+                  ${activeStep === index ? 'w-6 bg-amber-400' : index < activeStep ? 'w-2 bg-emerald-400/60' : 'w-2 bg-white/20 hover:bg-white/40'}
+                `}
+              />
+            ))}
+          </div>
+          <button
+            onClick={() => setIsPaused(!isPaused)}
+            className="text-white/30 hover:text-white/60 transition-colors"
+            title={isPaused ? "Resume auto-play" : "Pause auto-play"}
+          >
+            {isPaused ? (
+              <svg viewBox="0 0 16 16" className="w-4 h-4" fill="currentColor">
+                <path d="M4 3L12 8L4 13V3Z" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 16 16" className="w-4 h-4" fill="currentColor">
+                <rect x="3" y="3" width="4" height="10" rx="1" />
+                <rect x="9" y="3" width="4" height="10" rx="1" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
     </section>
@@ -318,4 +336,3 @@ const InteractiveFlow = () => {
 }
 
 export default InteractiveFlow
-
