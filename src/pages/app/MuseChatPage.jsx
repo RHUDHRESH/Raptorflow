@@ -1358,6 +1358,7 @@ function MuseChatPage() {
                       </motion.div>
                     )
                   })} 
+                )}
               </div>
 
               {!isAtBottom && (

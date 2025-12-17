@@ -172,14 +172,14 @@ const MoveBuilder = () => {
         <div className="min-h-screen bg-background">
             {/* Header with progress */}
             <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
-                <div className="max-w-3xl mx-auto px-6 py-4">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
                     <div className="flex items-center justify-between mb-4">
                         <button
                             onClick={goPrev}
-                            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
                         >
-                            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-                            <span className="text-sm">
+                            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={1.5} />
+                            <span className="text-sm font-medium">
                                 {currentStep === 1 ? 'Back to Moves' : 'Back'}
                             </span>
                         </button>
@@ -202,13 +202,13 @@ const MoveBuilder = () => {
             </header>
 
             {/* Step content */}
-            <main className="max-w-5xl mx-auto px-6 py-8">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={currentStep}
-                        initial={{ opacity: 0, x: 20 }}
+                        initial={{ opacity: 0, x: 10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
+                        exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
                     >
                         {renderStep()}
@@ -217,10 +217,10 @@ const MoveBuilder = () => {
             </main>
 
             {/* Footer with navigation */}
-            <footer className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border">
-                <div className="max-w-5xl mx-auto px-6 py-4">
+            <footer className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-border z-20">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
                     <div className="flex items-center justify-between">
-                        <div className="text-sm text-muted-foreground hidden md:block">
+                        <div className="text-sm text-muted-foreground hidden md:block font-medium">
                             {STEPS[currentStep - 1].description}
                         </div>
 
@@ -228,7 +228,7 @@ const MoveBuilder = () => {
                             {currentStep > 1 && (
                                 <button
                                     onClick={goPrev}
-                                    className="px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                                    className="px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                                 >
                                     Previous
                                 </button>
@@ -238,10 +238,10 @@ const MoveBuilder = () => {
                                 <button
                                     onClick={goNext}
                                     disabled={!canGoNext()}
-                                    className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-[0px]"
                                 >
                                     Continue
-                                    <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
+                                    <ArrowRight className="w-4 h-4" strokeWidth={2} />
                                 </button>
                             ) : null
                                 /* Step 11 has its own Start button in the component */

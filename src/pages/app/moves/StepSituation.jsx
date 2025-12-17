@@ -1,39 +1,49 @@
 import { motion } from 'framer-motion'
+import { Check, Clock, Coins, Users, Zap, Target, MousePointer, Activity } from 'lucide-react'
 
 /**
  * Step 2: Situation Snapshot
  * 
  * Quick context questions to determine framework fit.
- * Keep it fast, crisp, low effort.
  */
 
-const OptionCard = ({ label, description, isSelected, onClick, icon }) => (
+const OptionCard = ({ label, description, isSelected, onClick, icon: Icon }) => (
     <button
         onClick={onClick}
         className={`
-      flex-1 p-4 rounded-xl border-2 text-left transition-all duration-200
+      relative flex flex-col items-start p-5 rounded-2xl border transition-all duration-200 h-full w-full text-left group
       ${isSelected
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:border-primary/50 bg-card'
+                ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
+                : 'border-border hover:border-primary/30 bg-card hover:bg-muted/30'
             }
     `}
     >
-        {icon && (
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${isSelected ? 'bg-primary/10' : 'bg-muted'}`}>
-                {icon}
+        {isSelected && (
+            <div className="absolute top-3 right-3 text-primary">
+                <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                    <Check className="w-3 h-3 text-primary-foreground" strokeWidth={3} />
+                </div>
             </div>
         )}
-        <div className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+
+        <div className={`
+      w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-colors
+      ${isSelected ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground group-hover:text-primary group-hover:bg-primary/10'}
+    `}>
+            {Icon ? <Icon size={20} /> : <Activity size={20} />}
+        </div>
+
+        <div className={`font-medium mb-1 ${isSelected ? 'text-primary' : 'text-foreground'}`}>
             {label}
         </div>
         {description && (
-            <div className="text-xs text-muted-foreground mt-1">{description}</div>
+            <div className="text-xs text-muted-foreground leading-relaxed">{description}</div>
         )}
     </button>
 )
 
 const OptionRow = ({ options, value, onChange, columns = 3 }) => (
-    <div className={`grid gap-3 ${columns === 4 ? 'grid-cols-4' : columns === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+    <div className={`grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-${columns}`}>
         {options.map((option) => (
             <OptionCard
                 key={option.value}
@@ -47,32 +57,41 @@ const OptionRow = ({ options, value, onChange, columns = 3 }) => (
     </div>
 )
 
-const ToggleOption = ({ label, description, checked, onChange }) => (
+const ToggleOption = ({ label, description, checked, onChange, icon: Icon }) => (
     <button
         onClick={() => onChange(!checked)}
         className={`
-      flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-200
+      flex items-center justify-between p-5 rounded-2xl border transition-all duration-200 w-full group
       ${checked
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:border-primary/50 bg-card'
+                ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20'
+                : 'border-border hover:border-primary/30 bg-card hover:bg-muted/30'
             }
     `}
     >
-        <div>
-            <div className={`text-sm font-medium ${checked ? 'text-primary' : 'text-foreground'}`}>
-                {label}
+        <div className="flex items-center gap-4 text-left">
+            <div className={`
+        w-10 h-10 rounded-xl flex items-center justify-center transition-colors
+        ${checked ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground group-hover:text-primary group-hover:bg-primary/10'}
+      `}>
+                {Icon ? <Icon size={20} /> : <Activity size={20} />}
             </div>
-            {description && (
-                <div className="text-xs text-muted-foreground mt-0.5">{description}</div>
-            )}
+            <div>
+                <div className={`font-medium ${checked ? 'text-primary' : 'text-foreground'}`}>
+                    {label}
+                </div>
+                {description && (
+                    <div className="text-xs text-muted-foreground mt-0.5">{description}</div>
+                )}
+            </div>
         </div>
+
         <div className={`
-      w-10 h-6 rounded-full transition-colors relative
+      w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ml-4
       ${checked ? 'bg-primary' : 'bg-muted'}
     `}>
             <div className={`
-        absolute top-1 w-4 h-4 rounded-full bg-white transition-transform
-        ${checked ? 'translate-x-5' : 'translate-x-1'}
+        absolute top-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 shadow-sm
+        ${checked ? 'translate-x-6' : 'translate-x-1'}
       `} />
         </div>
     </button>
@@ -89,45 +108,43 @@ const StepSituation = ({ data, updateData }) => {
     }
 
     return (
-        <div className="pb-24 max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto pb-24">
             {/* Header */}
             <div className="text-center mb-10">
-                <h1 className="font-serif text-3xl text-foreground mb-3">
+                <h1 className="font-serif text-2xl text-foreground mb-2">
                     Tell us your situation
                 </h1>
-                <p className="text-muted-foreground">
-                    Answer these so we recommend the right approach for you.
+                <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+                    Answer these quick questions so we can recommend the perfect strategy.
                 </p>
-                <div className="mt-2 inline-flex items-center gap-2 text-xs text-muted-foreground">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-muted/50 rounded-full text-xs text-muted-foreground border border-border/50">
+                    <Clock className="w-3.5 h-3.5" />
                     Takes ~60 seconds
                 </div>
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-12">
                 {/* Section A: Core Constraints */}
                 <motion.section
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                 >
-                    <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
+                    <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-6 pl-1">
                         Core Constraints
                     </h2>
 
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                         {/* Speed needed */}
                         <div>
-                            <label className="block text-sm font-medium text-foreground mb-3">
+                            <label className="block text-sm font-medium text-foreground mb-4 pl-1">
                                 How fast do you need results?
                             </label>
                             <OptionRow
                                 options={[
-                                    { value: '7', label: '7 days', description: 'Fast sprint' },
-                                    { value: '14', label: '14 days', description: 'Standard' },
-                                    { value: '30', label: '30 days', description: 'Deep work' }
+                                    { value: '7', label: '7 Days', description: 'Need results ASAP (Sprint)', icon: Zap },
+                                    { value: '14', label: '14 Days', description: 'Standard timeframe (Move)', icon: Clock },
+                                    { value: '30', label: '30 Days', description: 'More time for quality (Deep)', icon: Target }
                                 ]}
                                 value={situation.speedNeeded}
                                 onChange={(v) => updateSituation('speedNeeded', v)}
@@ -136,14 +153,14 @@ const StepSituation = ({ data, updateData }) => {
 
                         {/* Time budget */}
                         <div>
-                            <label className="block text-sm font-medium text-foreground mb-3">
-                                How much time can you invest?
+                            <label className="block text-sm font-medium text-foreground mb-4 pl-1">
+                                How much time can you invest per week?
                             </label>
                             <OptionRow
                                 options={[
-                                    { value: '4h', label: '4 hours', description: 'Minimal' },
-                                    { value: '8h', label: '8 hours', description: 'Standard' },
-                                    { value: '15h', label: '15+ hours', description: 'Deep dive' }
+                                    { value: '4h', label: '4 Hours', description: 'I am swamped', icon: Activity },
+                                    { value: '8h', label: '8 Hours', description: 'Standard effort', icon: Clock },
+                                    { value: '15h', label: '15+ Hours', description: 'All-in focused', icon: Target }
                                 ]}
                                 value={situation.timeBudget}
                                 onChange={(v) => updateSituation('timeBudget', v)}
@@ -152,30 +169,29 @@ const StepSituation = ({ data, updateData }) => {
 
                         {/* Sales motion */}
                         <div>
-                            <label className="block text-sm font-medium text-foreground mb-3">
-                                How do you close deals?
+                            <label className="block text-sm font-medium text-foreground mb-4 pl-1">
+                                How do you usually close deals?
                             </label>
                             <OptionRow
                                 options={[
-                                    { value: 'calls', label: 'Sales Calls', description: 'Talk to close' },
-                                    { value: 'dms', label: 'DMs / Chat', description: 'Message to close' },
-                                    { value: 'checkout', label: 'Self-Serve', description: 'Direct checkout' }
+                                    { value: 'calls', label: 'Sales Calls', description: 'High ticket, high touch', icon: Users },
+                                    { value: 'dms', label: 'DMs / Chat', description: 'Conversational closing', icon: MousePointer },
+                                    { value: 'checkout', label: 'Self-Serve', description: 'Direct to checkout', icon: Coins }
                                 ]}
                                 value={situation.salesMotion}
                                 onChange={(v) => updateSituation('salesMotion', v)}
                             />
                         </div>
-
                         {/* Traffic level */}
                         <div>
-                            <label className="block text-sm font-medium text-foreground mb-3">
-                                Current traffic/audience level?
+                            <label className="block text-sm font-medium text-foreground mb-4 pl-1">
+                                What is your current traffic level?
                             </label>
                             <OptionRow
                                 options={[
-                                    { value: 'low', label: 'Low', description: '<1k followers' },
-                                    { value: 'medium', label: 'Medium', description: '1k-10k' },
-                                    { value: 'high', label: 'High', description: '10k+' }
+                                    { value: 'low', label: 'Low', description: 'Just starting / <1k followers', icon: Users },
+                                    { value: 'medium', label: 'Medium', description: 'Growing / 1k-10k followers', icon: Activity },
+                                    { value: 'high', label: 'High', description: 'established / 10k+ followers', icon: Zap }
                                 ]}
                                 value={situation.trafficLevel}
                                 onChange={(v) => updateSituation('trafficLevel', v)}
@@ -184,106 +200,46 @@ const StepSituation = ({ data, updateData }) => {
                     </div>
                 </motion.section>
 
+                <div className="border-t border-border/50" />
+
                 {/* Section B: Assets & Proof */}
                 <motion.section
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
+                    <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-6 pl-1">
                         Assets & Proof
                     </h2>
 
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                         {/* Customer results */}
                         <div>
-                            <label className="block text-sm font-medium text-foreground mb-3">
+                            <label className="block text-sm font-medium text-foreground mb-4 pl-1">
                                 Do you have customer results to show?
                             </label>
                             <OptionRow
                                 options={[
-                                    { value: 'none', label: 'None yet', description: 'Still building' },
-                                    { value: 'some', label: 'Some', description: 'A few cases' },
-                                    { value: 'strong', label: 'Strong', description: 'Clear wins' }
+                                    { value: 'none', label: 'None yet', description: "I'm looking for my first wins", icon: Users },
+                                    { value: 'some', label: 'Some', description: 'A few good testimonials', icon: Check },
+                                    { value: 'strong', label: 'Strong', description: 'Clear, undeniable case studies', icon: Zap }
                                 ]}
                                 value={situation.customerResults}
                                 onChange={(v) => updateSituation('customerResults', v)}
                             />
                         </div>
 
-                        {/* Clear offer */}
-                        <div>
-                            <label className="block text-sm font-medium text-foreground mb-3">
-                                How clear is your offer?
-                            </label>
-                            <OptionRow
-                                options={[
-                                    { value: 'messy', label: 'Messy', description: 'Needs work' },
-                                    { value: 'okay', label: 'Okay', description: 'Functional' },
-                                    { value: 'sharp', label: 'Sharp', description: 'Dialed in' }
-                                ]}
-                                value={situation.clearOffer}
-                                onChange={(v) => updateSituation('clearOffer', v)}
-                            />
-                        </div>
-
-                        {/* Primary channel */}
-                        <div>
-                            <label className="block text-sm font-medium text-foreground mb-3">
-                                Primary channel today?
-                            </label>
-                            <OptionRow
-                                options={[
-                                    { value: 'linkedin', label: 'LinkedIn' },
-                                    { value: 'instagram', label: 'Instagram' },
-                                    { value: 'email', label: 'Email' },
-                                    { value: 'twitter', label: 'Twitter/X' }
-                                ]}
-                                value={situation.primaryChannel}
-                                onChange={(v) => updateSituation('primaryChannel', v)}
-                                columns={4}
-                            />
-                        </div>
-
                         {/* Paid budget toggle */}
                         <ToggleOption
-                            label="Paid budget available?"
-                            description="Can you invest in ads or promotions?"
+                            label="Do you have a paid ad budget?"
+                            description="Can you invest money to accelerate distribution?"
                             checked={situation.paidBudget}
                             onChange={(v) => updateSituation('paidBudget', v)}
+                            icon={Coins}
                         />
                     </div>
                 </motion.section>
             </div>
-
-            {/* Summary strip */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="mt-8 p-4 rounded-xl bg-muted/50 border border-border"
-            >
-                <div className="flex flex-wrap gap-2">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                        {situation.speedNeeded} days
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
-                        {situation.timeBudget}
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium capitalize">
-                        {situation.salesMotion}
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium capitalize">
-                        {situation.trafficLevel} traffic
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium capitalize">
-                        {situation.customerResults} proof
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium capitalize">
-                        {situation.primaryChannel}
-                    </span>
-                </div>
-            </motion.div>
         </div>
     )
 }
