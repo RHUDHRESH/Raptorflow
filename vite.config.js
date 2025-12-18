@@ -33,6 +33,7 @@ export default defineConfig({
         secure: false
       }
     },
+    allowedHosts: ["ppt44h-3000.csb.app"],
     overlay: {
       warnings: false,
       errors: true

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { Check, X, ArrowRight, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { IconContent, IconTesting, IconTasks, IconTarget, IconResults, IconSpeed } from '@/components/brand/BrandSystem'
+import { IconContent, IconTesting, IconTasks } from '@/components/brand/BrandSystem'
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // COMPARISON TABLE - Premium animated before/after comparison
@@ -13,14 +13,8 @@ const COMPARISON_ITEMS = [
     {
         feature: 'Content',
         oldWay: 'ChatGPT + pray',
-        newWay: 'AI from your strategy',
+        newWay: 'AI writes from your strategy',
         Icon: IconContent
-    },
-    {
-        feature: 'Testing',
-        oldWay: 'Spreadsheets (maybe)',
-        newWay: 'Auto A/B testing',
-        Icon: IconTesting
     },
     {
         feature: 'Tasks',
@@ -29,22 +23,10 @@ const COMPARISON_ITEMS = [
         Icon: IconTasks
     },
     {
-        feature: 'Strategy',
-        oldWay: 'Dusty planning doc',
-        newWay: '90-day campaigns',
-        Icon: IconTarget
-    },
-    {
-        feature: 'Results',
-        oldWay: 'Gut feeling',
-        newWay: 'Clear conversion data',
-        Icon: IconResults
-    },
-    {
-        feature: 'Speed',
-        oldWay: '2-3 hours/asset',
-        newWay: '2-3 minutes',
-        Icon: IconSpeed
+        feature: 'Testing',
+        oldWay: 'Hope it works',
+        newWay: 'Auto A/B testing',
+        Icon: IconTesting
     }
 ]
 

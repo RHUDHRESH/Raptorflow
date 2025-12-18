@@ -9,7 +9,6 @@ import { MarketingLayout } from '@/components/MarketingLayout'
 import { StickyCTABar } from '@/pages/landing/StickyCTABar'
 import { HeroSection } from '@/pages/landing/components/HeroSection'
 import { InteractiveArt } from '@/pages/landing/components/InteractiveArt'
-import { InteractivePlayground } from '@/pages/landing/InteractivePlayground'
 import { WarRoomSection } from '@/pages/landing/WarRoomSection'
 import { OutcomePathsSection } from '@/pages/landing/OutcomePathsSection'
 import { FounderStory } from '@/pages/landing/FounderStory'
@@ -56,25 +55,28 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
               >
-                <h2 className="font-serif text-4xl md:text-5xl font-medium leading-tight mb-8">
-                  Marketing without a system is just <span className="text-destructive line-through decoration-destructive/50">gambling</span>.
+                <h2 className="font-serif text-4xl md:text-5xl font-medium leading-tight mb-4">
+                  Marketing without a system is just <span className="text-red-500 font-bold italic">gambling. ❤️❤️❤️</span>
                 </h2>
+                <p className="text-zinc-500 text-lg mb-8 leading-relaxed">
+                  Most founders ship features but ignore the system. That's why they guess.
+                </p>
                 <div className="space-y-6">
-                  <div className="p-6 bg-destructive/5 border border-destructive/15 rounded-2xl">
-                    <div className="flex items-center gap-3 mb-4 text-destructive font-bold uppercase tracking-wider text-sm">
+                  <div className="p-6 bg-zinc-100 border border-zinc-200 rounded-2xl">
+                    <div className="flex items-center gap-3 mb-4 text-zinc-700 font-bold uppercase tracking-wider text-sm">
                       <XCircle className="w-4 h-4" /> Current Reality
                     </div>
                     <ul className="space-y-3">
                       <li className="flex items-start gap-3 text-sm">
-                        <span className="text-lg">🛑</span>
+                        <span className="text-red-500 mt-1 flex-shrink-0">❤️</span>
                         <span><strong>"What do I post?"</strong> paralysis.</span>
                       </li>
                       <li className="flex items-start gap-3 text-sm">
-                        <span className="text-lg">💸</span>
+                        <span className="text-red-500 mt-1 flex-shrink-0">❤️</span>
                         <span>Burning cash on ads that <strong>don't convert</strong>.</span>
                       </li>
                       <li className="flex items-start gap-3 text-sm">
-                        <span className="text-lg">📉</span>
+                        <span className="text-red-500 mt-1 flex-shrink-0">❤️</span>
                         <span>Zero data. Just <strong>vibes and hope</strong>.</span>
                       </li>
                     </ul>
@@ -86,11 +88,39 @@ const LandingPage = () => {
                 initial={{ opacity: 0, x: 30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="relative"
+                className="relative flex items-center justify-center p-8 min-h-[400px]"
               >
-                <InteractiveArt type="target" size={300} position={{ x: '50%', y: '50%' }} className="opacity-10 pointer-events-none -translate-x-1/2 -translate-y-1/2" />
+                <div className="absolute inset-0 z-[-1] overflow-hidden pointer-events-none">
+                  <div className="absolute top-[20%] right-[15%] w-64 h-64 bg-zinc-100/50 rounded-full blur-3xl" />
+                  <div className="absolute bottom-[20%] left-[10%] w-48 h-48 bg-zinc-100/30 rounded-full blur-3xl" />
 
-                <div className="relative bg-card border border-border/50 p-8 rounded-3xl shadow-2xl">
+                  {/* High-end floating elements */}
+                  <motion.div
+                    className="absolute top-[10%] right-[10%] w-24 h-24 border border-zinc-200/50 rounded-full"
+                    animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
+                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <motion.div
+                    className="absolute bottom-[15%] left-[5%] w-16 h-16 border border-zinc-200/50 rotate-45"
+                    animate={{ rotate: [45, 90, 45], scale: [1, 1.2, 1] }}
+                    transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <div
+                    className="absolute inset-0 opacity-[0.02]"
+                    style={{
+                      backgroundImage: 'linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)',
+                      backgroundSize: '40px 40px'
+                    }}
+                  />
+                  <InteractiveArt
+                    type="target"
+                    size={600}
+                    position={{ x: '50%', y: '50%' }}
+                    className="opacity-[0.07] -translate-x-1/2 -translate-y-1/2"
+                  />
+                </div>
+
+                <div className="relative z-10 bg-white border border-zinc-200 p-8 rounded-3xl shadow-2xl w-full">
                   <div className="flex items-center gap-3 mb-6 text-zinc-700 font-bold uppercase tracking-wider text-sm">
                     <Check className="w-4 h-4" /> RaptorFlow Reality
                   </div>
@@ -109,8 +139,17 @@ const LandingPage = () => {
                         <Check className="w-5 h-5 text-zinc-700" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-lg">Daily Growth Plan</h4>
-                        <p className="text-sm text-muted-foreground">Wake up. Execute list. Win.</p>
+                        <h4 className="font-bold text-lg">Founder-First System</h4>
+                        <p className="text-xl md:text-2xl text-foreground leading-relaxed mb-8">
+                          Most marketing software is built for managers. RaptorFlow is built for <span className="text-zinc-900 font-bold italic">owners.</span>
+                          <br /><br />
+                          We built something different. A system that gives you the same operating cadence that growth teams use—
+                          <span className="text-zinc-900 font-bold">simplified for founders who don't have time for bullshit.</span>
+                        </p>
+                        <div className="mb-8 p-6 bg-zinc-50 border border-zinc-100 rounded-2xl">
+                          <h4 className="text-sm font-bold uppercase tracking-widest text-zinc-900 mb-2">Our Mission</h4>
+                          <p className="text-zinc-600 text-base">To turn every founder into a high-level strategic operator, replacing technical debt and chaos with a definitive, 90-day war plan that compounds every single day. No fluff, no "ghostwriting" garbage—just pure execution.</p>
+                        </div>
                       </div>
                     </li>
                     <li className="flex gap-4">

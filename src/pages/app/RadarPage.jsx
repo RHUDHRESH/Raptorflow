@@ -14,11 +14,19 @@ import {
   RefreshCw,
   Copy,
   Info,
+  MoreHorizontal,
   X,
   Zap
 } from 'lucide-react'
 import useRaptorflowStore from '../../store/raptorflowStore'
 import { BRAND_ICONS } from '@/components/brand/BrandSystem'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useTheme } from '@/contexts/ThemeContext'
 import { cn } from '@/lib/utils'
 
@@ -883,50 +891,92 @@ const RadarPage = () => {
   return (
     <div className="w-full max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <h1 className="font-serif text-headline-md text-ink">Radar</h1>
-          <p className="text-body-sm text-ink-400 mt-1">Scan for trending content and move opportunities</p>
-        </motion.div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="Radar info"
-            onClick={() => setIsInfoOpen(true)}
-            className="p-2 rounded-lg text-ink-400 hover:text-ink hover:bg-muted transition-editorial"
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
           >
-            <Info className="w-4 h-4" strokeWidth={1.5} />
-          </button>
+            <div className="text-[11px] text-ink-400 mb-2">Matrix / Radar</div>
+            <h1 className="font-serif text-headline-md text-ink">Radar</h1>
+            <p className="text-body-sm text-ink-400 mt-1">Scan for trending content and move opportunities</p>
+          </motion.div>
 
-          <motion.button
-            type="button"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-full border border-border"
-          >
-            <Radio className="w-3.5 h-3.5 text-ink-400" strokeWidth={1.5} />
-            <span className="text-body-xs text-ink">
-              <span className="font-medium">{scansRemaining}</span> left today
-            </span>
-          </motion.button>
+          <div className="flex items-center gap-2">
+            <motion.button
+              type="button"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-full border border-border"
+            >
+              <Radio className="w-3.5 h-3.5 text-ink-400" strokeWidth={1.5} />
+              <span className="text-body-xs text-ink">
+                <span className="font-medium">{scansRemaining}</span> left today
+              </span>
+            </motion.button>
 
-          <motion.button
-            type="button"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            onClick={() => setIsTodayScansOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl hover:border-border/70 transition-editorial"
-          >
-            <Clock className="w-4 h-4 text-ink-400" strokeWidth={1.5} />
-            <span className="text-body-sm text-ink">Today's scans</span>
-            <span className="text-[11px] leading-none text-ink-400 px-2 py-1 rounded-full bg-background border border-border">
-              {todayScans.length}
-            </span>
-          </motion.button>
+            <button
+              type="button"
+              onClick={handleScan}
+              disabled={!canUseRadar() || isScanning || !selectedCohorts?.length}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-body-sm font-medium hover:opacity-95 transition-editorial disabled:opacity-50"
+            >
+              {isScanning ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
+                  {scanType === 'big' ? 'Compiling…' : 'Scanning…'}
+                </>
+              ) : (
+                <>
+                  <Radio className="w-4 h-4" strokeWidth={1.5} />
+                  Run {scanType === 'small' ? 'Recon' : 'Dossier'}
+                </>
+              )}
+            </button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="More radar actions"
+                  className="p-2 rounded-lg text-ink-400 hover:text-ink hover:bg-muted transition-editorial"
+                >
+                  <MoreHorizontal className="w-4 h-4" strokeWidth={1.5} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault()
+                    setIsInfoOpen(true)
+                  }}
+                >
+                  <Info className="w-4 h-4" />
+                  How it works
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault()
+                    setIsTodayScansOpen(true)
+                  }}
+                >
+                  <Clock className="w-4 h-4" />
+                  Today’s scans ({todayScans.length})
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={!currentScan}
+                  onSelect={(e) => {
+                    e.preventDefault()
+                    if (!currentScan) return
+                    setIsResultsOpen(true)
+                  }}
+                >
+                  View last results
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
@@ -945,59 +995,35 @@ const RadarPage = () => {
               <h2 className="font-serif text-xl text-ink tracking-tight">Run a Scan</h2>
               <div className="text-body-xs text-ink-400 mt-1">Pick a focus, choose cohorts, and ship what pops.</div>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsResultsOpen(true)}
-              disabled={!currentScan}
-              className="text-body-xs text-ink-400 hover:text-ink transition-editorial disabled:opacity-50"
-            >
-              View last results
-            </button>
           </div>
 
-          <div className="mb-4">
-            <label className="block text-body-xs text-ink-400 mb-2">Scan type</label>
-            <ScanTypeSelector value={scanType} onChange={setScanType} />
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <div className="text-body-xs text-ink-400">
-                {scanType === 'big' ? 'Dossier: longer + higher confidence.' : 'Recon: fast signals for today.'}
+          <div className="space-y-6">
+            <div>
+              <label className="block text-body-xs text-ink-400 mb-2">Scan type</label>
+              <ScanTypeSelector value={scanType} onChange={setScanType} />
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <div className="text-body-xs text-ink-400">
+                  {scanType === 'big' ? 'Dossier: longer + higher confidence.' : 'Recon: fast signals for today.'}
+                </div>
+                <span className={`px-2.5 py-1 rounded-full text-[11px] leading-none border ${scanType === 'big'
+                  ? 'bg-primary/10 text-primary border-primary/20'
+                  : 'bg-background text-ink-400 border-border'
+                  }`}>
+                  {scanType === 'big' ? 'Dossier' : 'Recon'}
+                </span>
               </div>
-              <span className={`px-2.5 py-1 rounded-full text-[11px] leading-none border ${scanType === 'big'
-                ? 'bg-primary/10 text-primary border-primary/20'
-                : 'bg-background text-ink-400 border-border'
-                }`}>
-                {scanType === 'big' ? 'Dossier' : 'Recon'}
-              </span>
+            </div>
+
+            <div>
+              <label className="block text-body-xs text-ink-400 mb-2">Target cohorts</label>
+              <CohortSelector cohorts={cohorts} value={selectedCohorts} onChange={setSelectedCohorts} />
+            </div>
+
+            <div>
+              <label className="block text-body-xs text-ink-400 mb-2">Scan focus</label>
+              <ScanFocusSelector value={scanFocus} onChange={setScanFocus} items={scanFocusOptions} />
             </div>
           </div>
-
-          <div className="mb-6">
-            <label className="block text-body-xs text-ink-400 mb-2">Target cohorts</label>
-            <CohortSelector cohorts={cohorts} value={selectedCohorts} onChange={setSelectedCohorts} />
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-body-xs text-ink-400 mb-2">Scan focus</label>
-            <ScanFocusSelector value={scanFocus} onChange={setScanFocus} items={scanFocusOptions} />
-          </div>
-
-          <button
-            onClick={handleScan}
-            disabled={!canUseRadar() || isScanning || !selectedCohorts?.length}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-95 transition-editorial disabled:opacity-50"
-          >
-            {isScanning ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
-                {scanType === 'big' ? 'Compiling dossier…' : 'Running recon…'}
-              </>
-            ) : (
-              <>
-                <Radio className="w-4 h-4" strokeWidth={1.5} />
-                Run {scanType === 'small' ? 'Recon' : 'Dossier'}
-              </>
-            )}
-          </button>
 
           {!canUseRadar() && (
             <p className="text-body-xs text-ink-400 text-center mt-3">

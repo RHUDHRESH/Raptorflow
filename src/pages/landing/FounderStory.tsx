@@ -60,15 +60,15 @@ export const FounderStory = () => {
                         {painPoints.map((point, i) => (
                             <motion.div
                                 key={point}
-                                className="flex items-center gap-4 p-5 rounded-xl bg-destructive/5 border border-destructive/15"
+                                className="flex items-center gap-4 p-5 rounded-xl bg-zinc-900 border border-zinc-800"
                                 initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.3 + i * 0.1 }}
-                                whileHover={{ x: 4, borderColor: 'hsl(var(--destructive) / 0.2)' }}
+                                whileHover={{ scale: 1.02 }}
                             >
-                                <span className="text-destructive text-xl">✕</span>
-                                <span className="text-foreground font-medium">{point}</span>
+                                <span className="text-white text-xl font-bold">✕</span>
+                                <span className="text-white font-medium">{point}</span>
                             </motion.div>
                         ))}
                     </motion.div>
@@ -86,9 +86,21 @@ export const FounderStory = () => {
 
                         <div className="relative z-10">
                             <p className="text-xl md:text-2xl text-foreground leading-relaxed mb-8">
-                                So we built something different. A system that gives you the same operating cadence that growth teams use—
+                                Most marketing software is built for managers. RaptorFlow is built for <span className="text-zinc-900 font-bold italic">owners.</span>
+                                <br /><br />
+                                We built something different. A system that gives you the same operating cadence that growth teams use—
                                 <span className="text-zinc-900 font-bold">simplified for founders who don't have time for bullshit.</span>
                             </p>
+                            <div className="mb-10 p-8 bg-zinc-900 text-white rounded-3xl border border-zinc-800 shadow-xl overflow-hidden relative">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-[0.03] -mr-16 -mt-16 rounded-full" />
+                                <h4 className="text-sm font-bold uppercase tracking-widest text-white/50 mb-4 flex items-center gap-2">
+                                    <span className="w-8 h-px bg-white/20" /> Our Mission
+                                </h4>
+                                <p className="text-white text-lg md:text-xl font-medium leading-relaxed">
+                                    To turn every founder into a high-level strategic operator, replacing technical debt and chaos with a definitive, 90-day war plan that compounds every single day.
+                                    <span className="block mt-4 text-zinc-400 text-base font-normal">No fluff, no "ghostwriting" garbage—just pure execution.</span>
+                                </p>
+                            </div>
 
                             <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-6 border-t border-border">
                                 {/* Philosophy pillars */}
@@ -145,7 +157,7 @@ export const FounderStory = () => {
                                 animate={{ scale: [1, 1.2, 1] }}
                                 transition={{ duration: 1.5, repeat: Infinity }}
                             >
-                                <Heart className="w-4 h-4 text-zinc-600 fill-zinc-600 inline mx-1" />
+                                <Heart className="w-4 h-4 text-red-500 fill-red-500 inline mx-1" />
                             </motion.span>
                             for founders who refuse to guess
                         </motion.div>

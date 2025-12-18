@@ -49,56 +49,69 @@ const STEPS = [
 
 // Vignette components for each step
 const StrategyVignette = () => (
-    <div className="space-y-4">
-        <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-zinc-600 uppercase mb-2">ICP Definition</div>
-            <div className="text-lg font-semibold text-zinc-900 mb-3">SaaS Founders, $1-5M ARR</div>
-            <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-zinc-600">
-                    <span className="w-2 h-2 rounded-full bg-red-400" />
-                    Pain: Scattered marketing, no system
+    <div className="space-y-6">
+        <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 -mr-12 -mt-12 rounded-full blur-xl" />
+            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Command: ICP Strategy</div>
+            <div className="text-xl font-medium text-white mb-4">SaaS Founders <span className="text-zinc-500 text-sm ml-2">$1-5M ARR</span></div>
+            <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm text-zinc-400">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                    Pain: Fragmented execution
                 </div>
-                <div className="flex items-center gap-2 text-sm text-zinc-600">
-                    <span className="w-2 h-2 rounded-full bg-red-400" />
-                    Pain: Guessing what content works
-                </div>
-                <div className="flex items-center gap-2 text-sm text-zinc-600">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    Goal: 20 booked calls/month
+                <div className="flex items-center gap-3 text-sm text-zinc-400">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                    Pain: Low-intent lead fatigue
                 </div>
             </div>
         </div>
-        <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-zinc-600 uppercase mb-2">Messaging Spine</div>
-            <div className="text-sm text-zinc-600 space-y-1">
-                <div><span className="font-medium text-zinc-800">Say:</span> "Stop guessing, start executing"</div>
-                <div><span className="font-medium text-zinc-800">Avoid:</span> "AI-powered" (overused)</div>
+        <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-xl">
+            <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-4 text-center">Messaging Spine</div>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-100">
+                    <div className="text-[10px] font-bold text-zinc-400 mb-1 uppercase">Say</div>
+                    <div className="text-xs text-zinc-900 font-medium">"System over hacks"</div>
+                </div>
+                <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-100">
+                    <div className="text-[10px] font-bold text-zinc-400 mb-1 uppercase">Avoid</div>
+                    <div className="text-xs text-zinc-500">Generic AI fluff</div>
+                </div>
             </div>
         </div>
     </div>
 )
 
 const WarPlanVignette = () => (
-    <div className="space-y-4">
-        <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-zinc-600 uppercase mb-2">Campaign: Q1 Lead Gen</div>
-            <div className="flex items-center justify-between mb-4">
-                <div className="text-3xl font-bold text-zinc-900">0 → 50</div>
-                <div className="text-sm text-zinc-500">qualified leads in 30 days</div>
+    <div className="space-y-6">
+        <div className="bg-zinc-900 rounded-2xl p-8 border border-zinc-800 shadow-2xl">
+            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Command: Growth Contract</div>
+            <div className="flex items-end justify-between mb-6">
+                <div>
+                    <div className="text-4xl font-bold text-white tracking-tighter">0 → 50</div>
+                    <div className="text-[10px] text-zinc-500 uppercase font-bold mt-1">Qualified Opps / 30D</div>
+                </div>
+                <div className="text-right">
+                    <div className="text-xl font-medium text-zinc-400">34% <span className="text-xs align-top">↑</span></div>
+                    <div className="text-[10px] text-zinc-500 uppercase font-bold">Velocity</div>
+                </div>
             </div>
-            <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
-                <div className="h-full w-1/3 bg-zinc-800 rounded-full" />
+            <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: '45%' }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="h-full bg-white shadow-[0_0_10px_white]"
+                />
             </div>
         </div>
-        <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-zinc-600 uppercase mb-3">Channel Mix</div>
-            <div className="grid grid-cols-3 gap-3">
-                {['LinkedIn', 'Email', 'Twitter'].map(ch => (
-                    <div key={ch} className="text-center p-3 bg-zinc-50 rounded-lg">
-                        <div className="text-sm font-medium text-zinc-700">{ch}</div>
-                        <div className="text-xs text-zinc-500">3x/week</div>
-                    </div>
-                ))}
+        <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white rounded-2xl p-4 border border-zinc-200">
+                <div className="text-[10px] font-bold text-zinc-400 uppercase mb-2">Phase 01</div>
+                <div className="text-sm font-bold text-zinc-900">Foundational Scale</div>
+            </div>
+            <div className="bg-white rounded-2xl p-4 border border-zinc-200">
+                <div className="text-[10px] font-bold text-zinc-400 uppercase mb-2">Phase 02</div>
+                <div className="text-sm font-bold text-zinc-400">Aggressive Capture</div>
             </div>
         </div>
     </div>
@@ -106,51 +119,69 @@ const WarPlanVignette = () => (
 
 const AmmoVignette = () => (
     <div className="space-y-4">
-        <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-zinc-600 uppercase mb-3">Today's Queue</div>
-            <div className="space-y-2">
-                {[
-                    { done: true, text: 'LinkedIn carousel: ICP pain points' },
-                    { done: true, text: 'Follow-up email sequence' },
-                    { done: false, text: 'Twitter thread: founder story' }
-                ].map((task, i) => (
-                    <div key={i} className={`flex items-center gap-3 p-3 rounded-lg ${task.done ? 'bg-emerald-50' : 'bg-zinc-50'}`}>
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${task.done ? 'bg-emerald-500' : 'border-2 border-zinc-300'}`}>
-                            {task.done && <Check className="w-3 h-3 text-white" />}
+        <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800 shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '20px 20px' }} />
+            <div className="relative z-10">
+                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Daily Sync: Assets Ready</div>
+                <div className="space-y-3">
+                    {[
+                        { done: true, text: 'Landing V2: Optimized messaging' },
+                        { done: true, text: 'Campaign AMMO: Variant 04' },
+                        { done: false, text: 'Strategic Outbound: Batch 01' }
+                    ].map((task, i) => (
+                        <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border ${task.done ? 'bg-zinc-800/50 border-zinc-700/50' : 'bg-white border-zinc-200'}`}>
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center ${task.done ? 'bg-zinc-700' : 'border-2 border-zinc-300'}`}>
+                                {task.done && <Check className="w-3 h-3 text-zinc-400" />}
+                            </div>
+                            <span className={`text-xs font-medium ${task.done ? 'text-zinc-500 line-through' : 'text-zinc-900'}`}>{task.text}</span>
                         </div>
-                        <span className={`text-sm ${task.done ? 'text-zinc-500 line-through' : 'text-zinc-700'}`}>{task.text}</span>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
-        <div className="bg-zinc-100 rounded-xl p-4 border border-zinc-200">
-            <div className="text-sm font-medium text-zinc-700">✨ 3 assets ready to fire</div>
+        <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-zinc-200 shadow-lg">
+            <div className="text-xs font-bold text-zinc-900 uppercase tracking-widest">System Status</div>
+            <div className="flex items-center gap-2">
+                <motion.div
+                    animate={{ opacity: [1, 0.5, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                    className="w-2 h-2 rounded-full bg-red-500"
+                />
+                <span className="text-[10px] font-bold text-zinc-500 uppercase">Operational</span>
+            </div>
         </div>
     </div>
 )
 
 const LabVignette = () => (
-    <div className="space-y-4">
-        <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-zinc-600 uppercase mb-3">Active Duel: CTA Button</div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-zinc-50 rounded-lg text-center">
-                    <div className="text-sm font-medium text-zinc-600 mb-2">Variant A</div>
-                    <div className="text-xs text-zinc-500 mb-2">"Get Started Free"</div>
-                    <div className="text-2xl font-bold text-zinc-400">12%</div>
+    <div className="space-y-6">
+        <div className="bg-zinc-900 rounded-2xl p-8 border border-zinc-800 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4">
+                <div className="px-2 py-1 rounded bg-red-500/10 border border-red-500/20 text-[8px] font-bold text-red-500 uppercase">Live Duel</div>
+            </div>
+            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-6">Execution Analytics</div>
+            <div className="grid grid-cols-2 gap-6 relative z-10">
+                <div className="space-y-2">
+                    <div className="text-[10px] font-bold text-zinc-600 uppercase">Variant A</div>
+                    <div className="text-2xl font-bold text-zinc-500 tracking-tighter line-through">12.4%</div>
                 </div>
-                <div className="p-4 bg-emerald-50 rounded-lg text-center border-2 border-emerald-300">
-                    <div className="text-sm font-medium text-emerald-700 mb-2">Variant B 🏆</div>
-                    <div className="text-xs text-zinc-500 mb-2">"Start Growing Now"</div>
-                    <div className="text-2xl font-bold text-emerald-600">18%</div>
+                <div className="space-y-2">
+                    <div className="text-[10px] font-bold text-white uppercase flex items-center gap-1.5">
+                        Variant B
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                    </div>
+                    <div className="text-3xl font-bold text-white tracking-tighter">18.9%</div>
                 </div>
+            </div>
+            <div className="mt-8 pt-6 border-t border-zinc-800">
+                <div className="text-[10px] font-bold text-zinc-500 uppercase mb-2">Decision Log</div>
+                <p className="text-xs text-zinc-400 italic">"Variant B promoted to Default. Resonates 52% higher with Founders."</p>
             </div>
         </div>
-        <div className="bg-white rounded-xl p-4 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-zinc-500 uppercase mb-2">Decision Log</div>
-            <div className="text-sm text-zinc-600">
-                Direct focus resonates with ICP. Promoted to default.
-            </div>
+        <div className="flex gap-4">
+            <div className="flex-1 h-1 bg-zinc-800 rounded-full" />
+            <div className="flex-1 h-1 bg-zinc-800 rounded-full" />
+            <div className="flex-1 h-1 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.4)]" />
         </div>
     </div>
 )
@@ -182,21 +213,50 @@ export const WarRoomSection = () => {
             ref={containerRef}
             id="execution-system"
             className="relative"
-            style={{ height: '170vh' }} // Scroll height
+            style={{ height: '250vh' }}
         >
             <div
-                className="sticky top-0 min-h-screen py-16 overflow-hidden"
-                style={{ backgroundColor: '#FAFAFA' }}
+                className="sticky top-0 min-h-screen py-16 overflow-hidden flex flex-col justify-center"
+                style={{ backgroundColor: '#ffffff' }}
             >
-                <div className="max-w-7xl mx-auto px-6 h-full">
+                {/* Cinematic Background for this specific section */}
+                <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]">
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            backgroundImage: 'radial-gradient(circle at 2px 2px, black 1px, transparent 0)',
+                            backgroundSize: '40px 40px'
+                        }}
+                    />
+                </div>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(0,0,0,0.03)_0%,transparent_70%)] pointer-events-none" />
+
+                <div className="max-w-7xl mx-auto px-6 h-full relative z-10 w-full">
                     {/* Header */}
-                    <div className="text-center mb-12">
-                        <span className="text-sm font-semibold text-zinc-600 uppercase tracking-wider">
-                            The System
-                        </span>
-                        <h2 className="font-serif text-4xl md:text-5xl text-zinc-900 mt-3 mb-4">
-                            How we win the market
-                        </h2>
+                    <div className="text-center mb-20 max-w-3xl mx-auto">
+                        <motion.span
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            className="text-xs font-bold text-zinc-400 uppercase tracking-[0.3em] mb-4 block"
+                        >
+                            The Operating System
+                        </motion.span>
+                        <motion.h2
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="font-serif text-5xl md:text-7xl text-zinc-900 mt-3 mb-6 tracking-tight"
+                        >
+                            The 90-Day <span className="italic">War Plan</span>
+                        </motion.h2>
+                        <motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-lg text-zinc-500 leading-relaxed"
+                        >
+                            Strategic marketing isn't about hope. It's about a definitive operating cadence that turns strategy into daily wins.
+                        </motion.p>
                     </div>
 
                     {/* Two-column layout */}
@@ -219,7 +279,6 @@ export const WarRoomSection = () => {
                                 {STEPS.map((step, i) => {
                                     const isActive = i === activeStep
                                     const isPast = i < activeStep
-                                    const StepIcon = step.icon
 
                                     return (
                                         <motion.div
@@ -284,30 +343,32 @@ export const WarRoomSection = () => {
                         </div>
 
                         {/* Right - Vignette */}
-                        <div className="hidden lg:block">
+                        <div className="hidden lg:block relative">
                             <motion.div
-                                className="bg-zinc-50 rounded-2xl p-6 border border-zinc-200 min-h-[400px]"
+                                className="bg-zinc-50/50 backdrop-blur-sm rounded-3xl p-8 border border-zinc-200 min-h-[450px] flex items-center justify-center shadow-inner"
                                 key={activeStep}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3 }}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
                             >
-                                <ActiveVignette />
+                                <div className="w-full">
+                                    <ActiveVignette />
+                                </div>
                             </motion.div>
                         </div>
                     </div>
 
                     {/* Proof Strip */}
-                    <div className="mt-16 pt-8 border-t border-zinc-200">
-                        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 text-center">
+                    <div className="mt-20 pt-10 border-t border-zinc-100">
+                        <div className="flex flex-wrap justify-center items-center gap-12 text-center">
                             {[
-                                { value: '1,200+', label: 'campaigns shipped' },
-                                { value: '50K', label: 'assets generated' },
-                                { value: '+12%', label: 'avg conversion lift' }
+                                { value: '1,200+', label: 'war plans active' },
+                                { value: '50K', label: 'moves executed' },
+                                { value: '+24%', label: 'compound growth' }
                             ].map((stat) => (
                                 <div key={stat.label}>
-                                    <div className="text-2xl md:text-3xl font-bold text-zinc-900">{stat.value}</div>
-                                    <div className="text-sm text-zinc-500">{stat.label}</div>
+                                    <div className="text-3xl font-bold font-serif text-zinc-900">{stat.value}</div>
+                                    <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">{stat.label}</div>
                                 </div>
                             ))}
                         </div>
@@ -319,4 +380,3 @@ export const WarRoomSection = () => {
 }
 
 export default WarRoomSection
-

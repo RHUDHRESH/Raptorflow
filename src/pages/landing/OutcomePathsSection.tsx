@@ -24,40 +24,40 @@ interface Outcome {
 const OUTCOMES: Outcome[] = [
     {
         id: 'calls',
-        title: 'Book Calls',
-        kpi: 'Booked calls',
-        target: '0 → 20',
-        days: '30 days',
+        title: 'Get Clarity',
+        kpi: 'Strategy locked',
+        target: 'Chaos → System',
+        days: '10 min',
         deliverables: [
-            'Offer + script pack',
-            'Outreach cadence plan',
-            'Daily execution checklist'
+            'ICP definition',
+            'Messaging framework',
+            'First campaign outline'
         ],
         icon: Phone
     },
     {
         id: 'leads',
-        title: 'Qualified Leads',
-        kpi: 'Qualified leads',
-        target: '0 → 50',
-        days: '30 days',
+        title: 'Start Executing',
+        kpi: 'Daily tasks done',
+        target: '0 → consistent',
+        days: 'Daily',
         deliverables: [
-            'Lead magnet + landing outline',
-            'Follow-up sequence outline',
-            'Daily execution checklist'
+            'Daily action checklist',
+            'Content calendar',
+            'Execution tracker'
         ],
         icon: Users
     },
     {
         id: 'revenue',
-        title: 'Revenue',
-        kpi: 'Revenue',
-        target: '₹0 → ₹X',
-        days: '45 days',
+        title: 'See Results',
+        kpi: 'Conversion data',
+        target: 'Guesses → Facts',
+        days: 'Ongoing',
         deliverables: [
-            'Funnel map + pricing angle',
-            'Conversion asset pack',
-            'Daily execution checklist'
+            'A/B test results',
+            'Performance insights',
+            'Optimization suggestions'
         ],
         icon: TrendingUp
     }
@@ -124,10 +124,10 @@ export const OutcomePathsSection = () => {
                 {/* Header */}
                 <div className="text-center mb-12">
                     <h2 className="font-serif text-4xl md:text-5xl text-zinc-900 mb-4">
-                        Pick your goal. Get a plan. Execute daily.
+                        The 3-step system
                     </h2>
                     <p className="text-lg text-zinc-500">
-                        What do you want to achieve in the next 30 days?
+                        From chaos to clarity to results
                     </p>
                 </div>
 
