@@ -1,5 +1,6 @@
 import React from 'react'
 import { supabase } from '@/lib/supabase'
+import { Button } from '@/ui'
 
 const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_API_URL || '/api'
 
@@ -147,6 +148,16 @@ const PlatformTestPage = () => {
         </div>
 
         <div className="space-y-8">
+          <section className="rounded-card border border-border bg-card p-6">
+            <h2 className="text-sm font-semibold text-ink-900">Subframe UI</h2>
+            <p className="mt-2 text-sm text-ink-500">
+              If you can see and click this button, the Subframe sync and aliasing are working.
+            </p>
+            <div className="mt-4">
+              <Button onClick={() => console.log('Subframe Button clicked')}>Test Subframe Button</Button>
+            </div>
+          </section>
+
           <section className="rounded-card border border-border bg-card p-6">
             <h2 className="text-sm font-semibold text-ink-900">SendGrid Email</h2>
 
