@@ -78,7 +78,7 @@ const CheckCategory = ({ title, icon: Icon, checks }) => {
     )
 }
 
-const StepPreflight = ({ data, updateData, onPrev }) => {
+const StepPreflight = ({ data, updateData, onPrev, goToStep }) => {
     const framework = data.selectedFramework
 
     // Run all preflight checks
@@ -92,65 +92,73 @@ const StepPreflight = ({ data, updateData, onPrev }) => {
             channels: []
         }
 
-        // Offer requirements
+        // Offer requirements (Step 4)
         framework.inputs.fields.forEach(field => {
             if (field.required) {
                 const value = data.slots.inputs?.[field.id]
                 results.offer.push({
                     label: field.label,
                     passed: !!value && value.toString().trim().length > 0,
-                    category: 'offer'
+                    category: 'offer',
+                    step: 4
                 })
             }
         })
 
-        // Rules enforcement
+        // Rules enforcement (Step 5)
         framework.rules.required.forEach(rule => {
             results.offer.push({
                 label: rule.label,
                 passed: true, // Required rules are always "on"
-                category: 'offer'
+                category: 'offer',
+                step: 5
             })
         })
 
-        // Tracking requirements
+        // Tracking requirements (Step 9)
         const metrics = data.slots.metrics || {}
         results.tracking.push({
             label: 'Primary KPI selected',
             passed: true, // Framework provides default
-            category: 'tracking'
+            category: 'tracking',
+            step: 9
         })
         results.tracking.push({
             label: 'Baseline added',
             passed: !!metrics.baseline,
-            category: 'tracking'
+            category: 'tracking',
+            step: 9
         })
         results.tracking.push({
             label: 'Target defined',
             passed: !!metrics.target,
-            category: 'tracking'
+            category: 'tracking',
+            step: 9
         })
 
-        // Outputs
+        // Outputs (Step 7)
         const outputs = data.slots.outputs || framework.outputs.deliverables
         const requiredOutputs = outputs.filter(o => o.required)
         results.outputs.push({
             label: `${requiredOutputs.length} required deliverables ready`,
             passed: requiredOutputs.length > 0,
-            category: 'outputs'
+            category: 'outputs',
+            step: 7
         })
 
-        // Channels
+        // Channels (Step 8)
         const channels = data.slots.channels || framework.channels.recommended
         results.channels.push({
             label: 'At least 1 channel selected',
             passed: channels.length > 0,
-            category: 'channels'
+            category: 'channels',
+            step: 8
         })
         results.channels.push({
             label: 'Not too many channels (1-2 recommended)',
             passed: channels.length <= 2,
-            category: 'channels'
+            category: 'channels',
+            step: 8
         })
 
         // Check if all passed
@@ -187,7 +195,7 @@ const StepPreflight = ({ data, updateData, onPrev }) => {
     }
 
     return (
-        <div className="pb-24 max-w-2xl mx-auto">
+        <div className="pb-24 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div className="text-center mb-8">
                 <h1 className="font-serif text-3xl text-foreground mb-3">
@@ -242,20 +250,22 @@ const StepPreflight = ({ data, updateData, onPrev }) => {
             {/* Check categories */}
             <div className="space-y-8">
                 {preflightResults.categories.map((category, idx) => (
-                    <motion.div
-                        key={category.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.1 }}
-                    >
-                        <CheckCategory
-                            title={category.title}
-                            checks={category.checks.map(check => ({
-                                ...check,
-                                onFix: !check.passed ? onPrev : undefined
-                            }))}
-                        />
-                    </motion.div>
+                    category.checks.length > 0 && (
+                        <motion.div
+                            key={category.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                        >
+                            <CheckCategory
+                                title={category.title}
+                                checks={category.checks.map(check => ({
+                                    ...check,
+                                    onFix: !check.passed ? () => goToStep(check.step) : undefined
+                                }))}
+                            />
+                        </motion.div>
+                    )
                 ))}
             </div>
 

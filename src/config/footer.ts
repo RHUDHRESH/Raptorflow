@@ -45,13 +45,13 @@ export const SOCIAL_LINKS: SocialLinkItem[] = [
         icon: 'twitter',
         href: 'https://x.com/raptorflow',
         label: 'X / Twitter',
-        color: 'from-sky-500 to-blue-600'
+        color: 'from-orange-500 to-orange-600'
     },
     {
         icon: 'linkedin',
         href: 'https://linkedin.com/company/raptorflow',
         label: 'LinkedIn',
-        color: 'from-blue-600 to-blue-800'
+        color: 'from-orange-600 to-orange-800'
     },
     {
         icon: 'github',

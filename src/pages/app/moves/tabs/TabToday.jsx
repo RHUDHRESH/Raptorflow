@@ -1,265 +1,209 @@
 import { motion } from 'framer-motion'
 import {
     Clock,
-    Sparkles,
     Check,
     AlertCircle,
-    SkipForward,
-    ChevronRight
+    ChevronRight,
+    Map,
+    Target,
+    Zap,
+    Briefcase
 } from 'lucide-react'
 import useRaptorflowStore from '../../../../store/raptorflowStore'
-
-/**
- * Today Tab - Single-Task Execution View
- * 
- * Shows ONE task with absolute clarity:
- * - The task
- * - Why it matters
- * - Time estimate
- * - Actions: Mark done, Generate draft, Skip, Blocked
- */
+import { PROBLEM_TYPES } from '../../../../data/frameworkConfigs'
 
 const TabToday = ({ move, framework, currentDay, totalDays }) => {
     const { toggleTaskDone, getMoveTasksForDay, openMuseDrawer } = useRaptorflowStore()
 
     // Get today's tasks
     const todayTasks = getMoveTasksForDay ? getMoveTasksForDay(move.id, currentDay) : []
-    const allTasks = move.checklistItems || []
+    const sortedTasks = todayTasks.sort((a, b) => a.done === b.done ? 0 : a.done ? 1 : -1)
 
-    // Find the current task (first incomplete task for today)
-    const currentTask = todayTasks.find(t => !t.done) || allTasks.find(t => !t.done && t.day === currentDay)
+    // Find urgency (first incomplete)
+    const currentTask = sortedTasks.find(t => !t.done)
+    const isAllDone = !currentTask && todayTasks.length > 0
 
-    // Get framework action template for context
-    const actionTemplate = framework?.dailyActions?.templates?.find(t => t.day === currentDay)
+    // Context Data
+    const problem = move.problemType ? PROBLEM_TYPES[move.problemType] : null
+    const frameworkName = move.frameworkName || framework?.name || 'Custom Framework'
+    const inputs = move.slots?.inputs || {}
+    const tracking = move.tracking || {}
+    const kpi = tracking.metric || 'Goal'
+    const target = tracking.target || '?'
+    const current = tracking.updates?.[tracking.updates.length - 1]?.value || tracking.baseline || 0
 
-    // Count completed for today
-    const todayCompleted = todayTasks.filter(t => t.done).length
-    const todayTotal = todayTasks.length || 1
+    // --- Helpers ---
 
-    if (!currentTask) {
+    const getWhyItMatters = (task, day) => {
+        // Truer context based on task content
+        const t = task.text.toLowerCase()
+        if (t.includes('research')) return "Research-backed moves outperform gut attempts by 3x. This sets your foundation."
+        if (t.includes('draft') || t.includes('write')) return "Content is where strategy hits reality. Focus on clarity over cleverness."
+        if (t.includes('publish') || t.includes('post')) return "Shipping is the only way to generate data. Don't overthink it."
+        if (t.includes('review') || t.includes('measure')) return "You can't improve what you don't measure. Honesty here saves money later."
+
+        // Fallback to day logic
+        if (day === 1) return "Momentum starts here. Crushing day 1 predicts move success."
+        if (day === 3) return "The crucial pivot point. Early feedback determines the next 10 days."
+        if (day === totalDays) return "Finish strong. Capture the learnings for your playbook."
+
+        return "This task unlocks the next step in your sequence."
+    }
+
+    // --- Render ---
+
+    if (isAllDone) {
         return (
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-12"
-            >
-                <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-4">
-                    <Check className="w-8 h-8 text-emerald-600 dark:text-emerald-400" strokeWidth={2} />
+            <div className="max-w-3xl mx-auto py-12 text-center animate-in fade-in slide-in-from-bottom-4">
+                <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-6">
+                    <Check className="w-10 h-10 text-emerald-600 dark:text-emerald-400" strokeWidth={3} />
                 </div>
-                <h2 className="font-serif text-xl text-foreground mb-2">
-                    You're all done for today!
-                </h2>
-                <p className="text-muted-foreground max-w-md mx-auto">
-                    Great work completing Day {currentDay}. Come back tomorrow for your next task,
-                    or review your progress in the Plan tab.
+                <h2 className="font-serif text-3xl text-foreground mb-3">You won today.</h2>
+                <p className="text-muted-foreground text-lg max-w-md mx-auto mb-8">
+                    Day {currentDay} complete. You're one step closer to {kpi}.
                 </p>
-            </motion.div>
+                <div className="flex justify-center gap-4">
+                    <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                        <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Current {kpi}</div>
+                        <div className="text-xl font-bold text-foreground">{current}</div>
+                    </div>
+                </div>
+            </div>
         )
     }
 
-    const handleMarkDone = () => {
-        toggleTaskDone(move.id, currentTask.id)
+    if (!currentTask) {
+        return <div className="text-center py-12 text-muted-foreground">No tasks scheduled for today. Check the Plan tab.</div>
     }
-
-    const handleGenerateDraft = () => {
-        if (openMuseDrawer) {
-            openMuseDrawer({
-                context: currentTask.text,
-                moveName: move.name
-            })
-        }
-    }
-
-    const isContentTask = currentTask.text.toLowerCase().includes('create') ||
-        currentTask.text.toLowerCase().includes('write') ||
-        currentTask.text.toLowerCase().includes('draft')
 
     return (
-        <div className="max-w-2xl mx-auto">
-            {/* Day progress */}
-            <div className="flex items-center justify-between mb-6">
-                <span className="text-sm text-muted-foreground">
-                    Day {currentDay} of {totalDays}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                    {todayCompleted} of {todayTotal} tasks done
-                </span>
-            </div>
+        <div className="max-w-3xl mx-auto pb-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
 
-            {/* Main task card */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-primary/5 border-2 border-primary/20 rounded-2xl p-8 mb-6"
-            >
-                {/* Task label */}
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                        Today's Focus
-                    </div>
-                    {currentTask.duration && (
-                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <Clock className="w-4 h-4" strokeWidth={1.5} />
-                            {currentTask.duration} min
+            {/* 1. STRATEGY HEADER (Context) */}
+            <div className="mb-8 p-4 rounded-xl bg-muted/30 border border-border/60">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                            <Briefcase size={16} strokeWidth={2} />
                         </div>
-                    )}
-                </div>
-
-                {/* Task text */}
-                <h2 className="font-serif text-2xl text-foreground mb-4">
-                    {currentTask.text}
-                </h2>
-
-                {/* Why it matters */}
-                {actionTemplate && (
-                    <div className="p-4 rounded-xl bg-background border border-border mb-6">
-                        <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                            Why this matters
-                        </h4>
-                        <p className="text-sm text-foreground">
-                            {getWhyItMatters(currentTask, framework, currentDay)}
-                        </p>
+                        <div>
+                            <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Buying Back Focus</div>
+                            <div className="font-medium text-foreground">Solving "{problem?.statement || 'Unknown Problem'}"</div>
+                        </div>
                     </div>
-                )}
+                    <div className="hidden md:block w-px h-8 bg-border" />
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
+                            <Map size={16} strokeWidth={2} />
+                        </div>
+                        <div>
+                            <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Using Framework</div>
+                            <div className="font-medium text-foreground">{frameworkName}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                {/* Primary action */}
-                <button
-                    onClick={handleMarkDone}
-                    className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
-                >
-                    <Check className="w-5 h-5" strokeWidth={2} />
-                    Mark as Done
-                </button>
-            </motion.div>
+            {/* 2. FOCUS CARD (The "One Thing") */}
+            <div className="relative overflow-hidden rounded-2xl border-2 border-primary/20 bg-card shadow-lg mb-8">
+                {/* Status Strip */}
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary to-primary/50" />
 
-            {/* Secondary actions */}
-            <div className="grid grid-cols-3 gap-3">
-                {/* Generate draft - only for content tasks */}
-                {isContentTask && (
+                <div className="p-6 md:p-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wide">
+                            <Zap size={12} className="fill-current" />
+                            Today's Single Task
+                        </div>
+                        <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground bg-muted/50 px-3 py-1 rounded-lg">
+                            <Clock size={14} />
+                            {currentTask.duration || 60} min
+                        </div>
+                    </div>
+
+                    <h1 className="font-serif text-3xl md:text-4xl text-foreground leading-tight mb-6">
+                        {currentTask.text}
+                    </h1>
+
+                    <div className="grid md:grid-cols-2 gap-8 mb-8">
+                        {/* WHY */}
+                        <div>
+                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
+                                Why This Matters
+                            </h4>
+                            <p className="text-sm leading-relaxed text-foreground/80">
+                                {getWhyItMatters(currentTask, currentDay)}
+                            </p>
+                        </div>
+
+                        {/* INPUTS */}
+                        <div>
+                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
+                                Inputs You Have
+                            </h4>
+                            {Object.keys(inputs).length > 0 ? (
+                                <ul className="space-y-2">
+                                    {Object.entries(inputs).slice(0, 3).map(([key, val]) => (
+                                        <li key={key} className="flex items-start gap-2 text-sm text-foreground/80">
+                                            <div className="mt-1.5 w-1 h-1 rounded-full bg-primary flex-shrink-0" />
+                                            <span className="line-clamp-1 italic text-muted-foreground">{val || 'Not defined'}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div className="text-sm text-muted-foreground italic">No specific inputs defined.</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* BIG CTA */}
                     <button
-                        onClick={handleGenerateDraft}
-                        className="flex flex-col items-center gap-2 p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
+                        onClick={() => toggleTaskDone(move.id, currentTask.id)}
+                        className="w-full flex items-center justify-center gap-3 py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-base font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all active:translate-y-0"
                     >
-                        <Sparkles className="w-5 h-5 text-primary" strokeWidth={1.5} />
-                        <span className="text-xs text-foreground">Generate Draft</span>
+                        <Check className="w-5 h-5" strokeWidth={3} />
+                        COMPLETE THIS TASK
                     </button>
-                )}
 
-                {/* I'm blocked */}
-                <button className="flex flex-col items-center gap-2 p-4 rounded-xl bg-card border border-border hover:border-amber-500/30 transition-colors">
-                    <AlertCircle className="w-5 h-5 text-amber-500" strokeWidth={1.5} />
-                    <span className="text-xs text-foreground">I'm Blocked</span>
-                </button>
-
-                {/* Skip */}
-                <button className="flex flex-col items-center gap-2 p-4 rounded-xl bg-card border border-border hover:border-muted-foreground/30 transition-colors">
-                    <SkipForward className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
-                    <span className="text-xs text-foreground">Skip</span>
-                </button>
-            </div>
-
-            {/* Other tasks for today */}
-            {todayTasks.length > 1 && (
-                <div className="mt-8">
-                    <h3 className="text-sm font-medium text-foreground mb-3">Other tasks today</h3>
-                    <div className="space-y-2">
-                        {todayTasks.filter(t => t.id !== currentTask.id).map((task) => (
-                            <div
-                                key={task.id}
-                                className={`
-                  flex items-center gap-3 p-3 rounded-xl border transition-colors
-                  ${task.done
-                                        ? 'bg-muted/50 border-border'
-                                        : 'bg-card border-border hover:border-primary/30'
-                                    }
-                `}
-                            >
-                                <button
-                                    onClick={() => toggleTaskDone(move.id, task.id)}
-                                    className={`
-                    w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors
-                    ${task.done
-                                            ? 'border-primary bg-primary'
-                                            : 'border-muted-foreground hover:border-primary'
-                                        }
-                  `}
-                                >
-                                    {task.done && <Check className="w-3 h-3 text-primary-foreground" strokeWidth={2} />}
-                                </button>
-                                <span className={`text-sm ${task.done ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
-                                    {task.text}
-                                </span>
-                            </div>
-                        ))}
+                    <div className="mt-4 flex justify-center gap-6 text-xs font-medium text-muted-foreground">
+                        <button onClick={() => openMuseDrawer({ context: currentTask.text, moveName: move.name })} className="hover:text-primary transition-colors">
+                            Generate Draft (AI)
+                        </button>
+                        <button className="hover:text-foreground transition-colors">
+                            Skip for now
+                        </button>
                     </div>
                 </div>
-            )}
+            </div>
 
-            {/* Quick tip */}
-            <div className="mt-8 p-4 rounded-xl bg-muted/50 border border-border">
-                <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Sparkles className="w-4 h-4 text-primary" strokeWidth={1.5} />
-                    </div>
+            {/* 3. PACE (Scoreboard Context) */}
+            <div className="bg-muted/20 border border-border rounded-xl p-6">
+                <div className="flex items-center gap-3 mb-4">
+                    <Target className="w-5 h-5 text-foreground" strokeWidth={2} />
+                    <h3 className="font-bold text-foreground">Your Pace (Day {currentDay} of {totalDays})</h3>
+                </div>
+
+                <div className="flex items-center justify-between bg-card p-4 rounded-lg border border-border shadow-sm">
                     <div>
-                        <h4 className="text-sm font-medium text-foreground mb-1">
-                            Pro tip
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                            {getProTip(currentDay, totalDays)}
-                        </p>
+                        <div className="text-xs text-muted-foreground uppercase font-bold mb-1">Target Goal</div>
+                        <div className="text-lg font-bold text-foreground">
+                            {target} <span className="text-sm font-medium text-muted-foreground">{kpi}</span>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <div className="text-xs text-muted-foreground uppercase font-bold mb-1">Current Reality</div>
+                        <div className="text-lg font-bold text-primary">
+                            {current} <span className="text-sm font-medium text-muted-foreground">{kpi}</span>
+                        </div>
                     </div>
                 </div>
+                <div className="mt-3 text-xs text-center text-muted-foreground">
+                    Next task unlocks when you complete today's focus.
+                </div>
             </div>
+
         </div>
     )
-}
-
-// Helper: Generate contextual "why it matters" text
-const getWhyItMatters = (task, framework, day) => {
-    const reasons = {
-        1: 'This foundation sets the tone for your entire move. Get this right.',
-        2: 'Building on yesterday\'s work to create momentum.',
-        3: 'Day 3 is the midpoint check - strong execution here predicts success.',
-        7: 'Final sprint energy. The finish line is in sight.'
-    }
-
-    if (reasons[day]) return reasons[day]
-
-    if (task.text.toLowerCase().includes('research')) {
-        return 'Research-backed moves outperform gut-feel by 3x. This step builds your foundation.'
-    }
-    if (task.text.toLowerCase().includes('create') || task.text.toLowerCase().includes('write')) {
-        return 'Content creation is where strategy becomes reality. Focus on quality over speed.'
-    }
-    if (task.text.toLowerCase().includes('launch') || task.text.toLowerCase().includes('publish')) {
-        return 'Shipping is the only thing that generates feedback. Done is better than perfect.'
-    }
-
-    return 'Each task compounds. Complete this to unlock the next phase of your move.'
-}
-
-// Helper: Generate contextual pro tips
-const getProTip = (currentDay, totalDays) => {
-    const tips = [
-        'Block 90 minutes of uninterrupted time for your main task today.',
-        'If you\'re stuck, use the "Generate Draft" button to get AI assistance.',
-        'Log your progress at the end of each day to track momentum.',
-        'Don\'t skip tasks - they\'re sequenced for a reason.',
-        'Review your KPI baseline before pushing content live.'
-    ]
-
-    if (currentDay === 1) {
-        return 'Day 1 sets the pace. Give yourself extra time to understand the framework.'
-    }
-    if (currentDay === 3) {
-        return 'Day 3 checkpoint: Ask yourself "Am I on track?" If not, adjust now.'
-    }
-    if (currentDay >= totalDays - 1) {
-        return 'Final stretch! Focus on completion and logging your results.'
-    }
-
-    return tips[currentDay % tips.length]
 }
 
 export default TabToday

@@ -20,7 +20,7 @@ export default function EnhancedStatCard({
       className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col h-full"
     >
       <div className="flex items-center justify-between mb-4">
-        <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+        <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
           {React.createElement(Icon, { className: 'w-5 h-5' })}
         </div>
         {Chart && (

@@ -20,7 +20,7 @@ const PlantIcon = ({ className = '' }) => (
     <circle cx="20" cy="14" r="1.5" fill="currentColor" fillOpacity="0.8" />
     <path d="M16 42H32" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.3" />
     {/* Glow */}
-    <circle cx="24" cy="20" r="12" fill="currentColor" fillOpacity="0.05" blur="10" />
+    <circle cx="24" cy="20" r="12" fill="currentColor" fillOpacity="0.05" style={{ filter: 'blur(10px)' }} />
   </svg>
 )
 

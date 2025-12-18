@@ -12,14 +12,14 @@ export function QuickActionItem({ icon: Icon, title, description, onClick, highl
       onClick={onClick}
       className={`group relative p-5 text-left rounded-xl transition-all duration-200 flex flex-col h-full ${
         highlight 
-          ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white' 
-          : 'bg-white dark:bg-gray-800 hover:shadow-md border border-gray-100 dark:border-gray-700 hover:border-indigo-100 dark:hover:border-indigo-900/50'
+          ? 'bg-gradient-to-br from-orange-600 to-purple-600 text-white' 
+          : 'bg-white dark:bg-gray-800 hover:shadow-md border border-gray-100 dark:border-gray-700 hover:border-orange-100 dark:hover:border-orange-900/50'
       }`}
     >
       <div className={`p-2.5 rounded-lg inline-flex mb-3 ${
         highlight 
           ? 'bg-white/20 text-white' 
-          : 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+          : 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
       }`}>
         {React.createElement(Icon, { className: 'w-5 h-5' })}
       </div>
@@ -29,12 +29,12 @@ export function QuickActionItem({ icon: Icon, title, description, onClick, highl
         {title}
       </h3>
       <p className={`text-sm ${
-        highlight ? 'text-indigo-100' : 'text-gray-500 dark:text-gray-400'
+        highlight ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'
       }`}>
         {description}
       </p>
       <div className={`mt-3 inline-flex items-center text-sm font-medium ${
-        highlight ? 'text-white/90' : 'text-indigo-600 dark:text-indigo-400'
+        highlight ? 'text-white/90' : 'text-orange-600 dark:text-orange-400'
       }`}>
         Get started
         <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />

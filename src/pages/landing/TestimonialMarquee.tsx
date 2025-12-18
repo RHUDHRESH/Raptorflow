@@ -10,7 +10,7 @@ const TestimonialMarquee = () => {
       icon: Target,
       title: "Clarity in 10 Minutes",
       description: "Transform scattered thoughts into a structured 90-day execution plan. No fluff, just focused action.",
-      gradient: "from-blue-500/20 to-blue-700/10"
+      gradient: "from-orange-500/20 to-orange-700/10"
     },
     {
       icon: BRAND_ICONS.speed,

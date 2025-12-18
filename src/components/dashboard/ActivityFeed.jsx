@@ -32,8 +32,8 @@ const generateMockActivity = () => {
       id: 1,
       type: 'user',
       icon: UserPlus,
-      iconColor: 'text-blue-600',
-      bgColor: 'bg-blue-50',
+      iconColor: 'text-orange-600',
+      bgColor: 'bg-orange-50',
       title: 'New user registration',
       description: 'Sarah Johnson joined your platform',
       user: { name: 'Sarah Johnson', avatar: '/api/placeholder/32/32', initials: 'SJ' },
@@ -97,8 +97,8 @@ const generateMockActivity = () => {
       id: 6,
       type: 'message',
       icon: MessageSquare,
-      iconColor: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
+      iconColor: 'text-orange-600',
+      bgColor: 'bg-orange-50',
       title: 'New support ticket',
       description: 'Customer needs help with order #12344',
       user: { name: 'Lisa Brown', avatar: '/api/placeholder/32/32', initials: 'LB' },
@@ -182,7 +182,7 @@ export function ActivityFeed({ filter = 'all', onRefresh }) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-indigo-400" />
+            <Bell className="w-5 h-5 text-orange-400" />
             <CardTitle className="text-white">Activity Feed</CardTitle>
             <Badge variant="secondary" className="ml-2 bg-white/10 text-white/60">
               {filteredActivities.length}
@@ -252,7 +252,7 @@ export function ActivityFeed({ filter = 'all', onRefresh }) {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-6 text-xs text-indigo-400 hover:text-indigo-300 p-2"
+                              className="h-6 text-xs text-orange-400 hover:text-orange-300 p-2"
                             >
                               {activity.action}
                             </Button>
@@ -300,7 +300,7 @@ export function ActivityFilters({ activeFilter, onFilterChange }) {
           onClick={() => onFilterChange(filter.value)}
           className={`h-8 text-xs ${
             activeFilter === filter.value 
-              ? 'bg-indigo-600 text-white' 
+              ? 'bg-orange-600 text-white' 
               : 'text-white/60 hover:text-white hover:bg-white/5'
           }`}
         >

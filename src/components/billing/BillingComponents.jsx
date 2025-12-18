@@ -434,15 +434,15 @@ export const EnhancedBillingTab = () => {
             )}
 
             {isPaused && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h4 className="text-body-sm font-medium text-blue-800">Subscription Paused</h4>
-                            <p className="text-body-xs text-blue-700">Your subscription is currently paused</p>
+                            <h4 className="text-body-sm font-medium text-orange-800">Subscription Paused</h4>
+                            <p className="text-body-xs text-orange-700">Your subscription is currently paused</p>
                         </div>
                         <button
                             onClick={handleResume}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm hover:bg-orange-700"
                         >
                             <Play className="w-4 h-4" />
                             Resume

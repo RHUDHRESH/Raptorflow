@@ -30,7 +30,7 @@ const goalOptions = [
     desc: "We're willing to invest in brand and long-term awareness.",
     bullets: ['Heavy top-of-funnel', 'Competitive campaigns', 'Brand building'],
     icon: Compass,
-    color: 'from-blue-500/20 to-indigo-500/10 border-blue-500/30'
+    color: 'from-orange-500/20 to-orange-500/10 border-orange-500/30'
   },
 ]
 

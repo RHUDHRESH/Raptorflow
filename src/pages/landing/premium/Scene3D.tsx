@@ -3,9 +3,9 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { MeshDistortMaterial, Float, Environment, Stars } from '@react-three/drei'
 import * as THREE from 'three'
 
-const LiquidChrome = (props) => {
-  const meshRef = useRef()
-  
+const LiquidChrome = (props: any) => {
+  const meshRef = useRef<THREE.Mesh>(null!)
+
   useFrame((state) => {
     if (!meshRef.current) return
     const time = state.clock.getElapsedTime()
@@ -35,7 +35,7 @@ const LiquidChrome = (props) => {
 }
 
 const BackgroundParticles = () => {
-  const ref = useRef()
+  const ref = useRef<THREE.Group>(null!)
   useFrame((state, delta) => {
     if (ref.current) {
       ref.current.rotation.x -= delta / 10
@@ -50,9 +50,9 @@ const BackgroundParticles = () => {
 }
 
 // Simple custom points implementation if not using drei's specialized ones or to keep it light
-const Points = React.forwardRef(({ positions, stride = 3 }, ref) => {
-  const pointsRef = useRef()
-  
+const Points = React.forwardRef(({ positions, stride = 3 }: any, ref) => {
+  const pointsRef = useRef<THREE.Points>(null!)
+
   // Generate random points on mount
   const p = React.useMemo(() => {
     const temp = new Float32Array(1500 * 3)
@@ -99,21 +99,21 @@ const Scene3D = () => {
     <div className="absolute inset-0 z-0 pointer-events-none">
       <Canvas camera={{ position: [0, 0, 8], fov: 35 }} dpr={[1, 2]}>
         <color attach="background" args={['#050505']} />
-        
+
         {/* Lighting Setup for Drama */}
         <ambientLight intensity={0.2} />
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} color="#fff" />
         <pointLight position={[-10, -10, -10]} intensity={0.5} color="#f59e0b" /> {/* Accent color backlight */}
-        
+
         {/* The Hero Object */}
         <LiquidChrome position={[2.5, 0, 0]} />
-        
+
         {/* Atmosphere */}
         <Points />
-        
+
         {/* High quality environment map for reflections */}
         <Environment preset="city" />
-        
+
         {/* Post-processing fog for depth */}
         <fog attach="fog" args={['#050505', 5, 20]} />
       </Canvas>

@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 
 import { SiteFooter } from '@/components/SiteFooter'
 import { SiteHeader } from '@/components/SiteHeader'
+import { NanobanaBackground } from '@/components/ui/NanobanaBackground'
 
 export function MarketingLayout({
   children,
@@ -15,9 +16,10 @@ export function MarketingLayout({
   showFooter?: boolean
 }) {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+      <NanobanaBackground variant="nebula" intensity="medium" />
       <SiteHeader />
-      <main className={cn('flex-1', mainClassName)}>{children}</main>
+      <main className={cn('relative z-10 flex-1', mainClassName)}>{children}</main>
       {showFooter && <SiteFooter />}
     </div>
   )

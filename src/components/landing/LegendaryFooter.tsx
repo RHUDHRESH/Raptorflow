@@ -405,8 +405,8 @@ export const LegendaryFooter = () => {
     }
 
     const socialLinks = [
-        { icon: Twitter, href: 'https://x.com/raptorflow', label: 'X / Twitter', color: 'from-sky-500 to-blue-600' },
-        { icon: Linkedin, href: 'https://linkedin.com/company/raptorflow', label: 'LinkedIn', color: 'from-blue-600 to-blue-800' },
+        { icon: Twitter, href: 'https://x.com/raptorflow', label: 'X / Twitter', color: 'from-orange-500 to-orange-600' },
+        { icon: Linkedin, href: 'https://linkedin.com/company/raptorflow', label: 'LinkedIn', color: 'from-orange-600 to-orange-800' },
         { icon: Github, href: 'https://github.com/raptorflow', label: 'GitHub', color: 'from-gray-700 to-gray-900' },
     ]
 

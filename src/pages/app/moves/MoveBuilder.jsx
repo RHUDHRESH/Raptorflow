@@ -131,13 +131,20 @@ const MoveBuilder = () => {
         }
     }
 
+    const goToStep = (step) => {
+        if (step >= 1 && step <= 11) {
+            setCurrentStep(step)
+        }
+    }
+
     // Render current step
     const renderStep = () => {
         const commonProps = {
             data: wizardData,
             updateData,
             onNext: goNext,
-            onPrev: goPrev
+            onPrev: goPrev,
+            goToStep
         }
 
         switch (currentStep) {

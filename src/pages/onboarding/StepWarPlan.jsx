@@ -9,7 +9,7 @@ import { HairlineTable } from '@/components/system/HairlineTable'
 
 const protocols = {
   A: { name: 'Authority Blitz', icon: Sparkles, desc: 'Build thought leadership fast', color: 'text-purple-400 bg-purple-500/10' },
-  B: { name: 'Trust Anchor', icon: Shield, desc: 'Validation and social proof', color: 'text-blue-400 bg-blue-500/10' },
+  B: { name: 'Trust Anchor', icon: Shield, desc: 'Validation and social proof', color: 'text-orange-400 bg-orange-500/10' },
   C: { name: 'Cost of Inaction', icon: Target, desc: 'Create urgency to act', color: 'text-red-400 bg-red-500/10' },
   D: { name: 'Facilitator Nudge', icon: BRAND_ICONS.speed, desc: 'Smooth onboarding & activation', color: 'text-green-400 bg-green-500/10' },
   E: { name: 'Champions Armory', icon: Users, desc: 'Arm your internal advocates', color: 'text-amber-400 bg-amber-500/10' },
@@ -404,11 +404,11 @@ const StepWarPlan = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-6 bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/20 rounded-2xl"
+                className="p-6 bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/20 rounded-2xl"
               >
-                <div className="text-xs text-blue-400/60 uppercase tracking-wider mb-2">Total Addressable Market</div>
-                <div className="text-4xl font-light text-blue-300 mb-2">₹{(marketInsights.tam / 10000000).toFixed(1)}Cr</div>
-                <div className="text-xs text-blue-400/40">Entire market opportunity</div>
+                <div className="text-xs text-orange-400/60 uppercase tracking-wider mb-2">Total Addressable Market</div>
+                <div className="text-4xl font-light text-orange-300 mb-2">₹{(marketInsights.tam / 10000000).toFixed(1)}Cr</div>
+                <div className="text-xs text-orange-400/40">Entire market opportunity</div>
               </motion.div>
 
               <motion.div
@@ -459,7 +459,7 @@ const StepWarPlan = () => {
                       <span className="text-sm font-light text-white">{marketInsights.marketCagr}%</span>
                     </div>
                     <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500" style={{ width: `${Math.min(marketInsights.marketCagr, 100)}%` }} />
+                      <div className="h-full bg-orange-500" style={{ width: `${Math.min(marketInsights.marketCagr, 100)}%` }} />
                     </div>
                   </div>
                 </div>
@@ -498,7 +498,7 @@ const StepWarPlan = () => {
                 <div className="text-xs text-white/40">Avg Contract Value</div>
               </div>
               <div className="p-6 bg-zinc-900/50 border border-white/10 rounded-2xl text-center">
-                <Clock className="w-8 h-8 text-blue-400 mx-auto mb-3" />
+                <Clock className="w-8 h-8 text-orange-400 mx-auto mb-3" />
                 <div className="text-2xl font-light text-white mb-1">{marketInsights.salesCycle}</div>
                 <div className="text-xs text-white/40">Sales Cycle Length</div>
               </div>
@@ -525,10 +525,10 @@ const StepWarPlan = () => {
                 <div className="text-3xl font-light text-green-300 mb-1">₹{(financials.totalProjectedRevenue / 100000).toFixed(1)}Lac</div>
                 <div className="text-xs text-green-400/40">Projected annual ARR</div>
               </div>
-              <div className="p-6 bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/20 rounded-2xl">
-                <div className="text-xs text-blue-400/60 uppercase tracking-wider mb-2">Total Leads</div>
-                <div className="text-3xl font-light text-blue-300 mb-1">{financials.totalProjectedLeads}</div>
-                <div className="text-xs text-blue-400/40">Expected leads generated</div>
+              <div className="p-6 bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/20 rounded-2xl">
+                <div className="text-xs text-orange-400/60 uppercase tracking-wider mb-2">Total Leads</div>
+                <div className="text-3xl font-light text-orange-300 mb-1">{financials.totalProjectedLeads}</div>
+                <div className="text-xs text-orange-400/40">Expected leads generated</div>
               </div>
               <div className="p-6 bg-gradient-to-br from-yellow-500/20 to-yellow-600/5 border border-yellow-500/20 rounded-2xl">
                 <div className="text-xs text-yellow-400/60 uppercase tracking-wider mb-2">Avg CAC</div>

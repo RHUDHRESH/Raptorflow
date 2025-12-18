@@ -34,7 +34,7 @@ const MetricCard = ({ label, value, status, delay }) => {
 const CampaignItem = ({ name, protocol, status, delay }) => {
   const protocolColors = {
     'Authority': 'text-purple-400 bg-purple-500/15',
-    'Trust': 'text-blue-400 bg-blue-500/15',
+    'Trust': 'text-orange-400 bg-orange-500/15',
     'Urgency': 'text-amber-400 bg-amber-500/15'
   }
 

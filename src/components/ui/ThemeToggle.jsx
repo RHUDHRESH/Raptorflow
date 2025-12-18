@@ -34,8 +34,8 @@ const ThemeToggle = ({ className = '' }) => {
                 className={`
           w-4 h-4 absolute transition-all duration-300
           ${theme === 'dark'
-                        ? 'opacity-100 rotate-0 scale-100 text-blue-400'
-                        : 'opacity-0 -rotate-90 scale-0 text-blue-400'
+                        ? 'opacity-100 rotate-0 scale-100 text-orange-400'
+                        : 'opacity-0 -rotate-90 scale-0 text-orange-400'
                     }
         `}
                 strokeWidth={2}

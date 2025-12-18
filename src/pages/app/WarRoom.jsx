@@ -96,7 +96,7 @@ const StrategySnapshot = ({ campaigns, moves, icps }) => {
             </span>
           )}
           {goalDist.efficiency > 0 && (
-            <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">
+            <span className="px-2 py-1 bg-orange-500/20 text-orange-400 rounded text-xs">
               Efficiency: {goalDist.efficiency}
             </span>
           )}
@@ -115,7 +115,7 @@ const StrategySnapshot = ({ campaigns, moves, icps }) => {
 const CampaignBoardItem = ({ campaign, onClick }) => {
   const statusColors = {
     draft: 'border-white/10',
-    planned: 'border-blue-500/30',
+    planned: 'border-orange-500/30',
     active: 'border-emerald-500/30',
     paused: 'border-amber-500/30',
     completed: 'border-purple-500/30'
@@ -227,7 +227,7 @@ const TaskQueue = ({ tasks }) => {
             key={task.id || i}
             className="flex items-center gap-3 p-3 bg-white/5 rounded-lg"
           >
-            <div className={`w-2 h-2 rounded-full ${task.status === 'in_progress' ? 'bg-blue-400' : 'bg-white/30'
+            <div className={`w-2 h-2 rounded-full ${task.status === 'in_progress' ? 'bg-orange-400' : 'bg-white/30'
               }`} />
             <div className="flex-1">
               <div className="text-sm text-white">{task.task}</div>
@@ -446,7 +446,7 @@ const WarRoom = () => {
           onClick={() => navigate('/app/campaigns')}
           className="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 transition-all group"
         >
-          <Layers className="w-5 h-5 text-blue-400 mb-2" />
+          <Layers className="w-5 h-5 text-orange-400 mb-2" />
           <div className="text-sm font-medium text-white">New Campaign</div>
           <div className="text-xs text-white/40">Strategic initiative</div>
         </button>

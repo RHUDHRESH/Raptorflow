@@ -103,7 +103,7 @@ export function UserActivityChart() {
     <Card className="bg-zinc-900/50 border border-white/5">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-white">
-          <Users className="w-5 h-5 text-blue-400" />
+          <Users className="w-5 h-5 text-orange-400" />
           User Activity
         </CardTitle>
         <CardDescription className="text-white/40">Daily active users</CardDescription>

@@ -109,9 +109,9 @@ const DEMO_GENERATED_CONTENT = {
 }
 
 const CONTENT_TYPES = [
-    { id: 'linkedin', label: 'LinkedIn', icon: '💼', color: 'from-blue-500 to-blue-600' },
+    { id: 'linkedin', label: 'LinkedIn', icon: '💼', color: 'from-orange-500 to-orange-600' },
     { id: 'email', label: 'Email', icon: '📧', color: 'from-emerald-500 to-emerald-600' },
-    { id: 'tweet', label: 'Tweet', icon: '🐦', color: 'from-sky-400 to-sky-500' },
+    { id: 'tweet', label: 'Tweet', icon: '🐦', color: 'from-orange-400 to-orange-500' },
     { id: 'ad', label: 'Ad Copy', icon: '📢', color: 'from-purple-500 to-purple-600' },
 ] as const
 

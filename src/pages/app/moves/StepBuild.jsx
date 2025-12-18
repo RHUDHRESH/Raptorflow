@@ -275,7 +275,7 @@ const SlotOutputs = ({ framework, slots, updateSlots }) => {
                         transition={{ delay: idx * 0.1 }}
                         className="flex items-center gap-5 p-5 rounded-2xl bg-card border border-border hover:border-primary/30 transition-colors"
                     >
-                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center flex-shrink-0">
                             <FileText className="w-6 h-6" strokeWidth={1.5} />
                         </div>
                         <div className="flex-1 min-w-0">

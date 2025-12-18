@@ -32,11 +32,11 @@ import { useAuth } from '../../contexts/AuthContext'
 import useRaptorflowStore from '../../store/raptorflowStore'
 import { museAPI } from '../../lib/api'
 import { Modal } from '../../components/system/Modal'
- 
+
 
 const ASSET_REGISTRY = [
   // Content Creation
-  { 
+  {
     category: 'Content',
     items: [
       { key: 'email', label: 'Email sequence', mode: 'native_text', backendAssetType: 'email_sequence' },
@@ -46,7 +46,7 @@ const ASSET_REGISTRY = [
       { key: 'one-liners', label: 'One-liners / elevator pitches', mode: 'native_text', backendAssetType: 'tagline' },
     ]
   },
-  
+
   // Sales & Marketing
   {
     category: 'Sales & Marketing',
@@ -58,7 +58,7 @@ const ASSET_REGISTRY = [
       { key: 'video-script', label: 'Video script', mode: 'native_text', backendAssetType: 'pillar_webinar_script' },
     ]
   },
-  
+
   // Design Assets
   {
     category: 'Design',
@@ -70,7 +70,7 @@ const ASSET_REGISTRY = [
       { key: 'email-header', label: 'Email header', mode: 'canva', backendAssetType: 'comparison_page' },
     ]
   },
-  
+
   // Advanced
   {
     category: 'Advanced',
@@ -213,13 +213,12 @@ function ProgressRow({ label, value }) {
 
 function AssetCard({ asset, onOpen }) {
   const clickable = asset.status === 'complete'
-  const a11yLabel = `${asset.title}. ${
-    asset.status === 'generating'
+  const a11yLabel = `${asset.title}. ${asset.status === 'generating'
       ? `Generating, ${Math.round(Number(asset.progress || 0))}% complete.`
       : asset.status === 'error'
         ? 'Generation failed.'
         : 'Ready. Activate to open.'
-  }`
+    }`
 
   return (
     <motion.button
@@ -231,11 +230,10 @@ function AssetCard({ asset, onOpen }) {
       aria-busy={asset.status === 'generating' ? true : undefined}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`w-full text-left rounded-2xl border bg-card shadow-sm transition-editorial ${
-        clickable
+      className={`w-full text-left rounded-2xl border bg-card shadow-sm transition-editorial ${clickable
           ? 'border-border hover:border-border-dark hover:shadow-editorial cursor-pointer'
           : 'border-border-light opacity-95 cursor-default'
-      }`}
+        }`}
     >
       <div className="p-5">
         <div className="flex items-start justify-between gap-4">
@@ -293,11 +291,10 @@ function ChatBubble({ role, children }) {
   return (
     <div className={`group w-full flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`relative max-w-[min(92%,740px)] rounded-[14px] px-4 py-3 text-[15px] leading-[1.55] ${
-          isUser
+        className={`relative max-w-[min(92%,740px)] rounded-[14px] px-4 py-3 text-[15px] leading-[1.55] ${isUser
             ? 'bg-[rgba(0,0,0,0.04)] text-[var(--muse-text-primary)] border border-[var(--muse-border-soft)]'
             : 'bg-transparent text-[var(--muse-text-primary)]'
-        }`}
+          }`}
       >
         <div className="max-w-none text-current">
           {children}
@@ -472,7 +469,7 @@ function MuseChatPage() {
     setIsMemeModalOpen(false)
     setActiveAsset(null)
   }
-  
+
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus()
@@ -1031,15 +1028,15 @@ function MuseChatPage() {
       return hasTyping
         ? next.map((m) => (m.id === typingId ? { ...m, isTyping: true } : m))
         : [
-            ...next,
-            {
-              id: typingId,
-              role: 'assistant',
-              content: '',
-              isTyping: true,
-              timestamp: new Date().toISOString(),
-            },
-          ]
+          ...next,
+          {
+            id: typingId,
+            role: 'assistant',
+            content: '',
+            isTyping: true,
+            timestamp: new Date().toISOString(),
+          },
+        ]
     })()
 
     const nextTitle = activeThread?.title === 'New chat' ? defaultThreadName(text) : activeThread?.title
@@ -1175,9 +1172,8 @@ function MuseChatPage() {
                         key={t.id}
                         type="button"
                         onClick={() => setActiveThreadId(t.id)}
-                        className={`w-full text-left px-4 py-3 rounded-2xl transition-editorial ${
-                          isActive ? 'bg-paper-100 text-ink' : 'text-ink-600 hover:text-ink hover:bg-paper-50'
-                        }`}
+                        className={`w-full text-left px-4 py-3 rounded-2xl transition-editorial ${isActive ? 'bg-paper-100 text-ink' : 'text-ink-600 hover:text-ink hover:bg-paper-50'
+                          }`}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
@@ -1241,123 +1237,123 @@ function MuseChatPage() {
                   </div>
                 ) : (
                   messages
-                  .filter((m) => m.id !== 'typing' || m.isTyping || m.content)
-                  .map((message) => {
-                    const { preview, full } = truncateForPreview(message.content, 900)
-                    const isExpanded = !!expandedById[message.id]
-                    const showToggle = !!full
-                    const rendered = showToggle && !isExpanded ? preview : message.content
+                    .filter((m) => m.id !== 'typing' || m.isTyping || m.content)
+                    .map((message) => {
+                      const { preview, full } = truncateForPreview(message.content, 900)
+                      const isExpanded = !!expandedById[message.id]
+                      const showToggle = !!full
+                      const rendered = showToggle && !isExpanded ? preview : message.content
 
-                    return (
-                      <motion.div
-                        key={message.id}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, ease: 'easeOut' }}
-                        className="group"
-                      >
-                        <ChatBubble role={message.role}>
-                          <div className="space-y-3">
-                            {message.isTyping ? (
-                              <div className="flex items-center justify-between gap-4">
-                                <TypingDots />
-                                <button
-                                  type="button"
-                                  onClick={stopGenerating}
-                                  className="text-xs text-ink-500 hover:text-ink transition-editorial flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-paper-50"
-                                >
-                                  <Square className="w-4 h-4" strokeWidth={1.5} />
-                                  Stop
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="max-w-none" style={{ color: 'var(--muse-text-primary)' }}>
-                                {rendered}
-                              </div>
-                            )}
-
-                            {!message.isTyping && (
-                              <div className="flex items-center justify-between gap-4 pt-2 border-t border-paper-100">
-                                <div className="text-xs font-mono" style={{ color: 'var(--muse-text-muted)' }}>
-                                  {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      return (
+                        <motion.div
+                          key={message.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, ease: 'easeOut' }}
+                          className="group"
+                        >
+                          <ChatBubble role={message.role}>
+                            <div className="space-y-3">
+                              {message.isTyping ? (
+                                <div className="flex items-center justify-between gap-4">
+                                  <TypingDots />
+                                  <button
+                                    type="button"
+                                    onClick={stopGenerating}
+                                    className="text-xs text-ink-500 hover:text-ink transition-editorial flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-paper-50"
+                                  >
+                                    <Square className="w-4 h-4" strokeWidth={1.5} />
+                                    Stop
+                                  </button>
                                 </div>
+                              ) : (
+                                <div className="max-w-none" style={{ color: 'var(--muse-text-primary)' }}>
+                                  {rendered}
+                                </div>
+                              )}
 
-                                <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                  {showToggle && (
+                              {!message.isTyping && (
+                                <div className="flex items-center justify-between gap-4 pt-2 border-t border-paper-100">
+                                  <div className="text-xs font-mono" style={{ color: 'var(--muse-text-muted)' }}>
+                                    {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </div>
+
+                                  <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    {showToggle && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setExpandedById((prev) => ({
+                                            ...prev,
+                                            [message.id]: !prev[message.id],
+                                          }))
+                                        }
+                                        className="text-xs text-ink-500 hover:text-ink transition-editorial flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-paper-50"
+                                      >
+                                        {isExpanded ? (
+                                          <>
+                                            <ChevronUp className="w-3.5 h-3.5" strokeWidth={1.5} />
+                                            Collapse
+                                          </>
+                                        ) : (
+                                          <>
+                                            <ChevronDown className="w-3.5 h-3.5" strokeWidth={1.5} />
+                                            Expand
+                                          </>
+                                        )}
+                                      </button>
+                                    )}
+
                                     <button
                                       type="button"
-                                      onClick={() =>
-                                        setExpandedById((prev) => ({
-                                          ...prev,
-                                          [message.id]: !prev[message.id],
-                                        }))
-                                      }
-                                      className="text-xs text-ink-500 hover:text-ink transition-editorial flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-paper-50"
-                                    >
-                                      {isExpanded ? (
-                                        <>
-                                          <ChevronUp className="w-3.5 h-3.5" strokeWidth={1.5} />
-                                          Collapse
-                                        </>
-                                      ) : (
-                                        <>
-                                          <ChevronDown className="w-3.5 h-3.5" strokeWidth={1.5} />
-                                          Expand
-                                        </>
-                                      )}
-                                    </button>
-                                  )}
-
-                                  <button
-                                    type="button"
-                                    onClick={async () => {
-                                      try {
-                                        await navigator.clipboard.writeText(String(message.content || ''))
-                                        addNotification?.({ level: 'success', title: 'Copied', detail: 'Message copied to clipboard.' })
-                                      } catch {
-                                        addNotification?.({ level: 'error', title: 'Copy failed', detail: 'Clipboard unavailable.' })
-                                      }
-                                    }}
-                                    className="text-xs text-ink-500 hover:text-ink transition-editorial flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-paper-50"
-                                  >
-                                    <Copy className="w-3.5 h-3.5" strokeWidth={1.5} />
-                                    Copy
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      downloadTextFile(
-                                        `muse-message-${message.id}.txt`,
-                                        message.content
-                                      )
-                                    }
-                                    className="text-xs text-ink-500 hover:text-ink transition-editorial flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-paper-50"
-                                  >
-                                    <Download className="w-3.5 h-3.5" strokeWidth={1.5} />
-                                    Save
-                                  </button>
-
-                                  {message.role === 'assistant' && !message.isTyping && (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        createArtifactFromMessage(message)
+                                      onClick={async () => {
+                                        try {
+                                          await navigator.clipboard.writeText(String(message.content || ''))
+                                          addNotification?.({ level: 'success', title: 'Copied', detail: 'Message copied to clipboard.' })
+                                        } catch {
+                                          addNotification?.({ level: 'error', title: 'Copy failed', detail: 'Clipboard unavailable.' })
+                                        }
                                       }}
                                       className="text-xs text-ink-500 hover:text-ink transition-editorial flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-paper-50"
                                     >
-                                      <Pin className="w-3.5 h-3.5" strokeWidth={1.5} />
-                                      Pin
+                                      <Copy className="w-3.5 h-3.5" strokeWidth={1.5} />
+                                      Copy
                                     </button>
-                                  )}
+
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        downloadTextFile(
+                                          `muse-message-${message.id}.txt`,
+                                          message.content
+                                        )
+                                      }
+                                      className="text-xs text-ink-500 hover:text-ink transition-editorial flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-paper-50"
+                                    >
+                                      <Download className="w-3.5 h-3.5" strokeWidth={1.5} />
+                                      Save
+                                    </button>
+
+                                    {message.role === 'assistant' && !message.isTyping && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          createArtifactFromMessage(message)
+                                        }}
+                                        className="text-xs text-ink-500 hover:text-ink transition-editorial flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-paper-50"
+                                      >
+                                        <Pin className="w-3.5 h-3.5" strokeWidth={1.5} />
+                                        Pin
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        </ChatBubble>
-                      </motion.div>
-                    )
-                  })} 
+                              )}
+                            </div>
+                          </ChatBubble>
+                        </motion.div>
+                      )
+                    })
                 )}
               </div>
 
@@ -1417,9 +1413,8 @@ function MuseChatPage() {
                                     key={it.id}
                                     type="button"
                                     onClick={() => applyPickerItem(it)}
-                                    className={`w-full text-left px-4 py-3 border-b border-paper-50 hover:bg-paper-50 transition-editorial ${
-                                      idx === pickerIndex ? 'bg-paper-100' : 'bg-white'
-                                    }`}
+                                    className={`w-full text-left px-4 py-3 border-b border-paper-50 hover:bg-paper-50 transition-editorial ${idx === pickerIndex ? 'bg-paper-100' : 'bg-white'
+                                      }`}
                                   >
                                     <div className="flex items-start justify-between gap-4">
                                       <div className="min-w-0 flex-1">
@@ -1530,11 +1525,10 @@ function MuseChatPage() {
                         <button
                           type="submit"
                           disabled={!input.trim()}
-                          className={`h-10 px-5 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 ${
-                            !input.trim()
+                          className={`h-10 px-5 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 ${!input.trim()
                               ? 'bg-paper-100 text-paper-400 cursor-not-allowed'
                               : 'bg-primary text-white hover:bg-primary/90 shadow-lg hover:shadow-xl'
-                          }`}
+                            }`}
                         >
                           <Check className="w-4 h-4" strokeWidth={1.5} />
                           {input.trim() ? 'Send' : null}
@@ -1564,9 +1558,8 @@ function MuseChatPage() {
                       key={t}
                       type="button"
                       onClick={() => setActiveTab(t)}
-                      className={`px-4 py-2 text-sm font-medium transition-editorial ${
-                        activeTab === t ? 'text-primary' : 'text-ink-500 hover:text-ink'
-                      }`}
+                      className={`px-4 py-2 text-sm font-medium transition-editorial ${activeTab === t ? 'text-primary' : 'text-ink-500 hover:text-ink'
+                        }`}
                     >
                       {t}
                     </button>
@@ -1592,9 +1585,8 @@ function MuseChatPage() {
                           return (
                             <div
                               key={a.id}
-                              className={`rounded-2xl border transition-editorial ${
-                                isActive ? 'border-paper-200 bg-paper-50' : 'border-paper-100 bg-white'
-                              }`}
+                              className={`rounded-2xl border transition-editorial ${isActive ? 'border-paper-200 bg-paper-50' : 'border-paper-100 bg-white'
+                                }`}
                             >
                               <button
                                 type="button"
@@ -1797,9 +1789,8 @@ function MuseChatPage() {
                           key={category.category}
                           type="button"
                           onClick={() => setActiveCategory(category.category)}
-                          className={`px-4 py-2 text-sm rounded-2xl border transition-editorial ${
-                            activeCategory === category.category ? 'border-primary/20 text-primary bg-primary/5' : 'border-paper-100 text-ink-500 hover:text-ink hover:bg-paper-50'
-                          }`}
+                          className={`px-4 py-2 text-sm rounded-2xl border transition-editorial ${activeCategory === category.category ? 'border-primary/20 text-primary bg-primary/5' : 'border-paper-100 text-ink-500 hover:text-ink hover:bg-paper-50'
+                            }`}
                         >
                           {category.category}
                         </button>
@@ -1935,3 +1926,4 @@ function inferTitleFromAssetKey(assetKey) {
 }
 
 export default MuseChatPage
+

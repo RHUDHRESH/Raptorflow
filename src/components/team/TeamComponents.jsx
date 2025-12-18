@@ -35,7 +35,7 @@ const ROLES = [
 const ROLE_COLORS = {
     owner: 'bg-amber-100 text-amber-800',
     admin: 'bg-purple-100 text-purple-800',
-    editor: 'bg-blue-100 text-blue-800',
+    editor: 'bg-orange-100 text-orange-800',
     viewer: 'bg-gray-100 text-gray-600',
     billing: 'bg-emerald-100 text-emerald-800',
 }
@@ -360,7 +360,7 @@ export const EnhancedTeamTab = () => {
                     {members.map(member => (
                         <div key={member.id} className="px-6 py-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white font-medium">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center text-white font-medium">
                                     {member.name?.charAt(0)?.toUpperCase() || member.email?.charAt(0)?.toUpperCase() || '?'}
                                 </div>
                                 <div>

@@ -351,7 +351,7 @@ export default function EnhancedDashboard() {
                         <div key={index} className={`p-2 rounded text-sm ${
                           alert.type === 'error' ? 'bg-red-50 text-red-700' :
                           alert.type === 'warning' ? 'bg-yellow-50 text-yellow-700' :
-                          'bg-blue-50 text-blue-700'
+                          'bg-orange-50 text-orange-700'
                         }`}>
                           {alert.message}
                         </div>

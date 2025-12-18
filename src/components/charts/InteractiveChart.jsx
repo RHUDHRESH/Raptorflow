@@ -220,7 +220,7 @@ export default function InteractiveChart({
                   setIsChartTypeOpen(!isChartTypeOpen);
                   setIsTimeRangeOpen(false);
                 }}
-                className="inline-flex items-center px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
               >
                 <ChartTypeIcon className="w-4 h-4 mr-1.5" />
                 {chartType === 'line' ? 'Line' : 'Bar'}
@@ -244,7 +244,7 @@ export default function InteractiveChart({
                         }}
                         className={`w-full text-left px-4 py-2 text-sm flex items-center ${
                           chartType === type.value
-                            ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
+                            ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
                             : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
                       >
@@ -264,7 +264,7 @@ export default function InteractiveChart({
                   setIsTimeRangeOpen(!isTimeRangeOpen);
                   setIsChartTypeOpen(false);
                 }}
-                className="inline-flex items-center px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
               >
                 {timeRanges.find(r => r.value === timeRange)?.label || '7D'}
                 <ChevronDown className="w-4 h-4 ml-1.5 -mr-1" />
@@ -287,7 +287,7 @@ export default function InteractiveChart({
                         }}
                         className={`w-full text-left px-4 py-2 text-sm ${
                           timeRange === range.value
-                            ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
+                            ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
                             : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
                       >
@@ -303,7 +303,7 @@ export default function InteractiveChart({
               type="button"
               onClick={handleRefresh}
               disabled={loading}
-              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-lg"
+              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 rounded-lg"
             >
               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
             </button>

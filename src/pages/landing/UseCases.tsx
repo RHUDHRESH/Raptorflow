@@ -56,7 +56,7 @@ const PERSONAS = [
             'Consistent output, zero burnout',
             'Real ROI, perfectly measured'
         ],
-        accent: 'from-blue-500 to-indigo-500',
+        accent: 'from-orange-500 to-orange-500',
         light: 'rgba(59, 130, 246, 0.15)' // Blue
     }
 ]

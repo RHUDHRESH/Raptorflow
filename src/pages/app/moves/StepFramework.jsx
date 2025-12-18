@@ -102,7 +102,7 @@ const FrameworkCard = ({ framework, rank, isSelected, onSelect, onPreview }) => 
 }
 
 // Preview drawer
-const PreviewDrawer = ({ framework, open, onClose }) => {
+const PreviewDrawer = ({ framework, open, onClose, onSelect }) => {
     if (!framework) return null
 
     return (
@@ -361,6 +361,7 @@ const StepFramework = ({ data, updateData }) => {
                 framework={previewFramework}
                 open={!!previewFramework}
                 onClose={() => setPreviewFramework(null)}
+                onSelect={() => updateData('selectedFramework', previewFramework)}
             />
         </div>
     )

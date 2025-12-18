@@ -192,7 +192,7 @@ const ICPCard = ({ icp, onToggle, isExpanded, onExpand }) => {
             </div>
             <div className="flex flex-wrap gap-1">
               {icp.technographics.currentStack.map((tech, i) => (
-                <span key={i} className="px-2 py-0.5 bg-blue-500/10 text-blue-400/80 rounded text-xs">
+                <span key={i} className="px-2 py-0.5 bg-orange-500/10 text-orange-400/80 rounded text-xs">
                   {tech}
                 </span>
               ))}

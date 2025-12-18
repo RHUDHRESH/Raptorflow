@@ -10,8 +10,8 @@ export const WarRoomBackground = () => {
 
     return (
         <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-black">
-            {/* 1. Base Gradient - Deep Tactical Black/Blue */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#0f172a_0%,#000000_100%)]" />
+            {/* 1. Base Gradient - Deep Tactical Black/Orange */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1a1410_0%,#000000_100%)]" />
 
             {/* 2. The Tactical Grid - Perspective Plane */}
             <motion.div
@@ -37,7 +37,7 @@ export const WarRoomBackground = () => {
 
             {/* 4. Scanning Radar Line - Subtle animation */}
             <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[5px] bg-indigo-500/20 shadow-[0_0_40px_rgba(99,102,241,0.3)] animate-scan-slow" />
+                <div className="absolute top-0 left-0 w-full h-[5px] bg-orange-500/20 shadow-[0_0_40px_rgba(255,136,0,0.3)] animate-scan-slow" />
             </div>
 
             {/* 5. Vignette - Focus center */}

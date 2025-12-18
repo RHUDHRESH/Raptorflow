@@ -1456,34 +1456,7 @@ const useRaptorflowStore = create(
         }))
       },
 
-      addTrackingUpdate: (moveId, update) => {
-        set(state => ({
-          moves: state.moves.map(m => {
-            if (m.id !== moveId) return m
-            // Ensure tracking object exists
-            const tracking = m.tracking || { metric: m.metric || '', updates: [] }
-            const updates = [...(tracking.updates || []), update]
 
-            return {
-              ...m,
-              tracking: {
-                ...tracking,
-                updates
-              }
-            }
-          })
-        }))
-
-        emitNotification(
-          {
-            level: 'success',
-            title: 'Progress logged',
-            detail: `Value: ${update.value}`,
-            href: `/app/moves/${moveId}/scoreboard`,
-          },
-          { toast: true }
-        )
-      },
 
       updateMoveCheckpoint: (moveId, type, data) => {
         set(state => ({
@@ -1513,36 +1486,7 @@ const useRaptorflowStore = create(
         )
       },
 
-      completeMove: (moveId, resultData) => {
-        const prev = get().moves.find(m => m.id === moveId)
 
-        set(state => ({
-          moves: state.moves.map(m => {
-            if (m.id !== moveId) return m
-
-            return {
-              ...m,
-              status: 'completed',
-              result: {
-                ...(m.result || {}),
-                ...resultData,
-                completedAt: new Date().toISOString()
-              },
-              completedAt: new Date().toISOString()
-            }
-          })
-        }))
-
-        emitNotification(
-          {
-            level: 'success',
-            title: 'Move Completed!',
-            detail: prev?.name || 'Great work finishing this move.',
-            href: `/app/moves/${moveId}/review`,
-          },
-          { toast: true }
-        )
-      },
 
       // ============================================
       // EXECUTION (PIPELINE)
