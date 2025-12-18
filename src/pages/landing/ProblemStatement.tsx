@@ -6,7 +6,7 @@ import { motion, useInView, AnimatePresence } from 'framer-motion'
    Shows the pain points founders face with their GTM chaos
    ═══════════════════════════════════════════════════════════════════════════ */
 
-// Nanobana-style 2D icons (single color, amber)
+// Nanobana-style 2D icons (single color, zinc)
 const ChaosIcon = ({ className = '' }) => (
   <svg viewBox="0 0 48 48" fill="none" className={className}>
     <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" />
@@ -81,9 +81,9 @@ const ProblemCard = ({ icon: Icon, stat, title, description, delay }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative p-8 bg-zinc-900/40 border border-white/[0.06] rounded-2xl hover:border-amber-500/20 transition-colors duration-500 overflow-hidden">
+      <div className="relative p-8 bg-zinc-900/40 border border-white/[0.06] rounded-2xl hover:border-zinc-500/20 transition-colors duration-500 overflow-hidden">
         {/* Subtle hover glow */}
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-zinc-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
         {/* Hover particle burst */}
         <AnimatePresence>
@@ -92,7 +92,7 @@ const ProblemCard = ({ icon: Icon, stat, title, description, delay }) => {
               {[...Array(6)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className="absolute w-1 h-1 rounded-full bg-amber-400/60"
+                  className="absolute w-1 h-1 rounded-full bg-zinc-400/60"
                   initial={{
                     x: '50%',
                     y: '50%',
@@ -115,7 +115,7 @@ const ProblemCard = ({ icon: Icon, stat, title, description, delay }) => {
 
         {/* Icon */}
         <motion.div
-          className="relative z-10 w-16 h-16 mb-6 text-amber-500/70"
+          className="relative z-10 w-16 h-16 mb-6 text-zinc-500/70"
           animate={{ scale: isHovered ? 1.1 : 1 }}
           transition={{ duration: 0.3 }}
         >
@@ -169,8 +169,8 @@ const ProblemStatement = () => {
     <section ref={sectionRef} className="relative bg-[#050505] py-32 md:py-40 overflow-hidden">
       {/* Background art */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/10 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/10 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-500/10 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-500/10 to-transparent" />
 
         {/* 2D geometric art - Nanobana style */}
         <svg className="absolute inset-0 w-full h-full opacity-10" preserveAspectRatio="xMidYMid slice">
@@ -189,7 +189,7 @@ const ProblemStatement = () => {
         </svg>
 
         {/* Subtle radial gradient */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-amber-500/5 to-transparent blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-zinc-500/5 to-transparent blur-3xl" />
       </div>
 
       <div className="max-w-6xl mx-auto px-6 md:px-12 relative z-10">
@@ -200,11 +200,11 @@ const ProblemStatement = () => {
             animate={inView ? { opacity: 1 } : {}}
             className="inline-flex items-center gap-3 mb-8"
           >
-            <span className="w-12 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
-            <span className="text-[11px] uppercase tracking-[0.4em] text-amber-400/60 font-medium">
+            <span className="w-12 h-px bg-gradient-to-r from-transparent to-zinc-500/50" />
+            <span className="text-[11px] uppercase tracking-[0.4em] text-zinc-400/60 font-medium">
               The Problem
             </span>
-            <span className="w-12 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
+            <span className="w-12 h-px bg-gradient-to-l from-transparent to-zinc-500/50" />
           </motion.div>
 
           <motion.h2
@@ -250,10 +250,10 @@ const ProblemStatement = () => {
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
             className="inline-flex flex-col items-center gap-3"
           >
-            <span className="text-[11px] uppercase tracking-[0.3em] text-amber-400/50 font-medium">
+            <span className="text-[11px] uppercase tracking-[0.3em] text-zinc-400/50 font-medium">
               There's a better way
             </span>
-            <div className="w-px h-8 bg-gradient-to-b from-amber-500/40 to-transparent" />
+            <div className="w-px h-8 bg-gradient-to-b from-zinc-500/40 to-transparent" />
           </motion.div>
         </motion.div>
       </div>
@@ -262,3 +262,4 @@ const ProblemStatement = () => {
 }
 
 export default ProblemStatement
+

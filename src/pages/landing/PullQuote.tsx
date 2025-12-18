@@ -22,7 +22,7 @@ const PullQuote = () => {
           viewport={{ once: true }}
           className="mb-8"
         >
-          <span className="text-[180px] leading-none font-serif text-amber-500/10">"</span>
+          <span className="text-[180px] leading-none font-serif text-zinc-500/10">"</span>
         </motion.div>
 
         {/* Quote */}
@@ -34,10 +34,10 @@ const PullQuote = () => {
           className="-mt-40 text-3xl md:text-4xl lg:text-5xl font-light text-white leading-tight"
         >
           Most founders don't need
-          <span className="italic text-amber-200"> more tactics</span>.
+          <span className="italic text-zinc-200"> more tactics</span>.
           <br />
           They need a plan they can
-          <span className="italic text-amber-200"> actually execute</span>.
+          <span className="italic text-zinc-200"> actually execute</span>.
         </motion.blockquote>
 
         {/* Attribution */}
@@ -60,3 +60,4 @@ const PullQuote = () => {
 }
 
 export default PullQuote
+

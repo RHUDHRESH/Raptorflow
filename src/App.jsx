@@ -55,6 +55,7 @@ import BlackBoxPage from './pages/app/BlackBoxPage'
 import TrailPage from './pages/app/TrailPage'
 import SettingsPage from './pages/app/SettingsPage'
 import SignalsPage from './pages/app/SignalsPage'
+import PlatformTestPage from './pages/app/PlatformTestPage'
 
 // Legacy pages (keeping for backwards compatibility)
 import Dashboard from './pages/app/Dashboard'
@@ -333,6 +334,7 @@ const AppRoutes = () => {
           <Route path="black-box/:id" element={<BlackBoxPage />} />
           <Route path="trail" element={<TrailPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="platform-test" element={<PlatformTestPage />} />
 
           {/* Legacy routes - kept for backwards compatibility */}
           <Route path="dashboard" element={<Dashboard />} />

@@ -61,7 +61,7 @@ const AnimatedCheckmark = () => (
 // Sparkle particle for clarity effect
 const SparkleParticle = ({ delay = 0 }) => (
   <motion.div
-    className="absolute w-1 h-1 bg-amber-300 rounded-full"
+    className="absolute w-1 h-1 bg-zinc-300 rounded-full"
     style={{
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
@@ -97,7 +97,7 @@ const StepCard = ({ step, index, isActive, isCompleted, onClick }) => {
       <div className={`
         relative p-6 rounded-xl border transition-all duration-300
         ${isActive
-          ? 'bg-zinc-900/60 border-amber-500/25 shadow-lg shadow-amber-500/10'
+          ? 'bg-zinc-900/60 border-zinc-500/25 shadow-lg shadow-zinc-500/10'
           : 'bg-zinc-900/40 border-white/[0.06] hover:border-white/[0.12]'
         }
       `}>
@@ -108,7 +108,7 @@ const StepCard = ({ step, index, isActive, isCompleted, onClick }) => {
             ${isCompleted
               ? 'bg-emerald-500 text-white'
               : isActive
-                ? 'bg-amber-500 text-black'
+                ? 'bg-zinc-500 text-black'
                 : 'bg-zinc-800 text-white/50 border border-white/[0.1]'
             }
           `}
@@ -123,7 +123,7 @@ const StepCard = ({ step, index, isActive, isCompleted, onClick }) => {
 
         {/* Icon */}
         <motion.div
-          className={`w-10 h-10 mb-4 ${isActive ? 'text-amber-400' : isCompleted ? 'text-emerald-400/60' : 'text-white/30'}`}
+          className={`w-10 h-10 mb-4 ${isActive ? 'text-zinc-400' : isCompleted ? 'text-emerald-400/60' : 'text-white/30'}`}
           animate={{
             scale: isActive ? [1, 1.08, 1] : 1,
             rotate: isActive && index === 1 ? [0, 5, -5, 0] : 0, // Brain icon subtle wobble
@@ -144,7 +144,7 @@ const StepCard = ({ step, index, isActive, isCompleted, onClick }) => {
         {/* Duration */}
         <div className={`
           mt-4 inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs
-          ${isActive ? 'bg-amber-500/15 text-amber-300' : isCompleted ? 'bg-emerald-500/10 text-emerald-300' : 'bg-white/5 text-white/30'}
+          ${isActive ? 'bg-zinc-500/15 text-zinc-300' : isCompleted ? 'bg-emerald-500/10 text-emerald-300' : 'bg-white/5 text-white/30'}
         `}>
           {step.duration}
         </div>
@@ -223,11 +223,11 @@ const InteractiveFlow = () => {
             animate={inView ? { opacity: 1 } : {}}
             className="inline-flex items-center gap-3 mb-8"
           >
-            <span className="w-12 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
-            <span className="text-[11px] uppercase tracking-[0.4em] text-amber-400/60 font-medium">
+            <span className="w-12 h-px bg-gradient-to-r from-transparent to-zinc-500/50" />
+            <span className="text-[11px] uppercase tracking-[0.4em] text-zinc-400/60 font-medium">
               The Process
             </span>
-            <span className="w-12 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
+            <span className="w-12 h-px bg-gradient-to-l from-transparent to-zinc-500/50" />
           </motion.div>
 
           <motion.h2
@@ -246,7 +246,7 @@ const InteractiveFlow = () => {
             </motion.span>
             {' '}to{' '}
             <span className="relative inline-block">
-              <span className="bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 bg-clip-text text-transparent">
                 clarity
               </span>
               {/* Sparkle particles */}
@@ -277,7 +277,7 @@ const InteractiveFlow = () => {
             <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
             {/* Animated pulse */}
             <motion.div
-              className="absolute top-0 h-1 w-16 bg-gradient-to-r from-amber-500/0 via-amber-500/60 to-amber-500/0 rounded-full -translate-y-1/2"
+              className="absolute top-0 h-1 w-16 bg-gradient-to-r from-zinc-500/0 via-zinc-500/60 to-zinc-500/0 rounded-full -translate-y-1/2"
               animate={{
                 left: [`${activeStep * 25}%`, `${((activeStep + 1) % 4) * 25}%`]
               }}
@@ -308,7 +308,7 @@ const InteractiveFlow = () => {
                 onClick={() => setActiveStep(index)}
                 className={`
                   h-2 rounded-full transition-all duration-300
-                  ${activeStep === index ? 'w-6 bg-amber-400' : index < activeStep ? 'w-2 bg-emerald-400/60' : 'w-2 bg-white/20 hover:bg-white/40'}
+                  ${activeStep === index ? 'w-6 bg-zinc-400' : index < activeStep ? 'w-2 bg-emerald-400/60' : 'w-2 bg-white/20 hover:bg-white/40'}
                 `}
               />
             ))}
@@ -336,3 +336,4 @@ const InteractiveFlow = () => {
 }
 
 export default InteractiveFlow
+

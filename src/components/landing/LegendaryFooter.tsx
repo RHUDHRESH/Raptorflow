@@ -52,7 +52,7 @@ const MomentumCounter = () => {
 
     return (
         <motion.div
-            className="grid grid-cols-3 gap-4 p-4 rounded-2xl bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 border border-primary/20"
+            className="grid grid-cols-3 gap-4 p-4 rounded-2xl bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-100 border border-zinc-200"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -70,7 +70,7 @@ const MomentumCounter = () => {
                     <motion.div
                         className="text-2xl md:text-3xl font-mono font-bold text-foreground"
                         key={stat.value}
-                        initial={{ scale: 1.2, color: 'hsl(var(--primary))' }}
+                        initial={{ scale: 1.2, color: '#18181B' }}
                         animate={{ scale: 1, color: 'hsl(var(--foreground))' }}
                         transition={{ duration: 0.3 }}
                     >
@@ -180,13 +180,13 @@ const CopyableEmail = () => {
             aria-label={copied ? 'Email copied to clipboard' : 'Copy email address to clipboard'}
             className={cn(
                 "group flex items-center gap-3 px-5 py-3 min-h-[44px] rounded-xl border transition-all duration-300",
-                copied ? "bg-primary/20 border-primary/40" : "bg-muted/50 border-border hover:border-primary/30"
+                copied ? "bg-zinc-100 border-zinc-300" : "bg-muted/50 border-border hover:border-zinc-400"
             )}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
         >
-            <Mail className={cn("w-5 h-5 transition-colors", copied ? "text-primary" : "text-muted-foreground")} />
-            <span className={cn("font-mono text-sm transition-colors", copied ? "text-primary" : "text-muted-foreground group-hover:text-foreground")}>
+            <Mail className={cn("w-5 h-5 transition-colors", copied ? "text-zinc-700" : "text-muted-foreground")} />
+            <span className={cn("font-mono text-sm transition-colors", copied ? "text-zinc-700" : "text-muted-foreground group-hover:text-foreground")}>
                 {email}
             </span>
             <AnimatePresence mode="wait">
@@ -198,7 +198,7 @@ const CopyableEmail = () => {
                         exit={{ scale: 0, rotate: 180 }}
                         className="ml-auto"
                     >
-                        <Check className="w-4 h-4 text-primary" />
+                        <Check className="w-4 h-4 text-zinc-700" />
                     </motion.div>
                 ) : (
                     <motion.div
@@ -208,7 +208,7 @@ const CopyableEmail = () => {
                         exit={{ scale: 0 }}
                         className="ml-auto"
                     >
-                        <Copy className={cn("w-4 h-4 transition-colors", isHovered ? "text-primary" : "text-muted-foreground/50")} />
+                        <Copy className={cn("w-4 h-4 transition-colors", isHovered ? "text-zinc-700" : "text-muted-foreground/50")} />
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -235,7 +235,7 @@ const FooterLink = ({ href, children, external = false }: { href: string, childr
                 className="group relative inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
                 <motion.span
-                    className="absolute -left-3 w-1.5 h-1.5 rounded-full bg-primary"
+                    className="absolute -left-3 w-1.5 h-1.5 rounded-full bg-zinc-700"
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: isHovered ? 1 : 0, opacity: isHovered ? 1 : 0 }}
                     transition={{ duration: 0.2 }}
@@ -360,7 +360,7 @@ const ParticleField = ({ isActive }: { isActive: boolean }) => {
             {[...Array(20)].map((_, i) => (
                 <motion.div
                     key={i}
-                    className="absolute w-1 h-1 rounded-full bg-primary"
+                    className="absolute w-1 h-1 rounded-full bg-zinc-600"
                     style={{
                         left: '50%',
                         top: '50%',
@@ -405,9 +405,9 @@ export const LegendaryFooter = () => {
     }
 
     const socialLinks = [
-        { icon: Twitter, href: 'https://x.com/raptorflow', label: 'X / Twitter', color: 'from-orange-500 to-orange-600' },
-        { icon: Linkedin, href: 'https://linkedin.com/company/raptorflow', label: 'LinkedIn', color: 'from-orange-600 to-orange-800' },
-        { icon: Github, href: 'https://github.com/raptorflow', label: 'GitHub', color: 'from-gray-700 to-gray-900' },
+        { icon: Twitter, href: 'https://x.com/raptorflow', label: 'X / Twitter', color: 'from-zinc-700 to-zinc-900' },
+        { icon: Linkedin, href: 'https://linkedin.com/company/raptorflow', label: 'LinkedIn', color: 'from-zinc-600 to-zinc-800' },
+        { icon: Github, href: 'https://github.com/raptorflow', label: 'GitHub', color: 'from-zinc-700 to-zinc-900' },
     ]
 
     const footerLinks = {
@@ -440,11 +440,11 @@ export const LegendaryFooter = () => {
                 {/* Ambient gradient orbs - Static for performance, no infinite animation */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
                     <div
-                        className="absolute w-[600px] h-[600px] rounded-full bg-gradient-radial from-primary/10 via-primary/5 to-transparent blur-2xl md:blur-3xl"
+                        className="absolute w-[600px] h-[600px] rounded-full bg-gradient-radial from-zinc-200/10 via-zinc-100/5 to-transparent blur-2xl md:blur-3xl"
                         style={{ top: '-200px', left: '-100px' }}
                     />
                     <div
-                        className="absolute w-[400px] h-[400px] rounded-full bg-gradient-radial from-primary/8 via-primary/3 to-transparent blur-2xl md:blur-3xl"
+                        className="absolute w-[400px] h-[400px] rounded-full bg-gradient-radial from-zinc-200/8 via-zinc-100/3 to-transparent blur-2xl md:blur-3xl"
                         style={{ bottom: '-100px', right: '-50px' }}
                     />
                 </div>
@@ -476,7 +476,7 @@ export const LegendaryFooter = () => {
                                         <RaptorFlowLogo size="xl" showText={false} animated />
                                         <div>
                                             <h3 className="font-serif text-2xl font-semibold text-foreground tracking-tight">
-                                                Raptor<span className="text-primary">Flow</span>
+                                                Raptor<span className="text-zinc-400">Flow</span>
                                             </h3>
                                             <p className="text-sm text-muted-foreground">Marketing OS for founders</p>
                                         </div>
@@ -571,7 +571,7 @@ export const LegendaryFooter = () => {
                                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                                         <Link
                                             to="/signup"
-                                            className="flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/25"
+                                            className="flex items-center gap-2 px-5 py-3 bg-zinc-900 text-white rounded-xl font-medium text-sm hover:bg-black transition-opacity shadow-lg"
                                         >
                                             <Rocket className="w-4 h-4" />
                                             Start free
@@ -625,7 +625,7 @@ export const LegendaryFooter = () => {
                                     <motion.span
                                         initial={{ opacity: 0, scale: 0 }}
                                         animate={{ opacity: 1, scale: 1 }}
-                                        className="text-primary text-xs"
+                                        className="text-zinc-600 text-xs"
                                     >
                                         {5 - logoClicks} more clicks... 🤫
                                     </motion.span>
@@ -664,11 +664,11 @@ export const LegendaryFooter = () => {
                                 </h3>
                                 <p className="text-muted-foreground mb-6">
                                     You're clearly a curious founder. We like that. Here's a secret:
-                                    <span className="text-primary font-medium"> the best marketing is the marketing you actually ship.</span>
+                                    <span className="text-zinc-800 font-medium"> the best marketing is the marketing you actually ship.</span>
                                 </p>
                                 <motion.button
                                     onClick={() => setShowEasterEgg(false)}
-                                    className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium"
+                                    className="px-6 py-3 bg-zinc-900 text-white rounded-xl font-medium"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >

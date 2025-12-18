@@ -6,7 +6,7 @@ import { motion, useInView, AnimatePresence, useMotionValue, useSpring, useTrans
    Clean grid layout showing the 6 pillars
    ═══════════════════════════════════════════════════════════════════════════ */
 
-// Nanobana-style 2D icons (single amber color)
+// Nanobana-style 2D icons (single zinc color)
 const NanoTarget = ({ className = '' }) => (
   <svg viewBox="0 0 48 48" fill="none" className={className}>
     <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth="1" />
@@ -261,7 +261,7 @@ const FeatureShowcase = () => {
     {
       icon: NanoChart,
       title: "RAG Matrix",
-      description: "Real-time health dashboard. Red/Amber/Green status for every metric you track.",
+      description: "Real-time health dashboard. Red/zinc/Green status for every metric you track.",
       highlights: ["Automated RAG calculation", "Trend analysis", "Kill switch integration"]
     }
   ]
@@ -270,8 +270,8 @@ const FeatureShowcase = () => {
     <section id="features" ref={sectionRef} className="relative py-32 md:py-40 bg-[#050505] overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/10 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/10 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-500/10 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-500/10 to-transparent" />
 
         {/* Geometric grid */}
         <svg className="absolute inset-0 w-full h-full opacity-[0.04]" preserveAspectRatio="xMidYMid slice">
@@ -285,7 +285,7 @@ const FeatureShowcase = () => {
         </svg>
 
         {/* Radial glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-radial from-amber-500/5 to-transparent blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-radial from-zinc-500/5 to-transparent blur-3xl" />
       </div>
 
       <div className="max-w-6xl mx-auto px-6 md:px-12 relative z-10">
@@ -296,11 +296,11 @@ const FeatureShowcase = () => {
             animate={inView ? { opacity: 1 } : {}}
             className="inline-flex items-center gap-3 mb-8"
           >
-            <span className="w-12 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
-            <span className="text-[11px] uppercase tracking-[0.4em] text-amber-400/60 font-medium">
+            <span className="w-12 h-px bg-gradient-to-r from-transparent to-zinc-500/50" />
+            <span className="text-[11px] uppercase tracking-[0.4em] text-zinc-400/60 font-medium">
               The System
             </span>
-            <span className="w-12 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
+            <span className="w-12 h-px bg-gradient-to-l from-transparent to-zinc-500/50" />
           </motion.div>
 
           <motion.h2
@@ -310,7 +310,7 @@ const FeatureShowcase = () => {
             className="text-5xl md:text-6xl lg:text-7xl font-light text-white tracking-tight"
           >
             Six pillars of{' '}
-            <span className="bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 bg-clip-text text-transparent">
               GTM control
             </span>
           </motion.h2>
@@ -337,3 +337,4 @@ const FeatureShowcase = () => {
 }
 
 export default FeatureShowcase
+

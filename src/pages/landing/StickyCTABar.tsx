@@ -74,15 +74,15 @@ export const StickyCTABar = () => {
                             {/* Left side - Trust indicators */}
                             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                                 <span className="flex items-center gap-1.5">
-                                    <Check className="w-4 h-4 text-primary" />
+                                    <Check className="w-4 h-4 text-zinc-600" />
                                     14-day money-back guarantee
                                 </span>
                                 <span className="hidden sm:flex items-center gap-1.5">
-                                    <Check className="w-4 h-4 text-primary" />
+                                    <Check className="w-4 h-4 text-zinc-600" />
                                     Setup in 15 minutes
                                 </span>
                                 <span className="hidden md:flex items-center gap-1.5">
-                                    <Check className="w-4 h-4 text-primary" />
+                                    <Check className="w-4 h-4 text-zinc-600" />
                                     No credit card required
                                 </span>
                             </div>
@@ -94,7 +94,7 @@ export const StickyCTABar = () => {
                             >
                                 <Link
                                     to="/signup"
-                                    className="group flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium shadow-lg shadow-primary/25 whitespace-nowrap"
+                                    className="group flex items-center gap-2 px-6 py-3 bg-zinc-900 text-white rounded-xl font-medium shadow-lg whitespace-nowrap hover:bg-black transition-all"
                                 >
                                     Get Started
                                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -109,3 +109,4 @@ export const StickyCTABar = () => {
 }
 
 export default StickyCTABar
+

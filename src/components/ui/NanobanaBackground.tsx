@@ -21,14 +21,14 @@ export const NanobanaBackground: React.FC<NanobanaBackgroundProps> = ({
     }, [])
 
     return (
-        <div className={cn("fixed inset-0 -z-50 overflow-hidden pointer-events-none bg-[#05050A]", className)}>
+        <div className={cn("fixed inset-0 -z-50 overflow-hidden pointer-events-none bg-background", className)}>
 
             {/* Layer 1: The Grid (Foundation) */}
             <div
                 className="absolute inset-0 opacity-[0.03]"
                 style={{
-                    backgroundImage: `linear-gradient(to right, #ffffff 1px, transparent 1px),
-                            linear-gradient(to bottom, #ffffff 1px, transparent 1px)`,
+                    backgroundImage: `linear-gradient(to right, hsl(var(--foreground) / 0.12) 1px, transparent 1px),
+                            linear-gradient(to bottom, hsl(var(--foreground) / 0.12) 1px, transparent 1px)`,
                     backgroundSize: '40px 40px'
                 }}
             />
@@ -52,13 +52,19 @@ export const NanobanaBackground: React.FC<NanobanaBackgroundProps> = ({
                             x: [0, 100, 0]
                         }}
                         transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute top-[40%] -right-[10%] w-[40vw] h-[40vw] rounded-full bg-purple-600/10 blur-[100px]"
+                        className="absolute top-[40%] -right-[10%] w-[40vw] h-[40vw] rounded-full bg-accent/10 blur-[100px]"
                     />
                 </>
             )}
 
             {variant === 'void' && (
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#05050A]/50 to-[#05050A]" />
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        backgroundImage:
+                            'linear-gradient(to bottom, transparent, hsl(var(--background) / 0.55), hsl(var(--background)))',
+                    }}
+                />
             )}
 
             {/* Layer 3: Noise (Texture) */}

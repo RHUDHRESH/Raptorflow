@@ -22,6 +22,11 @@ import {
 } from 'lucide-react'
 import useRaptorflowStore from '../../store/raptorflowStore'
 import { Modal } from '@/components/system/Modal'
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/input'
+import { useTheme } from '@/contexts/ThemeContext'
+import { cn } from '@/lib/utils'
 
 // Channel icons and names
 const CHANNELS = [
@@ -35,25 +40,95 @@ const CHANNELS = [
 
 const makeLocalId = () => `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
 
+const useCampaignNeoTheme = () => {
+  const { theme } = useTheme()
+
+  useEffect(() => {
+    const root = document.documentElement
+
+    const vars = theme === 'dark'
+      ? {
+        '--background': '220 14% 6%',
+        '--foreground': '0 0% 96%',
+        '--card': '220 13% 10%',
+        '--card-foreground': '0 0% 96%',
+        '--muted': '220 10% 14%',
+        '--muted-foreground': '0 0% 72%',
+        '--border': '220 10% 18%',
+        '--input': '220 13% 10%',
+        '--ring': '214 90% 56%',
+
+        '--surface-1': '#121218',
+        '--surface-2': '#181820',
+        '--surface-3': '#1f202a',
+        '--text-1': '#F5F5F7',
+        '--text-2': 'rgba(245,245,247,0.82)',
+        '--text-3': 'rgba(245,245,247,0.62)',
+        '--border-1': 'rgba(255,255,255,0.08)',
+        '--border-2': 'rgba(255,255,255,0.14)',
+        '--focus-ring': 'hsl(214 90% 56%)',
+        '--primary': '214 90% 56%',
+        '--primary-foreground': '0 0% 100%',
+      }
+      : {
+        '--background': '0 0% 98%',
+        '--foreground': '220 18% 8%',
+        '--card': '0 0% 100%',
+        '--card-foreground': '220 18% 8%',
+        '--muted': '220 10% 96%',
+        '--muted-foreground': '220 10% 42%',
+        '--border': '220 8% 88%',
+        '--input': '0 0% 100%',
+        '--ring': '214 90% 56%',
+
+        '--surface-1': '#FFFFFF',
+        '--surface-2': '#F4F5F7',
+        '--surface-3': '#FFFFFF',
+        '--text-1': '#0B0B0D',
+        '--text-2': 'rgba(11,11,13,0.78)',
+        '--text-3': 'rgba(11,11,13,0.55)',
+        '--border-1': 'rgba(11,11,13,0.10)',
+        '--border-2': 'rgba(11,11,13,0.16)',
+        '--focus-ring': 'hsl(214 90% 56%)',
+        '--primary': '214 90% 56%',
+        '--primary-foreground': '0 0% 100%',
+      }
+
+    const prev = new Map()
+    Object.entries(vars).forEach(([k, v]) => {
+      prev.set(k, root.style.getPropertyValue(k))
+      root.style.setProperty(k, v)
+    })
+
+    return () => {
+      Object.keys(vars).forEach((k) => {
+        const prior = prev.get(k)
+        if (prior) root.style.setProperty(k, prior)
+        else root.style.removeProperty(k)
+      })
+    }
+  }, [theme])
+}
+
 // Channel fit badge
 const ChannelFitBadge = ({ fit }) => {
   const styles = {
-    recommended: { bg: 'bg-emerald-50', text: 'text-emerald-600', icon: CheckCircle2, label: 'Recommended' },
-    risky: { bg: 'bg-amber-50', text: 'text-amber-600', icon: AlertCircle, label: 'Risky' },
-    notfit: { bg: 'bg-red-50', text: 'text-red-500', icon: AlertTriangle, label: "Don't use" }
+    recommended: { bg: 'bg-primary/10 border border-primary/20', text: 'text-primary', icon: CheckCircle2, label: 'Recommended' },
+    risky: { bg: 'bg-muted border border-border', text: 'text-muted-foreground', icon: AlertCircle, label: 'Risky' },
+    notfit: { bg: 'bg-destructive/10 border border-destructive/20', text: 'text-destructive', icon: AlertTriangle, label: "Don't use" }
   }
   const style = styles[fit] || styles.risky
   const Icon = style.icon
 
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-body-xs ${style.bg} ${style.text}`}>
+    <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-body-xs', style.bg, style.text)}>
       <Icon className="w-3 h-3" strokeWidth={1.5} />
       {style.label}
     </span>
   )
 }
 
-// Campaign card
+// Campaign card - unified Card system
 const CampaignCard = ({ campaign, onClick }) => {
   const { getCampaignHealth, getCampaignPhase } = useRaptorflowStore()
   const health = getCampaignHealth?.(campaign.id)
@@ -68,82 +143,82 @@ const CampaignCard = ({ campaign, onClick }) => {
   const objectiveId = `campaign_card_objective_${campaign.id}`
 
   return (
-    <motion.button
-      type="button"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -2 }}
+    <Card
+      variant="interactive"
+      as="button"
       onClick={onClick}
       aria-label={`Open campaign ${campaign.name}`}
       aria-describedby={objectiveId}
-      className="w-full text-left p-5 bg-card border border-border rounded-xl hover:border-border-dark transition-editorial group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+      className="w-full text-left group"
     >
-      <div className="flex items-start justify-between mb-3">
+      <CardHeader className="flex-row items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-paper-200 rounded-xl flex items-center justify-center">
-            <Layers className="w-5 h-5 text-ink-400" strokeWidth={1.5} />
+          <div className="w-10 h-10 bg-[var(--surface-2)] rounded-[12px] flex items-center justify-center">
+            <Layers className="w-5 h-5 text-[var(--text-3)]" strokeWidth={1.5} />
           </div>
           <div>
-            <h3 className="font-serif text-lg text-ink group-hover:text-primary transition-editorial">
+            <CardTitle className="font-serif text-lg group-hover:text-primary transition-all duration-[160ms]">
               {campaign.name}
-            </h3>
-            <p id={objectiveId} className="text-body-xs text-ink-400">{campaign.objective}</p>
+            </CardTitle>
+            <CardDescription id={objectiveId}>{campaign.objective}</CardDescription>
           </div>
         </div>
-        <span className={`px-2 py-1 rounded text-body-xs capitalize ${campaign.status === 'active' ? 'bg-emerald-50 text-emerald-600' :
-            campaign.status === 'draft' ? 'bg-amber-50 text-amber-600' :
-              'bg-muted text-ink-400'
+        <span className={`px-2 py-1 rounded-[8px] text-[13px] capitalize ${campaign.status === 'active' ? 'bg-[var(--success)]/10 text-[var(--success)]' :
+          campaign.status === 'draft' ? 'bg-[var(--warning)]/10 text-[var(--warning)]' :
+            'bg-[var(--surface-2)] text-[var(--text-3)]'
           }`}>
           {campaign.status}
         </span>
-      </div>
+      </CardHeader>
 
-      <div className="flex items-center justify-between text-body-xs text-ink-400 mb-4">
-        <span className="inline-flex items-center gap-2">
-          <span className="px-2 py-1 bg-paper-200 rounded text-body-xs text-ink-400">Phase: {phase}</span>
-        </span>
-        {execution !== null && performance !== null && (
-          <span className="font-mono text-ink-400">
-            Exec {execution}% · Perf {performance}%
+      <CardContent>
+        <div className="flex items-center justify-between text-[13px] text-[var(--text-3)] mb-4">
+          <span className="inline-flex items-center gap-2">
+            <span className="px-2 py-1 bg-[var(--surface-2)] rounded-[8px]">Phase: {phase}</span>
           </span>
-        )}
-      </div>
-
-      {/* Channels */}
-      <div className="flex items-center gap-2 mb-4">
-        {campaign.channels?.map(ch => {
-          const channel = CHANNELS.find(c => c.id === ch)
-          return (
-            <span key={ch} className="px-2 py-1 bg-paper-200 rounded text-body-xs text-ink-400">
-              {channel?.icon} {channel?.name}
+          {execution !== null && performance !== null && (
+            <span className="font-mono">
+              Exec {execution}% · Perf {performance}%
             </span>
-          )
-        })}
-      </div>
-
-      {/* KPI Progress */}
-      {campaign.kpis?.primary && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-body-xs text-ink-400">{campaign.kpis.primary.name}</span>
-            <span className="text-body-xs text-ink font-mono">
-              {campaign.kpis.primary.current} / {campaign.kpis.primary.target}
-            </span>
-          </div>
-          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all"
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            />
-          </div>
+          )}
         </div>
-      )}
 
-      <div className="mt-4 flex items-center justify-between text-body-xs text-ink-400">
-        <span>{new Date(campaign.createdAt).toLocaleDateString()}</span>
-        <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-editorial" strokeWidth={1.5} />
-      </div>
-    </motion.button>
+        {/* Channels */}
+        <div className="flex items-center gap-2 mb-4">
+          {campaign.channels?.map(ch => {
+            const channel = CHANNELS.find(c => c.id === ch)
+            return (
+              <span key={ch} className="px-2 py-1 bg-[var(--surface-2)] rounded-[8px] text-[13px] text-[var(--text-3)]">
+                {channel?.icon} {channel?.name}
+              </span>
+            )
+          })}
+        </div>
+
+        {/* KPI Progress */}
+        {campaign.kpis?.primary && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] text-[var(--text-3)]">{campaign.kpis.primary.name}</span>
+              <span className="text-[13px] text-[var(--text-1)] font-mono">
+                {campaign.kpis.primary.current} / {campaign.kpis.primary.target}
+              </span>
+            </div>
+            <div className="h-1.5 bg-[var(--surface-2)] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full transition-all"
+                style={{ width: `${Math.min(progress, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="mt-4 flex items-center justify-between text-[13px] text-[var(--text-3)]">
+          <span>{new Date(campaign.createdAt).toLocaleDateString()}</span>
+          <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all duration-[160ms]" strokeWidth={1.5} />
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -557,7 +632,7 @@ const CreateCampaignModal = ({ isOpen, onClose }) => {
                 setSource('ai')
                 setView('ai_prompt')
               }}
-              className="p-4 rounded-2xl border border-primary/20 bg-signal-muted text-left hover:bg-primary/10 transition-editorial"
+              className="p-4 rounded-2xl border border-primary/20 bg-primary/10 text-left hover:bg-primary/15 transition-editorial"
             >
               <div className="flex items-center gap-2 text-body-sm text-ink font-medium">
                 <Sparkles className="w-4 h-4 text-primary" strokeWidth={1.5} />
@@ -622,9 +697,8 @@ const CreateCampaignModal = ({ isOpen, onClose }) => {
                   key={label}
                   type="button"
                   onClick={() => setAiHints(prev => ({ ...prev, [key]: !prev[key] }))}
-                  className={`px-3 py-1.5 rounded-full border text-body-xs transition-editorial ${
-                    active ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-paper text-ink-400 hover:text-ink'
-                  }`}
+                  className={`px-3 py-1.5 rounded-full border text-body-xs transition-editorial ${active ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-paper text-ink-400 hover:text-ink'
+                    }`}
                 >
                   {label}
                 </button>
@@ -689,9 +763,8 @@ const CreateCampaignModal = ({ isOpen, onClose }) => {
                 key={t.id}
                 type="button"
                 onClick={() => applyTemplate(t)}
-                className={`p-4 rounded-2xl border text-left transition-editorial ${
-                  selectedTemplateId === t.id ? 'border-primary bg-signal-muted' : 'border-border bg-card hover:bg-paper-200'
-                }`}
+                className={`p-4 rounded-2xl border text-left transition-editorial ${selectedTemplateId === t.id ? 'border-primary bg-primary/10' : 'border-border bg-card hover:bg-muted'
+                  }`}
               >
                 <div className="font-serif text-lg text-ink">{t.name}</div>
                 <div className="mt-1 text-body-xs text-ink-400">{t.subtitle}</div>
@@ -735,7 +808,7 @@ const CreateCampaignModal = ({ isOpen, onClose }) => {
           </div>
 
           {warnings.length > 0 && (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-body-sm text-amber-700">
+            <div className="p-3 bg-muted border border-border rounded-xl text-body-sm text-muted-foreground">
               {warnings.map((w, idx) => (
                 <div key={`warn_${idx}`}>- {w}</div>
               ))}
@@ -892,11 +965,10 @@ const CreateCampaignModal = ({ isOpen, onClose }) => {
                       key={cohort.id}
                       type="button"
                       onClick={() => toggleSecondaryCohort(cohort.id)}
-                      className={`p-3 rounded-xl border text-left transition-editorial ${
-                        formData.secondaryCohortIds.includes(cohort.id)
-                          ? 'border-primary bg-signal-muted'
-                          : 'border-border hover:border-border-dark'
-                      }`}
+                      className={`p-3 rounded-xl border text-left transition-editorial ${formData.secondaryCohortIds.includes(cohort.id)
+                        ? 'border-primary/30 bg-primary/10'
+                        : 'border-border hover:border-border/70'
+                        }`}
                     >
                       <div className="text-body-sm text-ink font-medium">{cohort.name}</div>
                       <div className="text-body-xs text-ink-400 line-clamp-1">{cohort.description}</div>
@@ -934,13 +1006,12 @@ const CreateCampaignModal = ({ isOpen, onClose }) => {
                       key={channel.id}
                       type="button"
                       onClick={() => toggleChannel(channel.id)}
-                      className={`p-3 rounded-xl border text-center transition-editorial ${
-                        isSelected
-                          ? fit === 'notfit'
-                            ? 'border-red-300 bg-red-50'
-                            : 'border-primary bg-signal-muted'
-                          : 'border-border hover:border-border-dark'
-                      }`}
+                      className={`p-3 rounded-xl border text-center transition-editorial ${isSelected
+                        ? fit === 'notfit'
+                          ? 'border-destructive/30 bg-destructive/10'
+                          : 'border-primary/30 bg-primary/10'
+                        : 'border-border hover:border-border/70'
+                        }`}
                     >
                       <div className="text-lg mb-1">{channel.icon}</div>
                       <div className="text-body-xs text-ink">{channel.name}</div>
@@ -1030,9 +1101,8 @@ const CreateCampaignModal = ({ isOpen, onClose }) => {
                     key={opt.id}
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, messageBackbone: opt.id }))}
-                    className={`px-3 py-2 rounded-xl border text-body-sm transition-editorial ${
-                      formData.messageBackbone === opt.id ? 'border-primary bg-signal-muted text-primary' : 'border-border bg-paper text-ink-400 hover:text-ink'
-                    }`}
+                    className={`px-3 py-2 rounded-xl border text-body-sm transition-editorial ${formData.messageBackbone === opt.id ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border bg-paper text-ink-400 hover:text-ink'
+                      }`}
                   >
                     {opt.label}
                   </button>
@@ -1112,7 +1182,7 @@ const CreateCampaignModal = ({ isOpen, onClose }) => {
                     <div className="font-serif text-xl text-ink">{formData.name || 'Campaign name'}</div>
                     <div className="text-body-sm text-ink-400 mt-1">{formData.objective || 'Objective line'}</div>
                   </div>
-                  <span className="px-2 py-1 rounded text-body-xs bg-amber-50 text-amber-700">Draft</span>
+                  <span className="px-2 py-1 rounded-full text-body-xs bg-muted text-muted-foreground border border-border">Draft</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-body-xs text-ink-400">
                   <div>
@@ -1560,9 +1630,9 @@ const CampaignDetail = ({ campaign }) => {
   }
 
   return (
-    <div>
+    <div className="font-sans">
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-8">
         <div>
           <button
             type="button"
@@ -1577,29 +1647,31 @@ const CampaignDetail = ({ campaign }) => {
           >
             ← Back to campaigns
           </button>
-          <h1 className="font-serif text-headline-md text-ink">{campaign.name}</h1>
-          <p className="text-body-sm text-ink-400 mt-1">{campaign.objective}</p>
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">{campaign.name}</h1>
+          <p className="text-body-sm text-muted-foreground mt-1">{campaign.objective}</p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setPrimaryCampaignId?.(campaign.id)}
-            className="px-3 py-2 border border-border rounded-lg text-body-sm text-ink hover:bg-paper-200 transition-editorial"
-          >
+          <Button variant="outline" size="sm" onClick={() => setPrimaryCampaignId?.(campaign.id)}>
             Set as primary
-          </button>
+          </Button>
           {campaign.status === 'draft' && (
-            <button
+            <Button
+              variant="primary"
+              size="sm"
               onClick={handleActivate}
               disabled={activationBlockers.length > 0}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-body-sm hover:opacity-95 transition-editorial"
             >
-              Activate Campaign
-            </button>
+              Activate
+            </Button>
           )}
-          <span className={`px-3 py-1.5 rounded-lg text-body-sm capitalize ${campaign.status === 'active' ? 'bg-emerald-50 text-emerald-600' :
-              campaign.status === 'draft' ? 'bg-amber-50 text-amber-600' :
-                'bg-muted text-ink-400'
-            }`}>
+          <span className={cn(
+            'px-3 py-1.5 rounded-full text-body-sm capitalize border',
+            campaign.status === 'active'
+              ? 'bg-primary/10 text-primary border-primary/20'
+              : campaign.status === 'draft'
+                ? 'bg-muted text-muted-foreground border-border'
+                : 'bg-muted text-muted-foreground border-border'
+          )}>
             {campaign.status}
           </span>
         </div>
@@ -1614,12 +1686,14 @@ const CampaignDetail = ({ campaign }) => {
             </span>
           )}
           {health?.rag && (
-            <span className={`px-2 py-1 rounded text-body-xs capitalize border ${health.rag === 'green'
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            <span className={cn(
+              'px-2 py-1 rounded-full text-body-xs capitalize border',
+              health.rag === 'green'
+                ? 'bg-primary/10 text-primary border-primary/20'
                 : health.rag === 'red'
-                  ? 'bg-red-50 text-red-700 border-red-200'
-                  : 'bg-amber-50 text-amber-700 border-amber-200'
-              }`}>
+                  ? 'bg-destructive/10 text-destructive border-destructive/20'
+                  : 'bg-muted text-muted-foreground border-border'
+            )}>
               {health.rag}{Array.isArray(health.issues) && health.issues.length ? ` · ${health.issues.length}` : ''}
             </span>
           )}
@@ -1761,7 +1835,7 @@ const CampaignDetail = ({ campaign }) => {
                     {campaignTodayTasks.slice(0, 10).map(task => (
                       <div
                         key={`${task.moveId}_${task.id}`}
-                        className="flex items-start justify-between gap-3 p-3 bg-paper rounded-xl border border-border-light"
+                        className="flex items-start justify-between gap-3 p-3 bg-paper rounded-xl border border-border"
                       >
                         <div className="flex items-start gap-3">
                           <button
@@ -1798,12 +1872,12 @@ const CampaignDetail = ({ campaign }) => {
                   </div>
                 ) : (
                   <div className="text-center py-10">
-                    <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" strokeWidth={1.5} />
+                    <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-3" strokeWidth={1.5} />
                     <div className="font-serif text-lg text-ink mb-1">No tasks due today</div>
                     <div className="text-body-sm text-ink-400">Here are open tasks across this campaign:</div>
                     <div className="mt-4 max-w-xl mx-auto text-left space-y-2">
                       {(campaignOpenTasks.slice(0, 6) || []).map(t => (
-                        <div key={`${t.moveId}_${t.id}`} className="flex items-start justify-between gap-3 p-3 bg-paper rounded-xl border border-border-light">
+                        <div key={`${t.moveId}_${t.id}`} className="flex items-start justify-between gap-3 p-3 bg-paper rounded-xl border border-border">
                           <div className="min-w-0">
                             <div className="text-body-sm text-ink">{t.text}</div>
                             <button
@@ -1875,7 +1949,7 @@ const CampaignDetail = ({ campaign }) => {
                     {moves.slice(0, 5).map(m => {
                       const openCount = (m.tasks || []).filter(t => t.status !== 'done').length
                       return (
-                        <div key={m.id} className="flex items-start justify-between gap-3 p-3 bg-paper rounded-xl border border-border-light">
+                        <div key={m.id} className="flex items-start justify-between gap-3 p-3 bg-paper rounded-xl border border-border">
                           <div className="min-w-0">
                             <div className="text-body-sm text-ink font-medium">{m.name}</div>
                             <div className="text-body-xs text-ink-400">{openCount} open tasks · {m.status}</div>
@@ -1931,7 +2005,7 @@ const CampaignDetail = ({ campaign }) => {
                   {health.issues.length ? (
                     <div className="space-y-2">
                       {health.issues.map(i => (
-                        <div key={i.id} className="p-3 bg-paper rounded-xl border border-border-light">
+                        <div key={i.id} className="p-3 bg-paper rounded-xl border border-border">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <div className="text-body-sm text-ink font-medium">
@@ -1939,10 +2013,12 @@ const CampaignDetail = ({ campaign }) => {
                               </div>
                               <div className="text-body-xs text-ink-400 font-mono">Current: {i.value}%</div>
                             </div>
-                            <span className={`px-2 py-1 rounded text-body-xs capitalize border ${i.severity === 'fail'
-                                ? 'bg-red-50 text-red-700 border-red-200'
-                                : 'bg-amber-50 text-amber-700 border-amber-200'
-                              }`}>
+                            <span className={cn(
+                              'px-2 py-1 rounded-full text-body-xs capitalize border',
+                              i.severity === 'fail'
+                                ? 'bg-destructive/10 text-destructive border-destructive/20'
+                                : 'bg-muted text-muted-foreground border-border'
+                            )}>
                               {i.severity}
                             </span>
                           </div>
@@ -1980,7 +2056,7 @@ const CampaignDetail = ({ campaign }) => {
                           })
                           setKpiCurrentEditOpen(true)
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-2 text-body-xs text-primary hover:bg-signal-muted rounded-lg transition-editorial"
+                        className="inline-flex items-center gap-1 px-3 py-2 text-body-xs text-primary hover:bg-primary/10 rounded-lg transition-editorial"
                       >
                         <PenLine className="w-3.5 h-3.5" strokeWidth={1.5} />
                         Edit current
@@ -2039,7 +2115,7 @@ const CampaignDetail = ({ campaign }) => {
                 </div>
 
                 {rollup && (
-                  <div className="mb-4 p-3 bg-paper-200 rounded-xl border border-border-light">
+                  <div className="mb-4 p-3 bg-paper-200 rounded-xl border border-border">
                     <div className="text-body-xs text-ink-400 mb-2">Rollup preview (sum of tracking updates)</div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {(['primary', 'reach', 'click', 'convert']).map(key => (
@@ -2113,7 +2189,7 @@ const CampaignDetail = ({ campaign }) => {
                       {!phaseEditorOpen ? (
                         <button
                           onClick={openPhaseEditor}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-body-xs text-primary hover:bg-signal-muted rounded-lg transition-editorial"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-body-xs text-primary hover:bg-primary/10 rounded-lg transition-editorial"
                         >
                           <PenLine className="w-3.5 h-3.5" strokeWidth={1.5} />
                           Edit
@@ -2169,7 +2245,7 @@ const CampaignDetail = ({ campaign }) => {
                       }
 
                       return phases.map((p, idx) => (
-                        <div key={`${p.phase}_${idx}`} className="p-3 bg-paper-200 rounded-xl border border-border-light">
+                        <div key={`${p.phase}_${idx}`} className="p-3 bg-paper-200 rounded-xl border border-border">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0 flex-1">
                               <div className="text-body-sm text-ink font-medium">{idx + 1}. {p.phase}</div>
@@ -2274,7 +2350,7 @@ const CampaignDetail = ({ campaign }) => {
                       {!kpiEditorOpen ? (
                         <button
                           onClick={openKpiEditor}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-body-xs text-primary hover:bg-signal-muted rounded-lg transition-editorial"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-body-xs text-primary hover:bg-primary/10 rounded-lg transition-editorial"
                         >
                           <PenLine className="w-3.5 h-3.5" strokeWidth={1.5} />
                           Edit
@@ -2335,7 +2411,7 @@ const CampaignDetail = ({ campaign }) => {
                         const editing = Boolean(kpiEditorOpen && draft)
                         const value = editing ? getDraftKpi(c.draftKey) : c.kpi
                         return (
-                          <div key={c.key} className="p-4 bg-paper-200 rounded-xl border border-border-light">
+                          <div key={c.key} className="p-4 bg-paper-200 rounded-xl border border-border">
                             <div className="text-body-xs text-ink-400 mb-1">{c.label}</div>
 
                             {editing ? (
@@ -2372,7 +2448,7 @@ const CampaignDetail = ({ campaign }) => {
 
                   {kpiEditorOpen && kpiDraft && (
                     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="p-4 bg-paper-200 rounded-xl border border-border-light">
+                      <div className="p-4 bg-paper-200 rounded-xl border border-border">
                         <div className="flex items-center justify-between mb-3">
                           <div className="font-serif text-ink">Leading indicators</div>
                           <button
@@ -2380,7 +2456,7 @@ const CampaignDetail = ({ campaign }) => {
                               ...prev,
                               leadingIndicators: [...(prev?.leadingIndicators || []), { id: makeLocalId(), name: '', target: 0 }],
                             }))}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-body-xs text-primary hover:bg-signal-muted rounded-lg transition-editorial"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-body-xs text-primary hover:bg-primary/10 rounded-lg transition-editorial"
                           >
                             <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
                             Add
@@ -2429,7 +2505,7 @@ const CampaignDetail = ({ campaign }) => {
                         )}
                       </div>
 
-                      <div className="p-4 bg-paper-200 rounded-xl border border-border-light">
+                      <div className="p-4 bg-paper-200 rounded-xl border border-border">
                         <div className="flex items-center justify-between mb-3">
                           <div className="font-serif text-ink">Health rules</div>
                           <button
@@ -2437,7 +2513,7 @@ const CampaignDetail = ({ campaign }) => {
                               ...prev,
                               healthRules: [...(prev?.healthRules || []), { id: makeLocalId(), metric: 'primary', operator: '>=', threshold: 0, severity: 'warn' }],
                             }))}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-body-xs text-primary hover:bg-signal-muted rounded-lg transition-editorial"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-body-xs text-primary hover:bg-primary/10 rounded-lg transition-editorial"
                           >
                             <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
                             Add
@@ -2528,7 +2604,7 @@ const CampaignDetail = ({ campaign }) => {
                   <button
                     type="button"
                     onClick={handleAddWeek}
-                    className="flex items-center gap-1 px-3 py-1.5 text-body-sm text-primary hover:bg-signal-muted rounded-lg transition-editorial focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+                    className="flex items-center gap-1 px-3 py-1.5 text-body-sm text-primary hover:bg-primary/10 rounded-lg transition-editorial focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
                   >
                     <Plus className="w-4 h-4" strokeWidth={1.5} />
                     Add week
@@ -2670,13 +2746,20 @@ const CampaignDetail = ({ campaign }) => {
                         >
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-body-sm text-ink font-medium">{move.name}</span>
-                            <span className={`px-2 py-0.5 rounded text-body-xs capitalize ${move.status === 'active' ? 'bg-emerald-50 text-emerald-600' :
-                                move.status === 'generating' ? 'bg-paper text-ink-400' :
-                                  move.status === 'pending' ? 'bg-amber-50 text-amber-600' :
-                                    move.status === 'paused' ? 'bg-ink-100 text-ink-400' :
-                                      move.status === 'completed' ? 'bg-primary/10 text-primary' :
-                                        'bg-muted text-ink-400'
-                              }`}>
+                            <span className={cn(
+                              'px-2 py-0.5 rounded-full text-body-xs capitalize border',
+                              move.status === 'active'
+                                ? 'bg-primary/10 text-primary border-primary/20'
+                                : move.status === 'generating'
+                                  ? 'bg-muted text-muted-foreground border-border'
+                                  : move.status === 'pending'
+                                    ? 'bg-muted text-muted-foreground border-border'
+                                    : move.status === 'paused'
+                                      ? 'bg-muted text-muted-foreground border-border'
+                                      : move.status === 'completed'
+                                        ? 'bg-primary/10 text-primary border-primary/20'
+                                        : 'bg-muted text-muted-foreground border-border'
+                            )}>
                               {move.status}
                             </span>
                           </div>
@@ -2829,6 +2912,8 @@ const CampaignsPage = () => {
   const { campaigns, getCampaign } = useRaptorflowStore()
   const [blankOpen, setBlankOpen] = useState(false)
 
+  useCampaignNeoTheme()
+
   useEffect(() => {
     if (id === 'new') setBlankOpen(true)
   }, [id])
@@ -2862,63 +2947,183 @@ const CampaignsPage = () => {
 
 // List view
 const CampaignsListView = ({ campaigns, onNavigate, onOpenCreate }) => {
-  return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <h1 className="font-serif text-headline-md text-ink">Campaigns</h1>
-          <p className="text-body-sm text-ink-400 mt-1">Your war plans — each contains moves, tasks, and learning.</p>
-        </motion.div>
+  const { getCampaignHealth, getCampaignPhase } = useRaptorflowStore()
 
-        <motion.button
-          type="button"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          whileHover={{ scale: 1.02 }}
-          onClick={onOpenCreate}
-          aria-label="Create a new campaign"
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-95 transition-editorial focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
-        >
-          <Plus className="w-4 h-4" strokeWidth={1.5} />
-          New Campaign
-        </motion.button>
+  const [query, setQuery] = useState('')
+  const [status, setStatus] = useState('all')
+
+  const list = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return (Array.isArray(campaigns) ? campaigns : [])
+      .filter(c => {
+        if (status === 'all') return true
+        return (c.status || '').toLowerCase() === status
+      })
+      .filter(c => {
+        if (!q) return true
+        return `${c.name || ''} ${c.objective || ''}`.toLowerCase().includes(q)
+      })
+      .sort((a, b) => {
+        const aT = new Date(a.updatedAt || a.createdAt || 0).getTime()
+        const bT = new Date(b.updatedAt || b.createdAt || 0).getTime()
+        return bT - aT
+      })
+  }, [campaigns, query, status])
+
+  const [selectedId, setSelectedId] = useState(list?.[0]?.id || '')
+  useEffect(() => {
+    if (selectedId && list.some(c => c.id === selectedId)) return
+    setSelectedId(list?.[0]?.id || '')
+  }, [list, selectedId])
+
+  const selected = useMemo(() => {
+    return list.find(c => c.id === selectedId) || null
+  }, [list, selectedId])
+
+  const chipForStatus = (s) => {
+    const key = (s || '').toLowerCase()
+    return cn(
+      'inline-flex items-center rounded-full border px-2 py-0.5 text-[12px] capitalize',
+      key === 'active'
+        ? 'bg-primary/10 text-primary border-primary/20'
+        : key === 'draft'
+          ? 'bg-muted text-muted-foreground border-border'
+          : 'bg-muted text-muted-foreground border-border'
+    )
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto font-sans">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
+        <div>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-foreground">Campaigns</h1>
+            <p className="text-sm text-muted-foreground mt-1">A crisp workspace for planning, execution, and measurement.</p>
+          </motion.div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => onNavigate('/app/matrix')}>Matrix</Button>
+          <Button variant="primary" size="sm" onClick={onOpenCreate}>
+            <Plus className="w-4 h-4" strokeWidth={1.5} />
+            New
+          </Button>
+        </div>
       </div>
 
-      {campaigns.length > 0 ? (
-        <>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif text-xl text-ink">Your campaigns</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {campaigns.map((campaign) => (
-              <CampaignCard
-                key={campaign.id}
-                campaign={campaign}
-                onClick={() => onNavigate(`/app/campaigns/${campaign.id}`)}
-              />
-            ))}
-          </div>
-        </>
-      ) : (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center py-10"
-        >
-          <Layers className="w-12 h-12 text-ink-300 mx-auto mb-3" strokeWidth={1.5} />
-          <h2 className="font-serif text-xl text-ink mb-2">No campaigns yet</h2>
-          <p className="text-body-sm text-ink-400 mb-6">Create a campaign to organize your moves and track KPIs.</p>
-          <button
-            type="button"
-            onClick={onOpenCreate}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-95 transition-editorial focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
-          >
-            Create your first campaign
-          </button>
+      {list.length === 0 ? (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12">
+          <Layers className="w-12 h-12 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
+          <h2 className="text-xl font-semibold text-foreground mb-2">No campaigns yet</h2>
+          <p className="text-sm text-muted-foreground mb-6">Create a campaign to organize moves, tasks, and KPIs.</p>
+          <Button variant="primary" onClick={onOpenCreate}>Create your first campaign</Button>
         </motion.div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6">
+          <div className="space-y-3">
+            <Card className="p-4" variant="default">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search campaigns…"
+                />
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                {['all', 'active', 'draft'].map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setStatus(k)}
+                    className={cn(
+                      'px-3 py-1.5 rounded-full text-xs border transition-editorial',
+                      status === k
+                        ? 'bg-primary/10 text-primary border-primary/20'
+                        : 'bg-card text-muted-foreground border-border hover:border-border/70'
+                    )}
+                  >
+                    {k}
+                  </button>
+                ))}
+              </div>
+            </Card>
+
+            <div className="space-y-2">
+              {list.map((c) => {
+                const isSelected = c.id === selectedId
+                const health = getCampaignHealth?.(c.id)
+                const phase = health?.phase || getCampaignPhase?.(c.id) || 'Awareness'
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setSelectedId(c.id)}
+                    onDoubleClick={() => onNavigate(`/app/campaigns/${c.id}`)}
+                    className={cn(
+                      'w-full text-left rounded-[18px] border p-4 transition-editorial focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                      isSelected
+                        ? 'bg-primary/5 border-primary/25'
+                        : 'bg-card border-border hover:border-border/70'
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-foreground truncate">{c.name}</div>
+                        <div className="text-xs text-muted-foreground line-clamp-1 mt-1">{c.objective}</div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className={chipForStatus(c.status)}>{c.status}</span>
+                        <span className="text-[11px] text-muted-foreground">{phase}</span>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <Card className="p-6" variant="default">
+            {selected ? (
+              <>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Selected campaign</div>
+                    <div className="mt-1 text-2xl font-semibold tracking-tight text-foreground">{selected.name}</div>
+                    <div className="mt-2 text-sm text-muted-foreground max-w-2xl">{selected.objective}</div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className={chipForStatus(selected.status)}>{selected.status}</span>
+                    <Button size="sm" onClick={() => onNavigate(`/app/campaigns/${selected.id}`)}>
+                      Open
+                      <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {(() => {
+                    const h = getCampaignHealth?.(selected.id)
+                    const phase = h?.phase || getCampaignPhase?.(selected.id) || 'Awareness'
+                    const exec = typeof h?.execution === 'number' ? `${h.execution}%` : '—'
+                    const perf = typeof h?.performance === 'number' ? `${h.performance}%` : '—'
+                    return [
+                      { label: 'Phase', value: phase },
+                      { label: 'Execution', value: exec },
+                      { label: 'Performance', value: perf },
+                    ].map((m) => (
+                      <div key={m.label} className="rounded-[18px] border border-border bg-muted/40 p-4">
+                        <div className="text-xs text-muted-foreground">{m.label}</div>
+                        <div className="mt-1 text-lg font-semibold text-foreground">{m.value}</div>
+                      </div>
+                    ))
+                  })()}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground">Select a campaign to preview.</div>
+            )}
+          </Card>
+        </div>
       )}
     </div>
   )

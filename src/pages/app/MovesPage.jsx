@@ -15,6 +15,7 @@ import {
 import useRaptorflowStore from '../../store/raptorflowStore'
 import { PROBLEM_TYPES, FRAMEWORK_CONFIGS } from '../../data/frameworkConfigs'
 import { BrandIcon } from '@/components/brand/BrandSystem'
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/Card'
 import MoveDetail from './moves/MoveDetail'
 
 /**
@@ -43,7 +44,7 @@ const StatusBadge = ({ status }) => {
   )
 }
 
-// Move card for the grid
+// Move card for the grid - unified Card system
 const MoveCard = ({ move, onClick }) => {
   const { getMoveDayNumber, getCampaign } = useRaptorflowStore()
 
@@ -57,70 +58,68 @@ const MoveCard = ({ move, onClick }) => {
   const framework = move.frameworkId ? FRAMEWORK_CONFIGS[move.frameworkId] : null
 
   return (
-    <motion.button
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.99 }}
+    <Card
+      variant="interactive"
       onClick={onClick}
-      className="w-full text-left p-6 bg-card border border-border/60 rounded-2xl hover:border-primary/40 hover:shadow-glow transition-all group relative overflow-hidden"
+      className="w-full text-left group"
     >
-      {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-primary/10 transition-colors" />
-
-      <div className="flex items-start justify-between mb-4 relative z-10">
+      <CardHeader className="flex-row items-start justify-between pb-2">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10 flex items-center justify-center flex-shrink-0 shadow-sm">
+          <div className="w-12 h-12 rounded-[12px] bg-primary/10 border border-primary/10 flex items-center justify-center flex-shrink-0">
             <BrandIcon name="speed" size={22} className="text-primary" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-serif text-lg text-foreground leading-tight mb-1 group-hover:text-primary transition-colors line-clamp-2">
+            <CardTitle className="font-serif text-lg group-hover:text-primary transition-all duration-[160ms] line-clamp-2">
               {move.name || 'Untitled Move'}
-            </h3>
+            </CardTitle>
             {framework && (
-              <p className="text-xs text-muted-foreground truncate font-medium">
+              <CardDescription className="truncate font-medium">
                 {framework.name}
-              </p>
+              </CardDescription>
             )}
           </div>
         </div>
         <div className="flex-shrink-0 ml-3">
           <StatusBadge status={move.status} />
         </div>
-      </div>
+      </CardHeader>
 
-      {/* Target/Goal section */}
-      {problem && (
-        <div className="mb-5 relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/50 border border-border/50">
-            <Target className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-xs text-foreground/80 font-medium truncate max-w-[200px]">
-              {problem.statement}
-            </span>
+      <CardContent>
+        {/* Target/Goal section */}
+        {problem && (
+          <div className="mb-5">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] bg-[var(--surface-2)] border border-[var(--border-1)]">
+              <Target className="w-3.5 h-3.5 text-[var(--text-3)]" />
+              <span className="text-[13px] text-[var(--text-2)] font-medium truncate max-w-[200px]">
+                {problem.statement}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Stats row */}
+        <div className="flex items-center justify-between text-[13px] text-[var(--text-3)] mb-3">
+          <div className="flex items-center gap-1.5 font-medium">
+            <Clock className="w-3.5 h-3.5" strokeWidth={2} />
+            <span>Day {currentDay}</span>
+            <span className="opacity-50">/</span>
+            <span>{totalDays}</span>
+          </div>
+          <div className="font-medium">
+            {progress}% complete
           </div>
         </div>
-      )}
 
-      {/* Stats row */}
-      <div className="flex items-center justify-between text-xs text-muted-foreground mb-3 relative z-10">
-        <div className="flex items-center gap-1.5 font-medium">
-          <Clock className="w-3.5 h-3.5" strokeWidth={2} />
-          <span>Day {currentDay}</span>
-          <span className="text-muted-foreground/50">/</span>
-          <span>{totalDays}</span>
+        {/* Progress bar */}
+        <div className="h-1.5 bg-[var(--surface-2)] rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            className="h-full bg-primary rounded-full"
+          />
         </div>
-        <div className="font-medium">
-          {progress}% complete
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="h-1.5 bg-muted/60 rounded-full overflow-hidden relative z-10">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${progress}%` }}
-          className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"
-        />
-      </div>
-    </motion.button>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -316,25 +315,25 @@ const MovesHome = () => {
         <h2 className="font-serif text-lg text-foreground mb-4">Quick Start</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {QUICK_TEMPLATES.map((template, idx) => (
-            <motion.button
+            <Card
               key={template.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
+              variant="interactive"
               onClick={() => navigate(`/app/moves/new/1?problem=${template.problem}`)}
-              className="flex items-center gap-4 p-5 bg-card border border-border rounded-2xl text-left hover:border-primary/30 transition-colors group"
+              className="group"
             >
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                <BrandIcon name={template.icon} size={24} className="text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
-                  {template.name}
-                </h3>
-                <p className="text-sm text-muted-foreground">{template.description}</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" strokeWidth={1.5} />
-            </motion.button>
+              <CardContent className="flex items-center gap-4 py-5">
+                <div className="w-12 h-12 rounded-[12px] bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-all duration-[160ms]">
+                  <BrandIcon name={template.icon} size={24} className="text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="group-hover:text-primary transition-all duration-[160ms]">
+                    {template.name}
+                  </CardTitle>
+                  <CardDescription>{template.description}</CardDescription>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[var(--text-3)] group-hover:text-primary transition-all duration-[160ms]" strokeWidth={1.5} />
+              </CardContent>
+            </Card>
           ))}
         </div>
       </section>

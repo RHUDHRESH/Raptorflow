@@ -27,7 +27,14 @@ type PlaygroundTab = 'matrix' | 'muse' | 'blackbox'
 
 // Confetti particle component
 const Confetti = ({ x, y }: { x: number; y: number }) => {
-    const colors = ['#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899']
+    const colors = [
+        'hsl(var(--primary))',
+        'hsl(var(--destructive))',
+        'var(--success-500)',
+        'var(--info-500)',
+        'var(--zinc-400)',
+        'var(--rust-600)',
+    ]
 
     return (
         <div className="fixed pointer-events-none z-50" style={{ left: x, top: y }}>
@@ -77,7 +84,7 @@ const StarBurst = ({ show }: { show: boolean }) => (
                         animate={{ scale: [0, 1, 0], rotate: i * 60 + 30 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                        <Star className="w-4 h-4 text-zinc-400 fill-zinc-400" />
                     </motion.div>
                 ))}
             </motion.div>
@@ -109,9 +116,9 @@ const DEMO_GENERATED_CONTENT = {
 }
 
 const CONTENT_TYPES = [
-    { id: 'linkedin', label: 'LinkedIn', icon: '💼', color: 'from-orange-500 to-orange-600' },
+    { id: 'linkedin', label: 'LinkedIn', icon: '💼', color: 'from-gray-500 to-gray-600' },
     { id: 'email', label: 'Email', icon: '📧', color: 'from-emerald-500 to-emerald-600' },
-    { id: 'tweet', label: 'Tweet', icon: '🐦', color: 'from-orange-400 to-orange-500' },
+    { id: 'tweet', label: 'Tweet', icon: '🐦', color: 'from-gray-400 to-gray-500' },
     { id: 'ad', label: 'Ad Copy', icon: '📢', color: 'from-purple-500 to-purple-600' },
 ] as const
 
@@ -177,8 +184,8 @@ const TabButton = ({
         className={cn(
             "relative flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-all overflow-hidden",
             active
-                ? `bg-gradient-to-r ${color || 'from-amber-500 to-orange-500'} text-white shadow-lg`
-                : "bg-white/80 text-zinc-600 hover:bg-white border border-zinc-200/50 hover:border-amber-300"
+                ? `bg-gradient-to-r ${color || 'from-zinc-500 to-gray-500'} text-white shadow-lg`
+                : "bg-white/80 text-zinc-600 hover:bg-white border border-zinc-200/50 hover:border-zinc-300"
         )}
         whileHover={{ scale: 1.05, y: -2 }}
         whileTap={{ scale: 0.95 }}
@@ -230,7 +237,7 @@ const MatrixDemo = () => {
                 <div className="flex items-center gap-4">
                     <div className="flex-1 h-3 bg-zinc-100 rounded-full overflow-hidden shadow-inner">
                         <motion.div
-                            className="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-full relative"
+                            className="h-full bg-gradient-to-r from-zinc-400 via-gray-500 to-red-500 rounded-full relative"
                             initial={{ width: '25%' }}
                             animate={{ width: `${(completedCount / tasks.length) * 100}%` }}
                             transition={{ duration: 0.5, ease: "easeOut" }}
@@ -271,7 +278,7 @@ const MatrixDemo = () => {
                             "group relative flex items-center gap-4 p-5 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden",
                             task.done
                                 ? "bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-300"
-                                : "bg-white border-zinc-200 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-100"
+                                : "bg-white border-zinc-200 hover:border-zinc-400 hover:shadow-lg hover:shadow-zinc-100"
                         )}
                         onClick={(e) => toggleTask(task.id, e)}
                         initial={{ opacity: 0, x: -30 }}
@@ -282,7 +289,7 @@ const MatrixDemo = () => {
                     >
                         {/* Hover glow */}
                         <motion.div
-                            className="absolute inset-0 bg-gradient-to-r from-amber-400/10 to-orange-400/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute inset-0 bg-gradient-to-r from-zinc-400/10 to-gray-400/10 opacity-0 group-hover:opacity-100 transition-opacity"
                         />
 
                         {/* Checkbox */}
@@ -291,7 +298,7 @@ const MatrixDemo = () => {
                                 "relative w-8 h-8 rounded-xl flex items-center justify-center transition-all z-10",
                                 task.done
                                     ? "bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-200"
-                                    : "border-2 border-zinc-300 group-hover:border-amber-400 bg-white"
+                                    : "border-2 border-zinc-300 group-hover:border-zinc-400 bg-white"
                             )}
                             whileTap={{ scale: 0.7, rotate: 15 }}
                         >
@@ -309,7 +316,7 @@ const MatrixDemo = () => {
                                 ) : (
                                     <motion.div
                                         key="empty"
-                                        className="w-3 h-3 rounded-full bg-zinc-200 group-hover:bg-amber-300"
+                                        className="w-3 h-3 rounded-full bg-zinc-200 group-hover:bg-zinc-300"
                                     />
                                 )}
                             </AnimatePresence>
@@ -336,7 +343,7 @@ const MatrixDemo = () => {
                         {/* Click hint */}
                         {!task.done && (
                             <motion.div
-                                className="flex items-center gap-1 text-xs text-amber-500 font-medium opacity-0 group-hover:opacity-100"
+                                className="flex items-center gap-1 text-xs text-zinc-500 font-medium opacity-0 group-hover:opacity-100"
                                 initial={{ x: 10 }}
                                 animate={{ x: 0 }}
                             >
@@ -405,7 +412,7 @@ const MuseDemo = () => {
                             "flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all",
                             contentType === type.id
                                 ? `bg-gradient-to-r ${type.color} text-white shadow-lg`
-                                : "bg-white border-2 border-zinc-200 text-zinc-600 hover:border-amber-300"
+                                : "bg-white border-2 border-zinc-200 text-zinc-600 hover:border-zinc-300"
                         )}
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.95 }}
@@ -420,7 +427,7 @@ const MuseDemo = () => {
             <motion.button
                 onClick={generate}
                 disabled={isGenerating}
-                className="relative w-full flex items-center justify-center gap-3 px-8 py-5 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white rounded-2xl font-bold text-lg shadow-xl shadow-orange-200 disabled:opacity-70 overflow-hidden"
+                className="relative w-full flex items-center justify-center gap-3 px-8 py-5 bg-gradient-to-r from-zinc-500 via-gray-500 to-red-500 text-white rounded-2xl font-bold text-lg shadow-xl shadow-gray-200 disabled:opacity-70 overflow-hidden"
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
             >
@@ -450,16 +457,16 @@ const MuseDemo = () => {
 
             {/* Output */}
             <motion.div
-                className="relative min-h-[180px] p-5 rounded-2xl bg-white border-2 border-zinc-200 shadow-inner overflow-hidden"
-                animate={content ? { borderColor: '#F59E0B' } : {}}
+                className="relative min-h-[180px] p-5 rounded-2xl bg-card border-2 border-border shadow-inner overflow-hidden"
+                animate={content ? { borderColor: 'hsl(var(--primary))' } : {}}
             >
                 {!content && !isGenerating && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-400">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
                         <motion.div
                             animate={{ y: [0, -5, 0] }}
                             transition={{ duration: 2, repeat: Infinity }}
                         >
-                            <Sparkles className="w-10 h-10 mb-3 text-amber-300" />
+                            <Sparkles className="w-10 h-10 mb-3 text-primary/40" />
                         </motion.div>
                         <p className="text-sm font-medium">Click generate to see the magic ✨</p>
                     </div>
@@ -470,7 +477,7 @@ const MuseDemo = () => {
                         {[80, 60, 90, 40].map((w, i) => (
                             <motion.div
                                 key={i}
-                                className="h-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg"
+                                className="h-4 bg-gradient-to-r from-primary/15 to-primary/5 rounded-lg"
                                 initial={{ width: 0, opacity: 0.5 }}
                                 animate={{ width: `${w}%`, opacity: 1 }}
                                 transition={{ delay: i * 0.1, duration: 0.5 }}
@@ -487,7 +494,7 @@ const MuseDemo = () => {
                     >
                         {displayedText}
                         <motion.span
-                            className="inline-block w-0.5 h-4 bg-amber-500 ml-0.5"
+                            className="inline-block w-0.5 h-4 bg-zinc-500 ml-0.5"
                             animate={{ opacity: [1, 0] }}
                             transition={{ duration: 0.5, repeat: Infinity }}
                         />
@@ -517,7 +524,7 @@ const BlackBoxDemo = () => {
     const [activeTest, setActiveTest] = useState(0)
     const tests = [
         { name: 'CTA Button', a: { text: 'Get Started', rate: '12%' }, b: { text: 'Start Free Trial', rate: '18%' }, winner: 'B', lift: '+50%' },
-        { name: 'Headline', a: { text: 'Simple Marketing', rate: '8%' }, b: { text: 'Your War Room', rate: '15%' }, winner: 'B', lift: '+87%' },
+        { name: 'Headline', a: { text: 'Simple Marketing', rate: '8%' }, b: { text: 'Your Marketing Engine', rate: '15%' }, winner: 'B', lift: '+87%' },
     ]
     const test = tests[activeTest]
 
@@ -589,16 +596,16 @@ const BlackBoxDemo = () => {
 
             {/* Result */}
             <motion.div
-                className="flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200"
+                className="flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-zinc-50 to-gray-50 rounded-xl border border-zinc-200"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
             >
-                <Flame className="w-5 h-5 text-orange-500" />
+                <Flame className="w-5 h-5 text-gray-500" />
                 <span className="font-bold text-zinc-700">
                     Variant B wins with <span className="text-emerald-600">{test.lift}</span> lift!
                 </span>
-                <Rocket className="w-5 h-5 text-orange-500" />
+                <Rocket className="w-5 h-5 text-gray-500" />
             </motion.div>
         </div>
     )
@@ -610,7 +617,7 @@ export const InteractivePlayground = () => {
     const [hasInteracted, setHasInteracted] = useState(false)
 
     return (
-        <section id="demo" className="relative py-24 overflow-hidden" style={{ backgroundColor: '#FDFBF7' }}>
+        <section id="demo" className="relative py-24 overflow-hidden bg-background">
             <div className="max-w-5xl mx-auto px-6">
                 {/* Header */}
                 <motion.div
@@ -620,21 +627,21 @@ export const InteractivePlayground = () => {
                     viewport={{ once: true }}
                 >
                     <motion.div
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 border border-amber-200 rounded-full text-sm font-semibold text-amber-700 mb-6"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-sm font-semibold text-primary mb-6"
                         whileHover={{ scale: 1.05 }}
                     >
                         <Zap className="w-4 h-4" />
                         See It In Action
                     </motion.div>
 
-                    <h2 className="font-serif text-4xl md:text-6xl font-medium text-zinc-900 mb-4">
-                        Don't Trust Words.{' '}
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-500 to-orange-500 italic">
+                    <h2 className="font-serif text-4xl md:text-6xl font-medium text-foreground mb-4">
+                        Don't Trust Words.{" "}
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80 italic">
                             Trust Code.
                         </span>
                     </h2>
-                    <p className="text-xl text-zinc-600 max-w-2xl mx-auto">
-                        Click below. Generate a strategy. See the war plan build itself.
+                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        Click below. Generate a strategy. See the marketing plan build itself.
                     </p>
                 </motion.div>
 
@@ -652,7 +659,7 @@ export const InteractivePlayground = () => {
                                 animate={{ y: [0, -5, 0] }}
                                 transition={{ duration: 1.5, repeat: Infinity }}
                             >
-                                <Sparkles className="w-4 h-4 text-amber-400" />
+                                <Sparkles className="w-4 h-4 text-zinc-400" />
                                 Try it — it's fully interactive!
                             </motion.div>
                         </motion.div>
@@ -671,11 +678,11 @@ export const InteractivePlayground = () => {
                         <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-zinc-50 to-zinc-100 border-b border-zinc-200">
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-red-400" />
-                                <div className="w-3 h-3 rounded-full bg-amber-400" />
+                                <div className="w-3 h-3 rounded-full bg-zinc-400" />
                                 <div className="w-3 h-3 rounded-full bg-emerald-400" />
                             </div>
                             <div className="flex items-center gap-2 px-4 py-1.5 bg-white rounded-lg border border-zinc-200 text-sm text-zinc-500">
-                                <div className="w-4 h-4 rounded bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-[8px] font-bold">R</div>
+                                <div className="w-4 h-4 rounded bg-gradient-to-br from-zinc-500 to-gray-500 flex items-center justify-center text-white text-[8px] font-bold">R</div>
                                 app.raptorflow.com
                             </div>
                             <div className="w-20" />
@@ -689,7 +696,7 @@ export const InteractivePlayground = () => {
                                 icon={Target}
                                 label="Matrix"
                                 emoji="📋"
-                                color="from-amber-500 to-orange-500"
+                                color="from-zinc-500 to-gray-500"
                             />
                             <TabButton
                                 active={activeTab === 'muse'}
@@ -758,7 +765,7 @@ export const InteractivePlayground = () => {
                         to="/signup"
                         className="group inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-zinc-800 to-zinc-900 text-white rounded-2xl font-bold text-xl shadow-2xl shadow-zinc-400/30 hover:shadow-zinc-500/40 transition-all hover:scale-[1.02]"
                     >
-                        Start My War Campaign
+                        Build My Marketing System
                         <motion.span
                             animate={{ x: [0, 5, 0] }}
                             transition={{ duration: 1.5, repeat: Infinity }}
@@ -771,3 +778,4 @@ export const InteractivePlayground = () => {
         </section>
     )
 }
+

@@ -3,20 +3,74 @@ import { cva } from "class-variance-authority";
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Badge Component — RaptorFlow Design System
+ * 
+ * Variants:
+ * - default: Primary amber accent
+ * - secondary: Muted/subtle
+ * - outline: Bordered, transparent
+ * - success/warning/error/info: Status indicators (harmonized, not neon)
+ */
 const badgeVariants = cva(
-  "inline-flex items-center rounded-sm border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  [
+    "inline-flex items-center rounded-md border px-2 py-0.5",
+    "text-xs font-medium",
+    "transition-colors duration-150",
+    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  ].join(" "),
   {
     variants: {
       variant: {
-        default:
-          "border-transparent bg-primary text-black font-bold shadow hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
-        outline: "text-foreground border-white/20",
-        neon: "border-primary/50 text-primary bg-primary/10 shadow-[0_0_10px_rgba(0,240,255,0.2)]",
-        glass: "border-white/10 text-white bg-white/5 backdrop-blur-sm",
+        // Default — Primary amber
+        default: [
+          "border-transparent bg-primary text-primary-foreground",
+          "shadow-sm",
+        ].join(" "),
+
+        // Secondary — Muted
+        secondary: [
+          "border-transparent bg-secondary text-secondary-foreground",
+        ].join(" "),
+
+        // Outline — Bordered
+        outline: [
+          "border-border bg-transparent text-foreground",
+        ].join(" "),
+
+        // Status: Success — Harmonized evergreen
+        success: [
+          "border-transparent",
+          "bg-success-100 text-success-700",
+          "dark:bg-success-900/30 dark:text-success-400",
+        ].join(" "),
+
+        // Status: Warning — Amber/rust
+        warning: [
+          "border-transparent",
+          "bg-amber-100 text-amber-700",
+          "dark:bg-amber-900/30 dark:text-amber-400",
+        ].join(" "),
+
+        // Status: Error — Restrained crimson
+        error: [
+          "border-transparent",
+          "bg-error-100 text-error-700",
+          "dark:bg-error-900/30 dark:text-error-400",
+        ].join(" "),
+
+        // Status: Info — Steel blue
+        info: [
+          "border-transparent",
+          "bg-info-100 text-info-700",
+          "dark:bg-info-900/30 dark:text-info-400",
+        ].join(" "),
+
+        // Destructive — Alias for error
+        destructive: [
+          "border-transparent bg-destructive text-destructive-foreground",
+          "shadow-sm",
+        ].join(" "),
       },
     },
     defaultVariants: {
@@ -34,3 +88,4 @@ function Badge({
 }
 
 export { Badge, badgeVariants }
+

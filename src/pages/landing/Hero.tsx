@@ -76,7 +76,7 @@ const Hero = () => {
                     >
                         Learn to build
                         <br />
-                        <span className="italic font-normal bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 bg-clip-text text-transparent">
+                        <span className="italic font-normal bg-gradient-to-r from-zinc-200 via-yellow-100 to-zinc-200 bg-clip-text text-transparent">
                             strategy that ships
                         </span>
                     </motion.h1>
@@ -145,3 +145,4 @@ const Hero = () => {
 }
 
 export default Hero
+

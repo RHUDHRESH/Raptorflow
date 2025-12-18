@@ -52,9 +52,10 @@ export const ComparisonTable = () => {
     const [hoveredRow, setHoveredRow] = useState<number | null>(null)
 
     return (
-        <section className="relative py-24 md:py-32 overflow-hidden" style={{ backgroundColor: '#FDFBF7' }}>
+        <section className="relative py-24 md:py-32 overflow-hidden bg-background">
+
             {/* Background gradient */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(245,158,11,0.08),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(0,0,0,0.02),transparent_60%)]" />
 
             <div className="container-editorial relative z-10">
                 {/* Header */}
@@ -69,10 +70,10 @@ export const ComparisonTable = () => {
                         The Transformation
                         <span className="w-8 h-px bg-gradient-to-l from-transparent to-border" />
                     </div>
-                    <h2 className="font-serif text-5xl md:text-7xl font-medium text-zinc-900 flex flex-wrap items-center justify-center gap-6">
-                        <span className="italic text-zinc-400">chaos</span>
-                        <span className="text-zinc-400 text-4xl">→</span>
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-500 to-orange-500 italic">clarity</span>
+                    <h2 className="font-serif text-5xl md:text-7xl font-medium text-foreground flex flex-wrap items-center justify-center gap-6">
+                        <span className="italic text-muted-foreground/50">chaos</span>
+                        <span className="text-muted-foreground/50 text-4xl">→</span>
+                        <span className="text-zinc-900 font-medium italic">clarity</span>
                     </h2>
                     <p className="mt-6 text-lg text-muted-foreground">
                         See what changes when you have a system
@@ -85,16 +86,15 @@ export const ComparisonTable = () => {
                     <div className="grid grid-cols-[120px_1fr_1fr] md:grid-cols-[150px_1fr_1fr] gap-4 mb-8">
                         <div></div>
                         <div className="flex justify-center">
-                            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-zinc-100 border border-zinc-200">
-                                <X className="w-4 h-4 text-zinc-400" />
-                                <span className="text-zinc-500 font-semibold">Without</span>
+                            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-muted border border-border">
+                                <X className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-muted-foreground font-semibold">Without</span>
                             </div>
                         </div>
                         <div className="flex justify-center">
-                            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-50 border border-amber-200 shadow-md">
-                                <Check className="w-4 h-4 text-amber-600" />
-                                <span className="text-amber-700 font-semibold">With RaptorFlow</span>
-                                <Sparkles className="w-3 h-3 text-amber-500" />
+                            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-zinc-100 border border-zinc-200 shadow-md">
+                                <Check className="w-4 h-4 text-zinc-700" />
+                                <span className="text-zinc-800 font-semibold">With RaptorFlow</span>
                             </div>
                         </div>
                     </div>
@@ -109,7 +109,7 @@ export const ComparisonTable = () => {
                                     className={cn(
                                         "grid grid-cols-[120px_1fr_1fr] md:grid-cols-[150px_1fr_1fr] gap-4 p-4 rounded-2xl transition-all duration-300 cursor-default",
                                         hoveredRow === i
-                                            ? "bg-primary/5 border border-primary/20 shadow-lg"
+                                            ? "bg-zinc-100 border border-zinc-300 shadow-lg"
                                             : "hover:bg-muted/50"
                                     )}
                                     initial={{ opacity: 0, x: -30 }}
@@ -122,7 +122,7 @@ export const ComparisonTable = () => {
                                     {/* Feature name with icon */}
                                     <div className="flex items-center gap-3">
                                         <motion.div
-                                            className="text-primary"
+                                            className="text-zinc-700"
                                             animate={hoveredRow === i ? { scale: 1.2, rotate: 10 } : { scale: 1, rotate: 0 }}
                                             transition={{ type: "spring", stiffness: 400 }}
                                         >
@@ -143,7 +143,7 @@ export const ComparisonTable = () => {
                                             />
                                             <span className={cn(
                                                 "transition-all duration-300",
-                                                hoveredRow === i && "line-through opacity-50"
+                                                hoveredRow === i && "line-through opacity-30"
                                             )}>
                                                 {item.oldWay}
                                             </span>
@@ -157,13 +157,13 @@ export const ComparisonTable = () => {
                                     >
                                         <div className={cn(
                                             "flex items-center gap-2 text-sm font-medium transition-all duration-300",
-                                            hoveredRow === i ? "text-primary" : "text-foreground"
+                                            hoveredRow === i ? "text-zinc-900" : "text-foreground"
                                         )}>
                                             <motion.div
-                                                className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center"
-                                                animate={hoveredRow === i ? { scale: 1.2, backgroundColor: "hsl(var(--primary) / 0.3)" } : { scale: 1 }}
+                                                className="w-5 h-5 rounded-full bg-zinc-200 flex items-center justify-center"
+                                                animate={hoveredRow === i ? { scale: 1.2, backgroundColor: "rgb(212, 212, 216)" } : { scale: 1 }}
                                             >
-                                                <Check className="w-3 h-3 text-primary" />
+                                                <Check className="w-3 h-3 text-zinc-700" />
                                             </motion.div>
                                             <span>{item.newWay}</span>
                                         </div>
@@ -175,7 +175,7 @@ export const ComparisonTable = () => {
 
                     {/* Animated reveal line */}
                     <motion.div
-                        className="my-10 h-px bg-gradient-to-r from-red-400/30 via-primary/50 to-primary/30"
+                        className="my-10 h-px bg-gradient-to-r from-zinc-200 via-zinc-400 to-zinc-200"
                         initial={{ scaleX: 0, opacity: 0 }}
                         whileInView={{ scaleX: 1, opacity: 1 }}
                         viewport={{ once: true }}
@@ -200,7 +200,7 @@ export const ComparisonTable = () => {
                                 className="text-center"
                                 whileHover={{ y: -3 }}
                             >
-                                <div className="text-3xl font-mono font-bold text-primary">{stat.value}</div>
+                                <div className="text-3xl font-mono font-bold text-zinc-900">{stat.value}</div>
                                 <div className="text-sm text-muted-foreground">{stat.label}</div>
                             </motion.div>
                         ))}
@@ -219,8 +219,8 @@ export const ComparisonTable = () => {
                             whileTap={{ scale: 0.98 }}
                         >
                             <Link
-                                to="/signup"
-                                className="group inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-2xl font-medium text-lg shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all"
+                                to="/app"
+                                className="group inline-flex items-center gap-3 px-10 py-5 bg-zinc-900 text-white rounded-2xl font-medium text-lg shadow-xl hover:bg-black hover:shadow-2xl transition-all"
                             >
                                 <span>Make the switch</span>
                                 <motion.div
@@ -242,3 +242,4 @@ export const ComparisonTable = () => {
 }
 
 export default ComparisonTable
+

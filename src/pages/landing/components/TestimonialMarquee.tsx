@@ -40,7 +40,7 @@ const TestimonialCard = ({ item }: { item: typeof TESTIMONIALS[0] }) => (
     <div className="w-[350px] bg-card border border-border/50 p-6 rounded-2xl mx-4 flex-shrink-0 hover:border-primary/30 transition-colors group">
         <div className="flex gap-1 mb-4">
             {[1, 2, 3, 4, 5].map((i) => (
-                <Star key={i} className="w-4 h-4 fill-amber-500 text-amber-500" />
+                <Star key={i} className="w-4 h-4 fill-zinc-500 text-zinc-500" />
             ))}
         </div>
         <p className="text-muted-foreground mb-6 leading-relaxed">"{item.content}"</p>
@@ -87,3 +87,4 @@ export const TestimonialMarquee = () => {
         </section>
     )
 }
+

@@ -34,7 +34,7 @@ COPY --chown=raptorflow:nodejs package*.json tsconfig.json ./
 
 # Install dependencies with security audit
 USER raptorflow
-RUN npm ci --only=production --no-audit --no-fund && \
+RUN npm ci --no-audit --no-fund && \
     npm cache clean --force
 
 # =====================================================
@@ -51,8 +51,10 @@ RUN mkdir -p skills
 
 # Build TypeScript with optimizations
 ENV NODE_ENV=production
-RUN npm run build && \
-    npm prune --production
+RUN npm run build
+
+# Prune to production dependencies
+RUN npm prune --production
 
 # =====================================================
 # PRODUCTION STAGE

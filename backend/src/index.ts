@@ -1,27 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import { env } from './config/env';
-import onboardingRoutes from './routes/onboarding';
-import paymentRoutes from './routes/payments';
-import subscriptionRoutes from './routes/subscriptions';
-import teamRoutes from './routes/team';
-import sharedRoutes from './routes/shared';
-import icpRoutes from './routes/icps';
-import campaignRoutes from './routes/campaigns';
-import moveRoutes from './routes/moves';
-import protocolRoutes from './routes/protocols';
-import metricRoutes from './routes/metrics';
-import spikeRoutes from './routes/spikes';
-import assetRoutes from './routes/assets';
-import enrichRoutes from './routes/enrich';
-import radarRoutes from './routes/radar';
-import cohortRoutes from './routes/cohorts';
-
-// Advanced Agentic API Routes (LangChain Highest Level) - temporarily disabled
-// import advancedApiRoutes from './v2/advanced_api';
-
-// Unified V3 API Routes (V1 + V2 orchestration)
-import v3ApiRoutes from './v3/api';
+import { rateLimit } from './lib/rateLimit';
+import emailRoutes from './routes/email';
+import storageRoutes from './routes/storage';
 
 const app = express();
 
@@ -38,7 +20,7 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
 
@@ -60,6 +42,8 @@ app.use(cors({
 }));
 
 app.use(express.json({ limit: '10mb' }));
+
+app.use('/api', rateLimit());
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -88,41 +72,9 @@ app.get('/ready', (req, res) => {
   res.json({ ready: true });
 });
 
-// API Routes - Core
-app.use('/api/onboarding', onboardingRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/subscriptions', subscriptionRoutes);
-app.use('/api/team', teamRoutes);
-app.use('/api/shared', sharedRoutes);
-
-// API Routes - Platform
-app.use('/api/icps', icpRoutes);
-app.use('/api/campaigns', campaignRoutes);
-app.use('/api/moves', moveRoutes);
-app.use('/api/protocols', protocolRoutes);
-app.use('/api/metrics', metricRoutes);
-app.use('/api/spikes', spikeRoutes);
-app.use('/api/assets', assetRoutes);
-app.use('/api/enrich', enrichRoutes);
-app.use('/api/radar', radarRoutes);
-app.use('/api/cohorts', cohortRoutes);
-
-// API Routes - Advanced Agentic (LangChain Highest Level) - temporarily disabled
-// app.use('/api/v2', advancedApiRoutes);
-
-// API Routes - Unified V3 Orchestration (V1 + V2)
-app.use('/api/v3', v3ApiRoutes);
-
-// API Routes - Muse Orchestrator (New AI Content Generation System)
-import museOrchestratorRoutes from './orchestrator/server';
-app.use('/api/muse', museOrchestratorRoutes);
-
-// Start Muse Orchestrator Worker (for async job processing)
-import { startWorker } from './orchestrator/worker';
-startWorker().catch(error => {
-  console.error('❌ Failed to start Muse orchestrator worker:', error);
-  process.exit(1);
-});
+// API Routes - Baseline Platform
+app.use('/api/email', emailRoutes);
+app.use('/api/storage', storageRoutes);
 
 // 404 handler
 app.use((req, res) => {

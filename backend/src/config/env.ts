@@ -17,9 +17,17 @@ dotenv.config(envPath ? { path: envPath } : undefined);
 export const env = {
   // Application Configuration
   NODE_ENV: process.env.NODE_ENV || 'development',
-  PORT: process.env.PORT || '8080', // Changed to 8080 to avoid conflict with frontend on 3001
+  PORT: process.env.PORT || '3001', // Default to 3001 for local dev; Cloud Run overrides via PORT
   FRONTEND_PUBLIC_URL: process.env.FRONTEND_PUBLIC_URL || process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
   BACKEND_PUBLIC_URL: process.env.BACKEND_PUBLIC_URL || process.env.VITE_BACKEND_PUBLIC_URL || '',
+
+  // SendGrid
+  SENDGRID_API_KEY: process.env.SENDGRID_API_KEY || '',
+  SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL || '',
+
+  // Google Cloud Storage
+  GCS_BUCKET: process.env.GCS_BUCKET || '',
+  GCS_SIGNED_URL_EXPIRES_SECONDS: process.env.GCS_SIGNED_URL_EXPIRES_SECONDS || '900',
 
   // Supabase
   SUPABASE_URL: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://vpwwzsanuyhpkvgorcnc.supabase.co',

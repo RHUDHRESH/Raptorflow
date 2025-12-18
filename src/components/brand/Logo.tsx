@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom'
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // RAPTORFLOW LOGO COMPONENT
-// Premium logo with styled R lettermark and claw accent
+// Ultra-simple iconic logo - passes the "kid draw test"
+// Just two angular strokes forming an abstract R/flow symbol
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface LogoProps {
@@ -37,60 +38,48 @@ export const RaptorFlowLogo = ({
             whileHover={animated ? { scale: 1.02 } : undefined}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
-            {/* Icon Mark - Amber square with R and claw marks */}
+            {/* ICONIC MARK - Ultra simple: Two strokes forming abstract R/flow */}
             <motion.svg
                 width={icon}
                 height={icon}
                 viewBox="0 0 48 48"
                 fill="none"
                 className="flex-shrink-0"
-                whileHover={animated ? { rotate: 3 } : undefined}
+                whileHover={animated ? { rotate: -5 } : undefined}
                 transition={{ type: "spring", stiffness: 300 }}
             >
-                {/* Background */}
-                <rect width="48" height="48" rx="10" fill="hsl(var(--primary))" data-component-name="RaptorFlowLogo" />
-                
-                {/* R Letter */}
-                <path d="M14 12V36" stroke="hsl(var(--primary-foreground))" strokeWidth="4" strokeLinecap="round" />
-                <path d="M14 12H26C30.418 12 34 15.134 34 19C34 22.866 30.418 26 26 26H14" 
-                    stroke="hsl(var(--primary-foreground))" 
-                    strokeWidth="4" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    fill="none" />
-                <path d="M24 26L34 38" 
-                    stroke="hsl(var(--primary-foreground))" 
-                    strokeWidth="4" 
-                    strokeLinecap="round" />
-                
-                {/* Claw Marks */}
-                <path 
-                    d="M32 6L42 16" 
-                    stroke="hsl(var(--primary-foreground))" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    opacity="0.6" 
-                    pathLength="1" 
-                    strokeDashoffset="0px" 
-                    strokeDasharray="1px 1px"
-                    data-component-name="MotionDOMComponent" />
-                    
-                <path 
-                    d="M36 4L44 12" 
-                    stroke="hsl(var(--primary-foreground))" 
-                    strokeWidth="1.5" 
-                    strokeLinecap="round" 
-                    opacity="0.4" 
-                    pathLength="1" 
-                    strokeDashoffset="0px" 
-                    strokeDasharray="1px 1px" />
+                {/* Background - Pure black square with rounded corners */}
+                <rect width="48" height="48" rx="12" fill="#000000" />
+
+                {/* THE MARK - Just two bold strokes
+                    Stroke 1: Vertical line on left (the "R" stem)
+                    Stroke 2: Angular kick from middle to bottom-right (the "flow")
+                    Together: Abstract R with forward momentum
+                    A kid can draw: one line down, one diagonal line */}
+
+                {/* Stem - vertical line */}
+                <path
+                    d="M16 10 L16 38"
+                    stroke="#FFFFFF"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                />
+
+                {/* Flow - angular kick creating momentum */}
+                <path
+                    d="M16 24 L32 10 M16 24 L36 38"
+                    stroke="#FFFFFF"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
             </motion.svg>
 
-            {/* Wordmark */}
+            {/* Wordmark - Clean and simple */}
             {showText && (
                 <div className="leading-none">
-                    <span className={`font-serif font-semibold tracking-tight ${text}`} data-component-name="RaptorFlowLogo">
-                    Raptor<span className="text-primary">Flow</span>
+                    <span className={`font-serif font-bold tracking-tight text-foreground ${text}`}>
+                        Raptor<span className="font-normal text-zinc-400">Flow</span>
                     </span>
                 </div>
             )}
@@ -108,7 +97,7 @@ export const RaptorFlowLogo = ({
     return LogoContent
 }
 
-// Simple icon-only version for favicon usage
+// Simple icon-only version - THE iconic mark
 export const RaptorFlowIcon = ({ size = 32 }: { size?: number }) => (
     <svg
         width={size}
@@ -116,12 +105,9 @@ export const RaptorFlowIcon = ({ size = 32 }: { size?: number }) => (
         viewBox="0 0 48 48"
         fill="none"
     >
-        <rect width="48" height="48" rx="10" fill="#F59E0B" />
-        <path d="M14 12V36" stroke="#0A0A0A" strokeWidth="4" strokeLinecap="round" />
-        <path d="M14 12H26C30.418 12 34 15.134 34 19C34 22.866 30.418 26 26 26H14" stroke="#0A0A0A" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <path d="M24 26L34 38" stroke="#0A0A0A" strokeWidth="4" strokeLinecap="round" />
-        <path d="M32 6L42 16" stroke="#0A0A0A" strokeWidth="2" strokeLinecap="round" opacity="0.6" />
-        <path d="M36 4L44 12" stroke="#0A0A0A" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+        <rect width="48" height="48" rx="12" fill="#000000" />
+        <path d="M16 10 L16 38" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+        <path d="M16 24 L32 10 M16 24 L36 38" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
 )
 

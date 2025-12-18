@@ -22,6 +22,7 @@
     "orchestrator:worker": "tsx src/orchestrator/worker.ts"
   },
   "dependencies": {
+    "@google-cloud/storage": "^7.17.0",
     "@google-cloud/vertexai": "^1.9.2",
     "@langchain/core": "^0.3.0",
     "@langchain/google-vertexai": "^0.1.0",

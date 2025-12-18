@@ -5,10 +5,13 @@ import { env } from '../config/env';
 // Create Supabase client with service role key for backend operations
 const supabaseUrl = env.SUPABASE_URL || 'https://vpwwzsanuyhpkvgorcnc.supabase.co';
 const isValidKey = (key?: string) => !!key && key.split('.').length === 3;
-const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
 
 if (!isValidKey(supabaseServiceKey)) {
-  throw new Error('Supabase service role key missing or malformed. Set SUPABASE_SERVICE_ROLE_KEY.');
+  if (env.NODE_ENV === 'production') {
+    throw new Error('Supabase key missing or malformed. Set SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY.');
+  }
+  console.warn('Supabase key missing or malformed. Set SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY.');
 }
 
  function mapFrontendPlanToDbPlanCode(plan: string): string {
@@ -57,7 +60,7 @@ if (!isValidKey(supabaseServiceKey)) {
  }
 export const supabase: SupabaseClient = createClient(
   supabaseUrl,
-  supabaseServiceKey,
+  supabaseServiceKey || '',
   {
     auth: {
       autoRefreshToken: false,

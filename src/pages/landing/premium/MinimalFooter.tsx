@@ -50,3 +50,4 @@ const MinimalFooter = () => {
 }
 
 export default MinimalFooter
+

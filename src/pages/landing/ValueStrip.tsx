@@ -14,7 +14,7 @@ const CurriculumItem = ({ number, icon: Icon, title, description, delay }) => (
   >
     {/* Number & line */}
     <div className="flex flex-col items-center">
-      <div className="w-12 h-12 border border-white/[0.06] bg-zinc-900/40 flex items-center justify-center group-hover:border-amber-500/20 transition-colors duration-500">
+      <div className="w-12 h-12 border border-white/[0.06] bg-zinc-900/40 flex items-center justify-center group-hover:border-zinc-500/20 transition-colors duration-500">
         <span className="text-[10px] text-white/30 font-mono">{number}</span>
       </div>
       <div className="w-px flex-1 bg-gradient-to-b from-white/[0.06] to-transparent" />
@@ -23,8 +23,8 @@ const CurriculumItem = ({ number, icon: Icon, title, description, delay }) => (
     {/* Content */}
     <div className="pb-12">
       <div className="flex items-center gap-3 mb-3">
-        <Icon className="w-5 h-5 text-amber-500/50" strokeWidth={1.5} />
-        <h3 className="text-xl font-light text-white group-hover:text-amber-200 transition-colors duration-500">
+        <Icon className="w-5 h-5 text-zinc-500/50" strokeWidth={1.5} />
+        <h3 className="text-xl font-light text-white group-hover:text-zinc-200 transition-colors duration-500">
           {title}
         </h3>
       </div>
@@ -52,7 +52,7 @@ const ValueStrip = () => {
     },
     {
       icon: Map,
-      title: "Build Your 90-Day War Map",
+      title: "Build Your 90-Day Growth Roadmap",
       description: "Transform strategy into a visual execution plan. Every move mapped, every milestone clear, every week accounted for."
     },
     {
@@ -157,4 +157,5 @@ const ValueStrip = () => {
 }
 
 export default ValueStrip
+
 

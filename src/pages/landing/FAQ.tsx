@@ -68,16 +68,17 @@ const FAQ = () => {
   )
 
   return (
-    <section id="faq" ref={sectionRef} className="relative py-32 md:py-40 bg-[#050505] overflow-hidden">
+    <section id="faq" ref={sectionRef} className="relative py-32 md:py-40 bg-background overflow-hidden">
+
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
         {/* Subtle dot pattern */}
-        <svg className="absolute inset-0 w-full h-full opacity-[0.03]" preserveAspectRatio="xMidYMid slice">
+        <svg className="absolute inset-0 w-full h-full opacity-[0.05]" preserveAspectRatio="xMidYMid slice">
           <defs>
             <pattern id="faq-dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-              <circle cx="20" cy="20" r="1" fill="#FFFFFF" />
+              <circle cx="20" cy="20" r="1" fill="currentColor" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#faq-dots)" />
@@ -92,18 +93,18 @@ const FAQ = () => {
             animate={inView ? { opacity: 1 } : {}}
             className="inline-flex items-center gap-3 mb-8"
           >
-            <span className="w-12 h-px bg-gradient-to-r from-transparent to-white/20" />
-            <span className="text-[11px] uppercase tracking-[0.4em] text-white/60 font-medium">
+            <span className="w-12 h-px bg-gradient-to-r from-transparent to-border" />
+            <span className="text-[11px] uppercase tracking-[0.4em] text-muted-foreground font-medium">
               Questions
             </span>
-            <span className="w-12 h-px bg-gradient-to-l from-transparent to-white/20" />
+            <span className="w-12 h-px bg-gradient-to-l from-transparent to-border" />
           </motion.div>
 
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.1, duration: 0.7 }}
-            className="text-4xl md:text-5xl font-light text-white tracking-tight"
+            className="text-4xl md:text-5xl font-serif text-foreground tracking-tight"
           >
             Common questions
           </motion.h2>
@@ -117,7 +118,7 @@ const FAQ = () => {
           className="mb-10"
         >
           <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
               <SearchIcon />
             </div>
             <input
@@ -125,12 +126,12 @@ const FAQ = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search questions..."
-              className="w-full pl-12 pr-4 py-4 bg-zinc-900/40 border border-white/[0.06] rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-white/20 transition-colors"
+              className="w-full pl-12 pr-4 py-4 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors shadow-sm"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
               >
                 <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
                   <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -143,7 +144,7 @@ const FAQ = () => {
         {/* FAQ items */}
         <div className="space-y-4">
           {filteredFaqs.length === 0 ? (
-            <div className="text-center py-12 text-white/40">
+            <div className="text-center py-12 text-muted-foreground">
               No questions match your search. Try a different term.
             </div>
           ) : (
@@ -159,8 +160,8 @@ const FAQ = () => {
                   className={`
                     border rounded-xl overflow-hidden transition-all duration-300
                     ${openIndex === i
-                      ? 'bg-zinc-900/60 border-white/20'
-                      : 'bg-zinc-900/40 border-white/[0.06] hover:border-white/[0.12]'
+                      ? 'bg-card border-zinc-900 shadow-md transform scale-[1.01]'
+                      : 'bg-card border-border hover:border-zinc-400'
                     }
                   `}
                 >
@@ -169,16 +170,16 @@ const FAQ = () => {
                     className="w-full flex items-center justify-between p-6 text-left"
                   >
                     <span className={`
-                      text-lg font-light pr-8 transition-colors duration-300
-                      ${openIndex === i ? 'text-white' : 'text-white/70 group-hover:text-white'}
+                      text-lg font-medium pr-8 transition-colors duration-300
+                      ${openIndex === i ? 'text-foreground' : 'text-foreground/70 group-hover:text-foreground'}
                     `}>
                       {faq.q}
                     </span>
                     <div className={`
                       w-8 h-8 rounded-full border flex items-center justify-center flex-shrink-0 transition-all duration-300
                       ${openIndex === i
-                        ? 'bg-white/10 border-white/20 text-white/70'
-                        : 'border-white/10 text-white/40 group-hover:border-white/20'
+                        ? 'bg-zinc-100 border-zinc-300 text-zinc-900'
+                        : 'border-border text-muted-foreground group-hover:border-zinc-400'
                       }
                     `}>
                       <ChevronIcon className="w-4 h-4" isOpen={openIndex === i} />
@@ -194,8 +195,8 @@ const FAQ = () => {
                         transition={{ duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] }}
                       >
                         <div className="px-6 pb-6">
-                          <div className="pt-2 border-t border-white/[0.06]">
-                            <p className="text-white/50 leading-relaxed pt-4">
+                          <div className="pt-2 border-t border-border">
+                            <p className="text-muted-foreground leading-relaxed pt-4">
                               {faq.a}
                             </p>
                           </div>
@@ -216,14 +217,14 @@ const FAQ = () => {
           transition={{ delay: 0.6, duration: 0.5 }}
           className="mt-16 text-center"
         >
-          <div className="p-8 bg-zinc-900/40 border border-white/[0.06] rounded-2xl">
-            <h3 className="text-xl font-light text-white mb-3">Still have questions?</h3>
-            <p className="text-white/40 mb-6">
+          <div className="p-8 bg-card border border-border rounded-2xl shadow-sm">
+            <h3 className="text-xl font-medium text-foreground mb-3">Still have questions?</h3>
+            <p className="text-muted-foreground mb-6 leading-relaxed">
               Can't find what you're looking for? Our team is here to help.
             </p>
             <a
               href="mailto:hello@raptorflow.com"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white/[0.05] border border-white/10 rounded-xl text-white/70 hover:text-white hover:border-white/20 transition-all text-sm"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-900 text-white rounded-xl hover:bg-black transition-all text-sm font-bold shadow-lg"
             >
               <svg viewBox="0 0 20 20" className="w-4 h-4" fill="none">
                 <rect x="2" y="4" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
@@ -239,3 +240,4 @@ const FAQ = () => {
 }
 
 export default FAQ
+

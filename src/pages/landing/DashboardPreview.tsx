@@ -10,7 +10,7 @@ import {
 const MetricCard = ({ label, value, status, delay }) => {
   const statusColors = {
     green: 'bg-emerald-500',
-    amber: 'bg-amber-500',
+    zinc: 'bg-zinc-500',
     red: 'bg-red-500'
   }
 
@@ -34,8 +34,8 @@ const MetricCard = ({ label, value, status, delay }) => {
 const CampaignItem = ({ name, protocol, status, delay }) => {
   const protocolColors = {
     'Authority': 'text-purple-400 bg-purple-500/15',
-    'Trust': 'text-orange-400 bg-orange-500/15',
-    'Urgency': 'text-amber-400 bg-amber-500/15'
+    'Trust': 'text-gray-400 bg-gray-500/15',
+    'Urgency': 'text-zinc-400 bg-zinc-500/15'
   }
 
   return (
@@ -104,7 +104,7 @@ const MockDashboard = () => {
             <div className="w-3 h-3 rounded-full bg-green-500/50" />
           </div>
           <div className="flex items-center gap-2 ml-4">
-            <div className="w-6 h-6 bg-gradient-to-br from-amber-500 to-amber-600 rounded flex items-center justify-center">
+            <div className="w-6 h-6 bg-gradient-to-br from-zinc-500 to-zinc-600 rounded flex items-center justify-center">
               <span className="text-black text-[10px] font-bold">Rf</span>
             </div>
             <span className="text-white/50 text-sm">RaptorFlow</span>
@@ -142,7 +142,7 @@ const MockDashboard = () => {
               {/* Stats row */}
               <div className="grid grid-cols-4 gap-4">
                 <MetricCard label="Pipeline" value="₹24.5L" status="green" delay={0.1} />
-                <MetricCard label="Win Rate" value="28%" status="amber" delay={0.2} />
+                <MetricCard label="Win Rate" value="28%" status="zinc" delay={0.2} />
                 <MetricCard label="CAC" value="₹4.2K" status="green" delay={0.3} />
                 <MetricCard label="NRR" value="112%" status="green" delay={0.4} />
               </div>
@@ -231,8 +231,8 @@ const MockDashboard = () => {
                     <div className="text-[10px] text-white/35">Green</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-light text-amber-400">2</div>
-                    <div className="text-[10px] text-white/35">Amber</div>
+                    <div className="text-2xl font-light text-zinc-400">2</div>
+                    <div className="text-[10px] text-white/35">zinc</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-light text-red-400">0</div>
@@ -246,9 +246,9 @@ const MockDashboard = () => {
                 {[
                   { label: 'Website Traffic', value: '12.4K', status: 'green' },
                   { label: 'Demo Requests', value: '48', status: 'green' },
-                  { label: 'Conversion Rate', value: '18%', status: 'amber' },
+                  { label: 'Conversion Rate', value: '18%', status: 'zinc' },
                   { label: 'Activation', value: '62%', status: 'green' },
-                  { label: 'Churn Rate', value: '3.2%', status: 'amber' },
+                  { label: 'Churn Rate', value: '3.2%', status: 'zinc' },
                   { label: 'LTV:CAC', value: '4.8x', status: 'green' }
                 ].map((metric, i) => (
                   <MetricCard key={i} {...metric} delay={0.2 + i * 0.1} />
@@ -275,7 +275,7 @@ const DashboardPreview = () => {
       {/* Background */}
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-500/3 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-zinc-500/3 rounded-full blur-3xl" />
       </div>
 
       <div className="max-w-6xl mx-auto px-6 md:px-12 relative z-10">
@@ -286,11 +286,11 @@ const DashboardPreview = () => {
             animate={inView ? { opacity: 1 } : {}}
             className="inline-flex items-center gap-3 mb-8"
           >
-            <span className="w-12 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
-            <span className="text-[11px] uppercase tracking-[0.4em] text-amber-400/60 font-medium">
+            <span className="w-12 h-px bg-gradient-to-r from-transparent to-zinc-500/50" />
+            <span className="text-[11px] uppercase tracking-[0.4em] text-zinc-400/60 font-medium">
               The Interface
             </span>
-            <span className="w-12 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
+            <span className="w-12 h-px bg-gradient-to-l from-transparent to-zinc-500/50" />
           </motion.div>
 
           <motion.h2
@@ -300,7 +300,7 @@ const DashboardPreview = () => {
             className="text-5xl md:text-6xl lg:text-7xl font-light text-white tracking-tight mb-8"
           >
             Your{' '}
-            <span className="bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 bg-clip-text text-transparent">
               command center
             </span>
           </motion.h2>
@@ -323,7 +323,7 @@ const DashboardPreview = () => {
           className="relative"
         >
           {/* Subtle glow - reduced intensity */}
-          <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-amber-500/10 rounded-2xl blur-2xl opacity-30" />
+          <div className="absolute -inset-4 bg-gradient-to-r from-zinc-500/10 via-yellow-500/5 to-zinc-500/10 rounded-2xl blur-2xl opacity-30" />
 
           {/* Dashboard */}
           <div className="relative">
@@ -336,3 +336,4 @@ const DashboardPreview = () => {
 }
 
 export default DashboardPreview
+

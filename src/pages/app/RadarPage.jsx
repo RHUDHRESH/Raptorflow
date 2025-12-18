@@ -19,6 +19,8 @@ import {
 } from 'lucide-react'
 import useRaptorflowStore from '../../store/raptorflowStore'
 import { BRAND_ICONS } from '@/components/brand/BrandSystem'
+import { useTheme } from '@/contexts/ThemeContext'
+import { cn } from '@/lib/utils'
 
 const copyToClipboard = async (text) => {
   const value = String(text || '')
@@ -42,6 +44,98 @@ const copyToClipboard = async (text) => {
   }
 }
 
+const useRadarMonoTheme = () => {
+  const { theme } = useTheme()
+
+  useEffect(() => {
+    const root = document.documentElement
+
+    const selectionStyleId = 'radar-mono-selection'
+    const prevRadarAttr = root.getAttribute('data-radar-mono')
+    root.setAttribute('data-radar-mono', 'true')
+
+    const selectionStyle = document.getElementById(selectionStyleId) || document.createElement('style')
+    selectionStyle.id = selectionStyleId
+    selectionStyle.textContent = `
+html[data-radar-mono="true"] ::selection { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+html[data-radar-mono="true"] ::-moz-selection { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+`
+    if (!selectionStyle.parentNode) document.head.appendChild(selectionStyle)
+
+    const vars = theme === 'dark'
+      ? {
+        '--background': '0 0% 5%',
+        '--foreground': '0 0% 96%',
+        '--card': '0 0% 8%',
+        '--card-foreground': '0 0% 96%',
+        '--muted': '0 0% 12%',
+        '--muted-foreground': '0 0% 72%',
+        '--border': '0 0% 18%',
+        '--input': '0 0% 8%',
+        '--primary': '0 0% 96%',
+        '--primary-foreground': '0 0% 6%',
+        '--ring': '0 0% 90%',
+
+        '--surface-1': '#121212',
+        '--surface-2': '#181818',
+        '--surface-3': '#1e1e1e',
+        '--text-1': '#F5F5F7',
+        '--text-2': 'rgba(245,245,247,0.82)',
+        '--text-3': 'rgba(245,245,247,0.62)',
+        '--border-1': 'rgba(255,255,255,0.10)',
+        '--border-2': 'rgba(255,255,255,0.16)',
+        '--focus-ring': 'hsl(0 0% 96%)',
+
+        '--radar-sweep-rgb': '245,245,247',
+      }
+      : {
+        '--background': '0 0% 98%',
+        '--foreground': '0 0% 6%',
+        '--card': '0 0% 100%',
+        '--card-foreground': '0 0% 6%',
+        '--muted': '0 0% 95%',
+        '--muted-foreground': '0 0% 42%',
+        '--border': '0 0% 86%',
+        '--input': '0 0% 100%',
+        '--primary': '0 0% 6%',
+        '--primary-foreground': '0 0% 100%',
+        '--ring': '0 0% 10%',
+
+        '--surface-1': '#FFFFFF',
+        '--surface-2': '#F5F5F5',
+        '--surface-3': '#FFFFFF',
+        '--text-1': '#0B0B0D',
+        '--text-2': 'rgba(11,11,13,0.78)',
+        '--text-3': 'rgba(11,11,13,0.55)',
+        '--border-1': 'rgba(11,11,13,0.10)',
+        '--border-2': 'rgba(11,11,13,0.16)',
+        '--focus-ring': 'hsl(0 0% 10%)',
+
+        '--radar-sweep-rgb': '11,11,13',
+      }
+
+    const prev = new Map()
+    Object.entries(vars).forEach(([k, v]) => {
+      prev.set(k, root.style.getPropertyValue(k))
+      root.style.setProperty(k, v)
+    })
+
+    return () => {
+      Object.keys(vars).forEach((k) => {
+        const prior = prev.get(k)
+        if (prior) root.style.setProperty(k, prior)
+        else root.style.removeProperty(k)
+      })
+
+      if (prevRadarAttr) root.setAttribute('data-radar-mono', prevRadarAttr)
+      else root.removeAttribute('data-radar-mono')
+
+      const existing = document.getElementById(selectionStyleId)
+      if (existing && existing.parentNode) existing.parentNode.removeChild(existing)
+    }
+  }, [theme])
+}
+
 const Modal = ({ open, title, onClose, children }) => (
   <AnimatePresence>
     {open && (
@@ -49,7 +143,7 @@ const Modal = ({ open, title, onClose, children }) => (
         <motion.button
           type="button"
           aria-label="Close dialog"
-          className="fixed inset-0 z-50 bg-ink-900/80 backdrop-blur-3xl"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-3xl"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -69,13 +163,13 @@ const Modal = ({ open, title, onClose, children }) => (
             <div className="absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl opacity-60 pointer-events-none" />
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-60 pointer-events-none" />
 
-            <div className="relative flex items-center justify-between px-5 py-4 border-b border-border-light bg-paper/60 backdrop-blur-sm">
+            <div className="relative flex items-center justify-between px-5 py-4 border-b border-border bg-background/60 backdrop-blur-sm">
               <h2 className="font-serif text-xl md:text-2xl text-ink tracking-tight">{title}</h2>
               <button
                 type="button"
                 aria-label="Close"
                 onClick={onClose}
-                className="p-2 rounded-lg text-ink-400 hover:text-ink hover:bg-paper-200 transition-editorial"
+                className="p-2 rounded-lg text-ink-400 hover:text-ink hover:bg-muted transition-editorial"
               >
                 <X className="w-4 h-4" strokeWidth={1.5} />
               </button>
@@ -92,7 +186,7 @@ const Modal = ({ open, title, onClose, children }) => (
 
 // Scan type selector
 const ScanTypeSelector = ({ value, onChange }) => (
-  <div className="flex gap-2 p-1.5 bg-paper-200 rounded-2xl border border-border-light">
+  <div className="flex gap-2 p-1.5 bg-muted rounded-2xl border border-border">
     <button
       type="button"
       onClick={() => onChange('small')}
@@ -154,7 +248,7 @@ const ScanTypeSelector = ({ value, onChange }) => (
 )
 
 const ScanFocusSelector = ({ value, onChange, items }) => (
-  <div className="bg-paper-200 p-1.5 rounded-2xl border border-border-light">
+  <div className="bg-muted p-1.5 rounded-2xl border border-border">
     <div className="flex flex-wrap gap-1.5">
       {items.map((item) => (
         <button
@@ -224,7 +318,7 @@ const CohortSelector = ({ cohorts, value, onChange }) => {
   const unselected = cohorts.filter((c) => !safeValue.includes(c.id))
 
   return (
-    <div className="bg-paper-200 p-2 rounded-2xl border border-border-light">
+    <div className="bg-muted p-2 rounded-2xl border border-border">
       <div className="flex items-center justify-between gap-3 px-2 pt-1">
         <div className="text-body-xs text-ink-400">Selected</div>
         <div className="text-body-xs text-ink-400">{safeValue.length} total</div>
@@ -232,7 +326,7 @@ const CohortSelector = ({ cohorts, value, onChange }) => {
 
       <div className="mt-2 flex flex-wrap gap-1.5 px-1">
         {selected.length === 0 && (
-          <div className="w-full p-3 rounded-xl border border-border-light bg-paper">
+          <div className="w-full p-3 rounded-xl border border-border bg-background">
             <div className="text-body-sm text-ink font-medium">Select at least one cohort</div>
             <div className="text-body-xs text-ink-400 mt-1">Recon/Dossier needs a cohort signal to scan.</div>
           </div>
@@ -250,7 +344,7 @@ const CohortSelector = ({ cohorts, value, onChange }) => {
                 />
               )}
               <motion.div
-                className={`relative flex items-center gap-2 px-3 py-2 rounded-xl border transition-editorial ${isPrimary ? 'border-transparent' : 'border-primary/20 bg-signal-muted'
+                className={`relative flex items-center gap-2 px-3 py-2 rounded-xl border transition-editorial ${isPrimary ? 'border-transparent' : 'border-border bg-background'
                   }`}
                 whileTap={{ scale: 0.98 }}
               >
@@ -267,7 +361,7 @@ const CohortSelector = ({ cohorts, value, onChange }) => {
                   type="button"
                   aria-label={`Remove ${cohort.name}`}
                   onClick={() => removeCohort(cohort.id)}
-                  className="ml-1 p-1 rounded-lg text-ink-400 hover:text-ink hover:bg-paper-200 transition-editorial"
+                  className="ml-1 p-1 rounded-lg text-ink-400 hover:text-ink hover:bg-muted transition-editorial"
                 >
                   <X className="w-3.5 h-3.5" strokeWidth={1.5} />
                 </button>
@@ -278,10 +372,10 @@ const CohortSelector = ({ cohorts, value, onChange }) => {
       </div>
 
       {unselected.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-border-light">
+        <div className="mt-3 pt-3 border-t border-border">
           <div className="flex items-center justify-between gap-3 px-2">
             <div className="text-body-xs text-ink-400">Add cohorts</div>
-            <div className="text-[11px] leading-none text-ink-400 px-2 py-1 rounded-full bg-paper border border-border-light">
+            <div className="text-[11px] leading-none text-ink-400 px-2 py-1 rounded-full bg-background border border-border">
               {unselected.length} available
             </div>
           </div>
@@ -292,7 +386,7 @@ const CohortSelector = ({ cohorts, value, onChange }) => {
                 key={cohort.id}
                 type="button"
                 onClick={() => addCohort(cohort.id)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border-light bg-paper hover:bg-paper-300 transition-editorial"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-background hover:bg-muted transition-editorial"
               >
                 <Plus className="w-3.5 h-3.5 text-ink-400" strokeWidth={1.5} />
                 <div className="text-left">
@@ -335,18 +429,18 @@ const RadarSweep = ({ label, variant = 'small' }) => {
           />
         )}
 
-        <div className="absolute inset-0 rounded-full bg-paper-200 border border-border-light" />
+        <div className="absolute inset-0 rounded-full bg-muted border border-border" />
         <div className="absolute inset-0 rounded-full bg-gradient-to-b from-transparent via-primary/10 to-transparent" />
-        <div className={`absolute ${isBig ? 'inset-6' : 'inset-4'} rounded-full border border-border-light`} />
-        <div className={`absolute ${isBig ? 'inset-12' : 'inset-8'} rounded-full border border-border-light`} />
-        {isBig && <div className="absolute inset-[22%] rounded-full border border-border-light opacity-80" />}
+        <div className={`absolute ${isBig ? 'inset-6' : 'inset-4'} rounded-full border border-border`} />
+        <div className={`absolute ${isBig ? 'inset-12' : 'inset-8'} rounded-full border border-border`} />
+        {isBig && <div className="absolute inset-[22%] rounded-full border border-border opacity-80" />}
 
-        <div className="absolute left-1/2 top-2 bottom-2 w-px bg-border-light" />
-        <div className="absolute top-1/2 left-2 right-2 h-px bg-border-light" />
+        <div className="absolute left-1/2 top-2 bottom-2 w-px bg-border" />
+        <div className="absolute top-1/2 left-2 right-2 h-px bg-border" />
         {isBig && (
           <>
-            <div className="absolute left-1/2 top-[10%] bottom-[10%] w-px bg-border-light/60 rotate-45 origin-center" />
-            <div className="absolute left-1/2 top-[10%] bottom-[10%] w-px bg-border-light/60 -rotate-45 origin-center" />
+            <div className="absolute left-1/2 top-[10%] bottom-[10%] w-px bg-border/60 rotate-45 origin-center" />
+            <div className="absolute left-1/2 top-[10%] bottom-[10%] w-px bg-border/60 -rotate-45 origin-center" />
           </>
         )}
 
@@ -368,16 +462,16 @@ const RadarSweep = ({ label, variant = 'small' }) => {
             className="absolute inset-0 rounded-full"
             style={{
               background: isBig
-                ? 'conic-gradient(from 90deg, rgba(0,0,0,0) 0deg, rgba(180,140,70,0.00) 18deg, rgba(180,140,70,0.24) 34deg, rgba(180,140,70,0.10) 52deg, rgba(0,0,0,0) 76deg)'
-                : 'conic-gradient(from 90deg, rgba(0,0,0,0) 0deg, rgba(180,140,70,0.00) 20deg, rgba(180,140,70,0.18) 36deg, rgba(180,140,70,0.08) 54deg, rgba(0,0,0,0) 78deg)'
+                ? 'conic-gradient(from 90deg, rgba(0,0,0,0) 0deg, rgba(var(--radar-sweep-rgb),0.00) 18deg, rgba(var(--radar-sweep-rgb),0.24) 34deg, rgba(var(--radar-sweep-rgb),0.10) 52deg, rgba(0,0,0,0) 76deg)'
+                : 'conic-gradient(from 90deg, rgba(0,0,0,0) 0deg, rgba(var(--radar-sweep-rgb),0.00) 20deg, rgba(var(--radar-sweep-rgb),0.18) 36deg, rgba(var(--radar-sweep-rgb),0.08) 54deg, rgba(0,0,0,0) 78deg)'
             }}
           />
           <div
             className="absolute inset-0 rounded-full"
             style={{
               background: isBig
-                ? 'radial-gradient(circle at center, rgba(180,140,70,0.14) 0%, rgba(180,140,70,0.05) 36%, rgba(0,0,0,0) 70%)'
-                : 'radial-gradient(circle at center, rgba(180,140,70,0.10) 0%, rgba(180,140,70,0.04) 38%, rgba(0,0,0,0) 72%)'
+                ? 'radial-gradient(circle at center, rgba(var(--radar-sweep-rgb),0.14) 0%, rgba(var(--radar-sweep-rgb),0.05) 36%, rgba(0,0,0,0) 70%)'
+                : 'radial-gradient(circle at center, rgba(var(--radar-sweep-rgb),0.10) 0%, rgba(var(--radar-sweep-rgb),0.04) 38%, rgba(0,0,0,0) 72%)'
             }}
           />
         </motion.div>
@@ -392,7 +486,7 @@ const RadarSweep = ({ label, variant = 'small' }) => {
               className="absolute inset-0 rounded-full"
               style={{
                 background:
-                  'conic-gradient(from 90deg, rgba(0,0,0,0) 0deg, rgba(180,140,70,0.00) 12deg, rgba(180,140,70,0.12) 26deg, rgba(180,140,70,0.05) 44deg, rgba(0,0,0,0) 74deg)'
+                  'conic-gradient(from 90deg, rgba(0,0,0,0) 0deg, rgba(var(--radar-sweep-rgb),0.00) 12deg, rgba(var(--radar-sweep-rgb),0.12) 26deg, rgba(var(--radar-sweep-rgb),0.05) 44deg, rgba(0,0,0,0) 74deg)'
               }}
             />
           </motion.div>
@@ -407,7 +501,7 @@ const RadarSweep = ({ label, variant = 'small' }) => {
         {blips.map((b, idx) => (
           <motion.div
             key={`${b.x}-${b.y}-${idx}`}
-            className={`absolute ${b.s} rounded-full ${isBig ? 'bg-primary shadow-[0_0_24px_rgba(180,140,70,0.25)]' : 'bg-primary'}`}
+            className={`absolute ${b.s} rounded-full ${isBig ? 'bg-primary shadow-[0_0_24px_rgba(var(--radar-sweep-rgb),0.25)]' : 'bg-primary'}`}
             style={{ left: b.x, top: b.y }}
             animate={{ opacity: isBig ? [0.05, 1, 0.1] : [0.12, 1, 0.12], scale: isBig ? [0.65, 1.7, 0.85] : [0.8, 1.4, 0.8] }}
             transition={{ duration: b.dur, repeat: Infinity, ease: 'easeInOut', delay: b.d }}
@@ -439,12 +533,12 @@ const PostSuggestion = ({ suggestion, onOpenMuse }) => (
   >
     <div className="flex items-start justify-between mb-3">
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-paper-200 rounded-lg flex items-center justify-center">
+        <div className="w-8 h-8 bg-muted border border-border rounded-lg flex items-center justify-center">
           <FileText className="w-4 h-4 text-ink-400" strokeWidth={1.5} />
         </div>
         <span className="text-body-xs text-ink-400 capitalize">{suggestion.channel}</span>
       </div>
-      <span className="px-2.5 py-1 rounded-full bg-signal-muted text-primary border border-primary/20 text-[11px] leading-none font-medium">
+      <span className="px-2.5 py-1 rounded-full bg-muted text-ink border border-border text-[11px] leading-none font-medium">
         Post idea
       </span>
     </div>
@@ -486,8 +580,8 @@ const PostSuggestionActions = ({ suggestion, onOpenMuse }) => {
         type="button"
         onClick={copyText}
         className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-body-xs transition-editorial ${copied
-          ? 'border-primary/20 bg-signal-muted text-primary'
-          : 'border-border bg-paper hover:bg-paper-200 text-ink'
+          ? 'border-border bg-muted text-ink'
+          : 'border-border bg-background hover:bg-muted text-ink'
           }`}
       >
         <Copy className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -538,7 +632,7 @@ const MoveSuggestion = ({ suggestion, onConvert, campaigns, focus }) => {
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-signal-muted rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-muted border border-border rounded-lg flex items-center justify-center">
             <Target className="w-4 h-4 text-primary" strokeWidth={1.5} />
           </div>
           <div>
@@ -546,12 +640,12 @@ const MoveSuggestion = ({ suggestion, onConvert, campaigns, focus }) => {
             <div className="text-body-xs text-ink-400">Based on {focus || 'trends'}</div>
           </div>
         </div>
-        <span className="px-2 py-1 bg-signal-muted text-primary rounded text-body-xs">
+        <span className="px-2 py-1 bg-muted border border-border text-ink rounded text-body-xs">
           Recommended
         </span>
       </div>
 
-      <div className="p-4 bg-paper-200 rounded-lg mb-4">
+      <div className="p-4 bg-muted border border-border rounded-lg mb-4">
         <h4 className="text-body-sm text-ink font-medium mb-2">{suggestion.name}</h4>
         <div className="grid grid-cols-2 gap-3 text-body-xs">
           <div>
@@ -572,7 +666,7 @@ const MoveSuggestion = ({ suggestion, onConvert, campaigns, focus }) => {
           </div>
         </div>
         {suggestion.reason && (
-          <div className="mt-3 pt-3 border-t border-border-light">
+          <div className="mt-3 pt-3 border-t border-border">
             <span className="text-body-xs text-ink-400">Why now:</span>
             <p className="text-body-xs text-ink mt-1">{suggestion.reason}</p>
           </div>
@@ -583,7 +677,7 @@ const MoveSuggestion = ({ suggestion, onConvert, campaigns, focus }) => {
         <select
           value={selectedCampaign}
           onChange={(e) => setSelectedCampaign(e.target.value)}
-          className="flex-1 px-3 py-2 bg-paper border border-border rounded-lg text-body-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-body-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         >
           <option value="">Select campaign...</option>
           {campaigns.map(c => (
@@ -594,8 +688,8 @@ const MoveSuggestion = ({ suggestion, onConvert, campaigns, focus }) => {
           type="button"
           onClick={copyMove}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-body-sm transition-editorial border ${copied
-            ? 'border-primary/20 bg-signal-muted text-primary'
-            : 'border-border bg-paper hover:bg-paper-200 text-ink'
+            ? 'border-border bg-muted text-ink'
+            : 'border-border bg-background hover:bg-muted text-ink'
             }`}
         >
           <Copy className="w-4 h-4" strokeWidth={1.5} />
@@ -626,11 +720,13 @@ const ScanHistoryItem = ({ scan, cohorts, onClick }) => {
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       onClick={onClick}
-      className="flex items-center justify-between p-3 bg-paper hover:bg-paper-200 rounded-xl border border-border-light cursor-pointer transition-editorial group"
+      className="flex items-center justify-between p-3 bg-background hover:bg-muted rounded-xl border border-border cursor-pointer transition-editorial group"
     >
       <div className="flex items-center gap-3">
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${scan.type === 'big' ? 'bg-signal-muted' : 'bg-paper-200'
-          }`}>
+        <div className={cn(
+          'w-8 h-8 rounded-lg flex items-center justify-center',
+          scan.type === 'big' ? 'bg-muted border border-border' : 'bg-muted border border-border'
+        )}>
           {scan.type === 'big' ? (
             <Target className="w-4 h-4 text-primary" strokeWidth={1.5} />
           ) : (
@@ -657,6 +753,9 @@ const ScanHistoryItem = ({ scan, cohorts, onClick }) => {
 // Main Radar Page
 const RadarPage = () => {
   const navigate = useNavigate()
+
+  useRadarMonoTheme()
+
   const {
     cohorts,
     campaigns,
@@ -703,9 +802,11 @@ const RadarPage = () => {
 
   const currentScanCohortLabel = useMemo(() => {
     if (!currentScan) return ''
-    const ids = currentScan.cohorts?.length ? currentScan.cohorts : [currentScan.cohort]
-    if (ids.length > 1) return `${ids.length} cohorts`
-    return cohorts.find(c => c.id === ids[0])?.name || 'your audience'
+    const ids = currentScan.cohorts?.length ? currentScan.cohorts : currentScan.cohort
+      ? [currentScan.cohort]
+      : []
+
+    return ids.length > 1 ? `${ids.length} cohorts` : (cohorts.find(c => c.id === ids[0])?.name || 'your audience')
   }, [cohorts, currentScan])
 
   const currentScanOutputs = useMemo(() => {
@@ -796,7 +897,7 @@ const RadarPage = () => {
             type="button"
             aria-label="Radar info"
             onClick={() => setIsInfoOpen(true)}
-            className="p-2 rounded-lg text-ink-400 hover:text-ink hover:bg-paper-200 transition-editorial"
+            className="p-2 rounded-lg text-ink-400 hover:text-ink hover:bg-muted transition-editorial"
           >
             <Info className="w-4 h-4" strokeWidth={1.5} />
           </button>
@@ -805,7 +906,7 @@ const RadarPage = () => {
             type="button"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center gap-2 px-3 py-1.5 bg-paper-200 rounded-full border border-border-light"
+            className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-full border border-border"
           >
             <Radio className="w-3.5 h-3.5 text-ink-400" strokeWidth={1.5} />
             <span className="text-body-xs text-ink">
@@ -818,11 +919,11 @@ const RadarPage = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             onClick={() => setIsTodayScansOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl hover:border-border-dark transition-editorial"
+            className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl hover:border-border/70 transition-editorial"
           >
             <Clock className="w-4 h-4 text-ink-400" strokeWidth={1.5} />
             <span className="text-body-sm text-ink">Today's scans</span>
-            <span className="text-[11px] leading-none text-ink-400 px-2 py-1 rounded-full bg-paper border border-border-light">
+            <span className="text-[11px] leading-none text-ink-400 px-2 py-1 rounded-full bg-background border border-border">
               {todayScans.length}
             </span>
           </motion.button>
@@ -863,7 +964,7 @@ const RadarPage = () => {
               </div>
               <span className={`px-2.5 py-1 rounded-full text-[11px] leading-none border ${scanType === 'big'
                 ? 'bg-primary/10 text-primary border-primary/20'
-                : 'bg-paper text-ink-400 border-border-light'
+                : 'bg-background text-ink-400 border-border'
                 }`}>
                 {scanType === 'big' ? 'Dossier' : 'Recon'}
               </span>
@@ -961,7 +1062,7 @@ const RadarPage = () => {
       >
         {scanDetails ? (
           <div className="space-y-4">
-            <div className="p-4 bg-paper-200 rounded-xl border border-border-light">
+            <div className="p-4 bg-muted rounded-xl border border-border">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="text-body-xs text-ink-400">Type</div>
@@ -1026,7 +1127,7 @@ const RadarPage = () => {
 
         {!isScanning && currentScan && (
           <div>
-            <div className="relative p-4 bg-paper-200 rounded-2xl border border-border-light mb-5 overflow-hidden">
+            <div className="relative p-4 bg-muted rounded-2xl border border-border mb-5 overflow-hidden">
               <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/15 blur-3xl opacity-70 pointer-events-none" />
               <div className="relative flex items-start justify-between gap-4">
                 <div>
@@ -1035,15 +1136,15 @@ const RadarPage = () => {
                     {currentScan.type === 'big' ? 'Dossier' : 'Recon'} • {currentScan.focus || 'trends'}
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <span className="px-2.5 py-1 rounded-full text-[11px] leading-none bg-paper border border-border-light text-ink-400">
+                    <span className="px-2.5 py-1 rounded-full text-[11px] leading-none bg-background border border-border text-ink-400">
                       {currentScanCohortLabel}
                     </span>
-                    <span className="px-2.5 py-1 rounded-full text-[11px] leading-none bg-paper border border-border-light text-ink-400 capitalize">
+                    <span className="px-2.5 py-1 rounded-full text-[11px] leading-none bg-background border border-border text-ink-400 capitalize">
                       {currentScan.focus || 'trends'}
                     </span>
                     <span className={`px-2.5 py-1 rounded-full text-[11px] leading-none border ${currentScan.type === 'big'
                       ? 'bg-primary/10 text-primary border-primary/20'
-                      : 'bg-paper text-ink-400 border-border-light'
+                      : 'bg-background text-ink-400 border-border'
                       }`}>
                       {currentScan.type === 'big' ? 'Dossier' : 'Recon'}
                     </span>
@@ -1105,7 +1206,7 @@ const RadarPage = () => {
                       if (!text) return
                       navigator.clipboard.writeText(text).catch(() => { })
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-paper hover:bg-paper-200 text-body-xs text-ink transition-editorial"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-body-xs text-ink transition-editorial"
                   >
                     <Copy className="w-3.5 h-3.5" strokeWidth={1.5} />
                     Copy all
@@ -1132,7 +1233,7 @@ const RadarPage = () => {
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="font-serif text-lg text-ink">Recon angles</div>
-                <span className="text-[11px] leading-none text-ink-400 px-2 py-1 rounded-full bg-paper border border-border-light">
+                <span className="text-[11px] leading-none text-ink-400 px-2 py-1 rounded-full bg-background border border-border">
                   {currentScanOutputs.posts.length}
                 </span>
               </div>
@@ -1147,7 +1248,7 @@ const RadarPage = () => {
                   </motion.div>
                 ))}
                 {currentScanOutputs.posts.length === 0 && (
-                  <div className="p-4 bg-paper border border-border-light rounded-xl text-body-sm text-ink-400">
+                  <div className="p-4 bg-background border border-border rounded-xl text-body-sm text-ink-400">
                     No recon angles returned.
                   </div>
                 )}
@@ -1155,7 +1256,7 @@ const RadarPage = () => {
 
               <div className="mt-7 flex items-center justify-between mb-2">
                 <div className="font-serif text-lg text-ink">Dossier move</div>
-                <span className="text-[11px] leading-none text-ink-400 px-2 py-1 rounded-full bg-paper border border-border-light">
+                <span className="text-[11px] leading-none text-ink-400 px-2 py-1 rounded-full bg-background border border-border">
                   {currentScanOutputs.moves.length}
                 </span>
               </div>
@@ -1175,7 +1276,7 @@ const RadarPage = () => {
                   </motion.div>
                 ))}
                 {currentScanOutputs.moves.length === 0 && (
-                  <div className="p-4 bg-paper border border-border-light rounded-xl text-body-sm text-ink-400">
+                  <div className="p-4 bg-background border border-border rounded-xl text-body-sm text-ink-400">
                     No dossier move returned.
                   </div>
                 )}
@@ -1191,7 +1292,7 @@ const RadarPage = () => {
             <button
               type="button"
               onClick={() => setIsResultsOpen(false)}
-              className="mt-4 inline-flex items-center justify-center px-4 py-2 rounded-lg border border-border bg-paper hover:bg-paper-200 text-body-sm text-ink transition-editorial"
+              className="mt-4 inline-flex items-center justify-center px-4 py-2 rounded-lg border border-border bg-background hover:bg-muted text-body-sm text-ink transition-editorial"
             >
               Close
             </button>

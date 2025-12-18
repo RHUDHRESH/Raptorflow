@@ -4,8 +4,8 @@ import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'fram
 import { ArrowRight } from 'lucide-react'
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SPECTACULAR HERO - MP072 PALETTE
-   3D Parallax Text | Morphing Blobs | Typewriter | Floating Polyhedrons
+   SPECTACULAR HERO - RAPTORFLOW DESIGN SYSTEM
+   Tokens: paper, ink, zinc palette
    ═══════════════════════════════════════════════════════════════════════════ */
 
 // Typewriter phrases
@@ -434,3 +434,4 @@ const ParticleHero = () => {
 }
 
 export default ParticleHero
+

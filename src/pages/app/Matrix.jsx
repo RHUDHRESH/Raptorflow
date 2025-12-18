@@ -482,11 +482,8 @@ const Matrix = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card via-card to-muted border border-border p-8"
+        className="relative overflow-hidden rounded-2xl bg-[var(--surface-1)] border border-[var(--border-1)] p-8"
       >
-        {/* Decorative background elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/3 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
 
         <div className="relative flex items-start justify-between">
           <div className="space-y-2">

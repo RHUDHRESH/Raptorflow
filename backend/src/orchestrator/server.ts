@@ -777,9 +777,6 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-// Export app for use as router
-export default app;
-
 // Helper function to map asset types to categories
 function getCategoryFromAssetType(assetType: string): string {
   const categoryMap: Record<string, string> = {

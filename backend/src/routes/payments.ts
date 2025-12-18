@@ -7,6 +7,30 @@ const router = Router();
 
 const RBI_AUTOPAY_LIMIT_PAISE = 500000;
 
+const PHONEPE_WEBHOOK_REPLAY_TTL_MS = 10 * 60 * 1000;
+const phonePeWebhookReplayCache = new Map<string, number>();
+
+function getCorrelationId(req: Request): string {
+  const header = (req.headers['x-request-id'] || req.headers['x-correlation-id']) as string | string[] | undefined;
+  if (Array.isArray(header)) return String(header[0] || '').trim();
+  return String(header || '').trim();
+}
+
+function logWithContext(level: 'log' | 'warn' | 'error', message: string, ctx: Record<string, any> = {}) {
+  const payload = Object.keys(ctx).length ? { ...ctx } : undefined;
+  if (payload) {
+    console[level](message, payload);
+  } else {
+    console[level](message);
+  }
+}
+
+function prunePhonePeWebhookReplayCache(nowMs: number) {
+  for (const [k, expiresAt] of phonePeWebhookReplayCache.entries()) {
+    if (expiresAt <= nowMs) phonePeWebhookReplayCache.delete(k);
+  }
+}
+
 type PhonePeCheckoutState = 'PENDING' | 'COMPLETED' | 'FAILED';
 
 /**
@@ -148,8 +172,25 @@ function sha256Hex(input: string): string {
 function verifyStandardWebhookAuth(receivedAuthorization: string | undefined): boolean {
   if (!receivedAuthorization) return false;
   if (!PHONEPE_STANDARD_CONFIG.webhookUsername || !PHONEPE_STANDARD_CONFIG.webhookPassword) return false;
-  const expected = sha256Hex(`${PHONEPE_STANDARD_CONFIG.webhookUsername}:${PHONEPE_STANDARD_CONFIG.webhookPassword}`);
-  return expected.toLowerCase() === String(receivedAuthorization).trim().toLowerCase();
+  const expected = sha256Hex(`${PHONEPE_STANDARD_CONFIG.webhookUsername}:${PHONEPE_STANDARD_CONFIG.webhookPassword}`).toLowerCase();
+
+  const raw = String(receivedAuthorization).trim();
+  // PhonePe docs describe: Authorization: SHA256(username:password)
+  // In practice, some setups may send either the raw hex OR include a prefix.
+  const normalized = raw.replace(/^sha256\s*/i, '').replace(/^sha256\(/i, '').replace(/\)$/i, '').trim().toLowerCase();
+  return normalized === expected;
+}
+
+function isFinalPaymentStatus(status: any): boolean {
+  const s = String(status || '').toLowerCase();
+  return s === 'completed' || s === 'failed';
+}
+
+function generatePgV1StatusChecksum(merchantId: string, merchantTransactionId: string): string {
+  const path = `/pg/v1/status/${merchantId}/${merchantTransactionId}`;
+  const toHash = `${path}${PHONEPE_CONFIG.saltKey}`;
+  const sha256Hash = crypto.createHash('sha256').update(toHash).digest('hex');
+  return `${sha256Hash}###${PHONEPE_CONFIG.saltIndex}`;
 }
 
 function mapCheckoutStateToPaymentStatus(state: PhonePeCheckoutState): 'completed' | 'pending' | 'failed' {
@@ -207,6 +248,7 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
     const userEmail = (req as any).user.email;
     const { plan, phone, autopayRequested, billingCycle } = req.body;
+    const correlationId = getCorrelationId(req);
 
     // Validate plan
     if (!plan || !PLANS[plan]) {
@@ -229,6 +271,15 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
     
     // Generate unique transaction ID
     const txnId = `RF${Date.now()}${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
+    logWithContext('log', 'Payment initiation requested', {
+      correlationId,
+      userId,
+      plan,
+      autopayRequested: autopayRequested === true,
+      billingCycle: billingCycle ? String(billingCycle) : undefined,
+      txnId
+    });
     
     // Create payment record in database
     const { data: payment, error: dbError } = await db.createPayment(
@@ -304,6 +355,12 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
             status: 'failed',
             response_message: data?.message || 'PhonePe create payment failed'
           });
+          logWithContext('error', 'PhonePe Standard create payment failed', {
+            correlationId,
+            txnId,
+            status: response.status,
+            message: data?.message
+          });
           return res.status(400).json({ error: data?.message || 'Payment initiation failed' });
         }
 
@@ -314,6 +371,11 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
         }
 
         if (data?.redirectUrl) {
+          logWithContext('log', 'PhonePe Standard create payment succeeded', {
+            correlationId,
+            txnId,
+            orderId: data?.orderId
+          });
           return res.json({
             success: true,
             txnId,
@@ -331,7 +393,11 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
         });
         return res.status(400).json({ error: 'Payment initiation failed' });
       } catch (apiError: any) {
-        console.error('PhonePe Standard Checkout error:', apiError);
+        logWithContext('error', 'PhonePe Standard Checkout error (falling back)', {
+          correlationId,
+          txnId,
+          message: apiError?.message
+        });
         // fall through to legacy checksum mode / mock
       }
     }
@@ -406,7 +472,7 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
     }
 
     // Mock mode - for development/testing without PhonePe credentials
-    console.log('Using mock payment mode');
+    logWithContext('warn', 'Using mock payment mode', { correlationId, txnId });
     res.json({
       success: true,
       txnId,
@@ -429,12 +495,28 @@ router.post('/initiate', verifyToken, async (req: Request, res: Response) => {
  */
 router.post('/webhook', async (req: Request, res: Response) => {
   try {
-    console.log('PhonePe Webhook received:', req.body);
+    const correlationId = getCorrelationId(req);
+    const nowMs = Date.now();
+    prunePhonePeWebhookReplayCache(nowMs);
+
+    logWithContext('log', 'PhonePe webhook received', {
+      correlationId,
+      hasEvent: !!req.body?.event,
+      hasPayload: !!req.body?.payload,
+      hasLegacyResponse: !!req.body?.response
+    });
 
     // Standard Checkout webhook: JSON body with { event, payload } and Authorization header
     if (req.body?.event && req.body?.payload) {
       const authHeader = req.headers['authorization'] as string | undefined;
+
+      if (env.NODE_ENV === 'production' && (!PHONEPE_STANDARD_CONFIG.webhookUsername || !PHONEPE_STANDARD_CONFIG.webhookPassword)) {
+        logWithContext('error', 'PhonePe Standard webhook credentials missing in production', { correlationId });
+        return res.status(500).json({ error: 'Webhook verification not configured' });
+      }
+
       if (!verifyStandardWebhookAuth(authHeader)) {
+        logWithContext('warn', 'Invalid PhonePe Standard webhook authorization', { correlationId });
         return res.status(401).json({ error: 'Invalid webhook authorization' });
       }
 
@@ -446,8 +528,16 @@ router.post('/webhook', async (req: Request, res: Response) => {
       const amount = payload?.amount;
 
       if (!merchantOrderId || !state) {
+        logWithContext('warn', 'PhonePe Standard webhook missing fields', { correlationId, merchantOrderId, state });
         return res.status(400).json({ error: 'Missing merchantOrderId/state' });
       }
+
+      // Replay protection (best-effort): ignore duplicates for a short TTL
+      const replayKey = `std:${merchantOrderId}:${String(state)}:${String(orderId || '')}`;
+      if (phonePeWebhookReplayCache.has(replayKey)) {
+        return res.json({ status: 'ok' });
+      }
+      phonePeWebhookReplayCache.set(replayKey, nowMs + PHONEPE_WEBHOOK_REPLAY_TTL_MS);
 
       const { data: existingPayment } = await db.getPaymentWithSubscriptionAndPlan(merchantOrderId);
       if (!existingPayment) {
@@ -455,9 +545,16 @@ router.post('/webhook', async (req: Request, res: Response) => {
         return res.json({ status: 'ignored' });
       }
 
+      // Idempotency: if we already have a final status, ignore further webhook attempts.
+      const currentStatus = (existingPayment as any)?.status;
+      if (isFinalPaymentStatus(currentStatus)) {
+        return res.json({ status: 'ok' });
+      }
+
       const expectedAmount = (existingPayment as any)?.amount_paise;
       if (typeof amount === 'number' && typeof expectedAmount === 'number' && Number(amount) !== Number(expectedAmount)) {
-        console.error('Webhook amount mismatch', {
+        logWithContext('error', 'PhonePe Standard webhook amount mismatch', {
+          correlationId,
           merchantOrderId,
           received: amount,
           expected: expectedAmount
@@ -468,6 +565,16 @@ router.post('/webhook', async (req: Request, res: Response) => {
       // Only process order events for now
       if (event === 'checkout.order.completed' || event === 'checkout.order.failed') {
         const status = mapCheckoutStateToPaymentStatus(state);
+
+        logWithContext('log', 'Processing PhonePe Standard webhook event', {
+          correlationId,
+          merchantOrderId,
+          event,
+          state,
+          mappedStatus: status,
+          orderId
+        });
+
         await db.updatePayment(merchantOrderId, {
           status,
           provider_payment_id: orderId || undefined,
@@ -502,7 +609,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
     }
 
     if (!verifyChecksum(encodedResponse, xVerify)) {
-      console.error('Invalid webhook checksum', { received: xVerify });
+      logWithContext('warn', 'Invalid PhonePe legacy webhook checksum', { correlationId, received: xVerify });
       return res.status(401).json({ error: 'Invalid signature' });
     }
 
@@ -603,6 +710,9 @@ router.get('/status/:txnId', verifyToken, async (req: Request, res: Response) =>
         });
 
         const data: any = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.message || `PhonePe order status failed (${response.status})`);
+        }
         const state: PhonePeCheckoutState | undefined = data?.state;
 
         if (state && Number(data?.amount) === Number(amount)) {
@@ -653,7 +763,7 @@ router.get('/status/:txnId', verifyToken, async (req: Request, res: Response) =>
     if ((paymentWithSub as any).status !== 'completed' && PHONEPE_CONFIG.merchantId && PHONEPE_CONFIG.saltKey) {
       try {
         const statusUrl = `${PHONEPE_CONFIG.statusEndpoint}/${PHONEPE_CONFIG.merchantId}/${txnId}`;
-        const checksum = generateChecksum('', `/pg/v1/status/${PHONEPE_CONFIG.merchantId}/${txnId}`);
+        const checksum = generatePgV1StatusChecksum(PHONEPE_CONFIG.merchantId, txnId);
 
         const response = await fetch(statusUrl, {
           method: 'GET',
@@ -785,9 +895,12 @@ router.post('/verify', verifyToken, async (req: Request, res: Response) => {
         });
 
         const data: any = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.message || `PhonePe order status failed (${response.status})`);
+        }
         const state: PhonePeCheckoutState | undefined = data?.state;
 
-        if (state === 'COMPLETED') {
+        if (state === 'COMPLETED' && Number(data?.amount) === Number(amount)) {
           await db.updatePayment(txnId, {
             status: 'completed',
             provider_payment_id: data?.orderId || undefined
@@ -829,7 +942,7 @@ router.post('/verify', verifyToken, async (req: Request, res: Response) => {
     if (PHONEPE_CONFIG.merchantId && PHONEPE_CONFIG.saltKey) {
       try {
         const statusUrl = `${PHONEPE_CONFIG.statusEndpoint}/${PHONEPE_CONFIG.merchantId}/${txnId}`;
-        const checksum = generateChecksum('', `/pg/v1/status/${PHONEPE_CONFIG.merchantId}/${txnId}`);
+        const checksum = generatePgV1StatusChecksum(PHONEPE_CONFIG.merchantId, txnId);
 
         const response = await fetch(statusUrl, {
           method: 'GET',

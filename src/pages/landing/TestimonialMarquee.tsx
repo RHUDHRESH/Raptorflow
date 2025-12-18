@@ -10,13 +10,13 @@ const TestimonialMarquee = () => {
       icon: Target,
       title: "Clarity in 10 Minutes",
       description: "Transform scattered thoughts into a structured 90-day execution plan. No fluff, just focused action.",
-      gradient: "from-orange-500/20 to-orange-700/10"
+      gradient: "from-gray-500/20 to-gray-700/10"
     },
     {
       icon: BRAND_ICONS.speed,
       title: "AI-Powered Moves",
       description: "Every move is crafted by AI that understands your cohorts, barriers, and growth stage.",
-      gradient: "from-amber-500/20 to-amber-700/10"
+      gradient: "from-zinc-500/20 to-zinc-700/10"
     },
     {
       icon: Shield,
@@ -49,7 +49,7 @@ const TestimonialMarquee = () => {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-[10px] uppercase tracking-[0.4em] text-amber-400/60"
+            className="text-[10px] uppercase tracking-[0.4em] text-zinc-400/60"
           >
             Why Raptorflow
           </motion.span>
@@ -62,7 +62,7 @@ const TestimonialMarquee = () => {
             className="mt-6 text-3xl md:text-4xl font-light text-white"
           >
             Built for founders who
-            <span className="italic font-normal text-amber-200"> demand clarity</span>
+            <span className="italic font-normal text-zinc-200"> demand clarity</span>
           </motion.h2>
 
           <motion.p
@@ -91,7 +91,7 @@ const TestimonialMarquee = () => {
 
                 {/* Icon */}
                 <div className="mb-6 w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <prop.icon className="w-6 h-6 text-amber-400" />
+                  <prop.icon className="w-6 h-6 text-zinc-400" />
                 </div>
 
                 {/* Title */}
@@ -118,7 +118,7 @@ const TestimonialMarquee = () => {
         >
           {principles.map((principle, i) => (
             <div key={i} className="flex items-center gap-3 text-white/40">
-              <principle.icon className="w-5 h-5 text-amber-500/50" />
+              <principle.icon className="w-5 h-5 text-zinc-500/50" />
               <span className="text-sm tracking-wide">{principle.text}</span>
             </div>
           ))}
@@ -142,3 +142,4 @@ const TestimonialMarquee = () => {
 }
 
 export default TestimonialMarquee
+

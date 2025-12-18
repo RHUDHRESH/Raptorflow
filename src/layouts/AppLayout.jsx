@@ -21,11 +21,29 @@ import {
   Activity
 } from 'lucide-react'
 import ThemeToggle from '../components/ui/ThemeToggle'
+import { Input } from '../components/ui/input'
+import { ScrollArea } from '../components/ui/scroll-area'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu'
+import { Avatar, AvatarFallback } from '../components/ui/avatar'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '../components/ui/dialog'
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
+  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
@@ -34,6 +52,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarRail,
+  SidebarSeparator,
   SidebarTrigger,
 } from '../components/ui/sidebar'
 import { RaptorFlowLogo } from '../components/brand/Logo'
@@ -42,25 +61,25 @@ import { NanobanaBackground } from '../components/ui/NanobanaBackground'
 // Navigation "Command Center" Structure
 const navSections = [
   {
-    label: 'Command',
+    label: 'Core',
     items: [
       { name: 'Matrix', icon: LayoutDashboard, path: '/app/matrix', description: 'Daily dashboard' },
+      { name: 'Radar', icon: Radio, path: '/app/radar', description: 'Trend scanner' },
     ]
   },
   {
-    label: 'Operations',
+    label: 'Execution',
     items: [
       { name: 'Campaigns', icon: Layers, path: '/app/campaigns', description: 'Mission containers' },
       { name: 'Moves', icon: Zap, path: '/app/moves', description: 'Tactical strikes' },
-      { name: 'Assets', icon: Sparkles, path: '/app/muse', description: 'Asset studio' },
+      { name: 'Muse', icon: Sparkles, path: '/app/muse', description: 'Asset studio' },
     ]
   },
   {
-    label: 'Intel',
+    label: 'Foundation',
     items: [
-      { name: 'Radar', icon: Radio, path: '/app/radar', description: 'Trend scanner' },
-      { name: 'Signals', icon: Target, path: '/app/signals', description: 'Leverage map' },
-      { name: 'Lab', icon: Box, path: '/app/black-box', description: 'A/B Duels' },
+      { name: 'Strategy', icon: Target, path: '/onboarding/strategy', description: 'Your growth doctrine' },
+      { name: 'ICP', icon: Users, path: '/onboarding/icps', description: 'Ideal customer profiles' },
     ]
   }
 ]
@@ -84,6 +103,8 @@ const AppLayout = () => {
   const [unreadOnly, setUnreadOnly] = React.useState(false)
   const notificationsRef = React.useRef(null)
   const [notificationsOpen, setNotificationsOpen] = React.useState(false)
+  const [commandOpen, setCommandOpen] = React.useState(false)
+  const [commandQuery, setCommandQuery] = React.useState('')
 
   const handleSignOut = async () => {
     await signOut()
@@ -93,6 +114,20 @@ const AppLayout = () => {
   React.useEffect(() => {
     seedDemoNotifications()
   }, [seedDemoNotifications])
+
+  React.useEffect(() => {
+    const onKeyDown = (e) => {
+      const isMac = navigator.platform.toLowerCase().includes('mac')
+      const mod = isMac ? e.metaKey : e.ctrlKey
+      if (!mod) return
+      if (e.key.toLowerCase() !== 'k') return
+      e.preventDefault()
+      setCommandOpen(true)
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   const formatRelativeTime = (iso) => {
     if (!iso) return ''
@@ -135,6 +170,27 @@ const AppLayout = () => {
   const planLimits = getPlanLimits()
   const planName = planLimits?.name || profile?.plan || 'Glide'
 
+  const commandItems = React.useMemo(() => {
+    const items = navSections.flatMap((s) => s.items)
+    return items
+      .map((i) => ({
+        label: i.name,
+        path: i.path,
+        icon: i.icon,
+        section: i.description,
+      }))
+      .filter(Boolean)
+  }, [])
+
+  const filteredCommandItems = React.useMemo(() => {
+    const q = String(commandQuery || '').trim().toLowerCase()
+    if (!q) return commandItems
+    return commandItems.filter((i) => {
+      const hay = `${i.label} ${i.section || ''} ${i.path}`.toLowerCase()
+      return hay.includes(q)
+    })
+  }, [commandItems, commandQuery])
+
   return (
     <SidebarProvider defaultOpen={true}>
       {/* 
@@ -143,86 +199,79 @@ const AppLayout = () => {
         - Thin glowing borders
       */}
       <Sidebar variant="floating" collapsible="icon" className="border-r-0">
-        <SidebarHeader className="bg-transparent pb-0">
-          <div className="flex items-center gap-3 px-2 py-4" data-component-name="AppLayout">
-            <RaptorFlowLogo size="sm" animated={true} linkTo="/app" />
-            <span className="text-sm font-bold tracking-wider text-white">RAPTORFLOW</span>
-          </div>
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                size="lg"
+                tooltip="RaptorFlow"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              >
+                <NavLink to="/app" end>
+                  <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden">
+                    <RaptorFlowLogo size="sm" showText={false} animated={false} linkTo={null} />
+                  </div>
+                  <div className="flex flex-col gap-0.5 leading-none">
+                    <span className="font-medium tracking-tight">RaptorFlow</span>
+                    <span className="text-xs text-sidebar-foreground/70">{planName}</span>
+                  </div>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarHeader>
 
-        <SidebarContent className="px-2">
+        <SidebarSeparator />
+
+        <SidebarContent>
           {navSections.map((section) => (
-            <SidebarGroup key={section.label} className="mt-4">
-              <SidebarGroupLabel className="px-2 text-[10px] uppercase tracking-widest text-muted-foreground/60 font-mono">
+            <SidebarGroup key={section.label} className="py-0">
+              <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-sidebar-foreground/60">
                 {section.label}
               </SidebarGroupLabel>
-              <SidebarMenu>
-                {section.items.map((item) => (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location.pathname === item.path || location.pathname.startsWith(item.path + '/')}
-                      tooltip={item.name}
-                      className="text-muted-foreground hover:text-white hover:bg-white/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:shadow-glow-sm transition-all duration-300"
-                    >
-                      <NavLink to={item.path} end={item.path === '/app'}>
-                        <item.icon strokeWidth={1.5} className="w-4 h-4" />
-                        <span className="font-medium tracking-tight">{item.name}</span>
-                        {item.badge && (
-                          <span className="ml-auto px-1.5 py-0.5 text-[9px] bg-white/10 text-white rounded-full font-mono">
-                            {item.badge}
-                          </span>
-                        )}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {section.items.map((item) => (
+                    <SidebarMenuItem key={item.path}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={location.pathname === item.path || location.pathname.startsWith(item.path + '/')}
+                        tooltip={item.name}
+                      >
+                        <NavLink to={item.path} end={item.path === '/app'}>
+                          <item.icon strokeWidth={1.5} className="w-4 h-4" />
+                          <span>{item.name}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
             </SidebarGroup>
           ))}
         </SidebarContent>
-
-        <SidebarFooter className="p-4">
-          <div className="p-1 space-y-1">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Settings" className="text-muted-foreground hover:text-white hover:bg-white/5">
-                  <button onClick={() => navigate('/app/settings')}>
-                    <Settings strokeWidth={1.5} className="w-4 h-4" />
-                    <span>Settings</span>
-                  </button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Sign Out" className="text-muted-foreground hover:text-red-400 hover:bg-red-500/10">
-                  <button onClick={handleSignOut}>
-                    <LogOut strokeWidth={1.5} className="w-4 h-4" />
-                    <span>Sign Out</span>
-                  </button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </div>
-        </SidebarFooter>
         <SidebarRail />
       </Sidebar>
 
-      <SidebarInset className="bg-black/95 relative overflow-hidden">
-        {/* Nanobana Background System */}
-        <NanobanaBackground variant="void" intensity="low" />
+      <SidebarInset className="bg-background relative overflow-hidden">
 
-        {/* Top HUD Bar */}
-        <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-40 border-b border-white/5 bg-black/50 backdrop-blur-md">
+        {/* Top Bar — Editorial, Calm */}
+        <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-md">
           <div className="flex items-center gap-4">
-            <SidebarTrigger className="h-8 w-8 text-muted-foreground hover:text-white transition-colors" />
+            <SidebarTrigger className="h-8 w-8 text-muted-foreground hover:text-foreground transition-colors" />
 
             {/* Command Search */}
             <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-purple-600/20 rounded-lg opacity-0 group-hover:opacity-100 transition duration-500 blur-sm" />
-              <button aria-label="Search" className="relative flex items-center gap-2 px-4 py-2 bg-black/40 border border-white/10 rounded-lg text-muted-foreground hover:text-white transition-all duration-200 w-64">
+              <button
+                aria-label="Search"
+                type="button"
+                onClick={() => setCommandOpen(true)}
+                className="relative flex items-center gap-2 px-4 py-2 bg-muted border border-border rounded-lg text-muted-foreground hover:text-foreground transition-all duration-200 w-64"
+              >
                 <Search className="w-3.5 h-3.5" strokeWidth={1.5} />
-                <span className="text-xs font-mono">SEARCH COMMANDS...</span>
-                <kbd className="ml-auto px-1.5 bg-white/5 rounded text-[10px] text-muted-foreground font-mono border border-white/10">⌘K</kbd>
+                <span className="text-xs">Search...</span>
+                <kbd className="ml-auto px-1.5 bg-background rounded text-[10px] text-muted-foreground font-mono border border-border">⌘K</kbd>
               </button>
             </div>
           </div>
@@ -244,9 +293,9 @@ const AppLayout = () => {
               </button>
 
               {notificationsOpen && (
-                <div className="absolute right-0 mt-4 w-[380px] bg-[#0A0A0F] border border-white/10 rounded-xl shadow-2xl p-0 z-50 overflow-hidden ring-1 ring-white/5">
-                  <div className="px-4 py-3 flex items-center justify-between border-b border-white/5 bg-white/2">
-                    <div className="text-sm font-medium text-white tracking-wide">NOTIFICATIONS</div>
+                <div className="absolute right-0 mt-4 w-[380px] bg-popover text-popover-foreground border border-border rounded-xl shadow-2xl p-0 z-50 overflow-hidden ring-1 ring-border/50">
+                  <div className="px-4 py-3 flex items-center justify-between border-b border-border bg-background/60">
+                    <div className="text-sm font-medium tracking-wide">NOTIFICATIONS</div>
                     {notifications.some((n) => n.unread) && (
                       <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-mono">
                         {notifications.filter((n) => n.unread).length} NEW
@@ -254,28 +303,28 @@ const AppLayout = () => {
                     )}
                   </div>
 
-                  <div className="max-h-[320px] overflow-auto custom-scrollbar">
+                  <ScrollArea className="h-[320px]">
                     {/* Notifications List Logic same as before but styled darker */}
                     {notifications.length === 0 ? (
                       <div className="p-8 text-center text-muted-foreground text-xs">No signals detected.</div>
                     ) : (
                       notifications.map((n) => (
-                        <div key={n.id} onClick={() => markRead(n.id)} className="p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0 transition-colors group">
+                        <div key={n.id} onClick={() => markRead(n.id)} className="p-3 hover:bg-muted/60 cursor-pointer border-b border-border last:border-0 transition-colors group">
                           <div className="flex justify-between items-start mb-1">
-                            <span className={`text-xs font-medium ${n.unread ? 'text-white' : 'text-muted-foreground'} group-hover:text-primary transition-colors`}>{n.title}</span>
+                            <span className={`text-xs font-medium ${n.unread ? 'text-foreground' : 'text-muted-foreground'} group-hover:text-primary transition-colors`}>{n.title}</span>
                             <span className="text-[10px] text-muted-foreground font-mono">{formatRelativeTime(n.createdAt)}</span>
                           </div>
-                          <p className="text-[11px] text-muted-foreground/80 line-clamp-2">{n.detail}</p>
+                          <p className="text-[11px] text-muted-foreground line-clamp-2">{n.detail}</p>
                         </div>
                       ))
                     )}
-                  </div>
+                  </ScrollArea>
 
-                  <div className="p-2 border-t border-white/5 bg-white/2 grid grid-cols-2 gap-2">
-                    <button onClick={markAllRead} className="flex items-center justify-center gap-2 py-1.5 text-[10px] font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded transition-colors">
+                  <div className="p-2 border-t border-border bg-background/60 grid grid-cols-2 gap-2">
+                    <button onClick={markAllRead} className="flex items-center justify-center gap-2 py-1.5 text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded transition-colors">
                       <Sparkles className="w-3 h-3" /> MARK ALL READ
                     </button>
-                    <button onClick={clearNotifications} className="flex items-center justify-center gap-2 py-1.5 text-[10px] font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded transition-colors">
+                    <button onClick={clearNotifications} className="flex items-center justify-center gap-2 py-1.5 text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded transition-colors">
                       <X className="w-3 h-3" /> CLEAR LOG
                     </button>
                   </div>
@@ -284,19 +333,83 @@ const AppLayout = () => {
             </div>
 
             {/* Profile Pill */}
-            <button
-              onClick={() => navigate('/app/settings')}
-              className="flex items-center gap-3 pl-3 pr-1 py-1 bg-white/5 hover:bg-white/10 border border-white/5 rounded-full transition-all group"
-            >
-              <span className="text-xs font-medium text-white group-hover:text-primary transition-colors">
-                {profile?.full_name?.split(' ')[0] || 'Commander'}
-              </span>
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-[10px] font-bold text-black border border-white/20">
-                {profile?.full_name?.[0] || 'U'}
-              </div>
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="flex items-center gap-3 pl-3 pr-1 py-1 bg-muted hover:bg-muted/70 border border-border rounded-full transition-all"
+                >
+                  <span className="text-xs font-medium text-foreground">
+                    {profile?.full_name?.split(' ')[0] || 'Commander'}
+                  </span>
+                  <Avatar className="h-7 w-7 border border-border">
+                    <AvatarFallback className="text-[10px] font-bold">
+                      {profile?.full_name?.[0] || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  {profile?.full_name || 'Commander'}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => navigate('/app/settings')}>
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={handleSignOut} className="text-destructive focus:text-destructive">
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
+
+        <Dialog open={commandOpen} onOpenChange={setCommandOpen}>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>Command</DialogTitle>
+              <DialogDescription>Jump to a section.</DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3">
+              <Input
+                value={commandQuery}
+                onChange={(e) => setCommandQuery(e.target.value)}
+                placeholder="Type to search…"
+                autoFocus
+              />
+
+              <ScrollArea className="h-[280px] rounded-md border border-border">
+                <div className="p-1">
+                  {filteredCommandItems.length === 0 ? (
+                    <div className="p-3 text-sm text-muted-foreground">No results.</div>
+                  ) : (
+                    filteredCommandItems.map((item) => (
+                      <button
+                        key={item.path}
+                        type="button"
+                        onClick={() => {
+                          setCommandOpen(false)
+                          setCommandQuery('')
+                          navigate(item.path)
+                        }}
+                        className="w-full flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                      >
+                        {item.icon ? <item.icon className="h-4 w-4" /> : null}
+                        <span className="flex-1 text-left">{item.label}</span>
+                        <span className="text-[11px] text-muted-foreground">{item.section}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Content Area - Full Bleed */}
         <div className="relative z-10 w-full h-[calc(100vh-4rem)] overflow-auto scrollbar-hide">

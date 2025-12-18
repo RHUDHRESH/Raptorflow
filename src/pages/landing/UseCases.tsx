@@ -24,8 +24,8 @@ const PERSONAS = [
             'Daily checklist = no overwhelm',
             'Focus on product, not posting'
         ],
-        accent: 'from-amber-500 to-orange-500',
-        light: 'rgba(245, 158, 11, 0.15)' // Amber
+        accent: 'from-zinc-500 to-gray-500',
+        light: 'rgba(245, 158, 11, 0.15)' // zinc
     },
     {
         id: 'startup',
@@ -56,7 +56,7 @@ const PERSONAS = [
             'Consistent output, zero burnout',
             'Real ROI, perfectly measured'
         ],
-        accent: 'from-orange-500 to-orange-500',
+        accent: 'from-gray-500 to-gray-500',
         light: 'rgba(59, 130, 246, 0.15)' // Blue
     }
 ]
@@ -166,11 +166,11 @@ export const UseCases = () => {
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-600 mb-6"
+                        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-600 mb-6"
                     >
-                        <span className="w-8 h-px bg-amber-400" />
+                        <span className="w-8 h-px bg-zinc-400" />
                         Your Battle Station
-                        <span className="w-8 h-px bg-amber-400" />
+                        <span className="w-8 h-px bg-zinc-400" />
                     </motion.div>
                     <motion.h2
                         initial={{ opacity: 0, y: 20 }}
@@ -179,7 +179,7 @@ export const UseCases = () => {
                         transition={{ delay: 0.1 }}
                         className="text-4xl md:text-6xl font-serif text-black mb-6"
                     >
-                        Built for founders who <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-500 to-orange-500 italic font-bold">execute</span>.
+                        Built for founders who <span className="bg-clip-text text-transparent bg-gradient-to-r from-zinc-500 to-gray-500 italic font-bold">execute</span>.
                     </motion.h2>
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
@@ -255,3 +255,4 @@ export const UseCases = () => {
 }
 
 export default UseCases
+

@@ -18,8 +18,8 @@ export const FounderStory = () => {
     return (
         <section className="relative py-24 md:py-32 overflow-hidden">
             {/* Background pattern */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-background" />
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-zinc-100/50 via-background to-background" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:60px_60px] opacity-[0.4]" />
 
             <div className="container-editorial relative z-10">
                 <div className="max-w-4xl mx-auto">
@@ -30,8 +30,8 @@ export const FounderStory = () => {
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
                     >
-                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-                            <Quote className="w-8 h-8 text-primary" />
+                        <div className="w-16 h-16 rounded-2xl bg-zinc-100 flex items-center justify-center">
+                            <Quote className="w-8 h-8 text-zinc-700" />
                         </div>
                     </motion.div>
 
@@ -45,7 +45,7 @@ export const FounderStory = () => {
                     >
                         <h2 className="font-serif text-3xl md:text-5xl font-medium text-foreground leading-tight">
                             We built RaptorFlow because we were{' '}
-                            <span className="text-primary italic">tired</span> of...
+                            <span className="text-zinc-900 italic underline underline-offset-4">tired</span> of...
                         </h2>
                     </motion.div>
 
@@ -60,14 +60,14 @@ export const FounderStory = () => {
                         {painPoints.map((point, i) => (
                             <motion.div
                                 key={point}
-                                className="flex items-center gap-4 p-5 rounded-xl bg-red-500/5 border border-red-500/10"
+                                className="flex items-center gap-4 p-5 rounded-xl bg-destructive/5 border border-destructive/15"
                                 initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.3 + i * 0.1 }}
-                                whileHover={{ x: 4, borderColor: 'rgba(239, 68, 68, 0.2)' }}
+                                whileHover={{ x: 4, borderColor: 'hsl(var(--destructive) / 0.2)' }}
                             >
-                                <span className="text-red-400 text-xl">✕</span>
+                                <span className="text-destructive text-xl">✕</span>
                                 <span className="text-foreground font-medium">{point}</span>
                             </motion.div>
                         ))}
@@ -87,22 +87,22 @@ export const FounderStory = () => {
                         <div className="relative z-10">
                             <p className="text-xl md:text-2xl text-foreground leading-relaxed mb-8">
                                 So we built something different. A system that gives you the same operating cadence that growth teams use—
-                                <span className="text-primary font-medium">simplified for founders who don't have time for bullshit.</span>
+                                <span className="text-zinc-900 font-bold">simplified for founders who don't have time for bullshit.</span>
                             </p>
 
                             <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-6 border-t border-border">
                                 {/* Philosophy pillars */}
                                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                                     <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted">
-                                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                                        <span className="w-2 h-2 rounded-full bg-zinc-700" />
                                         Less, but better
                                     </span>
                                     <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted">
-                                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                                        <span className="w-2 h-2 rounded-full bg-zinc-700" />
                                         Ship daily
                                     </span>
                                     <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted">
-                                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                                        <span className="w-2 h-2 rounded-full bg-zinc-700" />
                                         Trust the data
                                     </span>
                                 </div>
@@ -111,7 +111,7 @@ export const FounderStory = () => {
                                 <motion.div whileHover={{ x: 4 }}>
                                     <Link
                                         to="/manifesto"
-                                        className="group flex items-center gap-2 text-primary font-medium hover:underline"
+                                        className="group flex items-center gap-2 text-zinc-900 font-medium hover:underline"
                                     >
                                         Read our manifesto
                                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -145,7 +145,7 @@ export const FounderStory = () => {
                                 animate={{ scale: [1, 1.2, 1] }}
                                 transition={{ duration: 1.5, repeat: Infinity }}
                             >
-                                <Heart className="w-4 h-4 text-red-500 fill-red-500 inline mx-1" />
+                                <Heart className="w-4 h-4 text-zinc-600 fill-zinc-600 inline mx-1" />
                             </motion.span>
                             for founders who refuse to guess
                         </motion.div>
@@ -157,3 +157,4 @@ export const FounderStory = () => {
 }
 
 export default FounderStory
+

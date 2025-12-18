@@ -75,22 +75,21 @@ const PricingCard = ({ plan, index, onSelect, highlighted = false }) => {
       transition={{ delay: index * 0.1, duration: 0.5 }}
       className={`relative group h-full flex flex-col ${highlighted ? 'lg:-mt-4 lg:mb-4' : ''}`}
     >
-      {/* Highlight Effects */}
       {highlighted && (
-        <div className="absolute -inset-px bg-gradient-to-b from-amber-500/20 to-amber-500/5 rounded-2xl blur-md opacity-75 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute -inset-px bg-gradient-to-b from-zinc-900/15 to-zinc-900/5 rounded-2xl blur-md opacity-75 group-hover:opacity-100 transition-opacity" />
       )}
 
       {/* Card Content */}
       <div className={`
         relative h-full flex flex-col p-8 rounded-2xl border transition-all duration-300
         ${highlighted
-          ? 'bg-white border-amber-500/40 shadow-xl shadow-amber-500/10'
-          : 'bg-white/50 border-black/5 hover:border-black/10 hover:bg-white/80 hover:shadow-lg'
+          ? 'bg-card border-primary/40 shadow-xl shadow-primary/10'
+          : 'bg-card/50 border-border hover:border-primary/50 hover:bg-card hover:shadow-lg'
         }
       `}>
         {/* Badge */}
         {plan.badge && (
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-500 text-white text-[10px] uppercase tracking-[0.15em] font-bold rounded-full shadow-lg">
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-zinc-900 text-white text-[10px] uppercase tracking-[0.15em] font-bold rounded-full shadow-lg">
             {plan.badge}
           </div>
         )}
@@ -98,10 +97,11 @@ const PricingCard = ({ plan, index, onSelect, highlighted = false }) => {
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h3 className={`text-2xl font-medium mb-1 text-black`}>{plan.name}</h3>
-            <p className="text-xs text-zinc-500 uppercase tracking-wider">{plan.tagline}</p>
+            <h3 className={`text-2xl font-medium mb-1 text-foreground`}>{plan.name}</h3>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">{plan.tagline}</p>
           </div>
-          <div className={`w-12 h-12 flex items-center justify-center rounded-xl bg-black/5 ${highlighted ? 'text-amber-600' : 'text-zinc-600'}`}>
+          <div className={`w-12 h-12 flex items-center justify-center rounded-xl bg-muted ${highlighted ? 'text-zinc-900' : 'text-muted-foreground'}`}>
+
             <plan.icon className="w-8 h-8" />
           </div>
         </div>
@@ -109,22 +109,22 @@ const PricingCard = ({ plan, index, onSelect, highlighted = false }) => {
         {/* Price */}
         <div className="mb-8">
           <div className="flex items-baseline gap-1">
-            <span className={`text-5xl font-light tracking-tight text-black`}>
+            <span className={`text-5xl font-light tracking-tight text-foreground`}>
               {plan.priceDisplay || `₹${plan.price.toLocaleString('en-IN')}`}
             </span>
-            <span className="text-sm text-zinc-600 font-medium ml-2">/ month</span>
+            <span className="text-sm text-muted-foreground font-medium ml-2">/ month</span>
           </div>
         </div>
 
         {/* Divider */}
-        <div className="h-px w-full bg-black/5 mb-8" />
+        <div className="h-px w-full bg-border mb-8" />
 
         {/* Features */}
         <ul className="space-y-4 mb-8 flex-grow">
           {plan.features.map((feature, i) => (
             <li key={i} className="flex items-start gap-3">
-              <Check className={`w-4 h-4 mt-0.5 flex-shrink-0 ${highlighted ? 'text-amber-600' : 'text-zinc-400'}`} />
-              <span className={`text-sm text-zinc-600`}>{feature}</span>
+              <Check className={`w-4 h-4 mt-0.5 flex-shrink-0 ${highlighted ? 'text-zinc-700' : 'text-muted-foreground'}`} />
+              <span className={`text-sm text-muted-foreground`}>{feature}</span>
             </li>
           ))}
         </ul>
@@ -135,8 +135,8 @@ const PricingCard = ({ plan, index, onSelect, highlighted = false }) => {
           className={`
             w-full py-4 text-sm font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 group/btn transition-all
             ${highlighted
-              ? 'bg-black text-white hover:bg-zinc-800'
-              : 'bg-black/5 text-zinc-600 border border-black/5 hover:bg-black/10 hover:text-black'
+              ? 'bg-zinc-900 text-white hover:bg-black'
+              : 'bg-muted text-muted-foreground border border-border hover:bg-muted/80 hover:text-foreground'
             }
           `}
         >
@@ -169,26 +169,27 @@ const Pricing = () => {
   }))
 
   return (
-    <section id="pricing" className="relative py-32 overflow-hidden bg-gradient-to-b from-[#FDFBF7] to-[#F5F2EA]">
+    <section id="pricing" className="relative py-32 overflow-hidden bg-background">
+
       {/* Light Tactical Background */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
       </div>
 
       <div className="container-editorial relative z-10 max-w-7xl mx-auto px-6">
         <div className="text-center mb-24">
-          <h2 className="text-4xl md:text-6xl font-serif text-black mb-6">
-            Direct <span className="text-amber-600">Capital</span> Injection.
+          <h2 className="text-4xl md:text-6xl font-serif text-foreground mb-6">
+            Simple <span className="text-zinc-900 font-medium">Growth</span> Pricing.
           </h2>
-          <p className="text-xl text-zinc-600 max-w-2xl mx-auto">
-            Small price for a war machine. ROI measured in days, not quarters.
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            ROI measured in days, not quarters. Pick your engine and start scaling.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
-            <PricingCard key={index} plan={plan} index={index} highlighted={plan.highlighted} onSelect={() => navigate('/signup')} />
+            <PricingCard key={index} plan={plan} index={index} highlighted={plan.highlighted} onSelect={() => navigate('/app')} />
           ))}
         </div>
 
@@ -196,9 +197,9 @@ const Pricing = () => {
         <div className="mt-20 text-center">
           <button
             onClick={() => setShowMatrix(!showMatrix)}
-            className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-white transition-colors uppercase tracking-widest font-bold"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-zinc-900 transition-colors uppercase tracking-widest font-bold"
           >
-            {showMatrix ? 'Hide Full Intel' : 'View Full Mission Intel'}
+            {showMatrix ? 'Hide Full Comparison' : 'View Full Comparison'}
             <ArrowRight className={`w-4 h-4 transition-transform ${showMatrix ? 'rotate-90' : ''}`} />
           </button>
         </div>
@@ -212,17 +213,17 @@ const Pricing = () => {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="mt-12 bg-zinc-900/40 border border-white/5 rounded-2xl p-8 backdrop-blur-md overflow-x-auto">
+              <div className="mt-12 bg-card border border-border rounded-2xl p-8 shadow-sm overflow-x-auto">
                 <table className="w-full text-left min-w-[600px]">
                   <thead>
-                    <tr className="border-b border-white/5">
-                      <th className="pb-4 text-xs uppercase text-zinc-600 font-bold">Feature Payload</th>
-                      <th className="pb-4 text-center text-xs uppercase text-zinc-500 font-medium">Ascent</th>
-                      <th className="pb-4 text-center text-xs uppercase text-amber-500 font-bold">Glide</th>
-                      <th className="pb-4 text-center text-xs uppercase text-zinc-500 font-medium">Soar</th>
+                    <tr className="border-b border-border">
+                      <th className="pb-4 text-xs uppercase text-muted-foreground font-bold">Feature</th>
+                      <th className="pb-4 text-center text-xs uppercase text-muted-foreground font-medium">Ascent</th>
+                      <th className="pb-4 text-center text-xs uppercase text-zinc-900 font-bold">Glide</th>
+                      <th className="pb-4 text-center text-xs uppercase text-muted-foreground font-medium">Soar</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-border">
                     {[
                       ['Matrix Access', true, true, true],
                       ['Active Campaigns', '3', '6', '9'],
@@ -233,21 +234,21 @@ const Pricing = () => {
                       ['Team Seats', '1', '2', '5'],
                       ['Support Level', 'Email', 'Priority', 'Dedicated']
                     ].map((row, i) => (
-                      <tr key={i} className="group hover:bg-white/[0.02] transition-colors">
-                        <td className="py-4 text-zinc-300 text-sm font-medium">{row[0]}</td>
-                        <td className="py-4 text-center text-zinc-500 text-sm">
+                      <tr key={i} className="group hover:bg-muted/50 transition-colors">
+                        <td className="py-4 text-foreground text-sm font-medium">{row[0]}</td>
+                        <td className="py-4 text-center text-muted-foreground text-sm">
                           {typeof row[1] === 'boolean'
-                            ? (row[1] ? <Check className="w-4 h-4 text-emerald-500 mx-auto" /> : <X className="w-4 h-4 text-zinc-800 mx-auto" />)
+                            ? (row[1] ? <Check className="w-4 h-4 text-emerald-500 mx-auto" /> : <X className="w-4 h-4 text-muted-foreground mx-auto" opacity={0.3} />)
                             : row[1]}
                         </td>
-                        <td className="py-4 text-center text-zinc-300 text-sm font-bold">
+                        <td className="py-4 text-center text-foreground text-sm font-bold">
                           {typeof row[2] === 'boolean'
-                            ? (row[2] ? <Check className="w-4 h-4 text-amber-500 mx-auto" /> : <X className="w-4 h-4 text-zinc-800 mx-auto" />)
+                            ? (row[2] ? <Check className="w-4 h-4 text-zinc-900 mx-auto" /> : <X className="w-4 h-4 text-muted-foreground mx-auto" opacity={0.3} />)
                             : row[2]}
                         </td>
-                        <td className="py-4 text-center text-zinc-500 text-sm">
+                        <td className="py-4 text-center text-muted-foreground text-sm">
                           {typeof row[3] === 'boolean'
-                            ? (row[3] ? <Check className="w-4 h-4 text-emerald-500 mx-auto" /> : <X className="w-4 h-4 text-zinc-800 mx-auto" />)
+                            ? (row[3] ? <Check className="w-4 h-4 text-zinc-600 mx-auto" /> : <X className="w-4 h-4 text-muted-foreground mx-auto" opacity={0.3} />)
                             : row[3]}
                         </td>
                       </tr>
@@ -265,3 +266,4 @@ const Pricing = () => {
 }
 
 export default Pricing
+

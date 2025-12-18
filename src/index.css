@@ -1,99 +1,98 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import './styles/tokens.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ============================================
-   SYSTEM: NANOBANA / BIO-DIGITAL
+   RAPTORFLOW DESIGN SYSTEM
+   "Vogue editorial meets Stripe clarity"
    ============================================ */
 
 @layer base {
   :root {
-    /* DEFAULT (LIGHT) - Clean, Tech, High-End */
-    /* Base: Starlight Whites & Cool Greys */
-    --background: 210 20% 98%;
-    /* Very slight cool tint #F5F7FA */
-    --foreground: 222 47% 11%;
-    /* Deep Navy Black #0F172A */
+    /* LIGHT MODE - Using HSL compatibility layer from tokens.css */
+    --background: var(--background-hsl);
+    --foreground: var(--foreground-hsl);
 
-    /* Card Panels - Glass-like */
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: var(--card-hsl);
+    --card-foreground: var(--card-foreground-hsl);
 
-    /* Popovers */
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: var(--popover-hsl);
+    --popover-foreground: var(--popover-foreground-hsl);
 
-    /* Primary - Vibrant Orange (Nanobana Prime) */
-    --primary: 32 100% 50%;
-    /* #FF8800 - Cyber Orange */
-    --primary-foreground: 222 47% 11%;
+    --primary: var(--primary-hsl);
+    --primary-foreground: var(--primary-foreground-hsl);
 
-    /* Secondary - Cool Grey */
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: var(--secondary-hsl);
+    --secondary-foreground: var(--secondary-foreground-hsl);
 
-    /* Muted - Subdued text */
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215 16% 47%;
+    --muted: var(--muted-hsl);
+    --muted-foreground: var(--muted-foreground-hsl);
 
-    /* Accents - Plasma/Bio */
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47% 11%;
+    --accent: var(--accent-hsl);
+    --accent-foreground: var(--accent-foreground-hsl);
 
-    /* Destructive - Alert */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: var(--destructive-hsl);
+    --destructive-foreground: var(--destructive-foreground-hsl);
 
-    /* Borders & Inputs */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 32 100% 50%;
-    /* Orange Ring */
+    --border: var(--border-hsl);
+    --input: var(--input-hsl);
+    --ring: var(--ring-hsl);
+
+    /* Sidebar */
+    --sidebar-background: var(--sidebar-background-hsl);
+    --sidebar-foreground: var(--sidebar-foreground-hsl);
+    --sidebar-border: var(--sidebar-border-hsl);
+    --sidebar-accent: var(--sidebar-accent-hsl);
+    --sidebar-accent-foreground: var(--sidebar-accent-foreground-hsl);
+    --sidebar-primary: var(--sidebar-primary-hsl);
+    --sidebar-primary-foreground: var(--sidebar-primary-foreground-hsl);
+    --sidebar-ring: var(--sidebar-ring-hsl);
 
     --radius: 0.5rem;
   }
 
   .dark {
-    /* DARK MODE (DEFAULT FOR HIGH-END SAAS) */
-    /* Base: The Void */
-    --background: 240 10% 3.9%;
-    /* #09090B - Deep Obsidian */
-    --foreground: 0 0% 98%;
-    /* Crisp White */
+    /* DARK MODE - Using HSL compatibility layer from tokens.css */
+    --background: var(--background-hsl);
+    --foreground: var(--foreground-hsl);
 
-    /* Cards - Glass/Void layers */
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: var(--card-hsl);
+    --card-foreground: var(--card-foreground-hsl);
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: var(--popover-hsl);
+    --popover-foreground: var(--popover-foreground-hsl);
 
-    /* Primary - Neon Orange */
-    --primary: 32 100% 50%;
-    --primary-foreground: 240 5.9% 10%;
+    --primary: var(--primary-hsl);
+    --primary-foreground: var(--primary-foreground-hsl);
 
-    /* Secondary - Deep slate */
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: var(--secondary-hsl);
+    --secondary-foreground: var(--secondary-foreground-hsl);
 
-    /* Muted */
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: var(--muted-hsl);
+    --muted-foreground: var(--muted-foreground-hsl);
 
-    /* Accent - Glowing interaction */
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: var(--accent-hsl);
+    --accent-foreground: var(--accent-foreground-hsl);
 
-    /* Destructive */
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: var(--destructive-hsl);
+    --destructive-foreground: var(--destructive-foreground-hsl);
 
-    /* Borders - Subtle Glass Lines */
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 32 100% 50%;
+    --border: var(--border-hsl);
+    --input: var(--input-hsl);
+    --ring: var(--ring-hsl);
+
+    /* Sidebar */
+    --sidebar-background: var(--sidebar-background-hsl);
+    --sidebar-foreground: var(--sidebar-foreground-hsl);
+    --sidebar-border: var(--sidebar-border-hsl);
+    --sidebar-accent: var(--sidebar-accent-hsl);
+    --sidebar-accent-foreground: var(--sidebar-accent-foreground-hsl);
+    --sidebar-primary: var(--sidebar-primary-hsl);
+    --sidebar-primary-foreground: var(--sidebar-primary-foreground-hsl);
+    --sidebar-ring: var(--sidebar-ring-hsl);
   }
 }
 
@@ -132,13 +131,13 @@
    ============================================ */
 @layer components {
 
-  /* The Glass Panel */
+  /* The Glass Panel - Theme Aware */
   .glass-panel {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-glass;
+    @apply bg-card/80 backdrop-blur-xl border border-border shadow-sm;
   }
 
   .dark .glass-panel {
-    @apply bg-black/20 backdrop-blur-2xl border border-white/10;
+    @apply bg-card/90 backdrop-blur-2xl border border-border;
   }
 
   /* The "Liquid" Button */
@@ -403,9 +402,9 @@
 
 .dark .sidebar-premium {
   background: linear-gradient(180deg,
-      hsl(213 28% 12%) 0%,
-      hsl(213 28% 10%) 100%);
-  border-right: 1px solid hsl(213 28% 20% / 0.5);
+      hsl(var(--sidebar-background)) 0%,
+      hsl(var(--sidebar-background) / 0.95) 100%);
+  border-right: 1px solid hsl(var(--sidebar-border) / 0.5);
 }
 
 /* Premium nav item states */
@@ -460,16 +459,16 @@
 
 .dark .card-saas {
   background: linear-gradient(135deg,
-      hsl(213 28% 16%) 0%,
-      hsl(213 28% 14%) 100%);
-  border-color: hsl(213 28% 24%);
+      hsl(var(--card)) 0%,
+      hsl(var(--card) / 0.9) 100%);
+  border-color: hsl(var(--border));
   box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .dark .card-saas:hover {
-  border-color: hsl(213 28% 30%);
+  border-color: hsl(var(--border) / 1.2);
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -486,8 +485,8 @@
 }
 
 .dark .header-saas {
-  background: hsl(212 31% 12% / 0.85);
-  border-bottom: 1px solid hsl(213 28% 24% / 0.5);
+  background: hsl(var(--background) / 0.85);
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
 }
 
 /* ============================================
@@ -564,8 +563,8 @@
 }
 
 .dark .input-saas {
-  background: hsl(213 28% 14%);
-  border-color: hsl(213 28% 24%);
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
 }
 
 .dark .input-saas:focus {
@@ -602,9 +601,9 @@
 
 .dark .stat-saas {
   background: linear-gradient(135deg,
-      hsl(213 28% 16%) 0%,
-      hsl(213 28% 13%) 100%);
-  border-color: hsl(213 28% 24%);
+      hsl(var(--card)) 0%,
+      hsl(var(--card) / 0.85) 100%);
+  border-color: hsl(var(--border));
 }
 
 .dark .stat-saas::before {
@@ -693,8 +692,8 @@
 
 .dark .main-inset-saas {
   background: linear-gradient(180deg,
-      hsl(212 31% 14%) 0%,
-      hsl(212 31% 12%) 100%);
+      hsl(var(--card)) 0%,
+      hsl(var(--background)) 100%);
   box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.02);
@@ -724,7 +723,7 @@
 }
 
 .dark .empty-state-saas-icon {
-  background: hsl(213 28% 18%);
+  background: hsl(var(--muted));
 }
 
 .empty-state-saas-icon svg {
@@ -746,4 +745,193 @@
   color: hsl(var(--muted-foreground));
   max-width: 300px;
   line-height: 1.5;
+}
+
+/* ============================================
+   EDITORIAL DESIGN SYSTEM — Dieter Rams
+   "Braun industrial meets editorial premium"
+   ============================================ */
+
+/* Editorial Card — Using token system */
+.card-editorial {
+  background: var(--surface-3);
+  border: 1px solid var(--border-1);
+  border-radius: 0.75rem;
+  transition: all 160ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-editorial-interactive,
+.card-editorial:hover {
+  border-color: var(--border-2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dark .card-editorial {
+  background: var(--surface-2);
+  border-color: var(--border-1);
+}
+
+.dark .card-editorial:hover {
+  border-color: var(--border-2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Editorial Pills/Badges */
+.pill-editorial {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  transition: all 160ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pill-neutral {
+  background: var(--surface-1);
+  color: var(--text-2);
+  border: 1px solid var(--border-1);
+}
+
+.pill-success {
+  background: var(--success-50);
+  color: var(--success-700);
+}
+
+.dark .pill-success {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success-400);
+}
+
+.pill-error {
+  background: var(--rust-50);
+  color: var(--rust-700);
+}
+
+.dark .pill-error {
+  background: rgba(163, 81, 57, 0.15);
+  color: var(--rust-400);
+}
+
+/* Editorial Transitions */
+.transition-editorial {
+  transition: all 160ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Editorial Typography */
+.font-serif {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.text-headline-lg {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+}
+
+.text-headline-xs {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text-1);
+}
+
+.text-body-sm {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.text-body-xs {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-3);
+}
+
+.text-body-md {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+/* Editorial Colors */
+.text-ink {
+  color: var(--text-1);
+}
+
+.text-ink-400 {
+  color: var(--text-3);
+}
+
+.text-ink-300 {
+  color: var(--ink-300);
+}
+
+.text-ink-200 {
+  color: var(--ink-200);
+}
+
+.bg-paper {
+  background: var(--background);
+}
+
+.bg-paper-200 {
+  background: var(--surface-1);
+}
+
+.bg-paper-300 {
+  background: var(--surface-2);
+}
+
+/* Editorial Rounded */
+.rounded-editorial {
+  border-radius: 0.5rem;
+}
+
+.rounded-card {
+  border-radius: 0.75rem;
+}
+
+/* Editorial Signal Colors */
+.bg-signal-muted {
+  background: rgba(255, 177, 98, 0.08);
+}
+
+.dark .bg-signal-muted {
+  background: rgba(255, 177, 98, 0.12);
+}
+
+/* Editorial Border */
+.border-border-light {
+  border-color: var(--border-1);
+}
+
+.border-border-dark {
+  border-color: var(--border-2);
+}
+
+/* Editorial Skeleton */
+.skeleton {
+  background: linear-gradient(90deg,
+      var(--surface-1) 25%,
+      var(--surface-2) 50%,
+      var(--surface-1) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.25rem;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }

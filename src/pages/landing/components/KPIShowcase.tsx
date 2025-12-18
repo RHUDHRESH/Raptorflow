@@ -2,22 +2,21 @@ import { motion } from 'framer-motion'
 import { HERO_STATS } from '@/data/landing-content'
 import { Target, Zap, Trophy } from 'lucide-react'
 
-// Clean icons for each stat
+// Clean icons for each stat - monochrome
 const STAT_ICONS = [Target, Zap, Trophy]
 
 export const KPIShowcase = () => (
     <motion.div
-        className="relative rounded-3xl border border-amber-200/50 p-10 md:p-14 overflow-hidden"
-        style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)' }}
+        className="relative rounded-3xl border border-zinc-200 p-10 md:p-14 overflow-hidden bg-white/70 backdrop-blur-sm"
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
     >
-        {/* Subtle background glow */}
+        {/* Subtle monochrome background glow */}
         <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full"
             style={{
-                background: 'radial-gradient(ellipse at center, rgba(245, 158, 11, 0.08) 0%, transparent 70%)'
+                background: 'radial-gradient(ellipse at center, rgba(0, 0, 0, 0.02) 0%, transparent 70%)'
             }}
         />
 
@@ -32,18 +31,18 @@ export const KPIShowcase = () => (
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 + i * 0.1 }}
                     >
-                        {/* Icon */}
+                        {/* Icon - Monochrome */}
                         <motion.div
-                            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200/50 mb-5"
+                            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-zinc-100 border border-zinc-200 mb-5"
                             whileHover={{ scale: 1.1, rotate: 5 }}
                             transition={{ type: "spring", stiffness: 300 }}
                         >
-                            <Icon className="w-7 h-7 text-amber-600" />
+                            <Icon className="w-7 h-7 text-zinc-700" />
                         </motion.div>
 
-                        {/* Value */}
+                        {/* Value - Bold black */}
                         <motion.div
-                            className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-600 to-orange-500"
+                            className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-zinc-900"
                             whileHover={{ scale: 1.05 }}
                         >
                             {stat.value}
@@ -58,10 +57,11 @@ export const KPIShowcase = () => (
             })}
         </div>
 
-        {/* Decorative corners */}
-        <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-amber-300/40 rounded-tl-xl" />
-        <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-amber-300/40 rounded-tr-xl" />
-        <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-amber-300/40 rounded-bl-xl" />
-        <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-amber-300/40 rounded-br-xl" />
+        {/* Decorative corners - Monochrome */}
+        <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-zinc-300 rounded-tl-xl" />
+        <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-zinc-300 rounded-tr-xl" />
+        <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-zinc-300 rounded-bl-xl" />
+        <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-zinc-300 rounded-br-xl" />
     </motion.div>
 )
+

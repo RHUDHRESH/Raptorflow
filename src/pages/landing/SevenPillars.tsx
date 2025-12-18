@@ -75,25 +75,25 @@ const PillarCard = ({ pillar, index }) => {
       transition={{ duration: 0.6, delay: index * 0.08 }}
       className={`group relative ${getGridClass(pillar.size, index)}`}
     >
-      <div className="h-full p-6 md:p-8 rounded-2xl bg-zinc-900/40 border border-white/[0.05] hover:border-amber-500/20 transition-all duration-500 overflow-hidden">
+      <div className="h-full p-6 md:p-8 rounded-2xl bg-zinc-900/40 border border-white/[0.05] hover:border-zinc-500/20 transition-all duration-500 overflow-hidden">
 
         {/* Subtle background glow on hover */}
-        <div className="absolute inset-0 bg-gradient-radial from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-2xl" />
+        <div className="absolute inset-0 bg-gradient-radial from-zinc-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-2xl" />
 
         {/* Number - editorial style */}
-        <span className="relative z-10 text-5xl md:text-6xl font-extralight text-white/[0.08] group-hover:text-amber-500/15 transition-colors duration-500">
+        <span className="relative z-10 text-5xl md:text-6xl font-extralight text-white/[0.08] group-hover:text-zinc-500/15 transition-colors duration-500">
           {pillar.id}
         </span>
 
         {/* Icon */}
         <div className="relative z-10 mt-4 mb-4">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/15 flex items-center justify-center group-hover:scale-105 group-hover:border-amber-500/25 transition-all duration-500">
-            <Icon className="w-6 h-6 text-amber-400/80" weight="regular" />
+          <div className="w-12 h-12 rounded-xl bg-zinc-500/10 border border-zinc-500/15 flex items-center justify-center group-hover:scale-105 group-hover:border-zinc-500/25 transition-all duration-500">
+            <Icon className="w-6 h-6 text-zinc-400/80" weight="regular" />
           </div>
         </div>
 
         {/* Content */}
-        <h3 className="relative z-10 text-xl md:text-2xl font-light text-white group-hover:text-amber-100 transition-colors duration-300 mb-2">
+        <h3 className="relative z-10 text-xl md:text-2xl font-light text-white group-hover:text-zinc-100 transition-colors duration-300 mb-2">
           {pillar.title}
         </h3>
 
@@ -127,16 +127,16 @@ const SevenPillars = () => {
           className="text-center mb-20 md:mb-24"
         >
           <div className="inline-flex items-center gap-3 mb-8">
-            <span className="w-12 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
-            <span className="text-[11px] uppercase tracking-[0.4em] text-amber-400/60 font-medium">
+            <span className="w-12 h-px bg-gradient-to-r from-transparent to-zinc-500/50" />
+            <span className="text-[11px] uppercase tracking-[0.4em] text-zinc-400/60 font-medium">
               The Framework
             </span>
-            <span className="w-12 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
+            <span className="w-12 h-px bg-gradient-to-l from-transparent to-zinc-500/50" />
           </div>
 
           <h2 className="text-5xl md:text-6xl lg:text-7xl font-light text-white tracking-tight mb-6">
             Seven pillars of{' '}
-            <span className="bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 bg-clip-text text-transparent">
               strategic clarity
             </span>
           </h2>
@@ -159,4 +159,5 @@ const SevenPillars = () => {
 }
 
 export default SevenPillars
+
 

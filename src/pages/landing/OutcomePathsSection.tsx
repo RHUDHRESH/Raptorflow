@@ -73,13 +73,12 @@ const PreviewCard = ({ outcome }: { outcome: Outcome }) => (
         transition={{ duration: 0.2 }}
         className="bg-white rounded-2xl border border-zinc-200 p-6 shadow-lg"
     >
-        {/* KPI Header */}
         <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
-                <outcome.icon className="w-5 h-5 text-amber-600" />
+            <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center">
+                <outcome.icon className="w-5 h-5 text-zinc-700" />
             </div>
             <div>
-                <div className="text-xs font-bold text-amber-600 uppercase">{outcome.kpi}</div>
+                <div className="text-xs font-bold text-zinc-600 uppercase">{outcome.kpi}</div>
                 <div className="text-lg font-bold text-zinc-900">{outcome.target} in {outcome.days}</div>
             </div>
         </div>
@@ -106,7 +105,7 @@ const PreviewCard = ({ outcome }: { outcome: Outcome }) => (
             <ul className="space-y-1.5">
                 {outcome.deliverables.map((d, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-zinc-600">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
                         {d}
                     </li>
                 ))}
@@ -120,7 +119,7 @@ export const OutcomePathsSection = () => {
     const currentOutcome = OUTCOMES.find(o => o.id === selectedOutcome)!
 
     return (
-        <section className="py-24" style={{ backgroundColor: '#FDFBF7' }}>
+        <section className="py-24" style={{ backgroundColor: '#FAFAFA' }}>
             <div className="max-w-5xl mx-auto px-6">
                 {/* Header */}
                 <div className="text-center mb-12">
@@ -145,16 +144,16 @@ export const OutcomePathsSection = () => {
                                     key={outcome.id}
                                     onClick={() => setSelectedOutcome(outcome.id)}
                                     className={`w-full text-left p-5 rounded-xl border-2 transition-all ${isSelected
-                                            ? 'bg-white border-amber-400 shadow-lg shadow-amber-100'
-                                            : 'bg-white/50 border-zinc-200 hover:border-zinc-300'
+                                        ? 'bg-white border-zinc-900 shadow-lg shadow-zinc-200'
+                                        : 'bg-white/50 border-zinc-200 hover:border-zinc-300'
                                         }`}
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >
                                     <div className="flex items-start gap-4">
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-amber-100' : 'bg-zinc-100'
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-zinc-900' : 'bg-zinc-100'
                                             }`}>
-                                            <Icon className={`w-6 h-6 ${isSelected ? 'text-amber-600' : 'text-zinc-400'}`} />
+                                            <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-zinc-400'}`} />
                                         </div>
                                         <div>
                                             <div className={`text-lg font-bold ${isSelected ? 'text-zinc-900' : 'text-zinc-600'}`}>
@@ -168,7 +167,7 @@ export const OutcomePathsSection = () => {
                                             <motion.div
                                                 initial={{ scale: 0 }}
                                                 animate={{ scale: 1 }}
-                                                className="ml-auto w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center"
+                                                className="ml-auto w-6 h-6 rounded-full bg-zinc-900 flex items-center justify-center"
                                             >
                                                 <span className="text-white text-xs">✓</span>
                                             </motion.div>
@@ -180,7 +179,7 @@ export const OutcomePathsSection = () => {
 
                         {/* Not sure link */}
                         <div className="text-center pt-4">
-                            <button className="text-sm text-zinc-500 hover:text-amber-600 underline underline-offset-4">
+                            <button className="text-sm text-zinc-500 hover:text-zinc-900 underline underline-offset-4">
                                 Not sure? Take the 30-second briefing
                             </button>
                         </div>
@@ -203,7 +202,7 @@ export const OutcomePathsSection = () => {
                 >
                     <Link
                         to="/signup"
-                        className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl font-bold text-lg shadow-xl shadow-amber-200 hover:shadow-2xl hover:shadow-amber-300 transition-all hover:scale-[1.02]"
+                        className="inline-flex items-center gap-3 px-10 py-5 bg-zinc-900 text-white rounded-2xl font-bold text-lg shadow-xl hover:bg-black hover:shadow-2xl transition-all hover:scale-[1.02]"
                     >
                         Generate my {currentOutcome.title} Plan
                         <ArrowRight className="w-5 h-5" />
@@ -218,3 +217,4 @@ export const OutcomePathsSection = () => {
 }
 
 export default OutcomePathsSection
+

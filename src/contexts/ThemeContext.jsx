@@ -30,65 +30,24 @@ export const ThemeProvider = ({ children }) => {
         return 'light'
     })
 
-    const [forceLight, setForceLight] = useState(false)
+    // Removed forceLight logic to allow dark mode everywhere
 
-    useEffect(() => {
-        if (typeof window === 'undefined') return
-
-        const update = () => {
-            const path = window.location?.pathname || '/'
-            const isApp = path.startsWith('/app') || path.startsWith('/onboarding')
-            const isMarketing =
-                path === '/' ||
-                path === '/premium' ||
-                path === '/pricing' ||
-                path === '/start' ||
-                path === '/login' ||
-                path === '/signup' ||
-                path.startsWith('/product/') ||
-                path === '/about' ||
-                path === '/blog' ||
-                path === '/careers' ||
-                path === '/contact' ||
-                path === '/privacy' ||
-                path === '/terms' ||
-                path === '/refunds' ||
-                path === '/manifesto' ||
-                path === '/faq' ||
-                path === '/changelog' ||
-                path === '/status' ||
-                path === '/cookies'
-
-            const isLanding = !isApp && isMarketing
-
-            setForceLight(isLanding)
-        }
-
-        update()
-        window.addEventListener('popstate', update)
-        return () => window.removeEventListener('popstate', update)
-    }, [])
 
     useEffect(() => {
         // Apply theme to document
         const root = document.documentElement
-        if (forceLight) {
-            if (theme !== 'light') {
-                setThemeState('light')
-            }
-            root.classList.remove('dark')
-            localStorage.setItem('raptorflow-theme', 'light')
-            return
-        }
 
         if (theme === 'dark') {
             root.classList.add('dark')
         } else {
             root.classList.remove('dark')
         }
+
+        root.dataset.theme = theme
+
         // Persist to localStorage
         localStorage.setItem('raptorflow-theme', theme)
-    }, [theme, forceLight])
+    }, [theme])
 
     const toggleTheme = () => {
         setThemeState(prev => prev === 'light' ? 'dark' : 'light')

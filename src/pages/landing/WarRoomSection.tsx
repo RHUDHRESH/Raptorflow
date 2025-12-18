@@ -20,11 +20,11 @@ const STEPS = [
     },
     {
         id: 2,
-        title: 'Build the War Plan',
+        title: 'Build the Execution Plan',
         promise: "A 30–90 day plan that knows what 'success' means.",
         outputs: ['Objective + KPI contract', 'Channel mix + cadence', 'Measurement rules'],
-        proof: "If KPI isn't defined, campaign stays Draft.",
-        cta: 'See a War Plan',
+        proof: "If KPI isn't defined, campaigns stay Draft.",
+        cta: 'See a Growth Plan',
         icon: Calendar
     },
     {
@@ -51,7 +51,7 @@ const STEPS = [
 const StrategyVignette = () => (
     <div className="space-y-4">
         <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-amber-600 uppercase mb-2">ICP Definition</div>
+            <div className="text-xs font-bold text-zinc-600 uppercase mb-2">ICP Definition</div>
             <div className="text-lg font-semibold text-zinc-900 mb-3">SaaS Founders, $1-5M ARR</div>
             <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-zinc-600">
@@ -69,7 +69,7 @@ const StrategyVignette = () => (
             </div>
         </div>
         <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-amber-600 uppercase mb-2">Messaging Spine</div>
+            <div className="text-xs font-bold text-zinc-600 uppercase mb-2">Messaging Spine</div>
             <div className="text-sm text-zinc-600 space-y-1">
                 <div><span className="font-medium text-zinc-800">Say:</span> "Stop guessing, start executing"</div>
                 <div><span className="font-medium text-zinc-800">Avoid:</span> "AI-powered" (overused)</div>
@@ -81,17 +81,17 @@ const StrategyVignette = () => (
 const WarPlanVignette = () => (
     <div className="space-y-4">
         <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-amber-600 uppercase mb-2">Campaign: Q1 Lead Gen</div>
+            <div className="text-xs font-bold text-zinc-600 uppercase mb-2">Campaign: Q1 Lead Gen</div>
             <div className="flex items-center justify-between mb-4">
                 <div className="text-3xl font-bold text-zinc-900">0 → 50</div>
                 <div className="text-sm text-zinc-500">qualified leads in 30 days</div>
             </div>
             <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
-                <div className="h-full w-1/3 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full" />
+                <div className="h-full w-1/3 bg-zinc-800 rounded-full" />
             </div>
         </div>
         <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-amber-600 uppercase mb-3">Channel Mix</div>
+            <div className="text-xs font-bold text-zinc-600 uppercase mb-3">Channel Mix</div>
             <div className="grid grid-cols-3 gap-3">
                 {['LinkedIn', 'Email', 'Twitter'].map(ch => (
                     <div key={ch} className="text-center p-3 bg-zinc-50 rounded-lg">
@@ -107,7 +107,7 @@ const WarPlanVignette = () => (
 const AmmoVignette = () => (
     <div className="space-y-4">
         <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-amber-600 uppercase mb-3">Today's Queue</div>
+            <div className="text-xs font-bold text-zinc-600 uppercase mb-3">Today's Queue</div>
             <div className="space-y-2">
                 {[
                     { done: true, text: 'LinkedIn carousel: ICP pain points' },
@@ -123,8 +123,8 @@ const AmmoVignette = () => (
                 ))}
             </div>
         </div>
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200">
-            <div className="text-sm font-medium text-amber-800">✨ 3 assets ready to fire</div>
+        <div className="bg-zinc-100 rounded-xl p-4 border border-zinc-200">
+            <div className="text-sm font-medium text-zinc-700">✨ 3 assets ready to fire</div>
         </div>
     </div>
 )
@@ -132,7 +132,7 @@ const AmmoVignette = () => (
 const LabVignette = () => (
     <div className="space-y-4">
         <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-            <div className="text-xs font-bold text-amber-600 uppercase mb-3">Active Duel: CTA Button</div>
+            <div className="text-xs font-bold text-zinc-600 uppercase mb-3">Active Duel: CTA Button</div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-zinc-50 rounded-lg text-center">
                     <div className="text-sm font-medium text-zinc-600 mb-2">Variant A</div>
@@ -141,7 +141,7 @@ const LabVignette = () => (
                 </div>
                 <div className="p-4 bg-emerald-50 rounded-lg text-center border-2 border-emerald-300">
                     <div className="text-sm font-medium text-emerald-700 mb-2">Variant B 🏆</div>
-                    <div className="text-xs text-zinc-500 mb-2">"Start My War Plan"</div>
+                    <div className="text-xs text-zinc-500 mb-2">"Start Growing Now"</div>
                     <div className="text-2xl font-bold text-emerald-600">18%</div>
                 </div>
             </div>
@@ -149,7 +149,7 @@ const LabVignette = () => (
         <div className="bg-white rounded-xl p-4 border border-zinc-200 shadow-sm">
             <div className="text-xs font-bold text-zinc-500 uppercase mb-2">Decision Log</div>
             <div className="text-sm text-zinc-600">
-                "War" language resonates with ICP. Promoted to default.
+                Direct focus resonates with ICP. Promoted to default.
             </div>
         </div>
     </div>
@@ -180,22 +180,22 @@ export const WarRoomSection = () => {
     return (
         <section
             ref={containerRef}
-            id="war-room"
+            id="execution-system"
             className="relative"
-            style={{ height: '300vh' }} // Scroll height
+            style={{ height: '170vh' }} // Scroll height
         >
             <div
                 className="sticky top-0 min-h-screen py-16 overflow-hidden"
-                style={{ backgroundColor: '#FDFBF7' }}
+                style={{ backgroundColor: '#FAFAFA' }}
             >
                 <div className="max-w-7xl mx-auto px-6 h-full">
                     {/* Header */}
                     <div className="text-center mb-12">
-                        <span className="text-sm font-semibold text-amber-600 uppercase tracking-wider">
+                        <span className="text-sm font-semibold text-zinc-600 uppercase tracking-wider">
                             The System
                         </span>
                         <h2 className="font-serif text-4xl md:text-5xl text-zinc-900 mt-3 mb-4">
-                            How we win the war
+                            How we win the market
                         </h2>
                     </div>
 
@@ -206,7 +206,7 @@ export const WarRoomSection = () => {
                             {/* Progress line */}
                             <div className="absolute left-[14px] top-0 bottom-0 w-0.5 bg-zinc-200">
                                 <motion.div
-                                    className="w-full bg-gradient-to-b from-amber-400 to-orange-500 origin-top"
+                                    className="w-full bg-zinc-800 origin-top"
                                     style={{
                                         height: `${((activeStep + 1) / 4) * 100}%`,
                                         transition: 'height 0.3s ease-out'
@@ -230,13 +230,13 @@ export const WarRoomSection = () => {
                                         >
                                             {/* Step indicator */}
                                             <div className={`absolute left-0 w-7 h-7 rounded-full flex items-center justify-center transition-all ${isActive
-                                                    ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-200'
-                                                    : isPast
-                                                        ? 'bg-amber-100 border-2 border-amber-300'
-                                                        : 'bg-zinc-100 border-2 border-zinc-200'
+                                                ? 'bg-zinc-900 shadow-lg shadow-zinc-300'
+                                                : isPast
+                                                    ? 'bg-zinc-100 border-2 border-zinc-300'
+                                                    : 'bg-zinc-100 border-2 border-zinc-200'
                                                 }`}>
                                                 {isPast ? (
-                                                    <Check className="w-4 h-4 text-amber-600" />
+                                                    <Check className="w-4 h-4 text-zinc-700" />
                                                 ) : (
                                                     <span className={`text-xs font-bold ${isActive ? 'text-white' : 'text-zinc-400'}`}>
                                                         {step.id}
@@ -260,17 +260,17 @@ export const WarRoomSection = () => {
                                                         <ul className="space-y-1.5 mb-3">
                                                             {step.outputs.map((output, j) => (
                                                                 <li key={j} className="flex items-center gap-2 text-sm text-zinc-700">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
                                                                     {output}
                                                                 </li>
                                                             ))}
                                                         </ul>
-                                                        <p className="text-xs font-medium text-amber-600 italic mb-3">
+                                                        <p className="text-xs font-medium text-zinc-600 italic mb-3">
                                                             {step.proof}
                                                         </p>
                                                         <Link
                                                             to="/signup"
-                                                            className="inline-flex items-center gap-1 text-sm font-semibold text-amber-600 hover:text-amber-700"
+                                                            className="inline-flex items-center gap-1 text-sm font-semibold text-zinc-900 hover:underline"
                                                         >
                                                             {step.cta} <ArrowRight className="w-4 h-4" />
                                                         </Link>
@@ -306,7 +306,7 @@ export const WarRoomSection = () => {
                                 { value: '+12%', label: 'avg conversion lift' }
                             ].map((stat) => (
                                 <div key={stat.label}>
-                                    <div className="text-2xl md:text-3xl font-bold text-amber-600">{stat.value}</div>
+                                    <div className="text-2xl md:text-3xl font-bold text-zinc-900">{stat.value}</div>
                                     <div className="text-sm text-zinc-500">{stat.label}</div>
                                 </div>
                             ))}
@@ -319,3 +319,4 @@ export const WarRoomSection = () => {
 }
 
 export default WarRoomSection
+

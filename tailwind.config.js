@@ -8,33 +8,75 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				/* SYSTEM: NANOBANA / BIO-DIGITAL */
-				/* Base: Deep Void & Crisp Starlight */
+				/* ============================================
+				   RAPTORFLOW DESIGN SYSTEM — Dieter Rams
+				   "Braun industrial meets editorial premium SaaS"
+				   ============================================ */
+
+				/* Sand Scale (Paper/Warm Neutral) */
+				sand: {
+					50: 'var(--sand-50)',
+					100: 'var(--sand-100)',
+					200: 'var(--sand-200)',
+					300: 'var(--sand-300)',
+					400: 'var(--sand-400)',
+					500: 'var(--sand-500)',
+					600: 'var(--sand-600)',
+					700: 'var(--sand-700)',
+					800: 'var(--sand-800)',
+					900: 'var(--sand-900)',
+					950: 'var(--sand-950)',
+				},
+
+				/* Ink Scale (Navy/Dark System) */
+				ink: {
+					50: 'var(--ink-50)',
+					100: 'var(--ink-100)',
+					200: 'var(--ink-200)',
+					300: 'var(--ink-300)',
+					400: 'var(--ink-400)',
+					500: 'var(--ink-500)',
+					600: 'var(--ink-600)',
+					700: 'var(--ink-700)',
+					800: 'var(--ink-800)',
+					900: 'var(--ink-900)',
+					950: 'var(--ink-950)',
+				},
+
+				/* Amber Scale (Primary Accent) */
+				amber: {
+					50: 'var(--amber-50)',
+					100: 'var(--amber-100)',
+					200: 'var(--amber-200)',
+					300: 'var(--amber-300)',
+					400: 'var(--amber-400)',
+					500: 'var(--amber-500)',
+					600: 'var(--amber-600)',
+					700: 'var(--amber-700)',
+					800: 'var(--amber-800)',
+					900: 'var(--amber-900)',
+					950: 'var(--amber-950)',
+				},
+
+				/* Rust Scale (Secondary/Destructive) */
+				rust: {
+					50: 'var(--rust-50)',
+					100: 'var(--rust-100)',
+					200: 'var(--rust-200)',
+					300: 'var(--rust-300)',
+					400: 'var(--rust-400)',
+					500: 'var(--rust-500)',
+					600: 'var(--rust-600)',
+					700: 'var(--rust-700)',
+					800: 'var(--rust-800)',
+					900: 'var(--rust-900)',
+					950: 'var(--rust-950)',
+				},
+
+				/* Semantic Colors */
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 
-				/* The Void Scale (Deep Blue-Blacks) */
-				obsidian: {
-					DEFAULT: '#05050A', /* Deepest Void */
-					'50': '#1A1A1E',
-					'100': '#141418',
-					'200': '#101014',
-					'300': '#0A0A0E',
-					'400': '#05050A',
-					'500': '#000000',
-				},
-
-				/* The Starlight Scale (Crisp Cool Whites) */
-				starlight: {
-					DEFAULT: '#FFFFFF',
-					'50': '#FFFFFF',
-					'100': '#F5F8FA',
-					'200': '#E8EFF5',
-					'300': '#D1DBE5',
-					'400': '#B0C0D0',
-				},
-
-				/* Active Elements */
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
@@ -46,7 +88,8 @@ export default {
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))',
-					glow: 'hsl(var(--primary) / 0.5)'
+					hover: 'var(--primary-hover)',
+					active: 'var(--primary-active)',
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -65,34 +108,79 @@ export default {
 					foreground: 'hsl(var(--destructive-foreground))'
 				},
 
-				/* Nanobana Accents (Neon/Bio) */
-				neon: {
-					orange: '#FF8800',
-					lime: '#CCFF00',
-					plasma: '#FF0055',
-					violet: '#BC13FE',
-					amber: '#FFD600'
+				/* Status Colors */
+				success: {
+					DEFAULT: 'var(--success)',
+					foreground: 'var(--success-foreground)',
+					50: 'var(--success-50)',
+					100: 'var(--success-100)',
+					200: 'var(--success-200)',
+					300: 'var(--success-300)',
+					400: 'var(--success-400)',
+					500: 'var(--success-500)',
+					600: 'var(--success-600)',
+					700: 'var(--success-700)',
+					800: 'var(--success-800)',
+					900: 'var(--success-900)',
+					950: 'var(--success-950)',
+				},
+				warning: {
+					DEFAULT: 'var(--warning)',
+					foreground: 'var(--warning-foreground)',
+				},
+				error: {
+					DEFAULT: 'var(--error-600)',
+					foreground: 'white',
+					50: 'var(--error-50)',
+					100: 'var(--error-100)',
+					200: 'var(--error-200)',
+					300: 'var(--error-300)',
+					400: 'var(--error-400)',
+					500: 'var(--error-500)',
+					600: 'var(--error-600)',
+					700: 'var(--error-700)',
+					800: 'var(--error-800)',
+					900: 'var(--error-900)',
+					950: 'var(--error-950)',
+				},
+				info: {
+					DEFAULT: 'var(--info)',
+					foreground: 'var(--info-foreground)',
+					50: 'var(--info-50)',
+					100: 'var(--info-100)',
+					200: 'var(--info-200)',
+					300: 'var(--info-300)',
+					400: 'var(--info-400)',
+					500: 'var(--info-500)',
+					600: 'var(--info-600)',
+					700: 'var(--info-700)',
+					800: 'var(--info-800)',
+					900: 'var(--info-900)',
+					950: 'var(--info-950)',
 				},
 
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
+
+				/* Sidebar */
 				sidebar: {
-					DEFAULT: '#05050A', // Obsidian tint
-					foreground: '#FFFFFF',
-					primary: '#FF8800', // Neon Orange
-					'primary-foreground': '#000000',
-					accent: 'rgba(255, 255, 255, 0.05)', // Glass hover
-					'accent-foreground': '#FFFFFF',
-					border: 'rgba(255, 255, 255, 0.05)',
-					ring: '#FF8800',
+					DEFAULT: 'hsl(var(--sidebar-background))',
+					foreground: 'hsl(var(--sidebar-foreground))',
+					primary: 'hsl(var(--sidebar-primary))',
+					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+					accent: 'hsl(var(--sidebar-accent))',
+					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+					border: 'hsl(var(--sidebar-border))',
+					ring: 'hsl(var(--sidebar-ring))',
 				},
 			},
 			fontFamily: {
-				/* Tech-First Typography */
-				sans: ['Inter', 'SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+				/* Typography System - Editorial meets Technical */
+				serif: ['Playfair Display', 'Georgia', 'Times New Roman', 'serif'],
+				sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
 				mono: ['JetBrains Mono', 'SF Mono', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
-				display: ['Space Grotesk', 'Inter', 'sans-serif'], // Optional for headers if we add Space Grotesk later
+				display: ['Playfair Display', 'Georgia', 'serif'],
 			},
 			fontSize: {
 				'2xs': ['0.625rem', { lineHeight: '1rem' }],

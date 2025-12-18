@@ -32,20 +32,20 @@ const StepVisual = ({ visual, isActive }) => {
         positioning: (
             <div className="grid grid-cols-2 gap-3 p-6">
                 <motion.div
-                    className="aspect-square bg-amber-500/10 rounded-2xl border border-amber-500/15 flex items-center justify-center"
+                    className="aspect-square bg-zinc-500/10 rounded-2xl border border-zinc-500/15 flex items-center justify-center"
                     animate={isActive ? { scale: [1, 1.02, 1], opacity: [0.6, 1, 0.6] } : {}}
                     transition={{ duration: 3, repeat: Infinity }}
                 >
-                    <span className="text-amber-400/50 text-xs uppercase tracking-wider">You</span>
+                    <span className="text-zinc-400/50 text-xs uppercase tracking-wider">You</span>
                 </motion.div>
                 <div className="aspect-square bg-white/[0.02] rounded-2xl border border-white/[0.05]" />
                 <div className="aspect-square bg-white/[0.02] rounded-2xl border border-white/[0.05]" />
                 <motion.div
-                    className="aspect-square bg-orange-500/10 rounded-2xl border border-orange-500/15 flex items-center justify-center"
+                    className="aspect-square bg-gray-500/10 rounded-2xl border border-gray-500/15 flex items-center justify-center"
                     animate={isActive ? { scale: [1, 1.02, 1], opacity: [0.4, 0.8, 0.4] } : {}}
                     transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
                 >
-                    <span className="text-orange-400/50 text-xs uppercase tracking-wider">Them</span>
+                    <span className="text-gray-400/50 text-xs uppercase tracking-wider">Them</span>
                 </motion.div>
             </div>
         ),
@@ -62,12 +62,12 @@ const StepVisual = ({ visual, isActive }) => {
                     />
                 ))}
                 <motion.div
-                    className="mt-6 p-4 bg-amber-500/5 rounded-xl border border-amber-500/10"
+                    className="mt-6 p-4 bg-zinc-500/5 rounded-xl border border-zinc-500/10"
                     animate={isActive ? { opacity: [0.5, 1, 0.5] } : {}}
                     transition={{ duration: 2, repeat: Infinity }}
                 >
-                    <div className="h-2 w-1/2 bg-amber-500/20 rounded-full mb-2" />
-                    <div className="h-2 w-3/4 bg-amber-500/10 rounded-full" />
+                    <div className="h-2 w-1/2 bg-zinc-500/20 rounded-full mb-2" />
+                    <div className="h-2 w-3/4 bg-zinc-500/10 rounded-full" />
                 </motion.div>
             </div>
         ),
@@ -77,7 +77,7 @@ const StepVisual = ({ visual, isActive }) => {
                     {[40, 65, 50, 80, 70, 95].map((height, i) => (
                         <motion.div
                             key={i}
-                            className="flex-1 bg-gradient-to-t from-amber-500/30 to-amber-500/5 rounded-t-lg"
+                            className="flex-1 bg-gradient-to-t from-zinc-500/30 to-zinc-500/5 rounded-t-lg"
                             initial={{ height: 0 }}
                             animate={isActive ? { height: `${height}%` } : { height: `${height * 0.5}%`, opacity: 0.3 }}
                             transition={{ delay: i * 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -92,7 +92,7 @@ const StepVisual = ({ visual, isActive }) => {
     return (
         <div className="relative rounded-2xl bg-zinc-900/40 border border-white/[0.05] overflow-hidden min-h-[280px]">
             {/* Subtle glow effect */}
-            <div className={`absolute inset-0 bg-gradient-radial from-amber-500/5 to-transparent transition-opacity duration-700 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
+            <div className={`absolute inset-0 bg-gradient-radial from-zinc-500/5 to-transparent transition-opacity duration-700 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
             {visualContent[visual]}
         </div>
     )
@@ -105,22 +105,22 @@ const StepItem = ({ step, index, isActive, onClick }) => {
         <motion.button
             onClick={onClick}
             className={`w-full text-left p-6 rounded-2xl border transition-all duration-500 ${isActive
-                ? 'bg-zinc-900/50 border-amber-500/20'
+                ? 'bg-zinc-900/50 border-zinc-500/20'
                 : 'bg-transparent border-white/[0.05] hover:border-white/[0.08]'
                 }`}
             whileHover={{ x: isActive ? 0 : 4 }}
         >
             <div className="flex items-start gap-5">
                 {/* Number - editorial style */}
-                <div className={`text-5xl font-extralight transition-colors duration-500 ${isActive ? 'text-amber-400/80' : 'text-white/15'}`}>
+                <div className={`text-5xl font-extralight transition-colors duration-500 ${isActive ? 'text-zinc-400/80' : 'text-white/15'}`}>
                     {step.number}
                 </div>
 
                 <div className="flex-1 pt-1">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 ${isActive ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-white/[0.03] border border-white/[0.06]'
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 ${isActive ? 'bg-zinc-500/10 border border-zinc-500/20' : 'bg-white/[0.03] border border-white/[0.06]'
                             }`}>
-                            <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-amber-400' : 'text-white/30'}`} weight="regular" />
+                            <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-zinc-400' : 'text-white/30'}`} weight="regular" />
                         </div>
                         <h3 className={`text-xl font-light transition-colors ${isActive ? 'text-white' : 'text-white/50'}`}>
                             {step.title}
@@ -167,16 +167,16 @@ const HowItWorks = () => {
                     className="text-center mb-20 md:mb-24"
                 >
                     <div className="inline-flex items-center gap-3 mb-8">
-                        <span className="w-12 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
-                        <span className="text-[11px] uppercase tracking-[0.4em] text-amber-400/60 font-medium">
+                        <span className="w-12 h-px bg-gradient-to-r from-transparent to-zinc-500/50" />
+                        <span className="text-[11px] uppercase tracking-[0.4em] text-zinc-400/60 font-medium">
                             The Process
                         </span>
-                        <span className="w-12 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
+                        <span className="w-12 h-px bg-gradient-to-l from-transparent to-zinc-500/50" />
                     </div>
 
                     <h2 className="text-5xl md:text-6xl lg:text-7xl font-light text-white tracking-tight mb-6">
                         From chaos to{' '}
-                        <span className="bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 bg-clip-text text-transparent">
                             strategic clarity
                         </span>
                     </h2>
@@ -221,7 +221,7 @@ const HowItWorks = () => {
                                 <button
                                     key={i}
                                     onClick={() => setActiveStep(i)}
-                                    className={`h-1 flex-1 rounded-full transition-all duration-500 ${i === activeStep ? 'bg-amber-500/70' : 'bg-white/[0.08] hover:bg-white/[0.12]'
+                                    className={`h-1 flex-1 rounded-full transition-all duration-500 ${i === activeStep ? 'bg-zinc-500/70' : 'bg-white/[0.08] hover:bg-white/[0.12]'
                                         }`}
                                 />
                             ))}
@@ -234,4 +234,5 @@ const HowItWorks = () => {
 }
 
 export default HowItWorks
+
 
