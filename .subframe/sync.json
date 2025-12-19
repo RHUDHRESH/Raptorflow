@@ -1,6 +1,0 @@
-{
-  "directory": "./src/ui",
-  "importAlias": "@/ui/*",
-  "projectId": "220daaec8431",
-  "cssType": "tailwind"
-}

@@ -9,85 +9,286 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { pathToFileURL } from 'url';
+
+const loadEnvFile = filePath => {
+  if (!fs.existsSync(filePath)) return;
+  const contents = fs.readFileSync(filePath, 'utf8');
+  const lines = contents.split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIndex = trimmed.indexOf('=');
+    if (eqIndex <= 0) continue;
+    const key = trimmed.slice(0, eqIndex).trim();
+    let value = trimmed.slice(eqIndex + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+};
+
+const envPath = path.resolve(process.cwd(), '.env');
+loadEnvFile(envPath);
+
+const truthyValues = new Set(['1', 'true', 'yes', 'on']);
+const isTruthy = value => truthyValues.has(String(value || '').toLowerCase());
+const trimTrailingSlash = value => (value ? value.replace(/\/+$/, '') : value);
+const normalizeUrl = value => {
+  if (!value) return '';
+  if (/^https?:\/\//i.test(value)) return value;
+  return `https://${value}`;
+};
+const safeJson = async response => {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+};
+const maskValue = value => {
+  if (!value) return '';
+  if (value.length <= 8) return '***';
+  return `${value.slice(0, 4)}...${value.slice(-4)}`;
+};
+const getBackendBaseUrl = () => {
+  const explicit = process.env.BACKEND_URL || process.env.BACKEND_PUBLIC_URL;
+  if (explicit) return trimTrailingSlash(explicit);
+  const apiUrl = process.env.VITE_BACKEND_API_URL || process.env.VITE_API_URL;
+  if (apiUrl) return trimTrailingSlash(apiUrl.replace(/\/api\/?$/, ''));
+  return 'http://localhost:3001';
+};
+const getFrontendBaseUrl = () => {
+  const explicit = process.env.FRONTEND_URL || process.env.FRONTEND_PUBLIC_URL || process.env.VITE_FRONTEND_URL;
+  if (explicit) return trimTrailingSlash(explicit);
+  const vercelUrl = process.env.VERCEL_URL;
+  if (vercelUrl) return trimTrailingSlash(normalizeUrl(vercelUrl));
+  return 'http://localhost:5173';
+};
 
 const CHECKS = {
   // =====================================================
   // INFRASTRUCTURE CHECKS
   // =====================================================
 
-  async checkDatabase() {
+  async checkSupabase() {
     const result = { status: 'unknown', message: '', details: {} };
 
     try {
-      // Check if database is accessible
-      const dbUrl = process.env.DATABASE_URL;
-      if (!dbUrl) {
+      const supabaseUrl = trimTrailingSlash(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '');
+      const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+      const apiKey = serviceKey || anonKey;
+
+      if (!supabaseUrl) {
         result.status = 'error';
-        result.message = 'DATABASE_URL not configured';
+        result.message = 'SUPABASE_URL not configured';
         return result;
       }
 
-      // Simple connection test (would need pg client in production)
+      if (!apiKey) {
+        result.status = 'error';
+        result.message = 'SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY not configured';
+        return result;
+      }
+
+      const authRes = await fetch(`${supabaseUrl}/auth/v1/health`, {
+        headers: {
+          apikey: apiKey
+        }
+      });
+      const authData = await safeJson(authRes);
+
+      if (!authRes.ok) {
+        result.status = 'error';
+        result.message = `Supabase auth health failed (${authRes.status})`;
+        result.details = { url: supabaseUrl, auth: authData };
+        return result;
+      }
+
+      const plansRes = await fetch(`${supabaseUrl}/rest/v1/plans?select=code&limit=1`, {
+        headers: {
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`
+        }
+      });
+      const plansData = await safeJson(plansRes);
+
+      if (!plansRes.ok) {
+        result.status = 'error';
+        result.message = 'Supabase connected but schema data missing (run migrations)';
+        result.details = {
+          url: supabaseUrl,
+          auth: authData?.status || 'ok',
+          schema: plansData || `HTTP ${plansRes.status}`
+        };
+        return result;
+      }
+
       result.status = 'healthy';
-      result.message = 'Database connection available';
+      result.message = 'Supabase auth + schema OK';
       result.details = {
-        url: dbUrl.replace(/:\/\/.*@/, '://***:***@'), // Mask credentials
-        type: 'postgresql'
+        url: supabaseUrl,
+        auth: authData?.status || 'ok',
+        sample_plan_code: Array.isArray(plansData) && plansData[0] ? plansData[0].code : null,
+        api_key: maskValue(apiKey)
       };
     } catch (error) {
       result.status = 'error';
-      result.message = `Database check failed: ${error.message}`;
+      result.message = `Supabase check failed: ${error.message}`;
     }
 
     return result;
   },
 
-  async checkRedis() {
+  async checkUpstash() {
     const result = { status: 'unknown', message: '', details: {} };
 
     try {
-      const redisUrl = process.env.REDIS_URL;
-      if (!redisUrl) {
+      const redisUrl = trimTrailingSlash(process.env.UPSTASH_REDIS_URL || process.env.UPSTASH_REDIS_REST_URL || '');
+      const redisToken = process.env.UPSTASH_REDIS_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '';
+
+      if (!redisUrl || !redisToken) {
         result.status = 'error';
-        result.message = 'REDIS_URL not configured';
+        result.message = 'UPSTASH_REDIS_URL and UPSTASH_REDIS_TOKEN not configured';
         return result;
       }
 
-      // Simple Redis ping test (would need redis client in production)
+      const testKey = `healthcheck:${Date.now()}`;
+      const setRes = await fetch(`${redisUrl}/set/${encodeURIComponent(testKey)}/${encodeURIComponent('ok')}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${redisToken}`
+        }
+      });
+      const setData = await safeJson(setRes);
+
+      if (!setRes.ok) {
+        result.status = 'error';
+        result.message = 'Upstash set failed';
+        result.details = { url: redisUrl, response: setData || `HTTP ${setRes.status}` };
+        return result;
+      }
+
+      const getRes = await fetch(`${redisUrl}/get/${encodeURIComponent(testKey)}`, {
+        headers: {
+          Authorization: `Bearer ${redisToken}`
+        }
+      });
+      const getData = await safeJson(getRes);
+
+      if (!getRes.ok || (getData && getData.result !== 'ok')) {
+        result.status = 'error';
+        result.message = 'Upstash get failed';
+        result.details = { url: redisUrl, response: getData || `HTTP ${getRes.status}` };
+        return result;
+      }
+
+      await fetch(`${redisUrl}/del/${encodeURIComponent(testKey)}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${redisToken}`
+        }
+      });
+
       result.status = 'healthy';
-      result.message = 'Redis connection available';
+      result.message = 'Upstash Redis OK';
       result.details = {
-        url: redisUrl.replace(/:\/\/.*@/, '://***:***@'), // Mask credentials
-        type: 'redis'
+        url: redisUrl,
+        token: maskValue(redisToken)
       };
     } catch (error) {
       result.status = 'error';
-      result.message = `Redis check failed: ${error.message}`;
+      result.message = `Upstash check failed: ${error.message}`;
     }
 
     return result;
   },
 
-  async checkS3() {
+  async checkGCS() {
     const result = { status: 'unknown', message: '', details: {} };
 
     try {
-      const bucketName = process.env.AWS_S3_BUCKET;
+      const bucketName = process.env.GCS_BUCKET;
       if (!bucketName) {
         result.status = 'error';
-        result.message = 'AWS_S3_BUCKET not configured';
+        result.message = 'GCS_BUCKET not configured';
         return result;
       }
 
       result.status = 'healthy';
-      result.message = 'S3 bucket configured';
+      result.message = 'GCS bucket configured';
       result.details = {
         bucket: bucketName,
-        region: process.env.AWS_REGION || 'us-east-1'
+        project: process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || 'raptorflow-477017'
       };
     } catch (error) {
       result.status = 'error';
-      result.message = `S3 check failed: ${error.message}`;
+      result.message = `GCS check failed: ${error.message}`;
+    }
+
+    return result;
+  },
+
+  async checkVertexAI() {
+    const result = { status: 'unknown', message: '', details: {} };
+
+    try {
+      const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || '';
+      const location = process.env.GOOGLE_CLOUD_LOCATION || process.env.VERTEX_AI_LOCATION || 'us-central1';
+      const modelName = process.env.VERTEX_AI_FLASH_MODEL || process.env.VERTEX_AI_MODEL || 'gemini-1.5-flash';
+      const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || '';
+
+      if (!projectId) {
+        result.status = 'error';
+        result.message = 'GOOGLE_CLOUD_PROJECT_ID not configured';
+        return result;
+      }
+
+      if (credentialsPath && !fs.existsSync(credentialsPath)) {
+        result.status = 'error';
+        result.message = 'GOOGLE_APPLICATION_CREDENTIALS path not found';
+        result.details = { credentials: credentialsPath };
+        return result;
+      }
+
+      const runLiveCheck = isTruthy(process.env.VERTEX_AI_HEALTHCHECK);
+      if (!runLiveCheck) {
+        result.status = credentialsPath ? 'healthy' : 'warning';
+        result.message = 'Vertex AI config detected (set VERTEX_AI_HEALTHCHECK=1 for a live request)';
+        result.details = {
+          project: projectId,
+          location,
+          model: modelName,
+          credentials: credentialsPath ? 'file set' : 'not set'
+        };
+        return result;
+      }
+
+      const { VertexAI } = await import('@google-cloud/vertexai');
+      const vertexAI = new VertexAI({ project: projectId, location });
+      const model = vertexAI.getGenerativeModel({ model: modelName });
+
+      await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: 'health check' }] }]
+      });
+
+      result.status = 'healthy';
+      result.message = 'Vertex AI request succeeded';
+      result.details = {
+        project: projectId,
+        location,
+        model: modelName
+      };
+    } catch (error) {
+      result.status = 'error';
+      result.message = `Vertex AI check failed: ${error.message}`;
     }
 
     return result;
@@ -101,13 +302,13 @@ const CHECKS = {
     const result = { status: 'unknown', message: '', details: {} };
 
     try {
-      const baseUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+      const baseUrl = getBackendBaseUrl();
 
       // Check health endpoint
       const response = await fetch(`${baseUrl}/health`);
-      const healthData = await response.json();
+      const healthData = await safeJson(response);
 
-      if (response.ok && healthData.status === 'ok') {
+      if (response.ok && healthData?.status === 'ok') {
         result.status = 'healthy';
         result.message = 'Backend is healthy';
         result.details = healthData;
@@ -128,11 +329,12 @@ const CHECKS = {
     const result = { status: 'unknown', message: '', details: {} };
 
     try {
-      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const baseUrl = getFrontendBaseUrl();
+      const startTime = Date.now();
 
       // Check if frontend is serving
       const response = await fetch(baseUrl);
-      const responseTime = Date.now() - new Date().getTime(); // Rough timing
+      const responseTime = Date.now() - startTime;
 
       if (response.ok) {
         result.status = 'healthy';
@@ -162,7 +364,7 @@ const CHECKS = {
     const result = { status: 'unknown', message: '', details: {} };
 
     try {
-      const baseUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+      const baseUrl = getBackendBaseUrl();
 
       // Check Muse orchestrator health
       const response = await fetch(`${baseUrl}/api/muse/generate`, {
@@ -192,13 +394,13 @@ const CHECKS = {
     const result = { status: 'unknown', message: '', details: {} };
 
     try {
-      const baseUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+      const baseUrl = getBackendBaseUrl();
 
       // Check if agents are available
       const response = await fetch(`${baseUrl}/api/muse/agents`);
-      const agentsData = await response.json();
+      const agentsData = await safeJson(response);
 
-      if (response.ok && agentsData.agents && agentsData.agents.length > 0) {
+      if (response.ok && agentsData?.agents && agentsData.agents.length > 0) {
         result.status = 'healthy';
         result.message = `${agentsData.agents.length} Muse agents available`;
         result.details = {
@@ -226,7 +428,7 @@ const CHECKS = {
     const result = { status: 'unknown', message: '', details: {} };
 
     try {
-      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const baseUrl = getFrontendBaseUrl();
       const startTime = Date.now();
 
       const response = await fetch(baseUrl);
@@ -267,6 +469,7 @@ const CHECKS = {
 
     try {
       const issues = [];
+      const warnings = [];
 
       // Check Node.js version
       const nodeVersion = process.version;
@@ -285,25 +488,42 @@ const CHECKS = {
         issues.push('backend/package.json not found');
       }
 
-      // Check for critical environment variables
-      const requiredEnvVars = ['DATABASE_URL', 'REDIS_URL', 'SUPABASE_URL'];
-      const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
-
-      if (missingEnvVars.length > 0) {
-        issues.push(`Missing environment variables: ${missingEnvVars.join(', ')}`);
+      const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+      const supabaseAnon = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+      const supabaseService = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!supabaseUrl) {
+        issues.push('Missing SUPABASE_URL or VITE_SUPABASE_URL');
+      }
+      if (!supabaseAnon && !supabaseService) {
+        issues.push('Missing SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY');
       }
 
-      if (issues.length === 0) {
+      const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT;
+      if (!projectId) {
+        warnings.push('GOOGLE_CLOUD_PROJECT_ID not configured (Vertex AI disabled)');
+      }
+
+      const upstashUrl = process.env.UPSTASH_REDIS_URL || process.env.UPSTASH_REDIS_REST_URL;
+      const upstashToken = process.env.UPSTASH_REDIS_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+      if (!upstashUrl || !upstashToken) {
+        warnings.push('Upstash Redis not configured (cache will fall back to memory)');
+      }
+
+      if (issues.length === 0 && warnings.length === 0) {
         result.status = 'healthy';
         result.message = 'All dependencies and configuration checks passed';
         result.details = {
           nodeVersion,
           environment: process.env.NODE_ENV || 'development'
         };
+      } else if (issues.length === 0) {
+        result.status = 'warning';
+        result.message = `${warnings.length} optional configuration issues found`;
+        result.details = { warnings, nodeVersion, environment: process.env.NODE_ENV || 'development' };
       } else {
         result.status = 'error';
         result.message = `${issues.length} dependency/configuration issues found`;
-        result.details = { issues };
+        result.details = { issues, warnings };
       }
     } catch (error) {
       result.status = 'error';
@@ -380,7 +600,11 @@ async function runHealthChecks() {
 }
 
 // Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+const invokedPath = process.argv[1]
+  ? pathToFileURL(path.resolve(process.argv[1])).href
+  : '';
+
+if (import.meta.url === invokedPath) {
   runHealthChecks().catch(error => {
     console.error('Health check execution failed:', error);
     process.exit(1);

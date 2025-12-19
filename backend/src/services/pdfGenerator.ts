@@ -9,7 +9,7 @@ import puppeteer, { Browser, Page, PDFOptions } from 'puppeteer';
 import handlebars from 'handlebars';
 import path from 'path';
 import fs from 'fs/promises';
-import { s3Connector } from './s3Connector';
+import { gcsConnector } from './gcsConnector';
 import { env } from '../config/env';
 
 // Register Handlebars helpers
@@ -2463,12 +2463,12 @@ class PDFGeneratorService {
 
       const pdfBuffer = await page.pdf(finalOptions);
 
-      // Generate filename and S3 key
+      // Generate filename and GCS key
       const finalFilename = filename || this.generateFilename(templateName, templateData);
-      const s3Key = `pdfs/${Date.now()}_${finalFilename}`;
+      const gcsKey = `pdfs/${Date.now()}_${finalFilename}`;
 
-      // Upload to S3 with enhanced metadata
-      const uploadResult = await s3Connector.uploadFile(s3Key, pdfBuffer, {
+      // Upload to GCS with enhanced metadata
+      const uploadResult = await gcsConnector.uploadFile(gcsKey, pdfBuffer, {
         contentType: 'application/pdf',
         metadata: {
           ...metadata,
@@ -2483,7 +2483,7 @@ class PDFGeneratorService {
 
       const result: PDFResult = {
         filename: finalFilename,
-        key: s3Key,
+        key: gcsKey,
         url: uploadResult.location,
         size: uploadResult.size,
         template: templateName,
@@ -2702,7 +2702,7 @@ class PDFGeneratorService {
 
   private async getBrowser(): Promise<Browser> {
     if (!this.browser || this.browser.isConnected() === false) {
-      this.browser = await puppeteer.launch({
+      const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
         headless: true,
         args: [
           '--no-sandbox',
@@ -2714,7 +2714,14 @@ class PDFGeneratorService {
           '--single-process',
           '--disable-gpu',
         ],
-      });
+      };
+
+      // Use custom Chrome path if specified (useful for Windows/local dev)
+      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+      }
+
+      this.browser = await puppeteer.launch(launchOptions);
     }
     return this.browser;
   }

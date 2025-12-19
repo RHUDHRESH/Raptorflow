@@ -83,8 +83,8 @@ services:
       SUPABASE_URL: http://supabase:54321
       SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
       JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
-      AWS_REGION: us-east-1
-      AWS_S3_BUCKET: raptorflow-dev-assets
+      GOOGLE_CLOUD_PROJECT_ID: raptorflow-477017
+      GCS_BUCKET: raptorflow-dev-assets
       ORCHESTRATOR_PORT: 3001
     ports:
       - "3001:3001"

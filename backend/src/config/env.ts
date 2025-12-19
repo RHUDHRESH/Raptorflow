@@ -35,14 +35,14 @@ export const env = {
   SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '',
 
   // Google Cloud / Vertex AI
-  GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.VITE_GOOGLE_CLOUD_PROJECT_ID || 'raptorflow-477017',
-  GOOGLE_CLOUD_LOCATION: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
+  GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || process.env.VITE_GOOGLE_CLOUD_PROJECT_ID || 'raptorflow-477017',
+  GOOGLE_CLOUD_LOCATION: process.env.GOOGLE_CLOUD_LOCATION || process.env.VERTEX_AI_LOCATION || 'us-central1',
   VERTEX_AI_MODEL: process.env.VERTEX_AI_MODEL || 'gemini-1.5-pro-002',
   VERTEX_AI_FLASH_MODEL: process.env.VERTEX_AI_FLASH_MODEL || 'gemini-1.5-flash-002',
 
   // Upstash Redis
-  UPSTASH_REDIS_URL: process.env.UPSTASH_REDIS_URL || '',
-  UPSTASH_REDIS_TOKEN: process.env.UPSTASH_REDIS_TOKEN || '',
+  UPSTASH_REDIS_URL: process.env.UPSTASH_REDIS_URL || process.env.UPSTASH_REDIS_REST_URL || '',
+  UPSTASH_REDIS_TOKEN: process.env.UPSTASH_REDIS_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '',
 
   // PhonePe Payment Gateway
   PHONEPE_MERCHANT_ID: process.env.PHONEPE_MERCHANT_ID || process.env.VITE_PHONEPE_MERCHANT_ID || '',
@@ -64,10 +64,9 @@ export const env = {
   PHONEPE_WEBHOOK_USERNAME: process.env.PHONEPE_WEBHOOK_USERNAME || '',
   PHONEPE_WEBHOOK_PASSWORD: process.env.PHONEPE_WEBHOOK_PASSWORD || '',
 
-  // AWS Configuration (for Bedrock models)
-  AWS_REGION: process.env.AWS_REGION || process.env.VITE_AWS_REGION || 'us-east-1',
-  AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || '',
-  AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || '',
+  // AI Cost Control (daily budget limits)
+  LLM_DAILY_BUDGET_USD: process.env.LLM_DAILY_BUDGET_USD || '50',
+  LLM_PER_USER_DAILY_USD: process.env.LLM_PER_USER_DAILY_USD || '5',
 };
 
 // Validate required environment variables in production

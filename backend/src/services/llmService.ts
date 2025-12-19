@@ -53,6 +53,13 @@ class LLMService {
     HARD: 25000     // Hard limit - reject requests
   };
 
+  // Daily budget caps to prevent runaway costs
+  private readonly BUDGET_LIMITS = {
+    DAILY_MAX_USD: parseFloat(env.LLM_DAILY_BUDGET_USD || '50'),
+    PER_USER_DAILY_USD: parseFloat(env.LLM_PER_USER_DAILY_USD || '5'),
+    ALERT_THRESHOLD_PERCENT: 80 // Alert when 80% of budget used
+  };
+
   private costMetrics: CostMetrics = {
     totalCost: 0,
     totalTokens: 0,
@@ -70,6 +77,18 @@ class LLMService {
     const traceId = `llm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     console.log(`🔄 [${traceId}] Cost-aware LLM request: ${request.agentName || 'unknown'}`);
+
+    // Check daily budget limits FIRST
+    const budgetCheck = await this.checkDailyBudget(request.userId);
+    if (!budgetCheck.allowed) {
+      console.error(`🚫 [${traceId}] Daily budget exceeded: ${budgetCheck.reason}`);
+      throw new Error(`Daily AI budget exceeded: ${budgetCheck.reason}. Try again tomorrow or contact support.`);
+    }
+
+    // Alert if approaching budget limit
+    if (budgetCheck.usedPercent >= this.BUDGET_LIMITS.ALERT_THRESHOLD_PERCENT) {
+      console.warn(`⚠️ [${traceId}] Budget alert: ${budgetCheck.usedPercent.toFixed(1)}% of daily budget used`);
+    }
 
     // Check token limits
     if (request.maxTokens && request.maxTokens > this.TOKEN_LIMITS.HARD) {
@@ -205,6 +224,92 @@ class LLMService {
   }
 
   // ===== PRIVATE METHODS =====
+
+  /**
+   * Check if daily budget allows this request
+   */
+  private async checkDailyBudget(userId?: string): Promise<{
+    allowed: boolean;
+    reason?: string;
+    usedPercent: number;
+    dailySpent: number;
+    userSpent: number;
+  }> {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const dailyKey = `llm_daily_cost:${today}`;
+    const userKey = userId ? `llm_user_cost:${today}:${userId}` : null;
+
+    try {
+      // Get daily total spent
+      const dailySpentStr = await redisMemory.get(dailyKey);
+      const dailySpent = dailySpentStr ? parseFloat(dailySpentStr) : 0;
+
+      // Get user-specific spent (if userId provided)
+      let userSpent = 0;
+      if (userKey) {
+        const userSpentStr = await redisMemory.get(userKey);
+        userSpent = userSpentStr ? parseFloat(userSpentStr) : 0;
+      }
+
+      // Check global daily limit
+      if (dailySpent >= this.BUDGET_LIMITS.DAILY_MAX_USD) {
+        return {
+          allowed: false,
+          reason: `Global daily limit of $${this.BUDGET_LIMITS.DAILY_MAX_USD} reached`,
+          usedPercent: 100,
+          dailySpent,
+          userSpent
+        };
+      }
+
+      // Check per-user daily limit
+      if (userId && userSpent >= this.BUDGET_LIMITS.PER_USER_DAILY_USD) {
+        return {
+          allowed: false,
+          reason: `Your daily limit of $${this.BUDGET_LIMITS.PER_USER_DAILY_USD} reached`,
+          usedPercent: (userSpent / this.BUDGET_LIMITS.PER_USER_DAILY_USD) * 100,
+          dailySpent,
+          userSpent
+        };
+      }
+
+      return {
+        allowed: true,
+        usedPercent: (dailySpent / this.BUDGET_LIMITS.DAILY_MAX_USD) * 100,
+        dailySpent,
+        userSpent
+      };
+    } catch (error) {
+      console.warn('Budget check failed, allowing request:', error);
+      return { allowed: true, usedPercent: 0, dailySpent: 0, userSpent: 0 };
+    }
+  }
+
+  /**
+   * Track spending for budget limits
+   */
+  private async trackSpending(cost: number, userId?: string): Promise<void> {
+    const today = new Date().toISOString().split('T')[0];
+    const dailyKey = `llm_daily_cost:${today}`;
+    const userKey = userId ? `llm_user_cost:${today}:${userId}` : null;
+    const ttl = 86400; // 24 hours
+
+    try {
+      // Increment daily total
+      const dailyStr = await redisMemory.get(dailyKey);
+      const daily = dailyStr ? parseFloat(dailyStr) : 0;
+      await redisMemory.store(dailyKey, (daily + cost).toString(), ttl);
+
+      // Increment user total
+      if (userKey) {
+        const userStr = await redisMemory.get(userKey);
+        const user = userStr ? parseFloat(userStr) : 0;
+        await redisMemory.store(userKey, (user + cost).toString(), ttl);
+      }
+    } catch (error) {
+      console.warn('Failed to track spending:', error);
+    }
+  }
 
   private shouldUseBatching(request: CostAwareRequest): boolean {
     // Don't batch if priority is speed
@@ -391,6 +496,11 @@ class LLMService {
     fromCache: boolean
   ): Promise<void> {
     try {
+      // Track spending for budget limits (skip if from cache - no cost)
+      if (!fromCache && response.cost > 0) {
+        await this.trackSpending(response.cost, request.userId);
+      }
+
       // Update in-memory metrics
       this.costMetrics.totalCost += response.cost;
       this.costMetrics.totalTokens += response.usage.totalTokens;

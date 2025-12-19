@@ -10,6 +10,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import { env } from '../../config/env';
 import { redisMemory } from '../../services/redisMemory';
 import { telemetryService } from '../../services/telemetryService';
+import { vertexAICircuit, CircuitBreakerError } from '../../services/circuitBreaker';
 
 export interface LLMRequest {
   messages: Array<{ role: string; content: string }>;
@@ -156,22 +157,46 @@ class LLMAdapter {
 
     let lastError: LLMError | null = null;
 
-    // Try Vertex AI first
+    // Try Vertex AI first with circuit breaker protection
     try {
-      const response = await this.tryVertexAI(request, traceId);
-      const latency = Date.now() - startTime;
-
-      await this.logUsage(response, request, latency, traceId);
-
-      console.log(`✅ [${traceId}] Vertex AI success: ${response.usage.totalTokens} tokens, $${response.cost.toFixed(4)}`);
+      const response = await vertexAICircuit.execute(
+        // Primary: Vertex AI
+        async () => {
+          const result = await this.tryVertexAI(request, traceId);
+          const latency = Date.now() - startTime;
+          await this.logUsage(result, request, latency, traceId);
+          console.log(`✅ [${traceId}] Vertex AI success: ${result.usage.totalTokens} tokens, $${result.cost.toFixed(4)}`);
+          return result;
+        },
+        // Fallback: OpenAI (if available)
+        this.openaiClient ? async () => {
+          console.log(`🔄 [${traceId}] Circuit breaker fallback to OpenAI`);
+          const result = await this.tryOpenAI(request, traceId);
+          const latency = Date.now() - startTime;
+          await this.logUsage({ ...result, fallbackUsed: true }, request, latency, traceId);
+          console.log(`✅ [${traceId}] OpenAI fallback success: ${result.usage.totalTokens} tokens, $${result.cost.toFixed(4)}`);
+          return { ...result, fallbackUsed: true };
+        } : undefined
+      );
 
       return response;
     } catch (error) {
-      lastError = this.parseVertexError(error);
-      console.warn(`⚠️ [${traceId}] Vertex AI failed: ${lastError.message}`);
+      // Handle circuit breaker errors specifically
+      if (error instanceof CircuitBreakerError) {
+        console.error(`🚫 [${traceId}] Circuit breaker open - Vertex AI unavailable (${error.stats.failures} failures)`);
+        lastError = {
+          message: `Vertex AI circuit breaker open: ${error.message}`,
+          code: 'CIRCUIT_OPEN',
+          provider: 'vertex',
+          retryable: false,
+        };
+      } else {
+        lastError = this.parseVertexError(error);
+        console.warn(`⚠️ [${traceId}] Vertex AI failed: ${lastError.message}`);
+      }
 
-      // Try OpenAI fallback if available and error is retryable
-      if (this.openaiClient && lastError.retryable) {
+      // Try OpenAI fallback if available and error is retryable (and no circuit breaker fallback was used)
+      if (this.openaiClient && lastError.retryable && !(error instanceof CircuitBreakerError)) {
         try {
           console.log(`🔄 [${traceId}] Attempting OpenAI fallback`);
           const response = await this.tryOpenAI(request, traceId);

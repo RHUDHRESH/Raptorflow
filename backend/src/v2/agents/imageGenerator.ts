@@ -217,13 +217,13 @@ export class ImageGeneratorAgent extends BaseOrchestratorAgent {
         n: 1,
       });
 
-      // Upload to S3
-      const { s3Connector } = await import('../../services/s3Connector');
+      // Upload to GCS (Google Cloud Storage)
+      const { gcsConnector } = await import('../../services/gcsConnector');
       const timestamp = Date.now();
       const filename = `generated-image-${timestamp}.png`;
-      const s3Key = `images/generated/${filename}`;
+      const gcsKey = `images/generated/${filename}`;
 
-      const uploadResult = await s3Connector.uploadFile(s3Key, imageResponse.imageBuffer, {
+      const uploadResult = await gcsConnector.uploadFile(gcsKey, imageResponse.imageBuffer, {
         contentType: 'image/png',
         metadata: {
           prompt,
@@ -251,7 +251,7 @@ export class ImageGeneratorAgent extends BaseOrchestratorAgent {
             const variationFilename = `generated-image-${timestamp}-var${i}.png`;
             const variationKey = `images/generated/${variationFilename}`;
 
-            await s3Connector.uploadFile(variationKey, variationResponse.imageBuffer, {
+            await gcsConnector.uploadFile(variationKey, variationResponse.imageBuffer, {
               contentType: 'image/png',
               metadata: {
                 prompt: variationPrompt,
@@ -263,8 +263,9 @@ export class ImageGeneratorAgent extends BaseOrchestratorAgent {
               },
             });
 
+            const signedUrl = await gcsConnector.getSignedUrl(variationKey, 3600); // 1 hour expiry
             variations.push({
-              url: s3Connector.getSignedUrl(variationKey, 3600), // 1 hour expiry
+              url: signedUrl,
               key: variationKey,
               style: `variation-${i}`,
             });
@@ -278,7 +279,7 @@ export class ImageGeneratorAgent extends BaseOrchestratorAgent {
 
       return {
         imageUrl: uploadResult.location,
-        imageKey: s3Key,
+        imageKey: gcsKey,
         prompt: input.prompt,
         style: input.style || 'realistic',
         dimensions,
