@@ -5,6 +5,9 @@ import { cn } from '@/lib/utils';
 import { Send, User, Sparkles, ChevronRight, AtSign, Hash, X } from 'lucide-react';
 import { AssetType, ASSET_TYPES, getAssetConfig } from './types';
 import { VariantSelector, generateMockVariants } from './VariantSelector';
+import { useIcpStore } from '@/lib/icp-store';
+import { selectSkill } from '@/lib/muse/skill-selector';
+import { SYSTEM_SKILLS } from '@/lib/muse/skills-inventory';
 
 interface Message {
     id: string;
@@ -79,6 +82,7 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
         cohort?: string;
         campaign?: string;
         variantCount?: number;
+        threadId?: string;
     }>({});
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -167,151 +171,68 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
         return message;
     }, []);
 
-    const handleMuseResponse = useCallback(async (userMessage: string) => {
+    const handleMuseResponse = useCallback(async (userMessage: string, threadId?: string) => {
         setIsTyping(true);
 
-        // Simulate typing delay
-        await new Promise(r => setTimeout(r, 800 + Math.random() * 600));
+        try {
+            const endpoint = threadId ? '/api/muse/resume' : '/api/muse/chat';
+            
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    message: userMessage,
+                    thread_id: threadId || undefined
+                })
+            });
 
-        const intent = parseIntent(userMessage);
+            if (!response.ok) throw new Error('Failed to reach Muse Agent');
 
-        // Check for --variants N flag
-        const variantMatch = userMessage.match(/--variants\s+(\d+)/i);
-        const variantCount = variantMatch ? parseInt(variantMatch[1], 10) : 1;
-        const cleanMessage = userMessage.replace(/--variants\s+\d+/i, '').trim();
-
-        if (intent.understood && intent.assetType) {
-            // We understand the request - ask about context
-            setCurrentContext(prev => ({
-                ...prev,
-                prompt: cleanMessage,
-                assetType: intent.assetType,
-                variantCount: variantCount > 1 ? variantCount : undefined
-            }));
-
-            const config = getAssetConfig(intent.assetType!);
-
-            // Ask about cohort targeting if cohorts exist
-            if (cohorts.length > 0 && !currentContext.cohort) {
-                const cohortOptions: ConversationOption[] = [
-                    { id: 'skip', label: 'Skip', description: 'No specific audience', value: 'none' },
-                    ...cohorts.map(c => ({ id: c.id, label: c.name, value: c.id })),
-                ];
-
-                addMessage('muse', `I'll create a ${config?.label}${variantCount > 1 ? ` (${variantCount} variants)` : ''}.\n\nWho is this for?`, cohortOptions);
-            } else {
-                // Ready to create
-                addMessage('muse', `Creating ${variantCount > 1 ? `${variantCount} variants of` : ''} your ${config?.label}...`);
-
-                setTimeout(() => {
-                    const ctx: Record<string, string> = {};
-                    if (currentContext.cohort) ctx.cohort = currentContext.cohort;
-
-                    if (variantCount > 1) {
-                        // Generate variants
-                        const variants = generateMockVariants(cleanMessage, variantCount, ctx);
-                        addMessage('muse', 'Here are your variants:', undefined, variants);
-                    } else {
-                        onAssetCreate(cleanMessage, intent.assetType!, ctx);
-                    }
-                }, 500);
+            const data = await response.json();
+            
+            // Handle text response
+            if (data.response) {
+                addMessage('muse', data.response);
             }
-        } else if (intent.needsClarification === 'asset_type') {
-            // Need to know what type of asset
-            setCurrentContext(prev => ({ ...prev, prompt: cleanMessage }));
 
-            const assetOptions: ConversationOption[] = [
-                { id: 'email', label: 'Email', description: 'Sales, nurture, or announcement', value: 'email' },
-                { id: 'social-post', label: 'Social Post', description: 'LinkedIn, Twitter', value: 'social-post' },
-                { id: 'tagline', label: 'Tagline', description: 'Short memorable phrase', value: 'tagline' },
-                { id: 'video-script', label: 'Video Script', description: 'Script for video content', value: 'video-script' },
-                { id: 'meme', label: 'Meme', description: 'Image with text overlay', value: 'meme' },
-                { id: 'more', label: 'Something else...', value: 'more' },
-            ];
+            // Handle card response (e.g., clarification questions)
+            if (data.cards) {
+                data.cards.forEach((card: any) => {
+                    if (card.type === 'clarify_questions') {
+                        addMessage('muse', "I need a bit more detail to get this right:", 
+                            card.questions.map((q: string) => ({
+                                id: q,
+                                label: q,
+                                value: q
+                            }))
+                        );
+                    }
+                });
+            }
 
-            addMessage('muse', 'What would you like me to create?', assetOptions);
-        } else {
-            // Completely unclear
-            addMessage('muse', `I'm here to create marketing assets for you.\n\nTry asking me to create something specific, like:\n• "Make me a cold sales email"\n• "Create a LinkedIn post --variants 3"\n• "Design a meme"\n\nOr use commands:\n• Type / to select an asset type\n• Type @ to target a cohort`, [
-                { id: 'email', label: 'Start with an email', value: 'email' },
-                { id: 'social', label: 'Start with social content', value: 'social-post' },
-                { id: 'visual', label: 'Start with something visual', value: 'meme' },
-            ]);
+            // Save threadId for future context
+            if (data.thread_id) {
+                setCurrentContext(prev => ({ ...prev, threadId: data.thread_id }));
+            }
+
+        } catch (error: any) {
+            console.error("Muse Chat Error:", error);
+            addMessage('muse', "Muse couldn't generate that. Add one detail and retry.");
+        } finally {
+            setIsTyping(false);
         }
+    }, [addMessage]);
 
-        setIsTyping(false);
-    }, [addMessage, cohorts, currentContext, onAssetCreate]);
-
+    // Resume logic for clarification
     const handleOptionSelect = useCallback((messageId: string, option: ConversationOption) => {
-        // Mark option as selected
         setMessages(prev => prev.map(m =>
             m.id === messageId ? { ...m, selectedOption: option.id } : m
         ));
-
-        // Add user selection as a message
         addMessage('user', option.label);
-
-        // Handle the selection
-        if (option.id === 'more') {
-            // Show all asset types
-            const allOptions = ASSET_TYPES.slice(0, 8).map(a => ({
-                id: a.type,
-                label: a.label,
-                description: a.description,
-                value: a.type,
-            }));
-
-            setTimeout(() => {
-                setIsTyping(true);
-                setTimeout(() => {
-                    addMessage('muse', 'Here are more options:', allOptions);
-                    setIsTyping(false);
-                }, 500);
-            }, 300);
-        } else if (option.id === 'skip' || cohorts.some(c => c.id === option.id)) {
-            // Cohort selected or skipped - proceed to create
-            const newCohort = option.id === 'skip' ? undefined : option.value;
-            setCurrentContext(prev => ({ ...prev, cohort: newCohort }));
-
-            setTimeout(() => {
-                setIsTyping(true);
-                setTimeout(() => {
-                    const config = getAssetConfig(currentContext.assetType!);
-                    const variantCount = currentContext.variantCount || 1;
-
-                    addMessage('muse', `Creating ${variantCount > 1 ? `${variantCount} variants of` : ''} your ${config?.label}...`);
-                    setIsTyping(false);
-
-                    setTimeout(() => {
-                        const ctx: Record<string, string> = {};
-                        if (newCohort) ctx.cohort = newCohort;
-
-                        if (variantCount > 1) {
-                            // Generate variants
-                            const ctx: Record<string, string> = {};
-                            if (newCohort) ctx.cohort = newCohort;
-
-                            const variants = generateMockVariants(currentContext.prompt!, variantCount, ctx);
-                            addMessage('muse', 'Here are your variants:', undefined, variants);
-                        } else {
-                            onAssetCreate(
-                                currentContext.prompt!,
-                                currentContext.assetType!,
-                                ctx
-                            );
-                        }
-                    }, 500);
-                }, 600);
-            }, 300);
-        } else {
-            // Asset type selected
-            setCurrentContext(prev => ({ ...prev, assetType: option.value as AssetType }));
-
-            setTimeout(() => {
-                handleMuseResponse(`Create a ${option.label}`);
-            }, 300);
-        }
-    }, [addMessage, cohorts, currentContext, handleMuseResponse, onAssetCreate]);
+        
+        // Pass threadId back to resume the graph
+        handleMuseResponse(option.label, currentContext.threadId);
+    }, [addMessage, handleMuseResponse, currentContext.threadId]);
 
     // Handle input change with command detection
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

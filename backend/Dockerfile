@@ -1,89 +1,30 @@
-# =====================================================
-# SOTA PRODUCTION DOCKERFILE - HARDENED & OPTIMIZED
-# =====================================================
+FROM python:3.11-slim
 
-# Multi-stage build for optimal image size and security
-FROM node:20-alpine AS base
-
-# Install security updates and required packages
-RUN apk update && apk upgrade && \
-    apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    sqlite3 \
-    curl \
-    dumb-init && \
-    rm -rf /var/cache/apk/*
-
-# Create non-root user early
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S raptorflow -u 1001
-
-# Set working directory with correct permissions
 WORKDIR /app
-RUN chown -R raptorflow:nodejs /app
 
-# =====================================================
-# DEPENDENCIES STAGE
-# =====================================================
-FROM base AS deps
+# Install system dependencies for psycopg
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy package files with correct ownership
-COPY --chown=raptorflow:nodejs package*.json tsconfig.json ./
+# Install poetry
+RUN pip install poetry
 
-# Install dependencies with security audit
-USER raptorflow
-RUN npm ci --no-audit --no-fund && \
-    npm cache clean --force
+# Copy project files
+COPY pyproject.toml .
+COPY README.md .
 
-# =====================================================
-# BUILD STAGE
-# =====================================================
-FROM deps AS build
+# Disable virtualenv creation by poetry and install dependencies
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-dev --no-interaction --no-ansi
 
 # Copy source code
-COPY --chown=raptorflow:nodejs src/ ./src/
-COPY --chown=raptorflow:nodejs skills/ ./skills/
+COPY . .
 
-# Create skills directory if needed
-RUN mkdir -p skills
-
-# Build TypeScript with optimizations
-ENV NODE_ENV=production
-RUN npm run build
-
-# Prune to production dependencies
-RUN npm prune --production
-
-# =====================================================
-# PRODUCTION STAGE
-# =====================================================
-FROM base AS production
-
-# Copy built application from build stage
-COPY --from=build --chown=raptorflow:nodejs /app/dist ./dist
-COPY --from=build --chown=raptorflow:nodejs /app/node_modules ./node_modules
-COPY --from=build --chown=raptorflow:nodejs /app/package.json ./
-COPY --from=build --chown=raptorflow:nodejs /app/skills ./skills
-
-# Switch to non-root user
-USER raptorflow
-
-# Environment variables for production
-ENV NODE_ENV=production
-ENV PORT=8080
-ENV NODE_OPTIONS="--max-old-space-size=512"
-
-# Expose port (Cloud Run expects 8080)
+# Expose port
 EXPOSE 8080
 
-# Health check with proper Cloud Run configuration
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+# Run FastAPI app
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
 
-# Use dumb-init for proper signal handling
-ENTRYPOINT ["dumb-init", "--"]
-
-# Start the application
-CMD ["node", "dist/index.js"]
