@@ -9,11 +9,11 @@ import { Icp } from '@/types/icp-types';
 
 // Steps
 import StepContext from './wizard/StepContext';
-// import StepProblem from './wizard/StepProblem';
-// import StepBuyer from './wizard/StepBuyer';
-// import StepLanguage from './wizard/StepLanguage';
-// import StepExclusions from './wizard/StepExclusions';
-// import StepReview from './wizard/StepReview';
+import StepProblem from './wizard/StepProblem';
+import StepBuyer from './wizard/StepBuyer';
+import StepLanguage from './wizard/StepLanguage';
+import StepExclusions from './wizard/StepExclusions';
+import StepReview from './wizard/StepReview';
 
 const TOTAL_STEPS = 6;
 
@@ -110,12 +110,37 @@ export default function ICPWizard() {
                                 onChange={(d) => updateFormData('firmographics', d)}
                             />
                         )}
-                        {/* Placeholder for other steps */}
-                        {currentStep > 1 && (
-                            <div className="text-center py-20">
-                                <h2 className="font-serif text-3xl mb-4">Step {currentStep} Coming Soon</h2>
-                                <p className="text-[#5B5F61]">Implementation in progress...</p>
-                            </div>
+                        {currentStep === 2 && (
+                            <StepProblem
+                                data={formData.painMap!}
+                                onChange={(d) => updateFormData('painMap', d)}
+                            />
+                        )}
+                        {currentStep === 3 && (
+                            <StepBuyer
+                                firmographics={formData.firmographics!}
+                                painMap={formData.painMap!}
+                                onChangeFirmographics={(d) => updateFormData('firmographics', d)}
+                                onChangePainMap={(d) => updateFormData('painMap', d)}
+                            />
+                        )}
+                        {currentStep === 4 && (
+                            <StepLanguage
+                                data={formData.psycholinguistics!}
+                                onChange={(d) => updateFormData('psycholinguistics', d)}
+                            />
+                        )}
+                        {currentStep === 5 && (
+                            <StepExclusions
+                                data={formData.disqualifiers!}
+                                onChange={(d) => updateFormData('disqualifiers', d)}
+                            />
+                        )}
+                        {currentStep === 6 && (
+                            <StepReview
+                                data={formData}
+                                onChange={(d) => setFormData(p => ({ ...p, ...d }))}
+                            />
                         )}
                     </motion.div>
                 </AnimatePresence>
