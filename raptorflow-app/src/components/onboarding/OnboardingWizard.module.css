@@ -1,0 +1,64 @@
+/* OnboardingWizard Styles */
+
+.wizard {
+    min-height: 100vh;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: var(--space-2xl);
+}
+
+.title {
+    font-family: var(--font-display);
+    font-size: var(--text-4xl);
+    font-weight: var(--font-semibold);
+    color: var(--color-ink);
+    margin-bottom: var(--space-sm);
+    letter-spacing: -0.02em;
+}
+
+.subtitle {
+    font-size: var(--text-body);
+    color: var(--secondary-text);
+}
+
+.content {
+    margin-top: var(--space-2xl);
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    color: var(--secondary-text);
+}
+
+/* Step Container */
+.step {
+    animation: fadeIn var(--transition-base);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .wizard {
+        padding: var(--space-lg) var(--space-md);
+    }
+
+    .title {
+        font-size: var(--text-h1);
+    }
+}

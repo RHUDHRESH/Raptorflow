@@ -1,0 +1,237 @@
+/**
+ * Campaigns & Moves — Core Type Definitions
+ * The execution engine of RaptorFlow.
+ */
+
+// =====================================
+// Campaign Types
+// =====================================
+
+/** Campaign Objectives (pick ONE per campaign) */
+export type CampaignObjective =
+    | 'acquire'     // More leads / calls / trials
+    | 'convert'     // Warm leads → paid
+    | 'launch'      // Release + create demand
+    | 'proof'       // Case studies, testimonials
+    | 'retain'      // Stop churn, boost usage
+    | 'reposition'; // Change market perception
+
+/** Campaign Status Lifecycle */
+export type CampaignStatus =
+    | 'planned'   // Created but no active Move
+    | 'active'    // Has active/queued Moves
+    | 'paused'    // User paused
+    | 'wrapup'    // Needs review before archive
+    | 'archived'; // Read-only
+
+/** Offer/CTA types */
+export type OfferType =
+    | 'book_call'
+    | 'start_trial'
+    | 'download'
+    | 'buy_now'
+    | 'reply_email'
+    | 'subscribe'
+    | 'other';
+
+/** Available channels */
+export type ChannelType =
+    | 'linkedin'
+    | 'email'
+    | 'instagram'
+    | 'whatsapp'
+    | 'cold_dms'
+    | 'partnerships'
+    | 'twitter';
+
+/** Campaign timeline presets */
+export type CampaignDuration = 14 | 28 | 90;
+
+export interface Campaign {
+    id: string;
+    name: string;
+    objective: CampaignObjective;
+    cohortId?: string;
+    cohortName?: string;
+    offer: OfferType;
+    offerDetails?: string; // e.g., calendar link
+    channels: ChannelType[];
+    duration: CampaignDuration;
+    moveLength: 7 | 14;
+    dailyEffort: 15 | 30 | 60; // minutes
+
+    status: CampaignStatus;
+    createdAt: string;
+    startedAt?: string;
+    completedAt?: string;
+
+    // Wrapup data (filled when campaign ends)
+    wrapup?: CampaignWrapup;
+}
+
+export interface CampaignWrapup {
+    whatWorked: string;
+    whatDidnt: string;
+    biggestInsight: string;
+    nextRecommendation?: string;
+    submittedAt: string;
+}
+
+// =====================================
+// Move Types
+// =====================================
+
+/** Move Goals (micro-objectives) */
+export type MoveGoal =
+    | 'leads'        // Capture interest
+    | 'calls'        // Book conversations
+    | 'sales'        // Close deals
+    | 'proof'        // Collect credibility
+    | 'distribution' // Grow reach
+    | 'activation';  // Get users to use product
+
+/** Move Status (explicit user completion) */
+export type MoveStatus =
+    | 'draft'     // Created but not started
+    | 'queued'    // Scheduled to start
+    | 'active'    // Currently running
+    | 'completed' // User marked complete
+    | 'abandoned'; // User abandoned
+
+/** Move timebox presets */
+export type MoveDuration = 7 | 14 | 28;
+
+/** Override reasons when Move doesn't match Campaign */
+export type OverrideReason =
+    | 'experiment'
+    | 'temporary_pivot'
+    | 'special_case';
+
+export interface ChecklistItem {
+    id: string;
+    label: string;
+    completed: boolean;
+    group: 'setup' | 'create' | 'publish' | 'followup';
+    assetLink?: string; // Link to Muse asset
+}
+
+export interface Move {
+    id: string;
+    name: string;
+    goal: MoveGoal;
+    channel: ChannelType;
+    secondaryChannel?: ChannelType;
+    duration: MoveDuration;
+    dailyEffort: 15 | 30 | 60;
+
+    outcomeTarget?: string; // e.g., "10 calls booked"
+    checklist: ChecklistItem[];
+    assetIds: string[];
+
+    status: MoveStatus;
+    createdAt: string;
+    startedAt?: string;
+    dueDate?: string;
+    completedAt?: string;
+
+    // Campaign linkage
+    campaignId?: string;
+    campaignName?: string;
+
+    // Override tracking (logged to Blackbox)
+    override?: {
+        reason: OverrideReason;
+        originalCampaignObjective: CampaignObjective;
+        loggedAt: string;
+    };
+
+    // Completion self-report
+    selfReport?: MoveSelfReport;
+}
+
+export interface MoveSelfReport {
+    didComplete: boolean;
+    whatHappened: string;
+    metrics?: {
+        name: string;
+        value: number;
+    };
+    submittedAt: string;
+}
+
+// =====================================
+// State Types
+// =====================================
+
+export interface CampaignsState {
+    campaigns: Campaign[];
+    moves: Move[];
+    activeMoveId: string | null;
+}
+
+// =====================================
+// Display Helpers
+// =====================================
+
+export const OBJECTIVE_LABELS: Record<CampaignObjective, { label: string; description: string }> = {
+    acquire: { label: 'Acquire', description: 'Get more leads / calls / trials' },
+    convert: { label: 'Convert', description: 'Turn warm leads into paid' },
+    launch: { label: 'Launch', description: 'Release something and drive demand' },
+    proof: { label: 'Proof', description: 'Build credibility: case studies, testimonials' },
+    retain: { label: 'Retain', description: 'Stop churn, boost usage' },
+    reposition: { label: 'Reposition', description: 'Change what the market believes' },
+};
+
+export const GOAL_LABELS: Record<MoveGoal, { label: string; description: string }> = {
+    leads: { label: 'Leads', description: 'Capture interest' },
+    calls: { label: 'Calls', description: 'Book conversations' },
+    sales: { label: 'Sales', description: 'Close deals' },
+    proof: { label: 'Proof', description: 'Collect credibility' },
+    distribution: { label: 'Distribution', description: 'Grow reach' },
+    activation: { label: 'Activation', description: 'Get users to use the product' },
+};
+
+export const OFFER_LABELS: Record<OfferType, string> = {
+    book_call: 'Book a call',
+    start_trial: 'Start a trial',
+    download: 'Download lead magnet',
+    buy_now: 'Buy now',
+    reply_email: 'Reply to email',
+    subscribe: 'Subscribe',
+    other: 'Other',
+};
+
+export const CHANNEL_LABELS: Record<ChannelType, string> = {
+    linkedin: 'LinkedIn',
+    email: 'Email',
+    instagram: 'Instagram',
+    whatsapp: 'WhatsApp',
+    cold_dms: 'Cold DMs',
+    partnerships: 'Partnerships',
+    twitter: 'Twitter',
+};
+
+export const OVERRIDE_LABELS: Record<OverrideReason, string> = {
+    experiment: 'Experiment',
+    temporary_pivot: 'Temporary pivot',
+    special_case: 'Special case',
+};
+
+// =====================================
+// Goal-Objective Alignment
+// =====================================
+
+/** Which goals align well with which objectives */
+export const OBJECTIVE_GOAL_ALIGNMENT: Record<CampaignObjective, MoveGoal[]> = {
+    acquire: ['leads', 'calls', 'distribution'],
+    convert: ['calls', 'sales'],
+    launch: ['distribution', 'leads', 'sales'],
+    proof: ['proof'],
+    retain: ['activation'],
+    reposition: ['distribution', 'proof'],
+};
+
+/** Check if a Move goal aligns with Campaign objective */
+export function isGoalAligned(objective: CampaignObjective, goal: MoveGoal): boolean {
+    return OBJECTIVE_GOAL_ALIGNMENT[objective].includes(goal);
+}
