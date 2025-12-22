@@ -16,17 +16,17 @@
 - [x] **Task: Conductor - User Manual Verification 'Phase 1: Core Infrastructure & Dependencies' (Protocol in workflow.md)** [checkpoint: 0e43b54]
 
 ## Phase 2: Skills Architecture & Management
-- [ ] **Task 2.1: Skill System Registry**
-    - [ ] Create `src/lib/muse/skills-manager.ts`.
-    - [ ] Implement `loadSystemSkills()` to read from `src/skills/system/*.md`.
-    - [ ] Implement `loadCustomSkills()` to fetch from Supabase.
-- [ ] **Task 2.2: Skill-to-Tool Transformer**
-    - [ ] Implement utility to convert a Skill definition into a LangChain `@tool` or `DynamicTool`.
-- [ ] **Task 2.3: Implement first 3 Core Skills (Validation)**
-    - [ ] Create `src/skills/system/positioning-refiner.md`.
-    - [ ] Create `src/skills/system/linkedin-thought-leader.md`.
-    - [ ] Create `src/skills/system/brand-voice-guardian.md`.
-- [ ] **Task: Conductor - User Manual Verification 'Phase 2: Skills Architecture & Management' (Protocol in workflow.md)**
+- [x] **Task 2.1: Skill System Registry**
+    - [x] Create `src/lib/muse/skills-manager.ts`.
+    - [x] Implement `loadSystemSkills()` to read from `src/skills/system/*.md`.
+    - [x] Implement `loadCustomSkills()` to fetch from Supabase.
+- [x] **Task 2.2: Skill-to-Tool Transformer**
+    - [x] Implement utility to convert a Skill definition into a LangChain `@tool` or `DynamicTool`.
+- [x] **Task 2.3: Implement first 3 Core Skills (Validation)**
+    - [x] Create `src/skills/system/positioning-refiner.md`.
+    - [x] Create `src/skills/system/linkedin-thought-leader.md`.
+    - [x] Create `src/skills/system/brand-voice-guardian.md`.
+- [x] **Task: Conductor - User Manual Verification 'Phase 2: Skills Architecture & Management' (Protocol in workflow.md)** [checkpoint: 5ec7763]
 
 ## Phase 3: LangGraph Orchestration (The Agent)
 - [ ] **Task 3.1: Define Graph State & Nodes**
