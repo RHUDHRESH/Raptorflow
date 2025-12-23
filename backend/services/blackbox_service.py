@@ -407,7 +407,10 @@ class BlackboxService:
         agent = LearningAgent()
         state = {
             "findings": [str(t.get("trace", "")) for t in traces],
-            "reflection": f"Observed {len(outcomes)} outcomes with total value {sum(o.get('value', 0) for o in outcomes)}",
+            "reflection": (
+                f"Observed {len(outcomes)} outcomes with total value "
+                f"{sum(o.get('value', 0) for o in outcomes)}"
+            ),
             "status": [],
         }
 
