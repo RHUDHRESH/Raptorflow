@@ -40,8 +40,8 @@
 - [x] 30. Task: Implement resource/tool verification feedback in the Moves view [de8d74e]
 - [x] 31. Task: Connect move execution status (Pending -> Executed) to backend updates [4b89c66]
 - [x] 32. Task: Implement progress bar synchronization between Moves and Campaigns [efdc454]
-- [~] 33. Task: Build the detailed "Move Packet" view (Description, Owner, Tools)
-- [ ] 34. Task: Verify Move UI state matches backend database exactly
+- [x] 33. Task: Build the detailed "Move Packet" view (Description, Owner, Tools) [5ae053f]
+- [~] 34. Task: Verify Move UI state matches backend database exactly
 - [ ] 35. Task: Conductor - User Manual Verification 'Move Integration' (Protocol in workflow.md)
 
 ## Phase 5: Final E2E Hardening & Verification (Tasks 36-40)

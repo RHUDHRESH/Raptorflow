@@ -31,7 +31,4 @@
 
 *Link: [./conductor/tracks/moves_campaigns_frontend_hardening_20251223/](./conductor/tracks/moves_campaigns_frontend_hardening_20251223/)*
 
----
 
-## [x] Track: Blackbox Backend-Frontend Resonance
-*Link: [./conductor/tracks/blackbox_ui_resonance_20251223/](./conductor/tracks/blackbox_ui_resonance_20251223/)*
