@@ -32,6 +32,5 @@ def test_export_batch_empty(tmp_path):
     """Test the exporter logic for empty batches."""
     exporter = IsolatedMockParquetExporter(base_path=str(tmp_path))
     file_path = os.path.join(tmp_path, "empty.parquet")
-    # For now, we decide if empty batches should return True or False/Error
     success = exporter.export_batch([], file_path)
     assert success is True
