@@ -5,7 +5,7 @@ This plan integrates the Blackbox industrial engine with the frontend UI, ensuri
 ## Phase 1: Data Foundation & Outcome Integration
 Goal: Replace mock data in the Evidence Log and Results Strip with real `BlackboxOutcome` data.
 
-- [~] Task: Create Backend API Endpoints for Outcomes and Evidence
+- [x] Task: Create Backend API Endpoints for Outcomes and Evidence [1ac1897]
 - [ ] Task: Write Tests for Outcome Data Fetching (Frontend)
 - [ ] Task: Implement Outcome Data Fetching and Integration in `EvidenceLog.tsx` and `ResultsStrip.tsx`
 - [ ] Task: Conductor - User Manual Verification 'Data Foundation & Outcome Integration' (Protocol in workflow.md)
