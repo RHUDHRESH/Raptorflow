@@ -67,7 +67,7 @@
 - [x] Phase 056: Backend - Implement `RAGRetrievalNode` with citation support. 56d95e3
 - [x] Phase 057: Backend - Implement `MemoryDecayPolicy` (Pruning old short-term state). dea4ac7
 - [x] Phase 058: Backend - Implement `EpisodicRecall` (Retrieve similar campaign outcomes). baa2368
-- [ ] Phase 059: Backend - Write Red Phase tests for `RAG.calculate_relevance_score()`.
+- [x] Phase 059: Backend - Write Red Phase tests for `RAG.calculate_relevance_score()`. e9f6d9b
 - [ ] Phase 060: Backend - Implement `ContextWindowCompressor` for token efficiency.
 - [ ] Phase 061: Backend - Implement `KnowledgeGraphConnector` (Conceptual linking).
 - [ ] Phase 062: Backend - Implement `MemorySelfReflection` agent (Summarizes daily events).
