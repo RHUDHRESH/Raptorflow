@@ -28,8 +28,8 @@
 - [x] Task 21: Implement `BlackboxService.upsert_learning_embedding(text, metadata)` [ae6d24d]
 - [x] Task 22: Setup Vertex AI embedding client integration [d9912d7]
 - [x] Task 23: Implement `BlackboxService.search_strategic_memory(query, limit)` [7f57149]
-- [ ] Task 24: Implement `BlackboxService.link_learning_to_evidence(learning_id, trace_ids)`
-- [ ] Task 25: Implement Learning Categorization logic (Strategic, Tactical, Content)
+- [x] Task 24: Implement `BlackboxService.link_learning_to_evidence(learning_id, trace_ids)` [213bbdb]
+- [x] Task 25: Implement Learning Categorization logic (Strategic, Tactical, Content) [a7e998a]
 - [ ] Task 26: Write Unit Test: `test_vector_search_relevance`
 - [ ] Task 27: Implement `BlackboxService.get_memory_context_for_planner(move_type)`
 - [ ] Task 28: Implement Memory Pruning logic (Removing redundant/outdated insights)
