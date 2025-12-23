@@ -1,10 +1,17 @@
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, AsyncMock
 from backend.services.matrix_service import MatrixService
 from backend.models.telemetry import TelemetryEvent, SystemState
 
 @pytest.fixture
-def matrix_service():
+def matrix_service(monkeypatch):
+    mock_redis = AsyncMock()
+    mock_redis.ping.return_value = True
+    mock_redis.xadd.return_value = "msg_123"
+    
+    # Mock get_cache to return our mock_redis
+    monkeypatch.setattr("backend.services.matrix_service.get_cache", lambda: mock_redis)
+    
     return MatrixService()
 
 def test_get_system_overview(matrix_service):
@@ -43,6 +50,32 @@ async def test_emit_telemetry_event(matrix_service):
     )
     success = await matrix_service.emit_event(event)
     assert success is True
+
+@pytest.mark.asyncio
+async def test_emit_event_failure(matrix_service, monkeypatch):
+    """Test emitting a telemetry event when redis fails."""
+    # Re-mock redis to fail
+    mock_redis = AsyncMock()
+    mock_redis.xadd.side_effect = Exception("Redis error")
+    monkeypatch.setattr(matrix_service, "_redis", mock_redis)
+    
+    event = TelemetryEvent(
+        event_id="evt_err",
+        event_type="error",
+        source="tester"
+    )
+    success = await matrix_service.emit_event(event)
+    assert success is False
+
+@pytest.mark.asyncio
+async def test_initialize_telemetry_stream_failure_actual(matrix_service, monkeypatch):
+    """Test initializing the telemetry stream when redis fails."""
+    mock_redis = AsyncMock()
+    mock_redis.ping.side_effect = Exception("Connection error")
+    monkeypatch.setattr(matrix_service, "_redis", mock_redis)
+    
+    success = await matrix_service.initialize_telemetry_stream()
+    assert success is False
 
 @pytest.mark.asyncio
 async def test_capture_agent_heartbeat(matrix_service):
