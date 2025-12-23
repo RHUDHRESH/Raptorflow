@@ -5,6 +5,8 @@ import { Check, FileText, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { Reorder, useDragControls } from "framer-motion";
+import { GripVertical } from 'lucide-react';
 
 interface QuestionInputProps {
     question: Question;
@@ -300,6 +302,93 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                     })}
                 </div>
             );
+        case 'text-list':
+            const listCount = question.listCount || 3;
+            const currentList = Array.isArray(value) ? value : Array(listCount).fill('');
+
+            return (
+                <div className="space-y-4">
+                    {Array.from({ length: listCount }).map((_, i) => (
+                        <div key={i} className="relative">
+                            <Input
+                                className="h-14 text-lg bg-background border-2 focus-visible:ring-0 focus-visible:border-primary shadow-sm"
+                                value={currentList[i] || ''}
+                                onChange={(e) => {
+                                    const newList = [...currentList];
+                                    newList[i] = e.target.value;
+                                    onChange(newList);
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        // Focus next input or submit if last
+                                        if (i < listCount - 1) {
+                                            const nextInput = document.querySelector(`input[name="text-list-${question.id}-${i + 1}"]`) as HTMLInputElement;
+                                            nextInput?.focus();
+                                        } else {
+                                            onEnter();
+                                        }
+                                    }
+                                }}
+                                name={`text-list-${question.id}-${i}`}
+                                placeholder={question.listPlaceholders?.[i] || `Item ${i + 1}`}
+                            />
+                            <div className="absolute left-[-32px] top-1/2 -translate-y-1/2 text-muted-foreground font-mono text-sm">
+                                {i + 1}.
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+
+        case 'drag-ranker':
+            // Initialize with all options if value is empty/different length
+            const allOptions = question.options || [];
+            const currentRank = (Array.isArray(value) && value.length === allOptions.length)
+                ? value
+                : allOptions.map(o => o.value);
+
+            return (
+                <div className="space-y-2">
+                    <Reorder.Group
+                        axis="y"
+                        values={currentRank}
+                        onReorder={onChange}
+                        className="space-y-3"
+                    >
+                        {currentRank.map((val: string) => {
+                            const opt = allOptions.find(o => o.value === val);
+                            if (!opt) return null;
+
+                            return (
+                                <Reorder.Item
+                                    key={val}
+                                    value={val}
+                                    className="bg-card border-2 border-border rounded-xl p-4 flex items-center gap-4 cursor-grab active:cursor-grabbing shadow-sm hover:border-sidebar-accent transition-colors"
+                                    whileDrag={{ scale: 1.02, boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}
+                                >
+                                    <div className="text-muted-foreground/50">
+                                        <GripVertical className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="font-medium text-foreground">{opt.label}</div>
+                                        {opt.description && (
+                                            <div className="text-sm text-muted-foreground">{opt.description}</div>
+                                        )}
+                                    </div>
+                                    <div className="text-xs font-mono font-bold text-muted-foreground/30 bg-muted/50 px-2 py-1 rounded">
+                                        #{currentRank.indexOf(val) + 1}
+                                    </div>
+                                </Reorder.Item>
+                            );
+                        })}
+                    </Reorder.Group>
+                    <p className="text-xs text-center text-muted-foreground mt-4 animate-pulse">
+                        Drag to prioritize most important to least important
+                    </p>
+                </div>
+            );
+
         default: return null;
     }
 }

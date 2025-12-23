@@ -158,3 +158,16 @@ export async function getTelemetryByMove(moveId: string) {
     }
     return data;
 }
+
+export async function getLearningsByMove(moveId: string) {
+    const { data, error } = await supabase
+        .from('blackbox_learnings_industrial')
+        .select('*')
+        .contains('source_ids', [moveId]);
+
+    if (error) {
+        console.error('Error fetching learnings for move:', error);
+        return [];
+    }
+    return data;
+}
