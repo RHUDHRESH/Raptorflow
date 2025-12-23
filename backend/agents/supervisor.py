@@ -82,6 +82,16 @@ class HierarchicalSupervisor:
             return str(response.next_node)
         return str(response.get("next_node", "FINISH"))
 
+    async def delegate_to_specialist(self, specialist_name: str, state: Dict[str, Any], specialist_node: any) -> Dict[str, Any]:
+        """
+        Executes a specialist node with the given instructions.
+        """
+        logger.info(f"Delegating task to specialist: {specialist_name}")
+        # specialist_node is typically a LangGraph node or callable
+        # We pass the state containing instructions
+        result = await specialist_node(state)
+        return result
+
 def create_team_supervisor(llm: any, team_members: List[str], system_prompt: str):
     """Factory function for the HierarchicalSupervisor."""
     return HierarchicalSupervisor(llm, team_members, system_prompt)
