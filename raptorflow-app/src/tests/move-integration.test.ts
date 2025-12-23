@@ -59,4 +59,40 @@ describe('Move Generation & Status Tracking Integration', () => {
         const result = await getMovesStatus('non-existent');
         expect(result).toBeNull();
     });
+
+    it('correctly maps complex Move DB records including refinement and tools', async () => {
+        const { getMovesByCampaign } = await import('@/lib/campaigns');
+
+        const mockDBData = [{
+            id: 'move-uuid-1',
+            campaign_id: 'camp-id',
+            title: 'Hardened Move',
+            description: 'Execute deep research on SaaS founders.',
+            status: 'active',
+            priority: 1,
+            created_at: new Date().toISOString(),
+            tool_requirements: ['Search', 'Copy'],
+            refinement_data: {
+                estimated_effort: 'High',
+                deadline: '2025-12-31',
+                rationale: 'High priority research'
+            }
+        }];
+
+        const { supabase } = await import('@/lib/supabase');
+        (supabase.from as any).mockReturnValueOnce({
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            order: vi.fn().mockResolvedValueOnce({ data: mockDBData, error: null }),
+        });
+
+        const moves = await getMovesByCampaign('camp-id');
+        const m = moves[0];
+
+        expect(m.id).toBe('move-uuid-1');
+        expect(m.description).toBe(mockDBData[0].description);
+        expect(m.owner).toBe('AI Agent'); // Priority 1 heuristic
+        expect(m.toolRequirements).toEqual(['Search', 'Copy']);
+        expect(m.refinementData?.estimated_effort).toBe('High');
+    });
 });
