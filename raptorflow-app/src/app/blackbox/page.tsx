@@ -177,34 +177,34 @@ export default function BlackBoxPage() {
 
     return (
         <AppLayout>
-            <div className="max-w-6xl mx-auto space-y-10 pb-20">
+            <div className="max-w-6xl mx-auto space-y-10 pb-20 px-4 md:px-0">
                 {/* Executive Header */}
-                <div className="flex items-end justify-between border-b border-border pb-6 pt-2">
+                <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-border pb-6 pt-2 gap-6">
                     <div>
-                        <h1 className="text-4xl font-display font-semibold tracking-tight text-foreground flex items-center gap-3">
-                            Blackbox <span className="text-accent/50 italic font-medium text-3xl px-2 py-0.5 rounded bg-accent/5 border border-accent/10">Industrial</span>
+                        <h1 className="text-3xl md:text-4xl font-display font-semibold tracking-tight text-foreground flex items-center gap-3">
+                            Blackbox <span className="text-accent/50 italic font-medium text-2xl md:text-3xl px-2 py-0.5 rounded bg-accent/5 border border-accent/10">Industrial</span>
                         </h1>
                         <p className="text-sm text-muted-foreground font-sans mt-2 max-w-md">
                             The industrial intelligence engine. Outcomes tracked, insights extracted, strategy hardened by evidence.
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                         <Button
                             variant="outline"
                             onClick={handleExportPDF}
-                            className="rounded-lg text-muted-foreground h-10 px-4 font-sans hover:text-accent hover:bg-accent/5"
+                            className="rounded-lg text-muted-foreground h-10 px-4 font-sans hover:text-accent hover:bg-accent/5 text-sm"
                         >
-                            <Download className="w-4 h-4 mr-2" /> Export Summary
+                            <Download className="w-4 h-4 mr-2" /> Export
+                        </Button>
+                        <Button onClick={() => setShowWizard(true)} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 h-10 px-6 font-sans font-medium tracking-tight text-sm">
+                            <Plus className="w-4 h-4 mr-2" /> New Experiment
                         </Button>
                         {experiments.length > 0 && (
-                            <Button variant="ghost" onClick={handleClear} className="rounded-lg text-muted-foreground h-10 font-sans hover:text-red-500 hover:bg-red-50/10">
+                            <Button variant="ghost" onClick={handleClear} className="rounded-lg text-muted-foreground h-10 w-10 p-0 font-sans hover:text-red-500 hover:bg-red-50/10">
                                 <Trash2 className="w-4 h-4" />
                             </Button>
                         )}
-                        <Button onClick={() => setShowWizard(true)} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 h-10 px-6 font-sans font-medium tracking-tight">
-                            <Plus className="w-4 h-4 mr-2" /> New Experiment
-                        </Button>
                     </div>
                 </div>
 
@@ -226,26 +226,26 @@ export default function BlackBoxPage() {
                                 </h2>
                             </div>
                             <div className="grid gap-4">
-                                <div className="p-6 rounded-2xl border border-accent/20 bg-accent/5 backdrop-blur-sm relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <div className="p-5 md:p-6 rounded-2xl border border-accent/20 bg-accent/5 backdrop-blur-sm relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity hidden md:block">
                                         <Brain size={80} />
                                     </div>
-                                    <div className="flex items-start gap-4">
+                                    <div className="flex flex-col md:flex-row items-start gap-4">
                                         <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground shrink-0 shadow-lg shadow-accent/20">
                                             <TrendingUp size={20} />
                                         </div>
                                         <div className="space-y-1">
-                                            <h3 className="font-semibold text-lg font-sans">Scale B2B SaaS Reach via LinkedIn</h3>
+                                            <h3 className="font-semibold text-lg font-sans leading-tight">Scale B2B SaaS Reach via LinkedIn</h3>
                                             <p className="text-sm text-muted-foreground font-sans leading-relaxed">
                                                 Based on the last 4 experiments, LinkedIn Organic outreach has 3.2x higher conversion than cold email.
                                                 Recommendation: Shift 40% of email budget to LinkedIn Content Engine.
                                             </p>
-                                            <div className="pt-4 flex items-center gap-3">
+                                            <div className="pt-4 flex flex-wrap items-center gap-3">
                                                 <Button size="sm" className="rounded-lg h-8 bg-foreground text-background px-4 font-sans text-xs">Apply Pivot</Button>
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    className="rounded-lg h-8 px-4 font-sans text-xs border-border"
+                                                    className="rounded-lg h-8 px-4 font-sans text-xs border-border bg-background/50"
                                                     onClick={handleViewEvidence}
                                                 >
                                                     View Evidence
