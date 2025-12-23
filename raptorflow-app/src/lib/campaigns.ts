@@ -142,6 +142,9 @@ export async function updateMove(move: Move): Promise<void> {
         console.error('Error updating move:', error);
         throw error;
     }
+
+    // Task 31: Also notify backend about status change for agentic logic
+    await updateMoveStatus(move.id, move.status, move.selfReport);
 }
 
 export async function deleteMove(moveId: string): Promise<void> {
@@ -332,5 +335,17 @@ export async function generateWeeklyMoves(campaignId: string): Promise<any> {
 export async function getMovesStatus(campaignId: string): Promise<any> {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     const response = await fetch(`${apiUrl}/api/v1/moves/generate-weekly/${campaignId}/status`);
+    return response.ok ? await response.json() : null;
+}
+
+export async function updateMoveStatus(moveId: string, status: string, result?: any): Promise<any> {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/v1/moves/${moveId}/status`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status, result }),
+    });
     return response.ok ? await response.json() : null;
 }

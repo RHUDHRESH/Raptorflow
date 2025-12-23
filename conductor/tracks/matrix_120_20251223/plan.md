@@ -133,7 +133,7 @@
 - [x] Phase 113: Backend - Implement Cloud Logging structured logs for centralized agent tracing. 021e1a1
 - [x] Phase 114: MLOps - Configure BigQuery scheduled queries for daily Matrix analytical reports. 80cdd80
 - [x] Phase 115: DevOps - Implement "Blue-Green" deployment logic via GitHub Actions and Cloud Run. 5ae053f
-- [ ] Phase 116: Security - Prune IAM roles and enable Cloud Armor (WAF) for Matrix API protection.
+- [~] Phase 116: Security - Prune IAM roles and enable Cloud Armor (WAF) for Matrix API protection.
 - [ ] Phase 117: Monitoring - Setup GCP Error Reporting & Alerts for Matrix "Kill-Switch" triggers.
 - [ ] Phase 118: Verification - Conduct E2E Production Smoke Test: Auth -> Matrix -> Agent Trace.
 - [ ] Phase 119: Performance - Benchmarking: Verify <200ms latency for production Matrix updates.

@@ -1,5 +1,6 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from typing import Any, Dict
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from backend.services.move_service import MoveService, get_move_service
 
@@ -35,3 +36,16 @@ async def get_moves_status(
     if not result:
         raise HTTPException(status_code=404, detail="Status not found.")
     return result
+
+
+@router.patch("/{move_id}/status")
+async def update_move_status(
+    move_id: str,
+    status_update: Dict[str, Any],
+    service: MoveService = Depends(get_move_service),
+):
+    """SOTA Endpoint: Updates the status and result of a specific move."""
+    await service.update_move_status(
+        move_id, status_update.get("status"), status_update.get("result")
+    )
+    return {"status": "updated", "move_id": move_id}

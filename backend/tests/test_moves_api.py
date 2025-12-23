@@ -44,3 +44,23 @@ def test_get_moves_status_endpoint():
         assert response.json()["status"] == "execution"
     finally:
         app.dependency_overrides.clear()
+
+
+def test_update_move_status_endpoint():
+    """Verify that the move status PATCH endpoint returns 200."""
+    from backend.api.v1.moves import get_move_service
+
+    mock_service = MagicMock()
+    mock_service.update_move_status = AsyncMock()
+
+    app.dependency_overrides[get_move_service] = lambda: mock_service
+
+    try:
+        response = client.patch(
+            "/v1/moves/test-move-id/status",
+            json={"status": "completed", "result": {"success": True}},
+        )
+        assert response.status_code == 200
+        assert response.json()["status"] == "updated"
+    finally:
+        app.dependency_overrides.clear()

@@ -118,6 +118,7 @@ export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete, onRef
 
         await updateMove(updated);
         onUpdate(updated);
+        if (onRefresh) onRefresh();
         setCompleting(false);
         onOpenChange(false);
         toast.success('Move completed successfully!');
