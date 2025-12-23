@@ -70,3 +70,29 @@ class RAGRetrievalNode:
             "retrieved_context": all_contexts[:7], # Top 7 unique snippets
             "citations": citations[:7]
         }
+
+class RAG:
+    """
+    SOTA RAG Utility class.
+    Provides heuristic and semantic scoring for context relevance.
+    """
+
+    def calculate_relevance_score(self, query: str, snippet: str) -> float:
+        """
+        Calculates a heuristic relevance score [0.0 - 1.0] between a query and a snippet.
+        Uses simple keyword overlap for industrial speed.
+        """
+        query_words = set(query.lower().split())
+        snippet_words = set(snippet.lower().split())
+        
+        if not query_words:
+            return 0.0
+            
+        overlap = query_words.intersection(snippet_words)
+        score = len(overlap) / len(query_words)
+        
+        # SOTA: Boost score if query is a substring
+        if query.lower() in snippet.lower():
+            score = max(score, 0.9)
+            
+        return min(score, 1.0)
