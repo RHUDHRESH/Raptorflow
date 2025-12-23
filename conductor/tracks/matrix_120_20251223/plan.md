@@ -42,7 +42,7 @@
 - [x] Phase 035: Conductor - User Manual Verification 'Agentic Spine' (Protocol in workflow.md)
 
 #### Block D: Skills & Tool Taxonomy (Phases 36-50)
-- [ ] Phase 036: Backend - Define `MatrixSkill` base class and registration system.
+- [x] Phase 036: Backend - Define `MatrixSkill` base class and registration system. 1baffca
 - [ ] Phase 037: Backend - Implement `EmergencyHaltSkill` (The Kill-Switch).
 - [ ] Phase 038: Backend - Implement `InferenceThrottlingSkill` (Rate limiting).
 - [ ] Phase 039: Backend - Implement `CachePurgeSkill` (Upstash management).
