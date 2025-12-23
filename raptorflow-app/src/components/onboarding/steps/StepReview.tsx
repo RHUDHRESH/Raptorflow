@@ -81,7 +81,12 @@ export function StepReview({ data, onBack, onComplete, goToStep }: StepReviewPro
                     <div className={styles.reviewContent}>
                         <div className={styles.reviewItem}>
                             <span className={styles.reviewLabel}>Customer Type</span>
-                            <span className={styles.reviewValue}>{cohorts.customerType.toUpperCase()}</span>
+                            <span className={styles.reviewValue}>
+                                {Array.isArray(cohorts.customerType)
+                                    ? cohorts.customerType.map(t => t.toUpperCase()).join(', ')
+                                    : (cohorts.customerType ? cohorts.customerType.toUpperCase() : '—')
+                                }
+                            </span>
                         </div>
                         <div className={styles.reviewItem}>
                             <span className={styles.reviewLabel}>Buyer</span>

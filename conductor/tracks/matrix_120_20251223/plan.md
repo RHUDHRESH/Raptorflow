@@ -47,7 +47,7 @@
 - [x] Phase 038: Backend - Implement `InferenceThrottlingSkill` (Rate limiting). 8980b21
 - [x] Phase 039: Backend - Implement `CachePurgeSkill` (Upstash management). b31e9bc
 - [x] Phase 040: Backend - Write Red Phase tests for `EmergencyHaltSkill.execute()`. 9c417b3
-- [ ] Phase 041: Backend - Implement `EmergencyHaltSkill.execute()` with thread-kill logic.
+- [~] Phase 041: Backend - Implement `EmergencyHaltSkill.execute()` with thread-kill logic.
 - [ ] Phase 042: Backend - Implement `ResourceScalingSkill` (Mock for Cloud Run scaling).
 - [ ] Phase 043: Backend - Implement `ArchiveLogsSkill` (GCS trigger).
 - [ ] Phase 044: Backend - Implement `RetrainTriggerSkill` (MLOps lifecycle).

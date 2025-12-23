@@ -126,7 +126,18 @@ export function QuestionFlowWizard() {
         const parts = path.split('.');
         let value: any = data;
         for (const part of parts) { value = value?.[part]; }
-        return value || (path.includes('revenueModel') || path.includes('customerType') || path.includes('contextFiles') ? [] : '');
+
+        // Handle array fields - return empty array if undefined
+        const arrayFields = [
+            'revenueModel', 'customerType', 'contextFiles', 'primaryDrivers',
+            'buyerRoleChips', 'primaryRegions', 'languages', 'constraints',
+            'currentChannels', 'currentTools', 'proofTypes'
+        ];
+        const fieldName = parts[parts.length - 1];
+        if (arrayFields.includes(fieldName) && !value) {
+            return [];
+        }
+        return value ?? '';
     }, [data]);
 
     const setValue = useCallback((path: string, value: any) => {
