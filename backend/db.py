@@ -25,8 +25,6 @@ def get_pool() -> AsyncConnectionPool:
 async def get_db_connection():
     """Async context manager for psycopg connection from the pool."""
     pool = get_pool()
-    if not pool.opened:
-        await pool.open()
     async with pool.connection() as conn:
         yield conn
 
@@ -41,9 +39,7 @@ class SupabaseSaver(PostgresSaver):
 async def init_checkpointer():
     """Initializes the LangGraph Postgres checkpointer using the global pool."""
     pool = get_pool()
-    if not pool.opened:
-        await pool.open()
-    
+
     # In LangGraph 0.2.x, PostgresSaver.from_conn_string or constructor with pool
     checkpointer = SupabaseSaver(pool)
     return checkpointer
