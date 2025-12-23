@@ -113,7 +113,7 @@
 - [x] Phase 095: Frontend - Build `DriftChart` using Shadcn/Charts. 8f2e8b5
 - [x] Phase 096: Frontend - Build `FinancialBurnChart` (Daily/Monthly view). 6c65c87
 - [x] Phase 097: Frontend - Implement `InferenceLogExplorer` (JetBrains Mono style). 849819b
-- [ ] Phase 098: Frontend - Implement `LoadingSkeletons` and `EmptyStates`.
+- [x] Phase 098: Frontend - Implement `LoadingSkeletons` and `EmptyStates`. abc217c
 - [ ] Phase 099: Frontend - Conduct 100% Phase Verification & Final Smoke Test.
 - [ ] Phase 100: Conductor - User Manual Verification 'The Boardroom View' (Protocol in workflow.md)
 
