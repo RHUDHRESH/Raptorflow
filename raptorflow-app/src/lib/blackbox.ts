@@ -171,3 +171,35 @@ export async function getLearningsByMove(moveId: string) {
     }
     return data;
 }
+
+// =====================================
+// Agentic Triggers (API)
+// =====================================
+
+const API_BASE = '/api/proxy/blackbox'; // Assumes Next.js rewrite or proxy
+
+export async function triggerLearningCycle(moveId: string) {
+    try {
+        const response = await fetch(`${API_BASE}/learning/cycle/${moveId}`, {
+            method: 'POST'
+        });
+        return await response.json();
+    } catch (err) {
+        console.error('Failed to trigger learning cycle:', err);
+        return { status: 'error', message: String(err) };
+    }
+}
+
+export async function runSpecialistAgent(agentId: string, moveId: string, stateOverride?: any) {
+    try {
+        const response = await fetch(`${API_BASE}/specialist/run/${agentId}/${moveId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(stateOverride || {})
+        });
+        return await response.json();
+    } catch (err) {
+        console.error('Failed to run specialist agent:', err);
+        return { status: 'error', message: String(err) };
+    }
+}

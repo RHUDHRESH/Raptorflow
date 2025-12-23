@@ -19,6 +19,8 @@ import {
 import { cn } from '@/lib/utils';
 import { Experiment } from '@/lib/blackbox-types';
 import { Button } from '@/components/ui/button';
+import { triggerLearningCycle } from '@/lib/blackbox';
+import { toast } from 'sonner';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -55,6 +57,7 @@ export function ExperimentCard({
     onEdit
 }: ExperimentCardProps) {
     const [isSwapping, setIsSwapping] = React.useState(false);
+    const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
     const isDraft = experiment.status === 'draft';
     const isLaunched = experiment.status === 'launched';
@@ -66,6 +69,24 @@ export function ExperimentCard({
             onSwap?.(experiment.id);
             setIsSwapping(false);
         }, 400);
+    };
+
+    const handleAnalyze = async () => {
+        setIsAnalyzing(true);
+        try {
+            const result = await triggerLearningCycle(experiment.id);
+            if (result.status === 'cycle_complete') {
+                toast.success('Blackbox analysis complete', {
+                    description: `Generated ${result.findings_count} new strategic learnings.`
+                });
+            } else {
+                toast.error('Analysis failed', { description: result.message });
+            }
+        } catch (err) {
+            toast.error('Analysis error');
+        } finally {
+            setIsAnalyzing(false);
+        }
     };
 
     return (
@@ -154,10 +175,24 @@ export function ExperimentCard({
                     </Button>
                 )}
 
-                {isCheckedIn && experiment.self_report && (
-                    <span className="text-xs font-medium text-zinc-500 capitalize font-sans">
-                        {experiment.self_report.outcome}
-                    </span>
+                {isCheckedIn && (
+                    <div className="flex items-center gap-2">
+                        {experiment.self_report && (
+                            <span className="text-xs font-medium text-zinc-500 capitalize font-sans">
+                                {experiment.self_report.outcome}
+                            </span>
+                        )}
+                        <Button
+                            onClick={handleAnalyze}
+                            disabled={isAnalyzing}
+                            size="sm"
+                            variant="outline"
+                            className="h-8 rounded-lg font-sans text-xs px-3 border-accent text-accent hover:bg-accent/10"
+                        >
+                            {isAnalyzing ? <RefreshCcw className="w-3 h-3 animate-spin mr-1.5" /> : null}
+                            {isAnalyzing ? "Wait" : "Analyze"}
+                        </Button>
+                    </div>
                 )}
 
                 <DropdownMenu>

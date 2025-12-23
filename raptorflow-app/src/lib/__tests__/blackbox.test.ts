@@ -17,10 +17,16 @@ vi.mock("../supabase", () => ({
   }
 }));
 
-import { getOutcomesByCampaign, getEvidencePackage, getLearningsByMove } from "../blackbox";
+import {
+  getOutcomesByCampaign,
+  getEvidencePackage,
+  getLearningsByMove,
+  triggerLearningCycle,
+  runSpecialistAgent
+} from "../blackbox";
 
 describe("Blackbox API Integration", () => {
-  
+
   it("should fetch outcomes for a campaign from supabase", async () => {
     const outcomes = await getOutcomesByCampaign("test-campaign-id");
     expect(Array.isArray(outcomes)).toBe(true);
@@ -34,5 +40,29 @@ describe("Blackbox API Integration", () => {
   it("should fetch learnings for a move", async () => {
     const learnings = await getLearningsByMove("test-move-id");
     expect(Array.isArray(learnings)).toBe(true);
+  });
+
+  it("should trigger learning cycle via fetch", async () => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        json: () => Promise.resolve({ status: 'success' })
+      })
+    ) as any;
+
+    const result = await triggerLearningCycle("test-move-id");
+    expect(result.status).toBe('success');
+    expect(global.fetch).toHaveBeenCalled();
+  });
+
+  it("should run specialist agent via fetch", async () => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        json: () => Promise.resolve({ status: 'success' })
+      })
+    ) as any;
+
+    const result = await runSpecialistAgent("roi_analyst", "test-move-id");
+    expect(result.status).toBe('success');
+    expect(global.fetch).toHaveBeenCalled();
   });
 });
