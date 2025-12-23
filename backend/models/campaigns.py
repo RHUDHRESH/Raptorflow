@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
@@ -28,3 +28,20 @@ class Campaign(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.now)
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class GanttItem(BaseModel):
+    """SOTA structured task for Gantt visualization."""
+
+    id: UUID = Field(default_factory=uuid4)
+    task: str
+    start_date: datetime
+    end_date: datetime
+    dependency_ids: List[UUID] = Field(default_factory=list)
+    progress: float = 0.0  # 0.0 to 1.0
+
+
+class GanttChart(BaseModel):
+    """Collection of tasks for a campaign timeline."""
+
+    items: List[GanttItem]
