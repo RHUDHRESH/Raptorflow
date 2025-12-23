@@ -60,28 +60,40 @@ async def init_checkpointer():
 
 
 async def vector_search(
-    workspace_id: str,
-    embedding: list[float],
-    table: str = "muse_assets",
+    workspace_id: str, 
+    embedding: list[float], 
+    table: str = "muse_assets", 
     limit: int = 5,
+    filters: Optional[dict] = None
 ):
     """
     Performs a pgvector similarity search, STRICTLY scoped to workspace_id.
+    Supports optional metadata filtering.
     """
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
-            # Enforce workspace isolation in the SQL
+            # Base query
             query = f"""
                 SELECT id, content, metadata, 1 - (embedding <=> %s::vector) as similarity
                 FROM {table}
                 WHERE metadata->>'workspace_id' = %s
+            """
+            params = [embedding, workspace_id]
+            
+            # Dynamically add filters
+            if filters:
+                for key, value in filters.items():
+                    query += f" AND metadata->>'{key}' = %s"
+                    params.append(str(value))
+            
+            query += f"""
                 AND 1 - (embedding <=> %s::vector) > 0.7
                 ORDER BY embedding <=> %s::vector
                 LIMIT %s;
             """
-            await cur.execute(
-                query, (embedding, workspace_id, embedding, embedding, limit)
-            )
+            params.extend([embedding, embedding, limit])
+            
+            await cur.execute(query, tuple(params))
             results = await cur.fetchall()
             return results
 
