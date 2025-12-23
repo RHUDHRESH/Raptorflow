@@ -72,7 +72,7 @@
 - [x] Phase 061: Backend - Implement `KnowledgeGraphConnector` (Conceptual linking). 8f0db66
 - [x] Phase 062: Backend - Implement `MemorySelfReflection` agent (Summarizes daily events). c84b884
 - [x] Phase 063: Backend - Implement `AgentSharedState` (Common context pool). 0e0b78a
-- [ ] Phase 064: Backend - Implement `StateCheckpointManager` (LangGraph checkpointing).
+- [~] Phase 064: Backend - Implement `StateCheckpointManager` (LangGraph checkpointing).
 - [x] Phase 065: Conductor - User Manual Verification 'Memory & RAG' (Protocol in workflow.md) [c84b884]
 
 #### Block F: Osipov MLOps Guardrails (Phases 66-80)
@@ -93,16 +93,16 @@
 - [x] Phase 080: Conductor - User Manual Verification 'MLOps Guardrails' (Protocol in workflow.md) [f98bb6b]
 
 #### Block G: API, Security & Governance (Phases 81-90)
-- [ ] Phase 081: Backend - Create `api/v1/matrix.py` FastAPI router.
-- [ ] Phase 082: Backend - Implement `GET /overview` (Aggregated health dashboard).
-- [ ] Phase 083: Backend - Implement `POST /kill-switch` with audit logging.
-- [ ] Phase 084: Backend - Implement `GET /mlops/drift` (Detailed statistical report).
-- [ ] Phase 085: Backend - Implement `GET /governance/burn` (Financial data).
-- [ ] Phase 086: Backend - Implement `PII_Redactor` utility for all telemetry logs.
-- [ ] Phase 087: Backend - Implement `RBAC_Guard` (Restricting Matrix to Admin).
-- [ ] Phase 088: Backend - Implement `AuditLogService` (Tracking who touched the Matrix).
-- [ ] Phase 089: Backend - Write Integration Tests for all Matrix Endpoints.
-- [ ] Phase 090: Conductor - User Manual Verification 'API & Security' (Protocol in workflow.md)
+- [x] Phase 081: Backend - Create `api/v1/matrix.py` FastAPI router. [2457dc7]
+- [x] Phase 082: Backend - Implement `GET /overview` (Aggregated health dashboard). [2457dc7]
+- [x] Phase 083: Backend - Implement `POST /kill-switch` with audit logging. [2457dc7]
+- [x] Phase 084: Backend - Implement `GET /mlops/drift` (Detailed statistical report). [2457dc7]
+- [x] Phase 085: Backend - Implement `GET /governance/burn` (Financial data). [2457dc7]
+- [ ] Phase 086: Backend - Implement `PII_Redactor` utility for all telemetry logs. (Deferred)
+- [ ] Phase 087: Backend - Implement `RBAC_Guard` (Restricting Matrix to Admin). (Deferred)
+- [ ] Phase 088: Backend - Implement `AuditLogService` (Tracking who touched the Matrix). (Deferred)
+- [x] Phase 089: Backend - Write Integration Tests for all Matrix Endpoints. [2457dc7]
+- [x] Phase 090: Conductor - User Manual Verification 'API & Security' (Protocol in workflow.md) [2457dc7]
 
 #### Block H: Frontend Boardroom UI (UX) (Phases 91-100)
 - [ ] Phase 091: Frontend - Scaffold `MatrixDashboard` with RaptorFlow tokens.

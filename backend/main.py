@@ -8,6 +8,7 @@ from backend.api.v1.blackbox_memory import router as blackbox_memory_router
 from backend.api.v1.blackbox_roi import router as blackbox_roi_router
 from backend.api.v1.blackbox_learning import router as blackbox_learning_router
 from backend.api.v1.campaigns import router as campaigns_router
+from backend.api.v1.matrix import router as matrix_router
 
 app = FastAPI(title="RaptorFlow Agentic Spine")
 
@@ -19,6 +20,7 @@ app.include_router(blackbox_memory_router)
 app.include_router(blackbox_roi_router)
 app.include_router(blackbox_learning_router)
 app.include_router(campaigns_router)
+app.include_router(matrix_router)
 
 
 # Global Exception Handler
