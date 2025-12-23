@@ -106,7 +106,7 @@
 - [x] Phase 090: Conductor - User Manual Verification 'API & Security' (Protocol in workflow.md) [2457dc7]
 
 #### Block H: Frontend Boardroom UI (UX) (Phases 91-100)
-- [ ] Phase 091: Frontend - Scaffold `MatrixDashboard` with RaptorFlow tokens.
+- [x] Phase 091: Frontend - Scaffold `MatrixDashboard` with RaptorFlow tokens. 93d4302
 - [ ] Phase 092: Frontend - Implement `SystemStatusHeader` (RAG status indicator).
 - [ ] Phase 093: Frontend - Implement `AgentPoolList` (Real-time active threads).
 - [ ] Phase 094: Frontend - Implement `GlobalKillSwitchButton` with safety double-tap.
