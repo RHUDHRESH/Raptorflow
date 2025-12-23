@@ -1,7 +1,31 @@
+from enum import Enum
 from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from datetime import datetime
+
+
+class TelemetryEventType(str, Enum):
+    INFERENCE_START = "inference_start"
+    INFERENCE_END = "inference_end"
+    AGENT_START = "agent_start"
+    AGENT_END = "agent_end"
+    TOOL_START = "tool_start"
+    TOOL_END = "tool_end"
+    ERROR = "error"
+    SYSTEM_HALT = "system_halt"
+
+
+class TelemetryEvent(BaseModel):
+    """Strictly validated telemetry event for the Matrix."""
+    event_id: str = Field(..., description="Unique event identifier")
+    timestamp: datetime = Field(default_factory=datetime.now)
+    event_type: TelemetryEventType
+    source: str = Field(..., description="Agent or component name")
+    payload: Dict[str, Any] = Field(default_factory=dict)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TelemetryLog(BaseModel):
