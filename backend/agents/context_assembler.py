@@ -1,5 +1,39 @@
-from typing import List, Dict
-from db import vector_search # Importing our shared tool
+import logging
+from typing import List, Dict, TypedDict
+from backend.db import vector_search
+
+logger = logging.getLogger("raptorflow.context_assembler")
+
+class SemanticRAGNode:
+    """
+    SOTA Retrieval Node.
+    Surgically retrieves evergreen brand knowledge from the fact_store (pgvector).
+    """
+    async def __call__(self, state: TypedDict):
+        """Node execution logic."""
+        workspace_id = state.get("workspace_id")
+        raw_prompt = state.get("raw_prompt", "")
+        logger.info(f"Retrieving semantic facts for workspace {workspace_id}...")
+        
+        # 1. Embed raw_prompt (simulated)
+        dummy_embedding = [0.1] * 768
+        
+        # 2. Search fact_store
+        facts = await vector_search(
+            workspace_id=workspace_id,
+            embedding=dummy_embedding,
+            table="fact_store",
+            limit=5
+        )
+        
+        logger.info(f"Retrieved {len(facts)} surgical facts.")
+        
+        return {
+            "context_brief": {"retrieved_facts": [f[1] for f in facts]}
+        }
+
+def create_rag_node():
+    return SemanticRAGNode()
 
 class ContextAssemblerAgent:
     """

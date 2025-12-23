@@ -1,26 +1,45 @@
-from langchain_core.messages import SystemMessage, HumanMessage
+import logging
+from typing import List, Literal, TypedDict
+from langchain_core.messages import BaseMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Field
-from typing import List, Literal
-from inference import InferenceProvider
 
-class TaskStep(BaseModel):
-    agent: str = Field(description="The specialist to call (email, social, meme, strategy)")
-    instruction: str = Field(description="Specific instruction for this step")
+logger = logging.getLogger("raptorflow.supervisor")
 
-class MissionPlan(BaseModel):
-    steps: List[TaskStep]
-    rationale: str
+class RouterOutput(BaseModel):
+    """SOTA Structured output for the Supervisor router."""
+    next_node: str = Field(description="The next specialist crew to call, or 'FINISH' to deliver to user.")
+    instructions: str = Field(description="Specific sub-task instructions for the specialist.")
 
-class SupervisorAgent:
-    def __init__(self):
-        self.llm = InferenceProvider.get_model(model_tier="smart").with_structured_output(MissionPlan)
-
-    async def create_plan(self, brief: dict) -> MissionPlan:
-        system_msg = SystemMessage(content="""
-            You are the RaptorFlow Mission Supervisor. 
-            Break down the marketing goal into a sequence of agent calls.
-            Available Agents: email, social, meme, strategy.
-            Be surgical. Do not add unnecessary steps.
-        """)
+class HierarchicalSupervisor:
+    """
+    SOTA Supervisor Node.
+    Orchestrates specialized crews with surgical precision.
+    """
+    def __init__(self, llm: any, team_members: List[str], system_prompt: str):
+        self.team_members = team_members
+        options = team_members + ["FINISH"]
         
-        return await self.llm.ainvoke([system_msg, HumanMessage(content=f"BRIEF: {brief}")])
+        self.prompt = ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
+            MessagesPlaceholder(variable_name="messages"),
+            (
+                "system",
+                "Given the conversation above, who should act next?"
+                " Or should we FINISH? Select one of: {options}"
+            ),
+        ]).partial(options=str(options))
+        
+        self.chain = self.prompt | llm.with_structured_output(RouterOutput)
+
+    async def __call__(self, state: TypedDict):
+        """The actual node logic, callable for LangGraph."""
+        logger.info("Supervisor evaluating state...")
+        # In a real SOTA system, we handle retry logic and JSON repair here
+        response = await self.chain.ainvoke(state)
+        logger.info(f"Supervisor delegated to: {response.next_node}")
+        return {"next": response.next_node, "instructions": response.instructions}
+
+def create_team_supervisor(llm: any, team_members: List[str], system_prompt: str):
+    """Factory function for the HierarchicalSupervisor."""
+    return HierarchicalSupervisor(llm, team_members, system_prompt)
