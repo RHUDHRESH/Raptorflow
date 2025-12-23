@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Optional, Any
 from google.cloud import storage
 from backend.core.config import get_settings
@@ -126,3 +127,49 @@ class BigQueryMatrixLoader:
         except Exception as e:
             logger.error(f"Failed to create BigQuery view: {e}")
             return False
+
+
+class StorageEfficiencyAuditor:
+    """
+    Auditor for tracking GCS storage costs and efficiency.
+    Follows Osipov's patterns for cloud resource governance.
+    """
+
+    def __init__(self, bucket_name: str):
+        self.bucket_name = bucket_name
+        self._client: Optional[storage.Client] = None
+
+    @property
+    def client(self) -> storage.Client:
+        if self._client is None:
+            self._client = storage.Client()
+        return self._client
+
+    def generate_efficiency_report(self) -> dict:
+        """
+        Calculates storage metrics and estimated costs.
+        """
+        try:
+            bucket = self.client.get_bucket(self.bucket_name)
+            blobs = bucket.list_blobs()
+            
+            total_bytes = 0
+            blob_count = 0
+            for blob in blobs:
+                total_bytes += blob.size
+                blob_count += 1
+            
+            total_mb = total_bytes / (1024 * 1024)
+            # Rough estimate based on GCP Standard Storage ($0.02 per GB)
+            monthly_cost = (total_bytes / (1024**3)) * 0.02
+            
+            return {
+                "bucket": self.bucket_name,
+                "total_size_mb": total_mb,
+                "blob_count": blob_count,
+                "estimated_monthly_cost": monthly_cost,
+                "timestamp": datetime.now().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Failed to generate storage efficiency report: {e}")
+            return {"error": str(e)}
