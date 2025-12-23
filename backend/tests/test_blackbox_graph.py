@@ -114,20 +114,24 @@ def test_roi_analyst_agent():
 
     
 
-    # Mock LLM ainvoke
+    # Mock LLM ainvoke using patch.object to avoid Pydantic validation
 
     from unittest.mock import AsyncMock
 
-    agent.llm.ainvoke = AsyncMock(return_value=MagicMock(content="Attribution complete: 200% ROI"))
+    with patch.object(agent.llm, "ainvoke", new_callable=AsyncMock) as mock_ainvoke:
 
-    
+        mock_ainvoke.return_value = MagicMock(content="Attribution complete: 200% ROI")
 
-    state = {"move_id": "m1", "outcomes": [{"value": 100}]}
+        
 
-    result = asyncio.run(agent.run(state))
+        state = {"move_id": "m1", "outcomes": [{"value": 100}]}
 
-    
+        result = asyncio.run(agent.run(state))
 
-    assert "attribution_report" in result
+        
 
-    assert "ROI" in result["attribution_report"]
+        assert "attribution_report" in result
+
+        assert "ROI" in result["attribution_report"]
+
+
