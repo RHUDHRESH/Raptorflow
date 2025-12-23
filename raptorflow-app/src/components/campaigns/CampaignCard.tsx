@@ -4,6 +4,7 @@ import React from 'react';
 import { Campaign, OBJECTIVE_LABELS, CHANNEL_LABELS } from '@/lib/campaigns-types';
 import { ChevronRight } from 'lucide-react';
 import { InferenceStatusIndicator } from './InferenceStatusIndicator';
+import { useInferenceStatus } from '@/hooks/useInferenceStatus';
 
 interface CampaignCardProps {
     campaign: Campaign;
@@ -18,6 +19,9 @@ interface CampaignCardProps {
 }
 
 export function CampaignCard({ campaign, progress, activeMove, onClick }: CampaignCardProps) {
+    const { status: agentStatus } = useInferenceStatus(
+        campaign.status === 'active' && !activeMove ? campaign.id : null
+    );
 
     const statusColors: Record<Campaign['status'], string> = {
         planned: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
@@ -73,7 +77,7 @@ export function CampaignCard({ campaign, progress, activeMove, onClick }: Campai
                     {/* Inference Indicator */}
                     {campaign.status === 'active' && !activeMove && (
                         <div className="mb-3">
-                            <InferenceStatusIndicator status="generating" />
+                            <InferenceStatusIndicator status={agentStatus === 'idle' ? 'generating' : agentStatus === 'complete' ? 'complete' : agentStatus === 'error' ? 'error' : 'generating'} />
                         </div>
                     )}
 

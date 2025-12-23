@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Campaign } from '@/lib/campaigns-types';
-import { getCampaigns } from '@/lib/campaigns';
+import { getCampaigns, getCampaignProgress, getMovesByCampaign } from '@/lib/campaigns';
 import { CampaignCard } from '@/components/campaigns/CampaignCard';
 import { CampaignEmptyState } from '@/components/campaigns/CampaignEmptyState';
 import { NewCampaignWizard } from '@/components/campaigns/NewCampaignWizard';
@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { StrategicPivotCard } from '@/components/campaigns/StrategicPivotCard';
 import { Sparkles, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCampaigns } from '@/hooks/useCampaigns';
+import { InferenceErrorBoundary } from '@/components/layout/InferenceErrorBoundary';
 
 export default function CampaignsPage() {
     const { campaigns, refresh: refreshCampaigns } = useCampaigns(10000);
