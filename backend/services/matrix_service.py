@@ -1,6 +1,7 @@
 from typing import Dict, Optional, Any
 from datetime import datetime
-from backend.models.telemetry import SystemState, AgentState, AgentHealthStatus
+from backend.models.telemetry import SystemState, AgentState, AgentHealthStatus, TelemetryEvent
+from backend.services.cache import get_cache
 
 
 class MatrixService:
@@ -8,6 +9,7 @@ class MatrixService:
 
     def __init__(self):
         self._state = SystemState()
+        self._redis = get_cache()
 
     def get_system_overview(self) -> SystemState:
         """Retrieves the current global system state."""
@@ -15,8 +17,23 @@ class MatrixService:
 
     async def initialize_telemetry_stream(self) -> bool:
         """Initializes connection to telemetry providers (e.g., Upstash)."""
-        # Implementation will come in Phase 005
-        return True
+        try:
+            # Simple ping to verify connection
+            await self._redis.ping()
+            return True
+        except Exception as e:
+            print(f"ERROR: Failed to initialize telemetry stream: {e}")
+            return False
+
+    async def emit_event(self, event: TelemetryEvent) -> bool:
+        """Emits a telemetry event to the live stream."""
+        try:
+            # Push to a Redis stream or list for real-time dashboard
+            await self._redis.xadd("matrix_telemetry", {"event": event.model_dump_json()})
+            return True
+        except Exception as e:
+            print(f"ERROR: Failed to emit telemetry event: {e}")
+            return False
 
     async def capture_agent_heartbeat(
         self, agent_id: str, task: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None
