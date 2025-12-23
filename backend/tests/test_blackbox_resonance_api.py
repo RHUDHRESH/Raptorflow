@@ -56,3 +56,41 @@ def test_get_evidence_package_endpoint():
     mock_service.get_evidence_package.assert_called_with(learning_id)
 
     app.dependency_overrides.clear()
+
+
+def test_get_campaign_roi_endpoint():
+    mock_service = MagicMock()
+    mock_service.compute_roi.return_value = {"roi": 1.5}
+    app.dependency_overrides[get_blackbox_service] = lambda: mock_service
+
+    campaign_id = uuid4()
+    response = client.get(f"/v1/blackbox/roi/campaign/{campaign_id}")
+    assert response.status_code == 200
+    assert response.json()["roi"] == 1.5
+    mock_service.compute_roi.assert_called()
+
+    app.dependency_overrides.clear()
+
+
+def test_get_roi_matrix_endpoint():
+    mock_service = MagicMock()
+    mock_service.get_roi_matrix_data.return_value = [{"campaign_id": "test"}]
+    app.dependency_overrides[get_blackbox_service] = lambda: mock_service
+
+    response = client.get("/v1/blackbox/roi/matrix")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+    app.dependency_overrides.clear()
+
+
+def test_get_momentum_score_endpoint():
+    mock_service = MagicMock()
+    mock_service.calculate_momentum_score.return_value = 0.85
+    app.dependency_overrides[get_blackbox_service] = lambda: mock_service
+
+    response = client.get("/v1/blackbox/roi/momentum")
+    assert response.status_code == 200
+    assert response.json()["momentum_score"] == 0.85
+
+    app.dependency_overrides.clear()
