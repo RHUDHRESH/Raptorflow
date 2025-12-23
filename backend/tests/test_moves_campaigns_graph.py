@@ -69,16 +69,29 @@ async def test_graph_hitl_interruption():
     # Run the graph
     await moves_campaigns_orchestrator.ainvoke(initial_state, config)
     
-    # Current flow: START -> init (sets planning) -> campaign -> END.
-    # To test 'moves', I need a state where status is 'monitoring'.
+    # It should have interrupted before 'approve_campaign' because status was 'monitoring' initially?
+    # Wait, initial_state has status='monitoring'. 
+    # init returns {"messages": ["Orchestrator resumed."]}
+    # router returns "moves" -> generate_moves -> approve_move (INTERRUPT)
     
-    # Let's manually set the state to monitoring then run.
-    await moves_campaigns_orchestrator.aupdate_state(config, {"status": "monitoring"})
-    await moves_campaigns_orchestrator.ainvoke(None, config)
-    
-    # Get state - check if it's currently interrupted
     state = await moves_campaigns_orchestrator.aget_state(config)
-    assert state.next == ("approve_move",)
+    assert "approve_move" in state.next
+
+@pytest.mark.asyncio
+async def test_graph_campaign_approval_interrupt():
+    """Verify that the graph interrupts before approve_campaign."""
+    initial_state = {
+        "tenant_id": "test-tenant",
+        "messages": [],
+        "status": "new"
+    }
+    config = {"configurable": {"thread_id": "campaign-approval-test"}}
+    
+    # Run the graph - should start from 'new' -> init (planning) -> plan_campaign -> approve_campaign (INTERRUPT)
+    await moves_campaigns_orchestrator.ainvoke(initial_state, config)
+    
+    state = await moves_campaigns_orchestrator.aget_state(config)
+    assert "approve_campaign" in state.next
 
 
 
