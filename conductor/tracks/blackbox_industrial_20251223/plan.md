@@ -45,12 +45,12 @@
 - [x] Task 36: Define Graph Node: `reflect_and_validate_node` (Self-correction) [2407df3]
 - [x] Task 37: Implement Conditional Edges for Graph (Retry on low confidence) [2407df3]
 - [x] Task 38: Integrate `BlackboxService` into LangGraph nodes [441dd10]
-- [ ] Task 39: Write Integration Test: `test_blackbox_graph_execution`
-- [x] Task 40: Conductor - User Manual Verification 'LangGraph Spine' [d4df63c]
+- [x] Task 39: Write Integration Test: `test_blackbox_graph_execution` [2b3f11e]
+- [ ] Task 40: Conductor - User Manual Verification 'LangGraph Spine'
 
 ## Phase 5: Multi-Agent Specialists (Phases 41-50)
-- [ ] Task 41: Implement `BlackboxSpecialist` (Base Agent Class)
-- [ ] Task 42: Create `ROI_Analyst_Agent` (System prompts focused on attribution)
+- [x] Task 41: Implement `BlackboxSpecialist` (Base Agent Class) [c31d6cf]
+- [~] Task 42: Create `ROI_Analyst_Agent` (System prompts focused on attribution)
 - [ ] Task 43: Create `Strategic_Drift_Agent` (Detects deviation from Foundation)
 - [ ] Task 44: Create `Competitor_Intelligence_Agent` (Feeds on scrape telemetry)
 - [ ] Task 45: Implement Agent Collaboration protocol (Shared state updates)
