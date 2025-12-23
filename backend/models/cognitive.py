@@ -1,8 +1,22 @@
+from enum import Enum
 from typing import List, Optional, Dict, Any
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
+class ModelTier(str, Enum):
+    ULTRA = "ultra"
+    SMART = "reasoning"
+    DRIVER = "driver"
+    MUNDANE = "mundane"
+
+class CognitiveStep(BaseModel):
+    """Represents a single reasoning step in the cognitive engine."""
+    thought: str
+    action: Optional[str] = None
+    observation: Optional[str] = None
+    certainty: float = Field(ge=0.0, le=1.0)
+    tier: ModelTier = ModelTier.DRIVER
 
 class AgentMessage(BaseModel):
     """Represents a single message in an agent conversation."""
