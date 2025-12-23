@@ -1,5 +1,5 @@
 import operator
-from typing import Annotated, List, Dict, TypedDict, Union
+from typing import Annotated, Dict, List, TypedDict
 
 
 class AnalysisState(TypedDict):
@@ -21,30 +21,6 @@ class AnalysisState(TypedDict):
 
 
 def get_blackbox_service():
-    """Lazy-loader for BlackboxService inside graph nodes."""
-    from backend.services.blackbox_service import BlackboxService
-    from backend.core.vault import Vault
-    return BlackboxService(Vault())
-
-
-def ingest_telemetry_node(state: AnalysisState) -> Dict:
-    """
-    Node: Ingests all telemetry associated with the move_id.
-    """
-    service = get_blackbox_service()
-    session = service.vault.get_session()
-    
-    result = (
-        session.table("blackbox_telemetry_industrial")
-        .select("*")
-        .eq("move_id", state["move_id"])
-        .execute()
-    )
-    
-    return {"telemetry_data": result.data, "status": "ingested"}
-
-
-def get_blackbox_service():
     """Dependency provider for BlackboxService."""
     from backend.core.vault import Vault
     from backend.services.blackbox_service import BlackboxService
@@ -53,11 +29,19 @@ def get_blackbox_service():
     return BlackboxService(vault)
 
 
-def ingest_telemetry_node(state: AnalysisState):
-    """Retrieves all telemetry traces for the given move."""
-    service = get_blackbox_service()
-    # In a real scenario, we might need a more specific filter than agent_id
-    # But for this node, we'll simulate fetching by move context
-    traces = service.get_agent_audit_log(agent_id=state["move_id"])
+def ingest_telemetry_node(state: AnalysisState) -> Dict:
+    """
+    Node: Ingests all telemetry associated with the move_id.
+    """
+    from backend.core.vault import Vault
 
-    return {"telemetry_data": traces, "status": "ingested"}
+    session = Vault().get_session()
+
+    result = (
+        session.table("blackbox_telemetry_industrial")
+        .select("*")
+        .eq("move_id", state["move_id"])
+        .execute()
+    )
+
+    return {"telemetry_data": result.data, "status": "ingested"}
