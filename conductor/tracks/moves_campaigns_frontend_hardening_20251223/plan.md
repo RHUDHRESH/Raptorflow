@@ -8,15 +8,15 @@
 - [ ] 5. Task: Conductor - User Manual Verification 'Environment & Config' (Protocol in workflow.md)
 
 ## Phase 2: Code Audit & Connectivity Fixes (Tasks 6-15)
-- [ ] 6. Task: Audit all files in `src/app/moves` and `src/app/campaigns` for broken links
-- [ ] 7. Task: Audit shared UI components used by Moves/Campaigns
-- [ ] 8. Task: Write failing tests for core API fetchers and Supabase hooks
-- [ ] 9. Task: Fix broken imports and map frontend API calls to Backend Agentic nodes
-- [ ] 10. Task: Standardize React state management for asynchronous agent responses
-- [ ] 11. Task: Remove unused or redundant code in the Moves/Campaigns routes
-- [ ] 12. Task: Implement error boundary components for graceful inference failures
-- [ ] 13. Task: Refactor state synchronization to prevent UI flickering during updates
-- [ ] 14. Task: Verify >80% unit test coverage for new/modified frontend logic
+- [x] 6. Task: Audit all files in `src/app/moves` and `src/app/campaigns` for broken links [9376403]
+- [x] 7. Task: Audit shared UI components used by Moves/Campaigns [9376403]
+- [x] 8. Task: Write failing tests for core API fetchers and Supabase hooks [9376403]
+- [x] 9. Task: Fix broken imports and map frontend API calls to Backend Agentic nodes [9376403]
+- [x] 10. Task: Standardize React state management for asynchronous agent responses [9376403]
+- [x] 11. Task: Remove unused or redundant code in the Moves/Campaigns routes [9376403]
+- [x] 12. Task: Implement error boundary components for graceful inference failures [9376403]
+- [x] 13. Task: Refactor state synchronization to prevent UI flickering during updates [9376403]
+- [x] 14. Task: Verify >80% unit test coverage for new/modified frontend logic [9376403]
 - [ ] 15. Task: Conductor - User Manual Verification 'Code Audit & Connectivity' (Protocol in workflow.md)
 
 ## Phase 3: Campaign Module Production Integration (Tasks 16-25)

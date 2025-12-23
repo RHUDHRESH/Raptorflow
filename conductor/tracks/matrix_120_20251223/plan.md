@@ -118,7 +118,7 @@
 - [x] Phase 100: Conductor - User Manual Verification 'The Boardroom View' (Protocol in workflow.md) [99cb345]
 
 #### Block I: Infrastructure, DevOps & Cloud Push (Phases 101-120)
-- [ ] Phase 101: DevOps - Enable GCP APIs: Cloud Run, BigQuery, GCS, Secret Manager, Cloud Build.
+- [x] Phase 101: DevOps - Enable GCP APIs: Cloud Run, BigQuery, GCS, Secret Manager, Cloud Build. 9376403
 - [ ] Phase 102: DevOps - Configure Supabase Project: Enable `pgvector`, Realtime, and Auth.
 - [ ] Phase 103: DevOps - Provision Upstash Redis instance and configure Global Rate Limiting.
 - [ ] Phase 104: DevOps - Create `raptorflow-matrix-sa` (Service Account) with minimal IAM roles.
