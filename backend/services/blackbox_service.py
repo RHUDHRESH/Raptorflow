@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 from functools import wraps
-from typing import Dict, List
+from typing import Any, Dict, List
 from uuid import UUID
 
 from backend.core.vault import Vault
@@ -148,6 +148,54 @@ class BlackboxService:
             .execute()
         )
         return result.data
+
+    def compute_roi(self, campaign_id: UUID) -> Dict[str, Any]:
+        """
+        Calculates the Return on Investment for a campaign.
+        Aggregates costs from all moves and compares against attributed outcomes.
+        """
+        session = self.vault.get_session()
+
+        # 1. Get all moves for this campaign
+        moves_res = (
+            session.table("moves")
+            .select("id")
+            .eq("campaign_id", str(campaign_id))
+            .execute()
+        )
+        move_ids = [m["id"] for m in moves_res.data]
+
+        if not move_ids:
+            return {"roi": 0.0, "total_cost": 0.0, "total_value": 0.0, "status": "no_moves"}
+
+        # 2. Aggregate costs (tokens * estimated price)
+        # Using a fixed price per 1k tokens for ROI calculation placeholder
+        PRICE_PER_1K_TOKENS = 0.02 
+        total_tokens = 0
+        for mid in move_ids:
+            total_tokens += self.calculate_move_cost(mid)
+        
+        total_cost = (total_tokens / 1000.0) * PRICE_PER_1K_TOKENS
+
+        # 3. Aggregate Outcomes (Placeholder attribution)
+        # In production, we would only sum outcomes specifically linked to these move_ids
+        outcomes_res = (
+            session.table("blackbox_outcomes_industrial")
+            .select("value")
+            .execute()
+        )
+        total_value = sum(float(o["value"]) for o in outcomes_res.data)
+
+        # 4. ROI Formula: (Value - Cost) / Cost
+        roi = ((total_value - total_cost) / total_cost) if total_cost > 0 else 0.0
+
+        return {
+            "campaign_id": str(campaign_id),
+            "roi": roi,
+            "total_cost": total_cost,
+            "total_value": total_value,
+            "token_usage": total_tokens
+        }
 
     def attribute_outcome(self, outcome: BlackboxOutcome):
         """Attributes a business outcome to specific campaign/move."""
