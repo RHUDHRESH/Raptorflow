@@ -318,3 +318,17 @@ export async function applyCampaignPivot(campaignId: string, pivotData: any): Pr
     });
     return response.ok ? await response.json() : null;
 }
+
+export async function generateWeeklyMoves(campaignId: string): Promise<any> {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/v1/moves/generate-weekly/${campaignId}`, {
+        method: 'POST',
+    });
+    return response.ok ? await response.json() : null;
+}
+
+export async function getMovesStatus(campaignId: string): Promise<any> {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/v1/moves/generate-weekly/${campaignId}/status`);
+    return response.ok ? await response.json() : null;
+}
