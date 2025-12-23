@@ -1,4 +1,5 @@
 from unittest.mock import AsyncMock, MagicMock
+
 from fastapi.testclient import TestClient
 
 from backend.main import app
@@ -11,6 +12,7 @@ def test_generate_moves_endpoint_success():
     from backend.api.v1.moves import get_move_service
 
     mock_service = MagicMock()
+    mock_service.get_campaign = AsyncMock(return_value=MagicMock())
     mock_service.generate_weekly_moves = AsyncMock(
         return_value={"status": "started", "campaign_id": "test-id"}
     )
