@@ -19,7 +19,7 @@
 - [x] Task 14: Implement `@trace_agent` decorator for automated logging [b6816a6]
 - [x] Task 15: Implement `BlackboxService.get_agent_audit_log(agent_id)` [9c69dd6]
 - [x] Task 16: Write Unit Test: `test_telemetry_capture_integrity` [53e695e]
-- [ ] Task 17: Write Unit Test: `test_bigquery_streaming_latency`
+- [x] Task 17: Write Unit Test: `test_bigquery_streaming_latency` [2fe8d46]
 - [ ] Task 18: Implement `BlackboxService.calculate_move_cost(move_id)`
 - [ ] Task 19: Create `backend/api/v1/blackbox_telemetry.py` endpoints
 - [ ] Task 20: Conductor - User Manual Verification 'Telemetry & Tracing'
