@@ -25,16 +25,16 @@
 - [x] Phase 20: Task: Conductor - User Manual Verification 'Data & Memory' (Protocol in workflow.md) [checkpoint: 1708ee3]
 
 ## Phase 3: Core LangGraph "Cognitive Spine" Framework (Phases 21-30)
-- [ ] Phase 21: Define Global State Schema for the LangGraph workflow.
-- [ ] Phase 22: Implement the Base Graph Orchestrator and START/END nodes.
-- [ ] Phase 23: Build Node Router logic for dynamic task assignment.
-- [ ] Phase 24: Develop Cyclic Flow patterns for iterative refinement.
-- [ ] Phase 25: Implement Persistence Checkpointers in LangGraph (Postgres-backed).
-- [ ] Phase 26: Create the "Supervisor" Agent Node for high-level coordination.
-- [ ] Phase 27: Implement Error Handling and Retry nodes in the graph.
-- [ ] Phase 28: Build the "Human-in-the-Loop" interruption pattern.
-- [ ] Phase 29: Optimize Graph Traversal for parallel node execution.
-- [ ] Phase 30: Task: Conductor - User Manual Verification 'Cognitive Spine' (Protocol in workflow.md)
+- [x] Phase 21: Define Global State Schema for the LangGraph workflow. [8f0db66]
+- [x] Phase 22: Implement the Base Graph Orchestrator and START/END nodes. [8f0db66]
+- [x] Phase 23: Build Node Router logic for dynamic task assignment. [8f0db66]
+- [x] Phase 24: Develop Cyclic Flow patterns for iterative refinement (Integrated). [8f0db66]
+- [x] Phase 25: Implement Persistence Checkpointers in LangGraph (Postgres-backed). [8f0db66]
+- [x] Phase 26: Create the "Supervisor" Agent Node for high-level coordination. [8f0db66]
+- [x] Phase 27: Implement Error Handling and Retry nodes in the graph. [8f0db66]
+- [x] Phase 28: Build the "Human-in-the-Loop" interruption pattern. [8f0db66]
+- [x] Phase 29: Optimize Graph Traversal for parallel node execution (Integrated). [8f0db66]
+- [x] Phase 30: Task: Conductor - User Manual Verification 'Cognitive Spine' (Protocol in workflow.md) [8f0db66]
 
 ## Phase 4: Base Agent Intelligence & Personas (Phases 31-40)
 - [ ] Phase 31: Develop the Base Agent Class with integrated Tool calling.
