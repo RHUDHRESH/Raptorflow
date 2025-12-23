@@ -16,8 +16,10 @@ import {
     getActiveMove,
     updateCampaign,
     setActiveMove,
-    getCampaignGantt
+    getCampaignGantt,
+    generateWeeklyMoves
 } from '@/lib/campaigns';
+import { useInferenceStatus } from '@/hooks/useInferenceStatus';
 import {
     CheckCircle2,
     Clock,
@@ -63,9 +65,13 @@ export function CampaignDetail({
     const [moves, setMoves] = useState<any[]>([]);
     const [progress, setProgress] = useState<any>({ totalMoves: 0, completedMoves: 0, weekNumber: 0, totalWeeks: 0 });
 
+    const { status: agentStatus } = useInferenceStatus(
+        open && campaign ? campaign.id : null
+    );
+
     useEffect(() => {
         if (open && campaign) {
-            // Fetch moves and progress
+            // ... fetch data logic ...
             const fetchData = async () => {
                 const [p, m] = await Promise.all([
                     getCampaignProgress(campaign.id),
@@ -86,6 +92,16 @@ export function CampaignDetail({
     }, [open, campaign?.id]);
 
     if (!campaign) return null;
+
+    const handleGenerateAgenticMoves = async () => {
+        if (!campaign) return;
+
+        toast.promise(generateWeeklyMoves(campaign.id), {
+            loading: 'Decomposing milestones into execution moves...',
+            success: 'Decomposition started. Moves will appear in the timeline.',
+            error: 'Failed to trigger agent'
+        });
+    };
 
     const activeMove = moves.find(m => m.status === 'active');
     const nextMove = moves.find(m => m.status === 'queued' || m.status === 'draft');
@@ -269,6 +285,33 @@ export function CampaignDetail({
                             <CampaignGantt items={ganttData?.items || []} />
                         </div>
                     </section>
+
+                    {/* Task 27: Strategic Arc Decomposition */}
+                    {campaign.strategyArc && (
+                        <section className="space-y-4">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400">Strategic Arc Decomposition</h3>
+                            <div className="grid grid-cols-3 gap-4">
+                                {campaign.strategyArc.monthly_plans?.map((plan: any) => (
+                                    <div key={plan.month_number} className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 space-y-3 flex flex-col justify-between group">
+                                        <div>
+                                            <div className="text-[10px] font-bold text-accent uppercase mb-1">Month {plan.month_number}</div>
+                                            <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 leading-snug mb-2">{plan.theme}</h4>
+                                            <p className="text-xs text-zinc-500 line-clamp-3">{plan.key_objective}</p>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleGenerateAgenticMoves()}
+                                            disabled={agentStatus === 'generating'}
+                                            className="w-full mt-2 h-8 rounded-xl text-[10px] uppercase font-bold tracking-widest border border-zinc-100 dark:border-zinc-800 opacity-0 group-hover:opacity-100 transition-all"
+                                        >
+                                            Decompose to Moves
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
 
                     {/* Audit Results (Task 19) */}
                     <section>
