@@ -42,8 +42,8 @@
 - [x] Phase 33: Implement Vertex AI Primary Inference with Model Fallback (Gemini 1.5 Pro -> Flash). [70dbf6d]
 - [x] Phase 34: Define the "Strategist" Persona and Instruction Set. [70dbf6d]
 - [x] Phase 35: Define the "Researcher" Persona and Instruction Set. [70dbf6d]
-- [~] Phase 36: Define the "Creative Director" Persona and Instruction Set.
-- [ ] Phase 37: Implement Agent "Self-Correction" prompt sequences.
+- [x] Phase 36: Define the "Creative Director" Persona and Instruction Set. [70dbf6d]
+- [~] Phase 37: Implement Agent "Self-Correction" prompt sequences.
 - [ ] Phase 38: Build Token Usage tracking per agent node.
 - [ ] Phase 39: Implement Stream Processing for real-time agent responses.
 - [ ] Phase 40: Task: Conductor - User Manual Verification 'Agent Personas' (Protocol in workflow.md)

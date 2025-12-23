@@ -8,10 +8,10 @@ from backend.models.cognitive import CognitiveIntelligenceState
 logger = logging.getLogger("raptorflow.agents.creative_director")
 
 class CreativeAsset(BaseModel):
-    \"\"\"SOTA structured creative asset.\"\"\"
-    type: str = Field(description=\"email | social | ad | landing_page\")
-    content: str = Field(description=\"The surgical marketing copy.\")
-    visual_direction: str = Field(description=\"Art direction for the image/layout.\")
+    """SOTA structured creative asset."""
+    type: str = Field(description="email | social | ad | landing_page")
+    content: str = Field(description="The surgical marketing copy.")
+    visual_direction: str = Field(description="Art direction for the image/layout.")
 
 class CreativeOutput(BaseModel):
     """SOTA structured creative result."""

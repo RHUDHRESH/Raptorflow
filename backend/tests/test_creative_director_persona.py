@@ -10,9 +10,9 @@ async def test_creative_director_persona_execution():
     """
     mock_runnable = AsyncMock()
     mock_runnable.ainvoke.return_value = CreativeOutput(
-        assets=[CreativeAsset(type=\"social\", content=\"SOTA Copy\", visual_direction=\"Minimal\")],
+        assets=[CreativeAsset(type="social", content="SOTA Copy", visual_direction="Minimal")],
         brand_kit_alignment=0.95,
-        rationale=\"Aligned with tokens.\"
+        rationale="Aligned with tokens."
     )
     
     with patch("backend.agents.base.InferenceProvider") as mock_inference:
