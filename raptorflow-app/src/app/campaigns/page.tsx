@@ -9,38 +9,54 @@ import { CampaignEmptyState } from '@/components/campaigns/CampaignEmptyState';
 import { NewCampaignWizard } from '@/components/campaigns/NewCampaignWizard';
 import { CampaignDetail } from '@/components/campaigns/CampaignDetail';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { InferenceErrorBoundary } from '@/components/layout/InferenceErrorBoundary';
+import { StrategicPivotCard } from '@/components/campaigns/StrategicPivotCard';
+import { Sparkles, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function CampaignsPage() {
-    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const { campaigns, refresh: refreshCampaigns } = useCampaigns(10000);
     const [showWizard, setShowWizard] = useState(false);
     const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+    const [campaignMetadata, setCampaignMetadata] = useState<Record<string, any>>({});
 
-    const refreshCampaigns = useCallback(async () => {
-        const allCampaigns = await getCampaigns();
-        setCampaigns(allCampaigns);
-    }, []);
+    // Task 21: Mock pivot for display
+    const mockPivot = {
+        id: 'p1',
+        title: 'LinkedIn Outreach Pivot',
+        description: 'Focus on Founders in B2B SaaS Niche',
+        rationale: 'Recent agent research shows 40% higher engagement in this segment.',
+        severity: 'medium' as const
+    };
 
     useEffect(() => {
-        refreshCampaigns();
-    }, [refreshCampaigns]);
+        const fetchMeta = async () => {
+            const meta: Record<string, any> = {};
+            for (const c of campaigns) {
+                const [progress, moves] = await Promise.all([
+                    getCampaignProgress(c.id),
+                    getMovesByCampaign(c.id)
+                ]);
+                meta[c.id] = { progress, activeMove: moves.find(m => m.status === 'active') };
+            }
+            setCampaignMetadata(meta);
+        };
+        if (campaigns.length > 0) fetchMeta();
+    }, [campaigns]);
 
-    const handleCampaignCreated = useCallback((campaign: Campaign) => {
+    const handleCampaignCreated = useCallback(() => {
         refreshCampaigns();
         setShowWizard(false);
-        setSelectedCampaign(campaign);
     }, [refreshCampaigns]);
 
     const handleCampaignUpdated = useCallback((campaign: Campaign) => {
-        setCampaigns(prev => prev.map(c => c.id === campaign.id ? campaign : c));
+        refreshCampaigns(); // Proper sync
         setSelectedCampaign(campaign);
-    }, []);
+    }, [refreshCampaigns]);
 
     const handleCampaignDeleted = useCallback((campaignId: string) => {
-        setCampaigns(prev => prev.filter(c => c.id !== campaignId));
+        refreshCampaigns(); // Proper sync
         setSelectedCampaign(null);
-    }, []);
+    }, [refreshCampaigns]);
 
     const activeCampaigns = campaigns.filter(c => c.status === 'active' || c.status === 'planned');
     const otherCampaigns = campaigns.filter(c => c.status !== 'active' && c.status !== 'planned');
@@ -73,6 +89,23 @@ export default function CampaignsPage() {
                         )}
                     </div>
 
+                    {/* Strategic Pivots (Task 21) */}
+                    {activeCampaigns.length > 0 && (
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Sparkles className="h-4 w-4 text-accent" />
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                                    Agent Recommendations
+                                </h3>
+                            </div>
+                            <StrategicPivotCard
+                                pivot={mockPivot}
+                                onApply={() => toast.success('Pivot applied to campaign strategy')}
+                                onIgnore={() => {}}
+                            />
+                        </div>
+                    )}
+
                     <div className="min-h-[400px]">
                         {campaigns.length === 0 ? (
                             <CampaignEmptyState onCreateCampaign={() => setShowWizard(true)} />
@@ -94,6 +127,8 @@ export default function CampaignsPage() {
                                                 >
                                                     <CampaignCard
                                                         campaign={campaign}
+                                                        progress={campaignMetadata[campaign.id]?.progress}
+                                                        activeMove={campaignMetadata[campaign.id]?.activeMove}
                                                         onClick={() => setSelectedCampaign(campaign)}
                                                     />
                                                 </div>
@@ -115,6 +150,8 @@ export default function CampaignsPage() {
                                                 >
                                                     <CampaignCard
                                                         campaign={campaign}
+                                                        progress={campaignMetadata[campaign.id]?.progress}
+                                                        activeMove={campaignMetadata[campaign.id]?.activeMove}
                                                         onClick={() => setSelectedCampaign(campaign)}
                                                     />
                                                 </div>

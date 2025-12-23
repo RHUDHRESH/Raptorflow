@@ -2,18 +2,22 @@
 
 import React from 'react';
 import { Campaign, OBJECTIVE_LABELS, CHANNEL_LABELS } from '@/lib/campaigns-types';
-import { getCampaignProgress, getMovesByCampaign, getActiveMove } from '@/lib/campaigns';
 import { ChevronRight } from 'lucide-react';
+import { InferenceStatusIndicator } from './InferenceStatusIndicator';
 
 interface CampaignCardProps {
     campaign: Campaign;
+    progress?: {
+        totalMoves: number;
+        completedMoves: number;
+        weekNumber: number;
+        totalWeeks: number;
+    };
+    activeMove?: any;
     onClick: () => void;
 }
 
-export function CampaignCard({ campaign, onClick }: CampaignCardProps) {
-    const progress = getCampaignProgress(campaign.id);
-    const moves = getMovesByCampaign(campaign.id);
-    const activeMove = moves.find(m => m.status === 'active');
+export function CampaignCard({ campaign, progress, activeMove, onClick }: CampaignCardProps) {
 
     const statusColors: Record<Campaign['status'], string> = {
         planned: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
@@ -58,9 +62,20 @@ export function CampaignCard({ campaign, onClick }: CampaignCardProps) {
                                 <span>{campaign.cohortName}</span>
                             </>
                         )}
-                        <span className="text-zinc-300 dark:text-zinc-600">•</span>
-                        <span>Week {progress.weekNumber} of {progress.totalWeeks}</span>
+                        {progress && (
+                            <>
+                                <span className="text-zinc-300 dark:text-zinc-600">•</span>
+                                <span>Week {progress.weekNumber} of {progress.totalWeeks}</span>
+                            </>
+                        )}
                     </div>
+
+                    {/* Inference Indicator */}
+                    {campaign.status === 'active' && !activeMove && (
+                        <div className="mb-3">
+                            <InferenceStatusIndicator status="generating" />
+                        </div>
+                    )}
 
                     {/* Current Move */}
                     {activeMove ? (
@@ -77,7 +92,7 @@ export function CampaignCard({ campaign, onClick }: CampaignCardProps) {
                     ) : null}
 
                     {/* Progress bar */}
-                    {progress.totalMoves > 0 && (
+                    {progress && progress.totalMoves > 0 && (
                         <div className="mt-3 flex items-center gap-2">
                             <div className="flex-1 h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                                 <div

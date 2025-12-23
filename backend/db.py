@@ -1,4 +1,3 @@
-import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Optional
@@ -7,10 +6,15 @@ import psycopg
 from langgraph.checkpoint.postgres import PostgresSaver
 from psycopg_pool import AsyncConnectionPool
 
-# DATABASE_URL should be in environment
-DB_URI = os.getenv("DATABASE_URL")
-UPSTASH_URL = os.getenv("UPSTASH_REDIS_REST_URL")
-UPSTASH_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN")
+from backend.core.config import get_settings
+
+# Initialize settings
+settings = get_settings()
+
+# Keys fetched with GCP Secret Manager support
+DB_URI = settings.DATABASE_URL
+UPSTASH_URL = settings.UPSTASH_REDIS_REST_URL
+UPSTASH_TOKEN = settings.UPSTASH_REDIS_REST_TOKEN
 
 # Global pool for production-grade connection management
 _pool: Optional[AsyncConnectionPool] = None
@@ -239,26 +243,48 @@ async def save_asset_vault(
     return await save_asset_db(workspace_id, asset_data)
 
 
-async def save_campaign(tenant_id: str, campaign_data: dict) -> str:
-    """Saves a campaign strategy arc to Supabase."""
+async def save_campaign(
+    tenant_id: str, campaign_data: dict, campaign_id: Optional[str] = None
+) -> str:
+    """Saves or updates a campaign strategy arc in Supabase."""
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
-            query = """
-                INSERT INTO campaigns (tenant_id, title, objective, status, arc_data, kpi_targets)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                RETURNING id;
-            """
-            await cur.execute(
-                query,
-                (
-                    tenant_id,
-                    campaign_data.get("title"),
-                    campaign_data.get("objective"),
-                    campaign_data.get("status", "draft"),
-                    psycopg.types.json.Jsonb(campaign_data.get("arc_data", {})),
-                    psycopg.types.json.Jsonb(campaign_data.get("kpi_targets", {})),
-                ),
-            )
+            if campaign_id:
+                query = """
+                    UPDATE campaigns
+                    SET title = %s, objective = %s, status = %s, arc_data = %s, kpi_targets = %s, updated_at = now()
+                    WHERE id = %s AND tenant_id = %s
+                    RETURNING id;
+                """
+                await cur.execute(
+                    query,
+                    (
+                        campaign_data.get("title"),
+                        campaign_data.get("objective"),
+                        campaign_data.get("status", "draft"),
+                        psycopg.types.json.Jsonb(campaign_data.get("arc_data", {})),
+                        psycopg.types.json.Jsonb(campaign_data.get("kpi_targets", {})),
+                        campaign_id,
+                        tenant_id,
+                    ),
+                )
+            else:
+                query = """
+                    INSERT INTO campaigns (tenant_id, title, objective, status, arc_data, kpi_targets)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    RETURNING id;
+                """
+                await cur.execute(
+                    query,
+                    (
+                        tenant_id,
+                        campaign_data.get("title"),
+                        campaign_data.get("objective"),
+                        campaign_data.get("status", "draft"),
+                        psycopg.types.json.Jsonb(campaign_data.get("arc_data", {})),
+                        psycopg.types.json.Jsonb(campaign_data.get("kpi_targets", {})),
+                    ),
+                )
             result = await cur.fetchone()
             await conn.commit()
             return str(result[0])

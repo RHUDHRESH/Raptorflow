@@ -8,7 +8,7 @@
 
 ## AI & LLM
 - **Platform:** [Google Vertex AI](https://cloud.google.com/vertex-ai) (Gemini models)
-- **Search & Intelligence:** [Tavily](https://tavily.com/) (Deep Research), [Perplexity](https://www.perplexity.ai/) (Real-time Search)
+- **Search & Intelligence:** [Tavily](https://tavily.com/) (Deep Research), [Perplexity](https://www.perplexity.ai/) (Real-time Search), [Serper](https://serper.dev/) (Industrial Search)
 - **Orchestration:** [LangGraph](https://langchain-ai.github.io/langgraph/)
 
 ## Backend & Infrastructure

@@ -1,20 +1,27 @@
 import os
+
 from upstash_redis import Redis
+
+from backend.core.config import get_settings
 
 
 def get_cache_client() -> Redis:
     """
     Returns an initialized Upstash Redis client.
-    Expects UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in env.
+    Uses GCP Secret Manager support via get_settings().
     """
-    return Redis.from_env()
+    settings = get_settings()
+    return Redis(
+        url=settings.UPSTASH_REDIS_REST_URL, token=settings.UPSTASH_REDIS_REST_TOKEN
+    )
 
 
 class CacheManager:
     """
-    High-level manager for Blackbox caching, rate limiting, and 
+    High-level manager for Blackbox caching, rate limiting, and
     real-time performance tracking.
     """
+
     def __init__(self, client: Redis = None):
         self.client = client or get_cache_client()
 

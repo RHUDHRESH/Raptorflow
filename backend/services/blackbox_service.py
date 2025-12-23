@@ -594,3 +594,25 @@ class BlackboxService:
         ).execute()
 
         return True
+
+    def get_outcomes_by_campaign(self, campaign_id: UUID) -> List[Dict]:
+        """Retrieves all business outcomes for a specific campaign."""
+        session = self.vault.get_session()
+        result = (
+            session.table("blackbox_outcomes_industrial")
+            .select("*")
+            .eq("campaign_id", str(campaign_id))
+            .execute()
+        )
+        return result.data
+
+    def get_outcomes_by_move(self, move_id: UUID) -> List[Dict]:
+        """Retrieves all business outcomes for a specific move."""
+        session = self.vault.get_session()
+        result = (
+            session.table("blackbox_outcomes_industrial")
+            .select("*")
+            .eq("move_id", str(move_id))
+            .execute()
+        )
+        return result.data

@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, status
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 from uuid import UUID
-from backend.services.blackbox_service import BlackboxService, AttributionModel
+
+from fastapi import APIRouter, Depends, status
+
 from backend.core.vault import Vault
+from backend.services.blackbox_service import AttributionModel, BlackboxService
 
 router = APIRouter(prefix="/v1/blackbox/roi", tags=["blackbox"])
 
@@ -34,3 +36,27 @@ def get_momentum_score(service: BlackboxService = Depends(get_blackbox_service))
     """Retrieves the overall system momentum score."""
     score = service.calculate_momentum_score()
     return {"momentum_score": score}
+
+
+@router.get("/outcomes/campaign/{campaign_id}")
+def get_outcomes_by_campaign(
+    campaign_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+):
+    """Retrieves all business outcomes for a specific campaign."""
+    return service.get_outcomes_by_campaign(campaign_id)
+
+
+@router.get("/outcomes/move/{move_id}")
+def get_outcomes_by_move(
+    move_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+):
+    """Retrieves all business outcomes for a specific move."""
+    return service.get_outcomes_by_move(move_id)
+
+
+@router.get("/evidence/{learning_id}")
+def get_evidence_package(
+    learning_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+):
+    """Retrieves the evidence package (telemetry) for a learning."""
+    return service.get_evidence_package(learning_id)

@@ -36,30 +36,19 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from 'sonner';
+import { CampaignAuditorView } from './CampaignAuditorView';
 
-interface CampaignDetailProps {
-    campaign: Campaign | null;
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onUpdate: (campaign: Campaign) => void;
-    onDelete: (campaignId: string) => void;
-    onRefresh: () => void;
-}
+// ... (props interface)
 
 export function CampaignDetail({
-    campaign,
-    open,
-    onOpenChange,
-    onUpdate,
-    onDelete,
-    onRefresh
-}: CampaignDetailProps) {
-    if (!campaign) return null;
-
-    const progress = getCampaignProgress(campaign.id);
+// ... (component start)
     const moves = getMovesByCampaign(campaign.id);
     const activeMove = moves.find(m => m.status === 'active');
     const nextMove = moves.find(m => m.status === 'queued' || m.status === 'draft');
+
+    // Task 19: Placeholder for actual audit data from backend
+    // In a real build, this would be part of the campaign object or fetched separately
+    const auditData = (campaign as any).auditData || [];
 
     const handleStatusChange = async (status: Campaign['status']) => {
         const updated = { ...campaign, status };
@@ -198,6 +187,11 @@ export function CampaignDetail({
                                 )}
                             </div>
                         )}
+                    </section>
+
+                    {/* Audit Results (Task 19) */}
+                    <section>
+                        <CampaignAuditorView alignments={auditData} overallScore={(campaign as any).qualityScore} />
                     </section>
 
                     {/* Timeline */}
