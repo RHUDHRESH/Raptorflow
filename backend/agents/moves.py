@@ -272,6 +272,13 @@ class SafetyValidator:
 
         return {"status": "complete" if is_safe else "error", "messages": messages}
 
+
+class MovePersistence:
+    """
+    SOTA Persistence Node for Moves.
+    Syncs generated moves to Supabase and logs the generation decision.
+    """
+
     async def __call__(self, state: TypedDict):
         """Persist generated moves to the database."""
         tenant_id = state.get("tenant_id")
@@ -279,7 +286,9 @@ class SafetyValidator:
         moves = state.get("current_moves", [])
 
         if not tenant_id or not campaign_id:
-            return {"messages": ["WARNING: Missing tenant_id or campaign_id for persistence."]}
+            return {
+                "messages": ["WARNING: Missing tenant_id or campaign_id for persistence."]
+            }
 
         if not moves:
             return {"messages": ["No moves found to persist."]}
