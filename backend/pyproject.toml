@@ -1,27 +1,47 @@
-[tool.poetry]
-name = "raptorflow-spine"
+[project]
+name = "raptorflow-backend"
 version = "0.1.0"
-description = "The Agentic Spine for RaptorFlow"
-authors = ["RaptorFlow Team"]
+description = "Industrial-grade backend for RaptorFlow"
+authors = [
+    { name = "RaptorFlow Team", email = "admin@raptorflow.io" }
+]
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn==0.34.0",
+    "pydantic==2.10.4",
+    "pydantic-settings==2.7.0",
+    "supabase==2.10.0",
+    "langgraph==0.2.59",
+    "langchain-openai==0.2.13",
+    "langchain-google-vertexai==2.0.9",
+    "upstash-redis==1.2.0",
+    "httpx==0.28.1",
+    "python-multipart==0.0.20",
+    "python-jose[cryptography]==3.3.0",
+    "passlib[bcrypt]==1.7.4",
+    "pandas==2.2.3",
+    "numpy==2.2.0",
+    "google-cloud-storage==2.19.0",
+    "google-cloud-bigquery==3.27.0",
+    "google-cloud-secret-manager==2.22.0",
+    "google-cloud-run==0.10.11",
+    "google-cloud-logging==3.11.3",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-fastapi = "^0.109.0"
-uvicorn = "^0.27.0"
-langchain = "^0.3.0"
-langchain-google-vertexai = "^2.0.0"
-langgraph = "^0.2.0"
-langgraph-checkpoint-postgres = "^3.0.2"
-psycopg = {extras = ["binary"], version = "^3.1.17"}
-psycopg-pool = "^3.3.0"
-upstash-redis = "^1.5.0"
-pydantic = "^2.6.0"
-python-dotenv = "^1.0.1"
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^9.0.2"
-pytest-asyncio = "^1.3.0"
+[tool.black]
+line-length = 88
+target-version = ['py311']
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = "E203"
