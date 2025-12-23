@@ -41,7 +41,10 @@ def trace_agent(service, agent_id: str):
                     tokens = usage.get("total_tokens", usage.get("tokens", 0))
 
                 # Log telemetry (Task 93: PII Masking)
-                masked_trace = mask_pii({"input": args, "kwargs": kwargs, "output": result})
+                masked_trace = mask_pii(
+                    {"input": args, "kwargs": kwargs, "output": result}
+                )
+
                 telemetry = BlackboxTelemetry(
                     move_id=move_id,
                     agent_id=agent_id,
@@ -91,7 +94,7 @@ class BlackboxService:
         """Logs an execution trace to both Supabase and BigQuery."""
         # Task 93: Ensure PII is masked before persistence
         telemetry.trace = mask_pii(telemetry.trace)
-        
+
         # 1. Persist to Supabase
         session = self.vault.get_session()
         data = telemetry.model_dump(mode="json")
@@ -415,25 +418,32 @@ class BlackboxService:
             "status": "pivot_generated",
         }
 
-    async def apply_learning_to_foundation(self, brand_kit_id: UUID, learning_id: UUID) -> Dict[str, Any]:
+    async def apply_learning_to_foundation(
+        self, brand_kit_id: UUID, learning_id: UUID
+    ) -> Dict[str, Any]:
         """
         Updates foundation modules (BrandKit/Positioning) based on a strategic learning.
         """
         from backend.services.foundation_service import FoundationService
-        
+
         # 1. Retrieve data
         session = self.vault.get_session()
-        learning_res = session.table("blackbox_learnings_industrial").select("*").eq("id", str(learning_id)).execute()
+        learning_res = (
+            session.table("blackbox_learnings_industrial")
+            .select("*")
+            .eq("id", str(learning_id))
+            .execute()
+        )
         if not learning_res.data:
             return {"status": "error", "message": "Learning not found"}
-            
+
         learning = learning_res.data[0]
         content = learning["content"]
-        
+
         # 2. Trigger foundation update
         f_service = FoundationService(self.vault)
         await f_service.update_brand_kit(brand_kit_id, {"updates": content})
-        
+
         return {"status": "foundation_updated", "learning_id": str(learning_id)}
 
     def get_learning_feed(self, limit: int = 10) -> List[Dict[str, Any]]:
@@ -467,16 +477,26 @@ class BlackboxService:
         """
         session = self.vault.get_session()
         # 1. Fetch learning to get source_ids (trace_ids)
-        learning_res = session.table("blackbox_learnings_industrial").select("source_ids").eq("id", str(learning_id)).execute()
+        learning_res = (
+            session.table("blackbox_learnings_industrial")
+            .select("source_ids")
+            .eq("id", str(learning_id))
+            .execute()
+        )
         if not learning_res.data:
             return []
-            
+
         source_ids = learning_res.data[0].get("source_ids", [])
         if not source_ids:
             return []
-            
+
         # 2. Fetch all telemetry for these IDs
-        telemetry_res = session.table("blackbox_telemetry_industrial").select("*").in_("id", source_ids).execute()
+        telemetry_res = (
+            session.table("blackbox_telemetry_industrial")
+            .select("*")
+            .in_("id", source_ids)
+            .execute()
+        )
         return telemetry_res.data
 
     def upsert_learning_embedding(
