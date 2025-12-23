@@ -37,6 +37,20 @@ async def test_emergency_halt_skill():
     assert mock_matrix.halt_system.called
 
 @pytest.mark.asyncio
+async def test_emergency_halt_skill_failure():
+    """Test EmergencyHaltSkill when MatrixService fails to halt."""
+    from backend.skills.matrix_skills import EmergencyHaltSkill
+    from backend.services.matrix_service import MatrixService
+    
+    mock_matrix = AsyncMock(spec=MatrixService)
+    mock_matrix.halt_system.return_value = False
+    skill = EmergencyHaltSkill(matrix_service=mock_matrix)
+    
+    result = await skill.execute({"reason": "Fail test"})
+    assert result["halt_engaged"] is False
+    assert result["status"] == "failed_to_halt"
+
+@pytest.mark.asyncio
 async def test_inference_throttling_skill():
     """Test that the InferenceThrottlingSkill updates rate limits."""
     from backend.skills.matrix_skills import InferenceThrottlingSkill
