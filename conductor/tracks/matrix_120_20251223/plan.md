@@ -72,7 +72,7 @@
 - [x] Phase 061: Backend - Implement `KnowledgeGraphConnector` (Conceptual linking). 8f0db66
 - [x] Phase 062: Backend - Implement `MemorySelfReflection` agent (Summarizes daily events). c84b884
 - [x] Phase 063: Backend - Implement `AgentSharedState` (Common context pool). 0e0b78a
-- [~] Phase 064: Backend - Implement `StateCheckpointManager` (LangGraph checkpointing).
+- [x] Phase 064: Backend - Implement `StateCheckpointManager` (LangGraph checkpointing). 5e26a21
 - [x] Phase 065: Conductor - User Manual Verification 'Memory & RAG' (Protocol in workflow.md) [c84b884]
 
 #### Block F: Osipov MLOps Guardrails (Phases 66-80)
