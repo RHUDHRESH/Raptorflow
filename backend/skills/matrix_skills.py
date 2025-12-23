@@ -72,3 +72,41 @@ class EmergencyHaltSkill(MatrixSkill):
             "reason": reason,
             "status": "system_halted" if success else "failed_to_halt"
         }
+
+
+class InferenceThrottlingSkill(MatrixSkill):
+    """
+    Skill to manage agent-specific rate limits and throttling.
+    Updates throttle keys in Upstash Redis to control inference flow.
+    """
+
+    def __init__(self, redis_client):
+        self.redis = redis_client
+
+    @property
+    def name(self) -> str:
+        return "inference_throttling"
+
+    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        agent_id = params.get("agent_id")
+        tpm_limit = params.get("tpm_limit", 1000) # Tokens Per Minute
+        
+        if not agent_id:
+            return {"error": "agent_id is required"}
+            
+        logger.info(f"Applying throttling to {agent_id}: {tpm_limit} TPM")
+        
+        # Persist throttle setting in Redis
+        try:
+            key = f"throttle:{agent_id}"
+            await self.redis.set(key, tpm_limit)
+            
+            return {
+                "throttling_applied": True,
+                "agent_id": agent_id,
+                "tpm_limit": tpm_limit,
+                "status": "active"
+            }
+        except Exception as e:
+            logger.error(f"Failed to apply throttling: {e}")
+            return False
