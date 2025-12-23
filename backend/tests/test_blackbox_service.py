@@ -540,6 +540,30 @@ def test_blackbox_service_get_roi_matrix_data():
             assert data[0]["roi"] == 2.0
             assert data[0]["momentum"] == 15.0
 
+def test_blackbox_service_longitudinal_analysis():
+    mock_vault = MagicMock()
+    mock_vault.project_id = "test-project"
+    service = BlackboxService(vault=mock_vault)
+    
+    with patch("google.cloud.bigquery.Client") as mock_client_init:
+        mock_bq = mock_client_init.return_value
+        
+        # Mock query result
+        mock_row = MagicMock()
+        mock_row.day = "2023-12-23"
+        mock_row.daily_tokens = 5000
+        mock_row.execution_count = 10
+        
+        mock_bq.query.return_value.result.return_value = [mock_row]
+        
+        analysis = service.get_longitudinal_analysis(days=30)
+        
+        assert len(analysis) == 1
+        assert analysis[0]["tokens"] == 5000
+        assert "day" in analysis[0]
+        mock_bq.query.assert_called_once()
+        assert "INTERVAL 30 DAY" in mock_bq.query.call_args[0][0]
+
 def test_blackbox_service_attribution_confidence():
     mock_vault = MagicMock()
     mock_session = MagicMock()
