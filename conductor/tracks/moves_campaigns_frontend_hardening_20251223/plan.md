@@ -19,7 +19,7 @@
 - [x] 14. Task: Verify >80% unit test coverage for new/modified frontend logic [9376403]
 - [x] 15. Task: Conductor - User Manual Verification 'Code Audit & Connectivity' (Protocol in workflow.md) [57f36ee]
 
-## Phase 3: Campaign Module Production Integration (Tasks 16-25)
+## Phase 3: Campaign Module Production Integration (Tasks 16-25) [checkpoint: e22784a]
 - [x] 16. Task: Connect UI triggers to the 90-day arc generation agent node [36c5a83]
 - [x] 17. Task: Implement real-time status polling for campaign strategy generation [89fb8b5]
 - [x] 18. Task: Write failing integration tests for the Campaign creation-to-persistence flow [89fb8b5]
@@ -29,7 +29,7 @@
 - [x] 22. Task: Connect Pivot Card actions to backend strategy update nodes [05970ae]
 - [x] 23. Task: Implement optimistic UI updates for campaign state changes [61302f3]
 - [x] 24. Task: Verify Campaign UI state matches Supabase record after inference [717019d]
-- [~] 25. Task: Conductor - User Manual Verification 'Campaign Integration' (Protocol in workflow.md)
+- [x] 25. Task: Conductor - User Manual Verification 'Campaign Integration' (Protocol in workflow.md) [e22784a]
 
 
 ## Phase 4: Move Module Production Integration (Tasks 26-35)
