@@ -15,7 +15,7 @@
 ## Phase 2: Telemetry & Tracing (Phases 11-20)
 - [x] Task 11: Implement `BlackboxService.log_telemetry(trace_data)` (Sync PG write) [27a4a25]
 - [x] Task 12: Implement `BlackboxService.stream_to_bigquery(trace_data)` (Sync BQ stream) [27a4a25]
-- [~] Task 13: Create `backend/core/middleware.py` trace_id generator
+- [x] Task 13: Create `backend/core/middleware.py` trace_id generator [faa2785]
 - [ ] Task 14: Implement `@trace_agent` decorator for automated logging
 - [ ] Task 15: Implement `BlackboxService.get_agent_audit_log(agent_id)`
 - [ ] Task 16: Write Unit Test: `test_telemetry_capture_integrity`
