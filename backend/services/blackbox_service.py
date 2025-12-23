@@ -226,6 +226,36 @@ class BlackboxService:
             "token_usage": total_tokens,
         }
 
+    def calculate_momentum_score(self) -> float:
+        """
+        Calculates a 'Momentum Score' based on the ratio of outcome values to 
+        token costs over the last 30 days. Higher is better.
+        """
+        session = self.vault.get_session()
+        
+        # 1. Aggregate recent costs
+        telemetry_res = (
+            session.table("blackbox_telemetry_industrial")
+            .select("tokens")
+            .execute()
+        )
+        total_tokens = sum(float(t.get("tokens", 0)) for t in telemetry_res.data)
+        
+        # 2. Aggregate recent outcomes
+        outcomes_res = (
+            session.table("blackbox_outcomes_industrial")
+            .select("value")
+            .execute()
+        )
+        total_value = sum(float(o.get("value", 0)) for o in outcomes_res.data)
+        
+        if total_tokens == 0:
+            return 0.0
+            
+        # Score = (Total Value / Total Tokens) * 1000 (scaled for human readability)
+        score = (total_value / total_tokens) * 1000
+        return round(score, 4)
+
     def attribute_outcome(self, outcome: BlackboxOutcome):
         """Attributes a business outcome to specific campaign/move."""
         pass
