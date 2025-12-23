@@ -1,12 +1,8 @@
 import os
 import logging
 from typing import Union
-from langchain_google_vertexai import ChatVertexAI, VertexAIEmbeddings
 
 logger = logging.getLogger("raptorflow.inference")
-# Potential future imports (pre-configured for easy swap)
-# from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-# from langchain_anthropic import ChatAnthropic
 
 class InferenceProvider:
     """
@@ -16,6 +12,7 @@ class InferenceProvider:
     
     @staticmethod
     def get_model(model_tier: str = "driver", temperature: float = 0.0):
+        from langchain_google_vertexai import ChatVertexAI
         provider = os.getenv("INFERENCE_PROVIDER", "google").lower()
         
         if provider == "google":
@@ -38,12 +35,10 @@ class InferenceProvider:
 
     @staticmethod
     def get_embeddings():
+        from langchain_google_vertexai import VertexAIEmbeddings
         provider = os.getenv("INFERENCE_PROVIDER", "google").lower()
         
         if provider == "google":
             return VertexAIEmbeddings(model_name="text-embedding-004")
-            
-        # elif provider == "openai":
-        #     return OpenAIEmbeddings(model="text-embedding-3-small")
             
         return VertexAIEmbeddings(model_name="text-embedding-004") # Default

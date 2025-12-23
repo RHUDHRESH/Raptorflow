@@ -1,7 +1,10 @@
 import time
 from functools import wraps
+from typing import List
+from uuid import UUID
 from backend.core.vault import Vault
 from backend.models.blackbox import BlackboxTelemetry, BlackboxOutcome, BlackboxLearning
+from backend.inference import InferenceProvider
 
 
 def trace_agent(service, agent_id: str):
@@ -121,3 +124,21 @@ class BlackboxService:
     def generate_learning(self, learning: BlackboxLearning):
         """Persists a new strategic learning into vectorized memory."""
         pass
+
+    def upsert_learning_embedding(
+        self, content: str, learning_type: str, source_ids: List[UUID] = None
+    ):
+        """Generates embedding for a learning and persists to Supabase."""
+        # 1. Generate Embedding (Vertex AI)
+        embed_model = InferenceProvider.get_embeddings()
+        embedding = embed_model.embed_query(content)
+
+        # 2. Persist to Supabase
+        session = self.vault.get_session()
+        learning_data = {
+            "content": content,
+            "embedding": embedding,
+            "source_ids": [str(sid) for sid in (source_ids or [])],
+            "learning_type": learning_type,
+        }
+        session.table("blackbox_learnings_industrial").insert(learning_data).execute()
