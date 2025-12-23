@@ -13,7 +13,7 @@ Goal: Replace mock data in the Evidence Log and Results Strip with real `Blackbo
 ## Phase 2: Telemetry & Reasoning Integration
 Goal: Hook up the `TelemetryFeed` and `AgentAuditLog` to live backend execution traces.
 
-- [ ] Task: Create API Endpoint for `BlackboxTelemetry` stream/history
+- [x] Task: Create API Endpoint for `BlackboxTelemetry` stream/history [HEAD]
 - [ ] Task: Write Tests for Telemetry Feed Integration (Frontend)
 - [ ] Task: Implement Live Telemetry Logic in `TelemetryFeed.tsx` and `AgentAuditLog.tsx`
 - [ ] Task: Conductor - User Manual Verification 'Telemetry & Reasoning Integration' (Protocol in workflow.md)

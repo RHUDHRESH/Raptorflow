@@ -300,3 +300,9 @@ export async function triggerCampaignInference(campaignId: string): Promise<any>
     });
     return response.ok ? await response.json() : null;
 }
+
+export async function getCampaignGantt(campaignId: string): Promise<any> {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/v1/campaigns/${campaignId}/gantt`);
+    return response.ok ? await response.json() : null;
+}

@@ -41,3 +41,11 @@ def calculate_move_cost(
     """Calculates total token usage for a move."""
     total_tokens = service.calculate_move_cost(move_id)
     return {"move_id": move_id, "total_tokens": total_tokens}
+
+
+@router.get("/move/{move_id}", response_model=List[Dict])
+def get_telemetry_by_move(
+    move_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+):
+    """Retrieves all telemetry traces for a specific move."""
+    return service.get_telemetry_by_move(str(move_id))

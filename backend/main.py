@@ -8,6 +8,7 @@ from backend.api.v1.blackbox_telemetry import router as blackbox_telemetry_route
 from backend.api.v1.campaigns import router as campaigns_router
 from backend.api.v1.foundation import router as foundation_router
 from backend.api.v1.matrix import router as matrix_router
+# from backend.api.v1.radar import router as radar_router
 from backend.core.exceptions import RaptorFlowError
 from backend.core.middleware import (
     CorrelationIDMiddleware,
@@ -29,6 +30,7 @@ app.include_router(blackbox_roi_router)
 app.include_router(blackbox_learning_router)
 app.include_router(campaigns_router)
 app.include_router(matrix_router)
+# app.include_router(radar_router)
 
 
 # Global Exception Handler

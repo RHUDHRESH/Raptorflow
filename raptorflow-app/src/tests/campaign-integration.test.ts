@@ -80,4 +80,20 @@ describe('Campaign Creation-to-Persistence Integration', () => {
             expect.stringContaining('/api/v1/campaigns/generate-arc/test-uuid/status')
         );
     });
+
+    it('successfully fetches Gantt data', async () => {
+        const mockGantt = { items: [{ id: '1', task: 'Task 1', progress: 0.5 }] };
+        (global.fetch as any).mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockGantt,
+        });
+
+        const { getCampaignGantt } = await import('@/lib/campaigns');
+        const result = await getCampaignGantt('test-uuid');
+
+        expect(result).toEqual(mockGantt);
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining('/api/v1/campaigns/test-uuid/gantt')
+        );
+    });
 });

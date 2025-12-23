@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,7 +15,8 @@ import {
     getMovesByCampaign,
     getActiveMove,
     updateCampaign,
-    setActiveMove
+    setActiveMove,
+    getCampaignGantt
 } from '@/lib/campaigns';
 import {
     CheckCircle2,
@@ -26,7 +27,8 @@ import {
     Archive,
     Trash2,
     Calendar,
-    Target
+    Target,
+    BarChart2
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -37,18 +39,59 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from 'sonner';
 import { CampaignAuditorView } from './CampaignAuditorView';
+import { CampaignGantt } from './CampaignGantt';
 
-// ... (props interface)
+interface CampaignDetailProps {
+    campaign: Campaign | null;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onUpdate: (campaign: Campaign) => void;
+    onDelete: (campaignId: string) => void;
+    onRefresh: () => void;
+}
 
 export function CampaignDetail({
-// ... (component start)
-    const moves = getMovesByCampaign(campaign.id);
+    campaign,
+    open,
+    onOpenChange,
+    onUpdate,
+    onDelete,
+    onRefresh
+}: CampaignDetailProps) {
+    const [ganttData, setGanttData] = useState<any>(null);
+    const [isLoadingGantt, setIsLoadingGantt] = useState(false);
+    const [moves, setMoves] = useState<any[]>([]);
+    const [progress, setProgress] = useState<any>({ totalMoves: 0, completedMoves: 0, weekNumber: 0, totalWeeks: 0 });
+
+    useEffect(() => {
+        if (open && campaign) {
+            // Fetch moves and progress
+            const fetchData = async () => {
+                const [p, m] = await Promise.all([
+                    getCampaignProgress(campaign.id),
+                    getMovesByCampaign(campaign.id)
+                ]);
+                setProgress(p);
+                setMoves(m);
+            };
+            fetchData();
+
+            // Fetch Gantt
+            setIsLoadingGantt(true);
+            getCampaignGantt(campaign.id).then(data => {
+                setGanttData(data);
+                setIsLoadingGantt(false);
+            }).catch(() => setIsLoadingGantt(false));
+        }
+    }, [open, campaign?.id]);
+
+    if (!campaign) return null;
+
     const activeMove = moves.find(m => m.status === 'active');
     const nextMove = moves.find(m => m.status === 'queued' || m.status === 'draft');
 
-    // Task 19: Placeholder for actual audit data from backend
-    // In a real build, this would be part of the campaign object or fetched separately
-    const auditData = (campaign as any).auditData || [];
+    // Task 19: Audit data
+    const auditData = campaign.auditData || [];
 
     const handleStatusChange = async (status: Campaign['status']) => {
         const updated = { ...campaign, status };
@@ -59,8 +102,6 @@ export function CampaignDetail({
 
     const handleStartNextMove = async () => {
         if (!nextMove) return;
-        // Check if there is already a global active move (in real app)
-        // For this component we assume we can just switch
         await setActiveMove(nextMove.id);
         onRefresh();
         toast.success(`Started move: ${nextMove.name}`);
@@ -155,7 +196,7 @@ export function CampaignDetail({
                                     <div>
                                         <div className="text-xs text-zinc-400 uppercase font-medium mb-1">Checklist</div>
                                         <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                                            {activeMove.checklist?.filter(i => i.completed).length} / {activeMove.checklist?.length} done
+                                            {activeMove.checklist?.filter((i: any) => i.completed).length} / {activeMove.checklist?.length} done
                                         </div>
                                     </div>
                                     <div>
@@ -189,9 +230,20 @@ export function CampaignDetail({
                         )}
                     </section>
 
+                    {/* Task 20: Gantt Chart */}
+                    <section>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400">90-Day Execution Timeline</h3>
+                            {isLoadingGantt && <Clock className="w-3 h-3 text-zinc-400 animate-spin" />}
+                        </div>
+                        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                            <CampaignGantt items={ganttData?.items || []} />
+                        </div>
+                    </section>
+
                     {/* Audit Results (Task 19) */}
                     <section>
-                        <CampaignAuditorView alignments={auditData} overallScore={(campaign as any).qualityScore} />
+                        <CampaignAuditorView alignments={auditData} overallScore={campaign.qualityScore} />
                     </section>
 
                     {/* Timeline */}
@@ -202,7 +254,6 @@ export function CampaignDetail({
                             {moves.map((move, i) => {
                                 const isDone = move.status === 'completed';
                                 const isActive = move.status === 'active';
-                                const isFuture = move.status === 'queued' || move.status === 'draft';
 
                                 return (
                                     <div key={move.id} className="relative pl-12 group">

@@ -20,6 +20,8 @@ import {
     ToolOption,
     ProofType,
     VoicePreference,
+    TriggerEvent,
+    AlternativeType,
     FoundationData
 } from './foundation';
 
@@ -36,7 +38,9 @@ export type QuestionType =
     | 'text-large'
     | 'positioning-builder'
     | 'file-upload'
-    | 'url'; // NEW: URL input type
+    | 'url'
+    | 'text-list'      // NEW: Multiple text inputs (e.g., 3 best customers)
+    | 'drag-ranker';   // NEW: Drag-to-reorder list for ranking
 
 export interface QuestionOption {
     value: string;
@@ -61,6 +65,10 @@ export interface Question {
     inputType?: 'text' | 'email' | 'url' | 'tel' | 'number';
     autoComplete?: string;
     showSuccess?: boolean;
+
+    // NEW: For text-list type
+    listCount?: number;      // Number of text inputs (default 3)
+    listPlaceholders?: string[];  // Placeholder for each input
 }
 
 export interface Section {
@@ -236,7 +244,87 @@ export const QUESTIONS: Question[] = [
         ],
     },
 
-    // 9) Primary regions
+    // 9) Best customers (Critical for ICP generation)
+    {
+        id: 'know-best-customers',
+        sectionId: 'know-you',
+        type: 'text-list',
+        question: 'Describe your 3 best customers',
+        hint: 'Industry + size + role + why they\'re your best. Be specific.',
+        field: 'customerInsights.bestCustomers',
+        listCount: 3,
+        listPlaceholders: [
+            'e.g., Algolia - 150 employees, VP Marketing - 150% NRR',
+            'e.g., Intercom - SaaS, Marketing team of 8 - Fast adoption',
+            'e.g., Stripe - Enterprise, Head of Growth - Case study ready',
+        ],
+    },
+
+    // 10) Trigger events (What makes them buy now)
+    {
+        id: 'know-triggers',
+        sectionId: 'know-you',
+        type: 'multi-select',
+        question: 'What makes them say "we need this NOW"?',
+        hint: 'The moment they start actively looking.',
+        field: 'customerInsights.triggerEvents',
+        maxSelections: 4,
+        options: [
+            { value: 'hiring-surge', label: 'Hiring surge' },
+            { value: 'funding-round', label: 'Funding round' },
+            { value: 'missed-target', label: 'Missed target' },
+            { value: 'compliance-change', label: 'Compliance change' },
+            { value: 'competitor-threat', label: 'Competitor threat' },
+            { value: 'tech-migration', label: 'Tech migration' },
+            { value: 'team-expansion', label: 'Team expansion' },
+            { value: 'churn-spike', label: 'Churn spike' },
+            { value: 'reorg', label: 'Reorg / restructure' },
+            { value: 'new-leadership', label: 'New leadership' },
+            { value: 'budget-approval', label: 'New budget approved' },
+            { value: 'seasonal-peak', label: 'Seasonal peak' },
+        ],
+    },
+
+    // 11) Current alternatives (What they used before)
+    {
+        id: 'know-alternatives',
+        sectionId: 'know-you',
+        type: 'multi-select',
+        question: 'What did they use before you?',
+        hint: 'Current alternatives they\'re switching from.',
+        field: 'customerInsights.alternatives',
+        options: [
+            { value: 'spreadsheets', label: 'Spreadsheets / Excel' },
+            { value: 'notion', label: 'Notion / Docs' },
+            { value: 'hubspot', label: 'HubSpot' },
+            { value: 'marketo', label: 'Marketo' },
+            { value: 'agencies', label: 'Marketing agencies' },
+            { value: 'freelancers', label: 'Freelancers' },
+            { value: 'zapier-glue', label: 'Zapier + tools cobbled together' },
+            { value: 'internal-team', label: 'Internal team / DIY' },
+            { value: 'nothing', label: 'Nothing (greenfield)' },
+        ],
+    },
+
+    // 12) Pain ranking (Drag to reorder)
+    {
+        id: 'know-pains',
+        sectionId: 'know-you',
+        type: 'drag-ranker',
+        question: 'Rank their biggest pains',
+        hint: 'Drag to reorder. #1 = most painful.',
+        field: 'customerInsights.painRanking',
+        options: [
+            { value: 'leads-inconsistent', label: 'Leads are inconsistent' },
+            { value: 'cant-prove-roi', label: 'Can\'t prove marketing ROI' },
+            { value: 'content-not-converting', label: 'Content doesn\'t convert' },
+            { value: 'too-many-tools', label: 'Too many disconnected tools' },
+            { value: 'no-positioning-clarity', label: 'No positioning clarity' },
+            { value: 'scaling-without-hiring', label: 'Scaling without hiring' },
+        ],
+    },
+
+    // 13) Primary regions
     {
         id: 'know-regions',
         sectionId: 'know-you',
