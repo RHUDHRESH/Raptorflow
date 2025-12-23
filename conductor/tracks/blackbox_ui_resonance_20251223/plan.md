@@ -26,13 +26,13 @@ Goal: Map strategic learnings from the backend to the experiment detail view.
 - [x] Task: Implement Learning Integration in `ExperimentDetail.tsx` (Confidence scores & Tactical notes) [545a570]
 - [x] Task: Conductor - User Manual Verification 'Surgical Learning Surface' (Protocol in workflow.md)
 
-## Phase 4: Functional Actions & Agent Triggering
+## Phase 4: Functional Actions & Agent Triggering [checkpoint: e537309]
 Goal: Ensure the "Run" and "Verify" buttons trigger the actual `BlackboxSpecialist` backend.
 
-- [~] Task: Create Backend Service to trigger `BlackboxSpecialist` via API
+- [x] Task: Create Backend Service to trigger `BlackboxSpecialist` via API [8ec3932]
 - [x] Task: Write Tests for Experiment Execution Trigger (Frontend) [021e1a1]
 - [x] Task: Implement Interaction Logic in `BlackBoxWizard.tsx` and `ExperimentCard.tsx` [021e1a1]
-- [ ] Task: Conductor - User Manual Verification 'Functional Actions & Agent Triggering' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Functional Actions & Agent Triggering' (Protocol in workflow.md)
 
 ## Phase 5: UI Audit & Decisive Cleanup
 Goal: Final polish, removing placeholders, and ensuring "RaptorFlow Look" compliance.
