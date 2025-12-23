@@ -96,4 +96,42 @@ describe('Campaign Creation-to-Persistence Integration', () => {
             expect.stringContaining('/api/v1/campaigns/test-uuid/gantt')
         );
     });
+
+    it('correctly maps complex DB records including strategy arc and audit data', async () => {
+        const { getCampaigns } = await import('@/lib/campaigns');
+        
+        const mockDBData = [{
+            id: 'test-uuid-2',
+            title: 'Hardened Campaign',
+            objective: 'convert',
+            status: 'active',
+            created_at: new Date().toISOString(),
+            start_date: new Date().toISOString(),
+            arc_data: {
+                campaign_title: 'SOTA Growth Plan',
+                monthly_plans: [{ month_number: 1, theme: 'Launch' }]
+            },
+            audit_data: {
+                alignments: [
+                    { uvp_title: 'UVP 1', is_aligned: true, score: 0.9, feedback: 'Perfect' }
+                ],
+                overall_score: 0.95
+            }
+        }];
+
+        const { supabase } = await import('@/lib/supabase');
+        (supabase.from as any).mockReturnValueOnce({
+            select: vi.fn().mockReturnThis(),
+            order: vi.fn().mockResolvedValueOnce({ data: mockDBData, error: null }),
+        });
+
+        const campaigns = await getCampaigns();
+        const c = campaigns[0];
+
+        expect(c.id).toBe('test-uuid-2');
+        expect(c.strategyArc).toEqual(mockDBData[0].arc_data);
+        expect(c.auditData).toHaveLength(1);
+        expect(c.auditData?.[0].uvp_title).toBe('UVP 1');
+        expect(c.qualityScore).toBe(0.95);
+    });
 });

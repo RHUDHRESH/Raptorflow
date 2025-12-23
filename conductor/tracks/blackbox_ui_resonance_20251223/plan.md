@@ -22,8 +22,8 @@ Goal: Hook up the `TelemetryFeed` and `AgentAuditLog` to live backend execution 
 Goal: Map strategic learnings from the backend to the experiment detail view.
 
 - [~] Task: Create API Endpoint for `BlackboxLearning` (Structured results)
-- [ ] Task: Write Tests for Learning Detail Surface (Frontend)
-- [ ] Task: Implement Learning Integration in `ExperimentDetail.tsx` (Confidence scores & Tactical notes)
+- [x] Task: Write Tests for Learning Detail Surface (Frontend) [545a570]
+- [x] Task: Implement Learning Integration in `ExperimentDetail.tsx` (Confidence scores & Tactical notes) [545a570]
 - [ ] Task: Conductor - User Manual Verification 'Surgical Learning Surface' (Protocol in workflow.md)
 
 ## Phase 4: Functional Actions & Agent Triggering
