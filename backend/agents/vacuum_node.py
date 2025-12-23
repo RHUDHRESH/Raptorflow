@@ -15,6 +15,10 @@ class VacuumUniformReport(BaseModel):
     is_uniform: bool = Field(description="Whether the data follows the standard formatting (ISO dates, etc)")
     fixed_record: dict = Field(description="The record after applying standardization")
 
+class VacuumUnifiedReport(BaseModel):
+    is_unified: bool = Field(description="Whether the records have been successfully merged into a single source of truth")
+    unified_record: dict = Field(description="The merged record")
+
 class VacuumNode:
     """
     Implements Osipov's 'VACUUM' protocol for SOTA data quality.
@@ -70,11 +74,9 @@ class VacuumNode:
         for key in ['created_at', 'start_date', 'end_date', 'scheduled_at']:
             if key in fixed and isinstance(fixed[key], str):
                 try:
-                    # Simple check for ISO-like string
                     datetime.fromisoformat(fixed[key].replace('Z', '+00:00'))
                 except ValueError:
                     is_uniform = False
-                    # We could add more complex parsing here if needed
         
         # Standardize Coordinates
         for key in ['lat', 'lng', 'latitude', 'longitude']:
@@ -84,4 +86,24 @@ class VacuumNode:
         return VacuumUniformReport(
             is_uniform=is_uniform,
             fixed_record=fixed
+        )
+
+    @staticmethod
+    def unify_records(records: List[dict], priority_key: str = 'updated_at') -> VacuumUnifiedReport:
+        if not records:
+            return VacuumUnifiedReport(is_unified=False, unified_record={})
+            
+        # Sort by priority key (e.g., newest first)
+        sorted_records = sorted(records, key=lambda x: x.get(priority_key, ''), reverse=True)
+        unified = sorted_records[0].copy()
+        
+        # Merge other fields if missing in the primary record
+        for r in sorted_records[1:]:
+            for k, v in r.items():
+                if k not in unified or unified[k] is None:
+                    unified[k] = v
+                    
+        return VacuumUnifiedReport(
+            is_unified=True,
+            unified_record=unified
         )
