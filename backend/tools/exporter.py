@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Dict, Any
 from backend.core.toolbelt import BaseRaptorTool
 
@@ -63,3 +64,38 @@ class StrategyRoadmapExporterTool(BaseRaptorTool):
             "path": target_path,
             "sync_status": "synced"
         }
+
+
+class ParquetExporter:
+    """
+    Industrial-grade Parquet exporter for telemetry archival.
+    Uses pyarrow for high-performance columnar storage.
+    """
+
+    def __init__(self, base_path: str = "storage/gold"):
+        self.base_path = base_path
+        os.makedirs(self.base_path, exist_ok=True)
+
+    def export_batch(self, events: list, file_path: str) -> bool:
+        """
+        Exports a batch of TelemetryEvents to a Parquet file.
+        """
+        try:
+            import pyarrow as pa
+            import pyarrow.parquet as pq
+
+            data = [event.model_dump() for event in events]
+            # Convert to table
+            table = pa.Table.from_pylist(data)
+            
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            
+            pq.write_table(table, file_path)
+            return True
+        except ImportError:
+            logger.error("pyarrow not installed. Parquet export failed.")
+            return False
+        except Exception as e:
+            logger.error(f"Failed to export Parquet: {e}")
+            return False
