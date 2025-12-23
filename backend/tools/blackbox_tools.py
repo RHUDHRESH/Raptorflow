@@ -23,3 +23,26 @@ def fetch_historical_performance_tool(campaign_id: str) -> Dict[str, Any]:
         "count": len(result.data),
         "status": "success"
     }
+
+
+def fetch_brand_kit_alignment_tool(brand_kit_id: str) -> Dict[str, Any]:
+    """
+    Synchronous tool to fetch brand kit details for alignment checks.
+    """
+    session = Vault().get_session()
+    
+    result = (
+        session.table("foundation_brand_kit")
+        .select("*")
+        .eq("id", brand_kit_id)
+        .execute()
+    )
+    
+    if not result.data:
+        return {"status": "error", "message": "Brand kit not found"}
+        
+    return {
+        "brand_kit_id": brand_kit_id,
+        "brand_kit": result.data[0],
+        "status": "success"
+    }
