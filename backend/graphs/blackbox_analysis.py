@@ -80,10 +80,10 @@ def attribute_outcomes_node(state: AnalysisState) -> Dict:
 
     # In a production scenario, this would use probabilistic modeling
     # to find outcomes correlated with this move_id.
-    # For now, we fetch recent outcomes.
     result = (
         session.table("blackbox_outcomes_industrial")
         .select("*")
+        .eq("move_id", state["move_id"])
         .limit(10)
         .execute()
     )
@@ -91,20 +91,36 @@ def attribute_outcomes_node(state: AnalysisState) -> Dict:
     return {"outcomes": result.data, "status": "attributed"}
 
 
-def attribute_outcomes_node(state: AnalysisState) -> Dict:
+def reflect_and_validate_node(state: AnalysisState) -> Dict:
     """
-    Node: Attributes business outcomes to the current move.
+    Node: Critiques the findings and outcomes, assigning confidence.
     """
-    from backend.core.vault import Vault
-    session = Vault().get_session()
+    from backend.inference import InferenceProvider
+    llm = InferenceProvider.get_model(model_tier="ultra") # Use highest tier for reflection
     
-    # In a real scenario, we might use a complex SQL join or BigQuery query here.
-    # For the graph node, we fetch related outcomes from the industrial outcomes table.
-    result = (
-        session.table("blackbox_outcomes_industrial")
-        .select("*")
-        .eq("move_id", state["move_id"])
-        .execute()
+    findings = "\n".join(state.get("findings", []))
+    outcomes = "\n".join([str(o) for o in state.get("outcomes", [])])
+    
+    prompt = (
+        "Review the following findings and attributed outcomes for consistency and strategic depth.\n"
+        "Assign a confidence score between 0.0 and 1.0 and provide a brief reflection.\n\n"
+        f"Findings:\n{findings}\n\n"
+        f"Outcomes:\n{outcomes}\n\n"
+        "Format: Confidence: [score]\nReflection: [text]"
     )
     
-    return {"outcomes": result.data, "status": "attributed"}
+    response = llm.invoke(prompt)
+    content = response.content
+    
+    # Simple parsing logic
+    confidence = 0.5
+    if "Confidence:" in content:
+        try:
+            conf_str = content.split("Confidence:")[1].split("\n")[0].strip()
+            confidence = float(conf_str)
+        except (ValueError, IndexError):
+            pass
+            
+    reflection = content.split("Reflection:")[1].strip() if "Reflection:" in content else content
+    
+    return {"reflection": reflection, "confidence": confidence, "status": "validated"}

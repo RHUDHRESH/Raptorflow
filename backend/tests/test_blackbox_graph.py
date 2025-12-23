@@ -2,7 +2,7 @@ import sys
 from unittest.mock import MagicMock, patch
 import pytest
 from uuid import uuid4
-from backend.graphs.blackbox_analysis import AnalysisState, ingest_telemetry_node, extract_insights_node, attribute_outcomes_node
+from backend.graphs.blackbox_analysis import AnalysisState, ingest_telemetry_node, extract_insights_node, attribute_outcomes_node, reflect_and_validate_node
 
 def test_analysis_state_definition():
     assert "move_id" in AnalysisState.__annotations__
@@ -31,7 +31,6 @@ def test_ingest_telemetry_node():
     mock_session = MagicMock()
     mock_data = [{"id": "t1", "agent_id": "a1", "tokens": 10}]
     
-    # Mock chain: session.table().select().eq().execute().data
     mock_table = MagicMock()
     mock_session.table.return_value = mock_table
     mock_table.select.return_value = mock_table
@@ -61,15 +60,14 @@ def test_extract_insights_node():
 
 def test_attribute_outcomes_node():
     mock_session = MagicMock()
-    # Mocking chained calls: table().select().limit().execute()
-    mock_query = MagicMock()
-    mock_session.table.return_value = mock_query
-    mock_query.select.return_value = mock_query
-    mock_query.limit.return_value = mock_query
-    mock_query.execute.return_value = MagicMock(data=[
-        {"id": "o1", "source": "conversion", "value": 100.0}
-    ])
-
+    mock_data = [{"id": "o1", "metric_value": 100.0}]
+    
+    mock_chain = MagicMock()
+    mock_session.table.return_value = mock_chain
+    mock_chain.select.return_value = mock_chain
+    mock_chain.eq.return_value = mock_chain
+    mock_chain.limit.return_value = mock_chain
+    mock_chain.execute.return_value = MagicMock(data=mock_data)
     
     with patch("backend.core.vault.Vault") as mock_vault_class:
         mock_vault_class.return_value.get_session.return_value = mock_session
@@ -77,3 +75,17 @@ def test_attribute_outcomes_node():
         result = attribute_outcomes_node(state)
         assert len(result["outcomes"]) == 1
         assert result["outcomes"][0]["metric_value"] == 100.0
+
+def test_reflect_and_validate_node():
+    state: AnalysisState = {
+        "findings": ["Insight 1"],
+        "outcomes": [{"val": 10}]
+    }
+    with patch("backend.inference.InferenceProvider.get_model") as mock_get_model:
+        mock_llm = MagicMock()
+        mock_get_model.return_value = mock_llm
+        mock_llm.invoke.return_value = MagicMock(content="Confidence: 0.9\nReflection: Good")
+        
+        result = reflect_and_validate_node(state)
+        assert result["confidence"] == 0.9
+        assert result["reflection"] == "Good"
