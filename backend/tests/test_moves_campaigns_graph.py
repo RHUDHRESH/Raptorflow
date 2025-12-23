@@ -1,4 +1,5 @@
 import pytest
+
 from backend.graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
 
