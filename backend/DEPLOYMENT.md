@@ -36,8 +36,23 @@ Assign necessary roles:
 - Configure Realtime for `telemetry` tables.
 - Set up Auth providers.
 
-## 3. Upstash Configuration
-- Provision Global Redis (HTTP).
-- Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in Secret Manager.
+## 4. Industrial Security & Protection
 
+### 4.1 Cloud Armor (WAF)
+Protect the Matrix API from common web attacks (SQLi, XSS) and DDoS:
+```bash
+python scripts/setup_cloud_armor.py --project raptorflow-481505
+```
+
+### 4.2 IAM Role Pruning
+Ensure the `raptorflow-matrix-sa` service account follows the Principle of Least Privilege:
+- **Keep:** `roles/run.invoker`, `roles/secretmanager.secretAccessor`, `roles/aiplatform.user`.
+- **Remove:** Any `roles/owner` or `roles/editor` bindings.
+
+```bash
+# Verify roles
+gcloud projects get-iam-policy raptorflow-481505 \
+    --flatten="bindings[].members" \
+    --format='table(bindings.role)' \
+    --filter="bindings.members:raptorflow-matrix-sa"
 ```
