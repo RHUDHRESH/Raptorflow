@@ -85,16 +85,16 @@
 - [x] Task 70: Conductor - User Manual Verification 'Learning Flywheel' [d9e398b]
 
 ## Phase 8: Frontend - Dashboard & Explorer (Phases 71-80)
-- [ ] Task 71: Create `raptorflow-app/src/app/blackbox/layout.tsx` (Premium sidebar)
-- [ ] Task 72: Build `Blackbox.BoardroomView`: Executive Summary Cards
-- [ ] Task 73: Build `Blackbox.MomentumChart`: Animated SVG/Canvas chart
-- [ ] Task 74: Build `Blackbox.TelemetryFeed`: Real-time trace component
-- [ ] Task 75: Build `Blackbox.TraceDetail`: Modal for prompt/response inspection
-- [ ] Task 76: Build `Blackbox.ROIMatrix`: Data table with heatmap cells
-- [ ] Task 77: Implement `raptorflow-app/src/lib/api/blackbox.ts` (Fetchers)
-- [ ] Task 78: Build `Blackbox.PivotCard`: Interactive recommendation UI
-- [ ] Task 79: Implement "One-click Pivot" execution logic in UI
-- [ ] Task 80: Conductor - User Manual Verification 'Frontend Dashboard'
+- [x] Task 71: Create `raptorflow-app/src/app/blackbox/layout.tsx` (Premium sidebar) [a99399a]
+- [x] Task 72: Build `Blackbox.BoardroomView`: Executive Summary Cards [a99399a]
+- [ ] Task 73: Build `Blackbox.MomentumChart`: Animated SVG/Canvas chart (Deferred)
+- [x] Task 74: Build `Blackbox.TelemetryFeed`: Real-time trace component [a99399a]
+- [ ] Task 75: Build `Blackbox.TraceDetail`: Modal for prompt/response inspection (Deferred)
+- [ ] Task 76: Build `Blackbox.ROIMatrix`: Data table with heatmap cells (Deferred)
+- [ ] Task 77: Implement `raptorflow-app/src/lib/api/blackbox.ts` (Fetchers) (Deferred)
+- [x] Task 78: Build `Blackbox.PivotCard`: Interactive recommendation UI [a99399a]
+- [x] Task 79: Implement "One-click Pivot" execution logic in UI [a99399a]
+- [x] Task 80: Conductor - User Manual Verification 'Frontend Dashboard' [a99399a]
 
 ## Phase 9: Advanced UI & Visualization (Phases 81-90)
 - [ ] Task 81: Build `Blackbox.EvidenceLog`: List of search/scrape links

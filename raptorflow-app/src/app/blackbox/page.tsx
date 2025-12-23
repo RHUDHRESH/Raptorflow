@@ -19,6 +19,10 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
+import { BoardroomView } from '@/components/blackbox/BoardroomView';
+import { TelemetryFeed } from '@/components/blackbox/TelemetryFeed';
+import { Sparkles, Brain } from 'lucide-react';
+
 export default function BlackBoxPage() {
     const [experiments, setExperiments] = useState<Experiment[]>([]);
     const [learnings, setLearnings] = useState<LearningArtifact[]>([]);
@@ -124,72 +128,119 @@ export default function BlackBoxPage() {
 
     return (
         <AppLayout>
-            <div className="max-w-4xl mx-auto space-y-6 pb-16">
-                {/* Header */}
-                <div className="flex items-end justify-between pt-2">
+            <div className="max-w-6xl mx-auto space-y-10 pb-20">
+                {/* Executive Header */}
+                <div className="flex items-end justify-between border-b border-border pb-6 pt-2">
                     <div>
-                        <h1 className="text-3xl font-display font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-                            Black Box Z
+                        <h1 className="text-4xl font-display font-semibold tracking-tight text-foreground flex items-center gap-3">
+                            Blackbox <span className="text-accent/50 italic font-medium text-3xl px-2 py-0.5 rounded bg-accent/5 border border-accent/10">Industrial</span>
                         </h1>
-                        <p className="text-sm text-zinc-500 font-sans">
-                            3 experiments. 1 winner. Every week.
+                        <p className="text-sm text-muted-foreground font-sans mt-2 max-w-md">
+                            The industrial intelligence engine. Outcomes tracked, insights extracted, strategy hardened by evidence.
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                         {experiments.length > 0 && (
-                            <Button variant="ghost" onClick={handleClear} className="rounded-lg text-zinc-400 h-9 font-sans hover:text-red-500 hover:bg-red-50">
+                            <Button variant="ghost" onClick={handleClear} className="rounded-lg text-muted-foreground h-10 font-sans hover:text-red-500 hover:bg-red-50/10">
                                 <Trash2 className="w-4 h-4" />
                             </Button>
                         )}
-                        <Button onClick={() => setShowWizard(true)} className="rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 h-9 px-4 font-sans">
-                            <Plus className="w-4 h-4 mr-1.5" /> New
+                        <Button onClick={() => setShowWizard(true)} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 h-10 px-6 font-sans font-medium tracking-tight">
+                            <Plus className="w-4 h-4 mr-2" /> New Experiment
                         </Button>
                     </div>
                 </div>
 
-                {/* Stats */}
-                <StatsBar experiments={experiments} />
+                {/* SOTA Stats Grid */}
+                <BoardroomView />
 
-                {/* Results */}
-                <ResultsStrip winner={winner} learnings={learnings} onRunAgain={() => winner && handleDuplicate(winner.id)} />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left: Experimental Flywheel */}
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* Results Strip (Hero learning) */}
+                        <ResultsStrip winner={winner} learnings={learnings} onRunAgain={() => winner && handleDuplicate(winner.id)} />
 
-                {/* Active */}
-                {active.length > 0 && (
-                    <section className="space-y-3">
-                        <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-400 font-sans">
-                            Active <span className="text-zinc-300 dark:text-zinc-600">({active.length})</span>
-                        </h2>
-                        <ExperimentList
-                            experiments={active}
-                            onLaunch={handleLaunch}
-                            onSwap={() => toast('Swap coming soon')}
-                            onCheckin={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveCheckin(e); }}
-                            onView={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveDetail(e); }}
-                            onDelete={handleDelete}
-                            onDuplicate={handleDuplicate}
-                            onMove={handleMove}
-                            onEdit={(id) => setActiveEdit(experiments.find(e => e.id === id) || null)}
-                        />
-                    </section>
-                )}
+                        {/* Strategic Insights / Pivots (Task 78) */}
+                        <section className="space-y-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Sparkles className="h-4 w-4 text-accent" />
+                                <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground font-sans">
+                                    Strategic Pivots
+                                </h2>
+                            </div>
+                            <div className="grid gap-4">
+                                <div className="p-6 rounded-2xl border border-accent/20 bg-accent/5 backdrop-blur-sm relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                        <Brain size={80} />
+                                    </div>
+                                    <div className="flex items-start gap-4">
+                                        <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground shrink-0 shadow-lg shadow-accent/20">
+                                            <TrendingUp size={20} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h3 className="font-semibold text-lg font-sans">Scale B2B SaaS Reach via LinkedIn</h3>
+                                            <p className="text-sm text-muted-foreground font-sans leading-relaxed">
+                                                Based on the last 4 experiments, LinkedIn Organic outreach has 3.2x higher conversion than cold email.
+                                                Recommendation: Shift 40% of email budget to LinkedIn Content Engine.
+                                            </p>
+                                            <div className="pt-4 flex items-center gap-3">
+                                                <Button size="sm" className="rounded-lg h-8 bg-foreground text-background px-4 font-sans text-xs">Apply Pivot</Button>
+                                                <Button size="sm" variant="outline" className="rounded-lg h-8 px-4 font-sans text-xs border-border">View Evidence</Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
 
-                {/* Completed */}
-                {completed.length > 0 && (
-                    <section className="space-y-3">
-                        <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-400 font-sans">
-                            Completed <span className="text-zinc-300 dark:text-zinc-600">({completed.length})</span>
-                        </h2>
-                        <ExperimentList
-                            experiments={completed}
-                            onView={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveDetail(e); }}
-                            onDelete={handleDelete}
-                            onDuplicate={handleDuplicate}
-                        />
-                    </section>
-                )}
+                        {/* Active Experiments */}
+                        {active.length > 0 && (
+                            <section className="space-y-4 pt-4">
+                                <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans px-1">
+                                    Active Flywheel <span className="text-muted-foreground/40 font-mono ml-1">[{active.length}]</span>
+                                </h2>
+                                <ExperimentList
+                                    experiments={active}
+                                    onLaunch={handleLaunch}
+                                    onSwap={() => toast('Swap coming soon')}
+                                    onCheckin={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveCheckin(e); }}
+                                    onView={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveDetail(e); }}
+                                    onDelete={handleDelete}
+                                    onDuplicate={handleDuplicate}
+                                    onMove={handleMove}
+                                    onEdit={(id) => setActiveEdit(experiments.find(e => e.id === id) || null)}
+                                />
+                            </section>
+                        )}
+                    </div>
+
+                    {/* Right: Monitoring & Logs */}
+                    <div className="space-y-8">
+                        {/* Live Telemetry (Task 74) */}
+                        <TelemetryFeed />
+
+                        {/* Completed Experiments */}
+                        {completed.length > 0 && (
+                            <section className="space-y-4">
+                                <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans px-1">
+                                    History
+                                </h2>
+                                <div className="opacity-80 scale-95 origin-top">
+                                    <ExperimentList
+                                        experiments={completed}
+                                        onView={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveDetail(e); }}
+                                        onDelete={handleDelete}
+                                        onDuplicate={handleDuplicate}
+                                    />
+                                </div>
+                            </section>
+                        )}
+                    </div>
+                </div>
             </div>
 
+            {/* Modals & Wizards */}
             <BlackBoxWizard open={showWizard} onOpenChange={setShowWizard} onComplete={handleWizardComplete} />
 
             <ExperimentDetail
@@ -209,34 +260,34 @@ export default function BlackBoxPage() {
 
             {/* Edit Modal */}
             <Dialog open={!!activeEdit} onOpenChange={(o) => !o && setActiveEdit(null)}>
-                <DialogContent className="max-w-md bg-white dark:bg-zinc-950">
+                <DialogContent className="max-w-md bg-background border-border">
                     <DialogHeader>
-                        <DialogTitle className="font-sans">Edit Experiment</DialogTitle>
+                        <DialogTitle className="font-sans font-semibold">Edit Experiment</DialogTitle>
                     </DialogHeader>
                     {activeEdit && (
                         <div className="space-y-4 py-2">
                             <div className="space-y-2">
-                                <label className="text-xs font-medium text-zinc-500 font-sans uppercase">Title</label>
+                                <label className="text-xs font-semibold text-muted-foreground font-sans uppercase tracking-tighter">Title</label>
                                 <Input
                                     value={activeEdit.title}
                                     onChange={(e) => setActiveEdit({ ...activeEdit, title: e.target.value })}
-                                    className="font-sans"
+                                    className="font-sans rounded-lg border-border"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-medium text-zinc-500 font-sans uppercase">The Bet</label>
+                                <label className="text-xs font-semibold text-muted-foreground font-sans uppercase tracking-tighter">The Bet</label>
                                 <Textarea
                                     value={activeEdit.bet}
                                     onChange={(e) => setActiveEdit({ ...activeEdit, bet: e.target.value })}
-                                    className="font-sans resize-none"
+                                    className="font-sans resize-none rounded-lg border-border"
                                     rows={3}
                                 />
                             </div>
                         </div>
                     )}
                     <DialogFooter>
-                        <Button variant="ghost" onClick={() => setActiveEdit(null)} className="font-sans">Cancel</Button>
-                        <Button onClick={handleEditSave} className="bg-zinc-900 text-white font-sans">Save Changes</Button>
+                        <Button variant="ghost" onClick={() => setActiveEdit(null)} className="font-sans rounded-lg">Cancel</Button>
+                        <Button onClick={handleEditSave} className="bg-foreground text-background font-sans font-semibold rounded-lg tracking-tight">Save Changes</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
