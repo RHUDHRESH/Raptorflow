@@ -232,6 +232,8 @@ function mapDBMoveToFrontend(db: any): Move {
     return {
         id: db.id,
         name: db.title,
+        description: db.description,
+        owner: db.priority === 1 ? 'AI Agent' : 'Founder', // Simple heuristic
         goal: 'distribution',
         channel: 'linkedin',
         duration: 7,
