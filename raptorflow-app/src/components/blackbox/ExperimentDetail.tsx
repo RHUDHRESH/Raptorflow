@@ -8,9 +8,27 @@ import { Clock, BarChart2, Sparkles, Rocket, CheckCircle2, Copy, X, Target, Brai
 import { cn } from '@/lib/utils';
 import { EvidenceLog, EvidenceTrace } from './EvidenceLog';
 import { ResultsStrip } from './ResultsStrip';
-import { getOutcomesByMove, getTelemetryByMove } from '@/lib/blackbox';
+import { getOutcomesByMove, getTelemetryByMove, getLearningsByMove } from '@/lib/blackbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AgentAuditLog } from './AgentAuditLog';
+
+export interface BlackboxOutcome {
+    id: string;
+    campaign_id?: string;
+    move_id?: string;
+    source: string;
+    value: number;
+    confidence: number;
+    timestamp: string;
+}
+
+export interface BlackboxLearning {
+    id: string;
+    content: string;
+    learning_type: 'strategic' | 'tactical' | 'content';
+    status: string;
+    timestamp: string;
+}
 
 interface ExperimentDetailProps {
     experiment: Experiment | null;
@@ -29,6 +47,7 @@ export function ExperimentDetail({
 }: ExperimentDetailProps) {
     const [traces, setTraces] = useState<EvidenceTrace[]>([]);
     const [outcomes, setOutcomes] = useState<BlackboxOutcome[]>([]);
+    const [learnings, setLearnings] = useState<BlackboxLearning[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -36,12 +55,14 @@ export function ExperimentDetail({
             const fetchData = async () => {
                 setIsLoading(true);
                 try {
-                    const [telemetryData, outcomesData] = await Promise.all([
+                    const [telemetryData, outcomesData, learningsData] = await Promise.all([
                         getTelemetryByMove(experiment.id),
-                        getOutcomesByMove(experiment.id)
+                        getOutcomesByMove(experiment.id),
+                        getLearningsByMove(experiment.id)
                     ]);
                     setTraces(telemetryData);
                     setOutcomes(outcomesData);
+                    setLearnings(learningsData);
                 } catch (err) {
                     console.error('Failed to fetch experiment data:', err);
                 } finally {
@@ -138,16 +159,42 @@ export function ExperimentDetail({
                             </div>
 
                             {/* Surgical Learning / Results Strip */}
-                            {isCheckedIn && (
+                            {(isCheckedIn || learnings.length > 0) && (
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2 px-1">
                                         <BrainCircuit className="w-4 h-4 text-accent" />
                                         <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 font-sans">Surgical Learning</h3>
                                     </div>
-                                    <ResultsStrip
-                                        winner={experiment}
-                                        learnings={experiment.learning ? [experiment.learning] : []}
-                                    />
+                                    
+                                    {learnings.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {learnings.map(learning => (
+                                                <div key={learning.id} className="p-4 bg-accent/5 border border-accent/10 rounded-xl">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className={cn(
+                                                            "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded",
+                                                            learning.learning_type === 'strategic' ? "bg-purple-500/10 text-purple-500" :
+                                                            learning.learning_type === 'tactical' ? "bg-blue-500/10 text-blue-500" :
+                                                            "bg-zinc-500/10 text-zinc-500"
+                                                        )}>
+                                                            {learning.learning_type}
+                                                        </span>
+                                                        <span className="text-[9px] text-muted-foreground font-mono">
+                                                            {new Date(learning.timestamp).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-zinc-800 dark:text-zinc-200 leading-relaxed">
+                                                        {learning.content}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <ResultsStrip
+                                            winner={experiment}
+                                            learnings={experiment.learning ? [experiment.learning] : []}
+                                        />
+                                    )}
                                 </div>
                             )}
 
