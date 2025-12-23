@@ -25,10 +25,10 @@
 - [x] 18. Task: Write failing integration tests for the Campaign creation-to-persistence flow [89fb8b5]
 - [x] 19. Task: Integrate "Campaign Auditor" feedback display into the UI [927ea80]
 - [x] 20. Task: Implement the interactive Gantt chart update logic based on backend response [d9697cf]
-- [~] 21. Task: Build the interactive "Strategic Pivot" cards in the Dashboard
-- [ ] 22. Task: Connect Pivot Card actions to backend strategy update nodes
-
+- [x] 21. Task: Build the interactive "Strategic Pivot" cards in the Dashboard [6ef8318]
+- [~] 22. Task: Connect Pivot Card actions to backend strategy update nodes
 - [ ] 23. Task: Implement optimistic UI updates for campaign state changes
+
 - [ ] 24. Task: Verify Campaign UI state matches Supabase record after inference
 - [ ] 25. Task: Conductor - User Manual Verification 'Campaign Integration' (Protocol in workflow.md)
 
