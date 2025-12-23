@@ -1,5 +1,5 @@
 -- Add attribution columns to Blackbox Outcomes Industrial
-ALTER TABLE blackbox_outcomes_industrial 
+ALTER TABLE blackbox_outcomes_industrial
 ADD COLUMN IF NOT EXISTS campaign_id UUID REFERENCES campaigns(id),
 ADD COLUMN IF NOT EXISTS move_id UUID REFERENCES moves(id);
 

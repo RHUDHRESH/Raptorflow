@@ -1,5 +1,5 @@
-import time
 import math
+import time
 from datetime import datetime
 from enum import Enum
 from functools import wraps
@@ -8,11 +8,12 @@ from uuid import UUID
 
 from backend.core.vault import Vault
 from backend.inference import InferenceProvider
-from backend.models.blackbox import BlackboxLearning, BlackboxOutcome, BlackboxTelemetry
+from backend.models.blackbox import BlackboxOutcome, BlackboxTelemetry
 
 
 class AttributionModel(str, Enum):
     """Supported attribution models for business outcomes."""
+
     FIRST_TOUCH = "first_touch"
     LAST_TOUCH = "last_touch"
     LINEAR = "linear"
@@ -23,6 +24,7 @@ def trace_agent(service, agent_id: str):
     Synchronous decorator to automatically log agent execution to Blackbox.
     Expects the first argument of the decorated function to be move_id (UUID).
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(move_id, *args, **kwargs):
@@ -58,7 +60,9 @@ def trace_agent(service, agent_id: str):
                 )
                 service.log_telemetry(telemetry)
                 raise e
+
         return wrapper
+
     return decorator
 
 
@@ -77,6 +81,7 @@ class BlackboxService:
         """Lazily initializes the BigQuery client."""
         if not self._bigquery_client:
             from google.cloud import bigquery
+
             self._bigquery_client = bigquery.Client(project=self.vault.project_id)
         return self._bigquery_client
 
@@ -161,7 +166,9 @@ class BlackboxService:
         if errors:
             print(f"BigQuery outcome insertion errors: {errors}")
 
-    def compute_roi(self, campaign_id: UUID, model: AttributionModel = AttributionModel.LINEAR) -> Dict[str, Any]:
+    def compute_roi(
+        self, campaign_id: UUID, model: AttributionModel = AttributionModel.LINEAR
+    ) -> Dict[str, Any]:
         """
         Calculates the Return on Investment for a campaign.
         Aggregates costs from all moves and compares against attributed outcomes.
@@ -179,7 +186,12 @@ class BlackboxService:
         move_ids = [m["id"] for m in moves_res.data]
 
         if not move_ids:
-            return {"roi": 0.0, "total_cost": 0.0, "total_value": 0.0, "status": "no_moves"}
+            return {
+                "roi": 0.0,
+                "total_cost": 0.0,
+                "total_value": 0.0,
+                "status": "no_moves",
+            }
 
         # 2. Aggregate costs (tokens * simulated price $0.02/1k)
         total_tokens = sum(self.calculate_move_cost(mid) for mid in move_ids)
@@ -193,16 +205,20 @@ class BlackboxService:
             .execute()
         )
         outcomes = outcomes_res.data
-        
+
         total_value = 0.0
         if model == AttributionModel.LINEAR:
             total_value = sum(float(o["value"]) for o in outcomes)
         elif model == AttributionModel.FIRST_TOUCH:
             first_move_id = move_ids[0]
-            total_value = sum(float(o["value"]) for o in outcomes if o.get("move_id") == first_move_id)
+            total_value = sum(
+                float(o["value"]) for o in outcomes if o.get("move_id") == first_move_id
+            )
         elif model == AttributionModel.LAST_TOUCH:
             last_move_id = move_ids[-1]
-            total_value = sum(float(o["value"]) for o in outcomes if o.get("move_id") == last_move_id)
+            total_value = sum(
+                float(o["value"]) for o in outcomes if o.get("move_id") == last_move_id
+            )
 
         # 4. ROI Formula: (Value - Cost) / Cost
         roi = ((total_value - total_cost) / total_cost) if total_cost > 0 else 0.0
@@ -213,7 +229,7 @@ class BlackboxService:
             "roi": round(roi, 4),
             "total_cost": round(total_cost, 4),
             "total_value": round(total_value, 4),
-            "status": "computed"
+            "status": "computed",
         }
 
     def calculate_momentum_score(self) -> float:
@@ -221,40 +237,52 @@ class BlackboxService:
         Calculates a 'Momentum Score' based on outcome-to-token ratio.
         """
         session = self.vault.get_session()
-        
-        tele_res = session.table("blackbox_telemetry_industrial").select("tokens").execute()
+
+        tele_res = (
+            session.table("blackbox_telemetry_industrial").select("tokens").execute()
+        )
         total_tokens = sum(float(t.get("tokens", 0)) for t in tele_res.data)
-        
-        out_res = session.table("blackbox_outcomes_industrial").select("value").execute()
+
+        out_res = (
+            session.table("blackbox_outcomes_industrial").select("value").execute()
+        )
         total_value = sum(float(o.get("value", 0)) for o in out_res.data)
-        
+
         if total_tokens == 0:
             return 0.0
-            
+
         return round((total_value / total_tokens) * 1000, 4)
 
     def calculate_attribution_confidence(self, move_id: str) -> float:
         """Calculates confidence based on telemetry volume."""
         telemetry = self.get_telemetry_by_move(move_id)
         count = len(telemetry)
-        if count == 0: return 0.0
+        if count == 0:
+            return 0.0
         confidence = 0.3 + (0.65 * (math.log10(count) / 2.0))
         return min(round(confidence, 2), 1.0)
 
     def get_roi_matrix_data(self) -> List[Dict]:
         """Retrieves ROI data for all active campaigns."""
         session = self.vault.get_session()
-        camps = session.table("campaigns").select("id", "title").eq("status", "active").execute()
-        
+        camps = (
+            session.table("campaigns")
+            .select("id", "title")
+            .eq("status", "active")
+            .execute()
+        )
+
         matrix = []
         for c in camps.data:
             roi_res = self.compute_roi(UUID(c["id"]))
-            matrix.append({
-                "campaign_id": c["id"],
-                "title": c["title"],
-                "roi": roi_res["roi"],
-                "momentum": self.calculate_momentum_score()
-            })
+            matrix.append(
+                {
+                    "campaign_id": c["id"],
+                    "title": c["title"],
+                    "roi": roi_res["roi"],
+                    "momentum": self.calculate_momentum_score(),
+                }
+            )
         return matrix
 
     def get_longitudinal_analysis(self, days: int = 90) -> List[Dict[str, Any]]:
@@ -268,7 +296,7 @@ class BlackboxService:
 
         query = f"""
             WITH daily_costs AS (
-                SELECT 
+                SELECT
                     DATE(timestamp) as day,
                     SUM(tokens) as daily_tokens,
                     SUM(tokens / 1000 * 0.02) as estimated_cost
@@ -277,21 +305,21 @@ class BlackboxService:
                 GROUP BY day
             ),
             daily_outcomes AS (
-                SELECT 
+                SELECT
                     DATE(timestamp) as day,
                     SUM(value) as daily_value
                 FROM `{project}.{dataset}.outcomes_stream`
                 WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {days} DAY)
                 GROUP BY day
             )
-            SELECT 
+            SELECT
                 c.day,
                 c.daily_tokens,
                 c.estimated_cost,
                 COALESCE(o.daily_value, 0) as daily_value,
-                CASE 
+                CASE
                     WHEN c.estimated_cost > 0 THEN (COALESCE(o.daily_value, 0) - c.estimated_cost) / c.estimated_cost
-                    ELSE 0 
+                    ELSE 0
                 END as daily_roi
             FROM daily_costs c
             LEFT JOIN daily_outcomes o ON c.day = o.day
@@ -303,13 +331,15 @@ class BlackboxService:
 
         analysis = []
         for row in results:
-            analysis.append({
-                "day": str(row.day),
-                "tokens": row.daily_tokens,
-                "cost": round(row.estimated_cost, 4),
-                "value": round(row.daily_value, 4),
-                "roi": round(row.daily_roi, 4)
-            })
+            analysis.append(
+                {
+                    "day": str(row.day),
+                    "tokens": row.daily_tokens,
+                    "cost": round(row.estimated_cost, 4),
+                    "value": round(row.daily_value, 4),
+                    "roi": round(row.daily_roi, 4),
+                }
+            )
 
         return analysis
 
@@ -319,7 +349,7 @@ class BlackboxService:
         Summarizes outcomes and telemetry into strategic learnings.
         """
         from backend.graphs.blackbox_analysis import create_blackbox_graph
-        
+
         graph = create_blackbox_graph()
         initial_state = {
             "move_id": move_id,
@@ -328,31 +358,28 @@ class BlackboxService:
             "outcomes": [],
             "reflection": "",
             "confidence": 0.0,
-            "status": []
+            "status": [],
         }
-        
+
         final_state = await graph.ainvoke(initial_state)
-        
+
         # 1. Process findings into permanent memory
         for finding in final_state.get("findings", []):
             l_type = self.categorize_learning(finding)
             self.upsert_learning_embedding(
-                content=finding,
-                learning_type=l_type,
-                source_ids=[UUID(move_id)]
+                content=finding, learning_type=l_type, source_ids=[UUID(move_id)]
             )
-            
+
         return {
             "move_id": move_id,
             "findings_count": len(final_state.get("findings", [])),
             "confidence": final_state.get("confidence", 0.0),
-            "status": "cycle_complete"
+            "status": "cycle_complete",
         }
 
-    def attribute_outcome(self, outcome: BlackboxOutcome):
-        pass
-
-    def upsert_learning_embedding(self, content: str, learning_type: str, source_ids: List[UUID] = None):
+    def upsert_learning_embedding(
+        self, content: str, learning_type: str, source_ids: List[UUID] = None
+    ):
         """Generates embedding and persists learning."""
         embed_model = InferenceProvider.get_embeddings()
         embedding = embed_model.embed_query(content)
@@ -403,11 +430,18 @@ class BlackboxService:
         response = llm.invoke(prompt)
         category = response.content.strip().lower()
         for label in ["strategic", "tactical", "content"]:
-            if label in category: return label
+            if label in category:
+                return label
         return "tactical"
 
     def get_memory_context_for_planner(self, move_type: str, limit: int = 5) -> str:
         """Formats relevant memory for agents."""
         results = self.search_strategic_memory(query=move_type, limit=limit)
-        if not results: return ""
-        return "\n---\n".join([f"[{r.get('learning_type', '').upper()}] {r.get('content')}" for r in results])
+        if not results:
+            return ""
+        return "\n---\n".join(
+            [
+                f"[{r.get('learning_type', '').upper()}] {r.get('content')}"
+                for r in results
+            ]
+        )
