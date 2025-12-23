@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 from uuid import uuid4
 
-import pytest
 from fastapi.testclient import TestClient
 
 from backend.api.v1.blackbox_roi import get_blackbox_service

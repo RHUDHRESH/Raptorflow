@@ -21,7 +21,7 @@
 
 ## Phase 3: Campaign Module Production Integration (Tasks 16-25)
 - [x] 16. Task: Connect UI triggers to the 90-day arc generation agent node [36c5a83]
-- [ ] 17. Task: Implement real-time status polling for campaign strategy generation
+- [~] 17. Task: Implement real-time status polling for campaign strategy generation
 - [ ] 18. Task: Write failing integration tests for the Campaign creation-to-persistence flow
 - [ ] 19. Task: Integrate "Campaign Auditor" feedback display into the UI
 - [ ] 20. Task: Implement the interactive Gantt chart update logic based on backend response

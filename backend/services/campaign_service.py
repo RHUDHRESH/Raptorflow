@@ -92,6 +92,25 @@ class CampaignService:
             "messages": result.get("messages", []),
         }
 
+    async def get_arc_generation_status(self, campaign_id: str) -> Optional[dict]:
+        """Retrieves the current status of the agentic orchestrator for a campaign."""
+        from backend.graphs.moves_campaigns_orchestrator import (
+            moves_campaigns_orchestrator,
+        )
+
+        config = {"configurable": {"thread_id": campaign_id}}
+        state = await moves_campaigns_orchestrator.aget_state(config)
+
+        if not state or not state.values:
+            return None
+
+        return {
+            "status": state.values.get("status", "unknown"),
+            "orchestrator_status": state.values.get("status"),
+            "messages": state.values.get("messages", []),
+            "campaign_id": campaign_id,
+        }
+
     async def get_gantt_chart(self, campaign_id: str) -> Optional[GanttChart]:
         """Retrieves or generates a Gantt chart for a campaign."""
         # In a real implementation, this would pull from Supabase.
