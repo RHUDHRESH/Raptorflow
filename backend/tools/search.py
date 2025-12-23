@@ -2,7 +2,7 @@ import os
 import logging
 from typing import List, Dict, Any
 from tavily import TavilyClient
-from backend.core.toolbelt import BaseRaptorTool, RaptorRateLimiter
+from backend.core.base_tool import BaseRaptorTool, RaptorRateLimiter
 
 logger = logging.getLogger("raptorflow.tools.search")
 
@@ -11,11 +11,19 @@ class TavilyMultiHopTool(BaseRaptorTool):
     SOTA Multi-hop Search Tool.
     Performs deep research using Tavily's specialized AI search.
     """
+
     def __init__(self):
-        api_key = os.getenv("TAVILY_API_KEY")
-        if not api_key:
-            logger.warning("TAVILY_API_KEY missing from environment.")
-        self.client = TavilyClient(api_key=api_key)
+        self._client = None
+
+    @property
+    def client(self):
+        if self._client is None:
+            api_key = os.getenv("TAVILY_API_KEY")
+            if not api_key:
+                logger.error("TAVILY_API_KEY missing from environment.")
+                raise ValueError("TAVILY_API_KEY missing")
+            self._client = TavilyClient(api_key=api_key)
+        return self._client
 
     @property
     def name(self) -> str:
@@ -30,19 +38,18 @@ class TavilyMultiHopTool(BaseRaptorTool):
         )
 
     @RaptorRateLimiter.get_retry_decorator()
-    async def _execute(self, query: str, search_depth: str = "advanced") -> List[Dict[str, Any]]:
+    async def _execute(
+        self, query: str, search_depth: str = "advanced"
+    ) -> List[Dict[str, Any]]:
         """
         Executes the deep search.
         """
         logger.info(f"Executing Tavily multi-hop search: {query}")
         # Tavily search is synchronous, we run in thread for SOTA async performance
-        # In a full SOTA build, use their async client if available or asyncio.to_thread
         import asyncio
+
         response = await asyncio.to_thread(
-            self.client.search, 
-            query=query, 
-            search_depth=search_depth,
-            max_results=5
+            self.client.search, query=query, search_depth=search_depth, max_results=5
         )
         return response.get("results", [])
 

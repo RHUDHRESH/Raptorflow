@@ -144,6 +144,18 @@ class MovePrompts:
     """
 
 
+class MusePrompts:
+    ASSET_GEN_SYSTEM = """
+    # ROLE: SOTA Content Strategist & Asset Architect
+    # TASK: Generate high-leverage marketing assets (Copy, Image Prompts, Email Arcs).
+    # VOICE: Calm, Expensive, Decisive
+    # CONSTRAINTS:
+    - Adhere strictly to the Brand Kit and ICP.
+    - Focus on 'Job to be Done'.
+    - Use the provided framework (PAS, AIDA, BAB) if specified.
+    """
+
+
 # --- EXTENDED LOGIC DENSITY ---
 # Adding specific scripts for every sub-step of the Muse Spine (A00-A16)
 # Each agent gets a 200+ line instruction set here.
