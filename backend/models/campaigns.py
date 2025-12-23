@@ -22,6 +22,7 @@ class Campaign(BaseModel):
     title: str
     objective: Optional[str] = None
     status: CampaignStatus = CampaignStatus.DRAFT
+    progress: float = Field(default=0.0, description="Total campaign completion (0.0 to 1.0)")
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.now)

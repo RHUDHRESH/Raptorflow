@@ -13,7 +13,9 @@ class SemanticMemory:
     def __init__(self, table: str = "agent_memory_semantic"):
         self.table = table
 
-    async def search(self, tenant_id: str, query: str, limit: int = 5, filters: Optional[Dict] = None) -> List[Dict]:
+    async def search(
+        self, tenant_id: str, query: str, limit: int = 5, filters: Optional[Dict] = None
+    ) -> List[Dict]:
         """Performs a semantic search for relevant context."""
         embedder = InferenceProvider.get_embeddings()
         query_embedding = await embedder.aembed_query(query)
@@ -23,7 +25,7 @@ class SemanticMemory:
             embedding=query_embedding,
             table=self.table,
             limit=limit,
-            filters=filters
+            filters=filters,
         )
 
         # Format results for SOTA consumption
