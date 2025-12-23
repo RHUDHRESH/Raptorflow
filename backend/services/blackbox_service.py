@@ -90,6 +90,19 @@ class BlackboxService:
             # In production, we might want to log this to a dead-letter queue
             print(f"BigQuery insertion errors: {errors}")
 
+    def get_agent_audit_log(self, agent_id: str, limit: int = 100):
+        """Retrieves latest telemetry logs for a specific agent."""
+        session = self.vault.get_session()
+        result = (
+            session.table("blackbox_telemetry_industrial")
+            .select("*")
+            .eq("agent_id", agent_id)
+            .order("timestamp", ascending=False)
+            .limit(limit)
+            .execute()
+        )
+        return result.data
+
     def attribute_outcome(self, outcome: BlackboxOutcome):
         """Attributes a business outcome to specific campaign/move."""
         pass
