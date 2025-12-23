@@ -61,10 +61,10 @@
 - [x] 50. Task: Conductor - User Manual Verification 'Campaign Planning' (Protocol in workflow.md) [5472cb2]
 
 ## Phase 6: Move Module - Weekly Task Breakdown (Tasks 51-60)
-- [ ] 51. Task: Design `MoveGenerator` agent persona and prompts
-- [ ] 52. Task: Implement logic to map weekly "Moves" to 90-day Campaign milestones
-- [ ] 53. Task: Write failing tests for Task Priority and Deadline calculation
-- [ ] 54. Task: Implement the "Move Refiner" node for actionable task formatting
+- [x] 51. Task: Design `MoveGenerator` agent persona and prompts [5a398a6]
+- [x] 52. Task: Implement logic to map weekly "Moves" to 90-day Campaign milestones [5a398a6]
+- [x] 53. Task: Write failing tests for Task Priority and Deadline calculation [5a398a6]
+- [x] 54. Task: Implement the "Move Refiner" node for actionable task formatting [5a398a6]
 - [ ] 55. Task: Create the `MovePacket` data structure (Description, Owner, Tools needed)
 - [ ] 56. Task: Implement the "Resource Manager" node to check for tool availability
 - [ ] 57. Task: Setup the frontend `MovesDashboard` with interactive task cards
