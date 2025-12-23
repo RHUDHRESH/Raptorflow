@@ -40,6 +40,7 @@ def setup_bigquery(project_id: str, dataset_id: str = "raptorflow_analytics"):
     table.time_partitioning = bigquery.TimePartitioning(
         type_=bigquery.TimePartitioningType.DAY,
         field="timestamp",  # Partition by timestamp
+        require_partition_filter=True,  # Force users to filter by date to save cost
     )
     table.clustering_fields = ["agent_id", "move_id"]
     table.description = "High-fidelity execution traces for MLOps analysis"
@@ -66,6 +67,7 @@ def setup_bigquery(project_id: str, dataset_id: str = "raptorflow_analytics"):
     table.time_partitioning = bigquery.TimePartitioning(
         type_=bigquery.TimePartitioningType.DAY,
         field="timestamp",
+        require_partition_filter=True,
     )
     table.clustering_fields = ["campaign_id", "source"]
     table.description = "Business outcomes for ROI attribution analysis"
