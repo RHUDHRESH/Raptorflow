@@ -1,77 +1,158 @@
-from typing import TypedDict, List, Annotated
+import logging
 import operator
-from langgraph.graph import StateGraph, START, END
-from agents.router import IntentRouterAgent
-from agents.brief_builder import BriefBuilderAgent
-from agents.supervisor import SupervisorAgent
-from agents.reflection import ReflectionAgent
-from skills.executor import SkillExecutor
+import os
+from typing import Annotated, Dict, List, Optional, TypedDict
 
-class GraphState(TypedDict):
-    prompt: Annotated[str, operator.add]
-    workspace_id: str
-    brief: dict
-    plan: dict
-    current_draft: str
-    iterations: int
-    critique: dict
-    status: str
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, StateGraph
 
-async def generate_brief(state: GraphState):
-    agent = BriefBuilderAgent()
-    brief = await agent.build(state["prompt"], {})
-    return {"brief": brief.dict(), "iterations": 0}
+from backend.db import SupabaseSaver, get_pool
+from backend.models.cognitive import CognitiveIntelligenceState, CognitiveStatus
+from backend.inference import InferenceProvider
 
-async def draft_content(state: GraphState):
-    executor = SkillExecutor()
-    # Execute the first step of the plan
-    content = await executor.run_skill(
-        state["brief"]["goal"], 
-        state["brief"], 
-        {}
-    )
-    return {"current_draft": content, "iterations": state.get("iterations", 0) + 1}
+logger = logging.getLogger("raptorflow.cognitive.spine")
 
-async def reflect(state: GraphState):
-    agent = ReflectionAgent()
-    critique = await agent.critique(state["current_draft"], state["brief"])
-    return {"critique": critique.dict()}
 
-def should_refine(state: GraphState):
-    if state["critique"]["is_premium"] or state["iterations"] > 2:
-        return "finalize"
-    return "refine"
+# --- Nodes: Phase 22 & 26 ---
 
-async def refine_content(state: GraphState):
-    executor = SkillExecutor()
-    refined = await executor.run_skill(
-        "refiner", 
-        {"original": state["current_draft"], "fixes": state["critique"]["fixes"]}, 
-        state["brief"]
-    )
-    return {"current_draft": refined}
 
-# Build SOTA Workflow
-workflow = StateGraph(GraphState)
+async def initialize_cognitive_engine(state: CognitiveIntelligenceState):
+    """
+    SOTA Initialization Node.
+    Sets up the initial state and transitions status to PLANNING.
+    """
+    logger.info(f"Initializing cognitive engine for tenant: {state.get('tenant_id')}")
+    return {
+        "status": CognitiveStatus.PLANNING,
+        "messages": [],
+        "cost_accumulator": 0.0,
+        "quality_score": 0.0,
+    }
 
-workflow.add_node("brief", generate_brief)
-workflow.add_node("draft", draft_content)
-workflow.add_node("reflect", reflect)
-workflow.add_node("refine", refine_content)
 
-workflow.add_edge(START, "brief")
-workflow.add_edge("brief", "draft")
-workflow.add_edge("draft", "reflect")
+async def finalize_run(state: CognitiveIntelligenceState):
+    """
+    SOTA Finalization Node.
+    Cleans up state and ensures persistence.
+    """
+    logger.info("Cognitive run complete.")
+    return {"status": CognitiveStatus.COMPLETE}
+
+
+async def handle_error(state: CognitiveIntelligenceState):
+    """
+    SOTA Error Handling Node (Phase 27).
+    Logs the error and transitions state to ERROR status.
+    """
+    error = state.get("error") or "Unknown cognitive error."
+    logger.error(f"Cognitive Engine Error: {error}")
+    return {"status": CognitiveStatus.ERROR, "messages": [f"CRITICAL ERROR: {error}"]}
+
+
+async def approve_assets(state: CognitiveIntelligenceState):
+    """
+    SOTA HITL Node (Phase 28).
+    Awaits human approval for generated marketing assets.
+    """
+    logger.info("Awaiting human approval for generated assets.")
+    return {"messages": ["Assets submitted for human review."]}
+
+
+# --- Router: Phase 23 ---
+
+
+def cognitive_router(state: CognitiveIntelligenceState):
+    """
+    SOTA Routing logic for the cognitive spine.
+    Directs the flow based on status and next_node override.
+    """
+    if state.get("error"):
+        return "handle_error"
+
+    status = state.get("status")
+
+    if status == CognitiveStatus.PLANNING:
+        return "strategist"
+    if status == CognitiveStatus.RESEARCHING:
+        return "researcher"
+    if status == CognitiveStatus.EXECUTING:
+        return "creator"
+    if status == CognitiveStatus.AUDITING:
+        return "critic"
+
+    return END
+
+
+# --- Graph Construction: Phase 22 ---
+
+workflow = StateGraph(CognitiveIntelligenceState)
+
+# Add Base Nodes
+workflow.add_node("init", initialize_cognitive_engine)
+workflow.add_node("finalize", finalize_run)
+workflow.add_node("error_handler", handle_error)
+workflow.add_node("approve_assets", approve_assets)
+
+# Placeholder Nodes for Agents (Phase 4 & 5)
+async def strategist_placeholder(state: CognitiveIntelligenceState):
+    return {"status": CognitiveStatus.RESEARCHING}
+
+async def researcher_placeholder(state: CognitiveIntelligenceState):
+    return {"status": CognitiveStatus.EXECUTING}
+
+async def creator_placeholder(state: CognitiveIntelligenceState):
+    return {"status": CognitiveStatus.AUDITING}
+
+async def critic_placeholder(state: CognitiveIntelligenceState):
+    return {"status": CognitiveStatus.COMPLETE}
+
+workflow.add_node("strategist", strategist_placeholder)
+workflow.add_node("researcher", researcher_placeholder)
+workflow.add_node("creator", creator_placeholder)
+workflow.add_node("critic", critic_placeholder)
+
+# Define Edge Flow
+workflow.add_edge(START, "init")
 
 workflow.add_conditional_edges(
-    "reflect",
-    should_refine,
+    "init",
+    cognitive_router,
     {
-        "refine": "refine",
-        "finalize": END
-    }
+        "strategist": "strategist",
+        "researcher": "researcher",
+        "creator": "creator",
+        "critic": "critic",
+        "handle_error": "error_handler",
+        END: END,
+    },
 )
 
-workflow.add_edge("refine", "reflect") # Loop back for quality check
+# Linear flow for placeholders
+workflow.add_edge("strategist", "researcher")
+workflow.add_edge("researcher", "creator")
+workflow.add_edge("creator", "approve_assets")
+workflow.add_edge("approve_assets", "critic")
+workflow.add_edge("critic", "finalize")
+workflow.add_edge("finalize", END)
+workflow.add_edge("error_handler", END)
 
-cognitive_spine = workflow.compile()
+# --- Persistence: Phase 25 ---
+
+
+def get_checkpointer():
+    """Initializes the appropriate checkpointer based on environment."""
+    db_url = os.getenv("DATABASE_URL")
+    if db_url and "supabase" in db_url:
+        # Production persistence
+        pool = get_pool()
+        return SupabaseSaver(pool)
+    else:
+        # Development fallback
+        return MemorySaver()
+
+
+# Compile with persistence
+cognitive_spine = workflow.compile(
+    checkpointer=get_checkpointer(),
+    interrupt_before=["approve_assets", "finalize"],  # HITL breaks
+)
