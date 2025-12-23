@@ -228,6 +228,40 @@ class BlackboxService:
             })
         return matrix
 
+    def get_longitudinal_analysis(self, days: int = 90) -> List[Dict[str, Any]]:
+        """
+        Performs complex longitudinal analysis using BigQuery.
+        Aggregates daily costs and outcomes to track performance trends.
+        """
+        client = self._get_bigquery_client()
+        dataset = "raptorflow_analytics"
+        table = "telemetry_stream"
+        project = self.vault.project_id
+
+        query = f"""
+            SELECT 
+                DATE(timestamp) as day,
+                SUM(tokens) as daily_tokens,
+                COUNT(id) as execution_count
+            FROM `{project}.{dataset}.{table}`
+            WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {days} DAY)
+            GROUP BY day
+            ORDER BY day DESC
+        """
+
+        query_job = client.query(query)
+        results = query_job.result()
+
+        analysis = []
+        for row in results:
+            analysis.append({
+                "day": str(row.day),
+                "tokens": row.daily_tokens,
+                "count": row.execution_count
+            })
+
+        return analysis
+
     def upsert_learning_embedding(self, content: str, learning_type: str, source_ids: List[UUID] = None):
         """Generates embedding and persists learning."""
         embed_model = InferenceProvider.get_embeddings()
