@@ -10,10 +10,10 @@ def get_matrix_service():
     """Dependency provider for MatrixService."""
     return MatrixService()
 
-@router.get("/overview", response_model=SystemState)
-def get_overview(service: MatrixService = Depends(get_matrix_service)):
+@router.get("/overview")
+async def get_overview(workspace_id: str, service: MatrixService = Depends(get_matrix_service)):
     """Retrieves the aggregated health dashboard for the entire ecosystem."""
-    return service.get_system_overview()
+    return await service.get_aggregated_overview(workspace_id)
 
 @router.post("/kill-switch")
 async def engage_kill_switch(service: MatrixService = Depends(get_matrix_service)):

@@ -1,16 +1,29 @@
 import pytest
 from fastapi.testclient import TestClient
+from unittest.mock import AsyncMock, MagicMock
 from backend.main import app
+from backend.api.v1.matrix import get_matrix_service
+
+# Mock the service
+mock_service = MagicMock()
+mock_service.get_aggregated_overview = AsyncMock(return_value={
+    "health_report": {"status": "healthy"},
+    "cost_report": {"daily_burn": 10.0}
+})
+mock_service.halt_system = AsyncMock(return_value=True)
+
+# Override dependency
+app.dependency_overrides[get_matrix_service] = lambda: mock_service
 
 client = TestClient(app)
 
 def test_get_matrix_overview():
     """Verify that the matrix overview endpoint returns valid system state."""
-    response = client.get("/v1/matrix/overview")
+    response = client.get("/v1/matrix/overview?workspace_id=ws_1")
     assert response.status_code == 200
     data = response.json()
-    assert "kill_switch_engaged" in data
-    assert "active_agents" in data
+    assert "health_report" in data
+    assert "cost_report" in data
 
 def test_post_kill_switch():
     """Verify that the global kill-switch endpoint works."""
