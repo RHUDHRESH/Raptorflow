@@ -26,7 +26,8 @@ import { EvidenceLog, EvidenceTrace } from '@/components/blackbox/EvidenceLog';
 import { AgentAuditLog, AuditEntry } from '@/components/blackbox/AgentAuditLog';
 import { StrategicDriftRadar } from '@/components/blackbox/StrategicDriftRadar';
 import { CostHeatmap } from '@/components/blackbox/CostHeatmap';
-import { Sparkles, Brain, TrendingUp, Terminal, FileText, Download } from 'lucide-react';
+import { EmptyState } from '@/components/blackbox/EmptyState';
+import { Sparkles, Brain, TrendingUp, Terminal, FileText, Download, LayoutDashboard } from 'lucide-react';
 
 export default function BlackBoxPage() {
     const [experiments, setExperiments] = useState<Experiment[]>([]);
@@ -217,9 +218,20 @@ export default function BlackBoxPage() {
                 {/* SOTA Stats Grid */}
                 <BoardroomView />
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left: Experimental Flywheel */}
-                    <div className="lg:col-span-2 space-y-8">
+                {experiments.length === 0 ? (
+                    <div className="py-12">
+                        <EmptyState 
+                            title="No intelligence gathered yet"
+                            description="Execute your first marketing move to start capturing telemetry and extracting strategic insights."
+                            actionLabel="Create First Experiment"
+                            onAction={() => setShowWizard(true)}
+                            icon={LayoutDashboard}
+                        />
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Left: Experimental Flywheel */}
+                        <div className="lg:col-span-2 space-y-8">
                         {/* Results Strip (Hero learning) */}
                         <ResultsStrip winner={winner} learnings={learnings} onRunAgain={() => winner && handleDuplicate(winner.id)} />
 
@@ -328,6 +340,7 @@ export default function BlackBoxPage() {
                         )}
                     </div>
                 </div>
+                )}
             </div>
 
             {/* Modals & Wizards */}
