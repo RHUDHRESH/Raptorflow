@@ -1,7 +1,7 @@
 import os
 import logging
 from typing import Dict, Any
-from backend.core.toolbelt import BaseRaptorTool, RaptorRateLimiter
+from backend.core.base_tool import BaseRaptorTool, RaptorRateLimiter
 
 logger = logging.getLogger("raptorflow.tools.scraper")
 
@@ -49,3 +49,47 @@ class FirecrawlScraperTool(BaseRaptorTool):
                     raise ValueError(f"Firecrawl failed ({resp.status}): {text}")
                 data = await resp.json()
                 return data.get("data", {})
+
+class JinaReaderTool(BaseRaptorTool):
+    """
+    SOTA Reader Tool using Jina.ai.
+    Converts any URL to LLM-friendly markdown.
+    """
+    def __init__(self):
+        self.api_key = os.getenv("JINA_API_KEY")
+        self.base_url = "https://r.jina.ai/"
+
+    @property
+    def name(self) -> str:
+        return "jina_reader"
+
+    @property
+    def description(self) -> str:
+        return (
+            "Converts any URL to clean, agent-readable markdown using Jina Reader."
+            "Excellent for long-form content and documentation."
+        )
+
+    async def _execute(self, url: str) -> Dict[str, Any]:
+        import aiohttp
+        logger.info(f"Extracting markdown via Jina: {url}")
+        
+        headers = {
+            "Accept": "application/json",
+            "X-Target-Selector": "body"
+        }
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+            
+        full_url = f"{self.base_url}{url}"
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(full_url, headers=headers) as resp:
+                if resp.status != 200:
+                    return {"error": f"Jina failed with status {resp.status}"}
+                data = await resp.json()
+                return {
+                    "content": data.get("data", {}).get("content", ""),
+                    "title": data.get("data", {}).get("title", ""),
+                    "url": url
+                }
