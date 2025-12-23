@@ -83,6 +83,47 @@ class HierarchicalSupervisor:
             return str(response.next_node)
         return str(response.get("next_node", "FINISH"))
 
+    async def execute_loop(self, initial_state: Dict[str, Any], nodes: Dict[str, any]) -> Dict[str, Any]:
+        """
+        Manages a multi-turn agentic loop between specialists.
+        """
+        from langchain_core.messages import AIMessage
+        
+        current_state = initial_state.copy()
+        if "messages" not in current_state:
+            current_state["messages"] = []
+            
+        loop_count = 0
+        max_loops = 10
+        
+        while loop_count < max_loops:
+            # 1. Ask supervisor who goes next
+            decision = await self.__call__(current_state)
+            next_node = decision["next"]
+            instructions = decision["instructions"]
+            
+            if next_node == "FINISH":
+                break
+                
+            # 2. Call specialist
+            if next_node in nodes:
+                specialist_node = nodes[next_node]
+                # Inject instructions into state for the specialist
+                current_state["instructions"] = instructions
+                result = await self.delegate_to_specialist(next_node, current_state, specialist_node)
+                
+                # 3. Update state with specialist finding
+                summary = result.get("analysis_summary", "Task completed.")
+                current_state["messages"].append(AIMessage(content=f"[{next_node}]: {summary}"))
+            else:
+                logger.error(f"Specialist {next_node} not found in nodes.")
+                break
+                
+            loop_count += 1
+            
+        current_state["next"] = "FINISH"
+        return current_state
+
     async def delegate_to_specialist(self, specialist_name: str, state: Dict[str, Any], specialist_node: any) -> Dict[str, Any]:
         """
         Executes a specialist node with the given instructions.
