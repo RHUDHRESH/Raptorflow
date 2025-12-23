@@ -1,0 +1,54 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from uuid import UUID
+from backend.models.foundation import BrandKit, Positioning
+from backend.services.foundation_service import FoundationService
+from backend.core.vault import Vault
+
+router = APIRouter(prefix="/v1/foundation", tags=["foundation"])
+
+
+async def get_foundation_service():
+    vault = Vault()
+    await vault.initialize()
+    return FoundationService(vault)
+
+
+@router.post("/brand-kit", response_model=BrandKit, status_code=status.HTTP_201_CREATED)
+async def create_brand_kit(
+    brand_kit: BrandKit, service: FoundationService = Depends(get_foundation_service)
+):
+    """Creates a new brand kit."""
+    return await service.create_brand_kit(brand_kit)
+
+
+@router.get("/brand-kit/{id}", response_model=BrandKit)
+async def get_brand_kit(
+    id: UUID, service: FoundationService = Depends(get_foundation_service)
+):
+    """Retrieves a brand kit by ID."""
+    bk = await service.get_brand_kit(id)
+    if not bk:
+        raise HTTPException(status_code=404, detail="Brand kit not found")
+    return bk
+
+
+@router.post(
+    "/positioning", response_model=Positioning, status_code=status.HTTP_201_CREATED
+)
+async def create_positioning(
+    positioning: Positioning,
+    service: FoundationService = Depends(get_foundation_service),
+):
+    """Creates a new positioning entry."""
+    return await service.create_positioning(positioning)
+
+
+@router.get("/positioning/active/{brand_kit_id}", response_model=Positioning)
+async def get_active_positioning(
+    brand_kit_id: UUID, service: FoundationService = Depends(get_foundation_service)
+):
+    """Retrieves the active positioning for a brand kit."""
+    pos = await service.get_active_positioning(brand_kit_id)
+    if not pos:
+        raise HTTPException(status_code=404, detail="Active positioning not found")
+    return pos
