@@ -60,7 +60,7 @@
 
 #### Block E: Memory Architecture & RAG Hardening (Phases 51-65)
 - [x] Phase 051: Backend - Implement `L1_ShortTermMemory` using Redis (Upstash). 7a0585f
-- [ ] Phase 052: Backend - Implement `L2_EpisodicMemory` using Supabase `pgvector`.
+- [x] Phase 052: Backend - Implement `L2_EpisodicMemory` using Supabase `pgvector`. 3c1f522
 - [ ] Phase 053: Backend - Implement `L3_SemanticMemory` (Brand Foundation lookup).
 - [ ] Phase 054: Backend - Write Red Phase tests for `MemoryManager.store_trace()`.
 - [ ] Phase 055: Backend - Implement `MemoryManager.store_trace()` with embeddings.
