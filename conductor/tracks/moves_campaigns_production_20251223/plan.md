@@ -33,7 +33,7 @@
 - [x] 26. Task: Implement error handling nodes (Retries, Fallbacks)
 - [x] 27. Task: Define HITL (Human-in-the-loop) interruption points for approvals [e7d1f36]
 - [x] 28. Task: Setup visual graph rendering for debugging and documentation [0904fe7]
-- [ ] 29. Task: Verify state recovery from episodic memory after simulated crashes
+- [x] 29. Task: Verify state recovery from episodic memory after simulated crashes [283d05b]
 - [ ] 30. Task: Conductor - User Manual Verification 'Cognitive Spine' (Protocol in workflow.md)
 
 ## Phase 4: Tiered Memory & Context Retrieval (Tasks 31-40)
