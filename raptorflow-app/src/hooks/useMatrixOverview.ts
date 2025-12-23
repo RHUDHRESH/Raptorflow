@@ -20,6 +20,13 @@ export interface MatrixOverview {
     budget: number;
     status: string;
   };
+  recent_events?: Array<{
+    event_id: string;
+    timestamp: string;
+    event_type: string;
+    source: string;
+    metadata: Record<string, any>;
+  }>;
 }
 
 export function useMatrixOverview(workspaceId: string) {
