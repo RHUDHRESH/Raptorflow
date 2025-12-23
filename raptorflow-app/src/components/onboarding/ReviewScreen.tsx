@@ -1,8 +1,8 @@
 import React from 'react';
 import { FoundationData } from '@/lib/foundation';
-import { SECTIONS, QUESTIONS } from '@/lib/questionFlowData';
+import { SECTIONS } from '@/lib/questionFlowData';
 import styles from './QuestionFlow.module.css';
-import { ArrowRight, Download } from 'lucide-react';
+import { ArrowRight, Download, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { generateFoundationPDF } from '@/lib/pdfGenerator';
 
@@ -13,76 +13,131 @@ interface ReviewScreenProps {
     onEditSection: (id: string) => void;
 }
 
+// Helper to format arrays nicely
+function formatList(arr?: string[] | string): string {
+    if (!arr) return '—';
+    if (Array.isArray(arr)) {
+        if (arr.length === 0) return '—';
+        return arr.map(v => v.charAt(0).toUpperCase() + v.slice(1).replace(/-/g, ' ')).join(', ');
+    }
+    return arr.charAt(0).toUpperCase() + arr.slice(1).replace(/-/g, ' ');
+}
+
+// Helper to format single values
+function formatValue(val?: string): string {
+    if (!val) return '—';
+    return val.charAt(0).toUpperCase() + val.slice(1).replace(/-/g, ' ');
+}
+
 export function ReviewScreen({ data, onBack, onComplete, onEditSection }: ReviewScreenProps) {
     const renderSectionSummary = (sectionId: string) => {
         switch (sectionId) {
-            case 'business':
+            case 'know-you':
                 return (
-                    <div className={styles.reviewGrid}>
-                        <ReviewItem label="Business Name" value={data.business.name} />
-                        <ReviewItem label="Industry" value={data.business.industry} />
-                        <ReviewItem label="Stage" value={data.business.stage} />
-                        <ReviewItem label="Revenue Model" value={Array.isArray(data.business.revenueModel) ? data.business.revenueModel.join(', ') : data.business.revenueModel} />
-                        <ReviewItem label="Team Size" value={data.business.teamSize} />
-                        <ReviewItem label="Context Files" value={data.business.contextFiles ? `${data.business.contextFiles.length} files attached` : 'None'} />
+                    <div className={styles.reviewStack}>
+                        {/* Business Link */}
+                        {data.business?.websiteUrl && (
+                            <div className={`${styles.reviewItem} ${styles.fullWidth}`}>
+                                <span className={styles.reviewLabel}>Website / Link</span>
+                                <a
+                                    href={data.business.websiteUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline flex items-center gap-2"
+                                >
+                                    {data.business.websiteUrl}
+                                    <ExternalLink className="h-3 w-3" />
+                                </a>
+                            </div>
+                        )}
+
+                        <div className={styles.reviewGrid}>
+                            <ReviewItem label="Business Type" value={formatValue(data.business?.businessType)} />
+                            <ReviewItem label="Stage" value={formatValue(data.business?.stage)} />
+                            <ReviewItem label="Customer Type" value={formatValue(data.cohorts?.customerType as string)} />
+                            <ReviewItem label="Price Band" value={formatValue(data.business?.priceBand)} />
+                            <ReviewItem label="Sales Motion" value={formatValue(data.business?.salesMotion)} />
+                            <ReviewItem label="Voice" value={formatValue(data.messaging?.voicePreference)} />
+                        </div>
+
+                        {/* Offer Statement */}
+                        {data.business?.offerStatement && (
+                            <div className={`${styles.reviewItem} ${styles.fullWidth} ${styles.highlight}`}>
+                                <span className={styles.reviewLabel}>Value Proposition</span>
+                                <p className={styles.reviewValue}>{data.business.offerStatement}</p>
+                            </div>
+                        )}
+
+                        <div className={styles.reviewGrid}>
+                            <ReviewItem label="Buyer Roles" value={formatList(data.cohorts?.buyerRoleChips)} />
+                            <ReviewItem label="Regions" value={formatList(data.cohorts?.primaryRegions)} />
+                            <ReviewItem label="Languages" value={formatList(data.cohorts?.languages)} />
+                            <ReviewItem label="90-Day Goal" value={formatValue(data.goals?.primaryGoal)} />
+                        </div>
+
+                        <div className={styles.reviewGrid}>
+                            <ReviewItem label="Constraints" value={formatList(data.goals?.constraints)} />
+                            <ReviewItem label="Current Channels" value={formatList(data.reality?.currentChannels)} />
+                            <ReviewItem label="Current Tools" value={formatList(data.reality?.currentTools)} />
+                            <ReviewItem label="Proof Available" value={formatList(data.proof?.proofTypes)} />
+                        </div>
                     </div>
                 );
-            case 'confession':
+
+            case 'clarifiers':
+                // Only show if there's any clarifier data
+                const hasClarifierData = data.cohorts?.companySize || data.cohorts?.salesCycle || data.cohorts?.averageOrderValue || data.business?.name;
+                if (!hasClarifierData) return <p className="text-muted-foreground text-sm">No additional details captured.</p>;
+
+                return (
+                    <div className={styles.reviewGrid}>
+                        {data.business?.name && (
+                            <ReviewItem label="Business Name" value={data.business.name} />
+                        )}
+                        {data.cohorts?.companySize && (
+                            <ReviewItem label="Target Company Size" value={data.cohorts.companySize} />
+                        )}
+                        {data.cohorts?.salesCycle && (
+                            <ReviewItem label="Sales Cycle" value={formatValue(data.cohorts.salesCycle)} />
+                        )}
+                        {data.cohorts?.averageOrderValue && (
+                            <ReviewItem label="Average Order Value" value={data.cohorts.averageOrderValue} />
+                        )}
+                    </div>
+                );
+
+            case 'deep-dive':
+                // Only show if confession data exists
+                const hasConfessionData = data.confession?.expensiveProblem || data.confession?.embarrassingTruth || data.confession?.signaling;
+                if (!hasConfessionData) return <p className="text-muted-foreground text-sm">Not completed yet. You can add this later from Settings.</p>;
+
                 return (
                     <div className={styles.reviewStack}>
                         <ReviewItem label="Expensive Problem" value={data.confession?.expensiveProblem} fullWidth />
                         <ReviewItem label="Embarrassing Truth" value={data.confession?.embarrassingTruth} fullWidth />
-                        <ReviewItem label="Stupid Idea" value={data.confession?.stupidIdea} fullWidth />
                         <ReviewItem label="Signaling" value={data.confession?.signaling} fullWidth />
-                        <ReviewItem label="Friction" value={data.confession?.friction} fullWidth />
                     </div>
                 );
-            case 'cohorts':
-                return (
-                    <div className={styles.reviewGrid}>
-                        <ReviewItem label="Customer Type" value={Array.isArray(data.cohorts?.customerType) ? data.cohorts?.customerType.join(', ') : data.cohorts?.customerType} />
-                        <ReviewItem label="Buyer Role" value={data.cohorts?.buyerRole} />
-                        <ReviewItem label="Primary Drivers" value={data.cohorts?.primaryDrivers?.join(', ')} fullWidth />
-                        <ReviewItem label="Decision Style" value={data.cohorts?.decisionStyle} />
-                        <ReviewItem label="Risk Tolerance" value={data.cohorts?.riskTolerance} />
-                    </div>
-                );
-            case 'positioning':
-                return (
-                    <div className={styles.reviewStack}>
-                        <div className={styles.positioningStatement}>
-                            We are the <strong>{data.positioning?.category || '_____'}</strong> for <strong>{data.positioning?.targetAudience || '_____'}</strong> who want <strong>{data.positioning?.psychologicalOutcome || '_____'}</strong>.
-                        </div>
-                        <ReviewItem label="Owned Position" value={data.positioning?.ownedPosition} fullWidth />
-                        <ReviewItem label="Reframed Weakness" value={data.positioning?.reframedWeakness} fullWidth />
-                    </div>
-                );
-            case 'messaging':
-                return (
-                    <div className={styles.reviewStack}>
-                        <ReviewItem label="Primary Heuristic" value={data.messaging?.primaryHeuristic} highlight />
-                        <ReviewItem label="Belief Pillar" value={data.messaging?.beliefPillar} fullWidth />
-                        <ReviewItem label="Promise Pillar" value={data.messaging?.promisePillar} fullWidth />
-                        <ReviewItem label="Proof Pillar" value={data.messaging?.proofPillar} fullWidth />
-                    </div>
-                );
+
             default:
                 return null;
         }
     };
+
+    // Filter to only show non-review sections that have questions
+    const visibleSections = SECTIONS.filter(s => s.id !== 'review');
 
     return (
         <div className={styles.reviewContainer}>
             <div className={styles.reviewHeader}>
                 <h1 className={styles.reviewTitle}>Foundation Review</h1>
                 <p className={styles.reviewSubtitle}>
-                    Before we launch, verify the core DNA of your strategy.
-                    <br />Construction is easy. Demolition is expensive. Measure twice.
+                    Here's what we know about your business. Review and launch.
                 </p>
             </div>
 
             <div className={styles.reviewSections}>
-                {SECTIONS.filter(s => s.id !== 'review').map((section) => (
+                {visibleSections.map((section) => (
                     <div key={section.id} className={styles.reviewSectionCard}>
                         <div className={styles.reviewSectionHeader}>
                             <h3 className={styles.reviewSectionTitle}>{section.name}</h3>
@@ -125,7 +180,7 @@ export function ReviewScreen({ data, onBack, onComplete, onEditSection }: Review
 }
 
 function ReviewItem({ label, value, fullWidth = false, highlight = false }: { label: string, value?: string | string[], fullWidth?: boolean, highlight?: boolean }) {
-    if (!value || (Array.isArray(value) && value.length === 0)) return null;
+    if (!value || value === '—' || (Array.isArray(value) && value.length === 0)) return null;
 
     return (
         <div className={`${styles.reviewItem} ${fullWidth ? styles.fullWidth : ''} ${highlight ? styles.highlight : ''}`}>

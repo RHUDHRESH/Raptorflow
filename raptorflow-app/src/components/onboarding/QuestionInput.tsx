@@ -73,6 +73,26 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                     placeholder={question.placeholder}
                 />
             );
+        case 'url':
+            return (
+                <div className="relative">
+                    <Input
+                        ref={inputRef as any}
+                        type="url"
+                        className="h-14 text-lg bg-background border-2 focus-visible:ring-0 focus-visible:border-primary shadow-sm pl-12"
+                        value={value || ''}
+                        onChange={e => onChange(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder={question.placeholder || 'https://...'}
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                        </svg>
+                    </div>
+                </div>
+            );
         case 'text-large':
             return (
                 <Input

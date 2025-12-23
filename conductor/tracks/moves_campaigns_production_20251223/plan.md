@@ -49,12 +49,12 @@
 - [x] 40. Task: Conductor - User Manual Verification 'Tiered Memory' (Protocol in workflow.md) [ba7b5f5]
 
 ## Phase 5: Campaign Module - Strategic Planning (Tasks 41-50)
-- [ ] 41. Task: Design `CampaignPlanner` agent persona and system prompts
-- [ ] 42. Task: Implement 90-day arc generation logic from Business Context
-- [ ] 43. Task: Write failing tests for Strategic Alignment (Campaign vs Brand Kit)
-- [ ] 44. Task: Implement KPI objective setter node within the campaign graph
-- [ ] 45. Task: Create the Gantt chart data structure for campaign visualization
-- [ ] 46. Task: Implement the "Campaign Auditor" node for internal reflection
+- [x] 41. Task: Design `CampaignPlanner` agent persona and system prompts [2f4247f]
+- [x] 42. Task: Implement 90-day arc generation logic from Business Context [072a468]
+- [x] 43. Task: Write failing tests for Strategic Alignment (Campaign vs Brand Kit) [2bc9c24]
+- [x] 44. Task: Implement KPI objective setter node within the campaign graph [172b0d8]
+- [x] 45. Task: Create the Gantt chart data structure for campaign visualization [0a081f1]
+- [~] 46. Task: Implement the "Campaign Auditor" node for internal reflection
 - [ ] 47. Task: Setup the frontend `CampaignView` with Shadcn/UI Gantt components
 - [ ] 48. Task: Verify multi-agent brainstorming for campaign pivots
 - [ ] 49. Task: Integrate campaign data persistence into Supabase

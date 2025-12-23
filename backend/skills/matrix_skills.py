@@ -169,7 +169,9 @@ class ResourceScalingSkill(MatrixSkill):
         if not service:
             return {"error": "service name is required for scaling"}
 
-        logger.warning(f"ResourceScalingSkill: Mock scaling {service} to {replicas} replicas")
+        logger.warning(
+            f"ResourceScalingSkill: Mock scaling {service} to {replicas} replicas"
+        )
 
         return {
             "scaling_initiated": True,

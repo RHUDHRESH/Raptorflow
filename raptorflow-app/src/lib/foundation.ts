@@ -4,7 +4,8 @@ import { z } from 'zod';
 // Enums / Unions
 // ==========================================
 
-export type BusinessStage = 'idea' | 'early' | 'growth' | 'scaling';
+// Legacy types (kept for backward compatibility)
+export type BusinessStage = 'idea' | 'pre-launch' | 'beta' | 'live' | 'scaling' | 'early' | 'growth'; // Updated + legacy
 export type RevenueModel = 'saas' | 'services' | 'product' | 'marketplace' | 'other';
 export type TeamSize = 'solo' | '2-5' | '6-20' | '20+';
 
@@ -14,6 +15,23 @@ export type DecisionStyle = 'satisficer' | 'maximizer';
 export type RiskTolerance = 'regret-minimizer' | 'opportunity-seeker';
 
 // ==========================================
+// New Types for Know You Flow
+// ==========================================
+
+export type BusinessType = 'saas' | 'agency' | 'd2c' | 'local-service' | 'creator' | 'marketplace' | 'other';
+export type PriceBand = 'free' | 'under-5k' | '5k-25k' | '25k-1l' | '1l-plus';
+export type SalesMotion = 'self-serve' | 'demo-led' | 'hybrid';
+export type BuyerRoleChip = 'founder' | 'marketing' | 'sales' | 'hr' | 'ops' | 'finance' | 'other';
+export type RegionCode = 'india' | 'us' | 'eu' | 'global' | 'other';
+export type LanguageCode = 'english' | 'hinglish' | 'tamil' | 'hindi' | 'other';
+export type PrimaryGoal = 'leads' | 'close-deals' | 'increase-conversion' | 'content-engine' | 'launch' | 'retention';
+export type Constraint = 'low-budget' | 'no-time' | 'no-design' | 'compliance' | 'no-audience';
+export type Channel = 'linkedin' | 'instagram' | 'whatsapp' | 'email' | 'youtube' | 'seo' | 'ads' | 'offline';
+export type ToolOption = 'none' | 'sheets' | 'notion' | 'hubspot' | 'zoho' | 'pipedrive' | 'mailchimp' | 'klaviyo' | 'other';
+export type ProofType = 'testimonials' | 'case-study' | 'metrics' | 'logos' | 'none';
+export type VoicePreference = 'calm-premium' | 'direct-punchy' | 'friendly-warm' | 'technical-precise' | 'bold-contrarian';
+
+// ==========================================
 // Section Data Interfaces
 // ==========================================
 
@@ -21,9 +39,14 @@ export interface BusinessBasics {
   name: string;
   industry: string;
   stage: BusinessStage | '';
+  businessType?: BusinessType | '';        // NEW: Type of business
   revenueModel: RevenueModel[] | RevenueModel | '';
   teamSize: TeamSize | '';
   contextFiles?: string[];
+  websiteUrl?: string;                     // NEW: The one link
+  offerStatement?: string;                 // NEW: One-line offer
+  priceBand?: PriceBand | '';              // NEW
+  salesMotion?: SalesMotion | '';          // NEW
 }
 
 export interface ConfessionData {
@@ -37,9 +60,17 @@ export interface ConfessionData {
 export interface CohortData {
   customerType: CustomerType[] | CustomerType | '';
   buyerRole: string;
+  buyerRoleChips?: BuyerRoleChip[];        // NEW: Chip-based buyer role
+  primaryRegions?: RegionCode[];            // NEW: Regions where they sell
+  languages?: LanguageCode[];               // NEW: Languages they use
   primaryDrivers: SCARFDriver[];
   decisionStyle: DecisionStyle | '';
   riskTolerance: RiskTolerance | '';
+  // B2B conditional fields
+  companySize?: string;
+  salesCycle?: string;
+  // D2C conditional field
+  averageOrderValue?: string;
 }
 
 export interface PositioningData {
@@ -55,6 +86,24 @@ export interface MessagingData {
   beliefPillar: string;
   promisePillar: string;
   proofPillar: string;
+  voicePreference?: VoicePreference | '';   // NEW: Voice preference
+}
+
+// NEW: Goals section for Know You flow
+export interface GoalsData {
+  primaryGoal?: PrimaryGoal | '';
+  constraints?: Constraint[];
+}
+
+// NEW: Current reality section
+export interface CurrentRealityData {
+  currentChannels?: Channel[];
+  currentTools?: ToolOption[];
+}
+
+// NEW: Proof inventory section
+export interface ProofData {
+  proofTypes?: ProofType[];
 }
 
 // ==========================================
@@ -81,12 +130,17 @@ export interface FoundationData {
   currentStep: number;
   completedAt?: string;
 
-  // Sections
+  // Core sections
   business: BusinessBasics;
   confession: ConfessionData;
   cohorts: CohortData;
   positioning: PositioningData;
   messaging: MessagingData;
+
+  // NEW: Know You sections
+  goals?: GoalsData;
+  reality?: CurrentRealityData;
+  proof?: ProofData;
 
   // Legacy support
   brandVoice?: string;
@@ -102,8 +156,13 @@ export const emptyFoundation: FoundationData = {
     name: '',
     industry: '',
     stage: '',
+    businessType: '',
     revenueModel: '',
-    teamSize: ''
+    teamSize: '',
+    websiteUrl: '',
+    offerStatement: '',
+    priceBand: '',
+    salesMotion: '',
   },
   confession: {
     expensiveProblem: '',
@@ -115,9 +174,15 @@ export const emptyFoundation: FoundationData = {
   cohorts: {
     customerType: '',
     buyerRole: '',
+    buyerRoleChips: [],
+    primaryRegions: [],
+    languages: [],
     primaryDrivers: [],
     decisionStyle: '',
-    riskTolerance: ''
+    riskTolerance: '',
+    companySize: '',
+    salesCycle: '',
+    averageOrderValue: '',
   },
   positioning: {
     category: '',
@@ -130,7 +195,19 @@ export const emptyFoundation: FoundationData = {
     primaryHeuristic: '',
     beliefPillar: '',
     promisePillar: '',
-    proofPillar: ''
+    proofPillar: '',
+    voicePreference: '',
+  },
+  goals: {
+    primaryGoal: '',
+    constraints: [],
+  },
+  reality: {
+    currentChannels: [],
+    currentTools: [],
+  },
+  proof: {
+    proofTypes: [],
   },
   brandVoice: ''
 };

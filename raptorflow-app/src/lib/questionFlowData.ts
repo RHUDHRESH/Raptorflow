@@ -2,12 +2,24 @@
 
 import {
     BusinessStage,
+    BusinessType,
     RevenueModel,
     TeamSize,
     CustomerType,
     SCARFDriver,
     DecisionStyle,
     RiskTolerance,
+    PriceBand,
+    SalesMotion,
+    BuyerRoleChip,
+    RegionCode,
+    LanguageCode,
+    PrimaryGoal,
+    Constraint,
+    Channel,
+    ToolOption,
+    ProofType,
+    VoicePreference,
     FoundationData
 } from './foundation';
 
@@ -23,7 +35,8 @@ export type QuestionType =
     | 'multi-select'
     | 'text-large'
     | 'positioning-builder'
-    | 'file-upload'; // Added file-upload
+    | 'file-upload'
+    | 'url'; // NEW: URL input type
 
 export interface QuestionOption {
     value: string;
@@ -58,39 +71,27 @@ export interface Section {
 }
 
 // =====================================
-// Sections Definition
+// Sections Definition — Know You MVP
 // =====================================
 
 export const SECTIONS: Section[] = [
     {
-        id: 'business',
-        name: 'Business Basics',
-        title: 'Tell Us About Your Business',
-        subtitle: 'The foundation of your marketing strategy.',
+        id: 'know-you',
+        name: 'Know You',
+        title: 'Let\'s Get To Know You',
+        subtitle: 'Answer these quick questions. Takes about 90 seconds.',
     },
     {
-        id: 'confession',
-        name: 'The Confession',
+        id: 'clarifiers',
+        name: 'Clarifiers',
+        title: 'Quick Clarifiers',
+        subtitle: 'A few more details to tailor your strategy.',
+    },
+    {
+        id: 'deep-dive',
+        name: 'Deep Dive',
         title: 'The Confession',
-        subtitle: 'The real reasons people buy—and won\'t admit.',
-    },
-    {
-        id: 'cohorts',
-        name: 'Who You Serve',
-        title: 'Who You Serve',
-        subtitle: 'Psychological segmentation, not demographics.',
-    },
-    {
-        id: 'positioning',
-        name: 'What You Own',
-        title: 'What You Own',
-        subtitle: 'Change the frame, change the value.',
-    },
-    {
-        id: 'messaging',
-        name: 'How You Speak',
-        title: 'How You Speak',
-        subtitle: 'Create heuristics that shut down objections.',
+        subtitle: 'Optional: Go deeper into positioning psychology.',
     },
     {
         id: 'review',
@@ -101,90 +102,364 @@ export const SECTIONS: Section[] = [
 ];
 
 // =====================================
-// Questions Definition
+// Questions Definition — Know You MVP
 // =====================================
 
 export const QUESTIONS: Question[] = [
-    // ===== BUSINESS SECTION =====
+    // ===== KNOW YOU SECTION (Core 10 Questions) =====
+
+    // 1) The One Link
     {
-        id: 'business-name',
-        sectionId: 'business',
+        id: 'know-link',
+        sectionId: 'know-you',
+        type: 'url',
+        question: 'Drop the best link that explains your business.',
+        hint: 'Website, Notion doc, pitch deck, app store, LinkedIn — anything that shows what you do.',
+        placeholder: 'https://...',
+        field: 'business.websiteUrl',
+        inputType: 'url',
+    },
+
+    // 2) What business are you?
+    {
+        id: 'know-business-type',
+        sectionId: 'know-you',
+        type: 'radio-cards',
+        question: 'What business are you?',
+        hint: 'Pick the closest match.',
+        field: 'business.businessType',
+        required: true,
+        options: [
+            { value: 'saas', label: 'SaaS', description: 'Software as a service' },
+            { value: 'agency', label: 'Agency', description: 'Services & consulting' },
+            { value: 'd2c', label: 'D2C', description: 'Direct to consumer brand' },
+            { value: 'local-service', label: 'Local Service', description: 'Geo-bound services' },
+            { value: 'creator', label: 'Creator', description: 'Content, courses, community' },
+            { value: 'marketplace', label: 'Marketplace', description: 'Platform connecting buyers/sellers' },
+            { value: 'other', label: 'Other', description: 'Something else' },
+        ],
+    },
+
+    // 3) What stage?
+    {
+        id: 'know-stage',
+        sectionId: 'know-you',
+        type: 'radio-cards',
+        question: 'What stage is your business?',
+        field: 'business.stage',
+        required: true,
+        options: [
+            { value: 'idea', label: 'Idea', description: 'Still validating' },
+            { value: 'pre-launch', label: 'Pre-launch', description: 'Building, not live yet' },
+            { value: 'beta', label: 'Beta', description: 'Live with early users' },
+            { value: 'live', label: 'Live', description: 'Public and selling' },
+            { value: 'scaling', label: 'Scaling', description: 'Growing aggressively' },
+        ],
+    },
+
+    // 4) Who do you sell to?
+    {
+        id: 'know-customer-type',
+        sectionId: 'know-you',
+        type: 'radio-cards',
+        question: 'Who do you sell to?',
+        hint: 'Your primary customer type.',
+        field: 'cohorts.customerType',
+        required: true,
+        options: [
+            { value: 'b2b', label: 'B2B', description: 'Businesses & companies' },
+            { value: 'b2c', label: 'B2C', description: 'Individual consumers' },
+            { value: 'b2g', label: 'B2G', description: 'Government entities' },
+            { value: 'mixed', label: 'Mixed', description: 'Multiple types' },
+        ],
+    },
+
+    // 5) Primary buyer role
+    {
+        id: 'know-buyer-role',
+        sectionId: 'know-you',
+        type: 'multi-select',
+        question: 'Who holds the purchasing power?',
+        hint: 'Select the roles that typically make the buying decision.',
+        field: 'cohorts.buyerRoleChips',
+        maxSelections: 3,
+        options: [
+            { value: 'founder', label: 'Founder / CEO' },
+            { value: 'marketing', label: 'Marketing Lead' },
+            { value: 'sales', label: 'Sales Lead' },
+            { value: 'hr', label: 'HR' },
+            { value: 'ops', label: 'Operations' },
+            { value: 'finance', label: 'Finance / CFO' },
+            { value: 'other', label: 'Other' },
+        ],
+    },
+
+    // 6) What do you sell (one line)
+    {
+        id: 'know-offer',
+        sectionId: 'know-you',
+        type: 'text',
+        question: 'What do you sell? (One line)',
+        hint: 'Complete: "We help ___ achieve ___ without ___."',
+        placeholder: 'We help founders get marketing under control without hiring an agency.',
+        field: 'business.offerStatement',
+    },
+
+    // 7) Pricing band
+    {
+        id: 'know-price',
+        sectionId: 'know-you',
+        type: 'radio-cards',
+        question: 'What\'s your price range?',
+        hint: 'Approximate ticket size per deal/sale.',
+        field: 'business.priceBand',
+        options: [
+            { value: 'free', label: 'Free', description: 'Freemium or free tier' },
+            { value: 'under-5k', label: '< ₹5k', description: 'Low ticket' },
+            { value: '5k-25k', label: '₹5k – ₹25k', description: 'Mid ticket' },
+            { value: '25k-1l', label: '₹25k – ₹1L', description: 'High ticket' },
+            { value: '1l-plus', label: '₹1L+', description: 'Enterprise / Premium' },
+        ],
+    },
+
+    // 8) Sales motion
+    {
+        id: 'know-motion',
+        sectionId: 'know-you',
+        type: 'radio-cards',
+        question: 'How do customers buy from you?',
+        field: 'business.salesMotion',
+        options: [
+            { value: 'self-serve', label: 'Self-serve', description: 'They buy directly, no sales call' },
+            { value: 'demo-led', label: 'Demo-led', description: 'Sales calls or demos required' },
+            { value: 'hybrid', label: 'Hybrid', description: 'Mix of both' },
+        ],
+    },
+
+    // 9) Primary regions
+    {
+        id: 'know-regions',
+        sectionId: 'know-you',
+        type: 'multi-select',
+        question: 'Where can you actually sell?',
+        hint: 'Select your primary markets.',
+        field: 'cohorts.primaryRegions',
+        options: [
+            { value: 'india', label: 'India' },
+            { value: 'us', label: 'United States' },
+            { value: 'eu', label: 'Europe' },
+            { value: 'global', label: 'Global' },
+            { value: 'other', label: 'Other regions' },
+        ],
+    },
+
+    // 10) Languages
+    {
+        id: 'know-languages',
+        sectionId: 'know-you',
+        type: 'multi-select',
+        question: 'What languages do you market in?',
+        field: 'cohorts.languages',
+        options: [
+            { value: 'english', label: 'English' },
+            { value: 'hinglish', label: 'Hinglish' },
+            { value: 'hindi', label: 'Hindi' },
+            { value: 'tamil', label: 'Tamil' },
+            { value: 'other', label: 'Other' },
+        ],
+    },
+
+    // 11) 90-day goal
+    {
+        id: 'know-goal',
+        sectionId: 'know-you',
+        type: 'radio-cards',
+        question: 'What\'s your #1 goal for the next 90 days?',
+        hint: 'This sets the compass for your entire strategy.',
+        field: 'goals.primaryGoal',
+        required: true,
+        options: [
+            { value: 'leads', label: 'Get Leads', description: 'Fill the pipeline' },
+            { value: 'close-deals', label: 'Close Deals', description: 'Convert pipeline to revenue' },
+            { value: 'increase-conversion', label: 'Increase Conversion', description: 'Optimize what\'s working' },
+            { value: 'content-engine', label: 'Content Engine', description: 'Build consistent output' },
+            { value: 'launch', label: 'Launch', description: 'Go to market' },
+            { value: 'retention', label: 'Retention', description: 'Keep existing customers' },
+        ],
+    },
+
+    // 12) Constraints
+    {
+        id: 'know-constraints',
+        sectionId: 'know-you',
+        type: 'multi-select',
+        question: 'What are your biggest constraints?',
+        hint: 'Select up to 2.',
+        field: 'goals.constraints',
+        maxSelections: 2,
+        options: [
+            { value: 'low-budget', label: 'Low budget' },
+            { value: 'no-time', label: 'No time' },
+            { value: 'no-design', label: 'No design team' },
+            { value: 'compliance', label: 'Compliance-sensitive' },
+            { value: 'no-audience', label: 'No audience yet' },
+        ],
+    },
+
+    // 13) Current channels
+    {
+        id: 'know-channels',
+        sectionId: 'know-you',
+        type: 'multi-select',
+        question: 'Which channels are you using today?',
+        hint: 'Select your top 2 active channels.',
+        field: 'reality.currentChannels',
+        maxSelections: 3,
+        options: [
+            { value: 'linkedin', label: 'LinkedIn' },
+            { value: 'instagram', label: 'Instagram' },
+            { value: 'whatsapp', label: 'WhatsApp' },
+            { value: 'email', label: 'Email' },
+            { value: 'youtube', label: 'YouTube' },
+            { value: 'seo', label: 'SEO / Blog' },
+            { value: 'ads', label: 'Paid Ads' },
+            { value: 'offline', label: 'Offline / Events' },
+        ],
+    },
+
+    // 14) Current tools
+    {
+        id: 'know-tools',
+        sectionId: 'know-you',
+        type: 'multi-select',
+        question: 'What tools are you using for marketing?',
+        field: 'reality.currentTools',
+        options: [
+            { value: 'none', label: 'None' },
+            { value: 'sheets', label: 'Sheets / Excel' },
+            { value: 'notion', label: 'Notion' },
+            { value: 'hubspot', label: 'HubSpot' },
+            { value: 'zoho', label: 'Zoho' },
+            { value: 'pipedrive', label: 'Pipedrive' },
+            { value: 'mailchimp', label: 'Mailchimp' },
+            { value: 'klaviyo', label: 'Klaviyo' },
+            { value: 'other', label: 'Other' },
+        ],
+    },
+
+    // 15) Proof inventory
+    {
+        id: 'know-proof',
+        sectionId: 'know-you',
+        type: 'multi-select',
+        question: 'What proof do you have?',
+        hint: 'This helps us avoid fluff in your messaging.',
+        field: 'proof.proofTypes',
+        options: [
+            { value: 'testimonials', label: 'Testimonials' },
+            { value: 'case-study', label: 'Case studies' },
+            { value: 'metrics', label: 'Numbers / Metrics' },
+            { value: 'logos', label: 'Client logos' },
+            { value: 'none', label: 'None yet' },
+        ],
+    },
+
+    // 16) Voice preference
+    {
+        id: 'know-voice',
+        sectionId: 'know-you',
+        type: 'radio-cards',
+        question: 'How should your brand sound?',
+        hint: 'This shapes all generated content.',
+        field: 'messaging.voicePreference',
+        required: true,
+        options: [
+            { value: 'calm-premium', label: 'Calm & Premium', description: 'Luxury, understated confidence' },
+            { value: 'direct-punchy', label: 'Direct & Punchy', description: 'No fluff, straight talk' },
+            { value: 'friendly-warm', label: 'Friendly & Warm', description: 'Approachable, human' },
+            { value: 'technical-precise', label: 'Technical & Precise', description: 'Data-driven, expert' },
+            { value: 'bold-contrarian', label: 'Bold & Contrarian', description: 'Challenge the status quo' },
+        ],
+    },
+
+    // ===== CLARIFIERS SECTION (Conditional Smart Follow-ups) =====
+
+    // B2B: Company size
+    {
+        id: 'clarify-company-size',
+        sectionId: 'clarifiers',
+        type: 'radio-cards',
+        question: 'What size companies do you target?',
+        field: 'cohorts.companySize',
+        condition: (data: FoundationData) => {
+            const ct = data.cohorts?.customerType;
+            return ct === 'b2b' || (Array.isArray(ct) && ct.includes('b2b'));
+        },
+        options: [
+            { value: '1-10', label: '1–10', description: 'Micro/Solo' },
+            { value: '10-50', label: '10–50', description: 'Small' },
+            { value: '50-200', label: '50–200', description: 'Mid-market' },
+            { value: '200+', label: '200+', description: 'Enterprise' },
+        ],
+    },
+
+    // B2B: Sales cycle
+    {
+        id: 'clarify-sales-cycle',
+        sectionId: 'clarifiers',
+        type: 'radio-cards',
+        question: 'How long is your typical sales cycle?',
+        field: 'cohorts.salesCycle',
+        condition: (data: FoundationData) => {
+            const ct = data.cohorts?.customerType;
+            return ct === 'b2b' || (Array.isArray(ct) && ct.includes('b2b'));
+        },
+        options: [
+            { value: 'same-day', label: 'Same day', description: 'Instant decisions' },
+            { value: '1-2-weeks', label: '1–2 weeks', description: 'Quick turnaround' },
+            { value: '1-3-months', label: '1–3 months', description: 'Standard B2B' },
+            { value: '3-plus-months', label: '3+ months', description: 'Enterprise deals' },
+        ],
+    },
+
+    // D2C: Average order value
+    {
+        id: 'clarify-aov',
+        sectionId: 'clarifiers',
+        type: 'radio-cards',
+        question: 'What\'s your average order value?',
+        field: 'cohorts.averageOrderValue',
+        condition: (data: FoundationData) => {
+            const bt = data.business?.businessType;
+            return bt === 'd2c';
+        },
+        options: [
+            { value: 'under-500', label: '< ₹500' },
+            { value: '500-2k', label: '₹500 – ₹2k' },
+            { value: '2k-10k', label: '₹2k – ₹10k' },
+            { value: '10k-plus', label: '₹10k+' },
+        ],
+    },
+
+    // Business name (needed for personalization)
+    {
+        id: 'clarify-name',
+        sectionId: 'clarifiers',
         type: 'text',
         question: 'What\'s your business name?',
-        hint: 'This is how we\'ll refer to your company throughout RaptorFlow.',
+        hint: 'We\'ll use this to personalize your dashboard.',
         placeholder: 'Acme Corp',
         field: 'business.name',
         required: true,
         autoComplete: 'organization',
         showSuccess: true,
     },
-    {
-        id: 'business-industry',
-        sectionId: 'business',
-        type: 'text',
-        question: 'What industry are you in?',
-        hint: 'Be specific—"Marketing Tech" is better than just "Tech".',
-        placeholder: 'e.g., Marketing Tech, Healthcare, Fintech',
-        field: 'business.industry',
-        autoComplete: 'organization-title',
-    },
-    {
-        id: 'business-stage',
-        sectionId: 'business',
-        type: 'radio-cards',
-        question: 'What stage is your business at?',
-        hint: 'This helps us calibrate recommendations to your reality.',
-        field: 'business.stage',
-        options: [
-            { value: 'idea', label: 'Idea Stage', description: 'Still validating the concept' },
-            { value: 'early', label: 'Early', description: 'Pre-revenue or <$100k ARR' },
-            { value: 'growth', label: 'Growth', description: '$100k - $1M ARR' },
-            { value: 'scaling', label: 'Scaling', description: '$1M+ ARR' },
-        ],
-    },
-    {
-        id: 'business-revenue',
-        sectionId: 'business',
-        type: 'multi-select', // Changed to multi-select
-        question: 'How do you make money?',
-        hint: 'Select all that apply.',
-        field: 'business.revenueModel',
-        options: [
-            { value: 'saas', label: 'SaaS / Subscriptions' },
-            { value: 'services', label: 'Services / Consulting' },
-            { value: 'product', label: 'Physical Products' },
-            { value: 'marketplace', label: 'Marketplace / Platform' },
-            { value: 'other', label: 'Other' },
-        ],
-    },
-    {
-        id: 'business-team',
-        sectionId: 'business',
-        type: 'radio-cards',
-        question: 'How big is your team?',
-        field: 'business.teamSize',
-        options: [
-            { value: 'solo', label: 'Solo Founder' },
-            { value: '2-5', label: '2-5 people' },
-            { value: '6-20', label: '6-20 people' },
-            { value: '20+', label: '20+ people' },
-        ],
-    },
-    // NEW: File Context Upload
-    {
-        id: 'business-context',
-        sectionId: 'business',
-        type: 'file-upload',
-        question: 'Any context clues?',
-        hint: 'Drop any files or documents (PDFs, docs) that help us understand your business better before we diving in.',
-        field: 'business.contextFiles',
-        placeholder: 'Drag and drop files here, or click to browse',
-    },
 
-    // ===== CONFESSION SECTION =====
+    // ===== DEEP DIVE SECTION (Optional Confession Questions) =====
+
     {
-        id: 'confession-expensive',
-        sectionId: 'confession',
+        id: 'deepdive-expensive',
+        sectionId: 'deep-dive',
         type: 'textarea',
         question: 'What expensive problem are you trying to solve that might just need different words?',
         hint: 'Eurostar spent £6B to speed up trains. They could have added Wi-Fi so time passes faster. What\'s your version?',
@@ -192,8 +467,8 @@ export const QUESTIONS: Question[] = [
         field: 'confession.expensiveProblem',
     },
     {
-        id: 'confession-embarrassing',
-        sectionId: 'confession',
+        id: 'deepdive-embarrassing',
+        sectionId: 'deep-dive',
         type: 'textarea',
         question: 'What are your customers embarrassed to admit about why they buy?',
         hint: 'People buy hybrids to look like they care about the planet, not just to save it.',
@@ -201,200 +476,13 @@ export const QUESTIONS: Question[] = [
         field: 'confession.embarrassingTruth',
     },
     {
-        id: 'confession-stupid',
-        sectionId: 'confession',
-        type: 'textarea',
-        question: 'What "stupid" thing could work because nobody is doing it?',
-        hint: 'Red Bull tastes terrible and is expensive. Every logical rule says it should fail. What\'s your counterintuitive idea?',
-        placeholder: 'Type your answer...',
-        field: 'confession.stupidIdea',
-    },
-    {
-        id: 'confession-signaling',
-        sectionId: 'confession',
+        id: 'deepdive-signaling',
+        sectionId: 'deep-dive',
         type: 'textarea',
         question: 'What does your product signal to peers, bosses, or neighbors?',
         hint: 'Beyond the utility—what status, competence, or taste does buying you communicate?',
         placeholder: 'Type your answer...',
         field: 'confession.signaling',
-    },
-    {
-        id: 'confession-friction',
-        sectionId: 'confession',
-        type: 'textarea',
-        question: 'Where is the friction—and should you add some?',
-        hint: 'Cake mix was too easy ("just add water"). General Mills had to add "add an egg" so people felt like cooking.',
-        placeholder: 'Type your answer...',
-        field: 'confession.friction',
-    },
-
-    // ===== COHORTS SECTION =====
-    {
-        id: 'cohorts-type',
-        sectionId: 'cohorts',
-        type: 'multi-select', // Changed to multi-select
-        question: 'Who are your primary customers?',
-        hint: 'Select the main categories you serve.',
-        field: 'cohorts.customerType',
-        options: [
-            { value: 'b2b', label: 'B2B', description: 'You sell to businesses' },
-            { value: 'b2c', label: 'B2C', description: 'You sell to consumers' },
-            { value: 'b2g', label: 'B2G', description: 'You sell to government' },
-            { value: 'mixed', label: 'Mixed', description: 'Multiple customer types' },
-        ],
-    },
-    // Conditional Question: Only show if 'mixed' is selected
-    {
-        id: 'cohorts-mixed-clarification',
-        sectionId: 'cohorts',
-        type: 'textarea',
-        question: 'Clarify your mixed audience.',
-        hint: 'Since you serve multiple types, briefly explain the split (e.g., 80% B2B, 20% B2C).',
-        placeholder: 'e.g., Primarily B2B enterprise, but we have a prosumer PLG motion...',
-        field: 'cohorts.buyerRole', // Re-using buyerRole or meaningful field, or could add new one. Using buyerRole for context now.
-        condition: (data: FoundationData) => {
-            const types = data.cohorts?.customerType;
-            return Array.isArray(types) && types.includes('mixed');
-        },
-    },
-    {
-        id: 'cohorts-buyer',
-        sectionId: 'cohorts',
-        type: 'text',
-        question: 'Who holds the purchasing power?',
-        hint: 'Identify the specific role that has the final "yes". This is often different from the daily user. Who signs the check?',
-        placeholder: 'e.g., CFO, VP of Marketing, Founder',
-        field: 'cohorts.buyerRole',
-    },
-    {
-        id: 'cohorts-drivers',
-        sectionId: 'cohorts',
-        type: 'multi-select',
-        question: 'What motivates your best customers?',
-        hint: 'Select 2-3 primary psychological drivers.',
-        field: 'cohorts.primaryDrivers',
-        maxSelections: 3,
-        options: [
-            { value: 'status', label: 'Status', description: 'They want to look competent or successful' },
-            { value: 'certainty', label: 'Certainty', description: 'They want predictability and guarantees' },
-            { value: 'autonomy', label: 'Autonomy', description: 'They want control and freedom to decide' },
-            { value: 'relatedness', label: 'Relatedness', description: 'They want to belong to a tribe' },
-            { value: 'fairness', label: 'Fairness', description: 'They care about transparency and justice' },
-        ],
-    },
-    {
-        id: 'cohorts-decision',
-        sectionId: 'cohorts',
-        type: 'choice-cards',
-        question: 'How do they decide?',
-        field: 'cohorts.decisionStyle',
-        options: [
-            { value: 'satisficer', label: 'Satisficers', description: 'Quick decision, "good enough" works' },
-            { value: 'maximizer', label: 'Maximizers', description: 'Research for days, want the best' },
-        ],
-    },
-    {
-        id: 'cohorts-risk',
-        sectionId: 'cohorts',
-        type: 'choice-cards',
-        question: 'What\'s their risk tolerance?',
-        field: 'cohorts.riskTolerance',
-        options: [
-            { value: 'regret-minimizer', label: 'Regret Minimizers', description: 'Don\'t want to get blamed or look stupid' },
-            { value: 'opportunity-seeker', label: 'Opportunity Seekers', description: 'Willing to take risks for upside' },
-        ],
-    },
-
-    // ===== POSITIONING SECTION =====
-    {
-        id: 'positioning-category',
-        sectionId: 'positioning',
-        type: 'text',
-        question: 'What category do you compete in?',
-        hint: 'Complete: "We are the _____ for..."',
-        placeholder: 'e.g., marketing operating system, project management tool',
-        field: 'positioning.category',
-    },
-    {
-        id: 'positioning-audience',
-        sectionId: 'positioning',
-        type: 'text',
-        question: 'Who specifically is this for?',
-        hint: 'Complete: "We are the category for _____ who want..."',
-        placeholder: 'e.g., founders, lean marketing teams',
-        field: 'positioning.targetAudience',
-    },
-    {
-        id: 'positioning-outcome',
-        sectionId: 'positioning',
-        type: 'text',
-        question: 'What psychological outcome do they seek?',
-        hint: 'Not features—the feeling or state they\'re really after.',
-        placeholder: 'e.g., control, confidence, clarity',
-        field: 'positioning.psychologicalOutcome',
-    },
-    {
-        id: 'positioning-owned',
-        sectionId: 'positioning',
-        type: 'textarea',
-        question: 'What\'s one thing you could own completely that no one else is claiming?',
-        hint: 'The specific territory, belief, or approach you can exclusively own.',
-        placeholder: 'Type your answer...',
-        field: 'positioning.ownedPosition',
-    },
-    {
-        id: 'positioning-reframe',
-        sectionId: 'positioning',
-        type: 'radio-cards',
-        question: 'What weakness could you reframe as a strength?',
-        hint: 'Guinness reframed "slow pour" as "good things come to those who wait."',
-        field: 'positioning.reframedWeakness',
-        options: [
-            { value: 'slow-crafted', label: 'Slow → Masterpiece', description: 'We take the time others won\'t to deliver quality they can\'t.' },
-            { value: 'expensive-serious', label: 'Expensive → Investment', description: 'Price is a filter for customers who are serious about results.' },
-            { value: 'new-unburdened', label: 'New → Modern', description: 'Built for today\'s reality, not weighed down by yesterday\'s legacy.' },
-            { value: 'complex-powerful', label: 'Complex → Powerful', description: 'Simple tools solve simple problems. We solve the hard ones.' },
-            { value: 'niche-specialized', label: 'Niche → Specialist', description: 'We don\'t serve everyone. We serve you perfectly.' },
-            { value: 'custom', label: 'Custom reframe...', description: 'Turn your specific disadvantage into a superpower.' },
-        ],
-    },
-
-    // ===== MESSAGING SECTION =====
-    {
-        id: 'messaging-heuristic',
-        sectionId: 'messaging',
-        type: 'text-large',
-        question: 'What\'s your primary heuristic?',
-        hint: 'A 3-6 word phrase that removes fear, grants permission, and shuts down debate.',
-        placeholder: 'e.g., Marketing. Finally under control.',
-        field: 'messaging.primaryHeuristic',
-    },
-    {
-        id: 'messaging-belief',
-        sectionId: 'messaging',
-        type: 'textarea',
-        question: 'What do you believe that others don\'t?',
-        hint: 'Complete: "We believe..."',
-        placeholder: 'Type your belief...',
-        field: 'messaging.beliefPillar',
-    },
-    {
-        id: 'messaging-promise',
-        sectionId: 'messaging',
-        type: 'textarea',
-        question: 'What transformation do you promise?',
-        hint: 'Complete: "We promise..."',
-        placeholder: 'Type your promise...',
-        field: 'messaging.promisePillar',
-    },
-    {
-        id: 'messaging-proof',
-        sectionId: 'messaging',
-        type: 'textarea',
-        question: 'What proves your belief and promise are true?',
-        hint: 'Complete: "Here\'s evidence..."',
-        placeholder: 'Type your proof...',
-        field: 'messaging.proofPillar',
     },
 ];
 
@@ -450,4 +538,9 @@ export function getSectionProgress(sectionId: string, currentIndex: number): { c
 // Helper to filter valid questions based on condition
 export function getValidQuestions(data: FoundationData): Question[] {
     return QUESTIONS.filter(q => !q.condition || q.condition(data));
+}
+
+// Get count of visible questions (for progress display)
+export function getVisibleQuestionCount(data: FoundationData): number {
+    return getValidQuestions(data).length;
 }

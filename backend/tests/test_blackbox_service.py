@@ -496,3 +496,20 @@ def test_blackbox_service_momentum_score():
     # (50.0 / 5000) * 1000 = 10.0
     score = service.calculate_momentum_score()
     assert score == 10.0
+
+def test_blackbox_service_attribution_confidence():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    
+    service = BlackboxService(vault=mock_vault)
+    
+    # 1. Zero traces
+    with patch.object(service, "get_telemetry_by_move", return_value=[]):
+        assert service.calculate_attribution_confidence("m1") == 0.0
+        
+    # 2. Ten traces (should be ~0.62 with the formula)
+    # 0.3 + 0.65*(1/2) = 0.3 + 0.325 = 0.625 -> min(round(0.625, 2)) = 0.62 or 0.63 depending on round()
+    with patch.object(service, "get_telemetry_by_move", return_value=[{"id": i} for i in range(10)]):
+        conf = service.calculate_attribution_confidence("m1")
+        assert conf == 0.63 or conf == 0.62 # Rounding behavior

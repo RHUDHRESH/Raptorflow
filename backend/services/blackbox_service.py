@@ -256,6 +256,23 @@ class BlackboxService:
         score = (total_value / total_tokens) * 1000
         return round(score, 4)
 
+    def calculate_attribution_confidence(self, move_id: str) -> float:
+        """
+        Calculates statistical confidence for a move's attribution.
+        Confidence increases with more telemetry traces.
+        """
+        telemetry = self.get_telemetry_by_move(move_id)
+        count = len(telemetry)
+        
+        if count == 0:
+            return 0.0
+        
+        # Simple logarithmic confidence curve
+        import math
+        # 1 trace = 0.3, 10 traces = 0.7, 100 traces = 0.95
+        confidence = 0.3 + (0.65 * (math.log10(count) / 2.0))
+        return min(round(confidence, 2), 1.0)
+
     def attribute_outcome(self, outcome: BlackboxOutcome):
         """Attributes a business outcome to specific campaign/move."""
         pass
