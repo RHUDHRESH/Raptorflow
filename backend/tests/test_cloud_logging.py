@@ -35,4 +35,5 @@ def test_formatter_adds_severity():
         if mocked_lib:
             sys.modules["pythonjsonlogger"] = mocked_lib
             import backend.utils.logger
+
             importlib.reload(backend.utils.logger)
