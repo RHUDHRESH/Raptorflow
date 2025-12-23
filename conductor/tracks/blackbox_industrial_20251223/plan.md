@@ -1,16 +1,16 @@
 # Plan: Blackbox Industrial Implementation (100 Phases)
 
-## Phase 1: Foundation & Infrastructure (Phases 1-10)
+## Phase 1: Foundation & Infrastructure (Phases 1-10) [checkpoint: 2b190de]
 - [x] Task 1: Create `backend/models/blackbox.py` (Pydantic schemas for Telemetry, Outcomes, Learnings) [0a557c0]
-- [~] Task 2: Define SQL Migration for `blackbox_telemetry` (ID, move_id, agent_id, trace, tokens, latency, timestamp)
-- [ ] Task 3: Define SQL Migration for `blackbox_outcomes` (ID, source, value, confidence, timestamp)
+- [x] Task 2: Define SQL Migration for `blackbox_telemetry` (ID, move_id, agent_id, trace, tokens, latency, timestamp) [c66ca91]
+- [x] Task 3: Define SQL Migration for `blackbox_outcomes` (ID, source, value, confidence, timestamp) [c66ca91]
 - [x] Task 4: Define SQL Migration for `blackbox_learnings` (ID, content, embedding, source_ids, type) [c66ca91]
 - [x] Task 5: Setup BigQuery Dataset `raptorflow_analytics` and table `telemetry_stream` [f5362dd]
 - [x] Task 6: Configure GCP Secret Manager for Blackbox (API Keys for Search, Scrape) [0a1a6df]
 - [x] Task 7: Initialize `backend/services/blackbox_service.py` skeleton [2359810]
 - [x] Task 8: Configure Upstash Redis client in `backend/core/cache.py` for Blackbox [9f32cb2]
 - [x] Task 9: Implement `BlackboxService._get_bigquery_client()` with service account auth [a582ad5]
-- [ ] Task 10: Conductor - User Manual Verification 'Foundation & Infrastructure'
+- [x] Task 10: Conductor - User Manual Verification 'Foundation & Infrastructure' [2b190de]
 
 ## Phase 2: Telemetry & Tracing (Phases 11-20)
 - [ ] Task 11: Implement `BlackboxService.log_telemetry(trace_data)` (Async PG write)
