@@ -438,6 +438,25 @@ class BlackboxService:
             "status": "foundation_updated"
         }
 
+    def get_evidence_package(self, learning_id: UUID) -> List[Dict[str, Any]]:
+        """
+        Retrieves all telemetry traces associated with a specific learning.
+        Packages them for the UI to display as 'Proof'.
+        """
+        session = self.vault.get_session()
+        # 1. Fetch learning to get source_ids (trace_ids)
+        learning_res = session.table("blackbox_learnings_industrial").select("source_ids").eq("id", str(learning_id)).execute()
+        if not learning_res.data:
+            return []
+            
+        source_ids = learning_res.data[0].get("source_ids", [])
+        if not source_ids:
+            return []
+            
+        # 2. Fetch all telemetry for these IDs
+        telemetry_res = session.table("blackbox_telemetry_industrial").select("*").in_("id", source_ids).execute()
+        return telemetry_res.data
+
     def upsert_learning_embedding(
         self, content: str, learning_type: str, source_ids: List[UUID] = None
     ):
