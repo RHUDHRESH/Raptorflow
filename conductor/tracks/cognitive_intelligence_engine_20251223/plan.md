@@ -25,16 +25,16 @@
 - [x] Phase 20: Task: Conductor - User Manual Verification 'Data & Memory' (Protocol in workflow.md) [checkpoint: 1708ee3]
 
 ## Phase 3: Core LangGraph "Cognitive Spine" Framework (Phases 21-30)
-- [x] Phase 21: Define Global State Schema for the LangGraph workflow. [8f0db66]
-- [x] Phase 22: Implement the Base Graph Orchestrator and START/END nodes. [8f0db66]
-- [x] Phase 23: Build Node Router logic for dynamic task assignment. [8f0db66]
-- [x] Phase 24: Develop Cyclic Flow patterns for iterative refinement (Integrated). [8f0db66]
-- [x] Phase 25: Implement Persistence Checkpointers in LangGraph (Postgres-backed). [b1638cf]
-- [x] Phase 26: Create the "Supervisor" Agent Node for high-level coordination. [b1638cf]
-- [~] Phase 27: Implement Error Handling and Retry nodes in the graph.
-- [x] Phase 28: Build the "Human-in-the-Loop" interruption pattern. [8f0db66]
-- [x] Phase 29: Optimize Graph Traversal for parallel node execution (Integrated). [8f0db66]
-- [x] Phase 30: Task: Conductor - User Manual Verification 'Cognitive Spine' (Protocol in workflow.md) [8f0db66]
+- [x] Phase 21: Define Global State Schema for the LangGraph workflow. [70dbf6d]
+- [x] Phase 22: Implement the Base Graph Orchestrator and START/END nodes. [70dbf6d]
+- [x] Phase 23: Build Node Router logic for dynamic task assignment. [70dbf6d]
+- [x] Phase 24: Develop Cyclic Flow patterns for iterative refinement (Integrated). [70dbf6d]
+- [x] Phase 25: Implement Persistence Checkpointers in LangGraph (Postgres-backed). [70dbf6d]
+- [x] Phase 26: Create the "Supervisor" Agent Node for high-level coordination. [70dbf6d]
+- [x] Phase 27: Implement Error Handling and Retry nodes in the graph. [70dbf6d]
+- [x] Phase 28: Build the "Human-in-the-Loop" interruption pattern. [70dbf6d]
+- [x] Phase 29: Optimize Graph Traversal for parallel node execution. [70dbf6d]
+- [~] Phase 30: Task: Conductor - User Manual Verification 'Cognitive Spine' (Protocol in workflow.md)
 
 ## Phase 4: Base Agent Intelligence & Personas (Phases 31-40)
 - [ ] Phase 31: Develop the Base Agent Class with integrated Tool calling.
