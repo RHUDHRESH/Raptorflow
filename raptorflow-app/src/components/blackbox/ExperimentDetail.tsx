@@ -10,6 +10,29 @@ import { EvidenceLog, EvidenceTrace } from './EvidenceLog';
 import { ResultsStrip } from './ResultsStrip';
 import { getOutcomesByMove, getTelemetryByMove } from '@/lib/blackbox';
 
+export interface EvidenceTrace {
+    id: string;
+    agent_id: string;
+    trace: {
+        input?: any;
+        output?: any;
+        error?: string;
+        status?: string;
+    };
+    latency: number;
+    timestamp: string;
+}
+
+export interface BlackboxOutcome {
+    id: string;
+    campaign_id?: string;
+    move_id?: string;
+    source: string;
+    value: number;
+    confidence: number;
+    timestamp: string;
+}
+
 interface ExperimentDetailProps {
     experiment: Experiment | null;
     open: boolean;
@@ -26,7 +49,7 @@ export function ExperimentDetail({
     onCheckin
 }: ExperimentDetailProps) {
     const [traces, setTraces] = useState<EvidenceTrace[]>([]);
-    const [outcomes, setOutcomes] = useState<any[]>([]);
+    const [outcomes, setOutcomes] = useState<BlackboxOutcome[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
