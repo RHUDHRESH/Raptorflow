@@ -1,7 +1,7 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 
 from backend.core.vault import Vault
 from backend.services.blackbox_service import BlackboxService

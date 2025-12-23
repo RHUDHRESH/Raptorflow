@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { GoalSelector } from './GoalSelector';
 import { RiskSlider } from './RiskSlider';
 import { GoalType, RiskLevel, ChannelType, Experiment, ExperimentStatus } from '@/lib/blackbox-types';
-import { ArrowLeft, ArrowRight, Sparkles, Box, X, Mail, Linkedin, Twitter, MessageSquare, Video, Globe } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Sparkles, Box, X, Mail, Linkedin, Twitter, MessageSquare, Video, Globe, RefreshCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { generateExperiments } from '@/lib/blackbox/generator';
+import { addExperiment } from '@/lib/blackbox';
+import { toast } from 'sonner';
 
 interface BlackBoxWizardProps {
     open: boolean;
@@ -108,6 +110,17 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
     const handleBack = () => {
         if (step === 'risk') setStep('goal');
         else if (step === 'channel') setStep('risk');
+    };
+
+    const handleComplete = () => {
+        try {
+            generatedExperiments.forEach(e => addExperiment(e));
+            toast.success('Experiments added to draft');
+            onComplete(generatedExperiments);
+            onOpenChange(false);
+        } catch (err) {
+            toast.error('Failed to save experiments');
+        }
     };
 
     const canProceed = (step === 'goal' && !!goal) || (step === 'risk' && !!risk) || (step === 'channel' && !!channel);
@@ -216,7 +229,7 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
                     )}
 
                     {step === 'results' && (
-                        <Button onClick={() => { onComplete(generatedExperiments); onOpenChange(false); }} className="rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 px-5 font-sans">
+                        <Button onClick={handleComplete} className="rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 px-5 font-sans">
                             <Sparkles className="w-4 h-4 mr-1.5" /> Start Experiments
                         </Button>
                     )}

@@ -1,6 +1,7 @@
 import logging
 import sys
 from datetime import datetime
+
 from pythonjsonlogger import jsonlogger
 
 
@@ -12,7 +13,7 @@ class RaptorFlowJSONFormatter(jsonlogger.JsonFormatter):
         if not log_record.get("timestamp"):
             now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             log_record["timestamp"] = now
-        
+
         # GCP Cloud Logging expects 'severity' for automatic log level detection
         if log_record.get("level"):
             level = log_record["level"].upper()
