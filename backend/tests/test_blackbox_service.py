@@ -214,34 +214,25 @@ def test_blackbox_service_calculate_move_cost():
     mock_session.table.assert_called_with("blackbox_telemetry_industrial")
     mock_query_builder.eq.assert_called_with("move_id", str(move_id))
 
-def test_blackbox_service_search_strategic_memory():
+def test_blackbox_service_categorize_learning():
     mock_vault = MagicMock()
-    mock_session = MagicMock()
-    mock_vault.get_session.return_value = mock_session
-    
     service = BlackboxService(vault=mock_vault)
     
-    # Mock Vertex AI Embeddings
-    with patch("backend.services.blackbox_service.InferenceProvider.get_embeddings") as mock_get_embeds:
-        mock_embed_model = MagicMock()
-        mock_get_embeds.return_value = mock_embed_model
-        mock_embed_model.embed_query.return_value = [0.1] * 768
+    # Mock LLM response
+    with patch("backend.services.blackbox_service.InferenceProvider.get_model") as mock_get_model:
+        mock_llm = MagicMock()
+        mock_get_model.return_value = mock_llm
         
-        # Mock RPC response
-        mock_rpc = MagicMock()
-        mock_session.rpc.return_value = mock_rpc
-        mock_rpc.execute.return_value = MagicMock(data=[
-            {"id": str(uuid4()), "content": "High conversion on LinkedIn", "similarity": 0.92}
-        ])
+        # Simulate LLM returning a category
+        mock_response = MagicMock()
+        mock_response.content = "strategic"
+        mock_llm.invoke.return_value = mock_response
         
-        results = service.search_strategic_memory(query="What worked on social?", limit=3)
+        category = service.categorize_learning(content="We should focus on LinkedIn for high-ticket SaaS founders.")
         
-        assert len(results) == 1
-        assert results[0]["content"] == "High conversion on LinkedIn"
-        mock_embed_model.embed_query.assert_called_once_with("What worked on social?")
-        mock_session.rpc.assert_called_once()
-        args, kwargs = mock_session.rpc.call_args
-        assert args[0] == "match_blackbox_learnings"
-        assert kwargs["params"]["query_embedding"] == [0.1] * 768
-        assert kwargs["params"]["match_count"] == 3
+        assert category == "strategic"
+        mock_llm.invoke.assert_called_once()
+        # Verify prompt contains the content
+        call_args = mock_llm.invoke.call_args[0][0]
+        assert "We should focus on LinkedIn" in str(call_args)
 

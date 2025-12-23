@@ -172,3 +172,44 @@ class BlackboxService:
         session.table("blackbox_learnings_industrial").update(
             {"source_ids": [str(tid) for tid in trace_ids]}
         ).eq("id", str(learning_id)).execute()
+
+    def categorize_learning(self, content: str) -> str:
+        """Categorizes a learning content into strategic, tactical, or content."""
+        llm = InferenceProvider.get_model(model_tier="mundane")
+        prompt = (
+            "Categorize the following marketing learning into exactly one of these labels: "
+            "'strategic', 'tactical', 'content'.\n\n"
+            f"Learning: {content}\n\n"
+            "Label:"
+        )
+        response = llm.invoke(prompt)
+        category = response.content.strip().lower()
+
+        # Validation
+        valid_labels = ["strategic", "tactical", "content"]
+        for label in valid_labels:
+            if label in category:
+                return label
+        return "tactical"  # Default
+
+    def categorize_learning(self, content: str) -> str:
+        """Categorizes a learning content into strategic, tactical, or content."""
+        from backend.core.prompts import BlackboxPrompts
+
+        # 1. Initialize LLM
+        llm = InferenceProvider.get_model(model_tier="driver")
+
+        # 2. Format Prompt
+        prompt = BlackboxPrompts.LEARNING_CATEGORIZATION.format(content=content)
+
+        # 3. Invoke LLM
+        response = llm.invoke(prompt)
+        category = response.content.strip().lower()
+
+        # 4. Validate output
+        valid_categories = ["strategic", "tactical", "content"]
+        if category not in valid_categories:
+            # Default to tactical if uncertain
+            return "tactical"
+
+        return category
