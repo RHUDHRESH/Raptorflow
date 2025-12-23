@@ -173,6 +173,13 @@ class BlackboxService:
             {"source_ids": [str(tid) for tid in trace_ids]}
         ).eq("id", str(learning_id)).execute()
 
+    def prune_strategic_memory(self, learning_type: str, before: datetime):
+        """Removes outdated learnings of a specific type."""
+        session = self.vault.get_session()
+        session.table("blackbox_learnings_industrial").delete().eq(
+            "learning_type", learning_type
+        ).lt("timestamp", before.isoformat()).execute()
+
     def get_memory_context_for_planner(self, move_type: str, limit: int = 5) -> str:
         """Retrieves and formats relevant strategic learnings for the planner agent."""
         results = self.search_strategic_memory(query=move_type, limit=limit)
