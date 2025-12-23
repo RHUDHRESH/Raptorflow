@@ -92,6 +92,20 @@ class HierarchicalSupervisor:
         result = await specialist_node(state)
         return result
 
+    def aggregate_findings(self, findings: List[Dict[str, Any]]) -> str:
+        """
+        Summarizes outputs from multiple specialists into a unified boardroom brief.
+        """
+        logger.info(f"Aggregating {len(findings)} specialist findings...")
+        
+        summary_parts = ["### MATRIX BOARDROOM SUMMARY ###"]
+        for i, finding in enumerate(findings):
+            source = finding.get("source", f"Specialist {i+1}")
+            text = finding.get("analysis_summary", "No summary provided.")
+            summary_parts.append(f"- [{source}]: {text}")
+            
+        return "\n".join(summary_parts)
+
 def create_team_supervisor(llm: any, team_members: List[str], system_prompt: str):
     """Factory function for the HierarchicalSupervisor."""
     return HierarchicalSupervisor(llm, team_members, system_prompt)
