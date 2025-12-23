@@ -43,7 +43,7 @@
 - [x] Task 34: Define Graph Node: `extract_insights_node` (Agentic) [1f713b0]
 - [x] Task 35: Define Graph Node: `attribute_outcomes_node` (Math-heavy) [31542c2]
 - [x] Task 36: Define Graph Node: `reflect_and_validate_node` (Self-correction) [0daed51]
-- [ ] Task 37: Implement Conditional Edges for Graph (Retry on low confidence)
+- [x] Task 37: Implement Conditional Edges for Graph (Retry on low confidence) [6fb4399]
 - [ ] Task 38: Integrate `BlackboxService` into LangGraph nodes
 - [ ] Task 39: Write Integration Test: `test_blackbox_graph_execution`
 - [ ] Task 40: Conductor - User Manual Verification 'LangGraph Spine'
