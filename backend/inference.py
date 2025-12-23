@@ -1,7 +1,9 @@
 import logging
+import os
 
 
 from backend.core.config import get_settings
+
 
 
 def get_vertex_api_key():
