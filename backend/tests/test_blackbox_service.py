@@ -214,15 +214,10 @@ def test_blackbox_service_calculate_move_cost():
     mock_session.table.assert_called_with("blackbox_telemetry_industrial")
     mock_query_builder.eq.assert_called_with("move_id", str(move_id))
 
-def test_blackbox_service_upsert_learning_embedding():
+def test_blackbox_service_search_strategic_memory():
     mock_vault = MagicMock()
     mock_session = MagicMock()
     mock_vault.get_session.return_value = mock_session
-    
-    mock_query_builder = MagicMock()
-    mock_session.table.return_value = mock_query_builder
-    mock_query_builder.insert.return_value = mock_query_builder
-    mock_query_builder.execute.return_value = MagicMock()
     
     service = BlackboxService(vault=mock_vault)
     
@@ -230,24 +225,23 @@ def test_blackbox_service_upsert_learning_embedding():
     with patch("backend.services.blackbox_service.InferenceProvider.get_embeddings") as mock_get_embeds:
         mock_embed_model = MagicMock()
         mock_get_embeds.return_value = mock_embed_model
-        expected_embedding = [0.1] * 768
-        mock_embed_model.embed_query.return_value = expected_embedding
+        mock_embed_model.embed_query.return_value = [0.1] * 768
         
-        source_id = uuid4()
-        service.upsert_learning_embedding(
-            content="Successful ICP engagement",
-            learning_type="strategic",
-            source_ids=[source_id]
-        )
+        # Mock RPC response
+        mock_rpc = MagicMock()
+        mock_session.rpc.return_value = mock_rpc
+        mock_rpc.execute.return_value = MagicMock(data=[
+            {"id": str(uuid4()), "content": "High conversion on LinkedIn", "similarity": 0.92}
+        ])
         
-        mock_embed_model.embed_query.assert_called_once_with("Successful ICP engagement")
-        mock_session.table.assert_called_with("blackbox_learnings_industrial")
+        results = service.search_strategic_memory(query="What worked on social?", limit=3)
         
-        # Verify inserted data
-        mock_query_builder.insert.assert_called_once()
-        inserted_data = mock_query_builder.insert.call_args[0][0]
-        assert inserted_data["content"] == "Successful ICP engagement"
-        assert inserted_data["learning_type"] == "strategic"
-        assert inserted_data["embedding"] == expected_embedding
-        assert str(source_id) in inserted_data["source_ids"]
+        assert len(results) == 1
+        assert results[0]["content"] == "High conversion on LinkedIn"
+        mock_embed_model.embed_query.assert_called_once_with("What worked on social?")
+        mock_session.rpc.assert_called_once()
+        args, kwargs = mock_session.rpc.call_args
+        assert args[0] == "match_blackbox_learnings"
+        assert kwargs["params"]["query_embedding"] == [0.1] * 768
+        assert kwargs["params"]["match_count"] == 3
 
