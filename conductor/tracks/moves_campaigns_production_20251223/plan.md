@@ -37,8 +37,8 @@
 - [x] 30. Task: Conductor - User Manual Verification 'Cognitive Spine' (Protocol in workflow.md) [6149f12]
 
 ## Phase 4: Tiered Memory & Context Retrieval (Tasks 31-40)
-- [ ] 31. Task: Implement `EpisodicMemory` class using Redis/Upstash
-- [ ] 32. Task: Implement `SemanticMemory` class using Supabase pgvector
+- [x] 31. Task: Implement `EpisodicMemory` class using Redis/Upstash [6fb4399]
+- [~] 32. Task: Implement `SemanticMemory` class using Supabase pgvector
 - [ ] 33. Task: Write failing tests for RAG (Retrieval Augmented Generation) context injection
 - [ ] 34. Task: Implement similarity search node with MMR (Maximal Marginal Relevance)
 - [ ] 35. Task: Create `LongTermMemory` for historical outcome storage (Postgres)
