@@ -24,17 +24,17 @@
 - [x] Task 19: Create `backend/api/v1/blackbox_telemetry.py` endpoints [c582c50]
 - [x] Task 20: Conductor - User Manual Verification 'Telemetry & Tracing' [c17d49c]
 
-## Phase 3: Cognitive Memory & Vector Store (Phases 21-30)
+## Phase 3: Cognitive Memory & Vector Store (Phases 21-30) [checkpoint: 8bc8cbb]
 - [x] Task 21: Implement `BlackboxService.upsert_learning_embedding(text, metadata)` [ae6d24d]
 - [x] Task 22: Setup Vertex AI embedding client integration [d9912d7]
 - [x] Task 23: Implement `BlackboxService.search_strategic_memory(query, limit)` [7f57149]
 - [x] Task 24: Implement `BlackboxService.link_learning_to_evidence(learning_id, trace_ids)` [213bbdb]
-- [x] Task 25: Implement Learning Categorization logic (Strategic, Tactical, Content) [d0bea9c]
-- [~] Task 26: Write Unit Test: `test_vector_search_relevance`
+- [x] Task 25: Implement Learning Categorization logic (Strategic, Tactical, Content) [a7e998a]
+- [x] Task 26: Write Unit Test: `test_vector_search_relevance` [0fc0304]
 - [x] Task 27: Implement `BlackboxService.get_memory_context_for_planner(move_type)` [adb4382]
 - [x] Task 28: Implement Memory Pruning logic (Removing redundant/outdated insights) [977ead9]
 - [x] Task 29: Create `backend/api/v1/blackbox_memory.py` endpoints [fe6d0d4]
-- [ ] Task 30: Conductor - User Manual Verification 'Cognitive Memory'
+- [x] Task 30: Conductor - User Manual Verification 'Cognitive Memory' [8bc8cbb]
 
 ## Phase 4: Agentic Orchestration - LangGraph Spine (Phases 31-40)
 - [ ] Task 31: Create `backend/graphs/blackbox_analysis.py` (Base State Definition)
