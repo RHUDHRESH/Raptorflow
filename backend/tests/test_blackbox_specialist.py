@@ -42,3 +42,41 @@ def test_roi_analyst_agent():
             mock_llm.invoke.assert_called_once()
     except (ImportError, AttributeError):
         pytest.fail("ROIAnalystAgent not implemented")
+
+def test_strategic_drift_agent():
+    # This will fail until StrategicDriftAgent is implemented
+    try:
+        from backend.agents.drift_detector import StrategicDriftAgent
+        
+        with patch("backend.inference.InferenceProvider.get_model") as mock_get_model:
+            mock_llm = MagicMock()
+            mock_get_model.return_value = mock_llm
+            mock_llm.invoke.return_value = MagicMock(content="Drift detected: Tone is too playful.")
+            
+            agent = StrategicDriftAgent()
+            result = agent.run("move-123", {"trace": "playful tone", "brand_kit": "serious"})
+            
+            assert "drift_report" in result
+            assert "Drift detected" in result["drift_report"]
+            mock_llm.invoke.assert_called_once()
+    except (ImportError, AttributeError):
+        pytest.fail("StrategicDriftAgent not implemented")
+
+def test_competitor_intelligence_agent():
+    # This will fail until CompetitorIntelligenceAgent is implemented
+    try:
+        from backend.agents.competitor_intel import CompetitorIntelligenceAgent
+        
+        with patch("backend.inference.InferenceProvider.get_model") as mock_get_model:
+            mock_llm = MagicMock()
+            mock_get_model.return_value = mock_llm
+            mock_llm.invoke.return_value = MagicMock(content="Competitor X lowered prices.")
+            
+            agent = CompetitorIntelligenceAgent()
+            result = agent.run("move-123", {"telemetry_data": [{"action": "scrape", "res": "ok"}]})
+            
+            assert "competitor_insights" in result
+            assert "Competitor X" in result["competitor_insights"]
+            mock_llm.invoke.assert_called_once()
+    except (ImportError, AttributeError):
+        pytest.fail("CompetitorIntelligenceAgent not implemented")

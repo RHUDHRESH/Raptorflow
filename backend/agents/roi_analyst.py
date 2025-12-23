@@ -27,4 +27,3 @@ class ROIAnalystAgent(BlackboxSpecialist):
             "attribution": response.content,
             "status": "attributed"
         }
-
