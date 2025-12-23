@@ -156,3 +156,110 @@ async def test_resource_scaling_skill():
     # Test missing service
     result = await skill.execute({"replicas": 2})
     assert "error" in result
+
+
+@pytest.mark.asyncio
+async def test_archive_logs_skill():
+    """Test that ArchiveLogsSkill triggers log archival."""
+    from backend.skills.matrix_skills import ArchiveLogsSkill
+
+    mock_gcs = MagicMock()
+    mock_gcs.archive_logs.return_value = True
+    skill = ArchiveLogsSkill(gcs_manager=mock_gcs)
+
+    result = await skill.execute({"prefix": "logs/2023-10-01"})
+    assert result["archival_successful"] is True
+    mock_gcs.archive_logs.assert_called_with(prefix="logs/2023-10-01")
+
+    # Test missing prefix
+    result = await skill.execute({})
+    assert "error" in result
+
+
+@pytest.mark.asyncio
+async def test_retrain_trigger_skill():
+    """Test that RetrainTriggerSkill triggers model retraining."""
+    from backend.skills.matrix_skills import RetrainTriggerSkill
+
+    skill = RetrainTriggerSkill()
+    result = await skill.execute(
+        {"model_id": "marketing-copy-v2", "dataset_uri": "gs://bucket/data"}
+    )
+
+    assert result["retrain_initiated"] is True
+    assert result["model_id"] == "marketing-copy-v2"
+    assert "initiated" in result["status"]
+
+    # Test missing model_id
+    result = await skill.execute({"dataset_uri": "gs://bucket/data"})
+    assert "error" in result
+
+
+def test_skill_privilege_matrix():
+    """Test RBAC for Matrix skills."""
+    from backend.skills.matrix_skills import SkillPrivilegeMatrix, UserRole
+
+    rbac = SkillPrivilegeMatrix()
+
+    # Admin should have access to everything
+    assert rbac.has_permission(UserRole.ADMIN, "emergency_halt") is True
+    assert rbac.has_permission(UserRole.ADMIN, "resource_scaling") is True
+    assert rbac.has_permission(UserRole.ADMIN, "archive_logs") is True
+    assert rbac.has_permission(UserRole.ADMIN, "retrain_trigger") is True
+
+    # Operator should have access to scaling and logs, but NOT emergency halt or retrain
+    assert rbac.has_permission(UserRole.OPERATOR, "resource_scaling") is True
+    assert rbac.has_permission(UserRole.OPERATOR, "archive_logs") is True
+    assert rbac.has_permission(UserRole.OPERATOR, "emergency_halt") is False
+    assert rbac.has_permission(UserRole.OPERATOR, "retrain_trigger") is False
+
+    # Viewer should have access to NOTHING
+    assert rbac.has_permission(UserRole.VIEWER, "emergency_halt") is False
+    assert rbac.has_permission(UserRole.VIEWER, "resource_scaling") is False
+
+
+@pytest.mark.asyncio
+async def test_tool_execution_wrapper():
+    """Test the wrapper for Matrix skill execution."""
+    from backend.skills.matrix_skills import ToolExecutionWrapper
+
+    class LocalMockSkill(MockSkill):
+        @property
+        def name(self) -> str:
+            return "mock_skill"
+
+    skill = LocalMockSkill()
+    wrapper = ToolExecutionWrapper(skill)
+
+    # Test successful execution
+    result = await wrapper.execute({})
+    assert result["success"] is True
+    assert result["data"]["status"] == "executed"
+    assert "latency_ms" in result
+
+    # Test execution with failure (simulated by a failing skill)
+    class FailingSkill(MockSkill):
+        async def execute(self, params: dict) -> dict:
+            raise Exception("Execution failed")
+
+    wrapper = ToolExecutionWrapper(FailingSkill())
+    result = await wrapper.execute({})
+    assert result["success"] is False
+    assert "Execution failed" in result["error"]
+
+
+def test_tool_output_validator():
+    """Test validation of skill outputs."""
+    from backend.skills.matrix_skills import ToolOutputValidator
+
+    validator = ToolOutputValidator()
+
+    # Valid output
+    valid_output = {"status": "ok", "count": 1}
+    assert validator.validate(valid_output, required_keys=["status"]) is True
+
+    # Invalid output (missing key)
+    assert validator.validate(valid_output, required_keys=["nonexistent"]) is False
+
+    # Invalid output (not a dict)
+    assert validator.validate("not a dict", required_keys=["status"]) is False
