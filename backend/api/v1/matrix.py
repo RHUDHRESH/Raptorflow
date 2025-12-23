@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Dict, Any, List
+from datetime import datetime
 from backend.services.matrix_service import MatrixService
 from backend.models.telemetry import SystemState, TelemetryEvent
 from backend.core.vault import Vault
@@ -16,19 +17,19 @@ async def get_overview(workspace_id: str, service: MatrixService = Depends(get_m
     return await service.get_aggregated_overview(workspace_id)
 
 @router.post("/kill-switch")
-async def engage_kill_switch(service: MatrixService = Depends(get_matrix_service)):
+async def engage_kill_switch(reason: str = "Manual Trigger", service: MatrixService = Depends(get_matrix_service)):
     """
     SOTA Global Kill-Switch.
     Stops all agentic activity across the ecosystem immediately.
     """
-    success = await service.halt_system()
+    success = await service.halt_system(reason=reason)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to engage global kill-switch.")
         
     return {
         "status": "halted",
-        "timestamp": "now",
-        "audit_id": "audit-uuid-placeholder"
+        "reason": reason,
+        "timestamp": datetime.now().isoformat()
     }
 
 @router.get("/mlops/drift")
