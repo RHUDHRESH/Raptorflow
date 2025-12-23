@@ -139,3 +139,20 @@ async def test_cache_purge_skill_exception():
     skill = CachePurgeSkill(redis_client=mock_redis)
     result = await skill.execute({})
     assert result is False
+
+
+@pytest.mark.asyncio
+async def test_resource_scaling_skill():
+    """Test that ResourceScalingSkill simulates scaling operations."""
+    from backend.skills.matrix_skills import ResourceScalingSkill
+
+    skill = ResourceScalingSkill()
+    # Test scale up
+    result = await skill.execute({"service": "raptorflow-spine", "replicas": 5})
+    assert result["scaling_initiated"] is True
+    assert result["target_replicas"] == 5
+    assert "raptorflow-spine" in result["message"]
+
+    # Test missing service
+    result = await skill.execute({"replicas": 2})
+    assert "error" in result

@@ -150,3 +150,31 @@ class CachePurgeSkill(MatrixSkill):
         except Exception as e:
             logger.error(f"Failed to purge cache: {e}")
             return False
+
+
+class ResourceScalingSkill(MatrixSkill):
+    """
+    Skill to simulate resource scaling for Cloud Run services.
+    In a real build, this would interface with GCP Cloud Run API.
+    """
+
+    @property
+    def name(self) -> str:
+        return "resource_scaling"
+
+    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        service = params.get("service")
+        replicas = params.get("replicas", 1)
+
+        if not service:
+            return {"error": "service name is required for scaling"}
+
+        logger.warning(f"ResourceScalingSkill: Mock scaling {service} to {replicas} replicas")
+
+        return {
+            "scaling_initiated": True,
+            "service": service,
+            "target_replicas": replicas,
+            "status": "scaling_in_progress",
+            "message": f"Successfully signaled GCP to scale {service} to {replicas} instances.",
+        }

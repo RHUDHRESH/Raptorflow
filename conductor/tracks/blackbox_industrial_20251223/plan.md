@@ -54,11 +54,11 @@
 - [x] Task 43: Create `Strategic_Drift_Agent` (Detects deviation from Foundation) [bbd4753]
 - [x] Task 44: Create `Competitor_Intelligence_Agent` (Feeds on scrape telemetry) [bbd4753]
 - [x] Task 45: Implement Agent Collaboration protocol (Shared state updates) [185805a]
-- [ ] Task 46: Implement "Critique" loop between Analyst and Supervisor
-- [~] Task 47: Write Unit Test: `test_agent_specialization_accuracy`
-- [ ] Task 48: Implement Tool: `fetch_historical_performance_tool`
-- [ ] Task 49: Implement Tool: `fetch_brand_kit_alignment_tool`
-- [ ] Task 50: Conductor - User Manual Verification 'Multi-Agent Specialists'
+- [~] Task 46: Implement "Critique" loop between Analyst and Supervisor
+- [x] Task 47: Write Unit Test: `test_agent_specialization_accuracy` [7eecc4d]
+- [x] Task 48: Implement Tool: `fetch_historical_performance_tool` [7bc16ee]
+- [x] Task 49: Implement Tool: `fetch_brand_kit_alignment_tool` [386e50d]
+- [x] Task 50: Conductor - User Manual Verification 'Multi-Agent Specialists' [386e50d]
 
 ## Phase 6: ROI & Attribution Engine (Phases 51-60)
 - [ ] Task 51: Implement `BlackboxService.compute_roi(campaign_id)`
