@@ -36,8 +36,8 @@
 - [x] 26. Task: Connect UI triggers to the weekly move generation agent node [dde2d0b]
 - [x] 27. Task: Implement interactive decomposition of milestones into Move packets [80cdd80]
 - [x] 28. Task: Write failing integration tests for Move generation and status tracking [f5bd0a1]
-- [~] 29. Task: Integrate "Move Refiner" critique and adjustment UI
-- [ ] 30. Task: Implement resource/tool verification feedback in the Moves view
+- [x] 29. Task: Integrate "Move Refiner" critique and adjustment UI [5ae053f]
+- [~] 30. Task: Implement resource/tool verification feedback in the Moves view
 - [ ] 31. Task: Connect move execution status (Pending -> Executed) to backend updates
 - [ ] 32. Task: Implement progress bar synchronization between Moves and Campaigns
 - [ ] 33. Task: Build the detailed "Move Packet" view (Description, Owner, Tools)
