@@ -1,10 +1,10 @@
 # Implementation Plan: End-to-End Moves & Campaigns Frontend Hardening
 
 ## Phase 1: Environment & Config Hardening (Tasks 1-5)
-- [~] 1. Task: Add `inference_simple` (Vertex API Key) to `.env.example` and local env
-- [ ] 2. Task: Implement centralized `src/lib/inference-config.ts` for provider management
-- [ ] 3. Task: Write failing tests for inference configuration loading and validation
-- [ ] 4. Task: Implement config validation logic to ensure Vertex AI is the singular path
+- [x] 1. Task: Add `inference_simple` (Vertex API Key) to `.env.example` and local env [853b2ba]
+- [x] 2. Task: Implement centralized `src/lib/inference-config.ts` for provider management [853b2ba]
+- [x] 3. Task: Write failing tests for inference configuration loading and validation [853b2ba]
+- [x] 4. Task: Implement config validation logic to ensure Vertex AI is the singular path [853b2ba]
 - [ ] 5. Task: Conductor - User Manual Verification 'Environment & Config' (Protocol in workflow.md)
 
 ## Phase 2: Code Audit & Connectivity Fixes (Tasks 6-15)
