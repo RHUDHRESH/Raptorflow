@@ -1,6 +1,6 @@
 # Implementation Plan: Matrix — The Agentic Control Center (120-Phase Deep Build)
 
-#### Block A: Foundation & Core Telemetry (Phases 1-10)
+#### Block A: Foundation & Core Telemetry (Phases 1-10) [checkpoint: 58820c9]
 - [x] Phase 001: Backend - Define `TelemetryEvent` Pydantic model with strict validation. 4d7f3ef
 - [x] Phase 002: Backend - Define `SystemState` schema for real-time agent pool tracking. 3c678cf
 - [x] Phase 003: Backend - Implement `MatrixService` interface in `backend/services/matrix_service.py`. bb99768
@@ -10,7 +10,7 @@
 - [x] Phase 007: Backend - Write Red Phase tests for `MatrixService.capture_agent_heartbeat()`. a70a29b
 - [x] Phase 008: Backend - Implement `MatrixService.capture_agent_heartbeat()` with expiration logic. 8019b0d
 - [x] Phase 009: Backend - Implement centralized `serving.py` for logging model inference metadata. d0f3e1f
-- [~] Phase 010: Conductor - User Manual Verification 'Foundation & Core Telemetry' (Protocol in workflow.md)
+- [x] Phase 010: Conductor - User Manual Verification 'Foundation & Core Telemetry' (Protocol in workflow.md)
 
 #### Block B: Osipov Data Engineering - The Gold Zone (Phases 11-20)
 - [ ] Phase 011: Backend - Configure GCS `raptorflow-gold-zone` bucket for Parquet storage.
