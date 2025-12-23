@@ -2,8 +2,8 @@
 
 ## Phase 1: MLOps & Infrastructure Foundation (Phases 1-10)
 - [x] Phase 1: Initialize GCP Project, IAM Roles, and Resource Hierarchy. [6cc0d7c]
-- [~] Phase 2: Setup GCP Secret Manager for API Keys (OpenAI, Anthropic, Firecrawl).
-- [ ] Phase 3: Configure Cloud Run for Serverless Agent Inference.
+- [x] Phase 2: Setup GCP Secret Manager for API Keys (OpenAI, Anthropic, Firecrawl). [0a1a6df]
+- [x] Phase 3: Configure Cloud Run for Serverless Agent Inference. [bb99768]
 - [ ] Phase 4: Initialize Supabase (Postgres + pgvector) for Semantic Memory.
 - [ ] Phase 5: Setup Upstash Redis for Short-Term Working Memory & Caching.
 - [ ] Phase 6: Implement GitHub Actions for CI/CD with Linting (ESLint/Flake8).
@@ -39,7 +39,7 @@
 ## Phase 4: Base Agent Intelligence & Personas (Phases 31-40)
 - [ ] Phase 31: Develop the Base Agent Class with integrated Tool calling.
 - [ ] Phase 32: Design SOTA Prompt Templates for Strategy and Research.
-- [ ] Phase 33: Implement Multi-Model Fallback logic (Claude-3.5 -> GPT-4o).
+- [ ] Phase 33: Implement Vertex AI Primary Inference with Model Fallback (Gemini 1.5 Pro -> Flash).
 - [ ] Phase 34: Define the "Strategist" Persona and Instruction Set.
 - [ ] Phase 35: Define the "Researcher" Persona and Instruction Set.
 - [ ] Phase 36: Define the "Creative Director" Persona and Instruction Set.
