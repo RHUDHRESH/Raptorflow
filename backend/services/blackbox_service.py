@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 from functools import wraps
-from typing import List
+from typing import Dict, List
 from uuid import UUID
 
 from backend.core.vault import Vault
