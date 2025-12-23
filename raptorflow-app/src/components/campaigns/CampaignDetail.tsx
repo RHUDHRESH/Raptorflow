@@ -94,17 +94,46 @@ export function CampaignDetail({
     const auditData = campaign.auditData || [];
 
     const handleStatusChange = async (status: Campaign['status']) => {
+        if (!campaign) return;
+        const original = { ...campaign };
         const updated = { ...campaign, status };
-        await updateCampaign(updated);
+
+        // Optimistic update
         onUpdate(updated);
-        toast.success(`Campaign ${status}`);
+
+        try {
+            await updateCampaign(updated);
+            toast.success(`Campaign ${status}`);
+        } catch (error) {
+            // Revert on failure
+            onUpdate(original);
+            toast.error(`Failed to update campaign status`);
+            console.error(error);
+        }
     };
 
     const handleStartNextMove = async () => {
         if (!nextMove) return;
-        await setActiveMove(nextMove.id);
-        onRefresh();
-        toast.success(`Started move: ${nextMove.name}`);
+
+        const originalMoves = [...moves];
+        const updatedMoves = moves.map(m =>
+            m.id === nextMove.id ? { ...m, status: 'active' } :
+                (m.status === 'active' ? { ...m, status: 'queued' } : m)
+        );
+
+        // Optimistic update
+        setMoves(updatedMoves);
+
+        try {
+            await setActiveMove(nextMove.id);
+            onRefresh();
+            toast.success(`Started move: ${nextMove.name}`);
+        } catch (error) {
+            // Revert on failure
+            setMoves(originalMoves);
+            toast.error(`Failed to start move`);
+            console.error(error);
+        }
     };
 
     return (
