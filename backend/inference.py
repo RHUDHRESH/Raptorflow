@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Union
+from typing import Union, Any
 
 logger = logging.getLogger("raptorflow.inference")
 
@@ -11,25 +11,36 @@ class InferenceProvider:
     """
     
     @staticmethod
-    def get_model(model_tier: str = "driver", temperature: float = 0.0):
+    def get_model(model_tier: str = "driver", temperature: float = 0.0, use_fallback: bool = True):
+        # Move imports inside to allow surgical mocking and avoid Python 3.14 crashes
         from langchain_google_vertexai import ChatVertexAI
+        
         provider = os.getenv("INFERENCE_PROVIDER", "google").lower()
         
         if provider == "google":
             model_map = {
-                "ultra": "gemini-3-pro-preview",      # Ultra Reasoning
-                "reasoning": "gemini-3-flash-preview", # High Reasoning
-                "driver": "gemini-2.5-flash",         # Daily Driver
-                "kinda_mundane": "gemini-2.0-flash",  # Mundane Tasks
-                "mundane": "gemini-1.5-flash"         # Simple Tasks
+                "ultra": "gemini-1.5-pro",      # SOTA Reasoning
+                "reasoning": "gemini-1.5-pro",
+                "driver": "gemini-1.5-flash",   # High-speed reliable
+                "mundane": "gemini-1.5-flash"
             }
-            model_name = model_map.get(model_tier, "gemini-2.5-flash")
+            model_name = model_map.get(model_tier, "gemini-1.5-flash")
             logger.info(f"Routing to Gemini Tier: {model_tier} ({model_name})")
             
-            return ChatVertexAI(
+            primary_model = ChatVertexAI(
                 model_name=model_name,
                 temperature=temperature
             )
+            
+            if use_fallback and model_tier in ["ultra", "reasoning"]:
+                # Fallback to Flash if Pro fails (e.g. quota, latency)
+                fallback_model = ChatVertexAI(
+                    model_name="gemini-1.5-flash",
+                    temperature=temperature
+                )
+                return primary_model.with_fallbacks([fallback_model])
+            
+            return primary_model
             
         raise ValueError(f"Unsupported provider: {provider}")
 
