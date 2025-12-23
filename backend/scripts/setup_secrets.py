@@ -29,6 +29,7 @@ def main():
     project_id = settings.GCP_PROJECT_ID
     
     secrets = [
+        "GOOGLE_APPLICATION_CREDENTIALS_JSON",
         "OPENAI_API_KEY",
         "ANTHROPIC_API_KEY",
         "FIRECRAWL_API_KEY",

@@ -5,12 +5,12 @@
 - [x] 2. Task: Setup Supabase Database Schema for `campaigns` and `moves` tables
 - [x] 3. Task: Configure Upstash Redis instance for Episodic Memory session state
 - [x] 4. Task: Write failing tests for Environment Variable loading and validation
-- [~] 5. Task: Implement `core/config.py` with Pydantic for strict environment validation
-- [ ] 6. Task: Setup BigQuery datasets for raw data ingestion and "Gold" storage
-- [ ] 7. Task: Initialize Vercel project and link to the repository for frontend deployment
-- [ ] 8. Task: Configure GitHub Actions CI for multi-repo test execution
-- [ ] 9. Task: Verify connectivity across all infra components (Supabase, Redis, GCP)
-- [ ] 10. Task: Conductor - User Manual Verification 'Environment & Infrastructure' (Protocol in workflow.md)
+- [x] 5. Task: Implement `core/config.py` with Pydantic for strict environment validation
+- [x] 6. Task: Setup BigQuery datasets for raw data ingestion and "Gold" storage
+- [x] 7. Task: Initialize Vercel project and link to the repository for frontend deployment
+- [x] 8. Task: Configure GitHub Actions CI for multi-repo test execution
+- [x] 9. Task: Verify connectivity across all infra components (Supabase, Redis, GCP)
+- [~] 10. Task: Conductor - User Manual Verification 'Environment & Infrastructure' (Protocol in workflow.md)
 
 ## Phase 2: Data Ingestion & 'VACUUM' Quality Engine (Tasks 11-20)
 - [ ] 11. Task: Create ingestion script for 30k lines of business context from instructions
