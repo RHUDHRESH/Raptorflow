@@ -99,7 +99,7 @@ describe('Campaign Creation-to-Persistence Integration', () => {
 
     it('correctly maps complex DB records including strategy arc and audit data', async () => {
         const { getCampaigns } = await import('@/lib/campaigns');
-        
+
         const mockDBData = [{
             id: 'test-uuid-2',
             title: 'Hardened Campaign',
