@@ -1,7 +1,9 @@
+import json
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 import psycopg
 from langgraph.checkpoint.postgres import PostgresSaver
@@ -62,32 +64,43 @@ async def init_checkpointer():
 async def vector_search(
     workspace_id: str, 
     embedding: list[float], 
-    table: str = "muse_assets", 
+    table: str = "agent_memory_semantic", 
     limit: int = 5,
     filters: Optional[dict] = None
 ):
     """
     Performs a pgvector similarity search, STRICTLY scoped to workspace_id.
-    Supports optional metadata filtering.
+    Supports optional metadata filtering and handles different table schemas.
     """
+    # Map table to its specific column names
+    SCHEMA_MAP = {
+        "muse_assets": {"content": "content", "workspace": "metadata->>'workspace_id'"},
+        "agent_memory_semantic": {"content": "fact", "workspace": "tenant_id"},
+        "entity_embeddings": {"content": "description", "workspace": "workspace_id"}
+    }
+    
+    schema = SCHEMA_MAP.get(table, {"content": "content", "workspace": "metadata->>'workspace_id'"})
+    content_col = schema["content"]
+    workspace_col = schema["workspace"]
+
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
             # Base query
             query = f"""
-                SELECT id, content, metadata, 1 - (embedding <=> %s::vector) as similarity
+                SELECT id, {content_col}, metadata, 1 - (embedding <=> %s::vector) as similarity
                 FROM {table}
-                WHERE metadata->>'workspace_id' = %s
+                WHERE {workspace_col} = %s
             """
             params = [embedding, workspace_id]
             
-            # Dynamically add filters
+            # Dynamically add filters (assuming they are in metadata for all tables)
             if filters:
                 for key, value in filters.items():
                     query += f" AND metadata->>'{key}' = %s"
                     params.append(str(value))
             
             query += f"""
-                AND 1 - (embedding <=> %s::vector) > 0.7
+                AND 1 - (embedding <=> %s::vector) > 0.5
                 ORDER BY embedding <=> %s::vector
                 LIMIT %s;
             """
@@ -223,6 +236,95 @@ async def save_asset_vault(
 
     asset_data = {"content": content, "metadata": metadata}
     return await save_asset_db(workspace_id, asset_data)
+
+
+async def save_campaign(tenant_id: str, campaign_data: dict) -> str:
+    """Saves a campaign strategy arc to Supabase."""
+    async with get_db_connection() as conn:
+        async with conn.cursor() as cur:
+            query = """
+                INSERT INTO campaigns (tenant_id, title, objective, status, arc_data, kpi_targets)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id;
+            """
+            await cur.execute(
+                query,
+                (
+                    tenant_id,
+                    campaign_data.get("title"),
+                    campaign_data.get("objective"),
+                    campaign_data.get("status", "draft"),
+                    psycopg.types.json.Jsonb(campaign_data.get("arc_data", {})),
+                    psycopg.types.json.Jsonb(campaign_data.get("kpi_targets", {})),
+                ),
+            )
+            result = await cur.fetchone()
+            await conn.commit()
+            return str(result[0])
+
+
+async def save_move(campaign_id: str, move_data: dict) -> str:
+    """Saves a weekly move to Supabase."""
+    async with get_db_connection() as conn:
+        async with conn.cursor() as cur:
+            query = """
+                INSERT INTO moves (campaign_id, title, description, status, priority, move_type, tool_requirements)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id;
+            """
+            await cur.execute(
+                query,
+                (
+                    campaign_id,
+                    move_data.get("title"),
+                    move_data.get("description"),
+                    move_data.get("status", "pending"),
+                    move_data.get("priority", 3),
+                    move_data.get("move_type"),
+                    psycopg.types.json.Jsonb(move_data.get("tool_requirements", [])),
+                ),
+            )
+            result = await cur.fetchone()
+            await conn.commit()
+            return str(result[0])
+
+
+async def update_move_status(move_id: str, status: str, result: dict = None):
+    """Updates the status and execution result of a move."""
+    async with get_db_connection() as conn:
+        async with conn.cursor() as cur:
+            query = """
+                UPDATE moves
+                SET status = %s, execution_result = %s, updated_at = now()
+                WHERE id = %s;
+            """
+            await cur.execute(
+                query, (status, psycopg.types.json.Jsonb(result or {}), move_id)
+            )
+            await conn.commit()
+
+
+async def log_agent_decision(tenant_id: str, decision_data: dict):
+    """Logs an agent's strategic decision for auditability and MLOps."""
+    async with get_db_connection() as conn:
+        async with conn.cursor() as cur:
+            query = """
+                INSERT INTO agent_decision_audit (tenant_id, agent_id, decision_type, input_state, output_decision, rationale, cost_estimate)
+                VALUES (%s, %s, %s, %s, %s, %s, %s);
+            """
+            await cur.execute(
+                query,
+                (
+                    tenant_id,
+                    decision_data.get("agent_id"),
+                    decision_data.get("decision_type"),
+                    psycopg.types.json.Jsonb(decision_data.get("input_state", {})),
+                    psycopg.types.json.Jsonb(decision_data.get("output_decision", {})),
+                    decision_data.get("rationale"),
+                    decision_data.get("cost_estimate", 0),
+                ),
+            )
+            await conn.commit()
 
 
 async def save_entity(

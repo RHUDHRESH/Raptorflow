@@ -10,8 +10,8 @@ class SemanticMemory:
     Handles long-term business context and preference storage using pgvector.
     """
 
-    def __init__(self):
-        self.table = "muse_assets"  # Default SOTA table for embeddings
+    def __init__(self, table: str = "agent_memory_semantic"):
+        self.table = table
 
     async def search(self, tenant_id: str, query: str, limit: int = 5, filters: Optional[Dict] = None) -> List[Dict]:
         """Performs a semantic search for relevant context."""
