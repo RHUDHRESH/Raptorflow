@@ -117,6 +117,164 @@ export interface ProofData {
   proofTypes?: ProofType[];
 }
 
+// NEW: Customer insights section (best customers, triggers, alternatives, pains)
+export interface CustomerInsightsData {
+  bestCustomers?: string[];           // 3 best customer descriptions
+  triggerEvents?: TriggerEvent[];     // What makes them buy now
+  alternatives?: AlternativeType[];   // What they used before
+  painRanking?: string[];             // Ranked list of pains
+}
+
+// ==========================================
+// Derived Data Interfaces (from Backend)
+// ==========================================
+
+// ICP Reveal Response
+export interface DerivedICP {
+  id: string;
+  name: string;
+  priority: 'primary' | 'secondary' | 'expansion';
+  confidence: number;
+  description: string;
+
+  firmographics: {
+    companySize: string;
+    industry: string[];
+    geography: string[];
+    budget: string;
+  };
+
+  painMap: {
+    primary: string;
+    secondary: string[];
+    triggers: string[];
+    urgency: 'now' | 'soon' | 'someday';
+  };
+
+  social: {
+    platforms: Array<{ name: string; timing: string; vibe: string }>;
+    authorities: string[];
+  };
+
+  buying: {
+    committee: Array<{ role: string; focus: string }>;
+    timeline: string;
+    proofNeeded: string[];
+    blockers: string[];
+  };
+
+  behavioral: {
+    biases: Array<{ name: string; implication: string }>;
+    deRisking: string[];
+  };
+}
+
+// Positioning Reveal Response
+export interface DerivedPositioning {
+  matrix: {
+    xAxis: { label: string; lowEnd: string; highEnd: string };
+    yAxis: { label: string; lowEnd: string; highEnd: string };
+    positions: Array<{ name: string; x: number; y: number; isYou: boolean }>;
+  };
+
+  ladder: Array<{
+    rung: number;
+    name: string;
+    description: string;
+    score: number;
+    isYou: boolean;
+  }>;
+
+  statement: {
+    forWhom: string;
+    company: string;
+    category: string;
+    differentiator: string;
+    unlikeCompetitor: string;
+    because: string;
+  };
+
+  oneThing: string;
+  defensibility: 'low' | 'medium' | 'high';
+}
+
+// Competitive Reveal Response
+export interface DerivedCompetitive {
+  statusQuo: {
+    name: string;
+    description: string;
+    manualPatches: string[];
+    toleratedPain: string;
+    yourWedge: string;
+  };
+
+  indirect: Array<{
+    name: string;
+    mechanism: string;
+    priceRange: string;
+    weakness: string;
+    yourEdge: string;
+  }>;
+
+  direct: Array<{
+    name: string;
+    positioning: string;
+    weakness: string;
+    yourEdge: string;
+    featureOverlap: 'low' | 'medium' | 'high';
+  }>;
+}
+
+// Soundbites Reveal Response
+export interface DerivedSoundbites {
+  oneLiner: string;
+
+  soundbites: Array<{
+    type: 'problem' | 'agitation' | 'mechanism' | 'objection' | 'transformation' | 'proof' | 'urgency';
+    awarenessLevel: 'unaware' | 'problem' | 'solution' | 'product' | 'most';
+    text: string;
+    useCase: string;
+  }>;
+}
+
+// Market Reveal Response
+export interface DerivedMarket {
+  tam: { value: number; confidence: 'low' | 'med' | 'high'; method: string };
+  sam: { value: number; confidence: 'low' | 'med' | 'high'; method: string };
+  som: { value: number; confidence: 'low' | 'med' | 'high'; timeline: string };
+
+  assumptions: Array<{
+    factor: string;
+    value: string;
+    confidence: 'low' | 'med' | 'high';
+  }>;
+
+  pathToSom: {
+    customersNeeded: number;
+    leadsPerMonth: number;
+    winRate: number;
+    channelMix: Array<{ channel: string; percentage: number }>;
+  };
+
+  sliderDefaults: {
+    targetAccounts: number;
+    reachablePercent: number;
+    qualifiedPercent: number;
+    adoptionPercent: number;
+    arpa: number;
+  };
+}
+
+// Combined Derived Data
+export interface DerivedData {
+  derivedAt?: string;
+  icps?: DerivedICP[];
+  positioning?: DerivedPositioning;
+  competitive?: DerivedCompetitive;
+  soundbites?: DerivedSoundbites;
+  market?: DerivedMarket;
+}
+
 // ==========================================
 // Main Foundation Data
 // ==========================================
@@ -148,10 +306,14 @@ export interface FoundationData {
   positioning: PositioningData;
   messaging: MessagingData;
 
-  // NEW: Know You sections
+  // Know You sections
   goals?: GoalsData;
   reality?: CurrentRealityData;
   proof?: ProofData;
+  customerInsights?: CustomerInsightsData;  // NEW
+
+  // Derived data (from backend)
+  derived?: DerivedData;  // NEW
 
   // Legacy support
   brandVoice?: string;
