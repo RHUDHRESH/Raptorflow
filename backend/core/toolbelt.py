@@ -8,6 +8,9 @@ from pydantic import BaseModel
 from abc import ABC, abstractmethod
 from tenacity import retry, wait_exponential, stop_after_attempt
 from backend.services.cache import get_cache
+from backend.tools.search import TavilyMultiHopTool, PerplexitySearchTool
+from backend.tools.muse import AssetGenTool
+from backend.core.base_tool import BaseRaptorTool
 
 logger = logging.getLogger("raptorflow.toolbelt.v2")
 
@@ -42,72 +45,28 @@ def cache_tool_output(ttl: int = 3600):
         return wrapper
     return decorator
 
-class RaptorRateLimiter:
-    """
-    SOTA Resiliency Layer.
-    Provides exponential backoff and attempt tracking for external tools.
-    """
-    @staticmethod
-    def get_retry_decorator():
-        return retry(
-            wait=wait_exponential(multiplier=1, min=4, max=10),
-            stop=stop_after_attempt(3),
-            before_sleep=lambda retry_state: logger.warning(f"Retrying tool execution: {retry_state.attempt_number}...")
-        )
-
-class BaseRaptorTool(ABC):
-    """
-    SOTA Abstract Base Class for all RaptorFlow tools.
-    Ensures standard telemetry, error handling, and caching.
-    """
-    
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """The tool name for the Supervisor/Agents."""
-        pass
-
-    @property
-    @abstractmethod
-    def description(self) -> str:
-        """Description used by the LLM to understand tool utility."""
-        pass
-
-    @abstractmethod
-    async def _execute(self, **kwargs) -> Any:
-        """The actual tool logic implementation."""
-        pass
-
-    async def run(self, **kwargs) -> Dict[str, Any]:
-        """Wrapper with telemetry and error handling."""
-        start_time = datetime.now()
-        logger.info(f"Tool {self.name} starting...")
-        try:
-            result = await self._execute(**kwargs)
-            latency = (datetime.now() - start_time).total_seconds() * 1000
-            return {
-                "success": True,
-                "data": result,
-                "latency_ms": latency,
-                "error": None
-            }
-        except Exception as e:
-            logger.error(f"Tool {self.name} failed: {e}")
-            return {
-                "success": False,
-                "data": None,
-                "latency_ms": 0,
-                "error": str(e)
-            }
-
 class ToolbeltV2:
     """
     SOTA Toolbelt (T01-T44).
     The complete implementation of the deterministic agent layer.
     """
-    
-    def __init__(self, db_uri: str):
-        self.db_uri = db_uri
+
+    def __init__(self):
+        self.tools = {
+            "tavily_search": TavilyMultiHopTool(),
+            "perplexity_search": PerplexitySearchTool(),
+            "asset_gen": AssetGenTool(),
+        }
+
+    async def run_tool(self, tool_name: str, **kwargs) -> Dict[str, Any]:
+        """SOTA Dispatcher for tool execution."""
+        tool = self.tools.get(tool_name)
+        if not tool:
+            return {
+                "success": False,
+                "error": f"Tool '{tool_name}' not found in registry.",
+            }
+        return await tool.run(**kwargs)
 
     # --- T01-T04: Context & Search ---
     async def get_workspace_context(self, workspace_id: str) -> Dict:

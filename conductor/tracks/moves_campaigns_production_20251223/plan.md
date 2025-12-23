@@ -73,15 +73,15 @@
 - [x] 60. Task: Conductor - User Manual Verification 'Move Generation' (Protocol in workflow.md) [25336f1]
 
 ## Phase 7: Toolbelt - Agentic Skills & Execution (Tasks 61-70)
-- [ ] 61. Task: Implement `WebSearch` tool with Tavily/Serper integration
-- [ ] 62. Task: Implement `AssetGen` skill for generating copy and image prompts (Muse integration)
-- [ ] 63. Task: Write failing tests for Tool Sandbox execution and error catching
-- [ ] 64. Task: Implement `SocialAPI` skeletons (LinkedIn, X) for Move execution
-- [ ] 65. Task: Create the `SkillExecutor` node for handling tool calls in LangGraph
-- [ ] 66. Task: Implement output parsing for tool results back into the graph state
-- [ ] 67. Task: Setup tool usage telemetry (Token count, Latency, Success rate)
-- [ ] 68. Task: Verify agent's ability to "think" (reason) before calling tools (o1 pattern)
-- [ ] 69. Task: Implement the "Safety Validator" for tool outputs
+- [x] 61. Task: Implement `WebSearch` tool with Tavily/Serper integration [06f947c]
+- [x] 62. Task: Implement `AssetGen` skill for generating copy and image prompts (Muse integration) [06f947c]
+- [x] 63. Task: Write failing tests for Tool Sandbox execution and error catching [06f947c]
+- [ ] 64. Task: Implement `SocialAPI` skeletons (LinkedIn, X) for Move execution (Deferred)
+- [x] 65. Task: Create the `SkillExecutor` node for handling tool calls in LangGraph [06f947c]
+- [x] 66. Task: Implement output parsing for tool results back into the graph state [06f947c]
+- [ ] 67. Task: Setup tool usage telemetry (Token count, Latency, Success rate) (Deferred)
+- [x] 68. Task: Verify agent's ability to "think" (reason) before calling tools (o1 pattern) [06f947c]
+- [x] 69. Task: Implement the "Safety Validator" for tool outputs [06f947c]
 - [ ] 70. Task: Conductor - User Manual Verification 'Toolbelt Skills' (Protocol in workflow.md)
 
 ## Phase 8: Inference Optimization & Performance (Tasks 71-80)

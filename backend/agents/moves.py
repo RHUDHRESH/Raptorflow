@@ -186,13 +186,91 @@ class ProgressTracker:
 
 
 from backend.db import save_move, log_agent_decision
+from backend.core.toolbelt import ToolbeltV2
 
 
-class MovePersistence:
+class SkillExecutor:
     """
-    SOTA Persistence Node for Moves.
-    Syncs generated moves to Supabase and logs the generation decision.
+    SOTA Skill Execution Node.
+    Orchestrates tool calls for a move based on its required skills.
     """
+
+    def __init__(self):
+        self.belt = ToolbeltV2()
+
+    async def __call__(self, state: TypedDict):
+        """Execute tools for the current moves."""
+        moves = state.get("current_moves", [])
+        if not moves:
+            return {"messages": ["No moves found for skill execution."]}
+
+        results = []
+        messages = []
+
+        for move in moves:
+            # Map required_skills to tool_names in ToolbeltV2.
+            skill_map = {
+                "Search": "tavily_search",
+                "Copy": "asset_gen",
+                "ImageGen": "asset_gen", # Muse handles both for now
+                "Research": "perplexity_search"
+            }
+
+            for skill in move.get("required_skills", []):
+                tool_name = skill_map.get(skill)
+                if tool_name:
+                    logger.info(f"Executing skill '{skill}' via tool '{tool_name}'...")
+                    
+                    # Prepare tool inputs based on skill type
+                    tool_kwargs = {"query": move.get("title")} # Default
+                    if skill in ["Copy", "ImageGen"]:
+                        tool_kwargs = {
+                            "topic": move.get("title"),
+                            "format": "LinkedIn Post" if skill == "Copy" else "Image Prompt",
+                            "context": move.get("description")
+                        }
+
+                    res = await self.belt.run_tool(tool_name, **tool_kwargs)
+                    
+                    if res["success"]:
+                        results.append({
+                            "move_id": move.get("db_id"),
+                            "skill": skill,
+                            "tool": tool_name,
+                            "output": res["data"]
+                        })
+                        messages.append(f"✓ Skill '{skill}' executed for move '{move.get('title')}'")
+                    else:
+                        messages.append(f"✗ Skill '{skill}' failed: {res['error']}")
+
+        return {"pending_moves": results, "messages": messages}
+
+
+class SafetyValidator:
+    """
+    SOTA Safety Validation Node.
+    Ensures tool outputs and agent decisions meet safety and brand guidelines.
+    """
+
+    BLOCKED_KEYWORDS = ["competitor_leak", "offensive_term", "internal_secret"]
+
+    async def __call__(self, state: TypedDict):
+        """Validate tool outputs in the state."""
+        pending_results = state.get("pending_moves", [])
+        messages = []
+        is_safe = True
+
+        for item in pending_results:
+            content = str(item.get("output", ""))
+            for word in self.BLOCKED_KEYWORDS:
+                if word in content.lower():
+                    messages.append(f"⚠ Safety violation in tool output: {word}")
+                    is_safe = False
+
+        if is_safe:
+            messages.append("✓ Safety validation passed for all tool outputs.")
+
+        return {"status": "complete" if is_safe else "error", "messages": messages}
 
     async def __call__(self, state: TypedDict):
         """Persist generated moves to the database."""

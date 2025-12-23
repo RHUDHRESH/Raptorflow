@@ -6,18 +6,85 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from backend.db import SupabaseSaver, get_pool, save_campaign
+from backend.memory.semantic import SemanticMemory
+from backend.memory.long_term import LongTermMemory
+from backend.agents.strategists import BrandVoiceAligner, KPIDefiner
+from backend.agents.moves import (
+    MoveGenerator,
+    MoveRefiner,
+    ResourceManager,
+    ProgressTracker,
+    MovePersistence,
+    SkillExecutor,
+    SafetyValidator,
+)
+from backend.inference import InferenceProvider
 
-# ...
+
+class MovesCampaignsState(TypedDict):
+    """
+    SOTA State Schema for Moves & Campaigns Orchestrator.
+    Manages the lifecycle from business context to 90-day strategy and weekly moves.
+    """
+
+    # Core Context
+    tenant_id: str
+    workspace_id: Optional[str]
+
+    business_context: List[str]  # Ingested "Gold" context snippets
+    context_brief: dict  # Multi-agent analysis results (ICPs, UVPs, etc.)
+
+    # Campaign Strategy (90-Day Arc)
+    campaign_id: Optional[str]
+    strategy_arc: dict  # The generated 90-day plan
+    kpi_targets: dict
+
+    # Weekly Moves (Execution)
+    current_moves: List[dict]  # List of moves for the current week
+    pending_moves: List[dict]  # Moves awaiting execution or approval
+    pending_results: List[dict] # Results from tool execution (Task 66)
+
+    # Multi-Agent State
+    last_agent: str
+    messages: Annotated[List[str], operator.add]
+    error: Optional[str]
+    status: str  # planning, execution, monitoring, complete
+
+    # MLOps & Governance
+    quality_score: float
+    cost_accumulator: float
+
+
+# Nodes implementation
+async def initialize_orchestrator(state: MovesCampaignsState):
+    status = state.get("status")
+    if status == "new" or not status:
+        return {"status": "planning", "messages": ["Orchestrator initialized."]}
+    return {"messages": ["Orchestrator resumed."]}
+
+
+async def inject_context(state: MovesCampaignsState):
+    """RAG Node: Injects relevant business context into the state."""
+    tenant_id = state.get("tenant_id")
+    if not tenant_id:
+        return {"messages": ["WARNING: No tenant_id found for context injection."]}
+
+    memory = SemanticMemory()
+    memories = await memory.search(tenant_id, query="marketing strategy ICP brand kit", limit=3)
+    
+    context_snippets = [m["content"] for m in memories]
+    return {
+        "business_context": context_snippets,
+        "messages": [f"Injected {len(context_snippets)} business context snippets."]
+    }
 
 async def plan_campaign(state: MovesCampaignsState):
     """SOTA Node: Generates the 90-day campaign strategy."""
-    # Placeholder for actual planning agent call (Phase 5)
-    # Since we are in Phase 6, we'll simulate the completion of Task 49 here.
     tenant_id = state.get("tenant_id")
     if not tenant_id:
         return {"messages": ["WARNING: No tenant_id for campaign persistence."]}
 
-    # Mock campaign data for Task 49 completion
+    # Simulated Task 49 Completion
     campaign_data = {
         "title": "90-Day Growth Arc",
         "objective": "Scale B2B SaaS reach",
@@ -71,6 +138,15 @@ async def persist_moves(state: MovesCampaignsState):
     agent = MovePersistence()
     return await agent(state)
 
+async def execute_skills(state: MovesCampaignsState):
+    """SOTA Node: Executes tools for the current moves."""
+    agent = SkillExecutor()
+    return await agent(state)
+
+async def validate_safety(state: MovesCampaignsState):
+    """SOTA Node: Validates tool outputs."""
+    agent = SafetyValidator()
+    return await agent(state)
 
 async def track_progress(state: MovesCampaignsState):
     """SOTA Node: Updates campaign progress."""
@@ -144,6 +220,8 @@ workflow.add_node("generate_moves", generate_moves)
 workflow.add_node("refine_moves", refine_moves)
 workflow.add_node("check_resources", check_resources)
 workflow.add_node("persist_moves", persist_moves)
+workflow.add_node("execute_skills", execute_skills)
+workflow.add_node("validate_safety", validate_safety)
 workflow.add_node("track_progress", track_progress)
 workflow.add_node("approve_move", approve_move)
 workflow.add_node("memory_updater", memory_updater)
@@ -171,7 +249,9 @@ workflow.add_edge("approve_campaign", "memory_updater")
 workflow.add_edge("generate_moves", "refine_moves")
 workflow.add_edge("refine_moves", "check_resources")
 workflow.add_edge("check_resources", "persist_moves")
-workflow.add_edge("persist_moves", "approve_move")
+workflow.add_edge("persist_moves", "execute_skills")
+workflow.add_edge("execute_skills", "validate_safety")
+workflow.add_edge("validate_safety", "approve_move")
 workflow.add_edge("approve_move", "track_progress")
 workflow.add_edge("track_progress", "memory_updater")
 
