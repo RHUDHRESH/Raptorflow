@@ -55,14 +55,14 @@
 - [x] Task 44: Create `Competitor_Intelligence_Agent` (Feeds on scrape telemetry) [bbd4753]
 - [x] Task 45: Implement Agent Collaboration protocol (Shared state updates) [185805a]
 - [x] Task 46: Implement "Critique" loop between Analyst and Supervisor [5140767]
-- [ ] Task 47: Write Unit Test: `test_agent_specialization_accuracy`
-- [x] Task 48: Implement Tool: `fetch_historical_performance_tool` [7bc16ee]
+- [x] Task 47: Write Unit Test: `test_agent_specialization_accuracy` [37fee38]
+- [ ] Task 48: Implement Tool: `fetch_historical_performance_tool`
 - [x] Task 49: Implement Tool: `fetch_brand_kit_alignment_tool` [386e50d]
 - [x] Task 50: Conductor - User Manual Verification 'Multi-Agent Specialists' [04bd02b]
 
 ## Phase 6: ROI & Attribution Engine (Phases 51-60)
-- [~] Task 51: Implement `BlackboxService.compute_roi(campaign_id)`
-- [ ] Task 52: Define Attribution Models (First-touch, Last-touch, Linear)
+- [x] Task 51: Implement `BlackboxService.compute_roi(campaign_id)` [bfa4551]
+- [~] Task 52: Define Attribution Models (First-touch, Last-touch, Linear)
 - [ ] Task 53: Implement `OutcomeIngestionService` (External webhook handler)
 - [ ] Task 54: Implement `BlackboxService.calculate_momentum_score()`
 - [ ] Task 55: Implement Statistical Confidence calculator for attribution
