@@ -2,7 +2,7 @@
 
 ## Phase 1: Foundation & Infrastructure (Phases 1-10)
 - [x] Task 1: Create `backend/models/blackbox.py` (Pydantic schemas for Telemetry, Outcomes, Learnings) [0a557c0]
-- [ ] Task 2: Define SQL Migration for `blackbox_telemetry` (ID, move_id, agent_id, trace, tokens, latency, timestamp)
+- [~] Task 2: Define SQL Migration for `blackbox_telemetry` (ID, move_id, agent_id, trace, tokens, latency, timestamp)
 - [ ] Task 3: Define SQL Migration for `blackbox_outcomes` (ID, source, value, confidence, timestamp)
 - [ ] Task 4: Define SQL Migration for `blackbox_learnings` (ID, content, embedding, source_ids, type)
 - [ ] Task 5: Setup BigQuery Dataset `raptorflow_analytics` and table `telemetry_stream`
