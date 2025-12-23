@@ -45,7 +45,7 @@
 - [x] 35. Task: Conductor - User Manual Verification 'Move Integration' (Protocol in workflow.md) [308aa8c]
 
 ## Phase 5: Final E2E Hardening & Verification (Tasks 36-40)
-- [ ] 36. Task: Implement automated E2E smoke test (Playwright) for the full user journey
+- [~] 36. Task: Implement automated E2E smoke test (Playwright) for the full user journey
 - [ ] 37. Task: Execute full system build and verify zero Next.js errors or warnings
 - [ ] 38. Task: Perform manual side-by-side audit (UI vs DB vs Agent Logs)
 - [ ] 39. Task: Conduct "Clean Console" audit during real-time inference execution

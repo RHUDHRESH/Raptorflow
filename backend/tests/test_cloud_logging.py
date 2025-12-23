@@ -1,25 +1,27 @@
+import importlib
 import sys
 from unittest.mock import MagicMock
 
-# Temporarily unmock for this test if it's mocked
-if "pythonjsonlogger" in sys.modules:
-    real_pythonjsonlogger = sys.modules.pop("pythonjsonlogger")
-else:
-    real_pythonjsonlogger = None
 
-try:
+def test_formatter_adds_severity():
+    """Unit test for RaptorFlowJSONFormatter logic."""
+    # Temporarily unmock for this test if it's mocked in sys.modules
+    # This prevents RaptorFlowJSONFormatter (which inherits from JsonFormatter)
+    # from inheriting from a MagicMock during test execution.
 
-    # We might not be able to import it if it's not installed in this env
+    mocked_lib = sys.modules.get("pythonjsonlogger")
+    if mocked_lib:
+        del sys.modules["pythonjsonlogger"]
 
-    # but conftest mocks it, suggesting it might be missing or we just want to avoid it.
+    try:
+        # Import inside the test to ensure it uses the real lib
+        from pythonjsonlogger import jsonlogger
 
-    # Let's assume it's installed since it's in pyproject.toml
+        import backend.utils.logger
 
-    from backend.utils.logger import RaptorFlowJSONFormatter
+        importlib.reload(backend.utils.logger)
 
-    def test_formatter_adds_severity():
-        """Unit test for RaptorFlowJSONFormatter logic."""
-        formatter = RaptorFlowJSONFormatter()
+        formatter = backend.utils.logger.RaptorFlowJSONFormatter()
         log_record = {}
         record = MagicMock()
         record.levelname = "INFO"
@@ -30,7 +32,8 @@ try:
         assert log_record["severity"] == "INFO"
         assert "timestamp" in log_record
 
-finally:
-    # Restore mock
-    if real_pythonjsonlogger:
-        sys.modules["pythonjsonlogger"] = real_pythonjsonlogger
+    finally:
+        # Restore mock if it was there
+        if mocked_lib:
+            sys.modules["pythonjsonlogger"] = mocked_lib
+            importlib.reload(backend.utils.logger)
