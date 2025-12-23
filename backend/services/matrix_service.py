@@ -2,7 +2,7 @@ from typing import Dict, Optional, Any, List
 from datetime import datetime
 from backend.models.telemetry import SystemState, AgentState, AgentHealthStatus, TelemetryEvent
 from backend.services.cache import get_cache
-from backend.db import get_pool, SupabaseSaver
+from backend.db import get_pool, SupabaseSaver, get_db_connection
 from backend.services.sanity_check import SystemSanityCheck
 from backend.services.latency_monitor import LatencyMonitor
 from backend.services.cost_governor import CostGovernor
@@ -113,9 +113,40 @@ class MatrixService:
             if delta > timeout_seconds:
                 state.status = AgentHealthStatus.OFFLINE
 
-    async def halt_system(self) -> bool:
-        """Engages the global Kill-Switch to stop all agentic activity."""
+    async def halt_system(self, reason: str = "Manual Trigger") -> bool:
+        """
+        Engages the global Kill-Switch to stop all agentic activity.
+        Logs the action to the industrial audit trail.
+        """
         self._state.kill_switch_engaged = True
         self._state.system_status = "halted"
         self._state.updated_at = datetime.now()
-        return True
+        
+        # 2. Log to Audit Trail
+        try:
+            async with get_db_connection() as conn:
+                async with conn.cursor() as cur:
+                    query = """
+                        INSERT INTO agent_decision_audit (
+                            tenant_id, agent_id, decision_type, input_state, 
+                            output_decision, rationale
+                        ) VALUES (%s, %s, %s, %s, %s, %s);
+                    """
+                    import psycopg
+                    await cur.execute(
+                        query,
+                        (
+                            "system", # Global scope
+                            "MatrixAdmin",
+                            "kill_switch",
+                            psycopg.types.json.Jsonb({"status": "active"}),
+                            psycopg.types.json.Jsonb({"status": "halted"}),
+                            reason
+                        )
+                    )
+                    await conn.commit()
+            return True
+        except Exception as e:
+            print(f"ERROR: Audit logging for kill-switch failed: {e}")
+            # Still return True as the internal state was updated
+            return True
