@@ -32,7 +32,7 @@
 - [x] Task 25: Implement Learning Categorization logic (Strategic, Tactical, Content) [d0bea9c]
 - [~] Task 26: Write Unit Test: `test_vector_search_relevance`
 - [x] Task 27: Implement `BlackboxService.get_memory_context_for_planner(move_type)` [adb4382]
-- [ ] Task 28: Implement Memory Pruning logic (Removing redundant/outdated insights)
+- [x] Task 28: Implement Memory Pruning logic (Removing redundant/outdated insights) [977ead9]
 - [ ] Task 29: Create `backend/api/v1/blackbox_memory.py` endpoints
 - [ ] Task 30: Conductor - User Manual Verification 'Cognitive Memory'
 
