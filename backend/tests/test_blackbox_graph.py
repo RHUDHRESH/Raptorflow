@@ -147,3 +147,14 @@ def test_full_blackbox_graph_execution():
             final_state = graph.invoke(initial_state)
             assert final_state["status"] == "validated"
             assert final_state["confidence"] == 0.9
+
+def test_blackbox_specialist_base():
+    from backend.agents.blackbox_specialist import BlackboxSpecialist
+    
+    class MockSpecialist(BlackboxSpecialist):
+        async def run(self, state: dict) -> dict:
+            return {"result": "ok"}
+            
+    specialist = MockSpecialist(agent_id="test-spec")
+    assert specialist.agent_id == "test-spec"
+    assert specialist.llm is not None
