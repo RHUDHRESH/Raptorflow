@@ -18,7 +18,7 @@
 - [x] Phase 013: Backend - Write Red Phase tests for `ParquetExporter.export_batch()`. 8f5a739
 - [x] Phase 014: Backend - Implement `ParquetExporter.export_batch()` with schema evolution support. 42a9f23
 - [x] Phase 015: Backend - Create `GCSLifecycleManager` for moving raw logs to archival storage. 68b3a7e
-- [~] Phase 016: Backend - Implement `BigQueryMatrixLoader` for periodic Parquet-to-BigQuery sync.
+- [x] Phase 016: Backend - Implement `BigQueryMatrixLoader` for periodic Parquet-to-BigQuery sync. b2d6484
 - [ ] Phase 017: Backend - Write Red Phase tests for `BigQueryMatrixLoader.sync_partition()`.
 - [ ] Phase 018: Backend - Implement BigQuery views for longitudinal performance analysis.
 - [ ] Phase 019: Backend - Implement `StorageEfficiencyAuditor` (Osipov's cost tracking pattern).
