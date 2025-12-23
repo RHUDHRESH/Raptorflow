@@ -35,7 +35,8 @@ class IngestionService:
         embeddings = await self.embedder.aembed_documents(chunks)
 
         async with get_db_connection() as conn:
-            async with conn.cursor() as cur:
+            cursor = await conn.cursor()
+            async with cursor as cur:
                 for chunk, emb in zip(chunks, embeddings):
                     chunk_id = self._generate_id(chunk)
                     await cur.execute(

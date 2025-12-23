@@ -16,7 +16,11 @@ async def test_ingest_text_logic_mocked():
         mock_conn = AsyncMock()
         mock_cursor = AsyncMock()
         mock_get_conn.return_value.__aenter__.return_value = mock_conn
-        mock_conn.cursor.return_value.__aenter__.return_value = mock_cursor
+        
+        # Mock conn.cursor() to be awaitable and return an async context manager
+        mock_conn.cursor = AsyncMock(return_value=mock_cursor)
+        mock_cursor.__aenter__ = AsyncMock(return_value=mock_cursor)
+        mock_cursor.__aexit__ = AsyncMock()
         
         tenant_id = "00000000-0000-0000-0000-000000000000"
         count = await service.ingest_text(tenant_id, "Sample brand content.", {"source": "manual"})
