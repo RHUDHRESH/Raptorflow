@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from backend.models.campaigns import GanttChart
 from backend.services.campaign_service import CampaignService, get_campaign_service
@@ -19,10 +19,34 @@ async def get_campaign_gantt(
 
 @router.post("/generate-arc/{campaign_id}")
 async def generate_campaign_arc(
+    campaign_id: str,
+    background_tasks: BackgroundTasks,
+    service: CampaignService = Depends(get_campaign_service),
+):
+    """SOTA Endpoint: Triggers agentic inference for a 90-day strategic arc in the background."""
+    # Check if campaign exists
+    campaign = await service.get_campaign(campaign_id)
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found.")
+
+    # Run in background
+    background_tasks.add_task(service.generate_90_day_arc, campaign_id)
+
+    return {
+        "status": "started",
+        "campaign_id": campaign_id,
+        "message": "90-day arc generation started in background.",
+    }
+
+
+@router.get("/generate-arc/{campaign_id}/status")
+async def get_campaign_arc_status(
     campaign_id: str, service: CampaignService = Depends(get_campaign_service)
 ):
-    """SOTA Endpoint: Triggers agentic inference for a 90-day strategic arc."""
-    result = await service.generate_90_day_arc(campaign_id)
+    """SOTA Endpoint: Retrieves status of the agentic inference for a campaign."""
+    result = await service.get_arc_generation_status(campaign_id)
     if not result:
-        raise HTTPException(status_code=404, detail="Campaign not found.")
+        raise HTTPException(
+            status_code=404, detail="Status not found for this campaign."
+        )
     return result
