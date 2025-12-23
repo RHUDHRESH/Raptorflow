@@ -116,7 +116,7 @@ export function updateMove(move: Move): void {
     // Update active move ID if this move is now active
     if (move.status === 'active') {
         state.activeMoveId = move.id;
-    } else if (state.activeMoveId === move.id && move.status !== 'active') {
+    } else if (state.activeMoveId === move.id) {
         state.activeMoveId = null;
     }
     saveCampaignsState(state);

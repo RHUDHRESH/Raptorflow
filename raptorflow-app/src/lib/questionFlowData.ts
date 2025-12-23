@@ -7,7 +7,8 @@ import {
     CustomerType,
     SCARFDriver,
     DecisionStyle,
-    RiskTolerance
+    RiskTolerance,
+    FoundationData
 } from './foundation';
 
 // =====================================
@@ -21,7 +22,8 @@ export type QuestionType =
     | 'choice-cards'
     | 'multi-select'
     | 'text-large'
-    | 'positioning-builder';
+    | 'positioning-builder'
+    | 'file-upload'; // Added file-upload
 
 export interface QuestionOption {
     value: string;
@@ -40,6 +42,12 @@ export interface Question {
     options?: QuestionOption[];
     maxSelections?: number; // For multi-select
     required?: boolean;
+    condition?: (data: FoundationData) => boolean; // Logic for showing/hiding
+
+    // UX Improvements
+    inputType?: 'text' | 'email' | 'url' | 'tel' | 'number';
+    autoComplete?: string;
+    showSuccess?: boolean;
 }
 
 export interface Section {
@@ -107,6 +115,8 @@ export const QUESTIONS: Question[] = [
         placeholder: 'Acme Corp',
         field: 'business.name',
         required: true,
+        autoComplete: 'organization',
+        showSuccess: true,
     },
     {
         id: 'business-industry',
@@ -116,6 +126,7 @@ export const QUESTIONS: Question[] = [
         hint: 'Be specific—"Marketing Tech" is better than just "Tech".',
         placeholder: 'e.g., Marketing Tech, Healthcare, Fintech',
         field: 'business.industry',
+        autoComplete: 'organization-title',
     },
     {
         id: 'business-stage',
@@ -134,8 +145,9 @@ export const QUESTIONS: Question[] = [
     {
         id: 'business-revenue',
         sectionId: 'business',
-        type: 'radio-cards',
+        type: 'multi-select', // Changed to multi-select
         question: 'How do you make money?',
+        hint: 'Select all that apply.',
         field: 'business.revenueModel',
         options: [
             { value: 'saas', label: 'SaaS / Subscriptions' },
@@ -157,6 +169,16 @@ export const QUESTIONS: Question[] = [
             { value: '6-20', label: '6-20 people' },
             { value: '20+', label: '20+ people' },
         ],
+    },
+    // NEW: File Context Upload
+    {
+        id: 'business-context',
+        sectionId: 'business',
+        type: 'file-upload',
+        question: 'Any context clues?',
+        hint: 'Drop any files or documents (PDFs, docs) that help us understand your business better before we diving in.',
+        field: 'business.contextFiles',
+        placeholder: 'Drag and drop files here, or click to browse',
     },
 
     // ===== CONFESSION SECTION =====
@@ -210,8 +232,9 @@ export const QUESTIONS: Question[] = [
     {
         id: 'cohorts-type',
         sectionId: 'cohorts',
-        type: 'radio-cards',
+        type: 'multi-select', // Changed to multi-select
         question: 'Who are your primary customers?',
+        hint: 'Select the main categories you serve.',
         field: 'cohorts.customerType',
         options: [
             { value: 'b2b', label: 'B2B', description: 'You sell to businesses' },
@@ -220,13 +243,27 @@ export const QUESTIONS: Question[] = [
             { value: 'mixed', label: 'Mixed', description: 'Multiple customer types' },
         ],
     },
+    // Conditional Question: Only show if 'mixed' is selected
+    {
+        id: 'cohorts-mixed-clarification',
+        sectionId: 'cohorts',
+        type: 'textarea',
+        question: 'Clarify your mixed audience.',
+        hint: 'Since you serve multiple types, briefly explain the split (e.g., 80% B2B, 20% B2C).',
+        placeholder: 'e.g., Primarily B2B enterprise, but we have a prosumer PLG motion...',
+        field: 'cohorts.buyerRole', // Re-using buyerRole or meaningful field, or could add new one. Using buyerRole for context now.
+        condition: (data: FoundationData) => {
+            const types = data.cohorts?.customerType;
+            return Array.isArray(types) && types.includes('mixed');
+        },
+    },
     {
         id: 'cohorts-buyer',
         sectionId: 'cohorts',
         type: 'text',
-        question: 'Who is the actual buyer?',
-        hint: 'The person who signs the check, not just the user.',
-        placeholder: 'e.g., Marketing Director, Founder, Head of Ops',
+        question: 'Who holds the purchasing power?',
+        hint: 'Identify the specific role that has the final "yes". This is often different from the daily user. Who signs the check?',
+        placeholder: 'e.g., CFO, VP of Marketing, Founder',
         field: 'cohorts.buyerRole',
     },
     {
@@ -408,4 +445,9 @@ export function getSectionProgress(sectionId: string, currentIndex: number): { c
     const current = currentIndex - sectionStartIndex + 1;
 
     return { current, total: sectionQuestions.length };
+}
+
+// Helper to filter valid questions based on condition
+export function getValidQuestions(data: FoundationData): Question[] {
+    return QUESTIONS.filter(q => !q.condition || q.condition(data));
 }

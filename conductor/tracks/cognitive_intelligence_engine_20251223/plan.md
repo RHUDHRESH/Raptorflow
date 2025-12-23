@@ -2,7 +2,7 @@
 
 ## Phase 1: MLOps & Infrastructure Foundation (Phases 1-10)
 - [x] Phase 1: Initialize GCP Project, IAM Roles, and Resource Hierarchy. [6cc0d7c]
-- [ ] Phase 2: Setup GCP Secret Manager for API Keys (OpenAI, Anthropic, Firecrawl).
+- [~] Phase 2: Setup GCP Secret Manager for API Keys (OpenAI, Anthropic, Firecrawl).
 - [ ] Phase 3: Configure Cloud Run for Serverless Agent Inference.
 - [ ] Phase 4: Initialize Supabase (Postgres + pgvector) for Semantic Memory.
 - [ ] Phase 5: Setup Upstash Redis for Short-Term Working Memory & Caching.

@@ -3,161 +3,112 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+    DashboardIcon,
+    FoundationIcon,
+    CohortsIcon,
+    MovesIcon,
+    CampaignsIcon,
+    MuseIcon,
+    MatrixIcon,
+    BlackboxIcon,
+    AppearanceIcon // Using AppearanceIcon for Settings as a placeholder or reuse
+} from '@/components/ui/icons';
 
 /**
- * Sidebar — Following COMPONENTS.md spec exactly
+ * Sidebar — Following COMPONENTS.md and UI.md spec
  * 
- * Width: 220px
- * Background: var(--color-surface)
- * Border-right: 1px solid var(--color-border-subtle)
- * Max 10 items
+ * Width: 220px/240px (using w-60 aka 240px for comfortable spacing)
+ * Background: surface
+ * Typography: Inter Medium 13px/14px
  */
 
-const navItems = [
-    { name: 'Dashboard', href: '/' },
-    { name: 'Foundation', href: '/foundation' },
-    { name: 'Cohorts', href: '/cohorts' },
-    { name: 'Moves', href: '/moves' },
-    { name: 'Campaigns', href: '/campaigns' },
-    { name: 'Muse', href: '/muse' },
-    { name: 'Matrix', href: '/matrix' },
-    { name: 'Blackbox', href: '/blackbox' },
+const NAV_ITEMS = [
+    { name: 'Dashboard', href: '/', icon: DashboardIcon },
+    { name: 'Foundation', href: '/foundation', icon: FoundationIcon },
+    { name: 'Cohorts', href: '/cohorts', icon: CohortsIcon },
+    { name: 'Moves', href: '/moves', icon: MovesIcon },
+    { name: 'Campaigns', href: '/campaigns', icon: CampaignsIcon },
+    { name: 'Muse', href: '/muse', icon: MuseIcon },
+    { name: 'Matrix', href: '/matrix', icon: MatrixIcon },
+    { name: 'Blackbox', href: '/blackbox', icon: BlackboxIcon },
 ];
 
-const bottomItems = [
-    { name: 'Settings', href: '/settings' },
+const BOTTOM_ITEMS = [
+    { name: 'Settings', href: '/settings', icon: AppearanceIcon }, // Using AppearanceIcon as generic settings gear-ish
 ];
 
 export function Sidebar() {
     const pathname = usePathname();
 
     return (
-        <aside style={{
-            width: 'var(--sidebar-width)',
-            height: '100vh',
-            position: 'fixed',
-            left: 0,
-            top: 0,
-            background: 'var(--color-surface)',
-            borderRight: '1px solid var(--color-border-subtle)',
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '20px 12px',
-            zIndex: 50,
-        }}>
+        <aside className="fixed left-0 top-0 h-screen w-60 flex flex-col border-r border-border bg-sidebar px-3 py-5 z-50">
             {/* Logo */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '0 12px',
-                marginBottom: '32px'
-            }}>
-                <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: 'var(--radius-md)',
-                    background: 'var(--color-ink)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#FFFFFF',
-                    fontSize: '14px',
-                    fontWeight: 'var(--font-semibold)',
-                }}>
+            <div className="flex items-center gap-3 px-3 mb-8">
+                <div className="flex items-center justify-center h-8 w-8 rounded-md bg-foreground text-background font-semibold text-sm">
                     RF
                 </div>
-                <span style={{
-                    fontWeight: 'var(--font-semibold)',
-                    fontSize: '18px',
-                    letterSpacing: '-0.01em'
-                }}>
+                <span className="font-semibold text-lg tracking-tight text-foreground">
                     RaptorFlow
                 </span>
             </div>
 
             {/* Navigation */}
-            <nav style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                    {navItems.map((item) => (
-                        <li key={item.href}>
+            <nav className="flex-1 flex flex-col space-y-0.5">
+                {NAV_ITEMS.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`
+                                group flex items-center gap-3 px-3 h-10 rounded-md text-sm font-medium transition-colors
+                                ${isActive
+                                    ? 'bg-sidebar-accent text-sidebar-primary'
+                                    : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
+                                }
+                            `}
+                        >
+                            <item.icon
+                                size={18}
+                                className={`
+                                    transition-opacity
+                                    ${isActive ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'}
+                                `}
+                            />
+                            {item.name}
+                        </Link>
+                    );
+                })}
+
+                {/* Bottom Section */}
+                <div className="mt-auto pt-4">
+                    <div className="h-px bg-border mx-3 mb-4" />
+                    {BOTTOM_ITEMS.map((item) => {
+                        const isActive = pathname === item.href;
+                        return (
                             <Link
+                                key={item.href}
                                 href={item.href}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    height: '40px',
-                                    padding: '0 12px',
-                                    borderRadius: 'var(--radius-md)',
-                                    fontSize: 'var(--text-sm)',
-                                    fontWeight: 'var(--font-medium)',
-                                    color: pathname === item.href ? '#FFFFFF' : 'var(--color-muted)',
-                                    background: pathname === item.href ? 'var(--color-ink)' : 'transparent',
-                                    textDecoration: 'none',
-                                    transition: 'all var(--duration-normal) var(--easing)',
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (pathname !== item.href) {
-                                        e.currentTarget.style.background = 'var(--color-border-subtle)';
-                                        e.currentTarget.style.color = 'var(--color-ink)';
+                                className={`
+                                    group flex items-center gap-3 px-3 h-10 rounded-md text-sm font-medium transition-colors
+                                    ${isActive
+                                        ? 'bg-sidebar-accent text-sidebar-primary'
+                                        : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
                                     }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (pathname !== item.href) {
-                                        e.currentTarget.style.background = 'transparent';
-                                        e.currentTarget.style.color = 'var(--color-muted)';
-                                    }
-                                }}
+                                `}
                             >
+                                <item.icon
+                                    size={18}
+                                    className={`
+                                        transition-opacity
+                                        ${isActive ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'}
+                                    `}
+                                />
                                 {item.name}
                             </Link>
-                        </li>
-                    ))}
-                </ul>
-
-                {/* Bottom items */}
-                <div style={{ marginTop: 'auto' }}>
-                    <div style={{
-                        height: '1px',
-                        background: 'var(--color-border-subtle)',
-                        margin: '16px 12px'
-                    }} />
-                    <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                        {bottomItems.map((item) => (
-                            <li key={item.href}>
-                                <Link
-                                    href={item.href}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        height: '40px',
-                                        padding: '0 12px',
-                                        borderRadius: 'var(--radius-md)',
-                                        fontSize: 'var(--text-sm)',
-                                        fontWeight: 'var(--font-medium)',
-                                        color: pathname === item.href ? '#FFFFFF' : 'var(--color-muted)',
-                                        background: pathname === item.href ? 'var(--color-ink)' : 'transparent',
-                                        textDecoration: 'none',
-                                        transition: 'all var(--duration-normal) var(--easing)',
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (pathname !== item.href) {
-                                            e.currentTarget.style.background = 'var(--color-border-subtle)';
-                                            e.currentTarget.style.color = 'var(--color-ink)';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (pathname !== item.href) {
-                                            e.currentTarget.style.background = 'transparent';
-                                            e.currentTarget.style.color = 'var(--color-muted)';
-                                        }
-                                    }}
-                                >
-                                    {item.name}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
+                        );
+                    })}
                 </div>
             </nav>
         </aside>

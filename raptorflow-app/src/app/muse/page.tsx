@@ -15,7 +15,7 @@ import {
     getAssetConfig
 } from '@/components/muse/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { FolderOpen } from 'lucide-react';
+import { FolderIcon } from '@/components/ui/icons';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -228,7 +228,7 @@ function MusePageContent() {
                         'transition-all duration-200'
                     )}
                 >
-                    <FolderOpen className="h-4 w-4" />
+                    <FolderIcon size={16} />
                     Library
                     {assets.length > 0 && (
                         <span className="ml-1 h-5 px-1.5 rounded-full bg-background/20 text-xs flex items-center justify-center">

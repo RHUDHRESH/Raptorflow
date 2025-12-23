@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from backend.core.exceptions import RaptorFlowError
 from backend.core.middleware import CorrelationIDMiddleware, RequestLoggingMiddleware
+from backend.api.v1.foundation import router as foundation_router
 
 app = FastAPI(
     title="RaptorFlow Industrial API",
@@ -13,6 +14,9 @@ app = FastAPI(
 # Add Middlewares
 app.add_middleware(CorrelationIDMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
+
+# Register Routers
+app.include_router(foundation_router)
 
 
 # Global Exception Handler

@@ -2,6 +2,7 @@ import logging
 from typing import List, Literal, TypedDict
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from backend.inference import InferenceProvider
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger("raptorflow.supervisor")

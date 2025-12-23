@@ -130,3 +130,25 @@ CREATE TABLE IF NOT EXISTS skill_registry (
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Enable RLS on all tables
+ALTER TABLE foundation_brand_kit ENABLE ROW LEVEL SECURITY;
+ALTER TABLE foundation_positioning ENABLE ROW LEVEL SECURITY;
+ALTER TABLE foundation_voice_tone ENABLE ROW LEVEL SECURITY;
+ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
+ALTER TABLE moves ENABLE ROW LEVEL SECURITY;
+ALTER TABLE move_approvals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE blackbox_telemetry ENABLE ROW LEVEL SECURITY;
+ALTER TABLE blackbox_outcomes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ml_feature_store ENABLE ROW LEVEL SECURITY;
+ALTER TABLE agent_memory_episodic ENABLE ROW LEVEL SECURITY;
+ALTER TABLE agent_memory_semantic ENABLE ROW LEVEL SECURITY;
+ALTER TABLE skill_registry ENABLE ROW LEVEL SECURITY;
+
+-- Basic Tenant Isolation Policies (Assuming auth.uid() maps to tenant_id for simplicity in this migration)
+-- In production, a more complex join or claim-based policy would be used.
+
+CREATE POLICY tenant_isolation_brand_kit ON foundation_brand_kit USING (tenant_id = auth.uid());
+CREATE POLICY tenant_isolation_campaigns ON campaigns USING (tenant_id = auth.uid());
+CREATE POLICY tenant_isolation_telemetry ON blackbox_telemetry USING (tenant_id = auth.uid());
+CREATE POLICY tenant_isolation_semantic_memory ON agent_memory_semantic USING (tenant_id = auth.uid());

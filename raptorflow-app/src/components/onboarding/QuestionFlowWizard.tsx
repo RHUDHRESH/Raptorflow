@@ -11,13 +11,18 @@ import {
 import {
     QUESTIONS,
     SECTIONS,
-    Question,
     Section,
     getSectionForQuestionIndex,
     isFirstQuestionOfSection,
     getTotalQuestions,
 } from '@/lib/questionFlowData';
 import styles from './QuestionFlow.module.css';
+import { ReviewScreen } from './ReviewScreen';
+import { QuestionInput } from './QuestionInput';
+import { ArrowRight, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ClarityScore } from './ClarityScore';
+import { useIcpStore } from '@/lib/icp-store';
 
 // =====================================
 // Types
@@ -47,6 +52,7 @@ export function QuestionFlowWizard() {
         isExiting: false,
         section: null,
     });
+    const [isShaking, setIsShaking] = useState(false);
 
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -55,16 +61,35 @@ export function QuestionFlowWizard() {
         const saved = loadFoundation();
         setData(saved);
         const savedStep = saved.currentStep || 0;
+
+        // If already completed, redirect to dashboard
+        // User should start fresh or edit from settings if needed
+        if (saved.completedAt) {
+            router.push('/');
+            return;
+        }
+
+        // Simple mapping won't work perfectly with conditions, better to just load index if possible
+        // For now, robustly default to 0 if mapping fails
         const stepToQuestionMap: Record<number, number> = {
             0: 0, 1: 5, 2: 10, 3: 15, 4: 20, 5: 0,
         };
+        // If we saved an exact question index, that would happen here, but we save section index.
         setCurrentIndex(stepToQuestionMap[savedStep] || 0);
         setIsLoaded(true);
 
         if (saved.business?.name || savedStep > 0) {
             setShowWelcome(false);
         }
-    }, []);
+    }, [router]);
+
+    const jumpToSection = (sectionId: string) => {
+        const idx = QUESTIONS.findIndex(q => q.sectionId === sectionId);
+        if (idx >= 0) {
+            setCurrentIndex(idx);
+            setShowReview(false);
+        }
+    };
 
     // Save logic
     useEffect(() => {
@@ -97,34 +122,61 @@ export function QuestionFlowWizard() {
     }, [currentIndex, showWelcome, sectionTransition.isActive, showCelebration]);
 
     // Data helpers
-    const getValue = useCallback((path: string): string | string[] => {
+    const getValue = useCallback((path: string): any => {
         const parts = path.split('.');
-        let value: unknown = data;
-        for (const part of parts) { value = (value as Record<string, unknown>)?.[part]; }
-        if (Array.isArray(value)) return value;
-        return (value as string) || '';
+        let value: any = data;
+        for (const part of parts) { value = value?.[part]; }
+        return value || (path.includes('revenueModel') || path.includes('customerType') || path.includes('contextFiles') ? [] : '');
     }, [data]);
 
-    const setValue = useCallback((path: string, value: string | string[]) => {
+    const setValue = useCallback((path: string, value: any) => {
         const parts = path.split('.');
         setData(prev => {
             const newData = { ...prev };
-            let obj: Record<string, unknown> = newData;
+            let obj: any = newData;
             for (let i = 0; i < parts.length - 1; i++) {
-                obj[parts[i]] = { ...(obj[parts[i]] as Record<string, unknown>) };
-                obj = obj[parts[i]] as Record<string, unknown>;
+                obj[parts[i]] = { ...obj[parts[i]] };
+                obj = obj[parts[i]];
             }
             obj[parts[parts.length - 1]] = value;
-            return newData as FoundationData;
+            return newData;
         });
     }, []);
 
+    // Render helpers (Hoisted for dependencies)
+    const currentQuestion = QUESTIONS[currentIndex];
+    const currentSection = getSectionForQuestionIndex(currentIndex);
+    const currentValue = getValue(currentQuestion?.field || '');
+
+    const hasValue = Array.isArray(currentValue)
+        ? currentValue.length > 0
+        : (typeof currentValue === 'string' ? currentValue.length > 0 : !!currentValue);
+
+    // Navigation Helper: Find next valid question index
+    const getNextValidIndex = (startIndex: number, direction: 'forward' | 'backward'): number => {
+        let index = startIndex;
+        const limit = direction === 'forward' ? QUESTIONS.length : -1;
+        const step = direction === 'forward' ? 1 : -1;
+
+        index += step;
+
+        while (index !== limit) {
+            const question = QUESTIONS[index];
+            if (!question.condition || question.condition(data)) {
+                return index;
+            }
+            index += step;
+        }
+        return limit; // Indicates end of flow or start
+    };
+
     // Navigation
     const goNext = useCallback(() => {
-        if (currentIndex < QUESTIONS.length - 1) {
-            const nextIndex = currentIndex + 1;
+        const nextIndex = getNextValidIndex(currentIndex, 'forward');
 
+        if (nextIndex < QUESTIONS.length) {
             // Check for section transition
+            // We use the raw next index to detect section boundaries
             if (isFirstQuestionOfSection(nextIndex)) {
                 const nextSection = getSectionForQuestionIndex(nextIndex);
                 if (nextSection && nextSection.id !== 'review') {
@@ -141,44 +193,58 @@ export function QuestionFlowWizard() {
             }
             setCurrentIndex(nextIndex);
         } else {
+            // Blocked?
+            const question = QUESTIONS[currentIndex];
+            if (question.required && !hasValue) {
+                setIsShaking(true);
+                setTimeout(() => setIsShaking(false), 500);
+                return;
+            }
             setShowReview(true);
         }
-    }, [currentIndex]);
+    }, [currentIndex, data, hasValue]); // Add data dependency for condition checking
 
     const goBack = useCallback(() => {
         if (showReview) { setShowReview(false); return; }
-        if (currentIndex > 0) setCurrentIndex(prev => prev - 1);
-    }, [currentIndex, showReview]);
+        const prevIndex = getNextValidIndex(currentIndex, 'backward');
+        if (prevIndex >= 0) setCurrentIndex(prevIndex);
+    }, [currentIndex, showReview, data]);
+
+    const generateFromFoundation = useIcpStore(state => state.generateFromFoundation);
 
     const handleComplete = useCallback(() => {
         setShowCelebration(true);
+
+        // Auto-generate ICPs from Foundation data
+        generateFromFoundation(data);
+
         setTimeout(() => {
             const completedData = { ...data, completedAt: new Date().toISOString(), currentStep: SECTIONS.length - 1 };
             saveFoundation(completedData);
             router.push('/');
         }, 3000);
-    }, [data, router]);
+    }, [data, router, generateFromFoundation]);
 
-    // Render helpers
-    const currentQuestion = QUESTIONS[currentIndex];
-    const currentSection = getSectionForQuestionIndex(currentIndex);
-    const currentValue = getValue(currentQuestion?.field || '');
-    const hasValue = Array.isArray(currentValue) ? currentValue.length > 0 : currentValue.length > 0;
+
 
     // Welcome Screen
     if (showWelcome) {
         return (
             <div className={styles.welcomeContainer}>
-                <div style={{ textAlign: 'center', maxWidth: 460 }}>
-                    <div style={{ fontSize: 64, marginBottom: 24 }}>🧱</div>
-                    <h1 style={{ fontFamily: 'Playfair Display', fontSize: 48, marginBottom: 16 }}>Build Your Foundation</h1>
-                    <p style={{ fontFamily: 'Inter', fontSize: 18, color: '#5B5F61', lineHeight: 1.6, marginBottom: 40 }}>
+                <div className="text-center max-w-[460px]">
+                    <div className="text-6xl mb-6">🧱</div>
+                    <h1 className="font-serif text-5xl mb-4 text-foreground">Build Your Foundation</h1>
+                    <p className="font-sans text-lg text-muted-foreground leading-relaxed mb-10">
                         We're about to build the core operating system for your marketing.
                         Invest 10 minutes now to save 100 hours later.
                     </p>
-                    <button className={styles.continueBtn} style={{ width: '100%', justifyContent: 'center' }} onClick={() => setShowWelcome(false)}>
-                        Start Building <ArrowIcon />
-                    </button>
+                    <Button
+                        size="lg"
+                        className={`${styles.continueBtn} w-full justify-center`}
+                        onClick={() => setShowWelcome(false)}
+                    >
+                        Start Building <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
                 </div>
             </div>
         );
@@ -191,30 +257,60 @@ export function QuestionFlowWizard() {
         const businessName = (rawName && rawName.trim().length > 0) ? rawName : 'Your Business';
 
         return (
-            <div className={styles.celebrationContainer}>
-                {/* Confetti particles */}
-                {Array.from({ length: 50 }).map((_, i) => (
-                    <div
-                        key={i}
-                        className={styles.confetti}
-                        style={{
-                            left: `${Math.random() * 100}%`,
-                            animationDuration: `${2 + Math.random() * 3}s`,
-                            animationDelay: `${Math.random() * 2}s`
-                        }}
-                    />
-                ))}
+            <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#0f1419] to-[#0a0a0f] flex items-center justify-center relative overflow-hidden">
+                {/* Animated stars background */}
+                <div className="absolute inset-0">
+                    {Array.from({ length: 80 }).map((_, i) => (
+                        <div
+                            key={i}
+                            className="absolute rounded-full bg-white animate-pulse"
+                            style={{
+                                left: `${Math.random() * 100}%`,
+                                top: `${Math.random() * 100}%`,
+                                width: `${1 + Math.random() * 2}px`,
+                                height: `${1 + Math.random() * 2}px`,
+                                opacity: Math.random() * 0.8,
+                                animationDuration: `${2 + Math.random() * 4}s`,
+                                animationDelay: `${Math.random() * 2}s`
+                            }}
+                        />
+                    ))}
+                </div>
 
-                <div className={styles.content}>
-                    <div className={styles.launchIcon}>🚀</div>
-                    <h1 className={styles.launchTitle}>Ready for Liftoff</h1>
-                    <p className={styles.launchText}>
-                        <strong>{businessName}</strong> is equipped with a solid marketing foundation.<br />
+                {/* Glow effect */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+                </div>
+
+                {/* Content card */}
+                <div className="relative z-10 max-w-md mx-auto text-center">
+                    {/* Rocket icon with glow */}
+                    <div className="relative inline-block mb-8">
+                        <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl scale-150" />
+                        <div className="relative text-7xl animate-bounce">
+                            🚀
+                        </div>
+                    </div>
+
+                    <h1 className="font-serif text-5xl font-medium text-white mb-4 tracking-tight">
+                        Ready for Liftoff
+                    </h1>
+
+                    <p className="text-lg text-gray-300 leading-relaxed mb-8 max-w-sm mx-auto">
+                        <span className="text-white font-semibold">{businessName}</span> is equipped with a solid marketing foundation.
+                    </p>
+
+                    <p className="text-sm text-gray-500 mb-8">
                         Welcome to RaptorFlow.
                     </p>
-                    <button className={styles.launchButton} onClick={() => router.push('/')}>
-                        Go to Dashboard <ArrowIcon />
-                    </button>
+
+                    <Button
+                        size="lg"
+                        onClick={() => router.push('/')}
+                        className="bg-white text-black hover:bg-gray-100 font-medium px-8 py-6 text-base rounded-xl shadow-2xl shadow-white/10 transition-all hover:scale-105"
+                    >
+                        Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
                 </div>
             </div>
         );
@@ -226,9 +322,9 @@ export function QuestionFlowWizard() {
         <div className={styles.flowContainer}>
             {/* Left Panel: Context & Navigation */}
             <div className={styles.leftPanel}>
-                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div className="w-full h-full flex flex-col">
                     <div className={styles.logoArea}>
-                        <div style={{ width: 24, height: 24, background: 'white', borderRadius: 4 }} />
+                        <div className="w-6 h-6 bg-white rounded flex-shrink-0" />
                         <span className={styles.logoText}>RAPTORFLOW</span>
                     </div>
 
@@ -245,7 +341,11 @@ export function QuestionFlowWizard() {
                             const isCompleted = idx < currentSectionIdx;
 
                             return (
-                                <div key={section.id} className={`${styles.progressStep} ${isActive ? styles.active : ''} ${isCompleted ? styles.completed : ''}`}>
+                                <div
+                                    key={section.id}
+                                    className={`${styles.progressStep} ${isActive ? styles.active : ''} ${isCompleted ? styles.completed : ''} ${(isCompleted || isActive) ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed opacity-50'}`}
+                                    onClick={() => { if (isCompleted || isActive) jumpToSection(section.id); }}
+                                >
                                     <div className={styles.stepDot} />
                                     <span className={styles.stepLabel}>{section.name}</span>
                                 </div>
@@ -261,7 +361,9 @@ export function QuestionFlowWizard() {
                                     Saving...
                                 </>
                             ) : (
-                                <span style={{ opacity: 0.6 }}>Changes saved</span>
+                                <span className="text-green-600 font-medium flex items-center animate-in fade-in duration-300">
+                                    <ArrowRight className="h-3 w-3 mr-1" /> Saved
+                                </span>
                             )}
                         </div>
                     </div>
@@ -271,9 +373,9 @@ export function QuestionFlowWizard() {
             {/* Right Panel: Content Canvas */}
             <div className={styles.rightPanel}>
                 <div className={styles.topNavigation}>
-                    <button className={styles.navAction} onClick={() => router.push('/')}>
-                        <CloseIcon />
-                    </button>
+                    <Button variant="outline" size="icon" className="w-10 h-10 rounded-xl" onClick={() => router.push('/')}>
+                        <X className="h-5 w-5" />
+                    </Button>
                 </div>
 
                 <div className={styles.panelContent}>
@@ -282,13 +384,16 @@ export function QuestionFlowWizard() {
                             data={data}
                             onBack={() => setShowReview(false)}
                             onComplete={handleComplete}
-                            onEditSection={(id) => {
+                            onEditSection={(id: string) => {
                                 const idx = QUESTIONS.findIndex(q => q.sectionId === id);
                                 if (idx >= 0) { setShowReview(false); setCurrentIndex(idx); }
                             }}
                         />
                     ) : (
-                        <div className={styles.questionWrapper} key={currentQuestion.id}>
+                        <div
+                            className={`${styles.questionWrapper} ${isShaking ? 'animate-shake' : ''}`}
+                            key={currentQuestion.id}
+                        >
                             <div className={styles.questionHeader}>
                                 <span className={styles.qNumber}>Question {currentIndex + 1} of {getTotalQuestions()}</span>
                                 <h2 className={styles.qText}>{currentQuestion.question}</h2>
@@ -307,25 +412,30 @@ export function QuestionFlowWizard() {
                             <div className={styles.actionArea}>
                                 <div className={styles.keyboardHint}>
                                     {currentIndex > 0 && (
-                                        <button className={styles.skipButton} onClick={goBack} style={{ marginRight: 16, padding: 0 }}>
+                                        <Button variant="ghost" onClick={goBack} className="mr-4 px-0 hover:bg-transparent hover:text-foreground">
                                             Back
-                                        </button>
+                                        </Button>
                                     )}
                                     <span className={styles.key}>Enter ↵</span> to continue
                                 </div>
-                                <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                                <div className="flex gap-4 items-center">
                                     {!currentQuestion.required && !hasValue && (
-                                        <button className={styles.skipButton} onClick={goNext}>Skip</button>
+                                        <Button variant="ghost" onClick={goNext}>Skip</Button>
                                     )}
-                                    <button
-                                        className={styles.continueBtn}
+                                    <Button
                                         onClick={goNext}
                                         disabled={currentQuestion.required && !hasValue}
+                                        className={styles.continueBtn}
                                     >
                                         {/* Dynamic Label */}
                                         {currentQuestion.type === 'textarea' ? 'Submit' : 'Next'}
-                                        <ArrowIcon />
-                                    </button>
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Button>
+                                    {!currentQuestion.required && !hasValue ? null : (
+                                        <div className={`text-xs text-muted-foreground transition-opacity duration-300 ${!currentQuestion.required || hasValue ? 'opacity-100' : 'opacity-0'}`}>
+                                            Press Enter ↵
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -336,130 +446,4 @@ export function QuestionFlowWizard() {
     );
 }
 
-// =====================================
-// Inputs & Subcomponents
-// =====================================
-
-function QuestionInput({ question, value, onChange, onEnter }: { question: Question, value: any, onChange: (v: any) => void, onEnter: () => void }) {
-    const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
-    useEffect(() => { setTimeout(() => inputRef.current?.focus(), 150); }, [question.id]);
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey && question.type !== 'textarea') {
-            e.preventDefault();
-            onEnter();
-        }
-    };
-
-    switch (question.type) {
-        case 'text':
-            return <input ref={inputRef as any} className={styles.textInput} value={value} onChange={e => onChange(e.target.value)} onKeyDown={handleKeyDown} placeholder={question.placeholder} />;
-        case 'text-large':
-            return <input ref={inputRef as any} className={styles.textInputLarge} value={value} onChange={e => onChange(e.target.value)} onKeyDown={handleKeyDown} placeholder={question.placeholder} />;
-        case 'textarea':
-            return (
-                <div style={{ position: 'relative' }}>
-                    <textarea ref={inputRef as any} className={styles.textareaInput} value={value} onChange={e => onChange(e.target.value)} placeholder={question.placeholder} />
-                    <span style={{ position: 'absolute', bottom: 16, right: 16, fontSize: 11, color: '#9CA3AF' }}>{(value || '').length} chars</span>
-                </div>
-            );
-        case 'radio-cards':
-            const optionCount = question.options?.length || 0;
-            let gridClass = styles.radioCardsGrid;
-            if (optionCount === 4) gridClass = styles.gridFour;
-            if (optionCount >= 5) gridClass = styles.gridFive;
-
-            return (
-                <div className={gridClass}>
-                    {question.options?.map(opt => (
-                        <div key={opt.value} className={`${styles.cardBase} ${value === opt.value ? styles.selected : ''}`} onClick={() => { onChange(opt.value); setTimeout(onEnter, 300); }}>
-                            <span className={styles.cardTitle}>{opt.label}</span>
-                            {opt.description && <span className={styles.cardDesc}>{opt.description}</span>}
-                            <div className={styles.checkmark}><CheckIcon /></div>
-                        </div>
-                    ))}
-                </div>
-            );
-        case 'choice-cards':
-            const cOptionCount = question.options?.length || 0;
-            let cGridClass = styles.choiceCardsGrid;
-            if (cOptionCount === 4) cGridClass = styles.gridFour;
-            if (cOptionCount >= 5) cGridClass = styles.gridFive;
-
-            return (
-                <div className={cGridClass}>
-                    {question.options?.map(opt => (
-                        <div key={opt.value} className={`${styles.cardBase} ${value === opt.value ? styles.selected : ''}`} onClick={() => { onChange(opt.value); setTimeout(onEnter, 300); }}>
-                            <div className={styles.checkmark}><CheckIcon /></div>
-                            <span className={styles.choiceCardLabel} style={{ fontSize: 18, fontWeight: 600, display: 'block', marginBottom: 8 }}>{opt.label}</span>
-                            <span className={styles.cardDesc}>{opt.description}</span>
-                        </div>
-                    ))}
-                </div>
-            );
-        case 'multi-select':
-            const vals = Array.isArray(value) ? value : [];
-            const msOptionCount = question.options?.length || 0;
-            let msGridClass = styles.multiSelectGrid;
-            if (msOptionCount === 4) msGridClass = styles.gridFour;
-            if (msOptionCount >= 5) msGridClass = styles.gridFive;
-
-            return (
-                <div className={msGridClass}>
-                    {question.options?.map(opt => {
-                        const isSel = vals.includes(opt.value);
-                        return (
-                            <div key={opt.value} className={`${styles.cardBase} ${isSel ? styles.selected : ''}`} onClick={() => {
-                                const newVals = isSel ? vals.filter(v => v !== opt.value) : [...vals, opt.value];
-                                onChange(newVals);
-                            }}>
-                                <div className={styles.checkmark}><CheckIcon /></div>
-                                <span className={styles.cardTitle}>{opt.label}</span>
-                                {opt.description && <span className={styles.cardDesc}>{opt.description}</span>}
-                            </div>
-                        );
-                    })}
-                </div>
-            );
-        default: return null;
-    }
-}
-
-function ReviewScreen({ data, onBack, onComplete, onEditSection }: any) {
-    // Simplified Review Screen for the Split Layout - kept clean
-    return (
-        <div style={{ width: '100%' }}>
-            <div style={{ marginBottom: 40, borderBottom: '1px solid #E5E6E3', paddingBottom: 24 }}>
-                <h1 style={{ fontFamily: 'Playfair Display', fontSize: 40, marginBottom: 8 }}>Review Foundation</h1>
-                <p style={{ fontFamily: 'Inter', color: '#5B5F61' }}>Verify your answers before building the core.</p>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                {['business', 'cohorts', 'positioning', 'messaging'].map(sec => (
-                    <div key={sec} style={{ background: 'white', border: '1px solid #E5E6E3', borderRadius: 12, overflow: 'hidden' }}>
-                        <div style={{ padding: '16px 24px', background: '#FAFBF9', borderBottom: '1px solid #E5E6E3', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontWeight: 600, textTransform: 'uppercase', fontSize: 12, letterSpacing: '0.05em' }}>{sec}</span>
-                            <button onClick={() => onEditSection(sec)} style={{ fontSize: 12, textDecoration: 'underline', border: 'none', background: 'none', cursor: 'pointer' }}>Edit</button>
-                        </div>
-                        <div style={{ padding: 24 }}>
-                            {/* Data dump simplified for layout demo */}
-                            <div style={{ fontSize: 14, color: '#2D3538' }}>{sec === 'business' ? data.business.name : 'Completed'}</div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div style={{ marginTop: 48, display: 'flex', gap: 16 }}>
-                <button className={styles.continueBtn} onClick={onComplete} style={{ flex: 1, justifyContent: 'center' }}>
-                    Confirm & Launch <ArrowIcon />
-                </button>
-            </div>
-        </div>
-    );
-}
-
-// Icons
-const ArrowIcon = () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 8h10m0 0L9 4m4 4l-4 4" /></svg>;
-const CheckIcon = () => <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 6l3 3 5-5" /></svg>;
-const CloseIcon = () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l8 8m0-8l-8 8" /></svg>;
 

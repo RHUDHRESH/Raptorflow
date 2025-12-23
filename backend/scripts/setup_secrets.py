@@ -1,42 +1,46 @@
-import argparse
+import os
 from google.cloud import secretmanager
+from backend.core.config import get_settings
 
-
-def setup_secret(project_id: str, secret_id: str, secret_value: str):
+def create_secret(project_id: str, secret_id: str):
     """
-    Creates or updates a secret in GCP Secret Manager.
+    Create a new secret in the specified project.
     """
     client = secretmanager.SecretManagerServiceClient()
     parent = f"projects/{project_id}"
 
-    # 1. Create the secret if it doesn't exist
     try:
-        client.create_secret(
+        response = client.create_secret(
             request={
                 "parent": parent,
                 "secret_id": secret_id,
                 "secret": {"replication": {"automatic": {}}},
             }
         )
-        print(f"Created secret {secret_id}")
-    except Exception:
-        print(f"Secret {secret_id} already exists")
+        print(f"Created secret: {response.name}")
+    except Exception as e:
+        if "already exists" in str(e):
+            print(f"Secret {secret_id} already exists.")
+        else:
+            print(f"Error creating secret {secret_id}: {e}")
 
-    # 2. Add a new version
-    secret_path = f"projects/{project_id}/secrets/{secret_id}"
-    client.add_secret_version(
-        request={"parent": secret_path, "payload": {"data": secret_value.encode("UTF-8")}}
-    )
-    print(f"Added new version to {secret_id}")
+def main():
+    settings = get_settings()
+    project_id = settings.GCP_PROJECT_ID
+    
+    secrets = [
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "FIRECRAWL_API_KEY",
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN"
+    ]
 
+    print(f"Initializing secrets for project: {project_id}")
+    for secret in secrets:
+        create_secret(project_id, secret)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Setup GCP Secrets for Blackbox")
-    parser.add_argument("--project", help="GCP Project ID", required=True)
-    parser.add_argument("--search_key", help="Search API Key", required=True)
-    parser.add_argument("--scrape_key", help="Scrape API Key", required=True)
-
-    args = parser.parse_args()
-
-    setup_secret(args.project, "blackbox_search_key", args.search_key)
-    setup_secret(args.project, "blackbox_scrape_key", args.scrape_key)
+    main()

@@ -1,0 +1,30 @@
+project_id = "your-project-id"
+
+[api]
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+
+[db.pooler]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://*.vercel.app"]
+jwt_expiry = 3600
+enable_signup = true
+
+[storage]
+enabled = true
+
+[inngest]
+enabled = false
+
+[realtime]
+enabled = false

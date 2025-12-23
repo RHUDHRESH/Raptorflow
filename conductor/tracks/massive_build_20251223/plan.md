@@ -101,14 +101,14 @@
 - [x] Phase 0098: Create `backend/utils/logger.py`: Standardized JSON logger [done]
 - [x] Phase 0099: Implement `Logger.log_ml_event()` for MLOps audit [done]
 ## [checkpoint: 4c8bce6] Phase 0100: Conductor - User Manual Verification 'Core API & Database Ready'
-- [~] Phase 0101: Osipov Data Mastery: Master the "Taxi Rides" Dataset pattern
-- [ ] Phase 0102: Create `backend/scripts/ingest_sample_data.py` (Upload to GCS)
-- [ ] Phase 0103: Upload raw sample CSVs to `raptorflow-ingest-raw` bucket
-- [ ] Phase 0104: Define BigQuery Dataset: `raptorflow_gold`
-- [ ] Phase 0105: Create BigQuery External Table over raw GCS CSV data
-- [ ] Phase 0106: Execute BigQuery Schema Discovery
-- [ ] Phase 0107: Verify BigQuery Table Schema and Row Counts
-- [ ] Phase 0108: Implement Dataflow/Apache Beam Job: `raw_to_gold_parquet.py`
+- [x] Phase 0101: Osipov Data Mastery: Master the "Taxi Rides" Dataset pattern [done]
+- [x] Phase 0102: Create `backend/scripts/ingest_sample_data.py` (Upload to GCS) [done]
+- [x] Phase 0103: Upload raw sample CSVs to `raptorflow-ingest-raw` bucket [done]
+- [x] Phase 0104: Define BigQuery Dataset: `raptorflow_gold` [done]
+- [x] Phase 0105: Create BigQuery External Table over raw GCS CSV data [done]
+- [x] Phase 0106: Execute BigQuery Schema Discovery [done]
+- [x] Phase 0107: Verify BigQuery Table Schema and Row Counts [done]
+- [~] Phase 0108: Implement Dataflow/Apache Beam Job: `raw_to_gold_parquet.py`
 - [ ] Phase 0109: ETL: Implement Column-oriented re-encoding (Parquet via GCS)
 - [ ] Phase 0110: ETL: Implement Schema Enforcement (BigQuery Load Jobs)
 - [ ] Phase 0111: ETL: Implement Data Quality Gate - Null check critical columns
