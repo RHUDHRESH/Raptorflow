@@ -377,6 +377,67 @@ class BlackboxService:
             "status": "cycle_complete",
         }
 
+    async def generate_pivot_recommendation(self, move_id: str) -> Dict[str, Any]:
+        """
+        Uses the LearningAgent to generate a high-level strategic pivot
+        recommendation for a specific move.
+        """
+        from backend.agents.blackbox_specialist import LearningAgent
+
+        # 1. Gather context
+        traces = self.get_telemetry_by_move(move_id)
+        outcomes_res = (
+            self.vault.get_session()
+            .table("blackbox_outcomes_industrial")
+            .select("*")
+            .eq("move_id", str(move_id))
+            .execute()
+        )
+        outcomes = outcomes_res.data
+
+        # 2. Run LearningAgent
+        agent = LearningAgent()
+        state = {
+            "findings": [str(t.get("trace", "")) for t in traces],
+            "reflection": f"Observed {len(outcomes)} outcomes with total value {sum(o.get('value', 0) for o in outcomes)}",
+            "status": [],
+        }
+
+        result = await agent.run(state)
+        return {
+            "move_id": move_id,
+            "pivot_recommendation": result.get("pivots", ""),
+            "status": "pivot_generated",
+        }
+
+    async def apply_learning_to_foundation(self, brand_kit_id: UUID, learning_id: UUID) -> Dict[str, Any]:
+        """
+        Updates foundation modules (BrandKit/Positioning) based on a strategic learning.
+        """
+        from backend.services.foundation_service import FoundationService
+        
+        # 1. Retrieve data
+        session = self.vault.get_session()
+        learning_res = session.table("blackbox_learnings_industrial").select("*").eq("id", str(learning_id)).execute()
+        if not learning_res.data:
+            return {"status": "error", "message": "Learning not found"}
+            
+        learning = learning_res.data[0]
+        content = learning["content"]
+        
+        # 2. Trigger foundation update (Agentic or direct depending on type)
+        f_service = FoundationService(self.vault)
+        # Placeholder for complex agentic update logic
+        # For now, we simulate adding the learning to positioning notes or UVP refinement
+        
+        await f_service.update_brand_kit(brand_kit_id, {"typography_config": {"latest_insight": content}})
+        
+        return {
+            "brand_kit_id": str(brand_kit_id),
+            "learning_id": str(learning_id),
+            "status": "foundation_updated"
+        }
+
     def upsert_learning_embedding(
         self, content: str, learning_type: str, source_ids: List[UUID] = None
     ):
