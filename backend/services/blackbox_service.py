@@ -9,6 +9,7 @@ from uuid import UUID
 from backend.core.vault import Vault
 from backend.inference import InferenceProvider
 from backend.models.blackbox import BlackboxOutcome, BlackboxTelemetry
+from backend.utils.pii_masking import mask_pii
 
 
 class AttributionModel(str, Enum):
@@ -39,11 +40,12 @@ def trace_agent(service, agent_id: str):
                     usage = result.get("usage", {})
                     tokens = usage.get("total_tokens", usage.get("tokens", 0))
 
-                # Log telemetry
+                # Log telemetry (Task 93: PII Masking)
+                masked_trace = mask_pii({"input": args, "kwargs": kwargs, "output": result})
                 telemetry = BlackboxTelemetry(
                     move_id=move_id,
                     agent_id=agent_id,
-                    trace={"input": args, "kwargs": kwargs, "output": result},
+                    trace=masked_trace,
                     tokens=tokens,
                     latency=latency,
                 )
@@ -87,6 +89,9 @@ class BlackboxService:
 
     def log_telemetry(self, telemetry: BlackboxTelemetry):
         """Logs an execution trace to both Supabase and BigQuery."""
+        # Task 93: Ensure PII is masked before persistence
+        telemetry.trace = mask_pii(telemetry.trace)
+        
         # 1. Persist to Supabase
         session = self.vault.get_session()
         data = telemetry.model_dump(mode="json")
