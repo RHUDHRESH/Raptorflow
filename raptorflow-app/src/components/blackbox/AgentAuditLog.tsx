@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Terminal, Search, ChevronRight, ChevronDown, Cpu, Clock, Zap } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Terminal, Search, ChevronRight, ChevronDown, Cpu, Clock, Zap, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { getTelemetryByMove } from '@/lib/blackbox';
 
 export interface AuditEntry {
     id: string;
@@ -22,13 +23,48 @@ export interface AuditEntry {
 }
 
 interface AgentAuditLogProps {
-    entries: AuditEntry[];
+    moveId?: string;
+    entries?: AuditEntry[];
     isLoading?: boolean;
 }
 
-export function AgentAuditLog({ entries, isLoading }: AgentAuditLogProps) {
+export function AgentAuditLog({ moveId, entries: initialEntries, isLoading: initialLoading }: AgentAuditLogProps) {
+    const [entries, setEntries] = useState<AuditEntry[]>(initialEntries || []);
+    const [isLoading, setIsLoading] = useState(initialLoading || false);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [filter, setFilter] = useState('');
+
+    useEffect(() => {
+        if (moveId) {
+            const fetchEntries = async () => {
+                if (!initialEntries) setIsLoading(true);
+                try {
+                    const data = await getTelemetryByMove(moveId);
+                    // Map Backend Telemetry to AuditEntry
+                    const auditEntries: AuditEntry[] = data.map((t: any) => ({
+                        id: t.id,
+                        agent_id: t.agent_id,
+                        move_id: t.move_id,
+                        trace: t.trace,
+                        tokens: t.tokens,
+                        latency: t.latency,
+                        timestamp: t.timestamp
+                    }));
+                    setEntries(auditEntries);
+                } catch (err) {
+                    console.error('Failed to fetch audit log:', err);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchEntries();
+        }
+    }, [moveId, initialEntries]);
+
+    // Sync with props if provided
+    useEffect(() => {
+        if (initialEntries) setEntries(initialEntries);
+    }, [initialEntries]);
 
     const filteredEntries = entries.filter(e =>
         e.agent_id.toLowerCase().includes(filter.toLowerCase()) ||

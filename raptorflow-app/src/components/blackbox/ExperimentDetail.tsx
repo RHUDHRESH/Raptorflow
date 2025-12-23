@@ -9,29 +9,8 @@ import { cn } from '@/lib/utils';
 import { EvidenceLog, EvidenceTrace } from './EvidenceLog';
 import { ResultsStrip } from './ResultsStrip';
 import { getOutcomesByMove, getTelemetryByMove } from '@/lib/blackbox';
-
-export interface EvidenceTrace {
-    id: string;
-    agent_id: string;
-    trace: {
-        input?: any;
-        output?: any;
-        error?: string;
-        status?: string;
-    };
-    latency: number;
-    timestamp: string;
-}
-
-export interface BlackboxOutcome {
-    id: string;
-    campaign_id?: string;
-    move_id?: string;
-    source: string;
-    value: number;
-    confidence: number;
-    timestamp: string;
-}
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AgentAuditLog } from './AgentAuditLog';
 
 interface ExperimentDetailProps {
     experiment: Experiment | null;
@@ -84,7 +63,7 @@ export function ExperimentDetail({
             <DialogContent className="max-w-2xl p-0 gap-0 bg-white dark:bg-zinc-950 border-0 shadow-xl rounded-2xl overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Header */}
                 <div className="flex items-start justify-between p-5 border-b border-zinc-100 dark:border-zinc-900 shrink-0">
-                    <div>
+                    <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                             <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-400">
                                 {experiment.principle.replace('_', ' ')}
@@ -107,80 +86,104 @@ export function ExperimentDetail({
                     </button>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 space-y-6 overflow-y-auto">
-                    {/* Bet & Why */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">The Bet</p>
-                            <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed font-sans">{experiment.bet}</p>
-                        </div>
-                        <div className="p-4 bg-zinc-50/50 dark:bg-zinc-900/50 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">The Reasoning</p>
-                            <p className="text-xs text-zinc-500 italic font-sans">{experiment.why}</p>
-                        </div>
+                <Tabs defaultValue="overview" className="flex-1 flex flex-col min-h-0">
+                    <div className="px-5 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/30">
+                        <TabsList className="bg-transparent h-12 p-0 gap-6">
+                            <TabsTrigger 
+                                value="overview" 
+                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-zinc-900 dark:data-[state=active]:border-white rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white"
+                            >
+                                Overview
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                value="audit" 
+                                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-zinc-900 dark:data-[state=active]:border-white rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white"
+                            >
+                                Agent Audit Log
+                            </TabsTrigger>
+                        </TabsList>
                     </div>
 
-                    {/* Meta Grid */}
-                    <div className="grid grid-cols-4 gap-3">
-                        {[
-                            { icon: Clock, label: 'Effort', value: experiment.effort },
-                            { icon: BarChart2, label: 'Signal', value: experiment.time_to_signal },
-                            { icon: Target, label: 'Goal', value: experiment.goal },
-                            { icon: Sparkles, label: 'Channel', value: experiment.channel },
-                        ].map((item) => {
-                            const Icon = item.icon;
-                            return (
-                                <div key={item.label} className="text-center p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                                    <Icon className="w-4 h-4 mx-auto text-zinc-400 mb-1" />
-                                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 capitalize font-sans">{item.value}</p>
-                                    <p className="text-[9px] text-zinc-400 uppercase font-sans font-bold">{item.label}</p>
+                    <TabsContent value="overview" className="flex-1 overflow-y-auto m-0">
+                        <div className="p-6 space-y-6">
+                            {/* Bet & Why */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">The Bet</p>
+                                    <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed font-sans">{experiment.bet}</p>
                                 </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* Surgical Learning / Results Strip */}
-                    {isCheckedIn && (
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 px-1">
-                                <BrainCircuit className="w-4 h-4 text-accent" />
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 font-sans">Surgical Learning</h3>
+                                <div className="p-4 bg-zinc-50/50 dark:bg-zinc-900/50 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">The Reasoning</p>
+                                    <p className="text-xs text-zinc-500 italic font-sans">{experiment.why}</p>
+                                </div>
                             </div>
-                            <ResultsStrip
-                                winner={experiment}
-                                learnings={experiment.learning ? [experiment.learning] : []}
-                            />
-                        </div>
-                    )}
 
-                    {/* Outcomes */}
-                    {outcomes.length > 0 && (
-                        <div className="space-y-3">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 px-1 font-sans">Business Outcomes</h3>
-                            <div className="grid grid-cols-1 gap-2">
-                                {outcomes.map((outcome) => (
-                                    <div key={outcome.id} className="flex items-center justify-between p-4 bg-zinc-900 text-white rounded-xl">
-                                        <div>
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Source: {outcome.source}</p>
-                                            <p className="text-xs font-medium text-zinc-300">Confidence: {(outcome.confidence * 100).toFixed(0)}%</p>
+                            {/* Meta Grid */}
+                            <div className="grid grid-cols-4 gap-3">
+                                {[
+                                    { icon: Clock, label: 'Effort', value: experiment.effort },
+                                    { icon: BarChart2, label: 'Signal', value: experiment.time_to_signal },
+                                    { icon: Target, label: 'Goal', value: experiment.goal },
+                                    { icon: Sparkles, label: 'Channel', value: experiment.channel },
+                                ].map((item) => {
+                                    const Icon = item.icon;
+                                    return (
+                                        <div key={item.label} className="text-center p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                            <Icon className="w-4 h-4 mx-auto text-zinc-400 mb-1" />
+                                            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 capitalize font-sans">{item.value}</p>
+                                            <p className="text-[9px] text-zinc-400 uppercase font-sans font-bold">{item.label}</p>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-2xl font-bold font-mono tracking-tight">{outcome.value}</p>
-                                            <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">{experiment.goal}</p>
-                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Surgical Learning / Results Strip */}
+                            {isCheckedIn && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <BrainCircuit className="w-4 h-4 text-accent" />
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 font-sans">Surgical Learning</h3>
                                     </div>
-                                ))}
+                                    <ResultsStrip
+                                        winner={experiment}
+                                        learnings={experiment.learning ? [experiment.learning] : []}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Outcomes */}
+                            {outcomes.length > 0 && (
+                                <div className="space-y-3">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 px-1 font-sans">Business Outcomes</h3>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {outcomes.map((outcome) => (
+                                            <div key={outcome.id} className="flex items-center justify-between p-4 bg-zinc-900 text-white rounded-xl">
+                                                <div>
+                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Source: {outcome.source}</p>
+                                                    <p className="text-xs font-medium text-zinc-300">Confidence: {(outcome.confidence * 100).toFixed(0)}%</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-2xl font-bold font-mono tracking-tight">{outcome.value}</p>
+                                                    <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">{experiment.goal}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Evidence Log (Telemetry) */}
+                            <div className="space-y-3 pb-4">
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 px-1 font-sans">Evidence Log</h3>
+                                <EvidenceLog traces={traces} isLoading={isLoading} />
                             </div>
                         </div>
-                    )}
+                    </TabsContent>
 
-                    {/* Evidence Log (Telemetry) */}
-                    <div className="space-y-3 pb-4">
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 px-1 font-sans">Evidence Log</h3>
-                        <EvidenceLog traces={traces} isLoading={isLoading} />
-                    </div>
-                </div>
+                    <TabsContent value="audit" className="flex-1 overflow-y-auto m-0 p-6 bg-zinc-50/10">
+                        <AgentAuditLog moveId={experiment.id} isLoading={isLoading} />
+                    </TabsContent>
+                </Tabs>
 
                 {/* Footer */}
                 <div className="p-5 border-t border-zinc-100 dark:border-zinc-900 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50 shrink-0">
