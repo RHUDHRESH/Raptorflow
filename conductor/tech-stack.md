@@ -8,6 +8,7 @@
 
 ## AI & LLM
 - **Platform:** [Google Vertex AI](https://cloud.google.com/vertex-ai) (Gemini models)
+- **Search & Intelligence:** [Tavily](https://tavily.com/) (Deep Research), [Perplexity](https://www.perplexity.ai/) (Real-time Search)
 - **Orchestration:** [LangGraph](https://langchain-ai.github.io/langgraph/)
 
 ## Backend & Infrastructure
@@ -16,7 +17,7 @@
 - **Database & Auth:** [Supabase](https://supabase.com/) (PostgreSQL + pgvector)
 - **Caching & Messaging:** [Upstash](https://upstash.com/) (Redis)
 - **Secrets Management:** [GCP Secret Manager](https://cloud.google.com/secret-manager)
-- **Data Warehouse:** [BigQuery](https://cloud.google.com/bigquery)
+- **Data Warehouse & Analytics:** [BigQuery](https://cloud.google.com/bigquery) (Longitudinal Analysis)
 - **Blob Storage:** [Google Cloud Storage (GCS)](https://cloud.google.com/storage)
 
 ## Payments
