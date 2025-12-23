@@ -50,9 +50,9 @@
 
 ## Phase 5: Multi-Agent Specialists (Phases 41-50)
 - [x] Task 41: Implement `BlackboxSpecialist` (Base Agent Class) [a8985ea]
-- [x] Task 42: Create `ROI_Analyst_Agent` (System prompts focused on attribution) [18ea9d8]
-- [~] Task 43: Create `Strategic_Drift_Agent` (Detects deviation from Foundation)
-- [ ] Task 44: Create `Competitor_Intelligence_Agent` (Feeds on scrape telemetry)
+- [x] Task 42: Create `ROI_Analyst_Agent` (System prompts focused on attribution) [783a035]
+- [x] Task 43: Create `Strategic_Drift_Agent` (Detects deviation from Foundation) [18ea9d8]
+- [~] Task 44: Create `Competitor_Intelligence_Agent` (Feeds on scrape telemetry)
 - [ ] Task 45: Implement Agent Collaboration protocol (Shared state updates)
 - [ ] Task 46: Implement "Critique" loop between Analyst and Supervisor
 - [ ] Task 47: Write Unit Test: `test_agent_specialization_accuracy`
