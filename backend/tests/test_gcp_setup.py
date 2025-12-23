@@ -1,5 +1,6 @@
 from backend.core.config import get_settings
 
+
 def test_gcp_project_id_is_set():
     settings = get_settings()
     assert settings.GCP_PROJECT_ID == "raptorflow-481505"
