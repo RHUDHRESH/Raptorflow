@@ -1,7 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { TelemetryFeed } from "../TelemetryFeed";
 import React from 'react';
+
+// Mock the lib/blackbox module
+vi.mock("@/lib/blackbox", () => ({
+  getTelemetryByMove: vi.fn(() => Promise.resolve([]))
+}));
 
 describe("TelemetryFeed Component", () => {
   it("should render traces correctly", () => {
