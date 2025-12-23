@@ -176,6 +176,36 @@ class HandoffProtocol:
         return all(key in packet for key in required_keys)
 
 
+class HumanInTheLoopNode:
+    """
+    Interrupt node for handling manual human approvals in critical workflows.
+    """
+
+    async def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Requests human intervention or processes a human response.
+        """
+        human_response = state.get("human_response")
+        instructions = state.get("instructions", "No instructions provided.")
+        
+        if not human_response:
+            logger.info("HITL: Awaiting human approval...")
+            return {
+                "approval_required": True,
+                "approval_prompt": f"ACTION REQUIRED: {instructions}. Do you approve? (YES/NO)",
+                "status": "AWAITING_HUMAN"
+            }
+        
+        approved = human_response.strip().upper() == "YES"
+        logger.info(f"HITL: Human response received: {human_response} (Approved: {approved})")
+        
+        return {
+            "approved": approved,
+            "status": "APPROVED" if approved else "REJECTED",
+            "analysis_summary": f"Human intervention complete. Approved: {approved}."
+        }
+
+
 def create_team_supervisor(llm: any, team_members: List[str], system_prompt: str):
     """Factory function for the HierarchicalSupervisor."""
     return HierarchicalSupervisor(llm, team_members, system_prompt)
