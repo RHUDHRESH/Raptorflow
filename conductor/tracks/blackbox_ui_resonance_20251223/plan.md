@@ -6,8 +6,8 @@ This plan integrates the Blackbox industrial engine with the frontend UI, ensuri
 Goal: Replace mock data in the Evidence Log and Results Strip with real `BlackboxOutcome` data.
 
 - [x] Task: Create Backend API Endpoints for Outcomes and Evidence [1ac1897]
-- [ ] Task: Write Tests for Outcome Data Fetching (Frontend)
-- [ ] Task: Implement Outcome Data Fetching and Integration in `EvidenceLog.tsx` and `ResultsStrip.tsx`
+- [x] Task: Write Tests for Outcome Data Fetching (Frontend) [11684d2]
+- [x] Task: Implement Outcome Data Fetching and Integration in `EvidenceLog.tsx` and `ResultsStrip.tsx` [8cce2bd]
 - [ ] Task: Conductor - User Manual Verification 'Data Foundation & Outcome Integration' (Protocol in workflow.md)
 
 ## Phase 2: Telemetry & Reasoning Integration
