@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { SystemStatusHeader } from "@/components/matrix/SystemStatusHeader";
 import { AgentPoolList } from "@/components/matrix/AgentPoolList";
 import { GlobalKillSwitch } from "@/components/matrix/GlobalKillSwitch";
+import { DriftChart } from "@/components/matrix/DriftChart";
 import { Activity, Zap, Shield, AlertTriangle } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -94,17 +95,9 @@ export default function MatrixPage() {
           <AgentPoolList />
         </div>
         
-        <Card className="col-span-3 rounded-2xl border-border bg-card/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="font-display">Strategic Outcomes</CardTitle>
-            <CardDescription>Recent campaign performance vs targets.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px] flex items-center justify-center text-muted-foreground">
-              Outcome analysis loading...
-            </div>
-          </CardContent>
-        </Card>
+        <div className="col-span-3">
+          <DriftChart />
+        </div>
       </div>
     </div>
   );
