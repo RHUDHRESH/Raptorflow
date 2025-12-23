@@ -32,7 +32,7 @@
 - [x] 25. Task: Conductor - User Manual Verification 'Campaign Integration' (Protocol in workflow.md) [e22784a]
 
 
-## Phase 4: Move Module Production Integration (Tasks 26-35)
+## Phase 4: Move Module Production Integration (Tasks 26-35) [checkpoint: 308aa8c]
 - [x] 26. Task: Connect UI triggers to the weekly move generation agent node [dde2d0b]
 - [x] 27. Task: Implement interactive decomposition of milestones into Move packets [80cdd80]
 - [x] 28. Task: Write failing integration tests for Move generation and status tracking [f5bd0a1]
@@ -42,7 +42,7 @@
 - [x] 32. Task: Implement progress bar synchronization between Moves and Campaigns [efdc454]
 - [x] 33. Task: Build the detailed "Move Packet" view (Description, Owner, Tools) [5ae053f]
 - [x] 34. Task: Verify Move UI state matches backend database exactly [717019d]
-- [~] 35. Task: Conductor - User Manual Verification 'Move Integration' (Protocol in workflow.md)
+- [x] 35. Task: Conductor - User Manual Verification 'Move Integration' (Protocol in workflow.md) [308aa8c]
 
 ## Phase 5: Final E2E Hardening & Verification (Tasks 36-40)
 - [ ] 36. Task: Implement automated E2E smoke test (Playwright) for the full user journey
