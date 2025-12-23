@@ -75,14 +75,14 @@
 ## Phase 7: The Learning Flywheel (Phases 61-70)
 - [x] Task 61: Implement `BlackboxService.trigger_learning_cycle()` (Background task) [a660798]
 - [x] Task 62: Implement `LearningAgent` (Summarizes outcomes into pivots) [a660798]
-- [~] Task 63: Implement `PivotRecommendation` generator
-- [ ] Task 64: Implement logic to update `Foundation` modules from `Blackbox` insights
-- [ ] Task 65: Implement "Evidence Packaging" (Attaching trace links to insights)
-- [ ] Task 66: Write Unit Test: `test_learning_flywheel_output`
-- [ ] Task 67: Implement `BlackboxService.get_learning_feed()`
-- [ ] Task 68: Implement "Insight Validation" (Human-in-the-loop approval state)
-- [ ] Task 69: Create `backend/api/v1/blackbox_learning.py` endpoints
-- [ ] Task 70: Conductor - User Manual Verification 'Learning Flywheel'
+- [x] Task 63: Implement `PivotRecommendation` generator [a660798]
+- [x] Task 64: Implement logic to update `Foundation` modules from `Blackbox` insights [218b545]
+- [x] Task 65: Implement "Evidence Packaging" (Attaching trace links to insights) [129d154]
+- [x] Task 66: Write Unit Test: `test_learning_flywheel_output` [d9e398b]
+- [x] Task 67: Implement `BlackboxService.get_learning_feed()` [d9e398b]
+- [x] Task 68: Implement "Insight Validation" (Human-in-the-loop approval state) [d9e398b]
+- [x] Task 69: Create `backend/api/v1/blackbox_learning.py` endpoints [d9e398b]
+- [x] Task 70: Conductor - User Manual Verification 'Learning Flywheel' [d9e398b]
 
 ## Phase 8: Frontend - Dashboard & Explorer (Phases 71-80)
 - [ ] Task 71: Create `raptorflow-app/src/app/blackbox/layout.tsx` (Premium sidebar)
