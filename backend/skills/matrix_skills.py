@@ -1,8 +1,9 @@
 import abc
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("raptorflow.skills.matrix")
+
 
 class MatrixSkill(abc.ABC):
     """
@@ -27,7 +28,8 @@ class SkillRegistry:
     Registry for managing and discovering Matrix skills.
     Singleton pattern ensures a single source of truth for tools.
     """
-    _instance: Optional['SkillRegistry'] = None
+
+    _instance: Optional["SkillRegistry"] = None
     _skills: Dict[str, MatrixSkill] = {}
 
     def __new__(cls):
@@ -54,8 +56,9 @@ class EmergencyHaltSkill(MatrixSkill):
     Skill to engage the global system kill-switch.
     """
 
-    def __init__(self, matrix_service):
+    def __init__(self, matrix_service, pool_monitor=None):
         self.matrix_service = matrix_service
+        self.pool_monitor = pool_monitor
 
     @property
     def name(self) -> str:
@@ -64,13 +67,22 @@ class EmergencyHaltSkill(MatrixSkill):
     async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         reason = params.get("reason", "No reason provided")
         logger.warning(f"EmergencyHaltSkill triggered: {reason}")
-        
+
+        # 1. Engage Matrix Kill-Switch
         success = await self.matrix_service.halt_system()
-        
+
+        # 2. Signal Pool Monitor to clear active threads (simulation)
+        if self.pool_monitor:
+            logger.warning("EmergencyHaltSkill: Clearing all active agent threads...")
+            active_threads = self.pool_monitor.get_active_threads()
+            for tid in list(active_threads.keys()):
+                self.pool_monitor.unregister_thread(tid)
+
         return {
             "halt_engaged": success,
             "reason": reason,
-            "status": "system_halted" if success else "failed_to_halt"
+            "status": "system_halted" if success else "failed_to_halt",
+            "threads_halted": len(active_threads) if self.pool_monitor else 0,
         }
 
 
@@ -89,23 +101,23 @@ class InferenceThrottlingSkill(MatrixSkill):
 
     async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         agent_id = params.get("agent_id")
-        tpm_limit = params.get("tpm_limit", 1000) # Tokens Per Minute
-        
+        tpm_limit = params.get("tpm_limit", 1000)  # Tokens Per Minute
+
         if not agent_id:
             return {"error": "agent_id is required"}
-            
+
         logger.info(f"Applying throttling to {agent_id}: {tpm_limit} TPM")
-        
+
         # Persist throttle setting in Redis
         try:
             key = f"throttle:{agent_id}"
             await self.redis.set(key, tpm_limit)
-            
+
             return {
                 "throttling_applied": True,
                 "agent_id": agent_id,
                 "tpm_limit": tpm_limit,
-                "status": "active"
+                "status": "active",
             }
         except Exception as e:
             logger.error(f"Failed to apply throttling: {e}")
@@ -127,18 +139,14 @@ class CachePurgeSkill(MatrixSkill):
     async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         pattern = params.get("pattern", "*")
         logger.warning(f"CachePurgeSkill triggered for pattern: {pattern}")
-        
+
         try:
             # In a real build with a rich redis client, we'd list and delete.
             # Upstash http client has a simpler delete.
             # For now we simulate/implement basic delete.
             count = await self.redis.delete(pattern)
-            
-            return {
-                "purge_successful": True,
-                "pattern": pattern,
-                "keys_removed": count
-            }
+
+            return {"purge_successful": True, "pattern": pattern, "keys_removed": count}
         except Exception as e:
             logger.error(f"Failed to purge cache: {e}")
             return False
