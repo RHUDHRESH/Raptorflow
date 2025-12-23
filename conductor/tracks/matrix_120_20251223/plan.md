@@ -65,7 +65,7 @@
 - [x] Phase 054: Backend - Write Red Phase tests for `MemoryManager.store_trace()`. ce1b825
 - [x] Phase 055: Backend - Implement `MemoryManager.store_trace()` with embeddings. 327a379
 - [x] Phase 056: Backend - Implement `RAGRetrievalNode` with citation support. 56d95e3
-- [ ] Phase 057: Backend - Implement `MemoryDecayPolicy` (Pruning old short-term state).
+- [x] Phase 057: Backend - Implement `MemoryDecayPolicy` (Pruning old short-term state). dea4ac7
 - [ ] Phase 058: Backend - Implement `EpisodicRecall` (Retrieve similar campaign outcomes).
 - [ ] Phase 059: Backend - Write Red Phase tests for `RAG.calculate_relevance_score()`.
 - [ ] Phase 060: Backend - Implement `ContextWindowCompressor` for token efficiency.
