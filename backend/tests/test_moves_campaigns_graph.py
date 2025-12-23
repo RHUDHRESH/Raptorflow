@@ -55,19 +55,20 @@ async def test_graph_state_recovery_after_interrupt(mock_semantic_memory):
 
 
 @pytest.mark.asyncio
-async def test_graph_router_success():
+async def test_graph_router_success(mock_semantic_memory):
     """
     Verify that the graph handles routing between planning and monitoring.
     """
-    initial_state = {"status": "planning", "messages": []}
+    initial_state = {"status": "planning", "messages": [], "tenant_id": "test"}
     config = {"configurable": {"thread_id": "router-test"}}
 
-    result = await moves_campaigns_orchestrator.ainvoke(initial_state, config)
-    assert result["status"] == "monitoring"
+    await moves_campaigns_orchestrator.ainvoke(initial_state, config)
+    state = await moves_campaigns_orchestrator.aget_state(config)
+    assert "approve_campaign" in state.next
 
 
 @pytest.mark.asyncio
-async def test_graph_hitl_interruption():
+async def test_graph_hitl_interruption(mock_semantic_memory):
     """Verify that the graph interrupts before approve_move."""
     initial_state = {
         "tenant_id": "test-tenant",
@@ -76,24 +77,15 @@ async def test_graph_hitl_interruption():
     }
     config = {"configurable": {"thread_id": "hitl-test"}}
 
-    # We need to call it twice OR understand that init node OVERWRITES status.
-    # Actually, initialize_orchestrator returns status='planning'.
-    # I'll update the test to handle the flow properly.
-
     # Run the graph
     await moves_campaigns_orchestrator.ainvoke(initial_state, config)
-
-    # It should have interrupted before 'approve_campaign' because status was 'monitoring' initially?
-    # Wait, initial_state has status='monitoring'.
-    # init returns {"messages": ["Orchestrator resumed."]}
-    # router returns "moves" -> generate_moves -> approve_move (INTERRUPT)
 
     state = await moves_campaigns_orchestrator.aget_state(config)
     assert "approve_move" in state.next
 
 
 @pytest.mark.asyncio
-async def test_graph_campaign_approval_interrupt():
+async def test_graph_campaign_approval_interrupt(mock_semantic_memory):
     """Verify that the graph interrupts before approve_campaign."""
     initial_state = {"tenant_id": "test-tenant", "messages": [], "status": "new"}
     config = {"configurable": {"thread_id": "campaign-approval-test"}}
