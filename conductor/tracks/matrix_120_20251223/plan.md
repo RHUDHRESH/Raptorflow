@@ -83,7 +83,7 @@
 - [x] Phase 070: Backend - Implement `PerformanceComparator` (vNext vs Production). [f98bb6b]
 - [x] Phase 071: Backend - Write Red Phase tests for `ShadowInference.log_comparison()`. [f98bb6b]
 - [x] Phase 072: Backend - Implement `ShadowInference.log_comparison()`. [f98bb6b]
-- [ ] Phase 073: Backend - Implement `InferenceLatencyAlert` (Trigger on >P95 spike).
+- [x] Phase 073: Backend - Implement `InferenceLatencyAlert` (Trigger on >P95 spike). d17ca80
 - [ ] Phase 074: Backend - Implement `ModelAccuracyMonitor` (Feedback loop integration).
 - [ ] Phase 075: Backend - Implement `DeterministicFallback` (Switch to heuristic on LLM fail).
 - [ ] Phase 076: Backend - Implement `SystemSanityCheck` (Periodic agent health probe).
