@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, AsyncMock
 from backend.services.matrix_service import MatrixService
-from backend.models.telemetry import TelemetryEvent, SystemState
+from backend.models.telemetry import TelemetryEvent, SystemState, AgentHealthStatus
 
 @pytest.fixture
 def matrix_service(monkeypatch):
@@ -85,6 +85,30 @@ async def test_capture_agent_heartbeat(matrix_service):
     overview = matrix_service.get_system_overview()
     assert "agent_alpha" in overview.active_agents
     assert overview.active_agents["agent_alpha"].current_task == "working"
+
+@pytest.mark.asyncio
+async def test_capture_agent_heartbeat_status_busy(matrix_service):
+    """Test capturing a heartbeat with BUSY status."""
+    success = await matrix_service.capture_agent_heartbeat(
+        "agent_beta", 
+        task="processing", 
+        status=AgentHealthStatus.BUSY
+    )
+    assert success is True
+    overview = matrix_service.get_system_overview()
+    assert overview.active_agents["agent_beta"].status == AgentHealthStatus.BUSY
+
+@pytest.mark.asyncio
+async def test_capture_agent_heartbeat_metadata(matrix_service):
+    """Test capturing a heartbeat with metadata."""
+    metadata = {"token_usage": 150, "model": "gpt-4"}
+    success = await matrix_service.capture_agent_heartbeat(
+        "agent_gamma", 
+        metadata=metadata
+    )
+    assert success is True
+    overview = matrix_service.get_system_overview()
+    assert overview.active_agents["agent_gamma"].metadata["token_usage"] == 150
 
 @pytest.mark.asyncio
 async def test_halt_system(matrix_service):
