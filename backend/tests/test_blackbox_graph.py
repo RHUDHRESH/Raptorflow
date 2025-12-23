@@ -62,3 +62,5 @@ def test_ingest_telemetry_node():
         assert len(result["telemetry_data"]) == 1
         assert result["telemetry_data"][0]["id"] == "t1"
         mock_session.table.assert_called_with("blackbox_telemetry_industrial")
+
+
