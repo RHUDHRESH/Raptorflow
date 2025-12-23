@@ -1,6 +1,6 @@
 ---
 
-## [~] Track: moves and campaigns built end to end (Production Engine)
+## [x] Track: moves and campaigns built end to end (Production Engine)
 *Link: [./conductor/tracks/moves_campaigns_production_20251223/](./conductor/tracks/moves_campaigns_production_20251223/)*
 
 ---
