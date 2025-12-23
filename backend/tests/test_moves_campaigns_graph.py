@@ -6,14 +6,20 @@ from backend.graphs.moves_campaigns_orchestrator import moves_campaigns_orchestr
 
 
 @pytest.fixture
-def mock_semantic_memory():
-    with patch("backend.graphs.moves_campaigns_orchestrator.SemanticMemory", new_callable=MagicMock) as mock_class:
-        instance = mock_class.return_value
-        instance.search = AsyncMock(return_value=[{"content": "mocked context"}])
-        yield instance
+def mock_memories():
+    with patch("backend.graphs.moves_campaigns_orchestrator.SemanticMemory", new_callable=MagicMock) as mock_semantic, \
+         patch("backend.graphs.moves_campaigns_orchestrator.LongTermMemory", new_callable=MagicMock) as mock_ltm:
+        
+        sem_instance = mock_semantic.return_value
+        sem_instance.search = AsyncMock(return_value=[{"content": "mocked context"}])
+        
+        ltm_instance = mock_ltm.return_value
+        ltm_instance.log_decision = AsyncMock()
+        
+        yield sem_instance, ltm_instance
 
 @pytest.mark.asyncio
-async def test_graph_initialization(mock_semantic_memory):
+async def test_graph_initialization(mock_memories):
     """Verify that the graph initializes correctly."""
     initial_state = {"tenant_id": "test-tenant", "messages": [], "status": "new"}
 
@@ -22,14 +28,13 @@ async def test_graph_initialization(mock_semantic_memory):
     result = await moves_campaigns_orchestrator.ainvoke(initial_state, config)
 
     # It should flow: START -> init (planning) -> inject_context -> plan_campaign (monitoring) -> interrupt(approve_campaign)
-    # Wait, it interrupts now!
     state = await moves_campaigns_orchestrator.aget_state(config)
     assert "approve_campaign" in state.next
     assert "Orchestrator initialized." in state.values["messages"]
     assert "Injected 1 business context snippets." in state.values["messages"]
 
 @pytest.mark.asyncio
-async def test_graph_state_recovery_after_interrupt(mock_semantic_memory):
+async def test_graph_state_recovery_after_interrupt(mock_memories):
     """Verify that the graph can recover state after being interrupted (simulated crash)."""
     config = {"configurable": {"thread_id": "crash-test-thread"}}
     initial_state = {"tenant_id": "test-tenant", "messages": [], "status": "new"}
@@ -55,7 +60,7 @@ async def test_graph_state_recovery_after_interrupt(mock_semantic_memory):
 
 
 @pytest.mark.asyncio
-async def test_graph_router_success(mock_semantic_memory):
+async def test_graph_router_success(mock_memories):
     """
     Verify that the graph handles routing between planning and monitoring.
     """
@@ -68,7 +73,7 @@ async def test_graph_router_success(mock_semantic_memory):
 
 
 @pytest.mark.asyncio
-async def test_graph_hitl_interruption(mock_semantic_memory):
+async def test_graph_hitl_interruption(mock_memories):
     """Verify that the graph interrupts before approve_move."""
     initial_state = {
         "tenant_id": "test-tenant",
@@ -85,7 +90,7 @@ async def test_graph_hitl_interruption(mock_semantic_memory):
 
 
 @pytest.mark.asyncio
-async def test_graph_campaign_approval_interrupt(mock_semantic_memory):
+async def test_graph_campaign_approval_interrupt(mock_memories):
     """Verify that the graph interrupts before approve_campaign."""
     initial_state = {"tenant_id": "test-tenant", "messages": [], "status": "new"}
     config = {"configurable": {"thread_id": "campaign-approval-test"}}
