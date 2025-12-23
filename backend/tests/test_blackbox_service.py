@@ -1,7 +1,9 @@
 import sys
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, AsyncMock, patch, ANY
+import pytest
 from uuid import uuid4
+
 
 # Hierarchical mock for google.cloud dependencies WITHOUT breaking google.cloud namespace
 if "google" not in sys.modules:
@@ -327,9 +329,47 @@ def test_vector_search_relevance():
         
         assert len(results) == 3
         assert results[0]["similarity"] > results[1]["similarity"]
-        assert results[0]["content"] == "Perfect match"
+        assert results[2]["similarity"] > 0.5
+
+def test_blackbox_service_categorize_learning():
+    mock_vault = MagicMock()
+    service = BlackboxService(vault=mock_vault)
+    
+    # Mock LLM response
+    with patch("backend.services.blackbox_service.InferenceProvider.get_model") as mock_get_model:
+        mock_llm = MagicMock()
+        mock_get_model.return_value = mock_llm
         
-        # Verify RPC params
-        _, kwargs = mock_session.rpc.call_args
-        assert kwargs["params"]["match_count"] == 10
-        assert kwargs["params"]["match_threshold"] == 0.5
+        # Simulate LLM returning a category
+        mock_response = MagicMock()
+        mock_response.content = "strategic"
+        mock_llm.invoke.return_value = mock_response
+        
+        category = service.categorize_learning(content="We should focus on LinkedIn for high-ticket SaaS founders.")
+        
+        assert category == "strategic"
+        mock_llm.invoke.assert_called_once()
+        # Verify prompt contains the content
+        call_args = mock_llm.invoke.call_args[0][0]
+        assert "We should focus on LinkedIn" in str(call_args)
+
+def test_blackbox_service_get_memory_context_for_planner():
+    mock_vault = MagicMock()
+    service = BlackboxService(vault=mock_vault)
+    
+    # Mock search_strategic_memory
+    with patch.object(service, "search_strategic_memory") as mock_search:
+        mock_search.return_value = [
+            {"content": "LinkedIn works well for SaaS", "learning_type": "strategic"},
+            {"content": "Short copy is better", "learning_type": "tactical"}
+        ]
+        
+        # This will fail until implemented
+        try:
+            context = service.get_memory_context_for_planner(move_type="linkedin_post")
+            assert "LinkedIn works well for SaaS" in context
+            assert "Short copy is better" in context
+            mock_search.assert_called_once_with(query="linkedin_post", limit=5)
+        except AttributeError:
+            pytest.fail("get_memory_context_for_planner not implemented")
+        

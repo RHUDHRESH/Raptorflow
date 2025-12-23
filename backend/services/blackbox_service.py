@@ -173,6 +173,20 @@ class BlackboxService:
             {"source_ids": [str(tid) for tid in trace_ids]}
         ).eq("id", str(learning_id)).execute()
 
+    def get_memory_context_for_planner(self, move_type: str, limit: int = 5) -> str:
+        """Retrieves and formats relevant strategic learnings for the planner agent."""
+        results = self.search_strategic_memory(query=move_type, limit=limit)
+        if not results:
+            return ""
+        
+        context_blocks = []
+        for res in results:
+            content = res.get("content", "")
+            l_type = res.get("learning_type", "unknown")
+            context_blocks.append(f"[{l_type.upper()}] {content}")
+            
+        return "\n---\n".join(context_blocks)
+
     def categorize_learning(self, content: str) -> str:
         """Categorizes a learning content into strategic, tactical, or content."""
         from backend.core.prompts import BlackboxPrompts
@@ -194,3 +208,17 @@ class BlackboxService:
             return "tactical"
 
         return category
+
+    def get_memory_context_for_planner(self, move_type: str, limit: int = 5) -> str:
+        """Retrieves and formats strategic memory for the move planner."""
+        learnings = self.search_strategic_memory(query=move_type, limit=limit)
+        if not learnings:
+            return "No historical memory found for this move type."
+
+        context_parts = ["### RELEVANT STRATEGIC MEMORY:"]
+        for l in learnings:
+            content = l.get("content", "")
+            l_type = l.get("learning_type", "tactical").upper()
+            context_parts.append(f"- [{l_type}] {content}")
+
+        return "\n".join(context_parts)
