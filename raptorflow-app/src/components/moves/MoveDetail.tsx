@@ -8,8 +8,10 @@ import {
     updateMove,
     toggleChecklistItem,
     extendMove,
-    isMoveOverdue
+    isMoveOverdue,
+    generateWeeklyMoves
 } from '@/lib/campaigns';
+import { useInferenceStatus } from '@/hooks/useInferenceStatus';
 import { OverdueBanner } from './OverdueBanner';
 import {
     CheckSquare,
@@ -20,7 +22,8 @@ import {
     Sparkles,
     MoreHorizontal,
     Trash2,
-    Check
+    Check,
+    Loader2
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -36,14 +39,29 @@ interface MoveDetailProps {
     onOpenChange: (open: boolean) => void;
     onUpdate: (move: Move) => void;
     onDelete: (moveId: string) => void;
+    onRefresh?: () => void;
 }
 
-export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete }: MoveDetailProps) {
+export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete, onRefresh }: MoveDetailProps) {
     const [completing, setCompleting] = useState(false);
     const [whatHappened, setWhatHappened] = useState('');
     const [metricValue, setMetricValue] = useState('');
 
+    const { status: agentStatus, messages: agentMessages } = useInferenceStatus(
+        move?.status === 'active' && move.campaignId ? move.campaignId : null
+    );
+
     if (!move) return null;
+
+    const handleGenerateAgenticMoves = async () => {
+        if (!move.campaignId) return;
+        
+        toast.promise(generateWeeklyMoves(move.campaignId), {
+            loading: 'Triggering agentic move decomposition...',
+            success: 'Decomposition started. Watch the live feed.',
+            error: 'Failed to trigger agent'
+        });
+    };
 
     const daysOverdue = move.dueDate
         ? Math.ceil((Date.now() - new Date(move.dueDate).getTime()) / (1000 * 60 * 60 * 24))
@@ -142,6 +160,27 @@ export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete }: Mov
                     </div>
 
                     <div className="flex items-center gap-2">
+                        {move.status === 'active' && move.campaignId && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleGenerateAgenticMoves}
+                                disabled={agentStatus === 'generating'}
+                                className="h-8 rounded-full border-accent/20 bg-accent/5 text-accent hover:bg-accent/10 transition-all"
+                            >
+                                {agentStatus === 'generating' ? (
+                                    <>
+                                        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                                        Thinking...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles className="w-3 h-3 mr-2" />
+                                        Agentic Move Pack
+                                    </>
+                                )}
+                            </Button>
+                        )}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
