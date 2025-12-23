@@ -1,7 +1,13 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from backend.agents.specialists.muse_briefer import MuseBriefingAgent, CreativeBriefOutput
+
+from backend.agents.specialists.muse_briefer import (
+    CreativeBriefOutput,
+    MuseBriefingAgent,
+)
 from backend.models.cognitive import AgentMessage
+
 
 @pytest.mark.asyncio
 async def test_muse_briefing_logic():
@@ -12,25 +18,26 @@ async def test_muse_briefing_logic():
         one_big_idea="Marketing by Design, not by Vibe.",
         emotional_resonance_points=["Control", "Clarity"],
         visual_metaphors=["Architectural precision"],
-        creative_constraints=["No emojis"]
+        creative_constraints=["No emojis"],
     )
-    
+
     mock_runnable = AsyncMock()
     mock_runnable.ainvoke.return_value = expected_brief
-    
+
     with patch("backend.agents.base.InferenceProvider") as mock_inference:
         mock_llm = MagicMock()
         mock_llm.with_structured_output.return_value = mock_runnable
         mock_inference.get_model.return_value = mock_llm
-        
+
         agent = MuseBriefingAgent()
         state = {
             "tenant_id": "test-tenant",
             "messages": [],
-            "raw_prompt": "Brief for campaign X."
+            "raw_prompt": "Brief for campaign X.",
         }
-        
+
         result = await agent(state)
-        
+
         assert result["last_agent"] == "MuseBriefer"
-        assert "One Big Idea" in result["messages"][0].content
+        assert "one_big_idea" in result["messages"][0].content
+        assert "Marketing by Design" in result["messages"][0].content

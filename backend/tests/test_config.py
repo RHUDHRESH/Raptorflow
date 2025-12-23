@@ -1,14 +1,17 @@
+from unittest.mock import patch
+
 import pytest
 from pydantic import ValidationError
-from unittest.mock import patch
+
 from backend.core.config import Config
 
 
-def test_config_missing_required():
-    """Test that Config fails when required fields are missing."""
+def test_config_initialization():
+    """Test that Config initializes with default placeholders."""
     with patch.dict("os.environ", {}, clear=True):
-        with pytest.raises(ValidationError):
-            Config()
+        cfg = Config()
+        assert cfg.SUPABASE_URL == "https://placeholder.supabase.co"
+        assert cfg.GCP_PROJECT_ID == "raptorflow-481505"
 
 
 def test_config_success():

@@ -22,7 +22,8 @@ import {
     createMove,
     generateCampaignId,
     generateMoveId,
-    generateDefaultChecklist
+    generateDefaultChecklist,
+    triggerCampaignInference
 } from '@/lib/campaigns';
 import { Check, ChevronDown, ChevronRight, X, ArrowRight, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
@@ -158,6 +159,13 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
         try {
             await createCampaign(newCampaign);
 
+            // Task 16: Trigger SOTA agentic inference for the 90-day arc
+            toast.promise(triggerCampaignInference(campaignId), {
+                loading: 'Generating 90-day strategic arc...',
+                success: 'Strategic arc generated and moves populated',
+                error: 'Failed to generate arc, using basic template'
+            });
+
             // Create Real Moves from Preview
             for (const [index, pm] of previewMoves.entries()) {
                 const moveId = generateMoveId();
@@ -175,7 +183,6 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
                 await createMove(realMove);
             }
 
-            toast.success('Campaign created and Move 1 started');
             onComplete(newCampaign);
         } catch (error) {
             toast.error('Failed to create campaign');

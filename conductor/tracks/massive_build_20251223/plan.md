@@ -933,7 +933,7 @@
 - [ ] Phase 0927: Write Component Test: test_icp_card_responsive_layout
 - [ ] Phase 0928: Build Foundation.BrandKit_Viewer: Asset list
 - [ ] Phase 0929: Build Foundation.Voice_Analyzer: Sample text scoring
-- [ ] Phase 0930: Build Foundation.Competitor_Radar: Radar chart comparison
+- [~] Phase 0930: Build Foundation.Competitor_Radar: Radar chart comparison
 - [ ] Phase 0931: Build Foundation.Timeline: History of brand changes
 - [ ] Phase 0932: Implement Foundation.upload_logo_handler()`
 - [ ] Phase 0933: Write Component Test: test_voice_analyzer_input

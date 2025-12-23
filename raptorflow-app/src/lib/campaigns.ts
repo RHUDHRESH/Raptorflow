@@ -207,6 +207,7 @@ function mapDBCampaignToFrontend(db: any): Campaign {
         dailyEffort: 30,
         offer: 'other',
         channels: [],
+        strategyArc: db.arc_data,
     };
 }
 
