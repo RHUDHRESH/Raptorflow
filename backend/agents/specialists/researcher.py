@@ -2,7 +2,6 @@ import logging
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 from backend.agents.base import BaseCognitiveAgent
-from backend.core.prompts import ResearchPrompts
 from backend.models.cognitive import CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.agents.researcher")
@@ -26,11 +25,15 @@ class ResearcherAgent(BaseCognitiveAgent):
     Instructions: ResearchPrompts.TREND_EXTRACTOR.
     """
     def __init__(self):
+        from backend.core.prompts import ResearchPrompts
+        from backend.tools.search import TavilyMultiHopTool
+        
         super().__init__(
             name="Researcher",
             role="researcher",
             system_prompt=ResearchPrompts.TREND_EXTRACTOR,
             model_tier="reasoning", # Researchers need high reasoning
+            tools=[TavilyMultiHopTool()],
             output_schema=ResearchOutput
         )
 
