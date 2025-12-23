@@ -132,7 +132,7 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
         setPreviewMoves(moves);
     };
 
-    const handleCreate = () => {
+    const handleCreate = async () => {
         if (!objective || !cohortId || !offer) return;
 
         const campaignId = generateCampaignId();
@@ -155,27 +155,32 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
             startedAt: now,
         };
 
-        createCampaign(newCampaign);
+        try {
+            await createCampaign(newCampaign);
 
-        // Create Real Moves from Preview
-        previewMoves.forEach((pm, index) => {
-            const moveId = generateMoveId();
-            const realMove: Move = {
-                ...pm,
-                id: moveId,
-                campaignId,
-                campaignName: newCampaign.name,
-                status: index === 0 ? 'active' : 'queued', // Start Move 1 immediately
-                createdAt: now,
-                startedAt: index === 0 ? now : undefined,
-                dueDate: index === 0 ? new Date(Date.now() + pm.duration * 24 * 60 * 60 * 1000).toISOString() : undefined,
-                checklist: generateDefaultChecklist(pm.goal, pm.channel, pm.duration as MoveDuration),
-            };
-            createMove(realMove);
-        });
+            // Create Real Moves from Preview
+            for (const [index, pm] of previewMoves.entries()) {
+                const moveId = generateMoveId();
+                const realMove: Move = {
+                    ...pm,
+                    id: moveId,
+                    campaignId,
+                    campaignName: newCampaign.name,
+                    status: index === 0 ? 'active' : 'queued', // Start Move 1 immediately
+                    createdAt: now,
+                    startedAt: index === 0 ? now : undefined,
+                    dueDate: index === 0 ? new Date(Date.now() + pm.duration * 24 * 60 * 60 * 1000).toISOString() : undefined,
+                    checklist: generateDefaultChecklist(pm.goal, pm.channel, pm.duration as MoveDuration),
+                };
+                await createMove(realMove);
+            }
 
-        toast.success('Campaign created and Move 1 started');
-        onComplete(newCampaign);
+            toast.success('Campaign created and Move 1 started');
+            onComplete(newCampaign);
+        } catch (error) {
+            toast.error('Failed to create campaign');
+            console.error(error);
+        }
     };
 
     // Render Steps

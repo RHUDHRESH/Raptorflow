@@ -61,18 +61,18 @@ export function CampaignDetail({
     const activeMove = moves.find(m => m.status === 'active');
     const nextMove = moves.find(m => m.status === 'queued' || m.status === 'draft');
 
-    const handleStatusChange = (status: Campaign['status']) => {
+    const handleStatusChange = async (status: Campaign['status']) => {
         const updated = { ...campaign, status };
-        updateCampaign(updated);
+        await updateCampaign(updated);
         onUpdate(updated);
         toast.success(`Campaign ${status}`);
     };
 
-    const handleStartNextMove = () => {
+    const handleStartNextMove = async () => {
         if (!nextMove) return;
         // Check if there is already a global active move (in real app)
         // For this component we assume we can just switch
-        setActiveMove(nextMove.id);
+        await setActiveMove(nextMove.id);
         onRefresh();
         toast.success(`Started move: ${nextMove.name}`);
     };

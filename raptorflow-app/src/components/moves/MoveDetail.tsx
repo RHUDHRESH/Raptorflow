@@ -68,10 +68,10 @@ export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete }: Mov
         toast.success('Move extended by 3 days');
     };
 
-    const handleAbandon = () => {
+    const handleAbandon = async () => {
         if (!confirm('Abandon this move? It will be marked as failed.')) return;
         const updated = { ...move, status: 'abandoned' as const, completedAt: new Date().toISOString() };
-        updateMove(updated);
+        await updateMove(updated);
         onUpdate(updated);
         onOpenChange(false);
         toast.info('Move abandoned');
@@ -81,7 +81,7 @@ export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete }: Mov
         setCompleting(true);
     };
 
-    const submitCompletion = () => {
+    const submitCompletion = async () => {
         const report: MoveSelfReport = {
             didComplete: true,
             whatHappened,
@@ -96,7 +96,7 @@ export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete }: Mov
             selfReport: report
         };
 
-        updateMove(updated);
+        await updateMove(updated);
         onUpdate(updated);
         setCompleting(false);
         onOpenChange(false);

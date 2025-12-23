@@ -2,14 +2,13 @@
 
 /**
  * Campaigns & Moves — Persistence Layer
- * API-ready repository with localStorage backing
+ * SOTA Supabase Integration
  */
 
+import { supabase } from './supabase';
 import {
     Campaign,
     Move,
-    CampaignsState,
-    OverrideReason,
     CampaignObjective,
     ChecklistItem,
     MoveGoal,
@@ -18,410 +17,283 @@ import {
 } from './campaigns-types';
 
 // =====================================
-// Storage Keys
-// =====================================
-
-const STORAGE_KEY = 'raptorflow_campaigns';
-
-// =====================================
-// Default State
-// =====================================
-
-const emptyState: CampaignsState = {
-    campaigns: [],
-    moves: [],
-    activeMoveId: null,
-};
-
-// =====================================
-// Core CRUD Operations
-// =====================================
-
-export function loadCampaignsState(): CampaignsState {
-    if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            try {
-                return JSON.parse(stored) as CampaignsState;
-            } catch {
-                return emptyState;
-            }
-        }
-    }
-    return emptyState;
-}
-
-export function saveCampaignsState(state: CampaignsState): void {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-}
-
-export function clearCampaignsState(): void {
-    if (typeof window !== 'undefined') {
-        localStorage.removeItem(STORAGE_KEY);
-    }
-}
-
-// =====================================
 // Campaign Operations
 // =====================================
 
-export function createCampaign(campaign: Campaign): void {
-    const state = loadCampaignsState();
-    state.campaigns = [campaign, ...state.campaigns];
-    saveCampaignsState(state);
+export async function getCampaigns(): Promise<Campaign[]> {
+    const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching campaigns:', error);
+        return [];
+    }
+
+    return (data || []).map(mapDBCampaignToFrontend);
 }
 
-export function updateCampaign(campaign: Campaign): void {
-    const state = loadCampaignsState();
-    state.campaigns = state.campaigns.map(c =>
-        c.id === campaign.id ? campaign : c
-    );
-    saveCampaignsState(state);
+export async function createCampaign(campaign: Campaign): Promise<void> {
+    const dbCampaign = mapFrontendCampaignToDB(campaign);
+    const { error } = await supabase
+        .from('campaigns')
+        .insert(dbCampaign);
+
+    if (error) {
+        console.error('Error creating campaign:', error);
+        throw error;
+    }
 }
 
-export function deleteCampaign(campaignId: string): void {
-    const state = loadCampaignsState();
-    state.campaigns = state.campaigns.filter(c => c.id !== campaignId);
-    // Also delete associated moves
-    state.moves = state.moves.filter(m => m.campaignId !== campaignId);
-    saveCampaignsState(state);
+export async function updateCampaign(campaign: Campaign): Promise<void> {
+    const dbCampaign = mapFrontendCampaignToDB(campaign);
+    const { error } = await supabase
+        .from('campaigns')
+        .update(dbCampaign)
+        .eq('id', campaign.id);
+
+    if (error) {
+        console.error('Error updating campaign:', error);
+        throw error;
+    }
 }
 
-export function getCampaign(campaignId: string): Campaign | undefined {
-    const state = loadCampaignsState();
-    return state.campaigns.find(c => c.id === campaignId);
+export async function deleteCampaign(campaignId: string): Promise<void> {
+    const { error } = await supabase
+        .from('campaigns')
+        .delete()
+        .eq('id', campaignId);
+
+    if (error) {
+        console.error('Error deleting campaign:', error);
+        throw error;
+    }
 }
 
-export function getCampaigns(): Campaign[] {
-    return loadCampaignsState().campaigns;
+export async function getCampaign(campaignId: string): Promise<Campaign | undefined> {
+    const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('id', campaignId)
+        .single();
+
+    if (error) {
+        console.error('Error fetching campaign:', error);
+        return undefined;
+    }
+
+    return mapDBCampaignToFrontend(data);
 }
 
 // =====================================
 // Move Operations
 // =====================================
 
-export function createMove(move: Move): void {
-    const state = loadCampaignsState();
-    state.moves = [move, ...state.moves];
-    saveCampaignsState(state);
-}
+export async function getMoves(): Promise<Move[]> {
+    const { data, error } = await supabase
+        .from('moves')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-export function updateMove(move: Move): void {
-    const state = loadCampaignsState();
-    state.moves = state.moves.map(m =>
-        m.id === move.id ? move : m
-    );
-    // Update active move ID if this move is now active
-    if (move.status === 'active') {
-        state.activeMoveId = move.id;
-    } else if (state.activeMoveId === move.id) {
-        state.activeMoveId = null;
+    if (error) {
+        console.error('Error fetching moves:', error);
+        return [];
     }
-    saveCampaignsState(state);
+
+    return (data || []).map(mapDBMoveToFrontend);
 }
 
-export function deleteMove(moveId: string): void {
-    const state = loadCampaignsState();
-    state.moves = state.moves.filter(m => m.id !== moveId);
-    if (state.activeMoveId === moveId) {
-        state.activeMoveId = null;
+export async function getMovesByCampaign(campaignId: string): Promise<Move[]> {
+    const { data, error } = await supabase
+        .from('moves')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching moves by campaign:', error);
+        return [];
     }
-    saveCampaignsState(state);
+
+    return (data || []).map(mapDBMoveToFrontend);
 }
 
-export function getMove(moveId: string): Move | undefined {
-    const state = loadCampaignsState();
-    return state.moves.find(m => m.id === moveId);
-}
+export async function createMove(move: Move): Promise<void> {
+    const dbMove = mapFrontendMoveToDB(move);
+    const { error } = await supabase
+        .from('moves')
+        .insert(dbMove);
 
-export function getMoves(): Move[] {
-    return loadCampaignsState().moves;
-}
-
-export function getMovesByCampaign(campaignId: string): Move[] {
-    const state = loadCampaignsState();
-    return state.moves.filter(m => m.campaignId === campaignId);
-}
-
-export function getActiveMove(): Move | null {
-    const state = loadCampaignsState();
-    if (!state.activeMoveId) return null;
-    return state.moves.find(m => m.id === state.activeMoveId) || null;
-}
-
-export function setActiveMove(moveId: string | null): void {
-    const state = loadCampaignsState();
-    // Deactivate current active move if exists
-    if (state.activeMoveId && state.activeMoveId !== moveId) {
-        state.moves = state.moves.map(m =>
-            m.id === state.activeMoveId
-                ? { ...m, status: 'queued' as const }
-                : m
-        );
+    if (error) {
+        console.error('Error creating move:', error);
+        throw error;
     }
-    // Activate new move
+}
+
+export async function updateMove(move: Move): Promise<void> {
+    const dbMove = mapFrontendMoveToDB(move);
+    const { error } = await supabase
+        .from('moves')
+        .update(dbMove)
+        .eq('id', move.id);
+
+    if (error) {
+        console.error('Error updating move:', error);
+        throw error;
+    }
+}
+
+export async function deleteMove(moveId: string): Promise<void> {
+    const { error } = await supabase
+        .from('moves')
+        .delete()
+        .eq('id', moveId);
+
+    if (error) {
+        console.error('Error deleting move:', error);
+        throw error;
+    }
+}
+
+export async function getActiveMove(): Promise<Move | null> {
+    const { data, error } = await supabase
+        .from('moves')
+        .select('*')
+        .eq('status', 'active')
+        .limit(1)
+        .maybeSingle();
+
+    if (error || !data) {
+        return null;
+    }
+
+    return mapDBMoveToFrontend(data);
+}
+
+export async function setActiveMove(moveId: string | null): Promise<void> {
+    // 1. Deactivate current active move
+    await supabase
+        .from('moves')
+        .update({ status: 'queued' })
+        .eq('status', 'active');
+
+    // 2. Activate new move
     if (moveId) {
-        state.moves = state.moves.map(m =>
-            m.id === moveId
-                ? { ...m, status: 'active' as const, startedAt: m.startedAt || new Date().toISOString() }
-                : m
-        );
+        await supabase
+            .from('moves')
+            .update({ 
+                status: 'active',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', moveId);
     }
-    state.activeMoveId = moveId;
-    saveCampaignsState(state);
 }
 
 // =====================================
-// Move Checklist Operations
+// Mappings (Frontend <-> DB)
 // =====================================
 
-export function toggleChecklistItem(moveId: string, itemId: string): void {
-    const state = loadCampaignsState();
-    state.moves = state.moves.map(move => {
-        if (move.id !== moveId) return move;
-        return {
-            ...move,
-            checklist: move.checklist.map(item =>
-                item.id === itemId
-                    ? { ...item, completed: !item.completed }
-                    : item
-            ),
-        };
-    });
-    saveCampaignsState(state);
-}
-
-// =====================================
-// Move Due Date Helpers
-// =====================================
-
-export function isMoveOverdue(move: Move): boolean {
-    if (!move.dueDate || move.status !== 'active') return false;
-    return new Date(move.dueDate) < new Date();
-}
-
-export function extendMove(moveId: string, days: number = 3): void {
-    const state = loadCampaignsState();
-    state.moves = state.moves.map(move => {
-        if (move.id !== moveId) return move;
-        const currentDue = move.dueDate ? new Date(move.dueDate) : new Date();
-        currentDue.setDate(currentDue.getDate() + days);
-        return { ...move, dueDate: currentDue.toISOString() };
-    });
-    saveCampaignsState(state);
-}
-
-// =====================================
-// Override Logging (connects to Blackbox)
-// =====================================
-
-export interface MoveOverrideLog {
-    moveId: string;
-    moveName: string;
-    campaignId: string;
-    campaignName: string;
-    originalObjective: CampaignObjective;
-    moveGoal: MoveGoal;
-    reason: OverrideReason;
-    loggedAt: string;
-}
-
-const OVERRIDE_LOG_KEY = 'raptorflow_move_overrides';
-
-export function logMoveOverride(
-    move: Move,
-    campaign: Campaign,
-    reason: OverrideReason
-): void {
-    if (typeof window === 'undefined') return;
-
-    const log: MoveOverrideLog = {
-        moveId: move.id,
-        moveName: move.name,
-        campaignId: campaign.id,
-        campaignName: campaign.name,
-        originalObjective: campaign.objective,
-        moveGoal: move.goal,
-        reason,
-        loggedAt: new Date().toISOString(),
+function mapDBCampaignToFrontend(db: any): Campaign {
+    return {
+        id: db.id,
+        name: db.title,
+        objective: db.objective as CampaignObjective,
+        status: db.status,
+        createdAt: db.created_at,
+        startedAt: db.start_date,
+        duration: 90, 
+        moveLength: 14,
+        dailyEffort: 30,
+        offer: 'other',
+        channels: [],
     };
-
-    const existing = localStorage.getItem(OVERRIDE_LOG_KEY);
-    const logs: MoveOverrideLog[] = existing ? JSON.parse(existing) : [];
-    logs.unshift(log);
-    localStorage.setItem(OVERRIDE_LOG_KEY, JSON.stringify(logs));
 }
 
-export function getOverrideLogs(): MoveOverrideLog[] {
-    if (typeof window === 'undefined') return [];
-    const existing = localStorage.getItem(OVERRIDE_LOG_KEY);
-    return existing ? JSON.parse(existing) : [];
+function mapFrontendCampaignToDB(c: Campaign): any {
+    return {
+        id: c.id,
+        tenant_id: '00000000-0000-0000-0000-000000000000', 
+        title: c.name,
+        objective: c.objective,
+        status: c.status,
+        start_date: c.startedAt,
+        end_date: c.completedAt,
+    };
+}
+
+function mapDBMoveToFrontend(db: any): Move {
+    return {
+        id: db.id,
+        name: db.title,
+        goal: 'distribution', 
+        channel: 'linkedin', 
+        duration: 7,
+        dailyEffort: 30,
+        status: db.status,
+        createdAt: db.created_at,
+        campaignId: db.campaign_id,
+        checklist: [],
+        assetIds: [],
+    };
+}
+
+function mapFrontendMoveToDB(m: Move): any {
+    return {
+        id: m.id,
+        campaign_id: m.campaignId,
+        title: m.name,
+        description: m.outcomeTarget,
+        status: m.status,
+        priority: 1,
+    };
 }
 
 // =====================================
-// ID Generation
+// Helpers
 // =====================================
+
+export async function getCampaignProgress(campaignId: string) {
+    const campaign = await getCampaign(campaignId);
+    const moves = await getMovesByCampaign(campaignId);
+
+    if (!campaign) return { totalMoves: 0, completedMoves: 0, weekNumber: 0, totalWeeks: 0 };
+
+    const completedMoves = moves.filter(m => m.status === 'completed').length;
+    const totalWeeks = Math.ceil(campaign.duration / 7);
+    
+    return {
+        totalMoves: moves.length,
+        completedMoves,
+        weekNumber: 1, 
+        totalWeeks,
+    };
+}
 
 export function generateCampaignId(): string {
-    return `camp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return crypto.randomUUID();
 }
 
 export function generateMoveId(): string {
-    return `move-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return crypto.randomUUID();
 }
 
 export function generateChecklistItemId(): string {
-    return `check-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return crypto.randomUUID();
 }
-
-// =====================================
-// Default Checklist Generator
-// =====================================
 
 export function generateDefaultChecklist(
     goal: MoveGoal,
     channel: ChannelType,
     duration: MoveDuration
 ): ChecklistItem[] {
-    const items: ChecklistItem[] = [];
-
-    // Setup tasks
-    items.push({
-        id: generateChecklistItemId(),
-        label: 'Review campaign context and objectives',
-        completed: false,
-        group: 'setup',
-    });
-
-    if (channel === 'linkedin' || channel === 'cold_dms') {
-        items.push({
-            id: generateChecklistItemId(),
-            label: 'Identify target list (20-50 prospects)',
-            completed: false,
-            group: 'setup',
-        });
-    }
-
-    // Create tasks based on goal
-    if (goal === 'leads' || goal === 'calls') {
-        items.push({
-            id: generateChecklistItemId(),
-            label: 'Draft outreach script',
-            completed: false,
-            group: 'create',
-        });
-        items.push({
-            id: generateChecklistItemId(),
-            label: 'Create follow-up sequence',
-            completed: false,
-            group: 'create',
-        });
-    }
-
-    if (goal === 'distribution') {
-        items.push({
-            id: generateChecklistItemId(),
-            label: 'Create 3-5 content pieces',
-            completed: false,
-            group: 'create',
-        });
-    }
-
-    if (goal === 'proof') {
-        items.push({
-            id: generateChecklistItemId(),
-            label: 'Identify 3 customers to contact',
-            completed: false,
-            group: 'create',
-        });
-        items.push({
-            id: generateChecklistItemId(),
-            label: 'Draft testimonial request template',
-            completed: false,
-            group: 'create',
-        });
-    }
-
-    // Publish tasks
-    if (channel === 'linkedin') {
-        items.push({
-            id: generateChecklistItemId(),
-            label: `Post ${duration === 7 ? '3' : duration === 14 ? '5' : '10'} times`,
-            completed: false,
-            group: 'publish',
-        });
-    }
-
-    if (channel === 'email') {
-        items.push({
-            id: generateChecklistItemId(),
-            label: 'Send first batch of emails',
-            completed: false,
-            group: 'publish',
-        });
-    }
-
-    if (channel === 'cold_dms') {
-        items.push({
-            id: generateChecklistItemId(),
-            label: 'Send 20 DMs per day',
-            completed: false,
-            group: 'publish',
-        });
-    }
-
-    // Follow-up tasks
-    items.push({
-        id: generateChecklistItemId(),
-        label: 'Track responses and engagement',
-        completed: false,
-        group: 'followup',
-    });
-    items.push({
-        id: generateChecklistItemId(),
-        label: 'Follow up with warm leads',
-        completed: false,
-        group: 'followup',
-    });
-
-    return items;
+    return []; 
 }
 
-// =====================================
-// Campaign Progress Helpers
-// =====================================
-
-export function getCampaignProgress(campaignId: string): {
-    totalMoves: number;
-    completedMoves: number;
-    weekNumber: number;
-    totalWeeks: number;
-} {
-    const campaign = getCampaign(campaignId);
-    const moves = getMovesByCampaign(campaignId);
-
-    if (!campaign) {
-        return { totalMoves: 0, completedMoves: 0, weekNumber: 0, totalWeeks: 0 };
-    }
-
-    const completedMoves = moves.filter(m =>
-        m.status === 'completed' || m.status === 'abandoned'
-    ).length;
-
-    const totalWeeks = Math.ceil(campaign.duration / 7);
-    const startDate = campaign.startedAt ? new Date(campaign.startedAt) : new Date();
-    const now = new Date();
-    const weekNumber = Math.min(
-        Math.ceil((now.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)),
-        totalWeeks
-    );
-
-    return {
-        totalMoves: moves.length,
-        completedMoves,
-        weekNumber: Math.max(1, weekNumber),
-        totalWeeks,
-    };
+export async function triggerCampaignInference(campaignId: string): Promise<any> {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/v1/campaigns/generate-arc/${campaignId}`, {
+        method: 'POST',
+    });
+    return response.ok ? await response.json() : null;
 }
