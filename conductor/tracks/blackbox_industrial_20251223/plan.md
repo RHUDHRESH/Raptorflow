@@ -44,8 +44,8 @@
 - [x] Task 35: Define Graph Node: `attribute_outcomes_node` (Math-heavy) [2407df3]
 - [x] Task 36: Define Graph Node: `reflect_and_validate_node` (Self-correction) [2407df3]
 - [x] Task 37: Implement Conditional Edges for Graph (Retry on low confidence) [2407df3]
-- [x] Task 38: Integrate `BlackboxService` into LangGraph nodes [2407df3]
-- [x] Task 39: Write Integration Test: `test_blackbox_graph_execution` [2407df3]
+- [x] Task 38: Integrate `BlackboxService` into LangGraph nodes [441dd10]
+- [ ] Task 39: Write Integration Test: `test_blackbox_graph_execution`
 - [x] Task 40: Conductor - User Manual Verification 'LangGraph Spine' [d4df63c]
 
 ## Phase 5: Multi-Agent Specialists (Phases 41-50)
