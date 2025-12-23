@@ -8,14 +8,19 @@ from backend.memory.semantic import SemanticMemory
 from backend.memory.episodic import EpisodicMemory
 from backend.memory.procedural import ProceduralMemory
 
-# Specialists
-from backend.agents.specialists.strategist import StrategistAgent
+# Phase 5 Specialists
 from backend.agents.specialists.brand_kit import BrandKitAgent
 from backend.agents.specialists.icp_architect import ICPArchitectAgent
 from backend.agents.specialists.competitor_intelligence import CompetitorIntelligenceAgent
 from backend.agents.specialists.value_proposition import ValuePropositionAgent
 from backend.agents.specialists.messaging_matrix import MessagingMatrixAgent
 from backend.agents.specialists.swot_analyst import SWOTAnalystAgent
+
+# Phase 6 Specialists
+from backend.agents.specialists.campaign_planner import CampaignPlannerAgent
+from backend.agents.specialists.goal_aligner import GoalAlignerAgent
+from backend.agents.specialists.move_generator import MoveGeneratorAgent
+from backend.core.pivoting import PivotEngine
 
 logger = logging.getLogger("raptorflow.graphs.spine_v3")
 
@@ -44,16 +49,17 @@ async def brand_foundation_node(state: CognitiveIntelligenceState) -> Dict[str, 
     """Phase 41/42: Brand Kit & Positioning."""
     logger.info("Spine: Executing Brand Foundation")
     bk_agent = BrandKitAgent()
-    strat_agent = StrategistAgent()
-    
     bk_res = await bk_agent(state)
-    strat_res = await strat_agent(state)
     
-    combined_messages = bk_res["messages"] + strat_res["messages"]
+    # After foundation, we might want to run goal alignment (Phase 52)
+    ga_agent = GoalAlignerAgent()
+    ga_res = await ga_agent(state)
+    
+    combined_messages = bk_res["messages"] + ga_res["messages"]
     return {
         "status": CognitiveStatus.RESEARCHING,
-        "messages": combined_messages + [AgentMessage(role="system", content="Foundation set. Moving to Cohorts/Intel.")],
-        "brief": {**bk_res.get("output", {}), **strat_res.get("output", {})}
+        "messages": combined_messages + [AgentMessage(role="system", content="Foundation & Goals set. Moving to research.")],
+        "brief": {**bk_res.get("output", {}), **ga_res.get("output", {})}
     }
 
 async def icp_architect_node(state: CognitiveIntelligenceState) -> Dict[str, Any]:
@@ -70,27 +76,30 @@ async def research_aggregator(state: CognitiveIntelligenceState) -> Dict[str, An
     """Sync point for parallel research."""
     return {
         "status": CognitiveStatus.EXECUTING,
-        "messages": [AgentMessage(role="system", content="Research phase complete. Transitioning to strategic mapping.")]
+        "messages": [AgentMessage(role="system", content="Research complete. Architecting campaign strategy.")]
     }
 
-async def execute_strategy_mapping(state: CognitiveIntelligenceState) -> Dict[str, Any]:
-    """Phase 46/47/48: Value Prop, Matrix, SWOT."""
-    vp_agent = ValuePropositionAgent()
-    mm_agent = MessagingMatrixAgent()
-    swot_agent = SWOTAnalystAgent()
+async def execute_campaign_planning(state: CognitiveIntelligenceState) -> Dict[str, Any]:
+    """Phase 51/53: Campaign Arc & Move Generation."""
+    logger.info("Spine: Executing Strategic Planning")
+    cp_agent = CampaignPlannerAgent()
+    mg_agent = MoveGeneratorAgent()
     
+    cp_res = await cp_agent(state)
+    mg_res = await mg_agent(state)
+    
+    # Phase 46/47/48 Specialists can also be run here
+    vp_agent = ValuePropositionAgent()
     vp_res = await vp_agent(state)
-    mm_res = await mm_agent(state)
-    swot_res = await swot_agent(state)
     
     return {
-        "messages": vp_res["messages"] + mm_res["messages"] + swot_res["messages"],
-        "status": CognitiveStatus.AUDITING
+        "messages": cp_res["messages"] + mg_res["messages"] + vp_res["messages"],
+        "status": CognitiveStatus.AUDITING,
+        "current_plan": mg_res.get("output", {}).get("moves", [])
     }
 
 async def placeholder_execute(state: CognitiveIntelligenceState) -> Dict[str, Any]:
-    # Phase 6 will replace this
-    return await execute_strategy_mapping(state)
+    return await execute_campaign_planning(state)
 
 async def human_audit_node(state: CognitiveIntelligenceState) -> Dict[str, Any]:
     return {"status": CognitiveStatus.COMPLETE, "messages": [AgentMessage(role="human", content="Audit complete.")]}
@@ -129,7 +138,20 @@ workflow.add_edge("brand_foundation", "init")
 workflow.add_edge("icp_architect", "aggregate")
 workflow.add_edge("competitor_intel", "aggregate")
 workflow.add_edge("aggregate", "init")
-workflow.add_edge("execute", "init")
+
+def execution_check(state: CognitiveIntelligenceState) -> str:
+    """Industrial execution check with Pivot logic."""
+    pivots = PivotEngine.evaluate_pivot(state.get("quality_score", 1.0), [])
+    if pivots:
+        logger.warning(f"Pivot detected: {pivots[0].proposed_pivot}")
+        return "research" # Loop back to research on pivot
+    return "audit"
+
+workflow.add_conditional_edges("execute", execution_check, {
+    "research": "icp_architect",
+    "audit": "audit"
+})
+
 workflow.add_edge("audit", "finalize")
 workflow.add_edge("finalize", END)
 workflow.add_edge("error", END)
