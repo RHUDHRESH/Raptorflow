@@ -24,3 +24,18 @@ async def test_skill_execution():
     skill = MockSkill()
     result = await skill.execute({})
     assert result["status"] == "executed"
+
+@pytest.mark.asyncio
+async def test_emergency_halt_skill():
+    """Test that the EmergencyHaltSkill engages the kill-switch."""
+    from backend.skills.matrix_skills import EmergencyHaltSkill
+    from backend.services.matrix_service import MatrixService
+    from unittest.mock import AsyncMock
+    
+    mock_matrix = AsyncMock(spec=MatrixService)
+    mock_matrix.halt_system.return_value = True
+    skill = EmergencyHaltSkill(matrix_service=mock_matrix)
+    
+    result = await skill.execute({"reason": "Test engagement"})
+    assert result["halt_engaged"] is True
+    assert mock_matrix.halt_system.called

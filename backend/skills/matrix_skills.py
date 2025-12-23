@@ -47,3 +47,28 @@ class SkillRegistry:
     def list_skills(self) -> List[str]:
         """Returns a list of all registered skill names."""
         return list(self._skills.keys())
+
+
+class EmergencyHaltSkill(MatrixSkill):
+    """
+    Skill to engage the global system kill-switch.
+    """
+
+    def __init__(self, matrix_service):
+        self.matrix_service = matrix_service
+
+    @property
+    def name(self) -> str:
+        return "emergency_halt"
+
+    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        reason = params.get("reason", "No reason provided")
+        logger.warning(f"EmergencyHaltSkill triggered: {reason}")
+        
+        success = await self.matrix_service.halt_system()
+        
+        return {
+            "halt_engaged": success,
+            "reason": reason,
+            "status": "system_halted" if success else "failed_to_halt"
+        }
