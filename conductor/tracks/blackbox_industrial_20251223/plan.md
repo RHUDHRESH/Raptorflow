@@ -33,7 +33,7 @@
 - [~] Task 26: Write Unit Test: `test_vector_search_relevance`
 - [x] Task 27: Implement `BlackboxService.get_memory_context_for_planner(move_type)` [adb4382]
 - [x] Task 28: Implement Memory Pruning logic (Removing redundant/outdated insights) [977ead9]
-- [ ] Task 29: Create `backend/api/v1/blackbox_memory.py` endpoints
+- [x] Task 29: Create `backend/api/v1/blackbox_memory.py` endpoints [fe6d0d4]
 - [ ] Task 30: Conductor - User Manual Verification 'Cognitive Memory'
 
 ## Phase 4: Agentic Orchestration - LangGraph Spine (Phases 31-40)
