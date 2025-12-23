@@ -1,45 +1,26 @@
-import pytest
-from uuid import uuid4
-from backend.graphs.blackbox_analysis import AnalysisState
+from unittest.mock import MagicMock, patch
+from backend.graphs.blackbox_analysis import AnalysisState, ingest_telemetry_node
 
-def test_analysis_state_definition():
-    
-    state = {
-        "move_id": str(uuid4()),
+def test_ingest_telemetry_node():
+    # 1. Setup State
+    state: AnalysisState = {
+        "move_id": "test-move-id",
         "telemetry_data": [],
         "findings": [],
         "outcomes": [],
         "reflection": "",
-        "confidence": 0.0
-    }
-    # TypedDict verification
-    assert "move_id" in AnalysisState.__annotations__
-    assert "telemetry_data" in AnalysisState.__annotations__
-
-def test_analysis_state_accumulation():
-    state1: AnalysisState = {
-        "move_id": "test",
-        "telemetry_data": [{"id": 1}],
-        "findings": ["initial"],
-        "outcomes": [],
-        "reflection": "",
-        "confidence": 0.0,
-        "status": "start"
+        "confidence": 1.0,
+        "status": "starting"
     }
     
-    state2: AnalysisState = {
-        "telemetry_data": [{"id": 2}],
-        "findings": ["new"],
-        "reflection": "updated"
-    }
+    # 2. Mock Service
+    mock_service = MagicMock()
+    mock_service.get_agent_audit_log.return_value = [{"id": "t1", "agent_id": "a1"}]
     
-    # In LangGraph, the StateGraph handles this accumulation via operator.add
-    # We simulate it here by showing the logic we expect the graph to follow
-    import operator
-    
-    combined_telemetry = operator.add(state1["telemetry_data"], state2["telemetry_data"])
-    combined_findings = operator.add(state1["findings"], state2["findings"])
-    
-    assert len(combined_telemetry) == 2
-    assert len(combined_findings) == 2
-    assert combined_findings == ["initial", "new"]
+    # 3. Execute Node
+    with patch("backend.graphs.blackbox_analysis.get_blackbox_service", return_value=mock_service):
+        new_state = ingest_telemetry_node(state)
+        
+        assert len(new_state["telemetry_data"]) == 1
+        assert new_state["status"] == "ingested"
+        mock_service.get_agent_audit_log.assert_called_once()
