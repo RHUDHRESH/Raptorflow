@@ -1,11 +1,22 @@
 import logging
-from typing import List, Literal, TypedDict
+import uuid
+from typing import List, Literal, TypedDict, Dict, Any, Annotated, Optional
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from backend.inference import InferenceProvider
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger("raptorflow.supervisor")
+
+
+class MatrixState(TypedDict):
+    """Real-time state for the Matrix Supervisor orchestration."""
+    messages: Annotated[List[BaseMessage], "The conversation messages"]
+    next: str
+    instructions: str
+    system_health: Dict[str, Any]
+    active_agent_id: Optional[str]
+
 
 class RouterOutput(BaseModel):
     """SOTA Structured output for the Supervisor router."""

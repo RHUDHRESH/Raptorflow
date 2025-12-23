@@ -1,9 +1,7 @@
 import sys
 import time
-from unittest.mock import MagicMock, AsyncMock, patch, ANY
-import pytest
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
-from datetime import datetime
 
 # Hierarchical mock for google.cloud dependencies WITHOUT breaking google.cloud namespace
 if "google" not in sys.modules:
@@ -21,8 +19,9 @@ sys.modules["google.cloud.secretmanager"] = mock_secretmanager
 sys.modules["supabase"] = MagicMock()
 
 from backend.core.vault import Vault
-from backend.services.blackbox_service import BlackboxService, trace_agent
 from backend.models.blackbox import BlackboxTelemetry
+from backend.services.blackbox_service import BlackboxService, trace_agent
+
 
 def test_blackbox_service_instantiation():
     mock_vault = MagicMock(spec=Vault)
@@ -334,33 +333,3 @@ def test_vector_search_relevance():
         _, kwargs = mock_session.rpc.call_args
         assert kwargs["params"]["match_count"] == 10
         assert kwargs["params"]["match_threshold"] == 0.5
-
-
-def test_vector_search_relevance():
-    mock_vault = MagicMock()
-    mock_session = MagicMock()
-    mock_vault.get_session.return_value = mock_session
-    
-    mock_rpc_builder = MagicMock()
-    mock_session.rpc.return_value = mock_rpc_builder
-    
-    # Mock data with descending similarity
-    mock_data = [
-        {"content": "Highly relevant", "similarity": 0.95},
-        {"content": "Somewhat relevant", "similarity": 0.75},
-        {"content": "Barely relevant", "similarity": 0.51}
-    ]
-    mock_rpc_builder.execute.return_value = MagicMock(data=mock_data)
-    
-    service = BlackboxService(vault=mock_vault)
-    
-    with patch("backend.services.blackbox_service.InferenceProvider.get_embeddings") as mock_get_embeds:
-        mock_embed_model = MagicMock()
-        mock_get_embeds.return_value = mock_embed_model
-        mock_embed_model.embed_query.return_value = [0.1] * 768
-        
-        results = service.search_strategic_memory(query="relevance test", limit=10)
-        
-        assert len(results) == 3
-        assert results[0]["similarity"] > results[1]["similarity"]
-        assert results[2]["similarity"] > 0.5
