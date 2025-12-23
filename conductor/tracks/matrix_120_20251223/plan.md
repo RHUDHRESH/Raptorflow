@@ -89,7 +89,7 @@
 - [x] Phase 076: Backend - Implement `SystemSanityCheck` (Periodic agent health probe). 0fc2995
 - [x] Phase 077: Backend - Implement `CostGovernor` (Calculate daily dollar burn). 50b59de
 - [x] Phase 078: Backend - Implement `KillSwitchCircuitBreaker` (Auto-halt on critical drift). 0ef60f0
-- [ ] Phase 079: Backend - Implement `ModelLineageTracker` (GCS artifact linking).
+- [x] Phase 079: Backend - Implement `ModelLineageTracker` (GCS artifact linking). 41bf952
 - [x] Phase 080: Conductor - User Manual Verification 'MLOps Guardrails' (Protocol in workflow.md) [f98bb6b]
 
 #### Block G: API, Security & Governance (Phases 81-90)
