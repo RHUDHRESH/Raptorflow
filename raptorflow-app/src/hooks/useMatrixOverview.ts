@@ -4,6 +4,12 @@ export interface MatrixOverview {
   system_state: {
     kill_switch_engaged: boolean;
     system_status: string;
+    active_agents: Record<string, {
+      status: string;
+      last_heartbeat: string;
+      current_task?: string;
+      metadata?: Record<string, any>;
+    }>;
   };
   health_report: {
     status: "healthy" | "warning" | "unhealthy";

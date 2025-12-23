@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SystemStatusHeader } from "@/components/matrix/SystemStatusHeader";
+import { AgentPoolList } from "@/components/matrix/AgentPoolList";
 import { Activity, Zap, Shield, AlertTriangle } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -89,19 +90,11 @@ export default function MatrixPage() {
         </Card>
       </div>
 
-      {/* 4. Secondary Panels (Placeholder) */}
+      {/* 4. Secondary Panels */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 rounded-2xl border-border bg-card/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="font-display">Agent Pool Activity</CardTitle>
-            <CardDescription>Real-time telemetry from active cognitive threads.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px] flex items-center justify-center text-muted-foreground">
-              Telemetry feed initializing...
-            </div>
-          </CardContent>
-        </Card>
+        <div className="col-span-4">
+          <AgentPoolList />
+        </div>
         
         <Card className="col-span-3 rounded-2xl border-border bg-card/50 shadow-sm">
           <CardHeader>
