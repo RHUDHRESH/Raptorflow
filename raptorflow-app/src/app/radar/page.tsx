@@ -7,23 +7,42 @@ import { RadarScanner } from '@/components/radar/RadarScanner';
 import { ScanConfigurationDialog, ScanConfig } from '@/components/radar/ScanConfigurationDialog';
 import { ReconFeed } from '@/components/radar/recon/ReconFeed';
 import { DossierFeed } from '@/components/radar/dossier/DossierFeed';
-import { RadarMode, MOCK_SIGNALS, MOCK_DOSSIERS } from '@/components/radar/types';
+import { RadarMode, Signal, Dossier } from '@/components/radar/types';
+import { scanRecon, generateDossier } from '@/lib/radar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 export default function RadarPage() {
     const [mode, setMode] = useState<RadarMode>('recon');
     const [selectedIcpId, setSelectedIcpId] = useState<string>('default');
     const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'results'>('results');
     const [isScanDialogOpen, setIsScanDialogOpen] = useState(false);
+    
+    const [signals, setSignals] = useState<Signal[]>([]);
+    const [dossiers, setDossiers] = useState<Dossier[]>([]);
 
     const handleOpenScanDialog = () => {
         setIsScanDialogOpen(true);
     };
 
-    const handleStartScan = (config: ScanConfig) => {
-        setMode(config.mode); // Switch to the mode requested in dialog
+    const handleStartScan = async (config: ScanConfig) => {
+        setMode(config.mode); 
         setScanStatus('scanning');
+        
+        try {
+            if (config.mode === 'recon') {
+                const results = await scanRecon(selectedIcpId);
+                setSignals(results);
+            } else {
+                const results = await generateDossier(selectedIcpId);
+                setDossiers(results);
+            }
+        } catch (error) {
+            console.error("Scan failed:", error);
+            toast.error("Radar scan failed. Ensure backend is running.");
+            setScanStatus('idle');
+        }
     };
 
     const handleScanComplete = () => {
@@ -53,9 +72,9 @@ export default function RadarPage() {
                         ) : (
                             <div className="animate-in slide-in-from-bottom-4 duration-700 fade-in">
                                 {mode === 'recon' ? (
-                                    <ReconFeed signals={MOCK_SIGNALS} />
+                                    <ReconFeed signals={signals} />
                                 ) : (
-                                    <DossierFeed dossiers={MOCK_DOSSIERS} />
+                                    <DossierFeed dossiers={dossiers} />
                                 )}
                             </div>
                         )}

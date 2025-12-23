@@ -382,6 +382,12 @@ export const emptyFoundation: FoundationData = {
   proof: {
     proofTypes: [],
   },
+  customerInsights: {
+    bestCustomers: [],
+    triggerEvents: [],
+    alternatives: [],
+    painRanking: [],
+  },
   brandVoice: ''
 };
 

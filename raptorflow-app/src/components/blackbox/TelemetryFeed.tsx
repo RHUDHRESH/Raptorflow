@@ -1,65 +1,109 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Cpu, Code } from 'lucide-react';
+import { Clock, Cpu, Code, Activity } from 'lucide-react';
+import { getTelemetryByMove } from '@/lib/blackbox';
+import { cn } from '@/lib/utils';
 
-interface TelemetryTrace {
+export interface TelemetryTrace {
     id: string;
     agent_id: string;
-    action: string;
+    trace: {
+        status?: string;
+        error?: string;
+        action?: string;
+    };
     latency: number;
     timestamp: string;
-    status: 'success' | 'failed';
 }
 
-const MOCK_TRACES: TelemetryTrace[] = [
-    { id: '1', agent_id: 'MoveGenerator', action: 'generate_weekly_moves', latency: 1240, timestamp: '2 mins ago', status: 'success' },
-    { id: '2', agent_id: 'TavilySearch', action: 'deep_research', latency: 3400, timestamp: '5 mins ago', status: 'success' },
-    { id: '3', agent_id: 'StrategicAnalyst', action: 'pivot_recommendation', latency: 890, timestamp: '12 mins ago', status: 'success' },
-    { id: '4', agent_id: 'SafetyGuard', action: 'content_validation', latency: 120, timestamp: '15 mins ago', status: 'success' },
-];
+interface TelemetryFeedProps {
+    moveId?: string;
+    traces?: TelemetryTrace[];
+    className?: string;
+}
 
-export function TelemetryFeed() {
+export function TelemetryFeed({ moveId, traces: initialTraces, className }: TelemetryFeedProps) {
+    const [traces, setTraces] = useState<TelemetryTrace[]>(initialTraces || []);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (moveId) {
+            const fetchTelemetry = async () => {
+                const data = await getTelemetryByMove(moveId);
+                setTraces(data);
+            };
+            fetchTelemetry();
+            
+            // Polling for "Live" effect if move is active
+            const interval = setInterval(fetchTelemetry, 5000);
+            return () => clearInterval(interval);
+        }
+    }, [moveId]);
+
+    // Sync with props if provided
+    useEffect(() => {
+        if (initialTraces) setTraces(initialTraces);
+    }, [initialTraces]);
+
     return (
-        <Card className="border border-border bg-card/50 backdrop-blur-sm rounded-2xl shadow-none">
-            <CardHeader>
+        <Card className={cn("border border-border bg-card/50 backdrop-blur-sm rounded-2xl shadow-none overflow-hidden", className)}>
+            <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold font-sans tracking-tight">
-                        Live Telemetry
-                    </CardTitle>
-                    <Badge variant="outline" className="font-mono text-[10px] uppercase tracking-tighter bg-accent/10 text-accent border-accent/20">
-                        Live stream
+                    <div className="flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-accent animate-pulse" />
+                        <CardTitle className="text-sm font-bold font-sans uppercase tracking-widest text-muted-foreground">
+                            Live Telemetry
+                        </CardTitle>
+                    </div>
+                    <Badge variant="outline" className="font-mono text-[9px] uppercase tracking-tighter bg-accent/10 text-accent border-accent/20 px-1.5 py-0">
+                        Agent Stream
                     </Badge>
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="space-y-4">
-                    {MOCK_TRACES.map((trace) => (
-                        <div key={trace.id} className="flex items-center justify-between py-2 border-b border-border last:border-0 group hover:bg-accent/5 transition-colors rounded-lg px-2 -mx-2">
-                            <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
-                                    <Cpu className="h-4 w-4 text-muted-foreground" />
-                                </div>
-                                <div>
-                                    <div className="text-sm font-medium font-sans flex items-center gap-2">
-                                        {trace.agent_id}
-                                        <span className="text-xs text-muted-foreground font-normal">→ {trace.action}</span>
+                <div className="space-y-3">
+                    {traces.length === 0 ? (
+                        <p className="text-xs text-muted-foreground italic py-4 text-center">No telemetry traces yet.</p>
+                    ) : (
+                        traces.map((trace) => {
+                            const isError = trace.trace?.status === 'failed' || !!trace.trace?.error;
+                            return (
+                                <div key={trace.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0 group hover:bg-accent/5 transition-colors rounded-lg px-2 -mx-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn(
+                                            "h-7 w-7 rounded flex items-center justify-center shrink-0",
+                                            isError ? "bg-red-500/10" : "bg-muted"
+                                        )}>
+                                            <Cpu className={cn("h-3.5 w-3.5", isError ? "text-red-500" : "text-muted-foreground")} />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="text-xs font-semibold font-sans flex items-center gap-1.5">
+                                                <span className="truncate">{trace.agent_id}</span>
+                                                {trace.trace?.action && (
+                                                    <span className="text-[10px] text-muted-foreground font-normal shrink-0">→ {trace.trace.action}</span>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-3 mt-0.5">
+                                                <span className="flex items-center gap-1 text-[9px] text-muted-foreground/60 font-mono">
+                                                    <Clock className="h-2.5 w-2.5" /> {new Date(trace.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                                <span className="flex items-center gap-1 text-[9px] text-muted-foreground/60 font-mono">
+                                                    <Code className="h-2.5 w-2.5" /> {trace.latency.toFixed(0)}ms
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-3 mt-1">
-                                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground font-mono">
-                                            <Clock className="h-3 w-3" /> {trace.timestamp}
-                                        </span>
-                                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground font-mono">
-                                            <Code className="h-3 w-3" /> {trace.latency}ms
-                                        </span>
-                                    </div>
+                                    <div className={cn(
+                                        "h-1.5 w-1.5 rounded-full shrink-0",
+                                        isError ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" : "bg-emerald-500"
+                                    )} />
                                 </div>
-                            </div>
-                            <div className={`h-1.5 w-1.5 rounded-full ${trace.status === 'success' ? 'bg-green-500' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'}`} />
-                        </div>
-                    ))}
+                            );
+                        })
+                    )}
                 </div>
             </CardContent>
         </Card>
