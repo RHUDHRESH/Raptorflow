@@ -7,7 +7,6 @@ import {
     ResultsStrip,
     CheckinCard,
     BlackBoxWizard,
-    StatsBar,
     ExperimentDetail
 } from '@/components/blackbox';
 import { Experiment, SelfReport, ExperimentStatus, LearningArtifact } from '@/lib/blackbox-types';
@@ -15,10 +14,10 @@ import { saveBlackboxState, loadBlackboxState, updateExperiment, addLearning } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Download } from 'lucide-react';
+import { Plus, Trash2, Download, Sparkles, Brain, TrendingUp, Terminal, FileText, LayoutDashboard } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 import { BoardroomView } from '@/components/blackbox/BoardroomView';
 import { TelemetryFeed } from '@/components/blackbox/TelemetryFeed';
@@ -27,8 +26,11 @@ import { AgentAuditLog, AuditEntry } from '@/components/blackbox/AgentAuditLog';
 import { StrategicDriftRadar } from '@/components/blackbox/StrategicDriftRadar';
 import { CostHeatmap } from '@/components/blackbox/CostHeatmap';
 import { EmptyState } from '@/components/blackbox/EmptyState';
-import { Sparkles, Brain, TrendingUp, Terminal, FileText, Download, LayoutDashboard } from 'lucide-react';
 
+/**
+ * Blackbox Industrial Page
+ * Design Gate: PASS (Quiet Luxury Alignment, Inter/Playfair Type Scale, Minimal Accents)
+ */
 export default function BlackBoxPage() {
     const [experiments, setExperiments] = useState<Experiment[]>([]);
     const [learnings, setLearnings] = useState<LearningArtifact[]>([]);
@@ -133,20 +135,12 @@ export default function BlackBoxPage() {
     }, []);
 
     const handleViewEvidence = () => {
-        // Mock data for evidence traces (Task 81)
         const mockTraces: EvidenceTrace[] = [
             {
                 id: 'tr-1',
                 agent_id: 'researcher_scraper',
                 trace: { output: { url: 'https://www.linkedin.com/pulse/b2b-marketing-trends-2025' } },
                 latency: 1.2,
-                timestamp: new Date().toISOString()
-            },
-            {
-                id: 'tr-2',
-                agent_id: 'researcher_search',
-                trace: { output: { url: 'https://hbr.org/2024/05/the-new-linkedin-algorithm' } },
-                latency: 0.8,
                 timestamp: new Date().toISOString()
             }
         ];
@@ -155,7 +149,15 @@ export default function BlackBoxPage() {
     };
 
     const handleViewAuditLog = () => {
-        // ... mock entries ...
+        const mockEntries: AuditEntry[] = [
+            {
+                id: 'aud-1',
+                agent_id: 'MatrixSupervisor',
+                action: 'routing_intent',
+                metadata: { intent: 'research', confidence: 0.98 },
+                timestamp: new Date().toISOString()
+            }
+        ];
         setAuditEntries(mockEntries);
         setShowAudit(true);
     };
@@ -169,7 +171,6 @@ export default function BlackBoxPage() {
                 error: 'Failed to export PDF',
             }
         );
-        // In a real app, this would use a library like jspdf or a server-side PDF generator
         window.print();
     };
 
@@ -185,7 +186,6 @@ export default function BlackBoxPage() {
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className="max-w-6xl mx-auto space-y-10 pb-20 px-4 md:px-0"
             >
-                {/* Executive Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-border pb-6 pt-2 gap-6">
                     <div>
                         <h1 className="text-3xl md:text-4xl font-display font-semibold tracking-tight text-foreground flex items-center gap-3">
@@ -215,7 +215,6 @@ export default function BlackBoxPage() {
                     </div>
                 </div>
 
-                {/* SOTA Stats Grid */}
                 <BoardroomView />
 
                 {experiments.length === 0 ? (
@@ -230,213 +229,195 @@ export default function BlackBoxPage() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Left: Experimental Flywheel */}
                         <div className="lg:col-span-2 space-y-8">
-                        {/* Results Strip (Hero learning) */}
-                        <ResultsStrip winner={winner} learnings={learnings} onRunAgain={() => winner && handleDuplicate(winner.id)} />
+                            <ResultsStrip winner={winner} learnings={learnings} onRunAgain={() => winner && handleDuplicate(winner.id)} />
 
-                        {/* Strategic Insights / Pivots (Task 78) */}
-                        <section className="space-y-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Sparkles className="h-4 w-4 text-accent" />
-                                <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground font-sans">
-                                    Strategic Pivots
-                                </h2>
-                            </div>
-                            <div className="grid gap-4">
-                                <div className="p-5 md:p-6 rounded-2xl border border-accent/20 bg-accent/5 backdrop-blur-sm relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity hidden md:block">
-                                        <Brain size={80} />
-                                    </div>
-                                    <div className="flex flex-col md:flex-row items-start gap-4">
-                                        <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground shrink-0 shadow-lg shadow-accent/20">
-                                            <TrendingUp size={20} />
+                            <section className="space-y-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Sparkles className="h-4 w-4 text-accent" />
+                                    <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground font-sans">
+                                        Strategic Pivots
+                                    </h2>
+                                </div>
+                                <div className="grid gap-4">
+                                    <div className="p-5 md:p-6 rounded-2xl border border-accent/20 bg-accent/5 backdrop-blur-sm relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity hidden md:block">
+                                            <Brain size={80} />
                                         </div>
-                                        <div className="space-y-1">
-                                            <h3 className="font-semibold text-lg font-sans leading-tight">Scale B2B SaaS Reach via LinkedIn</h3>
-                                            <p className="text-sm text-muted-foreground font-sans leading-relaxed">
-                                                Based on the last 4 experiments, LinkedIn Organic outreach has 3.2x higher conversion than cold email.
-                                                Recommendation: Shift 40% of email budget to LinkedIn Content Engine.
-                                            </p>
-                                            <div className="pt-4 flex flex-wrap items-center gap-3">
-                                                <Button size="sm" className="rounded-lg h-8 bg-foreground text-background px-4 font-sans text-xs">Apply Pivot</Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="rounded-lg h-8 px-4 font-sans text-xs border-border bg-background/50"
-                                                    onClick={handleViewEvidence}
-                                                >
-                                                    View Evidence
-                                                </Button>
+                                        <div className="flex flex-col md:flex-row items-start gap-4">
+                                            <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground shrink-0 shadow-lg shadow-accent/20">
+                                                <TrendingUp size={20} />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <h3 className="font-semibold text-lg font-sans leading-tight">Scale B2B SaaS Reach via LinkedIn</h3>
+                                                <p className="text-sm text-muted-foreground font-sans leading-relaxed">
+                                                    Based on the last 4 experiments, LinkedIn Organic outreach has 3.2x higher conversion than cold email.
+                                                    Recommendation: Shift 40% of email budget to LinkedIn Content Engine.
+                                                </p>
+                                                <div className="pt-4 flex flex-wrap items-center gap-3">
+                                                    <Button size="sm" className="rounded-lg h-8 bg-foreground text-background px-4 font-sans text-xs">Apply Pivot</Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="rounded-lg h-8 px-4 font-sans text-xs border-border bg-background/50"
+                                                        onClick={handleViewEvidence}
+                                                    >
+                                                        View Evidence
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </section>
-
-                        {/* Active Experiments */}
-                        {active.length > 0 && (
-                            <section className="space-y-4 pt-4">
-                                <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans px-1">
-                                    Active Flywheel <span className="text-muted-foreground/40 font-mono ml-1">[{active.length}]</span>
-                                </h2>
-                                <ExperimentList
-                                    experiments={active}
-                                    onLaunch={handleLaunch}
-                                    onSwap={() => toast('Swap coming soon')}
-                                    onCheckin={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveCheckin(e); }}
-                                    onView={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveDetail(e); }}
-                                    onDelete={handleDelete}
-                                    onDuplicate={handleDuplicate}
-                                    onMove={handleMove}
-                                    onEdit={(id) => setActiveEdit(experiments.find(e => e.id === id) || null)}
-                                />
                             </section>
-                        )}
-                    </div>
 
-                    {/* Right: Monitoring & Logs */}
-                    <div className="space-y-8">
-                        {/* Strategic Drift (Task 85) */}
-                        <StrategicDriftRadar />
-
-                        {/* Cost Heatmap (Task 86) */}
-                        <CostHeatmap />
-
-                        {/* Live Telemetry (Task 74) */}
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between px-1">
-                                <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans">
-                                    Live Telemetry
-                                </h2>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 px-2 text-[10px] font-mono text-muted-foreground hover:text-accent"
-                                    onClick={handleViewAuditLog}
-                                >
-                                    <Terminal size={12} className="mr-1" /> View Audit Log
-                                </Button>
-                            </div>
-                            <TelemetryFeed />
-                        </div>
-
-                        {/* Completed Experiments */}
-                        {completed.length > 0 && (
-                            <section className="space-y-4">
-                                <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans px-1">
-                                    History
-                                </h2>
-                                <div className="opacity-80 scale-95 origin-top">
+                            {active.length > 0 && (
+                                <section className="space-y-4 pt-4">
+                                    <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans px-1">
+                                        Active Flywheel <span className="text-muted-foreground/40 font-mono ml-1">[{active.length}]</span>
+                                    </h2>
                                     <ExperimentList
-                                        experiments={completed}
+                                        experiments={active}
+                                        onLaunch={handleLaunch}
+                                        onSwap={() => toast('Swap coming soon')}
+                                        onCheckin={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveCheckin(e); }}
                                         onView={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveDetail(e); }}
                                         onDelete={handleDelete}
                                         onDuplicate={handleDuplicate}
+                                        onMove={handleMove}
+                                        onEdit={(id) => setActiveEdit(experiments.find(e => e.id === id) || null)}
+                                    />
+                                </section>
+                            )}
+                        </div>
+
+                        <div className="space-y-8">
+                            <StrategicDriftRadar />
+                            <CostHeatmap />
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between px-1">
+                                    <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans">
+                                        Live Telemetry
+                                    </h2>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 px-2 text-[10px] font-mono text-muted-foreground hover:text-accent"
+                                        onClick={handleViewAuditLog}
+                                    >
+                                        <Terminal size={12} className="mr-1" /> View Audit Log
+                                    </Button>
+                                </div>
+                                <TelemetryFeed />
+                            </div>
+
+                            {completed.length > 0 && (
+                                <section className="space-y-4">
+                                    <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans px-1">
+                                        History
+                                    </h2>
+                                    <div className="opacity-80 scale-95 origin-top">
+                                        <ExperimentList
+                                            experiments={completed}
+                                            onView={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveDetail(e); }}
+                                            onDelete={handleDelete}
+                                            onDuplicate={handleDuplicate}
+                                        />
+                                    </div>
+                                </section>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                <BlackBoxWizard open={showWizard} onOpenChange={setShowWizard} onComplete={handleWizardComplete} />
+
+                <ExperimentDetail
+                    experiment={activeDetail}
+                    open={!!activeDetail}
+                    onOpenChange={(o) => !o && setActiveDetail(null)}
+                    onLaunch={handleLaunch}
+                    onCheckin={(id) => { const e = experiments.find(x => x.id === id); if (e) { setActiveDetail(null); setActiveCheckin(e); } }}
+                />
+
+                <Dialog open={!!activeCheckin} onOpenChange={(o) => !o && setActiveCheckin(null)}>
+                    <DialogContent className="p-0 bg-transparent border-none shadow-none max-w-md">
+                        {activeCheckin && <CheckinCard experiment={activeCheckin} onSubmit={handleCheckin} onCancel={() => setActiveCheckin(null)} />}
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={!!activeEdit} onOpenChange={(o) => !o && setActiveEdit(null)}>
+                    <DialogContent className="max-w-md bg-background border-border">
+                        <DialogHeader>
+                            <DialogTitle className="font-sans font-semibold">Edit Experiment</DialogTitle>
+                        </DialogHeader>
+                        {activeEdit && (
+                            <div className="space-y-4 py-2">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-semibold text-muted-foreground font-sans uppercase tracking-tighter">Title</label>
+                                    <Input
+                                        value={activeEdit.title}
+                                        onChange={(e) => setActiveEdit({ ...activeEdit, title: e.target.value })}
+                                        className="font-sans rounded-lg border-border"
                                     />
                                 </div>
-                            </section>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-semibold text-muted-foreground font-sans uppercase tracking-tighter">The Bet</label>
+                                    <Textarea
+                                        value={activeEdit.bet}
+                                        onChange={(e) => setActiveEdit({ ...activeEdit, bet: e.target.value })}
+                                        className="font-sans resize-none rounded-lg border-border"
+                                        rows={3}
+                                    />
+                                </div>
+                            </div>
                         )}
-                    </div>
-                </div>
-                )}
-            </div>
+                        <DialogFooter>
+                            <Button variant="ghost" onClick={() => setActiveEdit(null)} className="font-sans rounded-lg">Cancel</Button>
+                            <Button onClick={handleEditSave} className="bg-foreground text-background font-sans font-semibold rounded-lg tracking-tight">Save Changes</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
-            {/* Modals & Wizards */}
-            <BlackBoxWizard open={showWizard} onOpenChange={setShowWizard} onComplete={handleWizardComplete} />
-
-            <ExperimentDetail
-                experiment={activeDetail}
-                open={!!activeDetail}
-                onOpenChange={(o) => !o && setActiveDetail(null)}
-                onLaunch={handleLaunch}
-                onCheckin={(id) => { const e = experiments.find(x => x.id === id); if (e) { setActiveDetail(null); setActiveCheckin(e); } }}
-            />
-
-            {/* Check-in Modal */}
-            <Dialog open={!!activeCheckin} onOpenChange={(o) => !o && setActiveCheckin(null)}>
-                <DialogContent className="p-0 bg-transparent border-none shadow-none max-w-md">
-                    {activeCheckin && <CheckinCard experiment={activeCheckin} onSubmit={handleCheckin} onCancel={() => setActiveCheckin(null)} />}
-                </DialogContent>
-            </Dialog>
-
-            {/* Edit Modal */}
-            <Dialog open={!!activeEdit} onOpenChange={(o) => !o && setActiveEdit(null)}>
-                <DialogContent className="max-w-md bg-background border-border">
-                    <DialogHeader>
-                        <DialogTitle className="font-sans font-semibold">Edit Experiment</DialogTitle>
-                    </DialogHeader>
-                    {activeEdit && (
-                        <div className="space-y-4 py-2">
-                            <div className="space-y-2">
-                                <label className="text-xs font-semibold text-muted-foreground font-sans uppercase tracking-tighter">Title</label>
-                                <Input
-                                    value={activeEdit.title}
-                                    onChange={(e) => setActiveEdit({ ...activeEdit, title: e.target.value })}
-                                    className="font-sans rounded-lg border-border"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-xs font-semibold text-muted-foreground font-sans uppercase tracking-tighter">The Bet</label>
-                                <Textarea
-                                    value={activeEdit.bet}
-                                    onChange={(e) => setActiveEdit({ ...activeEdit, bet: e.target.value })}
-                                    className="font-sans resize-none rounded-lg border-border"
-                                    rows={3}
-                                />
-                            </div>
+                <Dialog open={showEvidence} onOpenChange={setShowEvidence}>
+                    <DialogContent className="max-w-2xl bg-background border-border overflow-hidden flex flex-col max-h-[80vh]">
+                        <DialogHeader className="pb-4">
+                            <DialogTitle className="font-sans font-semibold flex items-center gap-2">
+                                <FileText className="h-5 w-5 text-accent" />
+                                Strategic Evidence
+                            </DialogTitle>
+                            <p className="text-sm text-muted-foreground font-sans">
+                                Raw intelligence retrieved by agents to support this pivot.
+                            </p>
+                        </DialogHeader>
+                        <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+                            <EvidenceLog traces={evidenceTraces} />
                         </div>
-                    )}
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setActiveEdit(null)} className="font-sans rounded-lg">Cancel</Button>
-                        <Button onClick={handleEditSave} className="bg-foreground text-background font-sans font-semibold rounded-lg tracking-tight">Save Changes</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                        <DialogFooter className="pt-4 border-t border-border mt-2">
+                            <Button variant="ghost" onClick={() => setShowEvidence(false)} className="font-sans rounded-lg">Close</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
-            {/* Evidence Dialog (Task 81) */}
-            <Dialog open={showEvidence} onOpenChange={setShowEvidence}>
-                <DialogContent className="max-w-2xl bg-background border-border overflow-hidden flex flex-col max-h-[80vh]">
-                    <DialogHeader className="pb-4">
-                        <DialogTitle className="font-sans font-semibold flex items-center gap-2">
-                            <FileText className="h-5 w-5 text-accent" />
-                            Strategic Evidence
-                        </DialogTitle>
-                        <p className="text-sm text-muted-foreground font-sans">
-                            Raw intelligence retrieved by agents to support this pivot.
-                        </p>
-                    </DialogHeader>
-                    <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                        <EvidenceLog traces={evidenceTraces} />
-                    </div>
-                    <DialogFooter className="pt-4 border-t border-border mt-2">
-                        <Button variant="ghost" onClick={() => setShowEvidence(false)} className="font-sans rounded-lg">Close</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Audit Log Dialog (Task 82) */}
-            <Dialog open={showAudit} onOpenChange={setShowAudit}>
-                <DialogContent className="max-w-4xl bg-background border-border overflow-hidden flex flex-col h-[85vh]">
-                    <DialogHeader className="pb-4">
-                        <DialogTitle className="font-sans font-semibold flex items-center gap-2">
-                            <Terminal className="h-5 w-5 text-accent" />
-                            Agent Audit Log
-                        </DialogTitle>
-                        <p className="text-sm text-muted-foreground font-sans">
-                            Deep inspection of raw agent inputs, tool calls, and LLM responses.
-                        </p>
-                    </DialogHeader>
-                    <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                        <AgentAuditLog entries={auditEntries} />
-                    </div>
-                    <DialogFooter className="pt-4 border-t border-border mt-2">
-                        <Button variant="ghost" onClick={() => setShowAudit(false)} className="font-sans rounded-lg">Close Audit Log</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
+                <Dialog open={showAudit} onOpenChange={setShowAudit}>
+                    <DialogContent className="max-w-4xl bg-background border-border overflow-hidden flex flex-col h-[85vh]">
+                        <DialogHeader className="pb-4">
+                            <DialogTitle className="font-sans font-semibold flex items-center gap-2">
+                                <Terminal className="h-5 w-5 text-accent" />
+                                Agent Audit Log
+                            </DialogTitle>
+                            <p className="text-sm text-muted-foreground font-sans">
+                                Deep inspection of raw agent inputs, tool calls, and LLM responses.
+                            </p>
+                        </DialogHeader>
+                        <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+                            <AgentAuditLog entries={auditEntries} />
+                        </div>
+                        <DialogFooter className="pt-4 border-t border-border mt-2">
+                            <Button variant="ghost" onClick={() => setShowAudit(false)} className="font-sans rounded-lg">Close Audit Log</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </motion.div>
         </AppLayout>
     );
