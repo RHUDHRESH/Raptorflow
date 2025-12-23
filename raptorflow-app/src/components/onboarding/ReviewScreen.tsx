@@ -53,6 +53,7 @@ export function ReviewScreen({ data, onBack, onComplete, onEditSection }: Review
 
                         <div className={styles.reviewGrid}>
                             <ReviewItem label="Business Type" value={formatValue(data.business?.businessType)} />
+                            <ReviewItem label="Industry" value={data.business?.industry} />
                             <ReviewItem label="Stage" value={formatValue(data.business?.stage)} />
                             <ReviewItem label="Customer Type" value={formatValue(data.cohorts?.customerType as string)} />
                             <ReviewItem label="Price Band" value={formatValue(data.business?.priceBand)} />
