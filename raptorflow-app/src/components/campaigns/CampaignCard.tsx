@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Campaign, OBJECTIVE_LABELS, CHANNEL_LABELS } from '@/lib/campaigns-types';
 import { ChevronRight } from 'lucide-react';
 import { InferenceStatusIndicator } from './InferenceStatusIndicator';
 import { useInferenceStatus } from '@/hooks/useInferenceStatus';
+import { getCampaignProgress } from '@/lib/campaigns';
 
 interface CampaignCardProps {
     campaign: Campaign;
@@ -18,10 +19,18 @@ interface CampaignCardProps {
     onClick: () => void;
 }
 
-export function CampaignCard({ campaign, progress, activeMove, onClick }: CampaignCardProps) {
+export function CampaignCard({ campaign, progress: initialProgress, activeMove, onClick }: CampaignCardProps) {
+    const [progress, setProgress] = useState(initialProgress);
+    
     const { status: agentStatus } = useInferenceStatus(
         campaign.status === 'active' && !activeMove ? campaign.id : null
     );
+
+    useEffect(() => {
+        if (!initialProgress) {
+            getCampaignProgress(campaign.id).then(setProgress);
+        }
+    }, [campaign.id, initialProgress]);
 
     const statusColors: Record<Campaign['status'], string> = {
         planned: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
