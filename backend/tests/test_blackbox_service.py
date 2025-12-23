@@ -238,3 +238,47 @@ def test_learning_flywheel_output():
 
                 # Should have upserted both findings
                 assert mock_upsert.call_count == 2
+
+
+def test_blackbox_service_get_learning_feed():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    service = BlackboxService(vault=mock_vault)
+
+    mock_query_builder = MagicMock()
+    mock_session.table.return_value = mock_query_builder
+    mock_query_builder.select.return_value = mock_query_builder
+    mock_query_builder.order.return_value = mock_query_builder
+    mock_query_builder.limit.return_value = mock_query_builder
+    
+    mock_response = MagicMock()
+    mock_response.data = [{"id": "l1", "content": "Insight 1"}]
+    mock_query_builder.execute.return_value = mock_response
+
+    feed = service.get_learning_feed(limit=5)
+    
+    assert len(feed) == 1
+    assert feed[0]["id"] == "l1"
+    mock_session.table.assert_called_with("blackbox_learnings_industrial")
+    mock_query_builder.limit.assert_called_once_with(5)
+
+
+def test_blackbox_service_validate_insight():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    service = BlackboxService(vault=mock_vault)
+
+    mock_query_builder = MagicMock()
+    mock_session.table.return_value = mock_query_builder
+    mock_query_builder.update.return_value = mock_query_builder
+    mock_query_builder.eq.return_value = mock_query_builder
+    mock_query_builder.execute.return_value = MagicMock()
+
+    learning_id = uuid4()
+    service.validate_insight(learning_id, status="approved")
+
+    mock_session.table.assert_called_with("blackbox_learnings_industrial")
+    mock_query_builder.update.assert_called_once_with({"status": "approved"})
+    mock_query_builder.eq.assert_called_once_with("id", str(learning_id))
