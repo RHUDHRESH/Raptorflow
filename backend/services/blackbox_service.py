@@ -151,11 +151,12 @@ class BlackboxService:
         """
         session = self.vault.get_session()
 
-        # 1. Get all moves for this campaign
+        # 1. Get all moves for this campaign, ordered by creation
         moves_res = (
             session.table("moves")
             .select("id")
             .eq("campaign_id", str(campaign_id))
+            .order("created_at")
             .execute()
         )
         move_ids = [m["id"] for m in moves_res.data]
@@ -167,23 +168,34 @@ class BlackboxService:
         total_tokens = sum(self.calculate_move_cost(mid) for mid in move_ids)
         total_cost = (total_tokens / 1000.0) * 0.02
 
-        # 3. Aggregate Outcomes for this campaign
+        # 3. Aggregate Outcomes based on Attribution Model
         outcomes_res = (
             session.table("blackbox_outcomes_industrial")
-            .select("value")
+            .select("value", "move_id")
             .eq("campaign_id", str(campaign_id))
             .execute()
         )
-        total_value = sum(float(o["value"]) for o in outcomes_res.data)
+        outcomes = outcomes_res.data
+        
+        total_value = 0.0
+        if model == AttributionModel.LINEAR:
+            total_value = sum(float(o["value"]) for o in outcomes)
+        elif model == AttributionModel.FIRST_TOUCH:
+            first_move_id = move_ids[0]
+            total_value = sum(float(o["value"]) for o in outcomes if o.get("move_id") == first_move_id)
+        elif model == AttributionModel.LAST_TOUCH:
+            last_move_id = move_ids[-1]
+            total_value = sum(float(o["value"]) for o in outcomes if o.get("move_id") == last_move_id)
 
         # 4. ROI Formula: (Value - Cost) / Cost
         roi = ((total_value - total_cost) / total_cost) if total_cost > 0 else 0.0
 
         return {
             "campaign_id": str(campaign_id),
-            "roi": roi,
-            "total_cost": total_cost,
-            "total_value": total_value,
+            "attribution_model": model.value,
+            "roi": round(roi, 4),
+            "total_cost": round(total_cost, 4),
+            "total_value": round(total_value, 4),
             "status": "computed"
         }
 
