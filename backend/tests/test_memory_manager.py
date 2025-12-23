@@ -11,7 +11,8 @@ async def test_memory_manager_store_trace_l1_only():
     
     with patch("backend.memory.manager.L1ShortTermMemory", return_value=mock_l1), \
          patch("backend.memory.manager.L2EpisodicMemory", return_value=mock_l2), \
-         patch("backend.memory.manager.L3SemanticMemory", return_value=mock_l3):
+         patch("backend.memory.manager.L3SemanticMemory", return_value=mock_l3), \
+         patch("backend.memory.manager.InferenceProvider") as mock_inference:
         
         manager = MemoryManager()
         await manager.store_trace(
