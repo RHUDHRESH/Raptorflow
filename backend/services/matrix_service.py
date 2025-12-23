@@ -3,6 +3,9 @@ from datetime import datetime
 from backend.models.telemetry import SystemState, AgentState, AgentHealthStatus, TelemetryEvent
 from backend.services.cache import get_cache
 from backend.db import get_pool, SupabaseSaver
+from backend.services.sanity_check import SystemSanityCheck
+from backend.services.latency_monitor import LatencyMonitor
+from backend.services.cost_governor import CostGovernor
 
 
 class StateCheckpointManager:
@@ -38,10 +41,28 @@ class MatrixService:
     def __init__(self):
         self._state = SystemState()
         self._redis = get_cache()
+        self._sanity = SystemSanityCheck()
+        self._latency = LatencyMonitor()
+        self._cost = CostGovernor()
 
     def get_system_overview(self) -> SystemState:
-        """Retrieves the current global system state."""
+        """Retrieves the current global system state (Legacy)."""
         return self._state
+
+    async def get_aggregated_overview(self, workspace_id: str) -> Dict[str, Any]:
+        """
+        Retrieves the complete aggregated health and cost dashboard.
+        Combines deterministic checks with real-time telemetry.
+        """
+        health = await self._sanity.run_suite()
+        cost = await self._cost.get_burn_report(workspace_id)
+        
+        return {
+            "system_state": self._state.model_dump(),
+            "health_report": health,
+            "cost_report": cost,
+            "timestamp": datetime.now().isoformat()
+        }
 
     async def initialize_telemetry_stream(self) -> bool:
         """Initializes connection to telemetry providers (e.g., Upstash)."""
