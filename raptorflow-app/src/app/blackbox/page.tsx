@@ -22,7 +22,8 @@ import { toast } from 'sonner';
 import { BoardroomView } from '@/components/blackbox/BoardroomView';
 import { TelemetryFeed } from '@/components/blackbox/TelemetryFeed';
 import { EvidenceLog, EvidenceTrace } from '@/components/blackbox/EvidenceLog';
-import { Sparkles, Brain, TrendingUp } from 'lucide-react';
+import { AgentAuditLog, AuditEntry } from '@/components/blackbox/AgentAuditLog';
+import { Sparkles, Brain, TrendingUp, Terminal } from 'lucide-react';
 
 export default function BlackBoxPage() {
     const [experiments, setExperiments] = useState<Experiment[]>([]);
@@ -33,6 +34,8 @@ export default function BlackBoxPage() {
     const [showWizard, setShowWizard] = useState(false);
     const [evidenceTraces, setEvidenceTraces] = useState<EvidenceTrace[]>([]);
     const [showEvidence, setShowEvidence] = useState(false);
+    const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
+    const [showAudit, setShowAudit] = useState(false);
 
     useEffect(() => {
         const state = loadBlackboxState();
@@ -147,6 +150,38 @@ export default function BlackBoxPage() {
         setShowEvidence(true);
     };
 
+    const handleViewAuditLog = () => {
+        // Mock data for audit entries (Task 82)
+        const mockEntries: AuditEntry[] = [
+            {
+                id: 'ae-1',
+                agent_id: 'strategic_analyst',
+                move_id: 'mv-123',
+                trace: {
+                    input: { move: 'LinkedIn Campaign' },
+                    output: { decision: 'Pivot to LinkedIn' }
+                },
+                tokens: 450,
+                latency: 2.1,
+                timestamp: new Date().toISOString()
+            },
+            {
+                id: 'ae-2',
+                agent_id: 'roi_specialist',
+                move_id: 'mv-123',
+                trace: {
+                    input: { campaign_id: 'camp-456' },
+                    output: { roi: 4.2 }
+                },
+                tokens: 320,
+                latency: 1.5,
+                timestamp: new Date().toISOString()
+            }
+        ];
+        setAuditEntries(mockEntries);
+        setShowAudit(true);
+    };
+
     const winner = experiments.find(e => e.status === 'checked_in' && (e.self_report?.outcome === 'great' || e.self_report?.outcome === 'worked'));
     const active = experiments.filter(e => e.status !== 'checked_in');
     const completed = experiments.filter(e => e.status === 'checked_in');
@@ -250,7 +285,22 @@ export default function BlackBoxPage() {
                     {/* Right: Monitoring & Logs */}
                     <div className="space-y-8">
                         {/* Live Telemetry (Task 74) */}
-                        <TelemetryFeed />
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between px-1">
+                                <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans">
+                                    Live Telemetry
+                                </h2>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 px-2 text-[10px] font-mono text-muted-foreground hover:text-accent"
+                                    onClick={handleViewAuditLog}
+                                >
+                                    <Terminal size={12} className="mr-1" /> View Audit Log
+                                </Button>
+                            </div>
+                            <TelemetryFeed />
+                        </div>
 
                         {/* Completed Experiments */}
                         {completed.length > 0 && (
@@ -341,6 +391,27 @@ export default function BlackBoxPage() {
                     </div>
                     <DialogFooter className="pt-4 border-t border-border mt-2">
                         <Button variant="ghost" onClick={() => setShowEvidence(false)} className="font-sans rounded-lg">Close</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Audit Log Dialog (Task 82) */}
+            <Dialog open={showAudit} onOpenChange={setShowAudit}>
+                <DialogContent className="max-w-4xl bg-background border-border overflow-hidden flex flex-col h-[85vh]">
+                    <DialogHeader className="pb-4">
+                        <DialogTitle className="font-sans font-semibold flex items-center gap-2">
+                            <Terminal className="h-5 w-5 text-accent" />
+                            Agent Audit Log
+                        </DialogTitle>
+                        <p className="text-sm text-muted-foreground font-sans">
+                            Deep inspection of raw agent inputs, tool calls, and LLM responses.
+                        </p>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+                        <AgentAuditLog entries={auditEntries} />
+                    </div>
+                    <DialogFooter className="pt-4 border-t border-border mt-2">
+                        <Button variant="ghost" onClick={() => setShowAudit(false)} className="font-sans rounded-lg">Close Audit Log</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
