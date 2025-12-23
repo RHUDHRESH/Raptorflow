@@ -1,0 +1,40 @@
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - GCP_PROJECT_ID=raptorflow-481505
+      - GCP_REGION=europe-west1
+      - INFERENCE_PROVIDER=google
+      - SUPABASE_URL=http://supabase:54321
+      - SUPABASE_SERVICE_ROLE_KEY=placeholder-key
+      - UPSTASH_REDIS_REST_URL=http://redis:6379
+      - UPSTASH_REDIS_REST_TOKEN=placeholder-token
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - redis
+
+  frontend:
+    build:
+      context: ./raptorflow-app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-key
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+    volumes:
+      - ./raptorflow-app:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"

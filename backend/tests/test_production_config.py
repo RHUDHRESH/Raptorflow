@@ -14,7 +14,8 @@ def test_config_production_requirements_failure():
         "SUPABASE_URL": "https://test.supabase.co",
         "SUPABASE_SERVICE_ROLE_KEY": "test-key",
         "LLM_PROVIDER": "google",
-        # Missing UPSTASH_REDIS_REST_URL
+        "UPSTASH_REDIS_REST_URL": "", # Explicitly empty to override .env
+        "UPSTASH_REDIS_REST_TOKEN": "",
     }
     with patch.dict("os.environ", env, clear=True):
         cfg = Config()
