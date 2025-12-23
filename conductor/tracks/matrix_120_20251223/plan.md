@@ -13,7 +13,7 @@
 - [x] Phase 010: Conductor - User Manual Verification 'Foundation & Core Telemetry' (Protocol in workflow.md)
 
 #### Block B: Osipov Data Engineering - The Gold Zone (Phases 11-20)
-- [ ] Phase 011: Backend - Configure GCS `raptorflow-gold-zone` bucket for Parquet storage.
+- [x] Phase 011: Backend - Configure GCS `raptorflow-gold-zone` bucket for Parquet storage. 8d2409f
 - [ ] Phase 012: Backend - Implement `ParquetExporter` using `pyarrow` for telemetry archival.
 - [ ] Phase 013: Backend - Write Red Phase tests for `ParquetExporter.export_batch()`.
 - [ ] Phase 014: Backend - Implement `ParquetExporter.export_batch()` with schema evolution support.
