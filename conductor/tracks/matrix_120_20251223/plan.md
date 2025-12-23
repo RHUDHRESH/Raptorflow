@@ -30,7 +30,7 @@
 - [x] Phase 023: Backend - Implement `DriftAnalyzerAgent` (Statistical test specialist). b3afef7
 - [~] Phase 024: Backend - Implement `GovernorAgent` (Budget & Token limit specialist).
 - [x] Phase 025: Backend - Implement `SecurityAuditorAgent` (PII & Policy specialist). b3e32b3
-- [ ] Phase 026: Backend - Write Red Phase tests for `MatrixSupervisor.route_intent()`.
+- [x] Phase 026: Backend - Write Red Phase tests for `MatrixSupervisor.route_intent()`. 3d57909
 - [ ] Phase 027: Backend - Implement `MatrixSupervisor.route_intent()` (Intent detection).
 - [ ] Phase 028: Backend - Implement `MatrixSupervisor.delegate_to_specialist()`.
 - [ ] Phase 029: Backend - Implement `MatrixSupervisor.aggregate_findings()`.
