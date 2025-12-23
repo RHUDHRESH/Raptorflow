@@ -6,6 +6,13 @@
   "devCommand": "npm run dev",
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key"
-  }
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
+    "NEXT_PUBLIC_MATRIX_API_URL": "@matrix_api_url"
+  },
+  "rewrites": [
+    {
+      "source": "/api/v1/matrix/:path*",
+      "destination": "https://raptorflow-backend-raptorflow-481505.europe-west1.run.app/v1/matrix/:path*"
+    }
+  ]
 }
