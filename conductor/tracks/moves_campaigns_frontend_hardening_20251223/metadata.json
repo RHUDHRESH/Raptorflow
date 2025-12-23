@@ -1,0 +1,8 @@
+{
+  "track_id": "moves_campaigns_frontend_hardening_20251223",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2025-12-23T17:22:00Z",
+  "updated_at": "2025-12-23T17:22:00Z",
+  "description": "Completely analyze and harden every single file of the front-end component of moves and campaigns to ensure 100% end-to-end functionality integrated with Vertex AI inference."
+}

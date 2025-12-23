@@ -17,3 +17,11 @@
 
 ## [x] Track: Matrix: 120-phase industrial build (GCP, Supabase, Vercel, Upstash)
 *Link: [./conductor/tracks/matrix_120_20251223/](./conductor/tracks/matrix_120_20251223/)*
+
+---
+
+
+
+## [~] Track: End-to-End Moves & Campaigns Frontend Hardening
+
+*Link: [./conductor/tracks/moves_campaigns_frontend_hardening_20251223/](./conductor/tracks/moves_campaigns_frontend_hardening_20251223/)*
