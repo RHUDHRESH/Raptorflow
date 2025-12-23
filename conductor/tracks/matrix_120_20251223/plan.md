@@ -93,8 +93,8 @@
 - [x] Phase 080: Conductor - User Manual Verification 'MLOps Guardrails' (Protocol in workflow.md) [f98bb6b]
 
 #### Block G: API, Security & Governance (Phases 81-90)
-- [x] Phase 081: Backend - Create `api/v1/matrix.py` FastAPI router. [2457dc7]
-- [x] Phase 082: Backend - Implement `GET /overview` (Aggregated health dashboard). [2457dc7]
+- [x] Phase 081: Backend - Create `api/v1/matrix.py` FastAPI router. 426c735
+- [ ] Phase 082: Backend - Implement `GET /overview` (Aggregated health dashboard).
 - [x] Phase 083: Backend - Implement `POST /kill-switch` with audit logging. [2457dc7]
 - [x] Phase 084: Backend - Implement `GET /mlops/drift` (Detailed statistical report). [2457dc7]
 - [x] Phase 085: Backend - Implement `GET /governance/burn` (Financial data). [2457dc7]
