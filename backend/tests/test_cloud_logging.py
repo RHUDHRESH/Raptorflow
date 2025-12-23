@@ -17,8 +17,6 @@ try:
 
     from backend.utils.logger import RaptorFlowJSONFormatter
 
-
-
     def test_formatter_adds_severity():
         """Unit test for RaptorFlowJSONFormatter logic."""
         formatter = RaptorFlowJSONFormatter()

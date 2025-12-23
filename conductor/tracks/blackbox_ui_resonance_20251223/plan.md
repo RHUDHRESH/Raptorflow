@@ -30,8 +30,8 @@ Goal: Map strategic learnings from the backend to the experiment detail view.
 Goal: Ensure the "Run" and "Verify" buttons trigger the actual `BlackboxSpecialist` backend.
 
 - [~] Task: Create Backend Service to trigger `BlackboxSpecialist` via API
-- [ ] Task: Write Tests for Experiment Execution Trigger (Frontend)
-- [ ] Task: Implement Interaction Logic in `BlackBoxWizard.tsx` and `ExperimentCard.tsx`
+- [x] Task: Write Tests for Experiment Execution Trigger (Frontend) [021e1a1]
+- [x] Task: Implement Interaction Logic in `BlackBoxWizard.tsx` and `ExperimentCard.tsx` [021e1a1]
 - [ ] Task: Conductor - User Manual Verification 'Functional Actions & Agent Triggering' (Protocol in workflow.md)
 
 ## Phase 5: UI Audit & Decisive Cleanup
