@@ -15,8 +15,6 @@ def test_formatter_adds_severity():
 
     try:
         # Import inside the test to ensure it uses the real lib
-        from pythonjsonlogger import jsonlogger
-
         import backend.utils.logger
 
         importlib.reload(backend.utils.logger)
@@ -36,4 +34,5 @@ def test_formatter_adds_severity():
         # Restore mock if it was there
         if mocked_lib:
             sys.modules["pythonjsonlogger"] = mocked_lib
+            import backend.utils.logger
             importlib.reload(backend.utils.logger)
