@@ -111,7 +111,7 @@
 - [x] Phase 093: Frontend - Implement `AgentPoolList` (Real-time active threads). e7e5633
 - [x] Phase 094: Frontend - Implement `GlobalKillSwitchButton` with safety double-tap. 7184f0e
 - [x] Phase 095: Frontend - Build `DriftChart` using Shadcn/Charts. 8f2e8b5
-- [ ] Phase 096: Frontend - Build `FinancialBurnChart` (Daily/Monthly view).
+- [x] Phase 096: Frontend - Build `FinancialBurnChart` (Daily/Monthly view). 6c65c87
 - [ ] Phase 097: Frontend - Implement `InferenceLogExplorer` (JetBrains Mono style).
 - [ ] Phase 098: Frontend - Implement `LoadingSkeletons` and `EmptyStates`.
 - [ ] Phase 099: Frontend - Conduct 100% Phase Verification & Final Smoke Test.
