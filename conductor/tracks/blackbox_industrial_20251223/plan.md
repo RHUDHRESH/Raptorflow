@@ -109,13 +109,13 @@
 - [x] Task 90: Conductor - User Manual Verification 'Advanced UI' [0e075fa]
 
 ## Phase 10: Hardening, Security & Scale (Phases 91-100)
-- [ ] Task 91: Implement Rate Limiting for all Blackbox API endpoints
-- [ ] Task 92: Audit GCP Secret Manager permissions for Production
-- [ ] Task 93: Implement PII Masking in telemetry logs
-- [ ] Task 94: Perform Load Test: 1000 concurrent telemetry streams
-- [ ] Task 95: Optimize BigQuery query costs (Partitioning/Clustering)
-- [ ] Task 96: Implement `Blackbox.Service.Auto_Cleanup` (Telemetry retention)
-- [ ] Task 97: Final End-to-End Integration Test: Move -> Outcome -> Learning
-- [ ] Task 98: Update `README.md` with Blackbox Architecture diagrams
-- [ ] Task 99: Final Design Gate Review: Alignment with "Quiet Luxury" tokens
-- [ ] Task 100: Conductor - User Manual Verification 'Final Hardening'
+- [x] Task 91: Implement Rate Limiting for all Blackbox API endpoints [4e96b6d]
+- [x] Task 92: Audit GCP Secret Manager permissions for Production [2853668]
+- [x] Task 93: Implement PII Masking in telemetry logs [6144f04]
+- [x] Task 94: Perform Load Test: 1000 concurrent telemetry streams [8e88de3]
+- [x] Task 95: Optimize BigQuery query costs (Partitioning/Clustering) [7b928dc]
+- [x] Task 96: Implement `Blackbox.Service.Auto_Cleanup` (Telemetry retention) [2afb7a9]
+- [x] Task 97: Final End-to-End Integration Test: Move -> Outcome -> Learning [4db5f5c]
+- [x] Task 98: Update `README.md` with Blackbox Architecture diagrams [f6bb4da]
+- [x] Task 99: Final Design Gate Review: Alignment with "Quiet Luxury" tokens [3fe68f7]
+- [~] Task 100: Conductor - User Manual Verification 'Final Hardening'

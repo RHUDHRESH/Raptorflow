@@ -3,13 +3,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Move } from '@/lib/campaigns-types';
-import { setActiveMove } from '@/lib/campaigns';
 import { MoveCard } from '@/components/moves/MoveCard';
 import { NewMoveWizard } from '@/components/moves/NewMoveWizard';
 import { MoveDetail } from '@/components/moves/MoveDetail';
 import { Button } from '@/components/ui/button';
 import { Plus, Zap, Check, ArrowRight, Clock, Target } from 'lucide-react';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { InferenceErrorBoundary } from '@/components/layout/InferenceErrorBoundary';
@@ -46,28 +44,21 @@ export default function MovesPage() {
     const queuedMoves = moves.filter(m => m.status === 'queued');
     const completedMoves = moves.filter(m => m.status === 'completed' || m.status === 'abandoned');
 
-    // Batch 4 & 5: Intelligence, Counters, Atmosphere
     const [greeting, setGreeting] = useState('Welcome back');
     const [currentDate, setCurrentDate] = useState('');
     const [displayedActiveCount, setDisplayedActiveCount] = useState(0);
-    const [statusText, setStatusText] = useState('Live'); 
-    const [timeTint, setTimeTint] = useState('bg-white dark:bg-black'); 
+    const [statusText, setStatusText] = useState('Live');
+    const [timeTint, setTimeTint] = useState('bg-white dark:bg-black');
 
     useEffect(() => {
         const hour = new Date().getHours();
         setGreeting(hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening');
 
-        if (hour < 10) setTimeTint('bg-orange-50/30 dark:bg-orange-950/10'); 
-        else if (hour > 18) setTimeTint('bg-blue-50/30 dark:bg-blue-950/10'); 
-        else setTimeTint('bg-white dark:bg-zinc-950'); 
+        if (hour < 10) setTimeTint('bg-orange-50/30 dark:bg-orange-950/10');
+        else if (hour > 18) setTimeTint('bg-blue-50/30 dark:bg-blue-950/10');
+        else setTimeTint('bg-white dark:bg-zinc-950');
 
         setCurrentDate(new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'long' }));
-
-        console.log(
-            '%c RAPTORFLOW %c MOVES v2.4 ',
-            'background: #10b981; color: white; font-weight: bold; padding: 4px;',
-            'background: #333; color: white; padding: 4px;'
-        );
 
         document.title = `(${moves.filter(m => m.status === 'active').length}) Moves | RaptorFlow`;
 
@@ -144,7 +135,6 @@ export default function MovesPage() {
                                         <Plus className="w-4 h-4 text-white dark:text-zinc-900 stroke-[1.5]" />
                                     </span>
                                     <span className="relative z-20">Create Battle Plan</span>
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-0 group-hover:opacity-30 transition-opacity bg-white/20 px-1 rounded z-20">C</span>
                                 </Button>
                             </div>
                         </div>
@@ -160,160 +150,76 @@ export default function MovesPage() {
 
                                                 <div className="flex items-center gap-3 mb-8 group cursor-default">
                                                     <span className="relative flex h-3 w-3">
-                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20 duration-3000 delay-300"></span>
-                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-40 duration-1000"></span>
-                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-10 duration-[4000ms] scale-150"></span>
-                                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border border-white dark:border-zinc-900 overflow-hidden">
-                                                            <span className="absolute top-0.5 right-0.5 w-1 h-1 bg-white/40 rounded-full"></span>
-                                                        </span>
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
+                                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                                                     </span>
-                                                    <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 shadow-emerald-500/20 drop-shadow-sm group-hover:text-emerald-500 transition-colors duration-300">
+                                                    <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
                                                         Active Deployment
                                                     </span>
                                                 </div>
 
-                                                <h2 className="relative text-6xl md:text-[5rem] font-display font-normal text-zinc-900 dark:text-zinc-50 mb-8 leading-[0.95] tracking-tight selection:bg-emerald-100 selection:text-emerald-900 text-balance animate-in fade-in blur-in duration-1000">
+                                                <h2 className="relative text-6xl md:text-[5rem] font-display font-normal text-zinc-900 dark:text-zinc-50 mb-8 leading-[0.95] tracking-tight text-balance animate-in fade-in blur-in duration-1000">
                                                     {activeMove.name}
-                                                    <span className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent pointer-events-none opacity-0 group-hover/active:opacity-20 animate-pulse bg-[length:100%_4px]" />
                                                 </h2>
 
                                                 <div className="flex items-center gap-10 text-zinc-500 dark:text-zinc-400">
-                                                    <div className="flex items-center gap-3 group cursor-help" title="Active Sprint">
-                                                        <div className="w-9 h-9 rounded-full bg-zinc-50 dark:bg-zinc-800/50 flex items-center justify-center border border-zinc-100 dark:border-zinc-800 group-hover:scale-110 transition-transform duration-500">
-                                                            <Clock className="w-4 h-4 text-zinc-400 dark:text-zinc-500 stroke-[1.5]" />
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-9 h-9 rounded-full bg-zinc-50 dark:bg-zinc-800/50 flex items-center justify-center border border-zinc-100 dark:border-zinc-800">
+                                                            <Clock className="w-4 h-4" />
                                                         </div>
                                                         <div>
                                                             <span className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Timeline</span>
-                                                            <span className="font-mono text-sm font-medium text-zinc-900 dark:text-zinc-200 tabular-nums">
-                                                                Day 01 <span className="text-zinc-400 font-normal">/ {activeMove.duration}</span>
+                                                            <span className="font-mono text-sm font-medium text-zinc-900 dark:text-zinc-200">
+                                                                Day 01 / {activeMove.duration}
                                                             </span>
                                                         </div>
                                                     </div>
 
-                                                    <div className="w-px h-10 bg-gradient-to-b from-transparent via-zinc-200 to-transparent dark:via-zinc-800 opacity-80" />
-
-                                                    <div className="flex items-center gap-3 group cursor-default">
-                                                        <div className="w-9 h-9 rounded-full bg-zinc-50 dark:bg-zinc-800/50 flex items-center justify-center border border-zinc-100 dark:border-zinc-800 group-hover:scale-110 transition-transform duration-500">
-                                                            <Target className="w-4 h-4 text-zinc-400 dark:text-zinc-500 stroke-[1.5]" />
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-9 h-9 rounded-full bg-zinc-50 dark:bg-zinc-800/50 flex items-center justify-center border border-zinc-100 dark:border-zinc-800">
+                                                            <Target className="w-4 h-4" />
                                                         </div>
                                                         <div>
                                                             <span className="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Progress</span>
-                                                            <span className="font-mono text-sm font-medium text-zinc-900 dark:text-zinc-200 tabular-nums">
-                                                                {activeStats?.percent === 100 ? "DONE" : `${String(activeStats?.completed).padStart(2, '0')}/${String(activeStats?.total).padStart(2, '0')}`} <span className="text-zinc-400 font-normal">Tasks</span>
+                                                            <span className="font-mono text-sm font-medium text-zinc-900 dark:text-zinc-200">
+                                                                {activeStats?.percent}%
                                                             </span>
                                                         </div>
                                                     </div>
-
-                                                    <div className="w-px h-10 bg-gradient-to-b from-transparent via-zinc-200 to-transparent dark:via-zinc-800 opacity-80" />
 
                                                     <Button
                                                         variant="ghost"
                                                         onClick={() => handleOpenMove(activeMove)}
-                                                        className="relative overflow-hidden text-emerald-700 hover:text-emerald-800 bg-emerald-50/50 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/10 px-5 py-2.5 h-auto font-medium text-sm rounded-full transition-all duration-300 group active:scale-95 cursor-alias"
+                                                        className="text-emerald-700 hover:text-emerald-800 bg-emerald-50/50 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/10 px-5 rounded-full"
                                                     >
-                                                        <span className="relative z-10 flex items-center group-hover:underline decoration-emerald-300/50 underline-offset-4 decoration-2">
-                                                            Open War Room
-                                                            <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 group-hover:opacity-100 opacity-70 transition-all duration-300" />
-                                                        </span>
+                                                        Open War Room
+                                                        <ArrowRight className="w-3.5 h-3.5 ml-2" />
                                                     </Button>
                                                 </div>
                                             </div>
 
-                                            <div className="relative bg-white dark:bg-zinc-900 rounded-[2rem] p-8 md:p-12 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.05)] dark:shadow-none border border-zinc-100/50 dark:border-zinc-800/50 group/card hover:shadow-[0_20px_60px_-12px_rgba(0,0,0,0.08)] transition-all duration-[800ms] ring-1 ring-zinc-900/5 dark:ring-zinc-100/5 overflow-hidden">
-                                                <div className="absolute inset-0 bg-transparent shadow-[0_0_0_0_rgba(16,185,129,0)] group-hover/card:animate-[pulse-shadow_3s_infinite] rounded-[2rem] pointer-events-none" />
-                                                <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
-                                                <div className="absolute inset-0 rounded-[2rem] border border-zinc-900/5 dark:border-zinc-100/5 pointer-events-none" />
-                                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-zinc-50 to-transparent dark:from-zinc-800/50 opacity-50 rounded-bl-[2rem] pointer-events-none" />
-
-                                                <div className="flex items-center justify-between mb-10 pb-6 border-b border-dashed border-zinc-100 dark:border-zinc-800/50">
-                                                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 pl-1">
-                                                        Highest Priority Actions
-                                                    </h3>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="relative flex h-2 w-2">
-                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                                        </span>
-                                                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 tabular-nums animate-[slide-up_0.5s_ease-out]">
-                                                            {activeStats?.percent}% COMPLETE
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-4 group/list">
+                                            <div className="bg-white dark:bg-zinc-900 rounded-[2rem] p-8 border border-zinc-100 dark:border-zinc-800">
+                                                <div className="space-y-4">
                                                     {activeMove.checklist.map((item) => (
-                                                        <div
-                                                            key={item.id}
-                                                            className={cn(
-                                                                "flex items-start gap-5 p-4 rounded-xl -mx-4 transition-all duration-500 group/item",
-                                                                "hover:bg-zinc-50 dark:hover:bg-zinc-800/30",
-                                                                "group-hover/list:opacity-50 hover:!opacity-100", 
-                                                                item.completed && "opacity-60 grayscale hover:grayscale-0 hover:opacity-100"
-                                                            )}
-                                                        >
+                                                        <div key={item.id} className="flex items-start gap-5 p-4 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
                                                             <div className={cn(
-                                                                "mt-0.5 w-6 h-6 rounded-[0.4rem] flex items-center justify-center border transition-all duration-300 shrink-0 shadow-sm",
-                                                                item.completed
-                                                                    ? "bg-emerald-500 border-emerald-500 text-white scale-95"
-                                                                    : "bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:border-emerald-400 hover:shadow-emerald-100 dark:hover:shadow-none"
+                                                                "mt-0.5 w-6 h-6 rounded flex items-center justify-center border transition-all",
+                                                                item.completed ? "bg-emerald-500 border-emerald-500 text-white" : "bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
                                                             )}>
-                                                                {item.completed && (
-                                                                    <Check className="w-3.5 h-3.5 stroke-[3] animate-in zoom-in spin-in-12 duration-300" />
-                                                                )}
+                                                                {item.completed && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                                                             </div>
-                                                            <div className="space-y-1.5 pt-0.5">
-                                                                <span className={cn(
-                                                                    "text-lg block transition-colors leading-relaxed font-medium tracking-tight",
-                                                                    item.completed
-                                                                        ? "text-zinc-400 dark:text-zinc-500 line-through decoration-zinc-300/50 dark:decoration-zinc-700 decoration-2"
-                                                                        : "text-zinc-900 dark:text-zinc-100 selection:bg-emerald-100 selection:text-emerald-900"
-                                                                )}>
-                                                                    {item.label}
-                                                                </span>
-                                                            </div>
+                                                            <span className={cn("text-lg font-medium", item.completed && "text-zinc-400 line-through")}>
+                                                                {item.label}
+                                                            </span>
                                                         </div>
                                                     ))}
-
-                                                    {activeMove.checklist.length === 0 && (
-                                                        <p className="text-zinc-400 italic font-serif text-lg text-center py-8">No tasks defined for this move.</p>
-                                                    )}
-                                                </div>
-
-                                                <div className="mt-8 pt-6 border-t border-zinc-50 dark:border-zinc-800/50 text-center flex items-center justify-center gap-3">
-                                                    <div className="h-px w-8 bg-gradient-to-r from-transparent to-zinc-200 dark:to-zinc-800" />
-                                                    <div className="flex items-center gap-2 group cursor-help" title="System Normal">
-                                                        <span className="relative flex h-1.5 w-1.5">
-                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                                                        </span>
-                                                        <p className="text-[10px] uppercase tracking-widest text-zinc-300 dark:text-zinc-600 font-medium font-mono min-w-[60px] text-left transition-all duration-500">
-                                                            {statusText}
-                                                        </p>
-                                                    </div>
-                                                    <span className="text-[10px] text-zinc-200 dark:text-zinc-800">•</span>
-                                                    <div className="flex items-center gap-1 group">
-                                                        <p className="text-[10px] uppercase tracking-widest text-zinc-300 dark:text-zinc-600 font-medium font-mono">
-                                                            v2.4
-                                                        </p>
-                                                        <span className="w-0.5 h-0.5 bg-yellow-500/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" title="100/100 Polish Score"></span>
-                                                        <span className="text-[8px] text-zinc-200 dark:text-zinc-800 ml-2 font-mono tabular-nums">
-                                                            14ms
-                                                        </span>
-                                                    </div>
-                                                    <div className="h-px w-8 bg-gradient-to-l from-transparent to-zinc-200 dark:to-zinc-800" />
                                                 </div>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-[2rem] p-20 text-center h-full flex flex-col justify-center items-center group transition-colors hover:border-zinc-300 dark:hover:border-zinc-700">
-                                            <h3 className="text-4xl font-display italic text-zinc-900 dark:text-zinc-100 mb-6 group-hover:scale-105 transition-transform duration-500">No Active Move</h3>
-                                            <p className="text-lg text-zinc-500 max-w-md mx-auto mb-10 font-light leading-relaxed">
-                                                The war room is quiet. Select a move from your queue or create a new battle plan to begin execution.
-                                            </p>
-                                            <Button
-                                                onClick={() => setShowWizard(true)}
-                                                variant="outline"
-                                                className="h-14 px-8 rounded-full border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 hover:border-zinc-900 dark:hover:border-zinc-100 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all duration-300 active:scale-95"
-                                            >
+                                        <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-[2rem] p-20 text-center h-full flex flex-col justify-center items-center">
+                                            <h3 className="text-4xl font-display italic mb-6">No Active Move</h3>
+                                            <Button onClick={() => setShowWizard(true)} variant="outline" className="h-14 px-8 rounded-full">
                                                 <Zap className="w-4 h-4 mr-2" />
                                                 Initialize First Move
                                             </Button>
@@ -322,69 +228,13 @@ export default function MovesPage() {
                                 </section>
                             </div>
 
-                            <div className="lg:w-[35%] min-w-0 flex flex-col gap-8">
-                                <div className="flex items-center justify-between pb-4 border-b border-zinc-100 dark:border-zinc-800">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-                                        <div className="text-[11px] font-bold uppercase tracking-[0.25em] text-zinc-400 dark:text-zinc-500">
-                                            Up Next
-                                        </div>
-                                    </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-300 dark:text-zinc-700">
-                                        {queuedMoves.length} Missions
-                                    </span>
-                                </div>
-
+                            <div className="lg:w-[35%] flex flex-col gap-8">
                                 <div className="space-y-4">
-                                    {queuedMoves.length > 0 ? (
-                                        <div className="space-y-2">
-                                            {queuedMoves.map((move, index) => (
-                                                <div
-                                                    key={move.id}
-                                                    className="relative group animate-in fade-in slide-in-from-right-8 duration-700 fill-mode-backwards"
-                                                    style={{ animationDelay: `${index * 100}ms` }}
-                                                >
-                                                    <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-zinc-200 dark:bg-zinc-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                                    <MoveCard
-                                                        move={move}
-                                                        variant="row"
-                                                        onClick={() => handleOpenMove(move)}
-                                                    />
-                                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-mono text-zinc-300 dark:text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                                        [{index + 1}]
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-zinc-400 italic py-8 text-center bg-zinc-50/50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                                            Queue is empty.
-                                        </div>
-                                    )}
+                                    <h3 className="text-[11px] font-bold uppercase tracking-[0.25em] text-zinc-400 border-b pb-4">Up Next</h3>
+                                    {queuedMoves.map(move => (
+                                        <MoveCard key={move.id} move={move} variant="row" onClick={() => handleOpenMove(move)} />
+                                    ))}
                                 </div>
-
-                                {completedMoves.length > 0 && (
-                                    <div className="pt-8 mt-auto">
-                                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-600 mb-4 pl-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
-                                            Completed
-                                        </h3>
-                                        <div className="space-y-2 opacity-60 hover:opacity-100 transition-opacity">
-                                            {completedMoves.slice(0, 3).map(move => (
-                                                <MoveCard
-                                                    key={move.id}
-                                                    move={move}
-                                                    variant="row"
-                                                    onClick={() => handleOpenMove(move)}
-                                                />
-                                            ))}
-                                            {completedMoves.length > 3 && (
-                                                <Button variant="ghost" className="w-full text-zinc-400 text-xs uppercase tracking-wider">
-                                                    View All Archived
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </div>
