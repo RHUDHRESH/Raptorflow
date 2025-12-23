@@ -18,18 +18,18 @@ Goal: Hook up the `TelemetryFeed` and `AgentAuditLog` to live backend execution 
 - [x] Task: Implement Live Telemetry Logic in `TelemetryFeed.tsx` and `AgentAuditLog.tsx` [6ef8318]
 - [x] Task: Conductor - User Manual Verification 'Telemetry & Reasoning Integration' (Protocol in workflow.md)
 
-## Phase 3: Surgical Learning Surface
+## Phase 3: Surgical Learning Surface [checkpoint: cde26ff]
 Goal: Map strategic learnings from the backend to the experiment detail view.
 
-- [~] Task: Create API Endpoint for `BlackboxLearning` (Structured results)
+- [x] Task: Create API Endpoint for `BlackboxLearning` (Structured results) [7140614]
 - [x] Task: Write Tests for Learning Detail Surface (Frontend) [545a570]
 - [x] Task: Implement Learning Integration in `ExperimentDetail.tsx` (Confidence scores & Tactical notes) [545a570]
-- [ ] Task: Conductor - User Manual Verification 'Surgical Learning Surface' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Surgical Learning Surface' (Protocol in workflow.md)
 
 ## Phase 4: Functional Actions & Agent Triggering
 Goal: Ensure the "Run" and "Verify" buttons trigger the actual `BlackboxSpecialist` backend.
 
-- [ ] Task: Create Backend Service to trigger `BlackboxSpecialist` via API
+- [~] Task: Create Backend Service to trigger `BlackboxSpecialist` via API
 - [ ] Task: Write Tests for Experiment Execution Trigger (Frontend)
 - [ ] Task: Implement Interaction Logic in `BlackBoxWizard.tsx` and `ExperimentCard.tsx`
 - [ ] Task: Conductor - User Manual Verification 'Functional Actions & Agent Triggering' (Protocol in workflow.md)

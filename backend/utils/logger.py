@@ -12,10 +12,16 @@ class RaptorFlowJSONFormatter(jsonlogger.JsonFormatter):
         if not log_record.get("timestamp"):
             now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             log_record["timestamp"] = now
+        
+        # GCP Cloud Logging expects 'severity' for automatic log level detection
         if log_record.get("level"):
-            log_record["level"] = log_record["level"].upper()
+            level = log_record["level"].upper()
+            log_record["level"] = level
+            log_record["severity"] = level
         else:
-            log_record["level"] = record.levelname
+            level = record.levelname.upper()
+            log_record["level"] = level
+            log_record["severity"] = level
 
 
 def setup_logger():
