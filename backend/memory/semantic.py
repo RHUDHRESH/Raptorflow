@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from backend.db import save_memory, vector_search
 from backend.inference import InferenceProvider

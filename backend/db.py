@@ -1,13 +1,11 @@
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 import psycopg
 from langgraph.checkpoint.postgres import PostgresSaver
 from psycopg_pool import AsyncConnectionPool
-
-from backend.services.cache import get_cache
 
 # DATABASE_URL should be in environment
 DB_URI = os.getenv("DATABASE_URL")
