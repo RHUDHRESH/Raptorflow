@@ -5,11 +5,20 @@ import pytest
 from uuid import uuid4
 from datetime import datetime
 
-# Hierarchical mock for google.cloud.bigquery
-mock_google = MagicMock()
-sys.modules["google"] = mock_google
-sys.modules["google.cloud"] = mock_google.cloud
-sys.modules["google.cloud.bigquery"] = mock_google.cloud.bigquery
+# Hierarchical mock for google.cloud dependencies WITHOUT breaking google.cloud namespace
+if "google" not in sys.modules:
+    sys.modules["google"] = MagicMock()
+if "google.cloud" not in sys.modules:
+    sys.modules["google.cloud"] = MagicMock()
+
+mock_bigquery = MagicMock()
+sys.modules["google.cloud.bigquery"] = mock_bigquery
+
+mock_secretmanager = MagicMock()
+sys.modules["google.cloud.secretmanager"] = mock_secretmanager
+
+# Mock supabase
+sys.modules["supabase"] = MagicMock()
 
 from backend.core.vault import Vault
 from backend.services.blackbox_service import BlackboxService, trace_agent
@@ -28,7 +37,7 @@ def test_blackbox_service_bigquery_client_initialization():
     
     client = service._get_bigquery_client()
     assert client is not None
-    mock_google.cloud.bigquery.Client.assert_called_once_with(project="test-project")
+    mock_bigquery.Client.assert_called_once_with(project="test-project")
 
 def test_blackbox_service_log_telemetry_supabase():
     mock_vault = MagicMock()
@@ -199,11 +208,40 @@ def test_blackbox_service_calculate_move_cost():
     
     service = BlackboxService(vault=mock_vault)
     move_id = uuid4()
-    # This will fail until implemented
-    try:
-        total_tokens = service.calculate_move_cost(move_id)
-        assert total_tokens == 350
-        mock_session.table.assert_called_with("blackbox_telemetry_industrial")
-        mock_query_builder.eq.assert_called_with("move_id", str(move_id))
-    except AttributeError:
-        pytest.fail("calculate_move_cost not implemented")
+    total_tokens = service.calculate_move_cost(move_id)
+    
+    assert total_tokens == 350
+    mock_session.table.assert_called_with("blackbox_telemetry_industrial")
+    mock_query_builder.eq.assert_called_with("move_id", str(move_id))
+
+def test_blackbox_service_upsert_learning_embedding():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    
+    mock_query_builder = MagicMock()
+    mock_session.table.return_value = mock_query_builder
+    mock_query_builder.insert.return_value = mock_query_builder
+    mock_query_builder.execute.return_value = MagicMock()
+    
+    service = BlackboxService(vault=mock_vault)
+    
+    # Mock Vertex AI Embeddings
+    with patch("backend.services.blackbox_service.InferenceProvider.get_embeddings") as mock_get_embeds:
+        mock_embed_model = MagicMock()
+        mock_get_embeds.return_value = mock_embed_model
+        mock_embed_model.embed_query.return_value = [0.1] * 768
+        
+        # This will fail until implemented
+        try:
+            service.upsert_learning_embedding(
+                content="Successful ICP engagement",
+                learning_type="strategic",
+                source_ids=[uuid4()]
+            )
+            
+            mock_embed_model.embed_query.assert_called_once_with("Successful ICP engagement")
+            mock_session.table.assert_called_with("blackbox_learnings_industrial")
+            mock_query_builder.insert.assert_called_once()
+        except AttributeError:
+            pytest.fail("upsert_learning_embedding not implemented")
