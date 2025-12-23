@@ -9,7 +9,7 @@
 - [x] Task 6: Configure GCP Secret Manager for Blackbox (API Keys for Search, Scrape) [0a1a6df]
 - [x] Task 7: Initialize `backend/services/blackbox_service.py` skeleton [2359810]
 - [x] Task 8: Configure Upstash Redis client in `backend/core/cache.py` for Blackbox [9f32cb2]
-- [ ] Task 9: Implement `BlackboxService._get_bigquery_client()` with service account auth
+- [x] Task 9: Implement `BlackboxService._get_bigquery_client()` with service account auth [a582ad5]
 - [ ] Task 10: Conductor - User Manual Verification 'Foundation & Infrastructure'
 
 ## Phase 2: Telemetry & Tracing (Phases 11-20)
