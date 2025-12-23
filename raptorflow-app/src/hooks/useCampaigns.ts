@@ -32,7 +32,7 @@ export function useCampaigns(pollInterval: number = 10000) {
 
   useEffect(() => {
     refresh();
-    
+
     if (pollInterval > 0) {
       const timer = setInterval(refresh, pollInterval);
       return () => clearInterval(timer);

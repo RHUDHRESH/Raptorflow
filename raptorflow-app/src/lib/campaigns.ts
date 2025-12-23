@@ -182,7 +182,7 @@ export async function setActiveMove(moveId: string | null): Promise<void> {
     if (moveId) {
         await supabase
             .from('moves')
-            .update({ 
+            .update({
                 status: 'active',
                 updated_at: new Date().toISOString()
             })
@@ -202,7 +202,7 @@ function mapDBCampaignToFrontend(db: any): Campaign {
         status: db.status,
         createdAt: db.created_at,
         startedAt: db.start_date,
-        duration: 90, 
+        duration: 90,
         moveLength: 14,
         dailyEffort: 30,
         offer: 'other',
@@ -213,7 +213,7 @@ function mapDBCampaignToFrontend(db: any): Campaign {
 function mapFrontendCampaignToDB(c: Campaign): any {
     return {
         id: c.id,
-        tenant_id: '00000000-0000-0000-0000-000000000000', 
+        tenant_id: '00000000-0000-0000-0000-000000000000',
         title: c.name,
         objective: c.objective,
         status: c.status,
@@ -226,8 +226,8 @@ function mapDBMoveToFrontend(db: any): Move {
     return {
         id: db.id,
         name: db.title,
-        goal: 'distribution', 
-        channel: 'linkedin', 
+        goal: 'distribution',
+        channel: 'linkedin',
         duration: 7,
         dailyEffort: 30,
         status: db.status,
@@ -261,11 +261,11 @@ export async function getCampaignProgress(campaignId: string) {
 
     const completedMoves = moves.filter(m => m.status === 'completed').length;
     const totalWeeks = Math.ceil(campaign.duration / 7);
-    
+
     return {
         totalMoves: moves.length,
         completedMoves,
-        weekNumber: 1, 
+        weekNumber: 1,
         totalWeeks,
     };
 }
@@ -287,7 +287,7 @@ export function generateDefaultChecklist(
     channel: ChannelType,
     duration: MoveDuration
 ): ChecklistItem[] {
-    return []; 
+    return [];
 }
 
 export async function triggerCampaignInference(campaignId: string): Promise<any> {

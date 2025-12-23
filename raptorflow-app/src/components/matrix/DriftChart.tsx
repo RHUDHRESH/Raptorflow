@@ -71,14 +71,14 @@ export function DriftChart() {
               <span className="font-mono">p={metric.p_value.toFixed(4)}</span>
             </div>
             <div className="relative h-2 w-full bg-muted/20 rounded-full overflow-hidden border border-border/50">
-              <div 
+              <div
                 className={`absolute inset-y-0 left-0 transition-all duration-1000 ${metric.is_drifting ? 'bg-red-500' : 'bg-primary'}`}
                 style={{ width: `${Math.max(5, (1 - metric.p_value) * 100)}%` }}
               />
             </div>
           </div>
         ))}
-        
+
         <div className="mt-4 pt-4 border-t border-border/50 flex items-start space-x-2 text-[10px] text-muted-foreground leading-relaxed">
           <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
           <p>

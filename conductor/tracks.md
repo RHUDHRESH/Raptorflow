@@ -5,7 +5,7 @@
 
 ---
 
-## [x] Track: Blackbox Industrial Intelligence Engine
+## [~] Track: Blackbox Industrial Intelligence Engine
 *Link: [./conductor/tracks/blackbox_industrial_20251223/](./conductor/tracks/blackbox_industrial_20251223/)*
 
 ---
