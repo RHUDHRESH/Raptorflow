@@ -7,6 +7,7 @@ from langgraph.graph import END, START, StateGraph
 
 from backend.db import SupabaseSaver, get_pool
 from backend.memory.semantic import SemanticMemory
+from backend.memory.long_term import LongTermMemory
 
 
 class MovesCampaignsState(TypedDict):
@@ -88,6 +89,24 @@ async def approve_move(state: MovesCampaignsState):
     }
 
 
+async def memory_updater(state: MovesCampaignsState):
+    """SOTA Memory Node: Syncs results to LongTermMemory."""
+    tenant_id = state.get("tenant_id")
+    if not tenant_id:
+        return {"messages": ["WARNING: No tenant_id for long-term memory sync."]}
+
+    ltm = LongTermMemory()
+    await ltm.log_decision(
+        tenant_id=tenant_id,
+        agent_id=state.get("last_agent", "orchestrator"),
+        decision_type="approval_sync",
+        input_state={
+            "status": state["status"]
+        },
+        rationale=state["messages"][-1] if state["messages"] else "Action completed."
+    )
+    return {"messages": ["Long-term audit log updated."]}
+
 async def handle_error(state: MovesCampaignsState):
     """SOTA Error Handling Node."""
     error_msg = state.get("error") or "Unknown error occurred in cognitive spine."
@@ -117,6 +136,7 @@ workflow.add_node("plan_campaign", plan_campaign)
 workflow.add_node("approve_campaign", approve_campaign)
 workflow.add_node("generate_moves", generate_moves)
 workflow.add_node("approve_move", approve_move)
+workflow.add_node("memory_updater", memory_updater)
 workflow.add_node("error_handler", handle_error)
 
 workflow.add_edge(START, "init")
@@ -134,9 +154,10 @@ workflow.add_conditional_edges(
 )
 
 workflow.add_edge("plan_campaign", "approve_campaign")
-workflow.add_edge("approve_campaign", END)
+workflow.add_edge("approve_campaign", "memory_updater")
 workflow.add_edge("generate_moves", "approve_move")
-workflow.add_edge("approve_move", END)
+workflow.add_edge("approve_move", "memory_updater")
+workflow.add_edge("memory_updater", END)
 workflow.add_edge("error_handler", END)
 
 
