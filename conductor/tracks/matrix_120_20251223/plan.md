@@ -16,7 +16,7 @@
 - [x] Phase 011: Backend - Configure GCS `raptorflow-gold-zone` bucket for Parquet storage. 8d2409f
 - [x] Phase 012: Backend - Implement `ParquetExporter` using `pyarrow` for telemetry archival. 2a6a5e9
 - [x] Phase 013: Backend - Write Red Phase tests for `ParquetExporter.export_batch()`. 8f5a739
-- [ ] Phase 014: Backend - Implement `ParquetExporter.export_batch()` with schema evolution support.
+- [x] Phase 014: Backend - Implement `ParquetExporter.export_batch()` with schema evolution support. 42a9f23
 - [ ] Phase 015: Backend - Create `GCSLifecycleManager` for moving raw logs to archival storage.
 - [ ] Phase 016: Backend - Implement `BigQueryMatrixLoader` for periodic Parquet-to-BigQuery sync.
 - [ ] Phase 017: Backend - Write Red Phase tests for `BigQueryMatrixLoader.sync_partition()`.
