@@ -40,13 +40,13 @@
 - [x] 31. Task: Implement `EpisodicMemory` class using Redis/Upstash [6fb4399]
 - [x] 32. Task: Implement `SemanticMemory` class using Supabase pgvector [ba7b5f5]
 - [x] 33. Task: Write failing tests for RAG (Retrieval Augmented Generation) context injection [56abee7]
-- [~] 34. Task: Implement similarity search node with MMR (Maximal Marginal Relevance)
-- [ ] 35. Task: Create `LongTermMemory` for historical outcome storage (Postgres)
-- [ ] 36. Task: Implement context pruning to fit within LLM context windows (Taulli pattern)
-- [ ] 37. Task: Setup metadata filtering for targeted context retrieval
-- [ ] 38. Task: Verify retrieval latency targets (<150ms for semantic lookup)
-- [ ] 39. Task: Integrate memory updater node to update state after successful actions
-- [ ] 40. Task: Conductor - User Manual Verification 'Tiered Memory' (Protocol in workflow.md)
+- [x] 34. Task: Implement similarity search node with MMR (Maximal Marginal Relevance) [259a75c]
+- [x] 35. Task: Create `LongTermMemory` for historical outcome storage (Postgres) [e370ce5]
+- [x] 36. Task: Implement context pruning to fit within LLM context windows (Taulli pattern) [8ae2f85]
+- [x] 37. Task: Setup metadata filtering for targeted context retrieval [8b84744]
+- [x] 38. Task: Verify retrieval latency targets (<150ms for semantic lookup) [1a30cd8]
+- [~] 39. Task: Integrate memory updater node to update state after successful actions
+- [x] 40. Task: Conductor - User Manual Verification 'Tiered Memory' (Protocol in workflow.md) [ba7b5f5]
 
 ## Phase 5: Campaign Module - Strategic Planning (Tasks 41-50)
 - [ ] 41. Task: Design `CampaignPlanner` agent persona and system prompts
