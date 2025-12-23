@@ -277,6 +277,13 @@ class StrategyReplanner:
     """
     def __init__(self, llm: any):
         self.llm = llm
+        self.prompt = ChatPromptTemplate.from_messages([
+            ("system", CampaignPrompts.PLANNER_SYSTEM),
+            ("user", "The current UVPs are not aligned with our 'Calm, Expensive' vibe. "
+                     "Current Alignments: {alignments}\n"
+                     "Generate a single surgical instruction to fix the positioning.")
+        ])
+        self.chain = self.prompt | self.llm
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
@@ -287,8 +294,7 @@ class StrategyReplanner:
         
         if avg_score < 0.7:
             logger.warning("Strategy score low. Triggering pivot logic...")
-            # Generate pivot instructions using LLM
-            res = await self.llm.ainvoke("The current UVPs are not aligned with our 'Calm, Expensive' vibe. Generate a single surgical instruction to fix the positioning.")
+            res = await self.chain.ainvoke({"alignments": str(alignments)})
             return {"next_node": "pivot", "context_brief": {"pivot_instruction": res.content}}
         
         logger.info("Strategy alignment passed.")

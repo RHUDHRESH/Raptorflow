@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
@@ -22,6 +22,8 @@ class BlackboxOutcome(BaseModel):
     """Pydantic model for Blackbox Outcomes (Conversion/Engagement)."""
 
     id: UUID = Field(default_factory=uuid4)
+    campaign_id: Optional[UUID] = None
+    move_id: Optional[UUID] = None
     source: str
     value: float
     confidence: float = 1.0

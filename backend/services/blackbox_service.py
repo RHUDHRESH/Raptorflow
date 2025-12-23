@@ -140,9 +140,26 @@ class BlackboxService:
 
     def attribute_outcome(self, outcome: BlackboxOutcome):
         """Attributes a business outcome to specific campaign/move."""
+        # 1. Persist to Supabase
         session = self.vault.get_session()
         data = outcome.model_dump(mode="json")
         session.table("blackbox_outcomes_industrial").insert(data).execute()
+
+        # 2. Stream to BigQuery
+        self.stream_outcome_to_bigquery(outcome)
+
+    def stream_outcome_to_bigquery(self, outcome: BlackboxOutcome):
+        """Streams outcome data to BigQuery for analytical processing."""
+        client = self._get_bigquery_client()
+        table_id = f"{self.vault.project_id}.raptorflow_analytics.outcomes_stream"
+
+        # Format for BQ
+        row = outcome.model_dump(mode="json")
+        row["timestamp"] = outcome.timestamp.isoformat()
+
+        errors = client.insert_rows_json(table_id, [row])
+        if errors:
+            print(f"BigQuery outcome insertion errors: {errors}")
 
     def compute_roi(self, campaign_id: UUID, model: AttributionModel = AttributionModel.LINEAR) -> Dict[str, Any]:
         """
@@ -247,18 +264,38 @@ class BlackboxService:
         """
         client = self._get_bigquery_client()
         dataset = "raptorflow_analytics"
-        table = "telemetry_stream"
         project = self.vault.project_id
 
         query = f"""
+            WITH daily_costs AS (
+                SELECT 
+                    DATE(timestamp) as day,
+                    SUM(tokens) as daily_tokens,
+                    SUM(tokens / 1000 * 0.02) as estimated_cost
+                FROM `{project}.{dataset}.telemetry_stream`
+                WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {days} DAY)
+                GROUP BY day
+            ),
+            daily_outcomes AS (
+                SELECT 
+                    DATE(timestamp) as day,
+                    SUM(value) as daily_value
+                FROM `{project}.{dataset}.outcomes_stream`
+                WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {days} DAY)
+                GROUP BY day
+            )
             SELECT 
-                DATE(timestamp) as day,
-                SUM(tokens) as daily_tokens,
-                COUNT(id) as execution_count
-            FROM `{project}.{dataset}.{table}`
-            WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL {days} DAY)
-            GROUP BY day
-            ORDER BY day DESC
+                c.day,
+                c.daily_tokens,
+                c.estimated_cost,
+                COALESCE(o.daily_value, 0) as daily_value,
+                CASE 
+                    WHEN c.estimated_cost > 0 THEN (COALESCE(o.daily_value, 0) - c.estimated_cost) / c.estimated_cost
+                    ELSE 0 
+                END as daily_roi
+            FROM daily_costs c
+            LEFT JOIN daily_outcomes o ON c.day = o.day
+            ORDER BY c.day DESC
         """
 
         query_job = client.query(query)
@@ -269,7 +306,9 @@ class BlackboxService:
             analysis.append({
                 "day": str(row.day),
                 "tokens": row.daily_tokens,
-                "count": row.execution_count
+                "cost": round(row.estimated_cost, 4),
+                "value": round(row.daily_value, 4),
+                "roi": round(row.daily_roi, 4)
             })
 
         return analysis

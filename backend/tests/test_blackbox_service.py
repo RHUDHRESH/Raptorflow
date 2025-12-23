@@ -19,7 +19,7 @@ if "google.cloud" not in sys.modules:
 
 from backend.core.vault import Vault
 from backend.models.blackbox import BlackboxTelemetry
-from backend.services.blackbox_service import BlackboxService, trace_agent
+from backend.services.blackbox_service import BlackboxService, trace_agent, AttributionModel
 
 
 def test_blackbox_service_instantiation():
@@ -610,7 +610,9 @@ def test_blackbox_service_longitudinal_analysis():
         mock_row = MagicMock()
         mock_row.day = "2023-12-23"
         mock_row.daily_tokens = 5000
-        mock_row.execution_count = 10
+        mock_row.estimated_cost = 0.10
+        mock_row.daily_value = 1.0
+        mock_row.daily_roi = 9.0
         
         mock_bq.query.return_value.result.return_value = [mock_row]
         
@@ -618,6 +620,7 @@ def test_blackbox_service_longitudinal_analysis():
         
         assert len(analysis) == 1
         assert analysis[0]["tokens"] == 5000
+        assert analysis[0]["roi"] == 9.0
         assert "day" in analysis[0]
         mock_bq.query.assert_called_once()
         assert "INTERVAL 30 DAY" in mock_bq.query.call_args[0][0]
