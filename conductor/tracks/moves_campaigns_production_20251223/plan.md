@@ -1,6 +1,6 @@
 # Implementation Plan: Moves & Campaigns 100-Step Production Roadmap
 
-## Phase 1: Environment & Infrastructure (Tasks 1-10)
+## Phase 1: Environment & Infrastructure (Tasks 1-10) [checkpoint: 892e13c]
 - [x] 1. Task: Initialize GCP Secret Manager for API keys (Vertex AI, Supabase, Upstash)
 - [x] 2. Task: Setup Supabase Database Schema for `campaigns` and `moves` tables
 - [x] 3. Task: Configure Upstash Redis instance for Episodic Memory session state
