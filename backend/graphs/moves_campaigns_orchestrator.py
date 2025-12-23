@@ -8,6 +8,8 @@ from langgraph.graph import END, START, StateGraph
 from backend.db import SupabaseSaver, get_pool
 from backend.memory.semantic import SemanticMemory
 from backend.memory.long_term import LongTermMemory
+from backend.agents.strategists import KPIDefiner
+from backend.inference import InferenceProvider
 
 
 class MovesCampaignsState(TypedDict):
@@ -107,6 +109,14 @@ async def memory_updater(state: MovesCampaignsState):
     )
     return {"messages": ["Long-term audit log updated."]}
 
+
+async def kpi_setter(state: MovesCampaignsState):
+    """SOTA KPI Node: Defines campaign metrics."""
+    # Use driver model for metric definition
+    llm = InferenceProvider.get_model(model_tier="driver")
+    agent = KPIDefiner(llm)
+    return await agent(state)
+
 async def handle_error(state: MovesCampaignsState):
     """SOTA Error Handling Node."""
     error_msg = state.get("error") or "Unknown error occurred in cognitive spine."
@@ -137,6 +147,7 @@ workflow.add_node("approve_campaign", approve_campaign)
 workflow.add_node("generate_moves", generate_moves)
 workflow.add_node("approve_move", approve_move)
 workflow.add_node("memory_updater", memory_updater)
+workflow.add_node("kpi_setter", kpi_setter)
 workflow.add_node("error_handler", handle_error)
 
 workflow.add_edge(START, "init")
@@ -157,7 +168,8 @@ workflow.add_edge("plan_campaign", "approve_campaign")
 workflow.add_edge("approve_campaign", "memory_updater")
 workflow.add_edge("generate_moves", "approve_move")
 workflow.add_edge("approve_move", "memory_updater")
-workflow.add_edge("memory_updater", END)
+workflow.add_edge("memory_updater", "kpi_setter")
+workflow.add_edge("kpi_setter", END)
 workflow.add_edge("error_handler", END)
 
 
