@@ -182,3 +182,28 @@ def test_bigquery_streaming_latency():
         # In a unit test with mocks, this should be extremely fast (< 50ms)
         assert duration < 0.05
         mock_bq_client.insert_rows_json.assert_called_once()
+
+def test_blackbox_service_calculate_move_cost():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    
+    mock_query_builder = MagicMock()
+    mock_session.table.return_value = mock_query_builder
+    mock_query_builder.select.return_value = mock_query_builder
+    mock_query_builder.eq.return_value = mock_query_builder
+    
+    mock_response = MagicMock()
+    mock_response.data = [{"tokens": 100}, {"tokens": 250}]
+    mock_query_builder.execute.return_value = mock_response
+    
+    service = BlackboxService(vault=mock_vault)
+    move_id = uuid4()
+    # This will fail until implemented
+    try:
+        total_tokens = service.calculate_move_cost(move_id)
+        assert total_tokens == 350
+        mock_session.table.assert_called_with("blackbox_telemetry_industrial")
+        mock_query_builder.eq.assert_called_with("move_id", str(move_id))
+    except AttributeError:
+        pytest.fail("calculate_move_cost not implemented")
