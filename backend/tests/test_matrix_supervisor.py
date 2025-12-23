@@ -60,3 +60,30 @@ async def test_matrix_supervisor_route_intent_unknown():
         mock_chain_prop.return_value = mock_chain
         intent = await supervisor.route_intent("Tell me a joke")
         assert intent == "FINISH"
+
+@pytest.mark.asyncio
+async def test_matrix_supervisor_execute_loop_success():
+    """Test that the supervisor can execute a full multi-turn loop."""
+    mock_llm = MagicMock()
+    supervisor = HierarchicalSupervisor(llm=mock_llm, team_members=["DriftAnalyzer"], system_prompt="...")
+    
+    # Mock chain returns DriftAnalyzer then FINISH
+    mock_resp1 = MagicMock(next_node="DriftAnalyzer", instructions="Run check")
+    mock_resp2 = MagicMock(next_node="FINISH", instructions="All clear")
+    
+    mock_chain = AsyncMock()
+    mock_chain.ainvoke.side_effect = [mock_resp1, mock_resp2]
+    
+    # Mock DriftAnalyzer node
+    mock_drift = AsyncMock(return_value={"analysis_summary": "No drift"})
+    nodes = {"DriftAnalyzer": mock_drift}
+    
+    with patch.object(HierarchicalSupervisor, "chain", new_callable=PropertyMock) as mock_chain_prop:
+        mock_chain_prop.return_value = mock_chain
+        
+        initial_state = {"messages": [HumanMessage(content="Analyze system")]}
+        final_result = await supervisor.execute_loop(initial_state, nodes)
+        
+        assert final_result["next"] == "FINISH"
+        assert len(final_result["messages"]) > 1
+        assert mock_drift.called
