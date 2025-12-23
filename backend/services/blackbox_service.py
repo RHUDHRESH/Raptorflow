@@ -165,3 +165,10 @@ class BlackboxService:
             },
         ).execute()
         return result.data
+
+    def link_learning_to_evidence(self, learning_id: UUID, trace_ids: List[UUID]):
+        """Links a strategic learning to specific execution traces."""
+        session = self.vault.get_session()
+        session.table("blackbox_learnings_industrial").update(
+            {"source_ids": [str(tid) for tid in trace_ids]}
+        ).eq("id", str(learning_id)).execute()
