@@ -29,7 +29,9 @@ def test_analysis_state_accumulation():
 
     import operator
 
-    combined_telemetry = operator.add(state1["telemetry_data"], state2["telemetry_data"])
+    combined_telemetry = operator.add(
+        state1["telemetry_data"], state2["telemetry_data"]
+    )
     combined_findings = operator.add(state1["findings"], state2["findings"])
 
     assert len(combined_telemetry) == 2
