@@ -6,7 +6,7 @@
 - [x] Phase 3: Configure Cloud Run for Serverless Agent Inference. [bb99768]
 - [x] Phase 4: Initialize Supabase (Postgres + pgvector) for Semantic Memory. [bbe002a]
 - [x] Phase 5: Setup Upstash Redis for Short-Term Working Memory & Caching. [a582ad5]
-- [ ] Phase 6: Implement GitHub Actions for CI/CD with Linting (ESLint/Flake8).
+- [x] Phase 6: Implement GitHub Actions for CI/CD with Linting (ESLint/Flake8). [5fbac99]
 - [ ] Phase 7: Setup Pre-commit Hooks for Security and Formatting.
 - [ ] Phase 8: Configure Dockerized Development Environments for Backend/Frontend.
 - [ ] Phase 9: Initialize Centralized Logging and Telemetry (Google Cloud Logging).
