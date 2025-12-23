@@ -8,7 +8,7 @@
 - [x] Phase 005: Backend - Implement `MatrixService.initialize_telemetry_stream()` (Upstash integration). 0d80a3f
 - [x] Phase 006: Backend - Create `TelemetryMiddleware` to capture all API latencies and error rates. f5c9a7a
 - [x] Phase 007: Backend - Write Red Phase tests for `MatrixService.capture_agent_heartbeat()`. a70a29b
-- [ ] Phase 008: Backend - Implement `MatrixService.capture_agent_heartbeat()` with expiration logic.
+- [x] Phase 008: Backend - Implement `MatrixService.capture_agent_heartbeat()` with expiration logic. 8019b0d
 - [ ] Phase 009: Backend - Implement centralized `serving.py` for logging model inference metadata.
 - [ ] Phase 010: Conductor - User Manual Verification 'Foundation & Core Telemetry' (Protocol in workflow.md)
 
