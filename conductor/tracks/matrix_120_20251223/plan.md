@@ -69,7 +69,7 @@
 - [x] Phase 058: Backend - Implement `EpisodicRecall` (Retrieve similar campaign outcomes). baa2368
 - [x] Phase 059: Backend - Write Red Phase tests for `RAG.calculate_relevance_score()`. e9f6d9b
 - [x] Phase 060: Backend - Implement `ContextWindowCompressor` for token efficiency. 4c392cb
-- [ ] Phase 061: Backend - Implement `KnowledgeGraphConnector` (Conceptual linking).
+- [x] Phase 061: Backend - Implement `KnowledgeGraphConnector` (Conceptual linking). 8f0db66
 - [ ] Phase 062: Backend - Implement `MemorySelfReflection` agent (Summarizes daily events).
 - [ ] Phase 063: Backend - Implement `AgentSharedState` (Common context pool).
 - [ ] Phase 064: Backend - Implement `StateCheckpointManager` (LangGraph checkpointing).
