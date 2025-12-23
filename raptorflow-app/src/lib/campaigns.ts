@@ -208,6 +208,8 @@ function mapDBCampaignToFrontend(db: any): Campaign {
         offer: 'other',
         channels: [],
         strategyArc: db.arc_data,
+        auditData: db.audit_data?.alignments || [],
+        qualityScore: db.audit_data?.overall_score,
     };
 }
 

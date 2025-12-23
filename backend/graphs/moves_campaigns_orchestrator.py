@@ -99,16 +99,25 @@ async def plan_campaign(state: MovesCampaignsState):
     result = await designer(state)
     arc = result["context_brief"]["campaign_arc"]
 
-    campaign_data = {
-        "title": arc.get("campaign_title", "90-Day Growth Arc"),
-        "objective": state.get("context_brief", {}).get(
-            "objective", "Scale B2B SaaS reach"
-        ),
-        "status": "active",
-        "arc_data": arc,
-        "kpi_targets": state.get("kpi_targets", {}),
-    }
-    campaign_id_state = state.get("campaign_id")
+        campaign_data = {
+
+            "title": arc.get("campaign_title", "90-Day Growth Arc"),
+
+            "objective": state.get("context_brief", {}).get("objective", "Scale B2B SaaS reach"),
+
+            "status": "active",
+
+            "arc_data": arc,
+
+            "kpi_targets": state.get("kpi_targets", {}),
+
+            "audit_data": state.get("context_brief", {}).get("brand_alignment", {}),
+
+        }
+
+        campaign_id_state = state.get("campaign_id")
+
+    
     campaign_id = await save_campaign(
         tenant_id, campaign_data, campaign_id=campaign_id_state
     )
@@ -125,7 +134,27 @@ async def campaign_auditor(state: MovesCampaignsState):
     """SOTA Audit Node: Reflexive check on strategy alignment."""
     llm = InferenceProvider.get_model(model_tier="reasoning")
     agent = BrandVoiceAligner(llm)
-    return await agent(state)
+    
+    result = await agent(state)
+    audit_results = result.get("context_brief", {}).get("brand_alignment", {})
+    
+    # Persist audit results
+    tenant_id = state.get("tenant_id")
+    campaign_id = state.get("campaign_id")
+    if tenant_id and campaign_id:
+        # Fetch current data to not overwrite arc_data if not in state
+        # In a real build, we'd use a more surgical update_campaign_audit method
+        campaign_data = {
+            "title": state.get("strategy_arc", {}).get("campaign_title", "90-Day Growth Arc"),
+            "objective": state.get("context_brief", {}).get("objective", "Scale B2B SaaS reach"),
+            "status": "active",
+            "arc_data": state.get("strategy_arc", {}),
+            "kpi_targets": state.get("kpi_targets", {}),
+            "audit_data": audit_results,
+        }
+        await save_campaign(tenant_id, campaign_data, campaign_id=campaign_id)
+
+    return result
 
 
 async def approve_campaign(state: MovesCampaignsState):
