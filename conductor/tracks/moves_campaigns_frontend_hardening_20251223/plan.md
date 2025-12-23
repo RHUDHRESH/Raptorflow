@@ -28,8 +28,8 @@
 - [x] 21. Task: Build the interactive "Strategic Pivot" cards in the Dashboard [6ef8318]
 - [x] 22. Task: Connect Pivot Card actions to backend strategy update nodes [05970ae]
 - [x] 23. Task: Implement optimistic UI updates for campaign state changes [61302f3]
-- [~] 24. Task: Verify Campaign UI state matches Supabase record after inference
-- [ ] 25. Task: Conductor - User Manual Verification 'Campaign Integration' (Protocol in workflow.md)
+- [x] 24. Task: Verify Campaign UI state matches Supabase record after inference [717019d]
+- [~] 25. Task: Conductor - User Manual Verification 'Campaign Integration' (Protocol in workflow.md)
 
 
 ## Phase 4: Move Module Production Integration (Tasks 26-35)
