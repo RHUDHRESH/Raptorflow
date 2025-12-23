@@ -48,6 +48,32 @@ def setup_bigquery(project_id: str, dataset_id: str = "raptorflow_analytics"):
     except Conflict:
         print(f"Table {table_id} already exists")
 
+    # 3. Create outcomes_stream Table
+    table_id = f"{project_id}.{dataset_id}.outcomes_stream"
+    schema = [
+        bigquery.SchemaField("id", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("campaign_id", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("move_id", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("source", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("value", "FLOAT", mode="REQUIRED"),
+        bigquery.SchemaField("confidence", "FLOAT", mode="NULLABLE"),
+        bigquery.SchemaField("timestamp", "TIMESTAMP", mode="REQUIRED"),
+    ]
+
+    table = bigquery.Table(table_id, schema=schema)
+    table.time_partitioning = bigquery.TimePartitioning(
+        type_=bigquery.TimePartitioningType.DAY,
+        field="timestamp",
+    )
+    table.clustering_fields = ["campaign_id", "source"]
+    table.description = "Business outcomes for ROI attribution analysis"
+
+    try:
+        table = client.create_table(table)
+        print(f"Created table {table_id}")
+    except Conflict:
+        print(f"Table {table_id} already exists")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Setup BigQuery for RaptorFlow")
