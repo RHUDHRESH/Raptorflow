@@ -58,7 +58,7 @@
 - [x] Phase 049: Backend - Implement `ToolOutputValidator` for structured JSON verification. 7c53770
 - [x] Phase 050: Conductor - User Manual Verification 'Skills & Tool Taxonomy' (Protocol in workflow.md) 9e36083
 
-#### Block E: Memory Architecture & RAG Hardening (Phases 51-65)
+#### Block E: Memory Architecture & RAG Hardening (Phases 51-65) [checkpoint: 0c5fe9f]
 - [x] Phase 051: Backend - Implement `L1_ShortTermMemory` using Redis (Upstash). 7a0585f
 - [x] Phase 052: Backend - Implement `L2_EpisodicMemory` using Supabase `pgvector`. 3c1f522
 - [x] Phase 053: Backend - Implement `L3_SemanticMemory` (Brand Foundation lookup). 25336f1
