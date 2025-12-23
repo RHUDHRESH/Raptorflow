@@ -1,8 +1,19 @@
-# Project Tracks
+---
 
-This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
+## [~] Track: moves and campaigns built end to end (Production Engine)
+*Link: [./conductor/tracks/moves_campaigns_production_20251223/](./conductor/tracks/moves_campaigns_production_20251223/)*
 
 ---
 
-## [ ] Track: Implement the "Foundation" Brand Kit management
-*Link: [./conductor/tracks/foundation_brand_kit_20251222/](./conductor/tracks/foundation_brand_kit_20251222/)*
+## [~] Track: Blackbox Industrial Intelligence Engine
+*Link: [./conductor/tracks/blackbox_industrial_20251223/](./conductor/tracks/blackbox_industrial_20251223/)*
+
+---
+
+## [~] Track: Cognitive Intelligence Engine (100-Phase Build)
+*Link: [./conductor/tracks/cognitive_intelligence_engine_20251223/](./conductor/tracks/cognitive_intelligence_engine_20251223/)*
+
+---
+
+## [~] Track: Matrix: 120-phase industrial build (GCP, Supabase, Vercel, Upstash)
+*Link: [./conductor/tracks/matrix_120_20251223/](./conductor/tracks/matrix_120_20251223/)*
