@@ -23,7 +23,8 @@ import { BoardroomView } from '@/components/blackbox/BoardroomView';
 import { TelemetryFeed } from '@/components/blackbox/TelemetryFeed';
 import { EvidenceLog, EvidenceTrace } from '@/components/blackbox/EvidenceLog';
 import { AgentAuditLog, AuditEntry } from '@/components/blackbox/AgentAuditLog';
-import { Sparkles, Brain, TrendingUp, Terminal } from 'lucide-react';
+import { StrategicDriftRadar } from '@/components/blackbox/StrategicDriftRadar';
+import { Sparkles, Brain, TrendingUp, Terminal, FileText } from 'lucide-react';
 
 export default function BlackBoxPage() {
     const [experiments, setExperiments] = useState<Experiment[]>([]);
@@ -278,6 +279,9 @@ export default function BlackBoxPage() {
 
                     {/* Right: Monitoring & Logs */}
                     <div className="space-y-8">
+                        {/* Strategic Drift (Task 85) */}
+                        <StrategicDriftRadar />
+
                         {/* Live Telemetry (Task 74) */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between px-1">
