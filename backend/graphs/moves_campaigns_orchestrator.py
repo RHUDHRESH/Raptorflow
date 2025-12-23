@@ -44,6 +44,10 @@ async def plan_campaign(state: MovesCampaignsState):
     # Placeholder for Phase 5 implementation
     return {"status": "monitoring", "messages": ["Campaign strategy generated."]}
 
+async def approve_campaign(state: MovesCampaignsState):
+    """SOTA HITL Node: Awaits human sign-off for the campaign strategy."""
+    return {"messages": ["Campaign strategy approved by human."]}
+
 async def generate_moves(state: MovesCampaignsState):
     # Placeholder for Phase 6 implementation
     print("DEBUG: Reached generate_moves node")
@@ -76,6 +80,7 @@ def router(state: MovesCampaignsState):
 workflow = StateGraph(MovesCampaignsState)
 workflow.add_node("init", initialize_orchestrator)
 workflow.add_node("plan_campaign", plan_campaign)
+workflow.add_node("approve_campaign", approve_campaign)
 workflow.add_node("generate_moves", generate_moves)
 workflow.add_node("approve_move", approve_move)
 workflow.add_node("error_handler", handle_error)
@@ -93,7 +98,8 @@ workflow.add_conditional_edges(
     }
 )
 
-workflow.add_edge("plan_campaign", END)
+workflow.add_edge("plan_campaign", "approve_campaign")
+workflow.add_edge("approve_campaign", END)
 workflow.add_edge("generate_moves", "approve_move")
 workflow.add_edge("approve_move", END)
 workflow.add_edge("error_handler", END)
@@ -112,5 +118,5 @@ def get_checkpointer():
 # Compile with persistence and HITL
 moves_campaigns_orchestrator = workflow.compile(
     checkpointer=get_checkpointer(),
-    interrupt_before=["approve_move"]
+    interrupt_before=["approve_campaign", "approve_move"]
 )

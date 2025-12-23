@@ -210,9 +210,9 @@ class BlackboxService:
             return "No historical memory found for this move type."
 
         context_parts = ["### RELEVANT STRATEGIC MEMORY:"]
-        for l in learnings:
-            content = l.get("content", "")
-            l_type = l.get("learning_type", "tactical").upper()
+        for learning in learnings:
+            content = learning.get("content", "")
+            l_type = learning.get("learning_type", "tactical").upper()
             context_parts.append(f"- [{l_type}] {content}")
 
         return "\n".join(context_parts)
