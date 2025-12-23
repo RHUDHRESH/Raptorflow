@@ -1,5 +1,51 @@
+import time
+from functools import wraps
 from backend.core.vault import Vault
 from backend.models.blackbox import BlackboxTelemetry, BlackboxOutcome, BlackboxLearning
+
+
+def trace_agent(service, agent_id: str):
+    """
+    Synchronous decorator to automatically log agent execution to Blackbox.
+    Expects the first argument of the decorated function to be move_id (UUID).
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(move_id, *args, **kwargs):
+            start_time = time.time()
+            try:
+                result = func(move_id, *args, **kwargs)
+                latency = time.time() - start_time
+                
+                # Extract token usage if available in result
+                tokens = 0
+                if isinstance(result, dict):
+                    usage = result.get("usage", {})
+                    tokens = usage.get("total_tokens", usage.get("tokens", 0))
+                
+                # Log telemetry
+                telemetry = BlackboxTelemetry(
+                    move_id=move_id,
+                    agent_id=agent_id,
+                    trace={"input": args, "kwargs": kwargs, "output": result},
+                    tokens=tokens,
+                    latency=latency
+                )
+                service.log_telemetry(telemetry)
+                return result
+            except Exception as e:
+                # Log failure telemetry
+                latency = time.time() - start_time
+                telemetry = BlackboxTelemetry(
+                    move_id=move_id,
+                    agent_id=agent_id,
+                    trace={"error": str(e), "status": "failed"},
+                    latency=latency
+                )
+                service.log_telemetry(telemetry)
+                raise e
+        return wrapper
+    return decorator
 
 
 class BlackboxService:

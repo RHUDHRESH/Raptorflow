@@ -1,4 +1,5 @@
 import sys
+import time
 from unittest.mock import MagicMock, AsyncMock, patch
 import pytest
 from uuid import uuid4
@@ -11,7 +12,7 @@ sys.modules["google.cloud"] = mock_google.cloud
 sys.modules["google.cloud.bigquery"] = mock_google.cloud.bigquery
 
 from backend.core.vault import Vault
-from backend.services.blackbox_service import BlackboxService
+from backend.services.blackbox_service import BlackboxService, trace_agent
 from backend.models.blackbox import BlackboxTelemetry
 
 def test_blackbox_service_instantiation():
@@ -78,3 +79,21 @@ def test_blackbox_service_stream_to_bigquery():
         mock_bq_client.insert_rows_json.assert_called_once()
         args, kwargs = mock_bq_client.insert_rows_json.call_args
         assert "telemetry_stream" in args[0]
+
+def test_trace_agent_decorator():
+    mock_service = MagicMock()
+    
+    # Decorate a dummy function
+    @trace_agent(service=mock_service, agent_id="test-decorator-agent")
+    def dummy_agent(move_id, input_data):
+        return {"output": "ok", "usage": {"total_tokens": 50}}
+    
+    move_id = uuid4()
+    result = dummy_agent(move_id, {"some": "input"})
+    
+    assert result["output"] == "ok"
+    mock_service.log_telemetry.assert_called_once()
+    telemetry = mock_service.log_telemetry.call_args[0][0]
+    assert telemetry.agent_id == "test-decorator-agent"
+    assert telemetry.move_id == move_id
+    assert telemetry.tokens == 50
