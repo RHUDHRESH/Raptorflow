@@ -10,7 +10,7 @@ import {
     ExperimentDetail
 } from '@/components/blackbox';
 import { Experiment, SelfReport, ExperimentStatus, LearningArtifact } from '@/lib/blackbox-types';
-import { saveBlackboxState, loadBlackboxState, updateExperiment, addLearning } from '@/lib/blackbox';
+import { saveBlackboxState, loadBlackboxState, updateExperiment, addLearning, getEvidencePackage } from '@/lib/blackbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -134,31 +134,18 @@ export default function BlackBoxPage() {
         }
     }, []);
 
-    const handleViewEvidence = () => {
-        const mockTraces: EvidenceTrace[] = [
-            {
-                id: 'tr-1',
-                agent_id: 'researcher_scraper',
-                trace: { output: { url: 'https://www.linkedin.com/pulse/b2b-marketing-trends-2025' } },
-                latency: 1.2,
-                timestamp: new Date().toISOString()
-            }
-        ];
-        setEvidenceTraces(mockTraces);
-        setShowEvidence(true);
+    const handleViewEvidence = (learningId: string) => {
+        const fetchData = async () => {
+            const traces = await getEvidencePackage(learningId);
+            setEvidenceTraces(traces);
+            setShowEvidence(true);
+        };
+        fetchData();
     };
 
-    const handleViewAuditLog = () => {
-        const mockEntries: AuditEntry[] = [
-            {
-                id: 'aud-1',
-                agent_id: 'MatrixSupervisor',
-                action: 'routing_intent',
-                metadata: { intent: 'research', confidence: 0.98 },
-                timestamp: new Date().toISOString()
-            }
-        ];
-        setAuditEntries(mockEntries);
+    const handleViewAuditLog = (moveId?: string) => {
+        // If moveId is provided, we use the move-specific audit view
+        // Otherwise we show the global feed (requires a different endpoint or handled in component)
         setShowAudit(true);
     };
 
@@ -240,34 +227,45 @@ export default function BlackBoxPage() {
                                     </h2>
                                 </div>
                                 <div className="grid gap-4">
-                                    <div className="p-5 md:p-6 rounded-2xl border border-accent/20 bg-accent/5 backdrop-blur-sm relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity hidden md:block">
-                                            <Brain size={80} />
-                                        </div>
-                                        <div className="flex flex-col md:flex-row items-start gap-4">
-                                            <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground shrink-0 shadow-lg shadow-accent/20">
-                                                <TrendingUp size={20} />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <h3 className="font-semibold text-lg font-sans leading-tight">Scale B2B SaaS Reach via LinkedIn</h3>
-                                                <p className="text-sm text-muted-foreground font-sans leading-relaxed">
-                                                    Based on the last 4 experiments, LinkedIn Organic outreach has 3.2x higher conversion than cold email.
-                                                    Recommendation: Shift 40% of email budget to LinkedIn Content Engine.
-                                                </p>
-                                                <div className="pt-4 flex flex-wrap items-center gap-3">
-                                                    <Button size="sm" className="rounded-lg h-8 bg-foreground text-background px-4 font-sans text-xs">Apply Pivot</Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="rounded-lg h-8 px-4 font-sans text-xs border-border bg-background/50"
-                                                        onClick={handleViewEvidence}
-                                                    >
-                                                        View Evidence
-                                                    </Button>
+                                    {learnings.filter(l => l.learning_type === 'strategic').length === 0 ? (
+                                        <p className="text-xs text-muted-foreground italic px-1">No strategic pivots generated yet.</p>
+                                    ) : (
+                                        learnings.filter(l => l.learning_type === 'strategic').map((learning: any) => (
+                                            <div key={learning.id} className="p-5 md:p-6 rounded-2xl border border-accent/20 bg-accent/5 backdrop-blur-sm relative overflow-hidden group">
+                                                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity hidden md:block">
+                                                    <Brain size={80} />
+                                                </div>
+                                                <div className="flex flex-col md:flex-row items-start gap-4">
+                                                    <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground shrink-0 shadow-lg shadow-accent/20">
+                                                        <TrendingUp size={20} />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <h3 className="font-semibold text-lg font-sans leading-tight">Strategic Learning</h3>
+                                                        <p className="text-sm text-muted-foreground font-sans leading-relaxed">
+                                                            {learning.content}
+                                                        </p>
+                                                        <div className="pt-4 flex flex-wrap items-center gap-3">
+                                                            <Button 
+                                                                size="sm" 
+                                                                className="rounded-lg h-8 bg-foreground text-background px-4 font-sans text-xs"
+                                                                onClick={() => toast.info('Apply pivot coming soon')}
+                                                            >
+                                                                Apply Pivot
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="rounded-lg h-8 px-4 font-sans text-xs border-border bg-background/50"
+                                                                onClick={() => handleViewEvidence(learning.id)}
+                                                            >
+                                                                View Evidence
+                                                            </Button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
+                                        ))
+                                    )}
                                 </div>
                             </section>
 
