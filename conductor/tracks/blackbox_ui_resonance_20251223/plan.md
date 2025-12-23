@@ -37,7 +37,7 @@ Goal: Ensure the "Run" and "Verify" buttons trigger the actual `BlackboxSpeciali
 ## Phase 5: UI Audit & Decisive Cleanup
 Goal: Final polish, removing placeholders, and ensuring "RaptorFlow Look" compliance.
 
-- [ ] Task: Audit `StatsBar` and `RiskSlider` against real backend data ranges
+- [~] Task: Audit `StatsBar` and `RiskSlider` against real backend data ranges
 - [ ] Task: Remove orphan UI elements lacking backend logic
 - [ ] Task: Final Style & Motion Polish (Framer Motion check)
 - [ ] Task: Conductor - User Manual Verification 'UI Audit & Decisive Cleanup' (Protocol in workflow.md)

@@ -213,6 +213,18 @@ export const QUESTIONS: Question[] = [
         field: 'business.offerStatement',
     },
 
+    // 6.5) Industry / Vertical
+    {
+        id: 'know-industry',
+        sectionId: 'know-you',
+        type: 'text',
+        question: 'What industry are you in?',
+        hint: 'e.g., Fintech, EdTech, Real Estate, Health & Wellness.',
+        placeholder: 'SaaS / Marketing Tech',
+        field: 'business.industry',
+        autoComplete: 'organization-title', // close approximation
+    },
+
     // 7) Pricing band
     {
         id: 'know-price',

@@ -81,6 +81,17 @@ export function ReviewScreen({ data, onBack, onComplete, onEditSection }: Review
                             <ReviewItem label="Current Tools" value={formatList(data.reality?.currentTools)} />
                             <ReviewItem label="Proof Available" value={formatList(data.proof?.proofTypes)} />
                         </div>
+
+                        {/* Customer Insights (New) */}
+                        <div className={styles.reviewStack} style={{ marginTop: '2rem' }}>
+                            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Customer Intelligence</h4>
+                            <div className={styles.reviewGrid}>
+                                <ReviewItem label="Best Customers" value={formatList(data.customerInsights?.bestCustomers)} />
+                                <ReviewItem label="Trigger Events" value={formatList(data.customerInsights?.triggerEvents)} />
+                                <ReviewItem label="Alternatives" value={formatList(data.customerInsights?.alternatives)} />
+                                <ReviewItem label="Pain Ranking" value={formatList(data.customerInsights?.painRanking)} />
+                            </div>
+                        </div>
                     </div>
                 );
 
