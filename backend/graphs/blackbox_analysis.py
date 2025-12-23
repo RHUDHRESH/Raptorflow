@@ -33,18 +33,9 @@ def ingest_telemetry_node(state: AnalysisState) -> Dict:
     """
     Node: Ingests all telemetry associated with the move_id.
     """
-    from backend.core.vault import Vault
-
-    session = Vault().get_session()
-
-    result = (
-        session.table("blackbox_telemetry_industrial")
-        .select("*")
-        .eq("move_id", state["move_id"])
-        .execute()
-    )
-
-    return {"telemetry_data": result.data, "status": "ingested"}
+    service = get_blackbox_service()
+    traces = service.get_telemetry_by_move(state["move_id"])
+    return {"telemetry_data": traces, "status": "ingested"}
 
 
 def extract_insights_node(state: AnalysisState) -> Dict:
@@ -121,6 +112,49 @@ def reflect_and_validate_node(state: AnalysisState) -> Dict:
         except (ValueError, IndexError):
             pass
             
-    reflection = content.split("Reflection:")[1].strip() if "Reflection:" in content else content
+        reflection = content.split("Reflection:")[1].strip() if "Reflection:" in content else content
+        
+        return {"reflection": reflection, "confidence": confidence, "status": "validated"}
     
-    return {"reflection": reflection, "confidence": confidence, "status": "validated"}
+    
+    def should_continue(state: AnalysisState) -> str:
+        """
+        Conditional edge logic: decide whether to retry analysis.
+        """
+        if state.get("confidence", 0.0) < 0.7:
+            return "extract_insights"
+        return "__end__"
+    
+def should_retry(state: AnalysisState) -> str:
+    """Conditional edge: Decides whether to retry analysis based on confidence."""
+    if state.get("confidence", 0.0) < 0.7:
+        return "retry"
+    return "complete"
+
+
+def build_blackbox_graph():
+    """Constructs the Blackbox Analysis StateGraph."""
+    from langgraph.graph import StateGraph, END
+
+    builder = StateGraph(AnalysisState)
+
+    builder.add_node("ingest", ingest_telemetry_node)
+    builder.add_node("extract", extract_insights_node)
+    builder.add_node("attribute", attribute_outcomes_node)
+    builder.add_node("reflect", reflect_and_validate_node)
+
+    builder.set_entry_point("ingest")
+    builder.add_edge("ingest", "extract")
+    builder.add_edge("extract", "attribute")
+    builder.add_edge("attribute", "reflect")
+
+    builder.add_conditional_edges(
+        "reflect",
+        should_retry,
+        {
+            "retry": "extract",
+            "complete": END
+        }
+    )
+
+    return builder.compile()
