@@ -13,8 +13,8 @@
 - [x] Task 10: Conductor - User Manual Verification 'Foundation & Infrastructure' [2b190de]
 
 ## Phase 2: Telemetry & Tracing (Phases 11-20)
-- [ ] Task 11: Implement `BlackboxService.log_telemetry(trace_data)` (Async PG write)
-- [ ] Task 12: Implement `BlackboxService.stream_to_bigquery(trace_data)` (Async BQ stream)
+- [x] Task 11: Implement `BlackboxService.log_telemetry(trace_data)` (Sync PG write) [27a4a25]
+- [x] Task 12: Implement `BlackboxService.stream_to_bigquery(trace_data)` (Sync BQ stream) [27a4a25]
 - [ ] Task 13: Create `backend/core/middleware.py` trace_id generator
 - [ ] Task 14: Implement `@trace_agent` decorator for automated logging
 - [ ] Task 15: Implement `BlackboxService.get_agent_audit_log(agent_id)`
