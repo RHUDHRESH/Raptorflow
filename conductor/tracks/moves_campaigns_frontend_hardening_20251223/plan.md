@@ -38,8 +38,8 @@
 - [x] 28. Task: Write failing integration tests for Move generation and status tracking [f5bd0a1]
 - [x] 29. Task: Integrate "Move Refiner" critique and adjustment UI [5ae053f]
 - [x] 30. Task: Implement resource/tool verification feedback in the Moves view [de8d74e]
-- [~] 31. Task: Connect move execution status (Pending -> Executed) to backend updates
-- [ ] 32. Task: Implement progress bar synchronization between Moves and Campaigns
+- [x] 31. Task: Connect move execution status (Pending -> Executed) to backend updates [4b89c66]
+- [~] 32. Task: Implement progress bar synchronization between Moves and Campaigns
 - [ ] 33. Task: Build the detailed "Move Packet" view (Description, Owner, Tools)
 - [ ] 34. Task: Verify Move UI state matches backend database exactly
 - [ ] 35. Task: Conductor - User Manual Verification 'Move Integration' (Protocol in workflow.md)
