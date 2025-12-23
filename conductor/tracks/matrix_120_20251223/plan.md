@@ -47,15 +47,15 @@
 - [x] Phase 038: Backend - Implement `InferenceThrottlingSkill` (Rate limiting). 8980b21
 - [x] Phase 039: Backend - Implement `CachePurgeSkill` (Upstash management). b31e9bc
 - [x] Phase 040: Backend - Write Red Phase tests for `EmergencyHaltSkill.execute()`. 9c417b3
-- [~] Phase 041: Backend - Implement `EmergencyHaltSkill.execute()` with thread-kill logic.
-- [ ] Phase 042: Backend - Implement `ResourceScalingSkill` (Mock for Cloud Run scaling).
-- [ ] Phase 043: Backend - Implement `ArchiveLogsSkill` (GCS trigger).
-- [ ] Phase 044: Backend - Implement `RetrainTriggerSkill` (MLOps lifecycle).
-- [ ] Phase 045: Backend - Define `SkillPrivilegeMatrix` (RBAC for tools).
-- [ ] Phase 046: Backend - Write Red Phase tests for `SkillSelectorAgent.pick_best_tool()`.
-- [ ] Phase 047: Backend - Implement `SkillSelectorAgent.pick_best_tool()` (Few-shot prompting).
-- [ ] Phase 048: Backend - Implement `ToolExecutionWrapper` with comprehensive error handling.
-- [ ] Phase 049: Backend - Implement `ToolOutputValidator` for structured JSON verification.
+- [x] Phase 041: Backend - Implement `EmergencyHaltSkill.execute()` with thread-kill logic. aeafcb3
+- [x] Phase 042: Backend - Implement `ResourceScalingSkill` (Mock for Cloud Run scaling). aeafcb3
+- [x] Phase 043: Backend - Implement `ArchiveLogsSkill` (GCS trigger). 7c53770
+- [x] Phase 044: Backend - Implement `RetrainTriggerSkill` (MLOps lifecycle). 7c53770
+- [x] Phase 045: Backend - Define `SkillPrivilegeMatrix` (RBAC for tools). 7c53770
+- [x] Phase 046: Backend - Write Red Phase tests for `SkillSelectorAgent.pick_best_tool()`. 7c53770
+- [x] Phase 047: Backend - Implement `SkillSelectorAgent.pick_best_tool()` (Few-shot prompting). 7c53770
+- [x] Phase 048: Backend - Implement `ToolExecutionWrapper` with comprehensive error handling. 7c53770
+- [x] Phase 049: Backend - Implement `ToolOutputValidator` for structured JSON verification. 7c53770
 - [ ] Phase 050: Conductor - User Manual Verification 'Skills & Tool Taxonomy' (Protocol in workflow.md)
 
 #### Block E: Memory Architecture & RAG Hardening (Phases 51-65)
