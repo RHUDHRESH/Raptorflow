@@ -1,7 +1,35 @@
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 from datetime import datetime
 from backend.models.telemetry import SystemState, AgentState, AgentHealthStatus, TelemetryEvent
 from backend.services.cache import get_cache
+from backend.db import get_pool, SupabaseSaver
+
+
+class StateCheckpointManager:
+    """
+    SOTA State Checkpoint Manager.
+    Handles LangGraph checkpoints and persistence across the ecosystem.
+    """
+
+    def __init__(self):
+        self._pool = get_pool()
+        self._saver = SupabaseSaver(self._pool)
+
+    def get_saver(self) -> SupabaseSaver:
+        """Returns the industrial-grade Supabase checkpointer."""
+        return self._saver
+
+    async def list_checkpoints(self, thread_id: str) -> List[Dict]:
+        """Lists historical checkpoints for a specific thread."""
+        # Wrap checkpointer logic or query DB directly
+        async with self._pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "SELECT checkpoint_id, created_at FROM checkpoints WHERE thread_id = %s ORDER BY created_at DESC",
+                    (thread_id,),
+                )
+                rows = await cur.fetchall()
+                return [{"id": r[0], "timestamp": r[1]} for r in rows]
 
 
 class MatrixService:
