@@ -84,17 +84,17 @@
 - [x] Task 69: Create `backend/api/v1/blackbox_learning.py` endpoints [d9e398b]
 - [x] Task 70: Conductor - User Manual Verification 'Learning Flywheel' [d9e398b]
 
-## Phase 8: Frontend - Dashboard & Explorer (Phases 71-80)
-- [x] Task 71: Create `raptorflow-app/src/app/blackbox/layout.tsx` (Premium sidebar) [a99399a]
-- [x] Task 72: Build `Blackbox.BoardroomView`: Executive Summary Cards [a99399a]
+## Phase 8: Frontend - Dashboard & Explorer (Phases 71-80) [checkpoint: 54d1dcf]
+- [x] Task 71: Create `raptorflow-app/src/app/blackbox/layout.tsx` (Premium sidebar) [54d1dcf]
+- [x] Task 72: Build `Blackbox.BoardroomView`: Executive Summary Cards [54d1dcf]
 - [ ] Task 73: Build `Blackbox.MomentumChart`: Animated SVG/Canvas chart (Deferred)
-- [x] Task 74: Build `Blackbox.TelemetryFeed`: Real-time trace component [a99399a]
+- [x] Task 74: Build `Blackbox.TelemetryFeed`: Real-time trace component [54d1dcf]
 - [ ] Task 75: Build `Blackbox.TraceDetail`: Modal for prompt/response inspection (Deferred)
 - [ ] Task 76: Build `Blackbox.ROIMatrix`: Data table with heatmap cells (Deferred)
 - [ ] Task 77: Implement `raptorflow-app/src/lib/api/blackbox.ts` (Fetchers) (Deferred)
-- [x] Task 78: Build `Blackbox.PivotCard`: Interactive recommendation UI [a99399a]
-- [x] Task 79: Implement "One-click Pivot" execution logic in UI [a99399a]
-- [x] Task 80: Conductor - User Manual Verification 'Frontend Dashboard' [a99399a]
+- [x] Task 78: Build `Blackbox.PivotCard`: Interactive recommendation UI [54d1dcf]
+- [x] Task 79: Implement "One-click Pivot" execution logic in UI [54d1dcf]
+- [x] Task 80: Conductor - User Manual Verification 'Frontend Dashboard' [54d1dcf]
 
 ## Phase 9: Advanced UI & Visualization (Phases 81-90)
 - [ ] Task 81: Build `Blackbox.EvidenceLog`: List of search/scrape links
