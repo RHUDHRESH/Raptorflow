@@ -14,8 +14,8 @@
 
 ## Phase 2: Data Fabric & Cognitive Memory Layer (Phases 11-20)
 - [x] Phase 11: Design and Implement Supabase Schema for Brand/Positioning data. [f421da1]
-- [~] Phase 12: Build Vector Ingestion Pipeline for external data (PDF/URL).
-- [ ] Phase 13: Implement Semantic Memory Retrieval logic with pgvector.
+- [x] Phase 12: Build Vector Ingestion Pipeline for external data (PDF/URL). [41924db]
+- [~] Phase 13: Implement Semantic Memory Retrieval logic with pgvector.
 - [ ] Phase 14: Develop Episodic Memory system for tracking user interactions.
 - [ ] Phase 15: Integrate Procedural Memory for storing agent-tool usage patterns.
 - [ ] Phase 16: Setup Firecrawl/Jina integration for raw web data ingestion.
