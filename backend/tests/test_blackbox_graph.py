@@ -14,7 +14,7 @@ sys.modules["langchain_google_vertexai"] = mock_vertex
 mock_supabase = MagicMock()
 sys.modules["supabase"] = mock_supabase
 
-from backend.graphs.blackbox_analysis import (
+from backend.graphs.blackbox_industrial import (
     AnalysisState, 
     ingest_telemetry_node, 
     extract_insights_node, 
@@ -89,6 +89,6 @@ def test_critique_loop_logic():
 
 def test_blackbox_graph_routing():
     state_low = {"confidence": 0.4}
-    assert should_continue(state_low) == "extract_insights"
+    assert should_continue(state_low) == "retry"
     state_high = {"confidence": 0.8}
     assert should_continue(state_high) == "__end__"
