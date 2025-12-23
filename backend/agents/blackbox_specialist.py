@@ -25,7 +25,6 @@ class BlackboxSpecialist(ABC):
         """
         return await self.run(state)
 
-
 class ROIAnalystAgent(BlackboxSpecialist):
     """
     Specialist focused on business outcome attribution and ROI calculation.
