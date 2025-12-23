@@ -65,5 +65,46 @@ def extract_insights_node(state: AnalysisState) -> Dict:
     
     response = llm.invoke(prompt)
     finding = response.content.strip()
-    
+
     return {"findings": [finding], "status": "analyzed"}
+
+
+def attribute_outcomes_node(state: AnalysisState) -> Dict:
+    """
+    Node: Attributes business outcomes to the current move.
+    Math-heavy probabilistic attribution logic placeholder.
+    """
+    from backend.core.vault import Vault
+
+    session = Vault().get_session()
+
+    # In a production scenario, this would use probabilistic modeling
+    # to find outcomes correlated with this move_id.
+    # For now, we fetch recent outcomes.
+    result = (
+        session.table("blackbox_outcomes_industrial")
+        .select("*")
+        .limit(10)
+        .execute()
+    )
+
+    return {"outcomes": result.data, "status": "attributed"}
+
+
+def attribute_outcomes_node(state: AnalysisState) -> Dict:
+    """
+    Node: Attributes business outcomes to the current move.
+    """
+    from backend.core.vault import Vault
+    session = Vault().get_session()
+    
+    # In a real scenario, we might use a complex SQL join or BigQuery query here.
+    # For the graph node, we fetch related outcomes from the industrial outcomes table.
+    result = (
+        session.table("blackbox_outcomes_industrial")
+        .select("*")
+        .eq("move_id", state["move_id"])
+        .execute()
+    )
+    
+    return {"outcomes": result.data, "status": "attributed"}
