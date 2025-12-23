@@ -7,7 +7,9 @@ vi.mock("../supabase", () => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
           order: vi.fn(() => Promise.resolve({ data: [], error: null })),
-        }))
+          single: vi.fn(() => Promise.resolve({ data: { source_ids: [] }, error: null })),
+        })),
+        in: vi.fn(() => Promise.resolve({ data: [], error: null })),
       })),
       insert: vi.fn(() => Promise.resolve({ error: null })),
     }))

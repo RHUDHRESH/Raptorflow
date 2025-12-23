@@ -85,3 +85,76 @@ export function getLearnings(): LearningArtifact[] {
 export function getSkillWeights(): Record<string, number> {
     return loadBlackboxState().skill_weights;
 }
+
+// =====================================
+// Backend Integration (Supabase)
+// =====================================
+import { supabase } from './supabase';
+
+export async function getOutcomesByCampaign(campaignId: string) {
+    const { data, error } = await supabase
+        .from('blackbox_outcomes_industrial')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .order('timestamp', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching outcomes for campaign:', error);
+        return [];
+    }
+    return data;
+}
+
+export async function getOutcomesByMove(moveId: string) {
+    const { data, error } = await supabase
+        .from('blackbox_outcomes_industrial')
+        .select('*')
+        .eq('move_id', moveId)
+        .order('timestamp', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching outcomes for move:', error);
+        return [];
+    }
+    return data;
+}
+
+export async function getEvidencePackage(learningId: string) {
+    // 1. Fetch learning to get source_ids
+    const { data: learning, error: lError } = await supabase
+        .from('blackbox_learnings_industrial')
+        .select('source_ids')
+        .eq('id', learningId)
+        .single();
+
+    if (lError || !learning?.source_ids) {
+        console.error('Error fetching learning source IDs:', lError);
+        return [];
+    }
+
+    // 2. Fetch all telemetry for these IDs
+    const { data, error } = await supabase
+        .from('blackbox_telemetry_industrial')
+        .select('*')
+        .in('id', learning.source_ids);
+
+    if (error) {
+        console.error('Error fetching evidence package:', error);
+        return [];
+    }
+    return data;
+}
+
+export async function getTelemetryByMove(moveId: string) {
+    const { data, error } = await supabase
+        .from('blackbox_telemetry_industrial')
+        .select('*')
+        .eq('move_id', moveId)
+        .order('timestamp', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching telemetry for move:', error);
+        return [];
+    }
+    return data;
+}
