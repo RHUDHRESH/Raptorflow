@@ -16,6 +16,31 @@ class TelemetryEventType(str, Enum):
     SYSTEM_HALT = "system_halt"
 
 
+class AgentHealthStatus(str, Enum):
+    ONLINE = "online"
+    OFFLINE = "offline"
+    BUSY = "busy"
+    ERROR = "error"
+
+
+class AgentState(BaseModel):
+    """Real-time state of an individual agent."""
+    status: AgentHealthStatus
+    last_heartbeat: datetime = Field(default_factory=datetime.now)
+    current_task: Optional[str] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class SystemState(BaseModel):
+    """Global system state for the Matrix dashboard."""
+    active_agents: Dict[str, AgentState] = Field(default_factory=dict)
+    system_status: str = Field(default="operational")
+    kill_switch_engaged: bool = Field(default=False)
+    updated_at: datetime = Field(default_factory=datetime.now)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class TelemetryEvent(BaseModel):
     """Strictly validated telemetry event for the Matrix."""
 

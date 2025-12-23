@@ -1,6 +1,6 @@
 import pytest
 from pydantic import ValidationError
-from backend.models.telemetry import TelemetryEvent
+from backend.models.telemetry import TelemetryEvent, SystemState, AgentHealthStatus
 
 
 def test_telemetry_event_valid():
@@ -29,3 +29,21 @@ def test_telemetry_event_invalid_type():
     }
     with pytest.raises(ValidationError):
         TelemetryEvent(**data)
+
+
+def test_system_state_valid():
+    """Test that a valid SystemState can be created."""
+    data = {
+        "active_agents": {
+            "agent_1": {
+                "status": "online",
+                "last_heartbeat": "2025-12-23T12:00:00Z",
+                "current_task": "researching",
+            }
+        },
+        "system_status": "operational",
+        "kill_switch_engaged": False,
+    }
+    state = SystemState(**data)
+    assert state.active_agents["agent_1"].status == AgentHealthStatus.ONLINE
+    assert state.kill_switch_engaged is False
