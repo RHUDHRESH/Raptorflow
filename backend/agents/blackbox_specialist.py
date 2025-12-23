@@ -100,3 +100,43 @@ class CompetitorIntelligenceAgent(BlackboxSpecialist):
             "competitor_insights": response.content,
             "status": ["analyzed"],
         }
+
+
+class BlackboxCritiqueAgent(BlackboxSpecialist):
+    """
+    Quality Gate specialist that critiques analysis results and findings.
+    """
+
+    def __init__(self, model_tier: str = "ultra"):
+        super().__init__(agent_id="blackbox_critique", model_tier=model_tier)
+
+    async def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
+        findings = state.get("findings", [])
+        attribution = state.get("attribution_report", "No attribution yet.")
+        drift = state.get("drift_analysis", "No drift analysis yet.")
+
+        prompt = (
+            "You are the RaptorFlow Quality Gate. Critique the following Blackbox Analysis:\n\n"
+            "FINDINGS: {findings}\n"
+            "ATTRIBUTION: {attribution}\n"
+            "DRIFT: {drift}\n\n"
+            "Identify logic gaps, unsupported claims, or missing context. "
+            "Return a score (0.0 - 1.0) and a list of specific improvements needed."
+        ).format(findings=findings, attribution=attribution, drift=drift)
+
+        response = await self.llm.ainvoke(prompt)
+        # Robust score extraction using regex
+        import re
+        score = 0.8
+        match = re.search(r"score[:\s]*(\d+\.?\d*)", response.content.lower())
+        if match:
+            try:
+                score = float(match.group(1))
+            except (ValueError, IndexError):
+                pass
+
+        return {
+            "critique": response.content,
+            "confidence_score": score,
+            "status": ["critiqued"],
+        }
