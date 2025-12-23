@@ -1,26 +1,27 @@
-import logging
-from typing import Dict, Any
+import time
+import uuid
+from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import Request
+from backend.utils.logger import logger
 
-logger = logging.getLogger("raptorflow.middleware")
 
-class JSONRepair:
-    """
-    SOTA JSON Repair Middleware.
-    Ensures LLM outputs are valid JSON before parsing.
-    """
-    @staticmethod
-    def fix(raw_text: str) -> str:
-        # Simple heuristic for skeleton
-        logger.info("Repairing JSON...")
-        return raw_text.strip().replace("```json", "").replace("```", "")
+class CorrelationIDMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        correlation_id = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
+        request.state.correlation_id = correlation_id
+        response = await call_next(request)
+        response.headers["X-Correlation-ID"] = correlation_id
+        return response
 
-class SafetyFilter:
-    """
-    SOTA Safety & Compliance Middleware.
-    Filters out prohibited content or harmful instructions.
-    """
-    @staticmethod
-    def validate(content: Any) -> bool:
-        logger.info("Running safety filter...")
-        # Basic compliance check
-        return True
+
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        response = await call_next(request)
+        process_time = time.time() - start_time
+
+        logger.info(
+            f"Method: {request.method} Path: {request.url.path} "
+            f"Status: {response.status_code} Duration: {process_time:.4f}s"
+        )
+        return response
