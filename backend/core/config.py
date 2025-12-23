@@ -17,8 +17,8 @@ class Config(BaseSettings):
     GCS_LOG_BUCKET: str = "raptorflow-agent-logs-481505"
 
     # Supabase Configuration
-    SUPABASE_URL: str
-    SUPABASE_SERVICE_ROLE_KEY: str
+    SUPABASE_URL: str = "https://placeholder.supabase.co"
+    SUPABASE_SERVICE_ROLE_KEY: str = "placeholder-key"
 
     # Upstash Configuration
     UPSTASH_REDIS_REST_URL: Optional[str] = None
