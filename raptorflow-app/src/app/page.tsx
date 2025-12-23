@@ -13,10 +13,11 @@ import {
 } from '@/components/ui/icons';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { StrategicPivotList } from '@/components/matrix/StrategicPivotList';
 
 /**
  * Dashboard — Operator View (Polished)
- * 
+ *
  * DESIGN PRINCIPLES (Onboarding Standard):
  * 1. Typography: Playfair >40px, Tracking Tight.
  * 2. Spacing: Grand Rhythm (gap-20+).
@@ -51,7 +52,7 @@ export default function Dashboard() {
 
         {/* PRIMARY ACTION: The "Next Move" */}
         <FadeIn delay={2}>
-          {/* Extended padding and rounded-2xl for premium feel */}
+          {/* ... existing primary action code ... */}
           <div className="group relative overflow-hidden rounded-2xl bg-card border border-border p-1 shadow-sm transition-all duration-500 hover:shadow-xl hover:border-border/80">
             <div className="relative z-10 p-10 md:p-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-10">
               <div className="space-y-6 max-w-3xl">
@@ -81,6 +82,9 @@ export default function Dashboard() {
             <div className="absolute -bottom-24 -right-24 h-64 w-64 bg-foreground/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
           </div>
         </FadeIn>
+
+        {/* STRATEGIC INTELLIGENCE (Task 21) */}
+        <StrategicPivotList />
 
         {/* SYSTEM STATUS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
