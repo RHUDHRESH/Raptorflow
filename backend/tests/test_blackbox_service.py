@@ -372,4 +372,3 @@ def test_blackbox_service_get_memory_context_for_planner():
             mock_search.assert_called_once_with(query="linkedin_post", limit=5)
         except AttributeError:
             pytest.fail("get_memory_context_for_planner not implemented")
-        
