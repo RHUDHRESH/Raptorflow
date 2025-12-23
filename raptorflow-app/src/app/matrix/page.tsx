@@ -6,6 +6,8 @@ import { SystemStatusHeader } from "@/components/matrix/SystemStatusHeader";
 import { AgentPoolList } from "@/components/matrix/AgentPoolList";
 import { GlobalKillSwitch } from "@/components/matrix/GlobalKillSwitch";
 import { DriftChart } from "@/components/matrix/DriftChart";
+import { FinancialBurnChart } from "@/components/matrix/FinancialBurnChart";
+import { InferenceLogExplorer } from "@/components/matrix/InferenceLogExplorer";
 import { Activity, Zap, Shield, AlertTriangle } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -48,7 +50,7 @@ export default function MatrixPage() {
             </p>
           </CardContent>
         </Card>
-        
+
         <Card className="rounded-2xl border-border bg-card/50 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">System Latency</CardTitle>
@@ -89,16 +91,44 @@ export default function MatrixPage() {
         </Card>
       </div>
 
-      {/* 4. Secondary Panels */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4">
-          <AgentPoolList />
-        </div>
-        
-        <div className="col-span-3">
-          <DriftChart />
-        </div>
-      </div>
-    </div>
+                        {/* 4. Secondary Panels */}
+
+                        <div className="grid gap-6 lg:grid-cols-12">
+
+                          <div className="lg:col-span-4">
+
+                            <AgentPoolList />
+
+                          </div>
+
+                          
+
+                          <div className="lg:col-span-4">
+
+                            <InferenceLogExplorer />
+
+                          </div>
+
+                  
+
+                          <div className="lg:col-span-4">
+
+                            <div className="flex flex-col space-y-6">
+
+                              <DriftChart />
+
+                              <FinancialBurnChart />
+
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                  
+
+      
   );
 }
