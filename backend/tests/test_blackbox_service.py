@@ -157,3 +157,28 @@ def test_telemetry_capture_integrity():
         args, _ = mock_bq_client.insert_rows_json.call_args
         assert "telemetry_stream" in args[0]
         assert args[1][0]["agent_id"] == "integrity-test-agent"
+
+def test_bigquery_streaming_latency():
+    mock_vault = MagicMock()
+    mock_vault.project_id = "test-project"
+    service = BlackboxService(vault=mock_vault)
+    
+    telemetry = BlackboxTelemetry(
+        move_id=uuid4(),
+        agent_id="latency-test-agent",
+        trace={"test": "data"},
+        tokens=10,
+        latency=0.1
+    )
+    
+    with patch("google.cloud.bigquery.Client") as mock_client_init:
+        mock_bq_client = mock_client_init.return_value
+        
+        # Simulate a fast response
+        start_time = time.time()
+        service.stream_to_bigquery(telemetry)
+        duration = time.time() - start_time
+        
+        # In a unit test with mocks, this should be extremely fast (< 50ms)
+        assert duration < 0.05
+        mock_bq_client.insert_rows_json.assert_called_once()
