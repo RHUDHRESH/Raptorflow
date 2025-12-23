@@ -121,7 +121,7 @@
 - [x] Phase 101: DevOps - Enable GCP APIs: Cloud Run, BigQuery, GCS, Secret Manager, Cloud Build. 9376403
 - [x] Phase 102: DevOps - Configure Supabase Project: Enable `pgvector`, Realtime, and Auth. 66edbd4
 - [x] Phase 103: DevOps - Provision Upstash Redis instance and configure Global Rate Limiting. c6942ac
-- [ ] Phase 104: DevOps - Create `raptorflow-matrix-sa` (Service Account) with minimal IAM roles.
+- [x] Phase 104: DevOps - Create `raptorflow-matrix-sa` (Service Account) with minimal IAM roles. 9376403
 - [ ] Phase 105: Backend - Integrate GCP Secret Manager for Supabase/Upstash/Vertex keys.
 - [ ] Phase 106: Backend - Configure Cloud Run `service.yaml` with memory/CPU limits & VPC connectors.
 - [ ] Phase 107: Backend - Implement `HealthCheck` endpoint for Cloud Run liveness/readiness probes.
