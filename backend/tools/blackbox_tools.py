@@ -46,3 +46,39 @@ class FetchHistoricalPerformanceTool(BaseRaptorTool):
             }
             
         return results
+
+
+class FetchBrandKitAlignmentTool(BaseRaptorTool):
+    """
+    Tool to retrieve Brand Kit and active Positioning for alignment analysis.
+    """
+
+    def __init__(self):
+        from backend.services.foundation_service import FoundationService
+        self.service = FoundationService(Vault())
+
+    @property
+    def name(self) -> str:
+        return "fetch_brand_kit_alignment"
+
+    @property
+    def description(self) -> str:
+        return (
+            "Retrieves the active brand kit and positioning data for a tenant. "
+            "Essential for detecting strategic drift and ensuring brand consistency."
+        )
+
+    async def _execute(self, brand_kit_id: str) -> Dict[str, Any]:
+        """
+        Retrieves brand kit and related positioning data.
+        """
+        from uuid import UUID
+        bkid = UUID(brand_kit_id)
+        
+        brand_kit = await self.service.get_brand_kit(bkid)
+        positioning = await self.service.get_active_positioning(bkid)
+        
+        return {
+            "brand_kit": brand_kit.model_dump() if brand_kit else None,
+            "positioning": positioning.model_dump() if positioning else None
+        }
