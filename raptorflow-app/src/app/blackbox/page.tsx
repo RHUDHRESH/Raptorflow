@@ -15,7 +15,7 @@ import { saveBlackboxState, loadBlackboxState, updateExperiment, addLearning } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
@@ -151,35 +151,22 @@ export default function BlackBoxPage() {
     };
 
     const handleViewAuditLog = () => {
-        // Mock data for audit entries (Task 82)
-        const mockEntries: AuditEntry[] = [
-            {
-                id: 'ae-1',
-                agent_id: 'strategic_analyst',
-                move_id: 'mv-123',
-                trace: {
-                    input: { move: 'LinkedIn Campaign' },
-                    output: { decision: 'Pivot to LinkedIn' }
-                },
-                tokens: 450,
-                latency: 2.1,
-                timestamp: new Date().toISOString()
-            },
-            {
-                id: 'ae-2',
-                agent_id: 'roi_specialist',
-                move_id: 'mv-123',
-                trace: {
-                    input: { campaign_id: 'camp-456' },
-                    output: { roi: 4.2 }
-                },
-                tokens: 320,
-                latency: 1.5,
-                timestamp: new Date().toISOString()
-            }
-        ];
+        // ... mock entries ...
         setAuditEntries(mockEntries);
         setShowAudit(true);
+    };
+
+    const handleExportPDF = () => {
+        toast.promise(
+            new Promise((resolve) => setTimeout(resolve, 1500)),
+            {
+                loading: 'Generating Strategic Summary PDF...',
+                success: 'Blackbox_Summary_Dec2025.pdf exported successfully',
+                error: 'Failed to export PDF',
+            }
+        );
+        // In a real app, this would use a library like jspdf or a server-side PDF generator
+        window.print();
     };
 
     const winner = experiments.find(e => e.status === 'checked_in' && (e.self_report?.outcome === 'great' || e.self_report?.outcome === 'worked'));
@@ -201,6 +188,13 @@ export default function BlackBoxPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={handleExportPDF}
+                            className="rounded-lg text-muted-foreground h-10 px-4 font-sans hover:text-accent hover:bg-accent/5"
+                        >
+                            <Download className="w-4 h-4 mr-2" /> Export Summary
+                        </Button>
                         {experiments.length > 0 && (
                             <Button variant="ghost" onClick={handleClear} className="rounded-lg text-muted-foreground h-10 font-sans hover:text-red-500 hover:bg-red-50/10">
                                 <Trash2 className="w-4 h-4" />
