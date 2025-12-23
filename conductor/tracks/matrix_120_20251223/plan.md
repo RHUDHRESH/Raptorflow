@@ -43,7 +43,7 @@
 
 #### Block D: Skills & Tool Taxonomy (Phases 36-50)
 - [x] Phase 036: Backend - Define `MatrixSkill` base class and registration system. 1baffca
-- [ ] Phase 037: Backend - Implement `EmergencyHaltSkill` (The Kill-Switch).
+- [x] Phase 037: Backend - Implement `EmergencyHaltSkill` (The Kill-Switch). 1fad000
 - [ ] Phase 038: Backend - Implement `InferenceThrottlingSkill` (Rate limiting).
 - [ ] Phase 039: Backend - Implement `CachePurgeSkill` (Upstash management).
 - [ ] Phase 040: Backend - Write Red Phase tests for `EmergencyHaltSkill.execute()`.
