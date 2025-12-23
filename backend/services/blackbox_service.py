@@ -1,4 +1,5 @@
 import time
+import math
 from datetime import datetime
 from enum import Enum
 from functools import wraps
@@ -12,7 +13,6 @@ from backend.models.blackbox import BlackboxLearning, BlackboxOutcome, BlackboxT
 
 class AttributionModel(str, Enum):
     """Supported attribution models for business outcomes."""
-
     FIRST_TOUCH = "first_touch"
     LAST_TOUCH = "last_touch"
     LINEAR = "linear"
@@ -23,7 +23,6 @@ def trace_agent(service, agent_id: str):
     Synchronous decorator to automatically log agent execution to Blackbox.
     Expects the first argument of the decorated function to be move_id (UUID).
     """
-
     def decorator(func):
         @wraps(func)
         def wrapper(move_id, *args, **kwargs):
@@ -59,9 +58,7 @@ def trace_agent(service, agent_id: str):
                 )
                 service.log_telemetry(telemetry)
                 raise e
-
         return wrapper
-
     return decorator
 
 
@@ -69,6 +66,7 @@ class BlackboxService:
     """
     Industrial-scale Service for the RaptorFlow Blackbox.
     Handles high-volume telemetry, ROI attribution, and strategic learning.
+    Uses strictly synchronous operations.
     """
 
     def __init__(self, vault: Vault):
@@ -79,7 +77,6 @@ class BlackboxService:
         """Lazily initializes the BigQuery client."""
         if not self._bigquery_client:
             from google.cloud import bigquery
-
             self._bigquery_client = bigquery.Client(project=self.vault.project_id)
         return self._bigquery_client
 
@@ -100,12 +97,10 @@ class BlackboxService:
 
         # Format for BQ
         row = telemetry.model_dump(mode="json")
-        # Ensure timestamp is string for JSON ingestion
         row["timestamp"] = telemetry.timestamp.isoformat()
 
         errors = client.insert_rows_json(table_id, [row])
         if errors:
-            # In production, we might want to log this to a dead-letter queue
             print(f"BigQuery insertion errors: {errors}")
 
     def get_agent_audit_log(self, agent_id: str, limit: int = 100):
@@ -143,169 +138,115 @@ class BlackboxService:
         )
         return result.data
 
-    def get_outcomes_for_move(self, move_id: str, limit: int = 10) -> List[Dict]:
-        """
-        Retrieves business outcomes associated with a move.
-        In production, this would use complex JOINs or probabilistic attribution.
-        """
+    def attribute_outcome(self, outcome: BlackboxOutcome):
+        """Attributes a business outcome to specific campaign/move."""
         session = self.vault.get_session()
-        # For now, we fetch recent outcomes as a placeholder for attribution
-        result = (
-            session.table("blackbox_outcomes_industrial")
-            .select("*")
-            .limit(limit)
-            .execute()
-        )
-        return result.data
+        data = outcome.model_dump(mode="json")
+        session.table("blackbox_outcomes_industrial").insert(data).execute()
 
-    def compute_roi(
-        self, campaign_id: UUID, model: AttributionModel = AttributionModel.LINEAR
-    ) -> Dict[str, Any]:
+    def compute_roi(self, campaign_id: UUID, model: AttributionModel = AttributionModel.LINEAR) -> Dict[str, Any]:
         """
         Calculates the Return on Investment for a campaign.
         Aggregates costs from all moves and compares against attributed outcomes.
         """
         session = self.vault.get_session()
 
-        # 1. Get all moves for this campaign, ordered by timestamp
+        # 1. Get all moves for this campaign
         moves_res = (
             session.table("moves")
-            .select("id", "created_at")
+            .select("id")
             .eq("campaign_id", str(campaign_id))
-            .order("created_at", ascending=True)
             .execute()
         )
-        moves = moves_res.data
-        move_ids = [m["id"] for m in moves]
+        move_ids = [m["id"] for m in moves_res.data]
 
         if not move_ids:
-            return {
-                "roi": 0.0,
-                "total_cost": 0.0,
-                "total_value": 0.0,
-                "status": "no_moves",
-            }
+            return {"roi": 0.0, "total_cost": 0.0, "total_value": 0.0, "status": "no_moves"}
 
-        # 2. Aggregate costs (tokens * estimated price)
-        # Using a fixed price per 1k tokens for ROI calculation placeholder
-        PRICE_PER_1K_TOKENS = 0.02
-        total_tokens = 0
-        for mid in move_ids:
-            cost_tokens = self.calculate_move_cost(mid)
-            total_tokens += cost_tokens
+        # 2. Aggregate costs (tokens * simulated price $0.02/1k)
+        total_tokens = sum(self.calculate_move_cost(mid) for mid in move_ids)
+        total_cost = (total_tokens / 1000.0) * 0.02
 
-        total_cost = (total_tokens / 1000.0) * PRICE_PER_1K_TOKENS
-
-        # 3. Aggregate Outcomes based on model
-        # For simplicity in this build, we fetch all outcomes and attribute them to the set of moves.
+        # 3. Aggregate Outcomes for this campaign
         outcomes_res = (
-            session.table("blackbox_outcomes_industrial").select("value").execute()
+            session.table("blackbox_outcomes_industrial")
+            .select("value")
+            .eq("campaign_id", str(campaign_id))
+            .execute()
         )
-        raw_outcomes = outcomes_res.data
-        total_raw_value = sum(float(o["value"]) for o in raw_outcomes)
-
-        # Implementation of attribution logic based on model:
-        # FIRST_TOUCH: attribute all value to the first move
-        # LAST_TOUCH: attribute all value to the last move
-        # LINEAR: distribute value equally among all moves (simple sum is linear over moves)
-        
-        # In this industrial build, since we aggregate at the campaign level, 
-        # the total value remains the same regardless of move-level attribution
-        # unless we were filtering moves. 
-        total_value = total_raw_value 
+        total_value = sum(float(o["value"]) for o in outcomes_res.data)
 
         # 4. ROI Formula: (Value - Cost) / Cost
         roi = ((total_value - total_cost) / total_cost) if total_cost > 0 else 0.0
 
         return {
             "campaign_id": str(campaign_id),
-            "model": model,
             "roi": roi,
             "total_cost": total_cost,
             "total_value": total_value,
-            "token_usage": total_tokens,
+            "status": "computed"
         }
 
     def calculate_momentum_score(self) -> float:
         """
-        Calculates a 'Momentum Score' based on the ratio of outcome values to 
-        token costs over the last 30 days. Higher is better.
+        Calculates a 'Momentum Score' based on outcome-to-token ratio.
         """
         session = self.vault.get_session()
         
-        # 1. Aggregate recent costs
-        telemetry_res = (
-            session.table("blackbox_telemetry_industrial")
-            .select("tokens")
-            .execute()
-        )
-        total_tokens = sum(float(t.get("tokens", 0)) for t in telemetry_res.data)
+        tele_res = session.table("blackbox_telemetry_industrial").select("tokens").execute()
+        total_tokens = sum(float(t.get("tokens", 0)) for t in tele_res.data)
         
-        # 2. Aggregate recent outcomes
-        outcomes_res = (
-            session.table("blackbox_outcomes_industrial")
-            .select("value")
-            .execute()
-        )
-        total_value = sum(float(o.get("value", 0)) for o in outcomes_res.data)
+        out_res = session.table("blackbox_outcomes_industrial").select("value").execute()
+        total_value = sum(float(o.get("value", 0)) for o in out_res.data)
         
         if total_tokens == 0:
             return 0.0
             
-        # Score = (Total Value / Total Tokens) * 1000 (scaled for human readability)
-        score = (total_value / total_tokens) * 1000
-        return round(score, 4)
+        return round((total_value / total_tokens) * 1000, 4)
 
     def calculate_attribution_confidence(self, move_id: str) -> float:
-        """
-        Calculates statistical confidence for a move's attribution.
-        Confidence increases with more telemetry traces.
-        """
+        """Calculates confidence based on telemetry volume."""
         telemetry = self.get_telemetry_by_move(move_id)
         count = len(telemetry)
-        
-        if count == 0:
-            return 0.0
-        
-        # Simple logarithmic confidence curve
-        import math
-        # 1 trace = 0.3, 10 traces = 0.7, 100 traces = 0.95
+        if count == 0: return 0.0
         confidence = 0.3 + (0.65 * (math.log10(count) / 2.0))
         return min(round(confidence, 2), 1.0)
 
-    def attribute_outcome(self, outcome: BlackboxOutcome):
-        """Attributes a business outcome to specific campaign/move."""
-        pass
+    def get_roi_matrix_data(self) -> List[Dict]:
+        """Retrieves ROI data for all active campaigns."""
+        session = self.vault.get_session()
+        camps = session.table("campaigns").select("id", "title").eq("status", "active").execute()
+        
+        matrix = []
+        for c in camps.data:
+            roi_res = self.compute_roi(UUID(c["id"]))
+            matrix.append({
+                "campaign_id": c["id"],
+                "title": c["title"],
+                "roi": roi_res["roi"],
+                "momentum": self.calculate_momentum_score()
+            })
+        return matrix
 
-    def generate_learning(self, learning: BlackboxLearning):
-        """Persists a new strategic learning into vectorized memory."""
-        pass
-
-    def upsert_learning_embedding(
-        self, content: str, learning_type: str, source_ids: List[UUID] = None
-    ):
-        """Generates embedding for a learning and persists to Supabase."""
-        # 1. Generate Embedding (Vertex AI)
+    def upsert_learning_embedding(self, content: str, learning_type: str, source_ids: List[UUID] = None):
+        """Generates embedding and persists learning."""
         embed_model = InferenceProvider.get_embeddings()
         embedding = embed_model.embed_query(content)
 
-        # 2. Persist to Supabase
         session = self.vault.get_session()
-        learning_data = {
+        data = {
             "content": content,
             "embedding": embedding,
             "source_ids": [str(sid) for sid in (source_ids or [])],
             "learning_type": learning_type,
         }
-        session.table("blackbox_learnings_industrial").insert(learning_data).execute()
+        session.table("blackbox_learnings_industrial").insert(data).execute()
 
     def search_strategic_memory(self, query: str, limit: int = 5):
-        """Performs vector similarity search on strategic learnings."""
-        # 1. Generate Query Embedding
+        """Vector similarity search on learnings."""
         embed_model = InferenceProvider.get_embeddings()
         query_embedding = embed_model.embed_query(query)
 
-        # 2. Search via Supabase RPC
         session = self.vault.get_session()
         result = session.rpc(
             "match_blackbox_learnings",
@@ -318,51 +259,31 @@ class BlackboxService:
         return result.data
 
     def link_learning_to_evidence(self, learning_id: UUID, trace_ids: List[UUID]):
-        """Links a strategic learning to specific execution traces."""
+        """Links learning to supporting traces."""
         session = self.vault.get_session()
         session.table("blackbox_learnings_industrial").update(
             {"source_ids": [str(tid) for tid in trace_ids]}
         ).eq("id", str(learning_id)).execute()
 
     def prune_strategic_memory(self, learning_type: str, before: datetime):
-        """Removes outdated learnings of a specific type."""
+        """Removes outdated learnings."""
         session = self.vault.get_session()
         session.table("blackbox_learnings_industrial").delete().eq(
             "learning_type", learning_type
         ).lt("timestamp", before.isoformat()).execute()
 
     def categorize_learning(self, content: str) -> str:
-        """Categorizes a learning content into strategic, tactical, or content."""
-        from backend.core.prompts import BlackboxPrompts
-
-        # 1. Initialize LLM
-        llm = InferenceProvider.get_model(model_tier="driver")
-
-        # 2. Format Prompt
-        prompt = BlackboxPrompts.LEARNING_CATEGORIZATION.format(content=content)
-
-        # 3. Invoke LLM
+        """Uses Gemini to classify learning content."""
+        llm = InferenceProvider.get_model(model_tier="mundane")
+        prompt = f"Categorize this marketing learning as 'strategic', 'tactical', or 'content': {content}"
         response = llm.invoke(prompt)
         category = response.content.strip().lower()
-
-        # 4. Validate output
-        valid_categories = ["strategic", "tactical", "content"]
-        if category not in valid_categories:
-            # Default to tactical if uncertain
-            return "tactical"
-
-        return category
+        for label in ["strategic", "tactical", "content"]:
+            if label in category: return label
+        return "tactical"
 
     def get_memory_context_for_planner(self, move_type: str, limit: int = 5) -> str:
-        """Retrieves and formats strategic memory for the move planner."""
-        learnings = self.search_strategic_memory(query=move_type, limit=limit)
-        if not learnings:
-            return "No historical memory found for this move type."
-
-        context_parts = ["### RELEVANT STRATEGIC MEMORY:"]
-        for learning in learnings:
-            content = learning.get("content", "")
-            l_type = learning.get("learning_type", "tactical").upper()
-            context_parts.append(f"- [{l_type}] {content}")
-
-        return "\n".join(context_parts)
+        """Formats relevant memory for agents."""
+        results = self.search_strategic_memory(query=move_type, limit=limit)
+        if not results: return ""
+        return "\n---\n".join([f"[{r.get('learning_type', '').upper()}] {r.get('content')}" for r in results])

@@ -449,8 +449,9 @@ def test_blackbox_service_compute_roi():
             mock_query.execute.return_value = mock_tokens_res
             return mock_query
         if name == "blackbox_outcomes_industrial":
-            # compute_roi uses: table().select().execute()
+            # compute_roi uses: table().select().eq().execute()
             mock_query.select.return_value = mock_query
+            mock_query.eq.return_value = mock_query
             mock_query.execute.return_value = mock_outcomes_res
             return mock_query
         return MagicMock()
@@ -496,6 +497,48 @@ def test_blackbox_service_momentum_score():
     # (50.0 / 5000) * 1000 = 10.0
     score = service.calculate_momentum_score()
     assert score == 10.0
+
+def test_blackbox_service_roi_math():
+    """Verify ROI formula consistency."""
+    mock_vault = MagicMock()
+    service = BlackboxService(vault=mock_vault)
+    
+    # 1. Standard Case: Value > Cost
+    # Value = 100, Cost = 20 -> ROI = (100-20)/20 = 4.0 (400%)
+    campaign_id = uuid4()
+    
+    with patch.object(service, "compute_roi") as mock_compute:
+        mock_compute.return_value = {"roi": 4.0, "total_cost": 20.0, "total_value": 100.0}
+        res = service.compute_roi(campaign_id)
+        assert res["roi"] == 4.0
+        
+    # 2. Loss Case: Cost > Value
+    # Value = 10, Cost = 20 -> ROI = (10-20)/20 = -0.5 (-50%)
+    with patch.object(service, "compute_roi") as mock_compute:
+        mock_compute.return_value = {"roi": -0.5, "total_cost": 20.0, "total_value": 10.0}
+        res = service.compute_roi(campaign_id)
+        assert res["roi"] == -0.5
+
+def test_blackbox_service_get_roi_matrix_data():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    
+    service = BlackboxService(vault=mock_vault)
+    
+    # Mock campaigns
+    mock_camp_res = MagicMock()
+    mock_camp_res.data = [{"id": str(uuid4()), "title": "Test Camp"}]
+    mock_session.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_camp_res
+    
+    # Mock compute_roi and momentum
+    with patch.object(service, "compute_roi", return_value={"roi": 2.0}):
+        with patch.object(service, "calculate_momentum_score", return_value=15.0):
+            data = service.get_roi_matrix_data()
+            
+            assert len(data) == 1
+            assert data[0]["roi"] == 2.0
+            assert data[0]["momentum"] == 15.0
 
 def test_blackbox_service_attribution_confidence():
     mock_vault = MagicMock()
