@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS blackbox_outcomes_industrial (
 CREATE TABLE IF NOT EXISTS blackbox_learnings_industrial (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     content TEXT NOT NULL,
-    embedding vector(1536), -- 1536 for OpenAI/standard embeddings
+    embedding vector(768), -- 768 for Vertex AI text-embedding-004
     source_ids UUID[] DEFAULT '{}'::uuid[],
     learning_type TEXT NOT NULL, -- tactical, strategic, content
     timestamp TIMESTAMPTZ DEFAULT now()
