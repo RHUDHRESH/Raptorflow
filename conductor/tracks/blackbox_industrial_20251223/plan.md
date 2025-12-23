@@ -27,7 +27,7 @@
 ## Phase 3: Cognitive Memory & Vector Store (Phases 21-30)
 - [x] Task 21: Implement `BlackboxService.upsert_learning_embedding(text, metadata)` [ae6d24d]
 - [x] Task 22: Setup Vertex AI embedding client integration [d9912d7]
-- [ ] Task 23: Implement `BlackboxService.search_strategic_memory(query, limit)`
+- [x] Task 23: Implement `BlackboxService.search_strategic_memory(query, limit)` [7f57149]
 - [ ] Task 24: Implement `BlackboxService.link_learning_to_evidence(learning_id, trace_ids)`
 - [ ] Task 25: Implement Learning Categorization logic (Strategic, Tactical, Content)
 - [ ] Task 26: Write Unit Test: `test_vector_search_relevance`
