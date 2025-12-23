@@ -1,7 +1,6 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from backend.models.campaigns import GanttChart
 from backend.services.campaign_service import CampaignService, get_campaign_service
@@ -49,7 +48,9 @@ async def get_campaign_arc_status(
     """SOTA Endpoint: Retrieves status of the agentic inference for a campaign."""
     result = await service.get_arc_generation_status(campaign_id)
     if not result:
-        raise HTTPException(status_code=404, detail="Status not found for this campaign.")
+        raise HTTPException(
+            status_code=404, detail="Status not found for this campaign."
+        )
     return result
 
 
