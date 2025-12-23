@@ -472,3 +472,27 @@ def test_attribution_models_definition():
     assert AttributionModel.FIRST_TOUCH == "first_touch"
     assert AttributionModel.LAST_TOUCH == "last_touch"
     assert AttributionModel.LINEAR == "linear"
+
+def test_blackbox_service_momentum_score():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    
+    service = BlackboxService(vault=mock_vault)
+    
+    # Mock data
+    def table_side_effect(name):
+        mock_query = MagicMock()
+        if name == "blackbox_telemetry_industrial":
+            mock_query.select.return_value.execute.return_value = MagicMock(data=[{"tokens": 1000}, {"tokens": 4000}]) # 5000 total
+            return mock_query
+        if name == "blackbox_outcomes_industrial":
+            mock_query.select.return_value.execute.return_value = MagicMock(data=[{"value": 50.0}])
+            return mock_query
+        return MagicMock()
+        
+    mock_session.table.side_effect = table_side_effect
+    
+    # (50.0 / 5000) * 1000 = 10.0
+    score = service.calculate_momentum_score()
+    assert score == 10.0
