@@ -73,7 +73,7 @@
 - [ ] Phase 60: Task: Conductor - User Manual Verification 'Campaigns/Moves' (Protocol in workflow.md)
 
 ## Phase 7: Muse - The Asset Factory (Phases 61-70)
-- [ ] Phase 61: Build the Muse "Briefing" Node.
+- [~] Phase 61: Build the Muse "Briefing" Node.
 - [ ] Phase 62: Implement Copywriting agents for Social, Email, and Ads.
 - [ ] Phase 63: Integrate Image Generation (DALL-E 3 / Midjourney API).
 - [ ] Phase 64: Build Content Repurposing agents (Long-form to Short-form).

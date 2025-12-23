@@ -50,7 +50,7 @@ export class InferenceErrorBoundary extends Component<Props, State> {
               Something went wrong while executing the agentic workflow. This is usually a connectivity issue with Vertex AI.
             </p>
           </div>
-          <Button 
+          <Button
             onClick={this.handleReset}
             className="rounded-full bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 h-12 px-8 font-medium shadow-lg"
           >

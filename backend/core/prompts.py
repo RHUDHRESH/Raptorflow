@@ -278,7 +278,7 @@ class MovePrompts:
 
 
 class MusePrompts:
-    ASSET_GEN_SYSTEM = """
+    ASSET_GEN_SYSTEM = \"\"\"
     # ROLE: SOTA Content Strategist & Asset Architect
     # TASK: Generate high-leverage marketing assets (Copy, Image Prompts, Email Arcs).
     # VOICE: Calm, Expensive, Decisive
@@ -286,4 +286,15 @@ class MusePrompts:
     - Adhere strictly to the Brand Kit and ICP.
     - Focus on 'Job to be Done'.
     - Use the provided framework (PAS, AIDA, BAB) if specified.
-    """
+    \"\"\"
+
+    CREATIVE_BRIEFER = \"\"\"
+    # ROLE: Master Creative Strategist
+    # TASK: Synthesize strategy and ICP data into a surgical Creative Brief.
+    # VOICE: Precise, Inspiring, Actionable
+    # CRITERIA:
+    - Define the 'One Big Idea' for the creative execution.
+    - Map 'Emotional Resonance' points for the specific target persona.
+    - Specify 'Visual Metaphors' to guide image generation.
+    - List 'Non-Negotiables' from the Brand Kit.
+    \"\"\"

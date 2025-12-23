@@ -1,32 +1,45 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getCampaigns, createCampaign, getMoves } from "../campaigns";
 
-// Mock Supabase or API client once we have one
-// For now we test that the current implementation is WRONG (it uses localStorage)
-// or we test the EXPECTED behavior of the new async implementation.
+// Mock supabase module before importing campaigns
+vi.mock("../supabase", () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        order: vi.fn(() => Promise.resolve({ data: [], error: null })),
+        eq: vi.fn(() => ({
+          single: vi.fn(() => Promise.resolve({ data: null, error: null }))
+        }))
+      })),
+      insert: vi.fn(() => Promise.resolve({ error: null })),
+      update: vi.fn(() => ({
+        eq: vi.fn(() => Promise.resolve({ error: null }))
+      })),
+      delete: vi.fn(() => ({
+        eq: vi.fn(() => Promise.resolve({ error: null }))
+      }))
+    }))
+  }
+}));
+
+import { getCampaigns, createCampaign } from "../campaigns";
 
 describe("Campaigns API Integration", () => {
   
-  it("should fetch campaigns from the backend API, not localStorage", async () => {
-    // This will likely fail currently as the implementation is synchronous and uses localStorage
-    // @ts-ignore
+  it("should fetch campaigns from supabase", async () => {
     const campaigns = await getCampaigns();
     expect(Array.isArray(campaigns)).toBe(true);
-    // Add logic to check if a specific mock API was called
   });
 
-  it("should persist a new campaign to Supabase via the backend", async () => {
-    const mockCampaign = {
+  it("should persist a new campaign to supabase", async () => {
+    const mockCampaign: any = {
       id: "test-id",
       name: "Test Campaign",
-      objective: "leads",
+      objective: "acquire",
       status: "active",
       createdAt: new Date().toISOString(),
     };
 
-    // @ts-ignore
     await createCampaign(mockCampaign);
-    
-    // Verify it exists in the backend (mocked)
+    // Success means no error thrown
   });
 });
