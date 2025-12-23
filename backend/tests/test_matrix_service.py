@@ -1,7 +1,8 @@
 import pytest
+from datetime import datetime
 from unittest.mock import MagicMock, AsyncMock
 from backend.services.matrix_service import MatrixService
-from backend.models.telemetry import TelemetryEvent, SystemState, AgentHealthStatus
+from backend.models.telemetry import TelemetryEvent, SystemState, AgentHealthStatus, AgentState
 
 @pytest.fixture
 def matrix_service(monkeypatch):
@@ -109,6 +110,24 @@ async def test_capture_agent_heartbeat_metadata(matrix_service):
     assert success is True
     overview = matrix_service.get_system_overview()
     assert overview.active_agents["agent_gamma"].metadata["token_usage"] == 150
+
+@pytest.mark.asyncio
+async def test_prune_stale_agents(matrix_service):
+    """Test pruning stale agents."""
+    from datetime import timedelta
+    # Add a stale agent manually
+    stale_state = AgentState(
+        status=AgentHealthStatus.ONLINE,
+        last_heartbeat=datetime.now() - timedelta(seconds=600),
+        current_task="old task"
+    )
+    matrix_service._state.active_agents["stale_agent"] = stale_state
+    
+    # Prune
+    matrix_service.prune_stale_agents(timeout_seconds=300)
+    
+    overview = matrix_service.get_system_overview()
+    assert overview.active_agents["stale_agent"].status == AgentHealthStatus.OFFLINE
 
 @pytest.mark.asyncio
 async def test_halt_system(matrix_service):

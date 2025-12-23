@@ -36,18 +36,33 @@ class MatrixService:
             return False
 
     async def capture_agent_heartbeat(
-        self, agent_id: str, task: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None
+        self, 
+        agent_id: str, 
+        task: Optional[str] = None, 
+        status: AgentHealthStatus = AgentHealthStatus.ONLINE,
+        metadata: Optional[Dict[str, Any]] = None
     ) -> bool:
         """Captures a heartbeat from an active agent and updates global state."""
         agent_state = AgentState(
-            status=AgentHealthStatus.ONLINE,
+            status=status,
             last_heartbeat=datetime.now(),
             current_task=task,
             metadata=metadata or {}
         )
         self._state.active_agents[agent_id] = agent_state
         self._state.updated_at = datetime.now()
+        
+        # Periodic prune (simplified for now)
+        self.prune_stale_agents()
         return True
+
+    def prune_stale_agents(self, timeout_seconds: int = 300):
+        """Marks agents as OFFLINE if they haven't sent a heartbeat within the timeout."""
+        now = datetime.now()
+        for agent_id, state in list(self._state.active_agents.items()):
+            delta = (now - state.last_heartbeat).total_seconds()
+            if delta > timeout_seconds:
+                state.status = AgentHealthStatus.OFFLINE
 
     async def halt_system(self) -> bool:
         """Engages the global Kill-Switch to stop all agentic activity."""
