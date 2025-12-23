@@ -6,6 +6,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from backend.db import SupabaseSaver, get_pool
+from backend.memory.semantic import SemanticMemory
 
 
 class MovesCampaignsState(TypedDict):
@@ -45,6 +46,23 @@ async def initialize_orchestrator(state: MovesCampaignsState):
         return {"status": "planning", "messages": ["Orchestrator initialized."]}
     return {"messages": ["Orchestrator resumed."]}
 
+
+async def inject_context(state: MovesCampaignsState):
+    """RAG Node: Injects relevant business context into the state."""
+    tenant_id = state.get("tenant_id")
+    if not tenant_id:
+        return {"messages": ["WARNING: No tenant_id found for context injection."]}
+
+    # For MMR, we'd typically need more snippets and then re-rank.
+    # For now, we fetch the top 3 most similar "Gold" snippets.
+    memory = SemanticMemory()
+    memories = await memory.search(tenant_id, query="marketing strategy ICP brand kit", limit=3)
+    
+    context_snippets = [m["content"] for m in memories]
+    return {
+        "business_context": context_snippets,
+        "messages": [f"Injected {len(context_snippets)} business context snippets."]
+    }
 
 async def plan_campaign(state: MovesCampaignsState):
     # Placeholder for Phase 5 implementation
@@ -94,6 +112,7 @@ def router(state: MovesCampaignsState):
 # Build SOTA Workflow
 workflow = StateGraph(MovesCampaignsState)
 workflow.add_node("init", initialize_orchestrator)
+workflow.add_node("inject_context", inject_context)
 workflow.add_node("plan_campaign", plan_campaign)
 workflow.add_node("approve_campaign", approve_campaign)
 workflow.add_node("generate_moves", generate_moves)
@@ -101,9 +120,10 @@ workflow.add_node("approve_move", approve_move)
 workflow.add_node("error_handler", handle_error)
 
 workflow.add_edge(START, "init")
+workflow.add_edge("init", "inject_context")
 
 workflow.add_conditional_edges(
-    "init",
+    "inject_context",
     router,
     {
         "campaign": "plan_campaign",
