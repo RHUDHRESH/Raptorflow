@@ -41,7 +41,7 @@
 - [x] Phase 034: Backend - Implement `AgentPoolMonitor` for real-time thread counting. 8238ca7
 - [x] Phase 035: Conductor - User Manual Verification 'Agentic Spine' (Protocol in workflow.md)
 
-#### Block D: Skills & Tool Taxonomy (Phases 36-50)
+#### Block D: Skills & Tool Taxonomy (Phases 36-50) [checkpoint: edef386]
 - [x] Phase 036: Backend - Define `MatrixSkill` base class and registration system. 1baffca
 - [x] Phase 037: Backend - Implement `EmergencyHaltSkill` (The Kill-Switch). 1fad000
 - [x] Phase 038: Backend - Implement `InferenceThrottlingSkill` (Rate limiting). 8980b21
