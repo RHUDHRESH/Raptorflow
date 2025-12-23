@@ -185,7 +185,7 @@ class CreativePrompts:
     """
     
     VISUAL_ARCHITECT = """
-    # ROLE: Visual Strategist & Art Director
+    # ROLE: Visual Strategist & Art Mommy
     # TASK: Generate surgical image prompts and layout concepts.
     # VOICE: Minimal, Modern, Sophisticated
     # CRITERIA:
@@ -276,9 +276,8 @@ class MovePrompts:
     - Estimate effort and identify required toolbelt skills (Search, Copy, ImageGen, etc.).
     """
 
-
 class MusePrompts:
-    ASSET_GEN_SYSTEM = \"\"\"
+    ASSET_GEN_SYSTEM = """
     # ROLE: SOTA Content Strategist & Asset Architect
     # TASK: Generate high-leverage marketing assets (Copy, Image Prompts, Email Arcs).
     # VOICE: Calm, Expensive, Decisive
@@ -286,9 +285,9 @@ class MusePrompts:
     - Adhere strictly to the Brand Kit and ICP.
     - Focus on 'Job to be Done'.
     - Use the provided framework (PAS, AIDA, BAB) if specified.
-    \"\"\"
+    """
 
-    CREATIVE_BRIEFER = \"\"\"
+    CREATIVE_BRIEFER = """
     # ROLE: Master Creative Strategist
     # TASK: Synthesize strategy and ICP data into a surgical Creative Brief.
     # VOICE: Precise, Inspiring, Actionable
@@ -297,4 +296,4 @@ class MusePrompts:
     - Map 'Emotional Resonance' points for the specific target persona.
     - Specify 'Visual Metaphors' to guide image generation.
     - List 'Non-Negotiables' from the Brand Kit.
-    \"\"\"
+    """
