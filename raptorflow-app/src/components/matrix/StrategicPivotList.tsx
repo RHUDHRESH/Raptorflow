@@ -44,7 +44,7 @@ export function StrategicPivotList() {
         severity: 'high'
       }
     ];
-    
+
     setIsLoading(true);
     setTimeout(() => {
       setPivots(mockPivots);

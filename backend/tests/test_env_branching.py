@@ -1,7 +1,6 @@
 import yaml
 
 
-
 def test_workflow_has_branching_logic():
     """Verify that backend-ci-cd.yml has branching logic for staging/prod."""
     with open(".github/workflows/backend-ci-cd.yml", "r") as f:

@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, status, HTTPException
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 from uuid import UUID
-from backend.services.blackbox_service import BlackboxService
+
+from fastapi import APIRouter, Depends, HTTPException
+
 from backend.core.vault import Vault
+from backend.services.blackbox_service import BlackboxService
 
 router = APIRouter(prefix="/v1/blackbox/learning", tags=["blackbox"])
 
