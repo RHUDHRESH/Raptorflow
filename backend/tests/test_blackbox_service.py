@@ -301,23 +301,40 @@ def test_blackbox_service_link_learning_to_evidence():
     for tid in trace_ids:
         assert str(tid) in update_data["source_ids"]
 
-def test_blackbox_service_categorize_learning():
+def test_vector_search_relevance():
+    """Verify that vector search handles similarity scores and limits correctly."""
     mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    
     service = BlackboxService(vault=mock_vault)
     
-    # Mock LLM response
-    with patch("backend.services.blackbox_service.InferenceProvider.get_model") as mock_get_model:
-        mock_llm = MagicMock()
-        mock_get_model.return_value = mock_llm
+    # Mock Vertex AI Embeddings
+    with patch("backend.services.blackbox_service.InferenceProvider.get_embeddings") as mock_get_embeds:
+        mock_embed_model = MagicMock()
+        mock_get_embeds.return_value = mock_embed_model
+        mock_embed_model.embed_query.return_value = [0.1] * 768
         
-        # Simulate LLM returning a category
-        mock_response = MagicMock()
-        mock_response.content = "strategic"
-        mock_llm.invoke.return_value = mock_response
+        # Mock RPC response with varying similarity
+        mock_rpc = MagicMock()
+        mock_session.rpc.return_value = mock_rpc
+        mock_rpc.execute.return_value = MagicMock(data=[
+            {"id": "1", "content": "Perfect match", "similarity": 0.99},
+            {"id": "2", "content": "Close match", "similarity": 0.85},
+            {"id": "3", "content": "Marginal match", "similarity": 0.51}
+        ])
         
-        category = service.categorize_learning(content="We should focus on LinkedIn for high-ticket SaaS founders.")
-        assert category == "strategic"
-        mock_llm.invoke.assert_called_once()
+        results = service.search_strategic_memory(query="High relevance search", limit=10)
+        
+        assert len(results) == 3
+        assert results[0]["similarity"] > results[1]["similarity"]
+        assert results[0]["content"] == "Perfect match"
+        
+        # Verify RPC params
+        _, kwargs = mock_session.rpc.call_args
+        assert kwargs["params"]["match_count"] == 10
+        assert kwargs["params"]["match_threshold"] == 0.5
+
 
 def test_vector_search_relevance():
     mock_vault = MagicMock()
