@@ -37,16 +37,16 @@
 - [x] Phase 30: Task: Conductor - User Manual Verification 'Cognitive Spine' (Protocol in workflow.md) [checkpoint: fc9454f]
 
 ## Phase 4: Base Agent Intelligence & Personas (Phases 31-40)
-- [x] Phase 31: Develop the Base Agent Class with integrated Tool calling. [70dbf6d]
-- [x] Phase 32: Design SOTA Prompt Templates for Strategy and Research. [70dbf6d]
-- [x] Phase 33: Implement Vertex AI Primary Inference with Model Fallback (Gemini 1.5 Pro -> Flash). [70dbf6d]
-- [x] Phase 34: Define the "Strategist" Persona and Instruction Set. [70dbf6d]
-- [x] Phase 35: Define the "Researcher" Persona and Instruction Set. [70dbf6d]
-- [x] Phase 36: Define the "Creative Director" Persona and Instruction Set. [70dbf6d]
-- [~] Phase 37: Implement Agent "Self-Correction" prompt sequences.
-- [ ] Phase 38: Build Token Usage tracking per agent node.
-- [ ] Phase 39: Implement Stream Processing for real-time agent responses.
-- [ ] Phase 40: Task: Conductor - User Manual Verification 'Agent Personas' (Protocol in workflow.md)
+- [x] Phase 31: Develop the Base Agent Class with integrated Tool calling. [6a59bb0]
+- [x] Phase 32: Design SOTA Prompt Templates for Strategy and Research. [6a59bb0]
+- [x] Phase 33: Implement Vertex AI Primary Inference with Model Fallback (Gemini 1.5 Pro -> Flash). [6a59bb0]
+- [x] Phase 34: Define the "Strategist" Persona and Instruction Set. [6a59bb0]
+- [x] Phase 35: Define the "Researcher" Persona and Instruction Set. [6a59bb0]
+- [x] Phase 36: Define the "Creative Director" Persona and Instruction Set. [6a59bb0]
+- [x] Phase 37: Implement Agent "Self-Correction" prompt sequences. [6a59bb0]
+- [x] Phase 38: Build Token Usage tracking per agent node. [6a59bb0]
+- [x] Phase 39: Implement Stream Processing for real-time agent responses. [6a59bb0]
+- [~] Phase 40: Task: Conductor - User Manual Verification 'Agent Personas' (Protocol in workflow.md)
 
 ## Phase 5: Foundation & Cohorts Specialists (Phases 41-50)
 - [ ] Phase 41: Build the Brand Foundation Node (Positioning & Voice).
