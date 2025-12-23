@@ -41,5 +41,49 @@ async def raptorflow_exception_handler(request: Request, exc: RaptorFlowError):
 
 @app.get("/health")
 async def health_check():
-    """System-wide health check."""
-    return {"status": "healthy", "version": "1.0.0", "engine": "RaptorFlow 3000"}
+    """
+    SOTA Deep Health Check.
+    Verifies connectivity to Supabase (DB) and Upstash (Redis).
+    Returns 503 Service Unavailable if any critical component is down.
+    """
+    from backend.core.cache import get_cache_client
+    from backend.db import get_pool
+
+    health_status = {
+        "status": "healthy",
+        "version": "1.0.0",
+        "engine": "RaptorFlow 3000",
+        "components": {"database": "unknown", "cache": "unknown"},
+    }
+
+    is_degraded = False
+
+    # 1. Check Database
+    try:
+        pool = get_pool()
+        # Ping DB: execute simple query
+        async with pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("SELECT 1")
+        health_status["components"]["database"] = "up"
+    except Exception:
+        health_status["components"]["database"] = "down"
+        health_status["status"] = "degraded"
+        is_degraded = True
+
+    # 2. Check Cache (Upstash)
+    try:
+        cache = get_cache_client()
+        if cache.ping():
+            health_status["components"]["cache"] = "up"
+        else:
+            raise Exception("Redis ping failed")
+    except Exception:
+        health_status["components"]["cache"] = "down"
+        health_status["status"] = "degraded"
+        is_degraded = True
+
+    if is_degraded:
+        return JSONResponse(status_code=503, content=health_status)
+
+    return health_status
