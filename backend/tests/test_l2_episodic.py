@@ -25,7 +25,7 @@ async def test_l2_store_episode():
 @pytest.mark.asyncio
 async def test_l2_recall_similar():
     """Verify recalling similar episodes from L2 memory."""
-    with patch("backend.memory.episodic_l2.get_memory", new_callable=AsyncMock) as mock_get:
+    with patch("backend.memory.episodic_l2.vector_search", new_callable=AsyncMock) as mock_get:
         mock_get.return_value = [
             ("id1", "Content 1", {"outcome": "success"}, 0.95),
             ("id2", "Content 2", {"outcome": "failure"}, 0.85)
@@ -42,3 +42,23 @@ async def test_l2_recall_similar():
         assert results[0]["content"] == "Content 1"
         assert results[0]["similarity"] == 0.95
         mock_get.assert_called_once()
+
+@pytest.mark.asyncio
+async def test_l2_recall_campaign_outcomes():
+    """Verify recalling campaign outcomes specifically."""
+    with patch("backend.memory.episodic_l2.vector_search", new_callable=AsyncMock) as mock_get:
+        mock_get.return_value = [
+            ("id1", "Viral SaaS Post", {"outcome": "success", "type": "episodic", "subtype": "campaign_outcome"}, 0.98)
+        ]
+        
+        memory = L2EpisodicMemory()
+        results = await memory.recall_campaign_outcomes(
+            workspace_id="ws_1",
+            query_embedding=[0.1, 0.2, 0.3]
+        )
+        
+        assert len(results) == 1
+        assert results[0]["metadata"]["subtype"] == "campaign_outcome"
+        mock_get.assert_called_once()
+        args, kwargs = mock_get.call_args
+        assert kwargs["filters"] == {"type": "episodic", "subtype": "campaign_outcome"}
