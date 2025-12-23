@@ -112,7 +112,41 @@ def reflect_and_validate_node(state: AnalysisState) -> Dict:
             return "extract_insights"
         return "__end__"
     
-def should_retry(state: AnalysisState) -> str:
+    
+    def create_blackbox_graph():
+        """
+        Constructs and returns the Blackbox Analysis Graph.
+        Uses Strictly Synchronous LangGraph orchestration.
+        """
+        from langgraph.graph import StateGraph, START, END
+        
+        workflow = StateGraph(AnalysisState)
+        
+        # Define Nodes
+        workflow.add_node("ingest_telemetry", ingest_telemetry_node)
+        workflow.add_node("extract_insights", extract_insights_node)
+        workflow.add_node("attribute_outcomes", attribute_outcomes_node)
+        workflow.add_node("reflect_and_validate", reflect_and_validate_node)
+        
+        # Define Edges
+        workflow.add_edge(START, "ingest_telemetry")
+        workflow.add_edge("ingest_telemetry", "extract_insights")
+        workflow.add_edge("extract_insights", "attribute_outcomes")
+        workflow.add_edge("attribute_outcomes", "reflect_and_validate")
+        
+        # Conditional Edge for Retry
+        workflow.add_conditional_edges(
+            "reflect_and_validate",
+            should_continue,
+            {
+                "extract_insights": "extract_insights",
+                "__end__": END
+            }
+        )
+        
+        # Compile the graph
+        return workflow.compile()
+    def should_retry(state: AnalysisState) -> str:
     """Conditional edge: Decides whether to retry analysis based on confidence."""
     if state.get("confidence", 0.0) < 0.7:
         return "retry"
