@@ -1,9 +1,11 @@
 import logging
 from typing import Any, Dict
+
 from backend.core.vault import Vault
 from backend.models.blackbox import BlackboxOutcome
 
 logger = logging.getLogger("raptorflow.outcomes")
+
 
 class OutcomeIngestionService:
     """
@@ -22,7 +24,7 @@ class OutcomeIngestionService:
         # Support various field names from different providers
         value = float(payload.get("conversion_value", payload.get("value", 0.0)))
         confidence = float(payload.get("confidence", 1.0))
-        
+
         # Attribution fields
         campaign_id = payload.get("campaign_id")
         move_id = payload.get("move_id")
@@ -32,7 +34,7 @@ class OutcomeIngestionService:
             value=value,
             confidence=confidence,
             campaign_id=campaign_id,
-            move_id=move_id
+            move_id=move_id,
         )
 
         # Persist to database

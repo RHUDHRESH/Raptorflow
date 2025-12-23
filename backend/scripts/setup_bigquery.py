@@ -1,7 +1,7 @@
-import os
 import argparse
-from google.cloud import bigquery
+
 from google.api_core.exceptions import Conflict
+from google.cloud import bigquery
 
 
 def setup_bigquery(project_id: str, dataset_id: str = "raptorflow_analytics"):
@@ -14,7 +14,9 @@ def setup_bigquery(project_id: str, dataset_id: str = "raptorflow_analytics"):
     dataset_ref = bigquery.DatasetReference(project_id, dataset_id)
     dataset = bigquery.Dataset(dataset_ref)
     dataset.location = "US"  # Or your preferred region
-    dataset.description = "Analytical store for RaptorFlow Blackbox telemetry and outcomes"
+    dataset.description = (
+        "Analytical store for RaptorFlow Blackbox telemetry and outcomes"
+    )
 
     try:
         dataset = client.create_dataset(dataset, timeout=30)
@@ -78,7 +80,9 @@ def setup_bigquery(project_id: str, dataset_id: str = "raptorflow_analytics"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Setup BigQuery for RaptorFlow")
     parser.add_argument("--project", help="GCP Project ID", required=True)
-    parser.add_argument("--dataset", help="BigQuery Dataset ID", default="raptorflow_analytics")
-    
+    parser.add_argument(
+        "--dataset", help="BigQuery Dataset ID", default="raptorflow_analytics"
+    )
+
     args = parser.parse_args()
     setup_bigquery(args.project, args.dataset)

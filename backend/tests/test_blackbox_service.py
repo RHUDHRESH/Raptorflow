@@ -1,12 +1,10 @@
+import asyncio
 import sys
 import time
-import asyncio
-from datetime import datetime
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
-from datetime import datetime
 
 # Hierarchical mock for google.cloud dependencies WITHOUT breaking google.cloud namespace
 if "google" not in sys.modules:
@@ -19,7 +17,11 @@ if "google.cloud" not in sys.modules:
 
 from backend.core.vault import Vault
 from backend.models.blackbox import BlackboxTelemetry
-from backend.services.blackbox_service import BlackboxService, trace_agent, AttributionModel
+from backend.services.blackbox_service import (
+    AttributionModel,
+    BlackboxService,
+    trace_agent,
+)
 
 
 def test_blackbox_service_instantiation():
@@ -411,30 +413,31 @@ def test_blackbox_service_get_memory_context_for_planner():
         except AttributeError:
             pytest.fail("get_memory_context_for_planner not implemented")
 
+
 def test_blackbox_service_compute_roi_attribution_models():
     mock_vault = MagicMock()
     mock_session = MagicMock()
     mock_vault.get_session.return_value = mock_session
-    
+
     service = BlackboxService(vault=mock_vault)
-    
+
     campaign_id = uuid4()
     move_1_id = str(uuid4())
     move_2_id = str(uuid4())
-    
+
     # 1. Mock moves (ordered)
     mock_moves_res = MagicMock()
     mock_moves_res.data = [
         {"id": move_1_id, "created_at": "2023-12-01T00:00:00"},
-        {"id": move_2_id, "created_at": "2023-12-02T00:00:00"}
+        {"id": move_2_id, "created_at": "2023-12-02T00:00:00"},
     ]
-    
+
     # 2. Mock outcomes
     mock_outcomes_res = MagicMock()
     mock_outcomes_res.data = [
         {"value": 100.0, "move_id": move_1_id},
         {"value": 200.0, "move_id": move_2_id},
-        {"value": 50.0, "move_id": None} # General campaign outcome
+        {"value": 50.0, "move_id": None},  # General campaign outcome
     ]
 
     def table_side_effect(name):
@@ -455,38 +458,39 @@ def test_blackbox_service_compute_roi_attribution_models():
         return MagicMock()
 
     mock_session.table.side_effect = table_side_effect
-    
+
     # LINEAR: 100 + 200 + 50 = 350
     res_linear = service.compute_roi(campaign_id, model=AttributionModel.LINEAR)
     assert res_linear["total_value"] == 350.0
-    
+
     # FIRST_TOUCH: Only move_1 -> 100
     res_first = service.compute_roi(campaign_id, model=AttributionModel.FIRST_TOUCH)
     assert res_first["total_value"] == 100.0
-    
+
     # LAST_TOUCH: Only move_2 -> 200
     res_last = service.compute_roi(campaign_id, model=AttributionModel.LAST_TOUCH)
     assert res_last["total_value"] == 200.0
+
 
 def test_blackbox_service_compute_roi():
     mock_vault = MagicMock()
     mock_session = MagicMock()
     mock_vault.get_session.return_value = mock_session
-    
+
     service = BlackboxService(vault=mock_vault)
-    
+
     campaign_id = uuid4()
     move_id = str(uuid4())
-    
+
     # 1. Mock moves fetching
     mock_moves_query = MagicMock()
     mock_moves_query.execute.return_value = MagicMock(data=[{"id": move_id}])
-    
+
     # 2. Mock token cost fetching (via calculate_move_cost)
     # We need to mock the table call inside calculate_move_cost
     mock_tokens_res = MagicMock()
     mock_tokens_res.data = [{"tokens": 10000}]
-    
+
     # 3. Mock outcomes fetching
     mock_outcomes_res = MagicMock()
     mock_outcomes_res.data = [{"value": 1.20}]
@@ -515,97 +519,117 @@ def test_blackbox_service_compute_roi():
         return MagicMock()
 
     mock_session.table.side_effect = table_side_effect
-    
+
     result = service.compute_roi(campaign_id)
-    
+
     # Cost = (10000 / 1000) * 0.02 = 0.20
     # Value = 1.20
     # ROI = (1.20 - 0.20) / 0.20 = 5.0 (500%)
-    
+
     assert result["roi"] == 5.0
     assert result["total_cost"] == 0.20
     assert result["total_value"] == 1.20
 
+
 def test_attribution_models_definition():
     from backend.services.blackbox_service import AttributionModel
+
     assert AttributionModel.FIRST_TOUCH == "first_touch"
     assert AttributionModel.LAST_TOUCH == "last_touch"
     assert AttributionModel.LINEAR == "linear"
+
 
 def test_blackbox_service_momentum_score():
     mock_vault = MagicMock()
     mock_session = MagicMock()
     mock_vault.get_session.return_value = mock_session
-    
+
     service = BlackboxService(vault=mock_vault)
-    
+
     # Mock data
     def table_side_effect(name):
         mock_query = MagicMock()
         if name == "blackbox_telemetry_industrial":
-            mock_query.select.return_value.execute.return_value = MagicMock(data=[{"tokens": 1000}, {"tokens": 4000}]) # 5000 total
+            mock_query.select.return_value.execute.return_value = MagicMock(
+                data=[{"tokens": 1000}, {"tokens": 4000}]
+            )  # 5000 total
             return mock_query
         if name == "blackbox_outcomes_industrial":
-            mock_query.select.return_value.execute.return_value = MagicMock(data=[{"value": 50.0}])
+            mock_query.select.return_value.execute.return_value = MagicMock(
+                data=[{"value": 50.0}]
+            )
             return mock_query
         return MagicMock()
-        
+
     mock_session.table.side_effect = table_side_effect
-    
+
     # (50.0 / 5000) * 1000 = 10.0
     score = service.calculate_momentum_score()
     assert score == 10.0
+
 
 def test_blackbox_service_roi_math():
     """Verify ROI formula consistency."""
     mock_vault = MagicMock()
     service = BlackboxService(vault=mock_vault)
-    
+
     # 1. Standard Case: Value > Cost
     # Value = 100, Cost = 20 -> ROI = (100-20)/20 = 4.0 (400%)
     campaign_id = uuid4()
-    
+
     with patch.object(service, "compute_roi") as mock_compute:
-        mock_compute.return_value = {"roi": 4.0, "total_cost": 20.0, "total_value": 100.0}
+        mock_compute.return_value = {
+            "roi": 4.0,
+            "total_cost": 20.0,
+            "total_value": 100.0,
+        }
         res = service.compute_roi(campaign_id)
         assert res["roi"] == 4.0
-        
+
     # 2. Loss Case: Cost > Value
     # Value = 10, Cost = 20 -> ROI = (10-20)/20 = -0.5 (-50%)
     with patch.object(service, "compute_roi") as mock_compute:
-        mock_compute.return_value = {"roi": -0.5, "total_cost": 20.0, "total_value": 10.0}
+        mock_compute.return_value = {
+            "roi": -0.5,
+            "total_cost": 20.0,
+            "total_value": 10.0,
+        }
         res = service.compute_roi(campaign_id)
         assert res["roi"] == -0.5
+
 
 def test_blackbox_service_get_roi_matrix_data():
     mock_vault = MagicMock()
     mock_session = MagicMock()
     mock_vault.get_session.return_value = mock_session
-    
+
     service = BlackboxService(vault=mock_vault)
-    
+
     # Mock campaigns
     mock_camp_res = MagicMock()
     mock_camp_res.data = [{"id": str(uuid4()), "title": "Test Camp"}]
-    mock_session.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_camp_res
-    
+    mock_session.table.return_value.select.return_value.eq.return_value.execute.return_value = (
+        mock_camp_res
+    )
+
     # Mock compute_roi and momentum
     with patch.object(service, "compute_roi", return_value={"roi": 2.0}):
         with patch.object(service, "calculate_momentum_score", return_value=15.0):
             data = service.get_roi_matrix_data()
-            
+
             assert len(data) == 1
             assert data[0]["roi"] == 2.0
             assert data[0]["momentum"] == 15.0
+
 
 def test_blackbox_service_longitudinal_analysis():
     mock_vault = MagicMock()
     mock_vault.project_id = "test-project"
     service = BlackboxService(vault=mock_vault)
-    
+
     with patch("google.cloud.bigquery.Client") as mock_client_init:
         mock_bq = mock_client_init.return_value
-        
+
         # Mock query result
         mock_row = MagicMock()
         mock_row.day = "2023-12-23"
@@ -613,11 +637,11 @@ def test_blackbox_service_longitudinal_analysis():
         mock_row.estimated_cost = 0.10
         mock_row.daily_value = 1.0
         mock_row.daily_roi = 9.0
-        
+
         mock_bq.query.return_value.result.return_value = [mock_row]
-        
+
         analysis = service.get_longitudinal_analysis(days=30)
-        
+
         assert len(analysis) == 1
         assert analysis[0]["tokens"] == 5000
         assert analysis[0]["roi"] == 9.0
@@ -625,45 +649,54 @@ def test_blackbox_service_longitudinal_analysis():
         mock_bq.query.assert_called_once()
         assert "INTERVAL 30 DAY" in mock_bq.query.call_args[0][0]
 
+
 def test_blackbox_service_trigger_learning_cycle():
     mock_vault = MagicMock()
     service = BlackboxService(vault=mock_vault)
-    
+
     # Mock Graph
     mock_graph = MagicMock()
-    mock_graph.ainvoke = AsyncMock(return_value={
-        "findings": ["SaaS Founders prefer long-form content"],
-        "confidence": 0.85
-    })
-    
-    with patch("backend.graphs.blackbox_analysis.create_blackbox_graph", return_value=mock_graph):
+    mock_graph.ainvoke = AsyncMock(
+        return_value={
+            "findings": ["SaaS Founders prefer long-form content"],
+            "confidence": 0.85,
+        }
+    )
+
+    with patch(
+        "backend.graphs.blackbox_analysis.create_blackbox_graph",
+        return_value=mock_graph,
+    ):
         with patch.object(service, "upsert_learning_embedding") as mock_upsert:
             with patch.object(service, "categorize_learning", return_value="strategic"):
                 move_id = str(uuid4())
                 result = asyncio.run(service.trigger_learning_cycle(move_id))
-                
+
                 assert result["findings_count"] == 1
                 assert result["status"] == "cycle_complete"
                 mock_upsert.assert_called_once()
-                
+
                 # Check kwargs or args
                 _, kwargs = mock_upsert.call_args
                 assert kwargs["content"] == "SaaS Founders prefer long-form content"
                 assert kwargs["learning_type"] == "strategic"
 
+
 def test_blackbox_service_attribution_confidence():
     mock_vault = MagicMock()
     mock_session = MagicMock()
     mock_vault.get_session.return_value = mock_session
-    
+
     service = BlackboxService(vault=mock_vault)
-    
+
     # 1. Zero traces
     with patch.object(service, "get_telemetry_by_move", return_value=[]):
         assert service.calculate_attribution_confidence("m1") == 0.0
-        
+
     # 2. Ten traces (should be ~0.62 with the formula)
     # 0.3 + 0.65*(1/2) = 0.3 + 0.325 = 0.625 -> min(round(0.625, 2)) = 0.62 or 0.63 depending on round()
-    with patch.object(service, "get_telemetry_by_move", return_value=[{"id": i} for i in range(10)]):
+    with patch.object(
+        service, "get_telemetry_by_move", return_value=[{"id": i} for i in range(10)]
+    ):
         conf = service.calculate_attribution_confidence("m1")
-        assert conf == 0.63 or conf == 0.62 # Rounding behavior
+        assert conf == 0.63 or conf == 0.62  # Rounding behavior
