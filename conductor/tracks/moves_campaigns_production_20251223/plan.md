@@ -38,9 +38,9 @@
 
 ## Phase 4: Tiered Memory & Context Retrieval (Tasks 31-40)
 - [x] 31. Task: Implement `EpisodicMemory` class using Redis/Upstash [6fb4399]
-- [~] 32. Task: Implement `SemanticMemory` class using Supabase pgvector
-- [ ] 33. Task: Write failing tests for RAG (Retrieval Augmented Generation) context injection
-- [ ] 34. Task: Implement similarity search node with MMR (Maximal Marginal Relevance)
+- [x] 32. Task: Implement `SemanticMemory` class using Supabase pgvector [ba7b5f5]
+- [x] 33. Task: Write failing tests for RAG (Retrieval Augmented Generation) context injection [56abee7]
+- [~] 34. Task: Implement similarity search node with MMR (Maximal Marginal Relevance)
 - [ ] 35. Task: Create `LongTermMemory` for historical outcome storage (Postgres)
 - [ ] 36. Task: Implement context pruning to fit within LLM context windows (Taulli pattern)
 - [ ] 37. Task: Setup metadata filtering for targeted context retrieval

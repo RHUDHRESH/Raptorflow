@@ -28,16 +28,8 @@ def ingest_telemetry_node(state: AnalysisState) -> Dict:
     Node: Ingests all telemetry associated with the move_id.
     """
     service = get_blackbox_service()
-    session = service.vault.get_session()
-    
-    result = (
-        session.table("blackbox_telemetry_industrial")
-        .select("*")
-        .eq("move_id", state["move_id"])
-        .execute()
-    )
-    
-    return {"telemetry_data": result.data, "status": "ingested"}
+    traces = service.get_telemetry_by_move(state["move_id"])
+    return {"telemetry_data": traces, "status": "ingested"}
 
 
 def extract_insights_node(state: AnalysisState) -> Dict:
@@ -66,18 +58,9 @@ def attribute_outcomes_node(state: AnalysisState) -> Dict:
     """
     Node: Attributes business outcomes to the current move.
     """
-    from backend.core.vault import Vault
-    session = Vault().get_session()
-    
-    result = (
-        session.table("blackbox_outcomes_industrial")
-        .select("*")
-        .eq("move_id", state["move_id"])
-        .limit(10)
-        .execute()
-    )
-    
-    return {"outcomes": result.data, "status": "attributed"}
+    service = get_blackbox_service()
+    outcomes = service.get_outcomes_for_move(state["move_id"])
+    return {"outcomes": outcomes, "status": "attributed"}
 
 
 def reflect_and_validate_node(state: AnalysisState) -> Dict:

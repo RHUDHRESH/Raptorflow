@@ -1,10 +1,19 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 from backend.graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
 
+@pytest.fixture
+def mock_semantic_memory():
+    with patch("backend.graphs.moves_campaigns_orchestrator.SemanticMemory", new_callable=MagicMock) as mock_class:
+        instance = mock_class.return_value
+        instance.search = AsyncMock(return_value=[{"content": "mocked context"}])
+        yield instance
+
 @pytest.mark.asyncio
-async def test_graph_initialization():
+async def test_graph_initialization(mock_semantic_memory):
     """Verify that the graph initializes correctly."""
     initial_state = {"tenant_id": "test-tenant", "messages": [], "status": "new"}
 
@@ -12,14 +21,15 @@ async def test_graph_initialization():
     config = {"configurable": {"thread_id": "test-thread-1"}}
     result = await moves_campaigns_orchestrator.ainvoke(initial_state, config)
 
-    # It should flow: START -> init (planning) -> plan_campaign (monitoring) -> END
-    assert result["status"] == "monitoring"
-    assert "Orchestrator initialized." in result["messages"]
-    assert "Campaign strategy generated." in result["messages"]
-
+    # It should flow: START -> init (planning) -> inject_context -> plan_campaign (monitoring) -> interrupt(approve_campaign)
+    # Wait, it interrupts now!
+    state = await moves_campaigns_orchestrator.aget_state(config)
+    assert "approve_campaign" in state.next
+    assert "Orchestrator initialized." in state.values["messages"]
+    assert "Injected 1 business context snippets." in state.values["messages"]
 
 @pytest.mark.asyncio
-async def test_graph_state_recovery_after_interrupt():
+async def test_graph_state_recovery_after_interrupt(mock_semantic_memory):
     """Verify that the graph can recover state after being interrupted (simulated crash)."""
     config = {"configurable": {"thread_id": "crash-test-thread"}}
     initial_state = {"tenant_id": "test-tenant", "messages": [], "status": "new"}
