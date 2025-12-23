@@ -1,6 +1,7 @@
 import logging
 from typing import Optional, Any
 from google.cloud import storage
+from backend.core.config import get_settings
 
 logger = logging.getLogger("raptorflow.services.storage")
 
@@ -86,4 +87,42 @@ class BigQueryMatrixLoader:
             return True
         except Exception as e:
             logger.error(f"Failed to load Parquet to BigQuery: {e}")
+            return False
+
+    def sync_partition(self, partition_date: str) -> bool:
+        """
+        Syncs a specific daily partition from GCS to BigQuery.
+        """
+        # In a real build, this resolves gs://bucket/logs/YYYY-MM-DD/*.parquet
+        uri = f"gs://{get_settings().GCS_GOLD_BUCKET}/telemetry/{partition_date}/*.parquet"
+        return self.sync_parquet_to_bq(uri)
+
+    def create_performance_view(self, view_id: str) -> bool:
+        """
+        Creates or updates a BigQuery view for longitudinal analysis.
+        """
+        try:
+            from google.cloud import bigquery
+            
+            view_ref = f"{self.client.project}.{self.dataset_id}.{view_id}"
+            view = bigquery.Table(view_ref)
+            
+            # Example SQL for performance analysis
+            sql = f"""
+                SELECT 
+                    source,
+                    event_type,
+                    AVG(CAST(JSON_VALUE(payload.latency_ms) AS FLOAT64)) as avg_latency,
+                    COUNT(*) as event_count,
+                    TIMESTAMP_TRUNC(timestamp, HOUR) as hour
+                FROM `{self.client.project}.{self.dataset_id}.{self.table_id}`
+                GROUP BY 1, 2, 5
+            """
+            
+            view.view_query = sql
+            self.client.create_table(view, exists_ok=True)
+            logger.info(f"Successfully created view {view_ref}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create BigQuery view: {e}")
             return False
