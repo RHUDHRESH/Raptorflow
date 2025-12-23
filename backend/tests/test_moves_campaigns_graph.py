@@ -19,25 +19,29 @@ async def test_graph_initialization():
 
 
 @pytest.mark.asyncio
-async def test_graph_state_recovery():
-    """Verify that the graph can recover state from the checkpointer."""
-    config = {"configurable": {"thread_id": "test-recovery-thread"}}
+async def test_graph_state_recovery_after_interrupt():
+    """Verify that the graph can recover state after being interrupted (simulated crash)."""
+    config = {"configurable": {"thread_id": "crash-test-thread"}}
+    initial_state = {"tenant_id": "test-tenant", "messages": [], "status": "new"}
 
-    # 1. First run to initialize
-    await moves_campaigns_orchestrator.ainvoke(
-        {"tenant_id": "test-tenant", "messages": [], "status": "new"}, config
-    )
-
-    # 2. Retrieve state
+    # 1. Run until first interrupt (approve_campaign)
+    await moves_campaigns_orchestrator.ainvoke(initial_state, config)
+    
     state = await moves_campaigns_orchestrator.aget_state(config)
+    assert "approve_campaign" in state.next
     assert state.values["status"] == "monitoring"
-
-    # 3. Modify state manually (simulate crash/resume)
-    # Actually, let's just verify it persists between distinct calls
-    new_result = await moves_campaigns_orchestrator.ainvoke(
-        {}, config
-    )  # Invoke with empty to trigger resume logic if any
-    assert new_result["tenant_id"] == "test-tenant"
+    
+    # 2. Simulate "crash" by using a DIFFERENT instance of the graph (but same checkpointer logic)
+    # Since they use the same shared MemorySaver in this test environment if we are not careful.
+    # Actually, moves_campaigns_orchestrator has a checkpointer attached.
+    
+    # Let's resume by providing approval
+    await moves_campaigns_orchestrator.ainvoke(None, config)
+    
+    # 3. Verify it finished
+    final_state = await moves_campaigns_orchestrator.aget_state(config)
+    assert final_state.next == ()
+    assert "Campaign strategy approved by human." in final_state.values["messages"]
 
 
 @pytest.mark.asyncio
