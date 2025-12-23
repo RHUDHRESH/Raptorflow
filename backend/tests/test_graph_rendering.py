@@ -1,6 +1,9 @@
-import pytest
 import os
+
+import pytest
+
 from backend.graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
+
 
 def test_graph_rendering_mermaid():
     """Verify that the graph can generate a mermaid string."""
@@ -8,6 +11,7 @@ def test_graph_rendering_mermaid():
     assert "approve_campaign" in mermaid_str
     assert "approve_move" in mermaid_str
     assert "init" in mermaid_str
+
 
 def test_graph_rendering_png_export():
     """Verify that the graph can be exported to a PNG file (if possible)."""
