@@ -37,7 +37,7 @@
 - [x] Task 30: Conductor - User Manual Verification 'Cognitive Memory' [8bc8cbb]
 
 ## Phase 4: Agentic Orchestration - LangGraph Spine (Phases 31-40)
-- [ ] Task 31: Create `backend/graphs/blackbox_analysis.py` (Base State Definition)
+- [~] Task 31: Create `backend/graphs/blackbox_analysis.py` (Base State Definition)
 - [ ] Task 32: Implement `AnalysisState` (telemetry, findings, outcomes, reflection)
 - [ ] Task 33: Define Graph Node: `ingest_telemetry_node`
 - [ ] Task 34: Define Graph Node: `extract_insights_node` (Agentic)
