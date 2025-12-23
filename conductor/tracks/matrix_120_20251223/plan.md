@@ -85,7 +85,7 @@
 - [x] Phase 072: Backend - Implement `ShadowInference.log_comparison()`. [f98bb6b]
 - [x] Phase 073: Backend - Implement `InferenceLatencyAlert` (Trigger on >P95 spike). d17ca80
 - [x] Phase 074: Backend - Implement `ModelAccuracyMonitor` (Feedback loop integration). aaf4ba7
-- [ ] Phase 075: Backend - Implement `DeterministicFallback` (Switch to heuristic on LLM fail).
+- [x] Phase 075: Backend - Implement `DeterministicFallback` (Switch to heuristic on LLM fail). 9f3c78e
 - [ ] Phase 076: Backend - Implement `SystemSanityCheck` (Periodic agent health probe).
 - [ ] Phase 077: Backend - Implement `CostGovernor` (Calculate daily dollar burn).
 - [ ] Phase 078: Backend - Implement `KillSwitchCircuitBreaker` (Auto-halt on critical drift).
