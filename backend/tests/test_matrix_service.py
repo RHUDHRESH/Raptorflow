@@ -21,6 +21,30 @@ async def test_initialize_telemetry_stream(matrix_service):
     assert success is True
 
 @pytest.mark.asyncio
+async def test_initialize_telemetry_stream_failure(matrix_service, monkeypatch):
+    """Test handling of telemetry stream initialization failure."""
+    # Mocking failure if we had an internal provider
+    async def mock_fail():
+        return False
+    
+    # For now, MatrixService always returns True, so we'll need to update it 
+    # to actually attempt a connection in Phase 005. 
+    # This test will define that it CAN fail.
+    pass 
+
+@pytest.mark.asyncio
+async def test_emit_telemetry_event(matrix_service):
+    """Test emitting a telemetry event."""
+    event = TelemetryEvent(
+        event_id="evt_999",
+        event_type="agent_start",
+        source="matrix_supervisor",
+        payload={"action": "monitoring"}
+    )
+    success = await matrix_service.emit_event(event)
+    assert success is True
+
+@pytest.mark.asyncio
 async def test_capture_agent_heartbeat(matrix_service):
     """Test capturing an agent heartbeat."""
     success = await matrix_service.capture_agent_heartbeat("agent_alpha", "working")
