@@ -96,17 +96,17 @@
 - [x] Task 79: Implement "One-click Pivot" execution logic in UI [54d1dcf]
 - [x] Task 80: Conductor - User Manual Verification 'Frontend Dashboard' [54d1dcf]
 
-## Phase 9: Advanced UI & Visualization (Phases 81-90)
-- [ ] Task 81: Build `Blackbox.EvidenceLog`: List of search/scrape links
-- [ ] Task 82: Build `Blackbox.AgentAuditLog`: Raw prompt/response viewer
-- [ ] Task 83: Build `Blackbox.MetricDelta`: Animated percentage change
-- [ ] Task 84: Implement `Blackbox.export_summary_pdf()`
-- [ ] Task 85: Build `Blackbox.StrategicDriftRadar`: Radar chart for alignment
-- [ ] Task 86: Build `Blackbox.CostHeatmap`: Token usage by module
-- [ ] Task 87: Implement Responsive Layout for Mobile (iPhone)
-- [ ] Task 88: Add Framer Motion transitions to all Blackbox navigation
-- [ ] Task 89: Build `Blackbox.EmptyState`: Premium placeholder system
-- [ ] Task 90: Conductor - User Manual Verification 'Advanced UI'
+## Phase 9: Advanced UI & Visualization (Phases 81-90) [checkpoint: 0e075fa]
+- [x] Task 81: Build `Blackbox.EvidenceLog`: List of search/scrape links [8c06555]
+- [x] Task 82: Build `Blackbox.AgentAuditLog`: Raw prompt/response viewer [b60fea9]
+- [x] Task 83: Build `Blackbox.MetricDelta`: Animated percentage change [6be5808]
+- [x] Task 84: Implement `Blackbox.export_summary_pdf()` [05edf93]
+- [x] Task 85: Build `Blackbox.StrategicDriftRadar`: Radar chart for alignment [536a639]
+- [x] Task 86: Build `Blackbox.CostHeatmap`: Token usage by module [d8e1bf8]
+- [x] Task 87: Implement Responsive Layout for Mobile (iPhone) [ae25e57]
+- [x] Task 88: Add Framer Motion transitions to all Blackbox navigation [8388164]
+- [x] Task 89: Build `Blackbox.EmptyState`: Premium placeholder system [5cdc514]
+- [x] Task 90: Conductor - User Manual Verification 'Advanced UI' [0e075fa]
 
 ## Phase 10: Hardening, Security & Scale (Phases 91-100)
 - [ ] Task 91: Implement Rate Limiting for all Blackbox API endpoints
