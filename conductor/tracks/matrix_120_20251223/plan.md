@@ -59,7 +59,7 @@
 - [x] Phase 050: Conductor - User Manual Verification 'Skills & Tool Taxonomy' (Protocol in workflow.md) 9e36083
 
 #### Block E: Memory Architecture & RAG Hardening (Phases 51-65)
-- [ ] Phase 051: Backend - Implement `L1_ShortTermMemory` using Redis (Upstash).
+- [x] Phase 051: Backend - Implement `L1_ShortTermMemory` using Redis (Upstash). 7a0585f
 - [ ] Phase 052: Backend - Implement `L2_EpisodicMemory` using Supabase `pgvector`.
 - [ ] Phase 053: Backend - Implement `L3_SemanticMemory` (Brand Foundation lookup).
 - [ ] Phase 054: Backend - Write Red Phase tests for `MemoryManager.store_trace()`.
