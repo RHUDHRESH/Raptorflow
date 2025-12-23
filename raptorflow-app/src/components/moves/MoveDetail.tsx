@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from 'sonner';
 import { MoveRefinerView } from './MoveRefinerView';
+import { MoveToolbeltView } from './MoveToolbeltView';
 
 interface MoveDetailProps {
     move: Move | null;
@@ -255,6 +256,9 @@ export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete, onRef
 
                             {/* Task 29: Move Refiner Critique */}
                             <MoveRefinerView data={move.refinementData} />
+
+                            {/* Task 30: Resource Verification */}
+                            <MoveToolbeltView tools={move.toolRequirements} />
 
                             {/* Checklist */}
                             <div className="space-y-6">

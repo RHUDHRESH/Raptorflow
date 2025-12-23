@@ -239,6 +239,7 @@ function mapDBMoveToFrontend(db: any): Move {
         checklist: [],
         assetIds: [],
         refinementData: db.refinement_data,
+        toolRequirements: db.tool_requirements || [],
     };
 }
 

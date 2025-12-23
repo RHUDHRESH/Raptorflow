@@ -252,7 +252,8 @@ async def save_campaign(
             if campaign_id:
                 query = """
                     UPDATE campaigns
-                    SET title = %s, objective = %s, status = %s, arc_data = %s, kpi_targets = %s, audit_data = %s, updated_at = now()
+                    SET title = %s, objective = %s, status = %s, arc_data = %s,
+                    kpi_targets = %s, audit_data = %s, updated_at = now()
                     WHERE id = %s AND tenant_id = %s
                     RETURNING id;
                 """
@@ -297,7 +298,8 @@ async def save_move(campaign_id: str, move_data: dict) -> str:
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
             query = """
-                INSERT INTO moves (campaign_id, title, description, status, priority, move_type, tool_requirements, refinement_data)
+                INSERT INTO moves (campaign_id, title, description, status,
+                priority, move_type, tool_requirements, refinement_data)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id;
             """

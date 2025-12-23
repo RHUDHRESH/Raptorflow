@@ -5,6 +5,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
 from backend.core.prompts import MovePrompts
+from backend.core.toolbelt import ToolbeltV2
+from backend.db import log_agent_decision, save_move
 
 logger = logging.getLogger("raptorflow.agents.moves")
 
@@ -183,10 +185,6 @@ class ProgressTracker:
             "quality_score": progress,  # Using quality_score as a proxy for progress in state
             "messages": [f"Campaign progress updated: {progress*100:.1f}%"],
         }
-
-
-from backend.core.toolbelt import ToolbeltV2
-from backend.db import log_agent_decision, save_move
 
 
 class SkillExecutor:
