@@ -2,16 +2,16 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+# from backend.api.v1.radar import router as radar_router
+from backend.api.v1.assets import router as assets_router
 from backend.api.v1.blackbox_learning import router as blackbox_learning_router
 from backend.api.v1.blackbox_memory import router as blackbox_memory_router
 from backend.api.v1.blackbox_roi import router as blackbox_roi_router
+from backend.api.v1.blackbox_specialist import router as blackbox_specialist_router
 from backend.api.v1.blackbox_telemetry import router as blackbox_telemetry_router
 from backend.api.v1.campaigns import router as campaigns_router
 from backend.api.v1.foundation import router as foundation_router
 from backend.api.v1.matrix import router as matrix_router
-
-# from backend.api.v1.radar import router as radar_router
-from backend.api.v1.assets import router as assets_router
 from backend.core.exceptions import RaptorFlowError
 from backend.core.middleware import (
     CorrelationIDMiddleware,
@@ -47,6 +47,7 @@ app.include_router(blackbox_telemetry_router)
 app.include_router(blackbox_memory_router)
 app.include_router(blackbox_roi_router)
 app.include_router(blackbox_learning_router)
+app.include_router(blackbox_specialist_router)
 app.include_router(campaigns_router)
 app.include_router(matrix_router)
 # app.include_router(radar_router)

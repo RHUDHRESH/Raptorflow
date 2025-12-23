@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
@@ -132,5 +132,45 @@ def test_get_learnings_by_move_endpoint():
     assert response.status_code == 200
     assert len(response.json()) == 1
     mock_service.get_learnings_by_move.assert_called_with(move_id)
+
+    app.dependency_overrides.clear()
+
+
+def test_trigger_specialist_analysis_endpoint():
+    mock_service = MagicMock()
+    mock_service.trigger_learning_cycle = AsyncMock(
+        return_value={"status": "cycle_complete"}
+    )
+    from backend.api.v1.blackbox_learning import (
+        get_blackbox_service as get_learn_service,
+    )
+
+    app.dependency_overrides[get_learn_service] = lambda: mock_service
+
+    move_id = uuid4()
+    response = client.post(f"/v1/blackbox/learning/cycle/{move_id}")
+    assert response.status_code == 200
+    assert response.json()["status"] == "cycle_complete"
+    mock_service.trigger_learning_cycle.assert_called_with(str(move_id))
+
+    app.dependency_overrides.clear()
+
+
+def test_run_specialist_agent_endpoint():
+    mock_service = MagicMock()
+    mock_service.get_telemetry_by_move.return_value = []
+    mock_service.get_outcomes_by_move.return_value = []
+
+    from backend.api.v1.blackbox_specialist import (
+        get_blackbox_service as get_spec_service,
+    )
+
+    app.dependency_overrides[get_spec_service] = lambda: mock_service
+
+    move_id = uuid4()
+    # Mocking the agent run would be complex, so we just test the entry point
+    # We expect a 404 if we provide a bogus agent_id
+    response = client.post(f"/v1/blackbox/specialist/run/bogus_agent/{move_id}")
+    assert response.status_code == 404
 
     app.dependency_overrides.clear()
