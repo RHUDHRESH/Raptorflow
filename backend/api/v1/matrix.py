@@ -3,6 +3,7 @@ from typing import Dict, Any, List
 from datetime import datetime
 from backend.services.matrix_service import MatrixService
 from backend.services.drift_detection import DriftDetectionService
+from backend.services.cost_governor import CostGovernor
 from backend.models.telemetry import SystemState, TelemetryEvent
 from backend.core.vault import Vault
 
@@ -43,12 +44,9 @@ async def get_drift_report():
     return service.detect_drift(baseline_metrics={}, current_metrics={})
 
 @router.get("/governance/burn")
-async def get_financial_burn():
+async def get_financial_burn(workspace_id: str):
     """
     Retrieves real-time financial burn data (Token costs).
     """
-    return {
-        "daily_burn_usd": 12.45,
-        "monthly_forecast_usd": 450.00,
-        "active_limit_usd": 1000.00
-    }
+    service = CostGovernor()
+    return await service.get_burn_report(workspace_id)
