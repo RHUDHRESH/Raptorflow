@@ -63,4 +63,21 @@ describe('Campaign Creation-to-Persistence Integration', () => {
         const result = await triggerCampaignInference('test-uuid');
         expect(result).toBeNull();
     });
+
+    it('polls status correctly', async () => {
+        // Mock initial status check
+        (global.fetch as any).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ status: 'planning', messages: ['Starting...'] }),
+        });
+
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const response = await fetch(`${apiUrl}/api/v1/campaigns/generate-arc/test-uuid/status`);
+        const data = await response.json();
+
+        expect(data.status).toBe('planning');
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining('/api/v1/campaigns/generate-arc/test-uuid/status')
+        );
+    });
 });
