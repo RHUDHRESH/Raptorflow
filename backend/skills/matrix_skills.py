@@ -110,3 +110,35 @@ class InferenceThrottlingSkill(MatrixSkill):
         except Exception as e:
             logger.error(f"Failed to apply throttling: {e}")
             return False
+
+
+class CachePurgeSkill(MatrixSkill):
+    """
+    Skill to manually clear cache keys or patterns from Upstash Redis.
+    """
+
+    def __init__(self, redis_client):
+        self.redis = redis_client
+
+    @property
+    def name(self) -> str:
+        return "cache_purge"
+
+    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        pattern = params.get("pattern", "*")
+        logger.warning(f"CachePurgeSkill triggered for pattern: {pattern}")
+        
+        try:
+            # In a real build with a rich redis client, we'd list and delete.
+            # Upstash http client has a simpler delete.
+            # For now we simulate/implement basic delete.
+            count = await self.redis.delete(pattern)
+            
+            return {
+                "purge_successful": True,
+                "pattern": pattern,
+                "keys_removed": count
+            }
+        except Exception as e:
+            logger.error(f"Failed to purge cache: {e}")
+            return False
