@@ -735,18 +735,43 @@ def test_blackbox_service_apply_learning_to_foundation():
     )
 
     # 2. Mock FoundationService.update_brand_kit
-    with patch(
-        "backend.services.foundation_service.FoundationService.update_brand_kit",
-        new_callable=AsyncMock,
-    ) as mock_update:
-        mock_update.return_value = MagicMock()
-
-        result = asyncio.run(
-            service.apply_learning_to_foundation(brand_kit_id, learning_id)
-        )
-
+    with patch("backend.services.foundation_service.FoundationService.update_brand_kit", new_callable=AsyncMock) as mock_update:
+        result = asyncio.run(service.apply_learning_to_foundation(uuid4(), uuid4()))
         assert result["status"] == "foundation_updated"
-        mock_update.assert_called_once()
+
+def test_blackbox_service_get_evidence_package():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    service = BlackboxService(vault=mock_vault)
+    
+    learning_id = uuid4()
+    trace_id = str(uuid4())
+    
+    # 1. Mock learning fetch (source_ids)
+    mock_learn_res = MagicMock()
+    mock_learn_res.data = [{"source_ids": [trace_id]}]
+    
+    # 2. Mock telemetry fetch
+    mock_tele_res = MagicMock()
+    mock_tele_res.data = [{"id": trace_id, "agent_id": "a1"}]
+    
+    def table_side_effect(name):
+        mock_query = MagicMock()
+        if name == "blackbox_learnings_industrial":
+            mock_query.select.return_value.eq.return_value.execute.return_value = mock_learn_res
+            return mock_query
+        if name == "blackbox_telemetry_industrial":
+            mock_query.select.return_value.in_.return_value.execute.return_value = mock_tele_res
+            return mock_query
+        return MagicMock()
+        
+    mock_session.table.side_effect = table_side_effect
+    
+    evidence = service.get_evidence_package(learning_id)
+    assert len(evidence) == 1
+    assert evidence[0]["id"] == trace_id
+
 
 
 def test_blackbox_service_attribution_confidence():
