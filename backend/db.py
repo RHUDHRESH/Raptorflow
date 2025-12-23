@@ -297,8 +297,8 @@ async def save_move(campaign_id: str, move_data: dict) -> str:
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
             query = """
-                INSERT INTO moves (campaign_id, title, description, status, priority, move_type, tool_requirements)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO moves (campaign_id, title, description, status, priority, move_type, tool_requirements, refinement_data)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id;
             """
             await cur.execute(
@@ -311,6 +311,7 @@ async def save_move(campaign_id: str, move_data: dict) -> str:
                     move_data.get("priority", 3),
                     move_data.get("move_type"),
                     psycopg.types.json.Jsonb(move_data.get("tool_requirements", [])),
+                    psycopg.types.json.Jsonb(move_data.get("refinement_data", {})),
                 ),
             )
             result = await cur.fetchone()
