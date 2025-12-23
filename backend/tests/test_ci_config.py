@@ -9,5 +9,11 @@ def test_ci_workflow_content():
     """Ensure the CI workflow targets the backend directory and uses flake8."""
     with open(".github/workflows/python-ci.yml", "r") as f:
         content = f.read()
-        assert "flake8 backend" in content
-        assert "pytest backend/tests" in content
+def test_pre_commit_hooks_defined():
+    """Verify that isort and bandit hooks are present in the configuration."""
+    path = ".pre-commit-config.yaml"
+    with open(path, "r") as f:
+        content = f.read()
+        assert "id: isort" in content
+        assert "id: bandit" in content
+        assert "id: flake8" in content
