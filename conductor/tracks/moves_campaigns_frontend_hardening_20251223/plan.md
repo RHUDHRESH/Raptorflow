@@ -34,8 +34,8 @@
 
 ## Phase 4: Move Module Production Integration (Tasks 26-35)
 - [x] 26. Task: Connect UI triggers to the weekly move generation agent node [dde2d0b]
-- [~] 27. Task: Implement interactive decomposition of milestones into Move packets
-- [ ] 28. Task: Write failing integration tests for Move generation and status tracking
+- [x] 27. Task: Implement interactive decomposition of milestones into Move packets [80cdd80]
+- [~] 28. Task: Write failing integration tests for Move generation and status tracking
 - [ ] 29. Task: Integrate "Move Refiner" critique and adjustment UI
 - [ ] 30. Task: Implement resource/tool verification feedback in the Moves view
 - [ ] 31. Task: Connect move execution status (Pending -> Executed) to backend updates
