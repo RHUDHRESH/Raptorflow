@@ -103,6 +103,17 @@ class BlackboxService:
         )
         return result.data
 
+    def calculate_move_cost(self, move_id: str):
+        """Aggregates total token cost for a specific move."""
+        session = self.vault.get_session()
+        result = (
+            session.table("blackbox_telemetry_industrial")
+            .select("tokens")
+            .eq("move_id", str(move_id))
+            .execute()
+        )
+        return sum(row.get("tokens", 0) for row in result.data)
+
     def attribute_outcome(self, outcome: BlackboxOutcome):
         """Attributes a business outcome to specific campaign/move."""
         pass
