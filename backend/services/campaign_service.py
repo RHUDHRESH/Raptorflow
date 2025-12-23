@@ -60,7 +60,7 @@ class CampaignService:
                     end_date=row[7],
                     arc_data=row[10],
                     kpi_targets=row[11],
-                    audit_data=row[12]
+                    audit_data=row[12],
                 )
 
     async def generate_90_day_arc(self, campaign_id: str) -> Optional[dict]:
@@ -113,6 +113,45 @@ class CampaignService:
             "orchestrator_status": state.values.get("status"),
             "messages": state.values.get("messages", []),
             "campaign_id": campaign_id,
+        }
+
+    async def apply_pivot(self, campaign_id: str, pivot_data: dict) -> Optional[dict]:
+        """Applies a strategic pivot by updating the campaign and re-triggering inference."""
+        campaign = await self.get_campaign(campaign_id)
+        if not campaign:
+            return None
+
+        # Logic to apply pivot:
+        # 1. Store the pivot instruction in the state
+        # 2. Re-trigger the planning phase
+
+        from backend.graphs.moves_campaigns_orchestrator import (
+            moves_campaigns_orchestrator,
+        )
+
+        initial_state = {
+            "tenant_id": str(campaign.tenant_id),
+            "campaign_id": campaign_id,
+            "status": "planning",
+            "context_brief": {
+                "objective": campaign.objective,
+                "pivot_instruction": pivot_data.get(
+                    "description", "Pivot based on agent recommendation"
+                ),
+            },
+            "messages": [f"Applying strategic pivot: {pivot_data.get('title')}"],
+        }
+
+        config = {"configurable": {"thread_id": campaign_id}}
+
+        # We don't await full completion here, just start it
+        # Actually, let's run it synchronously for Task 22 to confirm connection
+        result = await moves_campaigns_orchestrator.ainvoke(initial_state, config)
+
+        return {
+            "status": "success",
+            "campaign_id": campaign_id,
+            "orchestrator_status": result.get("status"),
         }
 
     async def get_gantt_chart(self, campaign_id: str) -> Optional[GanttChart]:
