@@ -1,10 +1,31 @@
 import time
 import uuid
+import contextvars
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request
 from backend.utils.logger import logger
 from backend.models.telemetry import TelemetryEvent, TelemetryEventType
 
+# Context variable to store trace ID synchronously
+_trace_id_ctx_var: contextvars.ContextVar[str] = contextvars.ContextVar("trace_id", default="")
+
+def get_current_trace_id() -> str:
+    """Returns the current trace ID from the context."""
+    return _trace_id_ctx_var.get()
+
+class TraceIDMiddleware(BaseHTTPMiddleware):
+    """
+    Synchronous-compatible middleware for trace ID generation and propagation.
+    """
+    async def dispatch(self, request: Request, call_next):
+        trace_id = request.headers.get("X-Trace-ID", str(uuid.uuid4()))
+        token = _trace_id_ctx_var.set(trace_id)
+        try:
+            response = await call_next(request)
+            response.headers["X-Trace-ID"] = trace_id
+            return response
+        finally:
+            _trace_id_ctx_var.reset(token)
 
 class CorrelationIDMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
