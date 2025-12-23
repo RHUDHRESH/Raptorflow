@@ -74,6 +74,7 @@ async def vector_search(
     SCHEMA_MAP = {
         "muse_assets": {"content": "content", "workspace": "metadata->>'workspace_id'"},
         "agent_memory_semantic": {"content": "fact", "workspace": "tenant_id"},
+        "agent_memory_procedural": {"content": "fact", "workspace": "tenant_id"},
         "entity_embeddings": {"content": "description", "workspace": "workspace_id"},
     }
 

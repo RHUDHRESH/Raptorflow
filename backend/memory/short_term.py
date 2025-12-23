@@ -8,7 +8,6 @@ logger = logging.getLogger("raptorflow.memory.short_term")
 
 
 class L1ShortTermMemory:
-
     """
     SOTA L1 Short-Term Memory (L1).
     Uses Redis/Upstash for millisecond-latency state management.
@@ -74,7 +73,9 @@ class L1ShortTermMemory:
         """Deletes all keys matching a pattern in L1 memory (within the prefix)."""
         # Note: Upstash Redis (REST) might not support 'keys' or 'scan' via the SDK easily
         # but the standard Redis SDK does. Let's provide a basic implementation.
-        logger.warning("L1 Memory delete_pattern: Using pattern delete on Upstash Redis.")
+        logger.warning(
+            "L1 Memory delete_pattern: Using pattern delete on Upstash Redis."
+        )
         try:
             # For Upstash Redis, we might need to handle this carefully if it's a large set
             # For now, we assume basic delete support for the pattern
