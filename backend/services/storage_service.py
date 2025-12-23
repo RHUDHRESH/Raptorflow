@@ -173,3 +173,44 @@ class StorageEfficiencyAuditor:
         except Exception as e:
             logger.error(f"Failed to generate storage efficiency report: {e}")
             return {"error": str(e)}
+
+
+class BrandAssetManager:
+    """
+    Industrial Manager for Brand Assets (Logos, Fonts, etc.).
+    Handles uploads to GCS and public URL resolution.
+    """
+
+    def __init__(self, bucket_name: str):
+        self.bucket_name = bucket_name
+        self._client: Optional[storage.Client] = None
+
+    @property
+    def client(self) -> storage.Client:
+        if self._client is None:
+            self._client = storage.Client()
+        return self._client
+
+    def upload_logo(self, file_content: bytes, filename: str, content_type: str) -> str:
+        """
+        Uploads a logo to GCS and returns the public URL.
+        """
+        try:
+            bucket = self.client.get_bucket(self.bucket_name)
+            # Standardized path: logos/brand_name/filename
+            blob = bucket.blob(f"assets/logos/{filename}")
+            
+            blob.upload_from_string(
+                file_content,
+                content_type=content_type
+            )
+            
+            # Make public if required, or use signed URLs
+            # For this build, we use public access for simplicity in demo
+            blob.make_public()
+            
+            logger.info(f"Successfully uploaded logo: {filename} to {self.bucket_name}")
+            return blob.public_url
+        except Exception as e:
+            logger.error(f"Failed to upload logo: {e}")
+            raise e
