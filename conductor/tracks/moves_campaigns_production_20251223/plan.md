@@ -36,7 +36,7 @@
 - [x] 29. Task: Verify state recovery from episodic memory after simulated crashes [283d05b]
 - [x] 30. Task: Conductor - User Manual Verification 'Cognitive Spine' (Protocol in workflow.md) [6149f12]
 
-## Phase 4: Tiered Memory & Context Retrieval (Tasks 31-40)
+## Phase 4: Tiered Memory & Context Retrieval (Tasks 31-40) [checkpoint: b39dbc7]
 - [x] 31. Task: Implement `EpisodicMemory` class using Redis/Upstash [6fb4399]
 - [x] 32. Task: Implement `SemanticMemory` class using Supabase pgvector [ba7b5f5]
 - [x] 33. Task: Write failing tests for RAG (Retrieval Augmented Generation) context injection [56abee7]
