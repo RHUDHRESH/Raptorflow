@@ -3,20 +3,14 @@ from fastapi.responses import JSONResponse
 from backend.core.exceptions import RaptorFlowError
 from backend.core.middleware import CorrelationIDMiddleware, RequestLoggingMiddleware
 from backend.api.v1.foundation import router as foundation_router
+from backend.api.v1.blackbox_telemetry import router as blackbox_telemetry_router
 
-app = FastAPI(
-    title="RaptorFlow Industrial API",
-    description="Deterministic Marketing Engine & Agentic Hub",
-    version="1.0.0",
-)
+app = FastAPI(title="RaptorFlow Agentic Spine")
 
+# ... existing middleware ...
 
-# Add Middlewares
-app.add_middleware(CorrelationIDMiddleware)
-app.add_middleware(RequestLoggingMiddleware)
-
-# Register Routers
 app.include_router(foundation_router)
+app.include_router(blackbox_telemetry_router)
 
 
 # Global Exception Handler
