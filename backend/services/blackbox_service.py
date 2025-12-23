@@ -570,3 +570,27 @@ class BlackboxService:
                 for r in results
             ]
         )
+
+    def auto_cleanup_telemetry(self, days_to_keep: int = 30):
+        """
+        Removes telemetry and outcomes older than days_to_keep from Supabase.
+        Long-term data remains in BigQuery.
+        """
+        import datetime
+
+        threshold = datetime.datetime.now() - datetime.timedelta(days=days_to_keep)
+        threshold_iso = threshold.isoformat()
+
+        session = self.vault.get_session()
+
+        # 1. Cleanup Telemetry
+        session.table("blackbox_telemetry_industrial").delete().lt(
+            "timestamp", threshold_iso
+        ).execute()
+
+        # 2. Cleanup Outcomes
+        session.table("blackbox_outcomes_industrial").delete().lt(
+            "timestamp", threshold_iso
+        ).execute()
+
+        return True
