@@ -432,17 +432,26 @@ def test_blackbox_service_compute_roi():
     # 3. Mock outcomes fetching
     mock_outcomes_res = MagicMock()
     mock_outcomes_res.data = [{"value": 1.20}]
-    
+
     def table_side_effect(name):
         mock_query = MagicMock()
         if name == "moves":
-            mock_query.select.return_value.eq.return_value.execute.return_value = MagicMock(data=[{"id": move_id}])
+            # Chained: table("moves").select().eq().order().execute()
+            mock_query.select.return_value = mock_query
+            mock_query.eq.return_value = mock_query
+            mock_query.order.return_value = mock_query
+            mock_query.execute.return_value = MagicMock(data=[{"id": move_id}])
             return mock_query
         if name == "blackbox_telemetry_industrial":
-            mock_query.select.return_value.eq.return_value.execute.return_value = mock_tokens_res
+            # calculate_move_cost uses: table().select().eq().execute()
+            mock_query.select.return_value = mock_query
+            mock_query.eq.return_value = mock_query
+            mock_query.execute.return_value = mock_tokens_res
             return mock_query
         if name == "blackbox_outcomes_industrial":
-            mock_query.select.return_value.execute.return_value = mock_outcomes_res
+            # compute_roi uses: table().select().execute()
+            mock_query.select.return_value = mock_query
+            mock_query.execute.return_value = mock_outcomes_res
             return mock_query
         return MagicMock()
 
@@ -457,3 +466,9 @@ def test_blackbox_service_compute_roi():
     assert result["roi"] == 5.0
     assert result["total_cost"] == 0.20
     assert result["total_value"] == 1.20
+
+def test_attribution_models_definition():
+    from backend.services.blackbox_service import AttributionModel
+    assert AttributionModel.FIRST_TOUCH == "first_touch"
+    assert AttributionModel.LAST_TOUCH == "last_touch"
+    assert AttributionModel.LINEAR == "linear"
