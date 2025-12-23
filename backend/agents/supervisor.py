@@ -1,5 +1,6 @@
 import logging
 import uuid
+from datetime import datetime
 from typing import List, Literal, TypedDict, Dict, Any, Annotated, Optional
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -105,6 +106,34 @@ class HierarchicalSupervisor:
             summary_parts.append(f"- [{source}]: {text}")
             
         return "\n".join(summary_parts)
+
+
+class HandoffProtocol:
+    """
+    Standardized protocol for agent-to-agent communication and context transfer.
+    """
+
+    @staticmethod
+    def create_packet(source: str, target: str, context: Dict[str, Any], priority: str = "normal") -> Dict[str, Any]:
+        """
+        Creates a standardized handoff packet.
+        """
+        return {
+            "source": source,
+            "target": target,
+            "context": context,
+            "priority": priority,
+            "timestamp": datetime.now().isoformat()
+        }
+
+    @staticmethod
+    def validate(packet: Dict[str, Any]) -> bool:
+        """
+        Validates the structure of a handoff packet.
+        """
+        required_keys = ["source", "target", "context", "priority"]
+        return all(key in packet for key in required_keys)
+
 
 def create_team_supervisor(llm: any, team_members: List[str], system_prompt: str):
     """Factory function for the HierarchicalSupervisor."""
