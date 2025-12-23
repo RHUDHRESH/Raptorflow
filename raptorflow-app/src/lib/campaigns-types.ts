@@ -142,6 +142,12 @@ export interface Move {
     campaignId?: string;
     campaignName?: string;
 
+    refinementData?: {
+        estimated_effort?: string;
+        deadline?: string;
+        rationale?: string;
+    };
+
     // Override tracking (logged to Blackbox)
     override?: {
         reason: OverrideReason;

@@ -238,6 +238,7 @@ function mapDBMoveToFrontend(db: any): Move {
         campaignId: db.campaign_id,
         checklist: [],
         assetIds: [],
+        refinementData: db.refinement_data,
     };
 }
 

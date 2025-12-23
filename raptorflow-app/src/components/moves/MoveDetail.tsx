@@ -32,6 +32,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from 'sonner';
+import { MoveRefinerView } from './MoveRefinerView';
 
 interface MoveDetailProps {
     move: Move | null;
@@ -55,7 +56,7 @@ export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete, onRef
 
     const handleGenerateAgenticMoves = async () => {
         if (!move.campaignId) return;
-        
+
         toast.promise(generateWeeklyMoves(move.campaignId), {
             loading: 'Triggering agentic move decomposition...',
             success: 'Decomposition started. Watch the live feed.',
@@ -251,6 +252,9 @@ export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete, onRef
                                     onAbandon={handleAbandon}
                                 />
                             )}
+
+                            {/* Task 29: Move Refiner Critique */}
+                            <MoveRefinerView data={move.refinementData} />
 
                             {/* Checklist */}
                             <div className="space-y-6">

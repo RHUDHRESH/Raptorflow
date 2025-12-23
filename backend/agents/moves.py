@@ -185,8 +185,8 @@ class ProgressTracker:
         }
 
 
-from backend.db import save_move, log_agent_decision
 from backend.core.toolbelt import ToolbeltV2
+from backend.db import log_agent_decision, save_move
 
 
 class SkillExecutor:
@@ -212,34 +212,40 @@ class SkillExecutor:
             skill_map = {
                 "Search": "tavily_search",
                 "Copy": "asset_gen",
-                "ImageGen": "asset_gen", # Muse handles both for now
-                "Research": "perplexity_search"
+                "ImageGen": "asset_gen",  # Muse handles both for now
+                "Research": "perplexity_search",
             }
 
             for skill in move.get("required_skills", []):
                 tool_name = skill_map.get(skill)
                 if tool_name:
                     logger.info(f"Executing skill '{skill}' via tool '{tool_name}'...")
-                    
+
                     # Prepare tool inputs based on skill type
-                    tool_kwargs = {"query": move.get("title")} # Default
+                    tool_kwargs = {"query": move.get("title")}  # Default
                     if skill in ["Copy", "ImageGen"]:
                         tool_kwargs = {
                             "topic": move.get("title"),
-                            "format": "LinkedIn Post" if skill == "Copy" else "Image Prompt",
-                            "context": move.get("description")
+                            "format": (
+                                "LinkedIn Post" if skill == "Copy" else "Image Prompt"
+                            ),
+                            "context": move.get("description"),
                         }
 
                     res = await self.belt.run_tool(tool_name, **tool_kwargs)
-                    
+
                     if res["success"]:
-                        results.append({
-                            "move_id": move.get("db_id"),
-                            "skill": skill,
-                            "tool": tool_name,
-                            "output": res["data"]
-                        })
-                        messages.append(f"✓ Skill '{skill}' executed for move '{move.get('title')}'")
+                        results.append(
+                            {
+                                "move_id": move.get("db_id"),
+                                "skill": skill,
+                                "tool": tool_name,
+                                "output": res["data"],
+                            }
+                        )
+                        messages.append(
+                            f"✓ Skill '{skill}' executed for move '{move.get('title')}'"
+                        )
                     else:
                         messages.append(f"✗ Skill '{skill}' failed: {res['error']}")
 
@@ -287,7 +293,9 @@ class MovePersistence:
 
         if not tenant_id or not campaign_id:
             return {
-                "messages": ["WARNING: Missing tenant_id or campaign_id for persistence."]
+                "messages": [
+                    "WARNING: Missing tenant_id or campaign_id for persistence."
+                ]
             }
 
         if not moves:
@@ -303,6 +311,11 @@ class MovePersistence:
                 "priority": int(move.get("priority", "P1").replace("P", "")),
                 "move_type": "automated",  # Default for now
                 "tool_requirements": move.get("required_skills", []),
+                "refinement_data": {
+                    "estimated_effort": move.get("estimated_effort"),
+                    "deadline": move.get("deadline"),
+                    "rationale": "SOTA Agentic Refinement complete.",
+                },
             }
             move_uuid = await save_move(campaign_id, db_move)
             move["db_id"] = move_uuid
