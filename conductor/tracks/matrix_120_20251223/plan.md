@@ -25,7 +25,7 @@
 - [x] Phase 020: Conductor - User Manual Verification 'Osipov Data Engineering' (Protocol in workflow.md)
 
 #### Block C: Taulli Agentic Spine & Supervisor Pattern (Phases 21-35)
-- [ ] Phase 021: Backend - Implement `MatrixSupervisorAgent` using LangGraph.
+- [x] Phase 021: Backend - Implement `MatrixSupervisorAgent` using LangGraph. 6663fc9
 - [ ] Phase 022: Backend - Define `MatrixState` TypedDict for supervisor orchestration.
 - [ ] Phase 023: Backend - Implement `DriftAnalyzerAgent` (Statistical test specialist).
 - [ ] Phase 024: Backend - Implement `GovernorAgent` (Budget & Token limit specialist).
