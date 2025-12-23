@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, Any
 from google.cloud import storage
 
 logger = logging.getLogger("raptorflow.services.storage")
@@ -43,4 +43,47 @@ class GCSLifecycleManager:
             return True
         except Exception as e:
             logger.error(f"Failed to archive logs: {e}")
+            return False
+
+
+class BigQueryMatrixLoader:
+    """
+    Loader for syncing Parquet data from GCS to BigQuery.
+    Enables high-scale longitudinal analysis for the Matrix.
+    """
+
+    def __init__(self, dataset_id: str, table_id: str):
+        self.dataset_id = dataset_id
+        self.table_id = table_id
+        self._client: Optional[Any] = None # Using Any to avoid import crash during setup
+
+    @property
+    def client(self):
+        if self._client is None:
+            from google.cloud import bigquery
+            self._client = bigquery.Client()
+        return self._client
+
+    def sync_parquet_to_bq(self, uri: str) -> bool:
+        """
+        Loads a Parquet URI from GCS into a BigQuery table.
+        """
+        try:
+            from google.cloud import bigquery
+            
+            job_config = bigquery.LoadJobConfig(
+                source_format=bigquery.SourceFormat.PARQUET,
+                write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+            )
+            
+            table_ref = f"{self.client.project}.{self.dataset_id}.{self.table_id}"
+            load_job = self.client.load_table_from_uri(
+                uri, table_ref, job_config=job_config
+            )
+            
+            load_job.result() # Wait for completion
+            logger.info(f"Successfully loaded {uri} into {table_ref}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to load Parquet to BigQuery: {e}")
             return False
