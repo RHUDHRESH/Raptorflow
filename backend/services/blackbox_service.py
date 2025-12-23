@@ -12,6 +12,13 @@ class BlackboxService:
         self.vault = vault
         self._bigquery_client = None
 
+    def _get_bigquery_client(self):
+        """Lazily initializes the BigQuery client."""
+        if not self._bigquery_client:
+            from google.cloud import bigquery
+            self._bigquery_client = bigquery.Client(project=self.vault.project_id)
+        return self._bigquery_client
+
     async def log_telemetry(self, telemetry: BlackboxTelemetry):
         """Logs an execution trace to both Supabase and BigQuery."""
         pass
