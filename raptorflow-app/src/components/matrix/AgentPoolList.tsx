@@ -5,9 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Activity, Cpu, Clock } from "lucide-react";
 import { useMatrixOverview } from "@/hooks/useMatrixOverview";
+import { MatrixListSkeleton } from "./LoadingSkeletons";
+import { MatrixEmptyState } from "./EmptyStates";
 
 export function AgentPoolList() {
-  const { data } = useMatrixOverview("verify_ws");
+  const { data, loading } = useMatrixOverview("verify_ws");
+
+  if (loading) return <MatrixListSkeleton />;
+
   const agents = data?.system_state?.active_agents || {};
   const agentIds = Object.keys(agents);
 
@@ -28,9 +33,10 @@ export function AgentPoolList() {
         <ScrollArea className="h-[400px]">
           <div className="divide-y divide-border/50">
             {agentIds.length === 0 ? (
-              <div className="p-12 text-center text-muted-foreground italic text-sm">
-                No active threads detected.
-              </div>
+              <MatrixEmptyState 
+                title="Pool Dormant" 
+                message="No active threads detected. Start a new campaign to wake the spine." 
+              />
             ) : (
               agentIds.map((id) => (
                 <div key={id} className="p-4 hover:bg-muted/10 transition-colors">

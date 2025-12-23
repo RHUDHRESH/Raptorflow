@@ -5,10 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMatrixOverview } from "@/hooks/useMatrixOverview";
 import { Terminal, Database, Cpu } from "lucide-react";
+import { MatrixListSkeleton } from "./LoadingSkeletons";
+import { TelemetryEmptyState } from "./EmptyStates";
 
 export function InferenceLogExplorer() {
-  const { data } = useMatrixOverview("verify_ws");
+  const { data, loading } = useMatrixOverview("verify_ws");
   
+  if (loading) return <MatrixListSkeleton />;
+
   // SOTA: Mock data for explorer if API doesn't provide enough yet
   const events = data?.recent_events || [
     {
@@ -48,7 +52,10 @@ export function InferenceLogExplorer() {
       <CardContent className="p-0">
         <ScrollArea className="h-[400px]">
           <div className="text-[11px] leading-relaxed">
-            {events.map((event) => (
+            {events.length === 0 ? (
+              <TelemetryEmptyState />
+            ) : (
+              events.map((event) => (
               <div key={event.event_id} className="p-3 border-b border-border/30 hover:bg-muted/10 transition-colors group">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
