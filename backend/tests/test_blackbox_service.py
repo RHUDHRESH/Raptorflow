@@ -115,11 +115,45 @@ def test_blackbox_service_get_agent_audit_log():
     mock_query_builder.execute.return_value = mock_response
     
     service = BlackboxService(vault=mock_vault)
-    # This will fail until implemented
-    try:
-        logs = service.get_agent_audit_log("test-agent")
-        assert len(logs) == 1
-        assert logs[0]["agent_id"] == "test-agent"
+    logs = service.get_agent_audit_log("test-agent")
+    
+    assert len(logs) == 1
+    assert logs[0]["agent_id"] == "test-agent"
+    mock_session.table.assert_called_with("blackbox_telemetry_industrial")
+
+def test_telemetry_capture_integrity():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    mock_vault.project_id = "test-project"
+    
+    mock_query_builder = MagicMock()
+    mock_session.table.return_value = mock_query_builder
+    mock_query_builder.insert.return_value = mock_query_builder
+    mock_query_builder.execute.return_value = MagicMock()
+    
+    service = BlackboxService(vault=mock_vault)
+    
+    telemetry = BlackboxTelemetry(
+        move_id=uuid4(),
+        agent_id="integrity-test-agent",
+        trace={"test": "data"},
+        tokens=100,
+        latency=1.5
+    )
+    
+    with patch("google.cloud.bigquery.Client") as mock_client_init:
+        mock_bq_client = mock_client_init.return_value
+        mock_bq_client.insert_rows_json.return_value = []
+        
+        service.log_telemetry(telemetry)
+        
+        # Verify Supabase call
         mock_session.table.assert_called_with("blackbox_telemetry_industrial")
-    except AttributeError:
-        pytest.fail("get_agent_audit_log not implemented")
+        mock_query_builder.insert.assert_called_once()
+        
+        # Verify BigQuery call
+        mock_bq_client.insert_rows_json.assert_called_once()
+        args, _ = mock_bq_client.insert_rows_json.call_args
+        assert "telemetry_stream" in args[0]
+        assert args[1][0]["agent_id"] == "integrity-test-agent"
