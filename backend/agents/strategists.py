@@ -305,6 +305,10 @@ class CampaignArc(BaseModel):
     campaign_title: str
     monthly_plans: List[MonthPlan]
 
+from backend.core.prompts import CampaignPrompts
+
+# ...
+
 class CampaignArcDesigner:
     """
     SOTA War-Planning Node.
@@ -312,20 +316,18 @@ class CampaignArcDesigner:
     """
     def __init__(self, llm: any):
         self.prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a master of 90-day marketing warfare. "
-                       "Based on the UVPs and Research, architect a surgical 3-month arc "
-                       "with one high-level theme per month."),
-            ("user", "UVPs: {uvps}\nResearch: {evidence}")
+            ("system", CampaignPrompts.PLANNER_SYSTEM),
+            ("user", CampaignPrompts.ARC_GENERATION)
         ])
         self.chain = self.prompt | llm.with_structured_output(CampaignArc)
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
         uvps = state.get("context_brief", {}).get("uvps", {})
-        evidence = state.get("research_bundle", {}).get("final_evidence", {})
+        evidence = state.get("business_context", []) # Pull from injected RAG context
         logger.info("Designing 90-day campaign arc...")
         
-        arc = await self.chain.ainvoke({"uvps": str(uvps), "evidence": str(evidence)})
+        arc = await self.chain.ainvoke({"uvps": str(uvps), "evidence": "\n".join(evidence)})
         logger.info(f"Campaign arc designed: {arc.campaign_title}")
         
         return {"context_brief": {"campaign_arc": arc.model_dump()}}
