@@ -69,6 +69,19 @@ class HierarchicalSupervisor:
         logger.info(f"Supervisor delegated to: {next_node}")
         return {"next": str(next_node), "instructions": str(instructions)}
 
+    async def route_intent(self, query: str) -> str:
+        """
+        Determines the appropriate specialist crew based on a raw user query.
+        """
+        from langchain_core.messages import HumanMessage
+        
+        state = {"messages": [HumanMessage(content=query)]}
+        response = await self.chain.ainvoke(state)
+        
+        if hasattr(response, "next_node"):
+            return str(response.next_node)
+        return str(response.get("next_node", "FINISH"))
+
 def create_team_supervisor(llm: any, team_members: List[str], system_prompt: str):
     """Factory function for the HierarchicalSupervisor."""
     return HierarchicalSupervisor(llm, team_members, system_prompt)
