@@ -45,3 +45,25 @@ def ingest_telemetry_node(state: AnalysisState) -> Dict:
     )
 
     return {"telemetry_data": result.data, "status": "ingested"}
+
+
+def extract_insights_node(state: AnalysisState) -> Dict:
+    """
+    Node: Analyzes telemetry via LLM to extract strategic findings.
+    """
+    from backend.inference import InferenceProvider
+    llm = InferenceProvider.get_model(model_tier="reasoning")
+    
+    telemetry_summary = "\n".join([str(t) for t in state.get("telemetry_data", [])])
+    
+    prompt = (
+        "Analyze the following agent execution telemetry and extract exactly one "
+        "concise strategic finding about marketing performance or agent efficacy.\n\n"
+        f"Telemetry:\n{telemetry_summary}\n\n"
+        "Finding:"
+    )
+    
+    response = llm.invoke(prompt)
+    finding = response.content.strip()
+    
+    return {"findings": [finding], "status": "analyzed"}
