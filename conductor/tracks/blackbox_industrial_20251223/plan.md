@@ -33,12 +33,12 @@
 - [x] Task 26: Write Unit Test: `test_vector_search_relevance` [0fc0304]
 - [x] Task 27: Implement `BlackboxService.get_memory_context_for_planner(move_type)` [adb4382]
 - [x] Task 28: Implement Memory Pruning logic (Removing redundant/outdated insights) [977ead9]
-- [x] Task 29: Create `backend/api/v1/blackbox_memory.py` endpoints [fe6d0d4]
-- [x] Task 30: Conductor - User Manual Verification 'Cognitive Memory' [8bc8cbb]
+- [x] Task 29: Create `backend/api/v1/blackbox_memory.py` endpoints [2121756]
+- [x] Task 30: Conductor - User Manual Verification 'Cognitive Memory' [2121756]
 
 ## Phase 4: Agentic Orchestration - LangGraph Spine (Phases 31-40)
 - [x] Task 31: Create `backend/graphs/blackbox_analysis.py` (Base State Definition) [e7d1f36]
-- [ ] Task 32: Implement `AnalysisState` (telemetry, findings, outcomes, reflection)
+- [x] Task 32: Implement `AnalysisState` (telemetry, findings, outcomes, reflection) [ecf18f6]
 - [ ] Task 33: Define Graph Node: `ingest_telemetry_node`
 - [ ] Task 34: Define Graph Node: `extract_insights_node` (Agentic)
 - [ ] Task 35: Define Graph Node: `attribute_outcomes_node` (Math-heavy)
