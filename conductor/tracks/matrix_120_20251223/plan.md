@@ -32,7 +32,7 @@
 - [x] Phase 025: Backend - Implement `SecurityAuditorAgent` (PII & Policy specialist). b3e32b3
 - [x] Phase 026: Backend - Write Red Phase tests for `MatrixSupervisor.route_intent()`. 3d57909
 - [x] Phase 027: Backend - Implement `MatrixSupervisor.route_intent()` (Intent detection). 32987a9
-- [ ] Phase 028: Backend - Implement `MatrixSupervisor.delegate_to_specialist()`.
+- [x] Phase 028: Backend - Implement `MatrixSupervisor.delegate_to_specialist()`. 5273e3e
 - [ ] Phase 029: Backend - Implement `MatrixSupervisor.aggregate_findings()`.
 - [ ] Phase 030: Backend - Implement `HandoffProtocol` for agent-to-agent communication.
 - [ ] Phase 031: Backend - Write Red Phase tests for `MatrixSupervisor.execute_loop()`.
