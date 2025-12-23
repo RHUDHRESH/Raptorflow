@@ -678,8 +678,75 @@ def test_blackbox_service_trigger_learning_cycle():
 
                 # Check kwargs or args
                 _, kwargs = mock_upsert.call_args
-                assert kwargs["content"] == "SaaS Founders prefer long-form content"
+                assert (
+                    kwargs["content"] == "SaaS Founders prefer long-form content"
+                )
                 assert kwargs["learning_type"] == "strategic"
+
+
+def test_blackbox_service_generate_pivot_recommendation():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    service = BlackboxService(vault=mock_vault)
+
+    # Mock context
+    with patch.object(
+        service, "get_telemetry_by_move", return_value=[{"trace": "t1"}]
+    ):
+        mock_out_res = MagicMock()
+        mock_out_res.data = [{"value": 100}]
+        mock_session.table.return_value.select.return_value.eq.return_value.execute.return_value = (
+            mock_out_res
+        )
+
+        # Mock LearningAgent
+        mock_agent_instance = MagicMock()
+        mock_agent_instance.run = AsyncMock(
+            return_value={"pivots": "New Strategy", "status": ["learned"]}
+        )
+
+        with patch(
+            "backend.agents.blackbox_specialist.LearningAgent",
+            return_value=mock_agent_instance,
+        ):
+            move_id = str(uuid4())
+            result = asyncio.run(service.generate_pivot_recommendation(move_id))
+
+            assert result["pivot_recommendation"] == "New Strategy"
+            assert result["status"] == "pivot_generated"
+            mock_agent_instance.run.assert_called_once()
+
+
+def test_blackbox_service_apply_learning_to_foundation():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    service = BlackboxService(vault=mock_vault)
+
+    brand_kit_id = uuid4()
+    learning_id = uuid4()
+
+    # 1. Mock learning fetch
+    mock_learn_res = MagicMock()
+    mock_learn_res.data = [{"id": str(learning_id), "content": "Insight text"}]
+    mock_session.table.return_value.select.return_value.eq.return_value.execute.return_value = (
+        mock_learn_res
+    )
+
+    # 2. Mock FoundationService.update_brand_kit
+    with patch(
+        "backend.services.foundation_service.FoundationService.update_brand_kit",
+        new_callable=AsyncMock,
+    ) as mock_update:
+        mock_update.return_value = MagicMock()
+
+        result = asyncio.run(
+            service.apply_learning_to_foundation(brand_kit_id, learning_id)
+        )
+
+        assert result["status"] == "foundation_updated"
+        mock_update.assert_called_once()
 
 
 def test_blackbox_service_attribution_confidence():
