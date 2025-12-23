@@ -409,3 +409,51 @@ def test_blackbox_service_get_memory_context_for_planner():
             mock_search.assert_called_once_with(query="linkedin_post", limit=5)
         except AttributeError:
             pytest.fail("get_memory_context_for_planner not implemented")
+
+def test_blackbox_service_compute_roi():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    
+    service = BlackboxService(vault=mock_vault)
+    
+    campaign_id = uuid4()
+    move_id = str(uuid4())
+    
+    # 1. Mock moves fetching
+    mock_moves_query = MagicMock()
+    mock_moves_query.execute.return_value = MagicMock(data=[{"id": move_id}])
+    
+    # 2. Mock token cost fetching (via calculate_move_cost)
+    # We need to mock the table call inside calculate_move_cost
+    mock_tokens_res = MagicMock()
+    mock_tokens_res.data = [{"tokens": 10000}]
+    
+    # 3. Mock outcomes fetching
+    mock_outcomes_res = MagicMock()
+    mock_outcomes_res.data = [{"value": 1.20}]
+    
+    def table_side_effect(name):
+        mock_query = MagicMock()
+        if name == "moves":
+            mock_query.select.return_value.eq.return_value.execute.return_value = MagicMock(data=[{"id": move_id}])
+            return mock_query
+        if name == "blackbox_telemetry_industrial":
+            mock_query.select.return_value.eq.return_value.execute.return_value = mock_tokens_res
+            return mock_query
+        if name == "blackbox_outcomes_industrial":
+            mock_query.select.return_value.execute.return_value = mock_outcomes_res
+            return mock_query
+        return MagicMock()
+
+    mock_session.table.side_effect = table_side_effect
+    
+    result = service.compute_roi(campaign_id)
+    
+    # Cost = (10000 / 1000) * 0.02 = 0.20
+    # Value = 1.20
+    # ROI = (1.20 - 0.20) / 0.20 = 5.0 (500%)
+    
+    assert result["roi"] == 5.0
+    assert result["total_cost"] == 0.20
+    assert result["total_value"] == 1.20
