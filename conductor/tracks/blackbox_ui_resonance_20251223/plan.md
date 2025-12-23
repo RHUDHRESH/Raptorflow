@@ -10,13 +10,13 @@ Goal: Replace mock data in the Evidence Log and Results Strip with real `Blackbo
 - [x] Task: Implement Outcome Data Fetching and Integration in `EvidenceLog.tsx` and `ResultsStrip.tsx` [8cce2bd]
 - [x] Task: Conductor - User Manual Verification 'Data Foundation & Outcome Integration' (Protocol in workflow.md)
 
-## Phase 2: Telemetry & Reasoning Integration
+## Phase 2: Telemetry & Reasoning Integration [checkpoint: 199433d]
 Goal: Hook up the `TelemetryFeed` and `AgentAuditLog` to live backend execution traces.
 
-- [x] Task: Create API Endpoint for `BlackboxTelemetry` stream/history [HEAD]
+- [x] Task: Create API Endpoint for `BlackboxTelemetry` stream/history [d9697cf]
 - [x] Task: Write Tests for Telemetry Feed Integration (Frontend) [46d294e]
 - [x] Task: Implement Live Telemetry Logic in `TelemetryFeed.tsx` and `AgentAuditLog.tsx` [6ef8318]
-- [ ] Task: Conductor - User Manual Verification 'Telemetry & Reasoning Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Telemetry & Reasoning Integration' (Protocol in workflow.md)
 
 ## Phase 3: Surgical Learning Surface
 Goal: Map strategic learnings from the backend to the experiment detail view.
