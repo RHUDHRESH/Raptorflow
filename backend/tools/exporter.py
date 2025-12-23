@@ -79,12 +79,23 @@ class ParquetExporter:
     def export_batch(self, events: list, file_path: str) -> bool:
         """
         Exports a batch of TelemetryEvents to a Parquet file.
+        Supports basic schema evolution by using pyarrow's flexible inference.
         """
+        if not events:
+            logger.warning("Empty batch provided to ParquetExporter.")
+            return True
+
         try:
             import pyarrow as pa
             import pyarrow.parquet as pq
 
-            data = [event.model_dump() for event in events]
+            data = []
+            for event in events:
+                if hasattr(event, "model_dump"):
+                    data.append(event.model_dump())
+                else:
+                    data.append(event) # Assume it's already a dict
+            
             # Convert to table
             table = pa.Table.from_pylist(data)
             
