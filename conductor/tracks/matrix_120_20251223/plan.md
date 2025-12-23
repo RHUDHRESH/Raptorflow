@@ -75,7 +75,7 @@
 - [x] Phase 064: Backend - Implement `StateCheckpointManager` (LangGraph checkpointing). 5e26a21
 - [x] Phase 065: Conductor - User Manual Verification 'Memory & RAG' (Protocol in workflow.md) [c84b884]
 
-#### Block F: Osipov MLOps Guardrails (Phases 66-80)
+#### Block F: Osipov MLOps Guardrails (Phases 66-80) [checkpoint: 1bba9ec]
 - [x] Phase 066: Backend - Implement `DriftDetectionService` (Statistical K-S tests). [f98bb6b]
 - [x] Phase 067: Backend - Write Red Phase tests for `DriftDetection.calculate_p_value()`. [f98bb6b]
 - [x] Phase 068: Backend - Implement `DriftDetection.calculate_p_value()`. [f98bb6b]
