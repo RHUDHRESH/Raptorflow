@@ -128,6 +128,8 @@ export interface Move {
     duration: MoveDuration;
     dailyEffort: 15 | 30 | 60;
 
+    description?: string;
+    owner?: string;
     outcomeTarget?: string; // e.g., "10 calls booked"
     checklist: ChecklistItem[];
     assetIds: string[];

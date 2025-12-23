@@ -23,7 +23,9 @@ import {
     MoreHorizontal,
     Trash2,
     Check,
-    Loader2
+    Loader2,
+    User,
+    Info
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -153,6 +155,10 @@ export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete, onRef
                                 <Target className="w-4 h-4" />
                                 {move.goal}
                             </div>
+                            <div className="flex items-center gap-1.5">
+                                <User className="w-4 h-4" />
+                                {move.owner || 'Founder'}
+                            </div>
                             {move.campaignName && (
                                 <div className="flex items-center gap-1.5">
                                     <div className="w-1 h-1 rounded-full bg-zinc-300" />
@@ -253,6 +259,18 @@ export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete, onRef
                                     onExtend={handleExtend}
                                     onAbandon={handleAbandon}
                                 />
+                            )}
+
+                            {/* Move Description */}
+                            {move.description && (
+                                <section className="space-y-3">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 ml-1">Execution Brief</h3>
+                                    <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800">
+                                        <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
+                                            {move.description}
+                                        </p>
+                                    </div>
+                                </section>
                             )}
 
                             {/* Task 29: Move Refiner Critique */}
