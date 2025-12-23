@@ -27,10 +27,17 @@ def ingest_telemetry_node(state: AnalysisState) -> Dict:
     """
     Node: Ingests all telemetry associated with the move_id.
     """
-    service = get_blackbox_service()
-    traces = service.get_telemetry_by_move(state["move_id"])
-    return {"telemetry_data": traces, "status": "ingested"}
-
+    from backend.core.vault import Vault
+    session = Vault().get_session()
+    
+    result = (
+        session.table("blackbox_telemetry_industrial")
+        .select("*")
+        .eq("move_id", state["move_id"])
+        .execute()
+    )
+    
+    return {"telemetry_data": result.data, "status": "ingested"}
 
 def extract_insights_node(state: AnalysisState) -> Dict:
     """
@@ -53,15 +60,60 @@ def extract_insights_node(state: AnalysisState) -> Dict:
 
     return {"findings": [finding], "status": "analyzed"}
 
-
 def attribute_outcomes_node(state: AnalysisState) -> Dict:
     """
     Node: Attributes business outcomes to the current move.
     """
-    service = get_blackbox_service()
-    outcomes = service.get_outcomes_for_move(state["move_id"])
-    return {"outcomes": outcomes, "status": "attributed"}
+    from backend.core.vault import Vault
+    session = Vault().get_session()
+    
+    result = (
+        session.table("blackbox_outcomes_industrial")
+        .select("*")
+        .eq("move_id", state["move_id"])
+        .limit(10)
+        .execute()
+    )
+    
+    return {"outcomes": result.data, "status": "attributed"}
 
+def supervisor_node(state: AnalysisState) -> Dict:
+    """
+    Node: Orchestrates specialized agents (ROI, Drift, Competitor) 
+    to provide a multi-faceted analysis.
+    """
+    from backend.agents.roi_analyst import ROIAnalystAgent
+    from backend.agents.drift_detector import StrategicDriftAgent
+    from backend.agents.competitor_intel import CompetitorIntelligenceAgent
+    
+    move_id = state["move_id"]
+    
+    # 1. ROI Analysis
+    roi_agent = ROIAnalystAgent()
+    roi_result = roi_agent.run(move_id, {"outcomes": state.get("outcomes", [])})
+    
+    # 2. Strategic Drift Detection
+    drift_agent = StrategicDriftAgent()
+    # Mocking brand kit for now
+    drift_result = drift_agent.run(move_id, {
+        "trace": str(state.get("telemetry_data", [])),
+        "brand_kit": "Foundation v1"
+    })
+    
+    # 3. Competitor Intelligence
+    intel_agent = CompetitorIntelligenceAgent()
+    intel_result = intel_agent.run(move_id, {"telemetry_data": state.get("telemetry_data", [])})
+    
+    new_findings = [
+        roi_result.get("attribution", ""),
+        drift_result.get("drift_report", ""),
+        intel_result.get("competitor_insights", "")
+    ]
+    
+    # Clean empty strings
+    new_findings = [f for f in new_findings if f]
+    
+    return {"findings": new_findings, "status": "coordinated"}
 
 def reflect_and_validate_node(state: AnalysisState) -> Dict:
     """
@@ -96,7 +148,6 @@ def reflect_and_validate_node(state: AnalysisState) -> Dict:
     
     return {"reflection": reflection, "confidence": confidence, "status": "validated"}
 
-
 def should_continue(state: AnalysisState) -> str:
     """
     Conditional edge logic: decide whether to retry analysis.
@@ -104,7 +155,6 @@ def should_continue(state: AnalysisState) -> str:
     if state.get("confidence", 0.0) < 0.7:
         return "extract_insights"
     return "__end__"
-
 
 def create_blackbox_graph():
     """
@@ -118,12 +168,14 @@ def create_blackbox_graph():
     workflow.add_node("ingest_telemetry", ingest_telemetry_node)
     workflow.add_node("extract_insights", extract_insights_node)
     workflow.add_node("attribute_outcomes", attribute_outcomes_node)
+    workflow.add_node("supervisor", supervisor_node)
     workflow.add_node("reflect_and_validate", reflect_and_validate_node)
     
     workflow.add_edge(START, "ingest_telemetry")
     workflow.add_edge("ingest_telemetry", "extract_insights")
     workflow.add_edge("extract_insights", "attribute_outcomes")
-    workflow.add_edge("attribute_outcomes", "reflect_and_validate")
+    workflow.add_edge("attribute_outcomes", "supervisor")
+    workflow.add_edge("supervisor", "reflect_and_validate")
     
     workflow.add_conditional_edges(
         "reflect_and_validate",
