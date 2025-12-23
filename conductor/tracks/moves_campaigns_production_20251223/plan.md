@@ -12,17 +12,17 @@
 - [x] 9. Task: Verify connectivity across all infra components (Supabase, Redis, GCP)
 - [x] 10. Task: Conductor - User Manual Verification 'Environment & Infrastructure' (Protocol in workflow.md)
 
-## Phase 2: Data Ingestion & 'VACUUM' Quality Engine (Tasks 11-20)
+## Phase 2: Data Ingestion & 'VACUUM' Quality Engine (Tasks 11-20) [checkpoint: 41924db]
 - [x] 11. Task: Create ingestion script for 30k lines of business context from instructions
 - [x] 12. Task: Implement 'VACUUM' Valid node: Check data types and mandatory fields
 - [x] 13. Task: Implement 'VACUUM' Accurate node: Cross-reference data points for consistency
 - [x] 14. Task: Write failing tests for Data Cleaning pipeline
 - [x] 15. Task: Implement PySpark-style ETL to convert raw context to Parquet in GCS
 - [x] 16. Task: Execute 'VACUUM' Uniform: Standardize formatting for coordinates and dates
-- [~] 17. Task: Execute 'VACUUM' Unified: Merge conflicting context into a single source of truth
-- [ ] 18. Task: Index "Gold" context into pgvector for semantic retrieval
-- [ ] 19. Task: Verify data quality scores (>95% valid records)
-- [ ] 20. Task: Conductor - User Manual Verification 'Data Ingestion & VACUUM Engine' (Protocol in workflow.md)
+- [x] 17. Task: Execute 'VACUUM' Unified: Merge conflicting context into a single source of truth
+- [x] 18. Task: Index "Gold" context into pgvector for semantic retrieval
+- [x] 19. Task: Verify data quality scores (>95% valid records)
+- [x] 20. Task: Conductor - User Manual Verification 'Data Ingestion & VACUUM Engine' (Protocol in workflow.md)
 
 ## Phase 3: Cognitive Spine - LangGraph Foundation (Tasks 21-30)
 - [ ] 21. Task: Define `State` schema for the Moves & Campaigns orchestrator
