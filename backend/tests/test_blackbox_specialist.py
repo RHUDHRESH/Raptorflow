@@ -80,3 +80,30 @@ def test_competitor_intelligence_agent():
             mock_llm.invoke.assert_called_once()
     except (ImportError, AttributeError):
         pytest.fail("CompetitorIntelligenceAgent not implemented")
+
+def test_agent_specialization_accuracy():
+    from backend.agents.roi_analyst import ROIAnalystAgent
+    from backend.agents.drift_detector import StrategicDriftAgent
+    from backend.agents.competitor_intel import CompetitorIntelligenceAgent
+    
+    with patch("backend.inference.InferenceProvider.get_model") as mock_get_model:
+        mock_llm = MagicMock()
+        mock_get_model.return_value = mock_llm
+        
+        # 1. ROI Analyst
+        mock_llm.invoke.return_value = MagicMock(content="ROI is 5x.")
+        roi_agent = ROIAnalystAgent()
+        res_roi = roi_agent.run("m1", {"outcomes": []})
+        assert "ROI is 5x" in res_roi["attribution"]
+        
+        # 2. Drift Detector
+        mock_llm.invoke.return_value = MagicMock(content="Brand drift found.")
+        drift_agent = StrategicDriftAgent()
+        res_drift = drift_agent.run("m1", {"brand_kit": "serious"})
+        assert "Brand drift" in res_drift["drift_report"]
+        
+        # 3. Competitor Intel
+        mock_llm.invoke.return_value = MagicMock(content="New competitor move.")
+        intel_agent = CompetitorIntelligenceAgent()
+        res_intel = intel_agent.run("m1", {"telemetry_data": []})
+        assert "New competitor move" in res_intel["competitor_insights"]
