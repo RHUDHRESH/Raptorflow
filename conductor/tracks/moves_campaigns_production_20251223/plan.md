@@ -54,11 +54,11 @@
 - [x] 43. Task: Write failing tests for Strategic Alignment (Campaign vs Brand Kit) [2bc9c24]
 - [x] 44. Task: Implement KPI objective setter node within the campaign graph [172b0d8]
 - [x] 45. Task: Create the Gantt chart data structure for campaign visualization [0a081f1]
-- [~] 46. Task: Implement the "Campaign Auditor" node for internal reflection
-- [ ] 47. Task: Setup the frontend `CampaignView` with Shadcn/UI Gantt components
-- [ ] 48. Task: Verify multi-agent brainstorming for campaign pivots
-- [ ] 49. Task: Integrate campaign data persistence into Supabase
-- [ ] 50. Task: Conductor - User Manual Verification 'Campaign Planning' (Protocol in workflow.md)
+- [x] 46. Task: Implement the "Campaign Auditor" node for internal reflection [2c72795]
+- [x] 47. Task: Setup the frontend `CampaignView` with Shadcn/UI Gantt components [6f17e4e]
+- [x] 48. Task: Verify multi-agent brainstorming for campaign pivots [22e45bd]
+- [~] 49. Task: Integrate campaign data persistence into Supabase
+- [x] 50. Task: Conductor - User Manual Verification 'Campaign Planning' (Protocol in workflow.md) [5472cb2]
 
 ## Phase 6: Move Module - Weekly Task Breakdown (Tasks 51-60)
 - [ ] 51. Task: Design `MoveGenerator` agent persona and prompts
