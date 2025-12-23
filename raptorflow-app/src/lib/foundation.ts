@@ -452,3 +452,21 @@ export const ONBOARDING_STEPS = [
   { id: 'messaging', name: 'Messaging', description: 'What you say' },
   { id: 'review', name: 'Review', description: 'Verify & Launch' },
 ];
+
+export async function uploadLogo(file: File): Promise<{ url: string; status: string }> {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch(`${API_URL}/v1/assets/upload-logo`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to upload logo');
+  }
+
+  return await response.json();
+}
