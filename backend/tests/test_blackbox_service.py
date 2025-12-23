@@ -230,18 +230,24 @@ def test_blackbox_service_upsert_learning_embedding():
     with patch("backend.services.blackbox_service.InferenceProvider.get_embeddings") as mock_get_embeds:
         mock_embed_model = MagicMock()
         mock_get_embeds.return_value = mock_embed_model
-        mock_embed_model.embed_query.return_value = [0.1] * 768
+        expected_embedding = [0.1] * 768
+        mock_embed_model.embed_query.return_value = expected_embedding
         
-        # This will fail until implemented
-        try:
-            service.upsert_learning_embedding(
-                content="Successful ICP engagement",
-                learning_type="strategic",
-                source_ids=[uuid4()]
-            )
-            
-            mock_embed_model.embed_query.assert_called_once_with("Successful ICP engagement")
-            mock_session.table.assert_called_with("blackbox_learnings_industrial")
-            mock_query_builder.insert.assert_called_once()
-        except AttributeError:
-            pytest.fail("upsert_learning_embedding not implemented")
+        source_id = uuid4()
+        service.upsert_learning_embedding(
+            content="Successful ICP engagement",
+            learning_type="strategic",
+            source_ids=[source_id]
+        )
+        
+        mock_embed_model.embed_query.assert_called_once_with("Successful ICP engagement")
+        mock_session.table.assert_called_with("blackbox_learnings_industrial")
+        
+        # Verify inserted data
+        mock_query_builder.insert.assert_called_once()
+        inserted_data = mock_query_builder.insert.call_args[0][0]
+        assert inserted_data["content"] == "Successful ICP engagement"
+        assert inserted_data["learning_type"] == "strategic"
+        assert inserted_data["embedding"] == expected_embedding
+        assert str(source_id) in inserted_data["source_ids"]
+

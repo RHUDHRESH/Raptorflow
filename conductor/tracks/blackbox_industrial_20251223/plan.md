@@ -25,7 +25,7 @@
 - [x] Task 20: Conductor - User Manual Verification 'Telemetry & Tracing' [c17d49c]
 
 ## Phase 3: Cognitive Memory & Vector Store (Phases 21-30)
-- [ ] Task 21: Implement `BlackboxService.upsert_learning_embedding(text, metadata)`
+- [x] Task 21: Implement `BlackboxService.upsert_learning_embedding(text, metadata)` [ae6d24d]
 - [ ] Task 22: Setup Vertex AI embedding client integration
 - [ ] Task 23: Implement `BlackboxService.search_strategic_memory(query, limit)`
 - [ ] Task 24: Implement `BlackboxService.link_learning_to_evidence(learning_id, trace_ids)`
