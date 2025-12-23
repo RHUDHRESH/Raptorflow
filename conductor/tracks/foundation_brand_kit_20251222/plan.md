@@ -2,10 +2,10 @@
 
 ## Phase 1: Data Model & Core Logic
 
-- [ ] Task: Define Zod schema and TypeScript types for the Brand Kit
+- [x] Task: Define Zod schema and TypeScript types for the Brand Kit adff45b
     - [ ] Write Tests: Create `foundation.test.ts` and define validation test cases
     - [ ] Implement Feature: Create `src/lib/foundation.ts` with Zod schema and types
-- [ ] Task: Implement a local persistence layer for Brand Kit data
+- [x] Task: Implement a local persistence layer for Brand Kit data 8de27b2
     - [ ] Write Tests: Add tests for `saveBrandKit` and `getBrandKit` (using localStorage mock)
     - [ ] Implement Feature: Create helper functions in `src/lib/foundation.ts` for persistence
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Data Model & Core Logic' (Protocol in workflow.md)

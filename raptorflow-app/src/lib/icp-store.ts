@@ -1,10 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Icp, IcpMemory } from '@/types/icp-types';
+import { FoundationData } from './foundation';
+import { generateICPsFromFoundation } from './icp-generator';
 
 interface IcpState {
     icps: Icp[];
     activeIcpId: string | null;
+    lastGeneratedAt: string | null;
 
     // Actions
     createIcp: (icp: Partial<Icp>) => string;
@@ -13,6 +16,8 @@ interface IcpState {
     setActiveIcp: (id: string) => void;
     getPrimaryIcp: () => Icp | undefined;
     getIcpMemory: (id: string) => IcpMemory | null;
+    generateFromFoundation: (data: FoundationData) => void;
+    clearAll: () => void;
 }
 
 const DEFAULT_ICP: Icp = {
@@ -58,6 +63,7 @@ export const useIcpStore = create<IcpState>()(
         (set, get) => ({
             icps: [],
             activeIcpId: null,
+            lastGeneratedAt: null,
 
             createIcp: (icpData) => {
                 const id = crypto.randomUUID();
@@ -128,6 +134,37 @@ export const useIcpStore = create<IcpState>()(
                         ctaStyle: icp.psycholinguistics.ctaStyle
                     }
                 };
+            },
+
+            generateFromFoundation: (data) => {
+                // Clear existing ICPs first
+                const generated = generateICPsFromFoundation(data);
+                const now = new Date().toISOString();
+
+                const newIcps: Icp[] = generated.map((g, idx) => ({
+                    ...DEFAULT_ICP,
+                    ...g.icp,
+                    id: crypto.randomUUID(),
+                    workspaceId: 'default-ws',
+                    createdAt: now,
+                    updatedAt: now
+                } as Icp));
+
+                const primaryIcp = newIcps.find(i => i.priority === 'primary');
+
+                set({
+                    icps: newIcps,
+                    activeIcpId: primaryIcp?.id || newIcps[0]?.id || null,
+                    lastGeneratedAt: now
+                });
+            },
+
+            clearAll: () => {
+                set({
+                    icps: [],
+                    activeIcpId: null,
+                    lastGeneratedAt: null
+                });
             }
         }),
         {

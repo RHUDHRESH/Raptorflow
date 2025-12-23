@@ -626,11 +626,17 @@
 @keyframes iconPop {
     from {
         transform: scale(0);
-        opacity: 0;
     }
 
     to {
         transform: scale(1);
+    }
+
+    from {
+        opacity: 0;
+    }
+
+    to {
         opacity: 1;
     }
 }
@@ -737,5 +743,189 @@
     /* Stack on mobile */
     .choiceCardsGrid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* ===== Review Screen Styles ===== */
+.reviewContainer {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    animation: fadeIn 500ms ease-out;
+}
+
+.reviewHeader {
+    margin-bottom: 48px;
+    text-align: center;
+}
+
+.reviewTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px;
+    color: #2D3538;
+    margin-bottom: 16px;
+}
+
+.reviewSubtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    color: #5B5F61;
+    line-height: 1.6;
+}
+
+.reviewSections {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.reviewSectionCard {
+    background: #FFFFFF;
+    border: 1px solid #E5E6E3;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 200ms ease;
+}
+
+.reviewSectionCard:hover {
+    border-color: #C0C1BE;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03);
+}
+
+.reviewSectionHeader {
+    padding: 16px 24px;
+    background: #FAFBF9;
+    border-bottom: 1px solid #E5E6E3;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.reviewSectionTitle {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #2D3538;
+    margin: 0;
+}
+
+.editButton {
+    background: transparent;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #5B5F61;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 200ms ease;
+}
+
+.editButton:hover {
+    color: #1A1D1E;
+}
+
+.reviewSectionContent {
+    padding: 24px;
+}
+
+.reviewGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+}
+
+.reviewStack {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.reviewItem {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.reviewItem.fullWidth {
+    grid-column: 1 / -1;
+}
+
+.reviewItem.highlight {
+    background: #F3F4EE;
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 3px solid #D7C9AE;
+}
+
+.reviewLabel {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.reviewValue {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: #2D3538;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.positioningStatement {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    line-height: 1.6;
+    color: #2D3538;
+    padding: 24px;
+    background: #F8F9F7;
+    border-radius: 12px;
+    border: 1px solid #E5E6E3;
+    margin-bottom: 8px;
+}
+
+.reviewActions {
+    margin-top: 64px;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding-bottom: 64px;
+}
+
+.backButton {
+    height: 56px;
+    padding: 0 32px;
+    background: transparent;
+    border: 1px solid #E5E6E3;
+    color: #5B5F61;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 200ms ease;
+}
+
+.backButton:hover {
+    border-color: #C0C1BE;
+    color: #2D3538;
+    background: #FFFFFF;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

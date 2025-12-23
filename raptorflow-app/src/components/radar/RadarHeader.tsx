@@ -3,7 +3,7 @@
 import React from 'react';
 import { RadarMode } from './types';
 import { cn } from '@/lib/utils';
-import { ChevronDown, SlidersHorizontal, Settings2, Zap } from 'lucide-react';
+import { ChevronDownIcon, FilterIcon, ZapIcon } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 
 interface RadarHeaderProps {
@@ -31,16 +31,16 @@ export function RadarHeader({ mode, setMode, selectedIcpId, setSelectedIcpId, on
                 {/* Filters (Abstract placeholder for now) */}
                 <div className="flex items-center gap-3">
                     <Button variant="outline" size="sm" className="h-9 gap-2 text-muted-foreground border-border hover:text-foreground">
-                        <SlidersHorizontal className="h-4 w-4" />
+                        <FilterIcon size={14} />
                         Filters
                     </Button>
                     <Button variant="outline" size="sm" className="h-9 gap-2 text-muted-foreground border-border hover:text-foreground">
-                        Last 7d <ChevronDown className="h-3 w-3 opacity-50" />
+                        Last 7d <ChevronDownIcon size={12} className="opacity-50" />
                     </Button>
 
                     {/* Primary Action */}
                     <Button onClick={onScanClick} size="sm" className="ml-2 h-9 px-4 gap-2 text-sm font-medium shadow-sm">
-                        <Zap className="h-3.5 w-3.5" />
+                        <ZapIcon size={14} />
                         New Scan
                     </Button>
                 </div>
@@ -83,7 +83,7 @@ export function RadarHeader({ mode, setMode, selectedIcpId, setSelectedIcpId, on
                     <button className="flex items-center gap-2 text-sm font-medium text-foreground bg-secondary/50 hover:bg-secondary px-3 py-1.5 rounded-md transition-colors">
                         <span className="text-muted-foreground">Target:</span>
                         Early-stage Founders
-                        <ChevronDown className="h-3 w-3 opacity-50" />
+                        <ChevronDownIcon size={12} className="opacity-50" />
                     </button>
                 </div>
             </div>

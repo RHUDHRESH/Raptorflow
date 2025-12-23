@@ -4,27 +4,35 @@ import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useIcpStore } from '@/lib/icp-store';
 import styles from './settings.module.css';
+import {
+    UserIcon,
+    WorkspaceIcon,
+    TargetIcon,
+    AppearanceIcon,
+    BellIcon,
+    SunIcon,
+    MoonIcon,
+    SystemIcon,
+    TrashIcon
+} from '@/components/ui/icons';
+import { Switch } from '@/components/ui/switch';
 
 type SettingsSection =
     | 'profile'
     | 'workspace'
-    | 'team'
+    | 'targeting'
     | 'appearance'
-    | 'notifications'
-    | 'integrations'
-    | 'developers'
-    | 'billing';
+    | 'notifications';
 
 const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] = [
     { id: 'profile', label: 'Profile', icon: <UserIcon /> },
     { id: 'workspace', label: 'Workspace', icon: <WorkspaceIcon /> },
-    { id: 'team', label: 'Team', icon: <TeamIcon /> },
+    { id: 'targeting', label: 'Targeting', icon: <TargetIcon /> },
     { id: 'appearance', label: 'Appearance', icon: <AppearanceIcon /> },
     { id: 'notifications', label: 'Notifications', icon: <BellIcon /> },
-    { id: 'integrations', label: 'Integrations', icon: <IntegrationsIcon /> },
-    { id: 'developers', label: 'API & Developers', icon: <CodeIcon /> },
-    { id: 'billing', label: 'Billing', icon: <BillingIcon /> },
 ];
 
 export default function SettingsPage() {
@@ -43,18 +51,12 @@ export default function SettingsPage() {
                 return <ProfileSection />;
             case 'workspace':
                 return <WorkspaceSection />;
-            case 'team':
-                return <TeamSection />;
+            case 'targeting':
+                return <TargetingSection />;
             case 'appearance':
                 return <AppearanceSection theme={theme} setTheme={setTheme} />;
             case 'notifications':
                 return <NotificationsSection notifications={notifications} setNotifications={setNotifications} />;
-            case 'integrations':
-                return <IntegrationsSection />;
-            case 'developers':
-                return <DevelopersSection />;
-            case 'billing':
-                return <BillingSection />;
             default:
                 return null;
         }
@@ -93,6 +95,101 @@ export default function SettingsPage() {
 // ============================================
 // Section Components
 // ============================================
+
+function TargetingSection() {
+    const router = useRouter();
+    const icps = useIcpStore((state: any) => state.icps);
+    const activeIcpId = useIcpStore((state: any) => state.activeIcpId);
+    const setActiveIcp = useIcpStore((state: any) => state.setActiveIcp);
+    const deleteIcp = useIcpStore((state: any) => state.deleteIcp);
+
+    const handleDelete = (id: string, name: string) => {
+        if (confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+            deleteIcp(id);
+        }
+    };
+
+    return (
+        <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Targeting (ICP)</h2>
+                <p className={styles.sectionDescription}>Manage your Ideal Customer Profiles.</p>
+            </div>
+
+            <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                    <h3 className={styles.cardTitle}>Active Profiles</h3>
+                    <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => router.push('/icp/new')}
+                    >
+                        Create New ICP
+                    </Button>
+                </div>
+
+                <div className={styles.teamList}>
+                    {icps.length === 0 && (
+                        <div className={styles.emptyState}>
+                            <span>No ICPs defined yet.</span>
+                        </div>
+                    )}
+
+                    {icps.map((icp: any) => (
+                        <div key={icp.id} className={styles.teamRow}>
+                            <div className={`${styles.avatarSmall} bg-slate-100 text-slate-600`}>
+                                {icp.name.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div className={styles.teamInfo}>
+                                <span className={styles.teamName}>{icp.name}</span>
+                                <span className={styles.teamEmail}>Confidence: {(icp.confidenceScore * 100).toFixed(0)}%</span>
+                            </div>
+                            {activeIcpId === icp.id ? (
+                                <span className={`${styles.roleBadge} bg-green-100 text-green-700`}>Active</span>
+                            ) : (
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setActiveIcp(icp.id)}
+                                        className="text-xs text-slate-500 hover:text-slate-900 underline"
+                                    >
+                                        Set Active
+                                    </button>
+                                </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => router.push('/target')}
+                                >
+                                    View
+                                </Button>
+                                {activeIcpId !== icp.id && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleDelete(icp.id, icp.name)}
+                                        className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                    >
+                                        <TrashIcon />
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className={styles.card}>
+                <h3 className={styles.cardTitle}>About Targeting</h3>
+                <p className="text-sm text-slate-500 mb-4">
+                    Your Active ICP determines how Muse writes content and how campaigns are structured.
+                    Always keep your primary target up to date.
+                </p>
+            </div>
+        </div>
+    );
+}
 
 function ProfileSection() {
     return (
@@ -251,47 +348,6 @@ function WorkspaceSection() {
     );
 }
 
-function TeamSection() {
-    const teamMembers = [
-        { name: 'John Founder', email: 'john@acme.com', role: 'Owner', avatar: 'JF' },
-        { name: 'Sarah Marketing', email: 'sarah@acme.com', role: 'Admin', avatar: 'SM' },
-        { name: 'Mike Developer', email: 'mike@acme.com', role: 'Member', avatar: 'MD' },
-    ];
-
-    return (
-        <div className={styles.section}>
-            <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>Team</h2>
-                <Button variant="default" size="sm">Invite Member</Button>
-            </div>
-
-            <div className={styles.card}>
-                <div className={styles.teamList}>
-                    {teamMembers.map((member, i) => (
-                        <div key={i} className={styles.teamRow}>
-                            <div className={styles.avatarSmall}>{member.avatar}</div>
-                            <div className={styles.teamInfo}>
-                                <span className={styles.teamName}>{member.name}</span>
-                                <span className={styles.teamEmail}>{member.email}</span>
-                            </div>
-                            <span className={styles.roleBadge}>{member.role}</span>
-                            <button className={styles.moreBtn}>•••</button>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Pending Invites */}
-            <div className={styles.card}>
-                <h3 className={styles.cardTitle}>Pending Invitations</h3>
-                <div className={styles.emptyState}>
-                    <span>No pending invitations</span>
-                </div>
-            </div>
-        </div>
-    );
-}
-
 function AppearanceSection({
     theme,
     setTheme
@@ -335,14 +391,14 @@ function AppearanceSection({
                         <span className={styles.optionLabel}>Compact Mode</span>
                         <span className={styles.optionMeta}>Reduce spacing for denser UI</span>
                     </div>
-                    <Toggle checked={false} onChange={() => { }} />
+                    <Switch checked={false} onCheckedChange={() => { }} />
                 </div>
                 <div className={styles.optionRow}>
                     <div>
                         <span className={styles.optionLabel}>Reduced Motion</span>
                         <span className={styles.optionMeta}>Minimize animations</span>
                     </div>
-                    <Toggle checked={false} onChange={() => { }} />
+                    <Switch checked={false} onCheckedChange={() => { }} />
                 </div>
             </div>
         </div>
@@ -384,327 +440,30 @@ function NotificationsSection({
                         <span className={styles.optionLabel}>Move Reminders</span>
                         <span className={styles.optionMeta}>Reminders for upcoming moves</span>
                     </div>
-                    <Toggle checked={notifications.moveReminders} onChange={() => toggle('moveReminders')} />
+                    <Switch checked={notifications.moveReminders} onCheckedChange={() => toggle('moveReminders')} />
                 </div>
                 <div className={styles.optionRow}>
                     <div>
                         <span className={styles.optionLabel}>Weekly Digest</span>
                         <span className={styles.optionMeta}>Weekly progress summary</span>
                     </div>
-                    <Toggle checked={notifications.weeklyDigest} onChange={() => toggle('weeklyDigest')} />
+                    <Switch checked={notifications.weeklyDigest} onCheckedChange={() => toggle('weeklyDigest')} />
                 </div>
                 <div className={styles.optionRow}>
                     <div>
                         <span className={styles.optionLabel}>Campaign Alerts</span>
                         <span className={styles.optionMeta}>Alerts for campaigns needing attention</span>
                     </div>
-                    <Toggle checked={notifications.campaignAlerts} onChange={() => toggle('campaignAlerts')} />
+                    <Switch checked={notifications.campaignAlerts} onCheckedChange={() => toggle('campaignAlerts')} />
                 </div>
                 <div className={styles.optionRow}>
                     <div>
                         <span className={styles.optionLabel}>Product Updates</span>
                         <span className={styles.optionMeta}>New features and improvements</span>
                     </div>
-                    <Toggle checked={notifications.productUpdates} onChange={() => toggle('productUpdates')} />
+                    <Switch checked={notifications.productUpdates} onCheckedChange={() => toggle('productUpdates')} />
                 </div>
             </div>
         </div>
-    );
-}
-
-function IntegrationsSection() {
-    const integrations = [
-        { name: 'LinkedIn', desc: 'Publish directly', connected: true, icon: 'Li' },
-        { name: 'Twitter/X', desc: 'Schedule posts', connected: false, icon: 'X' },
-        { name: 'Slack', desc: 'Get notifications', connected: true, icon: 'Sl' },
-        { name: 'HubSpot', desc: 'Sync contacts', connected: false, icon: 'Hs' },
-        { name: 'Google Analytics', desc: 'Track performance', connected: false, icon: 'GA' },
-        { name: 'Zapier', desc: 'Connect 5000+ apps', connected: false, icon: 'Z' },
-    ];
-
-    return (
-        <div className={styles.section}>
-            <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>Integrations</h2>
-                <p className={styles.sectionDescription}>Connect your tools.</p>
-            </div>
-
-            <div className={styles.integrationsGrid}>
-                {integrations.map((int, i) => (
-                    <div key={i} className={styles.integrationCard}>
-                        <div className={styles.integrationIcon}>{int.icon}</div>
-                        <div className={styles.integrationInfo}>
-                            <span className={styles.integrationName}>{int.name}</span>
-                            <span className={styles.integrationDesc}>{int.desc}</span>
-                        </div>
-                        {int.connected ? (
-                            <span className={styles.connectedBadge}>Connected</span>
-                        ) : (
-                            <Button variant="secondary" size="sm">Connect</Button>
-                        )}
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-}
-
-function DevelopersSection() {
-    const [showKey, setShowKey] = useState(false);
-    const apiKey = 'rf_live_sk_1a2b3c4d5e6f7g8h9i0j';
-
-    return (
-        <div className={styles.section}>
-            <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>API & Developers</h2>
-                <p className={styles.sectionDescription}>Access RaptorFlow programmatically.</p>
-            </div>
-
-            {/* API Keys */}
-            <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                    <h3 className={styles.cardTitle}>API Keys</h3>
-                    <Button variant="default" size="sm">Create Key</Button>
-                </div>
-                <div className={styles.apiKeyRow}>
-                    <div className={styles.apiKeyInfo}>
-                        <span className={styles.apiKeyName}>Production Key</span>
-                        <code className={styles.apiKeyValue}>
-                            {showKey ? apiKey : '••••••••••••••••••••'}
-                        </code>
-                    </div>
-                    <button className={styles.showBtn} onClick={() => setShowKey(!showKey)}>
-                        {showKey ? 'Hide' : 'Show'}
-                    </button>
-                    <button className={styles.copyBtn}>Copy</button>
-                </div>
-            </div>
-
-            {/* Webhooks */}
-            <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                    <h3 className={styles.cardTitle}>Webhooks</h3>
-                    <Button variant="secondary" size="sm">Add Endpoint</Button>
-                </div>
-                <div className={styles.emptyState}>
-                    <span>No webhooks configured</span>
-                </div>
-            </div>
-
-            {/* Usage */}
-            <div className={styles.card}>
-                <h3 className={styles.cardTitle}>API Usage</h3>
-                <div className={styles.usageBar}>
-                    <div className={styles.usageFill} style={{ width: '35%' }} />
-                </div>
-                <div className={styles.usageInfo}>
-                    <span>3,500 / 10,000 requests this month</span>
-                    <span className={styles.usageReset}>Resets in 8 days</span>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function BillingSection() {
-    return (
-        <div className={styles.section}>
-            <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>Billing</h2>
-                <p className={styles.sectionDescription}>Manage your subscription.</p>
-            </div>
-
-            {/* Current Plan */}
-            <div className={styles.planCard}>
-                <div className={styles.planHeader}>
-                    <div>
-                        <span className={styles.planName}>Pro Plan</span>
-                        <span className={styles.planPrice}>$49<span>/mo</span></span>
-                    </div>
-                    <span className={styles.badgePro}>Current</span>
-                </div>
-                <div className={styles.planFeatures}>
-                    <span>✓ Unlimited moves & campaigns</span>
-                    <span>✓ AI-powered content generation</span>
-                    <span>✓ Team collaboration (up to 5)</span>
-                    <span>✓ Priority support</span>
-                </div>
-                <div className={styles.cardActions}>
-                    <Button variant="secondary" size="sm">Change Plan</Button>
-                    <Button variant="ghost" size="sm">Cancel</Button>
-                </div>
-            </div>
-
-            {/* Usage */}
-            <div className={styles.card}>
-                <h3 className={styles.cardTitle}>Usage This Period</h3>
-                <div className={styles.usageGrid}>
-                    <div className={styles.usageItem}>
-                        <span className={styles.usageValue}>47</span>
-                        <span className={styles.usageLabel}>Moves Created</span>
-                    </div>
-                    <div className={styles.usageItem}>
-                        <span className={styles.usageValue}>12</span>
-                        <span className={styles.usageLabel}>Campaigns</span>
-                    </div>
-                    <div className={styles.usageItem}>
-                        <span className={styles.usageValue}>3.5K</span>
-                        <span className={styles.usageLabel}>API Calls</span>
-                    </div>
-                    <div className={styles.usageItem}>
-                        <span className={styles.usageValue}>3</span>
-                        <span className={styles.usageLabel}>Team Members</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Payment */}
-            <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                    <h3 className={styles.cardTitle}>Payment Method</h3>
-                    <Button variant="ghost" size="sm">Edit</Button>
-                </div>
-                <div className={styles.paymentRow}>
-                    <span className={styles.cardBrand}>💳 Visa</span>
-                    <span>•••• 4242</span>
-                    <span className={styles.cardExpiry}>Exp 12/26</span>
-                </div>
-            </div>
-
-            {/* Invoices */}
-            <div className={styles.card}>
-                <h3 className={styles.cardTitle}>Recent Invoices</h3>
-                <div className={styles.invoiceList}>
-                    {['Dec 2024', 'Nov 2024', 'Oct 2024'].map((month, i) => (
-                        <div key={i} className={styles.invoiceRow}>
-                            <span>{month}</span>
-                            <span className={styles.invoiceAmount}>$49.00</span>
-                            <button className={styles.downloadBtn}>Download</button>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ============================================
-// Reusable Toggle Component
-// ============================================
-
-function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
-    return (
-        <button
-            className={`${styles.toggle} ${checked ? styles.on : ''}`}
-            onClick={onChange}
-            role="switch"
-            aria-checked={checked}
-        >
-            <span className={styles.toggleDot} />
-        </button>
-    );
-}
-
-// ============================================
-// Icons
-// ============================================
-
-function UserIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="8" cy="4" r="2.5" />
-            <path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5" />
-        </svg>
-    );
-}
-
-function WorkspaceIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="2" y="2" width="12" height="12" rx="2" />
-            <path d="M5 5H11M5 8H11M5 11H8" />
-        </svg>
-    );
-}
-
-function TeamIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="6" cy="5" r="2" />
-            <circle cx="11" cy="5" r="2" />
-            <path d="M2 13c0-2 1.5-3.5 4-3.5s4 1.5 4 3.5M10 13c0-2 1-3 3-3s3 1 3 3" />
-        </svg>
-    );
-}
-
-function AppearanceIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="8" cy="8" r="6" />
-            <path d="M8 2v12" />
-            <path d="M8 2c-3.31 0-6 2.69-6 6s2.69 6 6 6" fill="currentColor" opacity="0.3" />
-        </svg>
-    );
-}
-
-function BellIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M6 12.5c0 1.1.9 2 2 2s2-.9 2-2M12 9V6c0-2.21-1.79-4-4-4S4 3.79 4 6v3l-1 2h10l-1-2z" />
-        </svg>
-    );
-}
-
-function IntegrationsIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="2" y="2" width="4" height="4" rx="1" />
-            <rect x="10" y="2" width="4" height="4" rx="1" />
-            <rect x="2" y="10" width="4" height="4" rx="1" />
-            <rect x="10" y="10" width="4" height="4" rx="1" />
-        </svg>
-    );
-}
-
-function CodeIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M5 4L1 8l4 4M11 4l4 4-4 4M9 2L7 14" />
-        </svg>
-    );
-}
-
-function BillingIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="2" y="3" width="12" height="10" rx="2" />
-            <path d="M2 7h12" />
-        </svg>
-    );
-}
-
-function SunIcon() {
-    return (
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="9" cy="9" r="3" />
-            <path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.22 4.22l1.42 1.42M12.36 12.36l1.42 1.42M4.22 13.78l1.42-1.42M12.36 5.64l1.42-1.42" />
-        </svg>
-    );
-}
-
-function MoonIcon() {
-    return (
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M15.54 9.07A6.99 6.99 0 018.93 2.46 7 7 0 1015.54 9.07z" />
-        </svg>
-    );
-}
-
-function SystemIcon() {
-    return (
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="3" width="12" height="9" rx="1" />
-            <path d="M6 15h6M9 12v3" />
-        </svg>
     );
 }

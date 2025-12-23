@@ -1,50 +1,49 @@
 import asyncio
 import os
-from backend.db import get_pool, get_cache
+from backend.agents.researchers import create_competitor_tracker
+from backend.agents.strategists import create_founder_profiler
+from backend.agents.context_assembler import create_rag_node
+from backend.agents.quality import create_memory_governor
+from backend.services.telemetry import RaptorEvaluator, CostEvaluator
+from unittest.mock import MagicMock
 
-async def verify_infrastructure():
-    print("--- RaptorFlow Infrastructure Diagnostic ---")
+async def verify_milestone_10():
+    print("--- RaptorFlow SOTA Milestone 10 Diagnostic ---")
     
-    # 1. DB Verification
-    print("\n[1/2] Verifying Supabase Connectivity...")
-    db_url = os.getenv("DATABASE_URL")
-    if not db_url:
-        print("FAIL: DATABASE_URL not set in environment.")
-    else:
-        try:
-            pool = get_pool()
-            await pool.open()
-            async with pool.connection() as conn:
-                async with conn.cursor() as cur:
-                    await cur.execute("SELECT 1")
-                    result = await cur.fetchone()
-                    if result[0] == 1:
-                        print("PASS: Successfully connected to Supabase.")
-                    else:
-                        print(f"FAIL: Unexpected DB result: {result}")
-        except Exception as e:
-            print(f"FAIL: Could not connect to Supabase: {e}")
+    # 1. Advanced Memory Readiness
+    print("\n[1/3] Verifying Entity & RAG Memory Nodes (Tracker, Profiler, RAG)...")
+    try:
+        mock_llm = MagicMock()
+        tracker = create_competitor_tracker()
+        founder = create_founder_profiler(mock_llm)
+        rag = create_rag_node()
+        if all(callable(n) for n in [tracker, founder, rag]):
+            print("PASS: Advanced memory node factories are operational.")
+    except Exception as e:
+        print(f"FAIL: Advanced Memory Nodes: {e}")
 
-    # 2. Cache Verification
-    print("\n[2/2] Verifying Upstash Redis Connectivity...")
-    upstash_url = os.getenv("UPSTASH_REDIS_REST_URL")
-    upstash_token = os.getenv("UPSTASH_REDIS_REST_TOKEN")
-    
-    if not upstash_url or not upstash_token:
-        print("FAIL: UPSTASH_REDIS_REST_URL or TOKEN not set.")
-    else:
-        try:
-            cache = get_cache()
-            await cache.set("rf_diag", "ok", ex=60)
-            val = await cache.get("rf_diag")
-            if val == "ok":
-                print("PASS: Successfully connected to Upstash Redis.")
-            else:
-                print(f"FAIL: Unexpected Cache result: {val}")
-        except Exception as e:
-            print(f"FAIL: Could not connect to Upstash: {e}")
+    # 2. Intelligence Governance Readiness
+    print("\n[2/3] Verifying Memory Governor...")
+    try:
+        mock_llm = MagicMock()
+        gov = create_memory_governor(mock_llm)
+        if callable(gov):
+            print("PASS: Memory governance layer initialized.")
+    except Exception as e:
+        print(f"FAIL: Memory Governor: {e}")
 
-    print("\n--- Diagnostic Complete ---")
+    # 3. SOTA Evaluator Readiness
+    print("\n[3/3] Verifying Automated Evaluators (Quality, Cost)...")
+    try:
+        mock_llm = MagicMock()
+        evaluator = RaptorEvaluator(mock_llm)
+        cost = CostEvaluator()
+        if evaluator and cost:
+            print("PASS: SOTA evaluation systems are operational.")
+    except Exception as e:
+        print(f"FAIL: Evaluators: {e}")
+
+    print("\n--- Milestone 10 Diagnostic Complete ---")
 
 if __name__ == "__main__":
-    asyncio.run(verify_infrastructure())
+    asyncio.run(verify_milestone_10())

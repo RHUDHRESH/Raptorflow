@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronUp, Mic, MessageSquare, Target, Sparkles } from 'lucide-react';
+import { ChevronDownIcon, MicIcon, MessageIcon, TargetIcon, SparklesIcon } from '@/components/ui/icons';
 
 interface BrandVoice {
     tone: string;
@@ -61,7 +61,7 @@ export function BrandVoicePanel({
             >
                 <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-lg bg-foreground/5 flex items-center justify-center">
-                        <Mic className="h-4 w-4 text-foreground/60" />
+                        <MicIcon size={16} className="text-foreground/60" />
                     </div>
                     <div className="text-left">
                         <p className="text-sm font-medium">Brand Voice</p>
@@ -71,9 +71,9 @@ export function BrandVoicePanel({
                     </div>
                 </div>
                 {isCollapsed ? (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    <ChevronDownIcon size={16} className="text-muted-foreground" />
                 ) : (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    <ChevronDownIcon size={16} className="text-muted-foreground rotate-180" />
                 )}
             </button>
 
@@ -86,7 +86,7 @@ export function BrandVoicePanel({
                     {/* Style */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                            <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                            <MessageIcon size={14} className="text-muted-foreground" />
                             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                 Style
                             </span>
@@ -97,7 +97,7 @@ export function BrandVoicePanel({
                     {/* Personality */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                            <Target className="h-3.5 w-3.5 text-muted-foreground" />
+                            <TargetIcon size={14} className="text-muted-foreground" />
                             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                 Personality
                             </span>
@@ -117,7 +117,7 @@ export function BrandVoicePanel({
                     {/* Key Phrases */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                            <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
+                            <SparklesIcon size={14} className="text-muted-foreground" />
                             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                 Key Phrases
                             </span>
@@ -189,7 +189,7 @@ export function BrandVoiceBadge({
                 className
             )}
         >
-            <Mic className="h-3 w-3 text-muted-foreground" />
+            <MicIcon size={12} className="text-muted-foreground" />
             <span className="text-muted-foreground">{tone}</span>
         </button>
     );

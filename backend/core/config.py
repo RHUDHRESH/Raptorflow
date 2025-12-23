@@ -45,8 +45,15 @@ class Config(BaseSettings):
 
     def validate_infra(self):
         """Custom validation for infrastructure requirements."""
+        print(f"DEBUG: UPSTASH_REDIS_REST_URL={self.UPSTASH_REDIS_REST_URL}")
+        print(f"DEBUG: UPSTASH_REDIS_REST_TOKEN={self.UPSTASH_REDIS_REST_TOKEN}")
         if self.LLM_PROVIDER == "openai" and not self.OPENAI_API_KEY:
             raise ValueError("OPENAI_API_KEY must be set if provider is openai")
+        
+        # Production requirements: Always require Upstash Redis for state persistence
+        if not self.UPSTASH_REDIS_REST_URL or not self.UPSTASH_REDIS_REST_TOKEN:
+            raise ValueError("Production requires Upstash Redis (UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)")
+            
         return True
 
 

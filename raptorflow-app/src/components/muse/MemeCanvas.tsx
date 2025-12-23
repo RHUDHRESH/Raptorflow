@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Stage, Layer, Text, Rect, Transformer } from 'react-konva';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CanvasElement {
     id: string;
@@ -22,8 +22,8 @@ interface MemeCanvasProps {
 }
 
 const Element = ({ shapeProps, isSelected, onSelect, onChange }: any) => {
-    const shapeRef = useRef<any>();
-    const trRef = useRef<any>();
+    const shapeRef = useRef<any>(null);
+    const trRef = useRef<any>(null);
 
     useEffect(() => {
         if (isSelected) {
@@ -81,7 +81,7 @@ const Element = ({ shapeProps, isSelected, onSelect, onChange }: any) => {
 export function MemeCanvas({ initialElements, onSave }: MemeCanvasProps) {
     const [elements, setElements] = useState<CanvasElement[]>(initialElements);
     const [selectedId, selectShape] = useState<string | null>(null);
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const size = isMobile ? 350 : 600;
 
     const checkDeselect = (e: any) => {
@@ -119,9 +119,9 @@ export function MemeCanvas({ initialElements, onSave }: MemeCanvasProps) {
                     </Layer>
                 </Stage>
             </div>
-            
+
             <div className="flex gap-4">
-                <button 
+                <button
                     onClick={() => onSave(elements)}
                     className="px-8 py-3 bg-[#E9ECE6] text-[#0E1112] rounded-xl font-medium hover:bg-white transition-all"
                 >
