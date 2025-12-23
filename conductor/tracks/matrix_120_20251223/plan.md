@@ -109,7 +109,7 @@
 - [x] Phase 091: Frontend - Scaffold `MatrixDashboard` with RaptorFlow tokens. 93d4302
 - [x] Phase 092: Frontend - Implement `SystemStatusHeader` (RAG status indicator). 925a893
 - [x] Phase 093: Frontend - Implement `AgentPoolList` (Real-time active threads). e7e5633
-- [ ] Phase 094: Frontend - Implement `GlobalKillSwitchButton` with safety double-tap.
+- [x] Phase 094: Frontend - Implement `GlobalKillSwitchButton` with safety double-tap. 7184f0e
 - [ ] Phase 095: Frontend - Build `DriftChart` using Shadcn/Charts.
 - [ ] Phase 096: Frontend - Build `FinancialBurnChart` (Daily/Monthly view).
 - [ ] Phase 097: Frontend - Implement `InferenceLogExplorer` (JetBrains Mono style).
