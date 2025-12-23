@@ -61,15 +61,15 @@
 - [x] Phase 50: Task: Conductor - User Manual Verification 'Foundation/Cohorts' (Protocol in workflow.md) [checkpoint: e7e5633]
 
 ## Phase 6: Campaigns & Moves Strategic Layer (Phases 51-60)
-- [ ] Phase 51: Build the 90-Day Campaign Arc Planner Node.
-- [ ] Phase 52: Implement Goal Alignment and Metric decomposition.
-- [ ] Phase 53: Develop the Weekly "Moves" Generation Node.
-- [ ] Phase 54: Build the "Action Packet" formatter (Task, Context, Tool).
-- [ ] Phase 55: Implement Strategic Constraint checking (Budget, Time, Resources).
-- [ ] Phase 56: Develop Multi-Channel allocation logic.
-- [ ] Phase 57: Build Automated Campaign Brief generator.
-- [ ] Phase 58: Implement Milestone tracking agents.
-- [ ] Phase 59: Develop "Pivot" logic based on performance feedback.
+- [x] Phase 51: Build the 90-Day Campaign Arc Planner Node. [defa300]
+- [x] Phase 52: Implement Goal Alignment and Metric decomposition. [defa300]
+- [x] Phase 53: Develop the Weekly "Moves" Generation Node. [defa300]
+- [x] Phase 54: Build the "Action Packet" formatter (Task, Context, Tool). [defa300]
+- [x] Phase 55: Implement Strategic Constraint checking (Budget, Time, Resources). [defa300]
+- [x] Phase 56: Develop Multi-Channel allocation logic. [defa300]
+- [x] Phase 57: Build Automated Campaign Brief generator. [defa300]
+- [x] Phase 58: Implement Milestone tracking agents. [defa300]
+- [x] Phase 59: Develop "Pivot" logic based on performance feedback. [defa300]
 - [ ] Phase 60: Task: Conductor - User Manual Verification 'Campaigns/Moves' (Protocol in workflow.md)
 
 ## Phase 7: Muse - The Asset Factory (Phases 61-70)
