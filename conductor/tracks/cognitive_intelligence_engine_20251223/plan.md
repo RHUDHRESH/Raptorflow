@@ -22,7 +22,7 @@
 - [x] Phase 17: Build Data Validation Layer for incoming research artifacts. [b1638cf]
 - [x] Phase 18: Implement Rate Limiting and Cost Governing for Memory retrieval. [b1638cf]
 - [x] Phase 19: Optimize Memory Indexing for low-latency agent access. [b1638cf]
-- [~] Phase 20: Task: Conductor - User Manual Verification 'Data & Memory' (Protocol in workflow.md)
+- [x] Phase 20: Task: Conductor - User Manual Verification 'Data & Memory' (Protocol in workflow.md) [checkpoint: 1708ee3]
 
 ## Phase 3: Core LangGraph "Cognitive Spine" Framework (Phases 21-30)
 - [ ] Phase 21: Define Global State Schema for the LangGraph workflow.
