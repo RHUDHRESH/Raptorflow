@@ -1,4 +1,7 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from typing import Any, Dict, List
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+
 
 from backend.models.campaigns import GanttChart
 from backend.services.campaign_service import CampaignService, get_campaign_service
@@ -46,7 +49,18 @@ async def get_campaign_arc_status(
     """SOTA Endpoint: Retrieves status of the agentic inference for a campaign."""
     result = await service.get_arc_generation_status(campaign_id)
     if not result:
-        raise HTTPException(
-            status_code=404, detail="Status not found for this campaign."
-        )
+        raise HTTPException(status_code=404, detail="Status not found for this campaign.")
+    return result
+
+
+@router.post("/{campaign_id}/pivot")
+async def apply_campaign_pivot(
+    campaign_id: str,
+    pivot_data: Dict[str, Any],
+    service: CampaignService = Depends(get_campaign_service),
+):
+    """SOTA Endpoint: Applies a strategic pivot to a campaign's 90-day arc."""
+    result = await service.apply_pivot(campaign_id, pivot_data)
+    if not result:
+        raise HTTPException(status_code=404, detail="Campaign not found.")
     return result

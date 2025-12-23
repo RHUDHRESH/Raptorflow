@@ -50,3 +50,11 @@ async def trigger_learning_cycle(
     """Triggers the multi-agentic learning cycle for a specific move."""
     result = await service.trigger_learning_cycle(str(move_id))
     return result
+
+
+@router.get("/move/{move_id}", response_model=List[Dict[str, Any]])
+def get_learnings_by_move(
+    move_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+):
+    """Retrieves all strategic learnings associated with a specific move."""
+    return service.get_learnings_by_move(move_id)

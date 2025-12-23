@@ -21,7 +21,7 @@ Goal: Hook up the `TelemetryFeed` and `AgentAuditLog` to live backend execution 
 ## Phase 3: Surgical Learning Surface
 Goal: Map strategic learnings from the backend to the experiment detail view.
 
-- [ ] Task: Create API Endpoint for `BlackboxLearning` (Structured results)
+- [~] Task: Create API Endpoint for `BlackboxLearning` (Structured results)
 - [ ] Task: Write Tests for Learning Detail Surface (Frontend)
 - [ ] Task: Implement Learning Integration in `ExperimentDetail.tsx` (Confidence scores & Tactical notes)
 - [ ] Task: Conductor - User Manual Verification 'Surgical Learning Surface' (Protocol in workflow.md)

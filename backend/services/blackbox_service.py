@@ -616,3 +616,16 @@ class BlackboxService:
             .execute()
         )
         return result.data
+
+    def get_learnings_by_move(self, move_id: UUID) -> List[Dict]:
+        """Retrieves all strategic learnings associated with a specific move."""
+        session = self.vault.get_session()
+        # Learnings table uses source_ids (list of move/trace IDs)
+        # We use contains to find if move_id is in source_ids
+        result = (
+            session.table("blackbox_learnings_industrial")
+            .select("*")
+            .contains("source_ids", [str(move_id)])
+            .execute()
+        )
+        return result.data

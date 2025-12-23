@@ -101,7 +101,9 @@ def test_get_telemetry_by_move_endpoint():
         {"id": str(uuid4()), "agent_id": "test"}
     ]
     # Note: Using blackbox_telemetry provider here
-    from backend.api.v1.blackbox_telemetry import get_blackbox_service as get_tele_service
+    from backend.api.v1.blackbox_telemetry import (
+        get_blackbox_service as get_tele_service,
+    )
 
     app.dependency_overrides[get_tele_service] = lambda: mock_service
 
@@ -110,5 +112,25 @@ def test_get_telemetry_by_move_endpoint():
     assert response.status_code == 200
     assert len(response.json()) == 1
     mock_service.get_telemetry_by_move.assert_called_with(str(move_id))
+
+    app.dependency_overrides.clear()
+
+
+def test_get_learnings_by_move_endpoint():
+    mock_service = MagicMock()
+    mock_service.get_learnings_by_move.return_value = [
+        {"id": str(uuid4()), "content": "test learning"}
+    ]
+    from backend.api.v1.blackbox_learning import (
+        get_blackbox_service as get_learn_service,
+    )
+
+    app.dependency_overrides[get_learn_service] = lambda: mock_service
+
+    move_id = uuid4()
+    response = client.get(f"/v1/blackbox/learning/move/{move_id}")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+    mock_service.get_learnings_by_move.assert_called_with(move_id)
 
     app.dependency_overrides.clear()

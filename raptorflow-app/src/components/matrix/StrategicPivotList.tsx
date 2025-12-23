@@ -4,9 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { StrategicPivotCard } from '../campaigns/StrategicPivotCard';
 import { Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { applyCampaignPivot } from '@/lib/campaigns';
 
 interface StrategicPivot {
   id: string;
+  campaignId: string;
   title: string;
   description: string;
   rationale: string;
@@ -27,6 +29,7 @@ export function StrategicPivotList() {
     const mockPivots: StrategicPivot[] = [
       {
         id: 'p1',
+        campaignId: 'c1', // Assuming there's a campaign with this ID
         title: 'LinkedIn Outreach Pivot',
         description: 'Focus on Founders in B2B SaaS Niche rather than generic SMBs.',
         rationale: 'Recent agent research shows 40% higher engagement in the SaaS segment for your current offer.',
@@ -34,13 +37,14 @@ export function StrategicPivotList() {
       },
       {
         id: 'p2',
+        campaignId: 'c2',
         title: 'Urgent: Competitor Response',
         description: 'Update pricing strategy to include a "Free Migration" tier.',
         rationale: 'Competitor X just lowered their barrier to entry. This shift neutralizes their recent move.',
         severity: 'high'
       }
     ];
-
+    
     setIsLoading(true);
     setTimeout(() => {
       setPivots(mockPivots);
@@ -48,14 +52,19 @@ export function StrategicPivotList() {
     }, 1000);
   }, []);
 
-  const handleApply = (id: string) => {
-    toast.success('Strategy shift applied', {
-      description: 'Updating 90-day arc and weekly moves...'
+  const handleApply = async (id: string) => {
+    const pivot = pivots.find(p => p.id === id);
+    if (!pivot) return;
+
+    toast.promise(applyCampaignPivot(pivot.campaignId, pivot), {
+      loading: 'Applying strategy shift...',
+      success: 'Strategy shift applied successfully',
+      error: 'Failed to apply shift'
     });
-    // Task 22 implementation will go here
+
+    // Task 22 implementation completed
     setPivots(prev => prev.filter(p => p.id !== id));
   };
-
   const handleIgnore = (id: string) => {
     toast('Recommendation archived');
     setPivots(prev => prev.filter(p => p.id !== id));
