@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.api.v1.blackbox_learning import router as blackbox_learning_router
@@ -17,6 +18,22 @@ from backend.core.middleware import (
 )
 
 app = FastAPI(title="RaptorFlow Agentic Spine")
+
+# CORS Configuration
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://raptorflow.vercel.app",
+    "https://raptorflow-hp.vercel.app", # Potential staging
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Middleware registration
 app.add_middleware(RateLimitMiddleware, limit=60, window=60)  # 1 request per second avg
