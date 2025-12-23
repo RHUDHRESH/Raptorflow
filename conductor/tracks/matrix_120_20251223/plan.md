@@ -107,7 +107,7 @@
 
 #### Block H: Frontend Boardroom UI (UX) (Phases 91-100)
 - [x] Phase 091: Frontend - Scaffold `MatrixDashboard` with RaptorFlow tokens. 93d4302
-- [ ] Phase 092: Frontend - Implement `SystemStatusHeader` (RAG status indicator).
+- [x] Phase 092: Frontend - Implement `SystemStatusHeader` (RAG status indicator). 925a893
 - [ ] Phase 093: Frontend - Implement `AgentPoolList` (Real-time active threads).
 - [ ] Phase 094: Frontend - Implement `GlobalKillSwitchButton` with safety double-tap.
 - [ ] Phase 095: Frontend - Build `DriftChart` using Shadcn/Charts.
