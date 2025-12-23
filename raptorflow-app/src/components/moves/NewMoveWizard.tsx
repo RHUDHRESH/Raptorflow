@@ -125,7 +125,7 @@ export function NewMoveWizard({ open, onOpenChange, onComplete }: NewMoveWizardP
         }
     };
 
-    const handleCreateAll = () => {
+    const handleCreateAll = async () => {
         // Validation
         const incomplete = pendingMoves.filter(m => !m.channel);
         if (incomplete.length > 0) {
@@ -134,55 +134,60 @@ export function NewMoveWizard({ open, onOpenChange, onComplete }: NewMoveWizardP
         }
 
         const createdMoves: Move[] = [];
-        const isGlobalActive = !!getActiveMove();
+        const isGlobalActive = !!(await getActiveMove());
         let queuedCount = 0;
 
-        pendingMoves.forEach((pm, index) => {
-            const moveId = generateMoveId();
-            const now = new Date().toISOString();
-            const campaign = campaigns.find(c => c.id === pm.campaignId);
+        try {
+            for (const [index, pm] of pendingMoves.entries()) {
+                const moveId = generateMoveId();
+                const now = new Date().toISOString();
+                const campaign = campaigns.find(c => c.id === pm.campaignId);
 
-            // First move starts now if nothing active, others queued
-            const shouldStart = !isGlobalActive && index === 0;
+                // First move starts now if nothing active, others queued
+                const shouldStart = !isGlobalActive && index === 0;
 
-            const newMove: Move = {
-                id: moveId,
-                name: `${GOAL_LABELS[pm.goal].label} Sprint`,
-                goal: pm.goal,
-                channel: pm.channel!,
-                duration: pm.duration,
-                dailyEffort: pm.dailyEffort,
-                status: shouldStart ? 'active' : 'queued',
-                campaignId: campaign?.id,
-                campaignName: campaign?.name,
-                createdAt: now,
-                startedAt: shouldStart ? now : undefined,
-                dueDate: shouldStart ? new Date(Date.now() + pm.duration * 24 * 60 * 60 * 1000).toISOString() : undefined,
-                checklist: generateDefaultChecklist(pm.goal, pm.channel!, pm.duration),
-                assetIds: [],
-            };
-
-            if (pm.overrideReason && campaign) {
-                newMove.override = {
-                    reason: pm.overrideReason,
-                    originalCampaignObjective: campaign.objective,
-                    loggedAt: now
+                const newMove: Move = {
+                    id: moveId,
+                    name: `${GOAL_LABELS[pm.goal].label} Sprint`,
+                    goal: pm.goal,
+                    channel: pm.channel!,
+                    duration: pm.duration,
+                    dailyEffort: pm.dailyEffort,
+                    status: shouldStart ? 'active' : 'queued',
+                    campaignId: campaign?.id,
+                    campaignName: campaign?.name,
+                    createdAt: now,
+                    startedAt: shouldStart ? now : undefined,
+                    dueDate: shouldStart ? new Date(Date.now() + pm.duration * 24 * 60 * 60 * 1000).toISOString() : undefined,
+                    checklist: generateDefaultChecklist(pm.goal, pm.channel!, pm.duration),
+                    assetIds: [],
                 };
-                logMoveOverride(newMove, campaign, pm.overrideReason);
+
+                if (pm.overrideReason && campaign) {
+                    newMove.override = {
+                        reason: pm.overrideReason,
+                        originalCampaignObjective: campaign.objective,
+                        loggedAt: now
+                    };
+                    logMoveOverride(newMove, campaign, pm.overrideReason);
+                }
+
+                await createMove(newMove);
+                createdMoves.push(newMove);
+
+                if (shouldStart) {
+                    await setActiveMove(moveId);
+                } else {
+                    queuedCount++;
+                }
             }
 
-            createMove(newMove);
-            createdMoves.push(newMove);
-
-            if (shouldStart) {
-                setActiveMove(moveId);
-            } else {
-                queuedCount++;
-            }
-        });
-
-        toast.success(`Created ${createdMoves.length} moves (${queuedCount} queued)`);
-        onComplete(createdMoves);
+            toast.success(`Created ${createdMoves.length} moves (${queuedCount} queued)`);
+            onComplete(createdMoves);
+        } catch (error) {
+            toast.error('Failed to create moves');
+            console.error(error);
+        }
     };
 
     // --- Renderers ---

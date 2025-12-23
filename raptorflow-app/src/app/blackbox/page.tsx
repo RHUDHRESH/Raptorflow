@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { BoardroomView } from '@/components/blackbox/BoardroomView';
 import { TelemetryFeed } from '@/components/blackbox/TelemetryFeed';
@@ -177,7 +178,12 @@ export default function BlackBoxPage() {
 
     return (
         <AppLayout>
-            <div className="max-w-6xl mx-auto space-y-10 pb-20 px-4 md:px-0">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="max-w-6xl mx-auto space-y-10 pb-20 px-4 md:px-0"
+            >
                 {/* Executive Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-border pb-6 pt-2 gap-6">
                     <div>
@@ -418,6 +424,7 @@ export default function BlackBoxPage() {
                 </DialogContent>
             </Dialog>
 
+            </motion.div>
         </AppLayout>
     );
 }
