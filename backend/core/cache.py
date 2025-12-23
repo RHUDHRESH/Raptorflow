@@ -1,6 +1,5 @@
-import os
-
 from upstash_redis import Redis
+
 
 from backend.core.config import get_settings
 

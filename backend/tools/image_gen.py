@@ -1,5 +1,4 @@
 import logging
-import os
 from typing import Any, Dict
 
 from backend.core.base_tool import RaptorRateLimiter

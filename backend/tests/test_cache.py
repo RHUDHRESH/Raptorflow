@@ -1,6 +1,4 @@
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from backend.core.cache import get_cache_client
 

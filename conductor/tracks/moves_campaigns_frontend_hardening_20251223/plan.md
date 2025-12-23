@@ -20,7 +20,7 @@
 - [x] 15. Task: Conductor - User Manual Verification 'Code Audit & Connectivity' (Protocol in workflow.md) [57f36ee]
 
 ## Phase 3: Campaign Module Production Integration (Tasks 16-25)
-- [~] 16. Task: Connect UI triggers to the 90-day arc generation agent node
+- [x] 16. Task: Connect UI triggers to the 90-day arc generation agent node [36c5a83]
 - [ ] 17. Task: Implement real-time status polling for campaign strategy generation
 - [ ] 18. Task: Write failing integration tests for the Campaign creation-to-persistence flow
 - [ ] 19. Task: Integrate "Campaign Auditor" feedback display into the UI

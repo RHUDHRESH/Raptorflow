@@ -1,7 +1,5 @@
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from backend.core.config import get_settings
 from backend.core.secrets import get_secret
 
