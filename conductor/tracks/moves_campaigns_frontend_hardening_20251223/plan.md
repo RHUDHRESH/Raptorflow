@@ -7,7 +7,7 @@
 - [x] 4. Task: Implement config validation logic to ensure Vertex AI is the singular path [853b2ba]
 - [ ] 5. Task: Conductor - User Manual Verification 'Environment & Config' (Protocol in workflow.md)
 
-## Phase 2: Code Audit & Connectivity Fixes (Tasks 6-15)
+## Phase 2: Code Audit & Connectivity Fixes (Tasks 6-15) [checkpoint: 57f36ee]
 - [x] 6. Task: Audit all files in `src/app/moves` and `src/app/campaigns` for broken links [9376403]
 - [x] 7. Task: Audit shared UI components used by Moves/Campaigns [9376403]
 - [x] 8. Task: Write failing tests for core API fetchers and Supabase hooks [9376403]
@@ -17,7 +17,7 @@
 - [x] 12. Task: Implement error boundary components for graceful inference failures [9376403]
 - [x] 13. Task: Refactor state synchronization to prevent UI flickering during updates [9376403]
 - [x] 14. Task: Verify >80% unit test coverage for new/modified frontend logic [9376403]
-- [ ] 15. Task: Conductor - User Manual Verification 'Code Audit & Connectivity' (Protocol in workflow.md)
+- [x] 15. Task: Conductor - User Manual Verification 'Code Audit & Connectivity' (Protocol in workflow.md) [57f36ee]
 
 ## Phase 3: Campaign Module Production Integration (Tasks 16-25)
 - [ ] 16. Task: Connect UI triggers to the 90-day arc generation agent node
