@@ -25,13 +25,13 @@
 - [x] 20. Task: Conductor - User Manual Verification 'Data Ingestion & VACUUM Engine' (Protocol in workflow.md)
 
 ## Phase 3: Cognitive Spine - LangGraph Foundation (Tasks 21-30)
-- [ ] 21. Task: Define `State` schema for the Moves & Campaigns orchestrator
-- [ ] 22. Task: Implement LangGraph `SqliteSaver` for local persistence
-- [ ] 23. Task: Write failing tests for Graph state transitions and cycle handling
-- [ ] 24. Task: Implement the "Router" node for directing between Campaign and Move tasks
-- [ ] 25. Task: Configure `PostgresSaver` (Supabase) for production persistence
-- [ ] 26. Task: Implement error handling nodes (Retries, Fallbacks)
-- [ ] 27. Task: Define HITL (Human-in-the-loop) interruption points for approvals
+- [x] 21. Task: Define `State` schema for the Moves & Campaigns orchestrator
+- [x] 22. Task: Implement LangGraph `SqliteSaver` for local persistence
+- [x] 23. Task: Write failing tests for Graph state transitions and cycle handling
+- [x] 24. Task: Implement the "Router" node for directing between Campaign and Move tasks
+- [x] 25. Task: Configure `PostgresSaver` (Supabase) for production persistence
+- [x] 26. Task: Implement error handling nodes (Retries, Fallbacks)
+- [~] 27. Task: Define HITL (Human-in-the-loop) interruption points for approvals
 - [ ] 28. Task: Setup visual graph rendering for debugging and documentation
 - [ ] 29. Task: Verify state recovery from episodic memory after simulated crashes
 - [ ] 30. Task: Conductor - User Manual Verification 'Cognitive Spine' (Protocol in workflow.md)
