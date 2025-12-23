@@ -12,7 +12,7 @@
 - [x] Task 9: Implement `BlackboxService._get_bigquery_client()` with service account auth [a582ad5]
 - [x] Task 10: Conductor - User Manual Verification 'Foundation & Infrastructure' [2b190de]
 
-## Phase 2: Telemetry & Tracing (Phases 11-20)
+## Phase 2: Telemetry & Tracing (Phases 11-20) [checkpoint: c17d49c]
 - [x] Task 11: Implement `BlackboxService.log_telemetry(trace_data)` (Sync PG write) [27a4a25]
 - [x] Task 12: Implement `BlackboxService.stream_to_bigquery(trace_data)` (Sync BQ stream) [27a4a25]
 - [x] Task 13: Create `backend/core/middleware.py` trace_id generator [faa2785]
@@ -22,7 +22,7 @@
 - [x] Task 17: Write Unit Test: `test_bigquery_streaming_latency` [2fe8d46]
 - [x] Task 18: Implement `BlackboxService.calculate_move_cost(move_id)` [d7f0cca]
 - [x] Task 19: Create `backend/api/v1/blackbox_telemetry.py` endpoints [c582c50]
-- [ ] Task 20: Conductor - User Manual Verification 'Telemetry & Tracing'
+- [x] Task 20: Conductor - User Manual Verification 'Telemetry & Tracing' [c17d49c]
 
 ## Phase 3: Cognitive Memory & Vector Store (Phases 21-30)
 - [ ] Task 21: Implement `BlackboxService.upsert_learning_embedding(text, metadata)`
