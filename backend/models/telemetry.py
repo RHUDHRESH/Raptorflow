@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
 
@@ -18,6 +18,7 @@ class TelemetryEventType(str, Enum):
 
 class TelemetryEvent(BaseModel):
     """Strictly validated telemetry event for the Matrix."""
+
     event_id: str = Field(..., description="Unique event identifier")
     timestamp: datetime = Field(default_factory=datetime.now)
     event_type: TelemetryEventType
