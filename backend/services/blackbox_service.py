@@ -175,25 +175,6 @@ class BlackboxService:
 
     def categorize_learning(self, content: str) -> str:
         """Categorizes a learning content into strategic, tactical, or content."""
-        llm = InferenceProvider.get_model(model_tier="mundane")
-        prompt = (
-            "Categorize the following marketing learning into exactly one of these labels: "
-            "'strategic', 'tactical', 'content'.\n\n"
-            f"Learning: {content}\n\n"
-            "Label:"
-        )
-        response = llm.invoke(prompt)
-        category = response.content.strip().lower()
-
-        # Validation
-        valid_labels = ["strategic", "tactical", "content"]
-        for label in valid_labels:
-            if label in category:
-                return label
-        return "tactical"  # Default
-
-    def categorize_learning(self, content: str) -> str:
-        """Categorizes a learning content into strategic, tactical, or content."""
         from backend.core.prompts import BlackboxPrompts
 
         # 1. Initialize LLM
