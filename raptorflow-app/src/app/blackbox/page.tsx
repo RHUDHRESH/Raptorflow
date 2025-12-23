@@ -21,7 +21,8 @@ import { toast } from 'sonner';
 
 import { BoardroomView } from '@/components/blackbox/BoardroomView';
 import { TelemetryFeed } from '@/components/blackbox/TelemetryFeed';
-import { Sparkles, Brain } from 'lucide-react';
+import { EvidenceLog, EvidenceTrace } from '@/components/blackbox/EvidenceLog';
+import { Sparkles, Brain, TrendingUp } from 'lucide-react';
 
 export default function BlackBoxPage() {
     const [experiments, setExperiments] = useState<Experiment[]>([]);
@@ -30,6 +31,8 @@ export default function BlackBoxPage() {
     const [activeDetail, setActiveDetail] = useState<Experiment | null>(null);
     const [activeEdit, setActiveEdit] = useState<Experiment | null>(null);
     const [showWizard, setShowWizard] = useState(false);
+    const [evidenceTraces, setEvidenceTraces] = useState<EvidenceTrace[]>([]);
+    const [showEvidence, setShowEvidence] = useState(false);
 
     useEffect(() => {
         const state = loadBlackboxState();
@@ -122,6 +125,28 @@ export default function BlackBoxPage() {
         }
     }, []);
 
+    const handleViewEvidence = () => {
+        // Mock data for evidence traces (Task 81)
+        const mockTraces: EvidenceTrace[] = [
+            {
+                id: 'tr-1',
+                agent_id: 'researcher_scraper',
+                trace: { output: { url: 'https://www.linkedin.com/pulse/b2b-marketing-trends-2025' } },
+                latency: 1.2,
+                timestamp: new Date().toISOString()
+            },
+            {
+                id: 'tr-2',
+                agent_id: 'researcher_search',
+                trace: { output: { url: 'https://hbr.org/2024/05/the-new-linkedin-algorithm' } },
+                latency: 0.8,
+                timestamp: new Date().toISOString()
+            }
+        ];
+        setEvidenceTraces(mockTraces);
+        setShowEvidence(true);
+    };
+
     const winner = experiments.find(e => e.status === 'checked_in' && (e.self_report?.outcome === 'great' || e.self_report?.outcome === 'worked'));
     const active = experiments.filter(e => e.status !== 'checked_in');
     const completed = experiments.filter(e => e.status === 'checked_in');
@@ -186,7 +211,14 @@ export default function BlackBoxPage() {
                                             </p>
                                             <div className="pt-4 flex items-center gap-3">
                                                 <Button size="sm" className="rounded-lg h-8 bg-foreground text-background px-4 font-sans text-xs">Apply Pivot</Button>
-                                                <Button size="sm" variant="outline" className="rounded-lg h-8 px-4 font-sans text-xs border-border">View Evidence</Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="rounded-lg h-8 px-4 font-sans text-xs border-border"
+                                                    onClick={handleViewEvidence}
+                                                >
+                                                    View Evidence
+                                                </Button>
                                             </div>
                                         </div>
                                     </div>
@@ -288,6 +320,27 @@ export default function BlackBoxPage() {
                     <DialogFooter>
                         <Button variant="ghost" onClick={() => setActiveEdit(null)} className="font-sans rounded-lg">Cancel</Button>
                         <Button onClick={handleEditSave} className="bg-foreground text-background font-sans font-semibold rounded-lg tracking-tight">Save Changes</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Evidence Dialog (Task 81) */}
+            <Dialog open={showEvidence} onOpenChange={setShowEvidence}>
+                <DialogContent className="max-w-2xl bg-background border-border overflow-hidden flex flex-col max-h-[80vh]">
+                    <DialogHeader className="pb-4">
+                        <DialogTitle className="font-sans font-semibold flex items-center gap-2">
+                            <FileText className="h-5 w-5 text-accent" />
+                            Strategic Evidence
+                        </DialogTitle>
+                        <p className="text-sm text-muted-foreground font-sans">
+                            Raw intelligence retrieved by agents to support this pivot.
+                        </p>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+                        <EvidenceLog traces={evidenceTraces} />
+                    </div>
+                    <DialogFooter className="pt-4 border-t border-border mt-2">
+                        <Button variant="ghost" onClick={() => setShowEvidence(false)} className="font-sans rounded-lg">Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -97,8 +97,9 @@
 - [x] Phase 082: Backend - Implement `GET /overview` (Aggregated health dashboard). ac1ac25
 - [x] Phase 083: Backend - Implement `POST /kill-switch` with audit logging. d1b5dfc
 - [x] Phase 084: Backend - Implement `GET /mlops/drift` (Detailed statistical report). 2073cf6
-- [ ] Phase 085: Backend - Implement `GET /governance/burn` (Financial data).
-- [ ] Phase 086: Backend - Implement `PII_Redactor` utility for all telemetry logs. (Deferred)
+- [x] Phase 085: Backend - Implement `GET /governance/burn` (Financial data). b8e0b76
+- [ ] Phase 086: Backend - Implement `PII_Redactor` utility for all telemetry logs.
+ (Deferred)
 - [ ] Phase 087: Backend - Implement `RBAC_Guard` (Restricting Matrix to Admin). (Deferred)
 - [ ] Phase 088: Backend - Implement `AuditLogService` (Tracking who touched the Matrix). (Deferred)
 - [x] Phase 089: Backend - Write Integration Tests for all Matrix Endpoints. [2457dc7]
