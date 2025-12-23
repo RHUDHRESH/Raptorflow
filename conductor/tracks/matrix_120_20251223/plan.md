@@ -22,7 +22,7 @@
 - [x] Phase 017: Backend - Write Red Phase tests for `BigQueryMatrixLoader.sync_partition()`. 5636db5
 - [x] Phase 018: Backend - Implement BigQuery views for longitudinal performance analysis. 51f7178
 - [x] Phase 019: Backend - Implement `StorageEfficiencyAuditor` (Osipov's cost tracking pattern). 1b1b7bb
-- [ ] Phase 020: Conductor - User Manual Verification 'Osipov Data Engineering' (Protocol in workflow.md)
+- [~] Phase 020: Conductor - User Manual Verification 'Osipov Data Engineering' (Protocol in workflow.md)
 
 #### Block C: Taulli Agentic Spine & Supervisor Pattern (Phases 21-35)
 - [ ] Phase 021: Backend - Implement `MatrixSupervisorAgent` using LangGraph.
