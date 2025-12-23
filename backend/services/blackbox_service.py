@@ -425,18 +425,35 @@ class BlackboxService:
         learning = learning_res.data[0]
         content = learning["content"]
         
-        # 2. Trigger foundation update (Agentic or direct depending on type)
+        # 2. Trigger foundation update
         f_service = FoundationService(self.vault)
-        # Placeholder for complex agentic update logic
-        # For now, we simulate adding the learning to positioning notes or UVP refinement
+        await f_service.update_brand_kit(brand_kit_id, {"updates": content})
         
-        await f_service.update_brand_kit(brand_kit_id, {"typography_config": {"latest_insight": content}})
-        
-        return {
-            "brand_kit_id": str(brand_kit_id),
-            "learning_id": str(learning_id),
-            "status": "foundation_updated"
-        }
+        return {"status": "foundation_updated", "learning_id": str(learning_id)}
+
+    def get_learning_feed(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Retrieves the latest strategic learnings from the Blackbox memory.
+        """
+        session = self.vault.get_session()
+        result = (
+            session.table("blackbox_learnings_industrial")
+            .select("*")
+            .order("created_at", desc=True)
+            .limit(limit)
+            .execute()
+        )
+        return result.data
+
+    def validate_insight(self, learning_id: UUID, status: str) -> bool:
+        """
+        Updates the validation status of a strategic insight (HITL).
+        """
+        session = self.vault.get_session()
+        session.table("blackbox_learnings_industrial").update({"status": status}).eq(
+            "id", str(learning_id)
+        ).execute()
+        return True
 
     def get_evidence_package(self, learning_id: UUID) -> List[Dict[str, Any]]:
         """

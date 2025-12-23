@@ -41,6 +41,7 @@ class BlackboxLearning(BaseModel):
     embedding: List[float] = Field(default_factory=list)
     source_ids: List[UUID] = Field(default_factory=list)
     learning_type: str  # e.g., tactical, strategic, content
+    status: str = "pending"  # e.g., pending, approved, rejected
     timestamp: datetime = Field(default_factory=datetime.now)
 
     model_config = ConfigDict(from_attributes=True)

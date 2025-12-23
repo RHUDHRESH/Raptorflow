@@ -62,7 +62,7 @@
 - [x] Phase 051: Backend - Implement `L1_ShortTermMemory` using Redis (Upstash). 7a0585f
 - [x] Phase 052: Backend - Implement `L2_EpisodicMemory` using Supabase `pgvector`. 3c1f522
 - [x] Phase 053: Backend - Implement `L3_SemanticMemory` (Brand Foundation lookup). 25336f1
-- [ ] Phase 054: Backend - Write Red Phase tests for `MemoryManager.store_trace()`.
+- [x] Phase 054: Backend - Write Red Phase tests for `MemoryManager.store_trace()`. ce1b825
 - [ ] Phase 055: Backend - Implement `MemoryManager.store_trace()` with embeddings.
 - [ ] Phase 056: Backend - Implement `RAGRetrievalNode` with citation support.
 - [ ] Phase 057: Backend - Implement `MemoryDecayPolicy` (Pruning old short-term state).
