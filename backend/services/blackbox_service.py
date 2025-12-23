@@ -262,6 +262,45 @@ class BlackboxService:
 
         return analysis
 
+    async def trigger_learning_cycle(self, move_id: str) -> Dict[str, Any]:
+        """
+        Triggers the multi-agentic learning cycle via LangGraph.
+        Summarizes outcomes and telemetry into strategic learnings.
+        """
+        from backend.graphs.blackbox_analysis import create_blackbox_graph
+        
+        graph = create_blackbox_graph()
+        initial_state = {
+            "move_id": move_id,
+            "telemetry_data": [],
+            "findings": [],
+            "outcomes": [],
+            "reflection": "",
+            "confidence": 0.0,
+            "status": []
+        }
+        
+        final_state = await graph.ainvoke(initial_state)
+        
+        # 1. Process findings into permanent memory
+        for finding in final_state.get("findings", []):
+            l_type = self.categorize_learning(finding)
+            self.upsert_learning_embedding(
+                content=finding,
+                learning_type=l_type,
+                source_ids=[UUID(move_id)]
+            )
+            
+        return {
+            "move_id": move_id,
+            "findings_count": len(final_state.get("findings", [])),
+            "confidence": final_state.get("confidence", 0.0),
+            "status": "cycle_complete"
+        }
+
+    def attribute_outcome(self, outcome: BlackboxOutcome):
+        pass
+
     def upsert_learning_embedding(self, content: str, learning_type: str, source_ids: List[UUID] = None):
         """Generates embedding and persists learning."""
         embed_model = InferenceProvider.get_embeddings()

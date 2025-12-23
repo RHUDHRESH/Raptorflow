@@ -1,7 +1,8 @@
 import sys
 import time
+import asyncio
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 from uuid import uuid4
 
 import pytest
@@ -410,6 +411,63 @@ def test_blackbox_service_get_memory_context_for_planner():
         except AttributeError:
             pytest.fail("get_memory_context_for_planner not implemented")
 
+def test_blackbox_service_compute_roi_attribution_models():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    
+    service = BlackboxService(vault=mock_vault)
+    
+    campaign_id = uuid4()
+    move_1_id = str(uuid4())
+    move_2_id = str(uuid4())
+    
+    # 1. Mock moves (ordered)
+    mock_moves_res = MagicMock()
+    mock_moves_res.data = [
+        {"id": move_1_id, "created_at": "2023-12-01T00:00:00"},
+        {"id": move_2_id, "created_at": "2023-12-02T00:00:00"}
+    ]
+    
+    # 2. Mock outcomes
+    mock_outcomes_res = MagicMock()
+    mock_outcomes_res.data = [
+        {"value": 100.0, "move_id": move_1_id},
+        {"value": 200.0, "move_id": move_2_id},
+        {"value": 50.0, "move_id": None} # General campaign outcome
+    ]
+
+    def table_side_effect(name):
+        mock_query = MagicMock()
+        mock_query.select.return_value = mock_query
+        mock_query.eq.return_value = mock_query
+        mock_query.order.return_value = mock_query
+        if name == "moves":
+            mock_query.execute.return_value = mock_moves_res
+            return mock_query
+        if name == "blackbox_outcomes_industrial":
+            mock_query.execute.return_value = mock_outcomes_res
+            return mock_query
+        if name == "blackbox_telemetry_industrial":
+            # Just return 0 tokens for simplicity
+            mock_query.execute.return_value = MagicMock(data=[])
+            return mock_query
+        return MagicMock()
+
+    mock_session.table.side_effect = table_side_effect
+    
+    # LINEAR: 100 + 200 + 50 = 350
+    res_linear = service.compute_roi(campaign_id, model=AttributionModel.LINEAR)
+    assert res_linear["total_value"] == 350.0
+    
+    # FIRST_TOUCH: Only move_1 -> 100
+    res_first = service.compute_roi(campaign_id, model=AttributionModel.FIRST_TOUCH)
+    assert res_first["total_value"] == 100.0
+    
+    # LAST_TOUCH: Only move_2 -> 200
+    res_last = service.compute_roi(campaign_id, model=AttributionModel.LAST_TOUCH)
+    assert res_last["total_value"] == 200.0
+
 def test_blackbox_service_compute_roi():
     mock_vault = MagicMock()
     mock_session = MagicMock()
@@ -563,6 +621,32 @@ def test_blackbox_service_longitudinal_analysis():
         assert "day" in analysis[0]
         mock_bq.query.assert_called_once()
         assert "INTERVAL 30 DAY" in mock_bq.query.call_args[0][0]
+
+def test_blackbox_service_trigger_learning_cycle():
+    mock_vault = MagicMock()
+    service = BlackboxService(vault=mock_vault)
+    
+    # Mock Graph
+    mock_graph = MagicMock()
+    mock_graph.ainvoke = AsyncMock(return_value={
+        "findings": ["SaaS Founders prefer long-form content"],
+        "confidence": 0.85
+    })
+    
+    with patch("backend.graphs.blackbox_analysis.create_blackbox_graph", return_value=mock_graph):
+        with patch.object(service, "upsert_learning_embedding") as mock_upsert:
+            with patch.object(service, "categorize_learning", return_value="strategic"):
+                move_id = str(uuid4())
+                result = asyncio.run(service.trigger_learning_cycle(move_id))
+                
+                assert result["findings_count"] == 1
+                assert result["status"] == "cycle_complete"
+                mock_upsert.assert_called_once()
+                
+                # Check kwargs or args
+                _, kwargs = mock_upsert.call_args
+                assert kwargs["content"] == "SaaS Founders prefer long-form content"
+                assert kwargs["learning_type"] == "strategic"
 
 def test_blackbox_service_attribution_confidence():
     mock_vault = MagicMock()
