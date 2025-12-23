@@ -5,7 +5,7 @@
 - [x] Phase 2: Setup GCP Secret Manager for API Keys (OpenAI, Anthropic, Firecrawl). [0a1a6df]
 - [x] Phase 3: Configure Cloud Run for Serverless Agent Inference. [bb99768]
 - [x] Phase 4: Initialize Supabase (Postgres + pgvector) for Semantic Memory. [bbe002a]
-- [ ] Phase 5: Setup Upstash Redis for Short-Term Working Memory & Caching.
+- [x] Phase 5: Setup Upstash Redis for Short-Term Working Memory & Caching. [a582ad5]
 - [ ] Phase 6: Implement GitHub Actions for CI/CD with Linting (ESLint/Flake8).
 - [ ] Phase 7: Setup Pre-commit Hooks for Security and Formatting.
 - [ ] Phase 8: Configure Dockerized Development Environments for Backend/Frontend.
