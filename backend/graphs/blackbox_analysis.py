@@ -63,23 +63,10 @@ def extract_insights_node(state: AnalysisState) -> Dict:
 def attribute_outcomes_node(state: AnalysisState) -> Dict:
     """
     Node: Attributes business outcomes to the current move.
-    Math-heavy probabilistic attribution logic placeholder.
     """
-    from backend.core.vault import Vault
-
-    session = Vault().get_session()
-
-    # In a production scenario, this would use probabilistic modeling
-    # to find outcomes correlated with this move_id.
-    result = (
-        session.table("blackbox_outcomes_industrial")
-        .select("*")
-        .eq("move_id", state["move_id"])
-        .limit(10)
-        .execute()
-    )
-
-    return {"outcomes": result.data, "status": "attributed"}
+    service = get_blackbox_service()
+    outcomes = service.get_outcomes_for_move(state["move_id"])
+    return {"outcomes": outcomes, "status": "attributed"}
 
 
 def reflect_and_validate_node(state: AnalysisState) -> Dict:

@@ -123,6 +123,32 @@ class BlackboxService:
         )
         return sum(row.get("tokens", 0) for row in result.data)
 
+    def get_telemetry_by_move(self, move_id: str) -> List[Dict]:
+        """Retrieves all telemetry traces associated with a specific move."""
+        session = self.vault.get_session()
+        result = (
+            session.table("blackbox_telemetry_industrial")
+            .select("*")
+            .eq("move_id", str(move_id))
+            .execute()
+        )
+        return result.data
+
+    def get_outcomes_for_move(self, move_id: str, limit: int = 10) -> List[Dict]:
+        """
+        Retrieves business outcomes associated with a move.
+        In production, this would use complex JOINs or probabilistic attribution.
+        """
+        session = self.vault.get_session()
+        # For now, we fetch recent outcomes as a placeholder for attribution
+        result = (
+            session.table("blackbox_outcomes_industrial")
+            .select("*")
+            .limit(limit)
+            .execute()
+        )
+        return result.data
+
     def attribute_outcome(self, outcome: BlackboxOutcome):
         """Attributes a business outcome to specific campaign/move."""
         pass

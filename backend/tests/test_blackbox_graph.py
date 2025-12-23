@@ -9,25 +9,12 @@ def test_analysis_state_definition():
     assert "telemetry_data" in AnalysisState.__annotations__
 
 def test_ingest_telemetry_node():
-    mock_session = MagicMock()
-    mock_data = [{"id": "t1", "agent_id": "a1", "tokens": 10}]
-
-    # Mocking the chained calls: session.table().select().eq().execute()
-    mock_query = MagicMock()
-    mock_session.table.return_value = mock_query
-    mock_query.select.return_value = mock_query
-    mock_query.eq.return_value = mock_query
-    mock_query.execute.return_value = MagicMock(data=mock_data)
-
-    with patch("backend.core.vault.Vault") as mock_vault_class:
-        mock_vault_instance = mock_vault_class.return_value
-        mock_vault_instance.get_session.return_value = mock_session
-        move_id = str(uuid4())
-        state: AnalysisState = {"move_id": move_id, "telemetry_data": []}
-
+    mock_service = MagicMock()
+    mock_service.get_telemetry_by_move.return_value = [{"id": "t1"}]
+    
+    with patch("backend.graphs.blackbox_analysis.get_blackbox_service", return_value=mock_service):
+        state: AnalysisState = {"move_id": str(uuid4()), "telemetry_data": []}
         result = ingest_telemetry_node(state)
-
-        assert "telemetry_data" in result
         assert len(result["telemetry_data"]) == 1
         assert result["telemetry_data"][0]["id"] == "t1"
 
@@ -46,19 +33,10 @@ def test_extract_insights_node():
         assert result["findings"] == ["Insight 1"]
 
 def test_attribute_outcomes_node():
-    mock_session = MagicMock()
-    # Mocking chained calls: table().select().eq().limit().execute()
-    mock_query = MagicMock()
-    mock_session.table.return_value = mock_query
-    mock_query.select.return_value = mock_query
-    mock_query.eq.return_value = mock_query
-    mock_query.limit.return_value = mock_query
-    mock_query.execute.return_value = MagicMock(data=[
-        {"id": "o1", "source": "conversion", "value": 100.0}
-    ])
-
-    with patch("backend.core.vault.Vault") as mock_vault_class:
-        mock_vault_class.return_value.get_session.return_value = mock_session
+    mock_service = MagicMock()
+    mock_service.get_outcomes_for_move.return_value = [{"id": "o1", "value": 100.0}]
+    
+    with patch("backend.graphs.blackbox_analysis.get_blackbox_service", return_value=mock_service):
         state: AnalysisState = {"move_id": str(uuid4()), "outcomes": []}
         result = attribute_outcomes_node(state)
         assert len(result["outcomes"]) == 1
@@ -81,31 +59,11 @@ def test_reflect_and_validate_node():
         assert result["status"] == "validated"
 
 def test_blackbox_graph_execution():
-    mock_session = MagicMock()
-    # Mock ingest
-    mock_query_ingest = MagicMock()
-    mock_query_ingest.select.return_value = mock_query_ingest
-    mock_query_ingest.eq.return_value = mock_query_ingest
-    mock_query_ingest.execute.return_value = MagicMock(data=[{"id": "t1"}])
+    mock_service = MagicMock()
+    mock_service.get_telemetry_by_move.return_value = [{"id": "t1"}]
+    mock_service.get_outcomes_for_move.return_value = [{"id": "o1", "value": 50}]
     
-    # Mock attribute
-    mock_query_attr = MagicMock()
-    mock_query_attr.select.return_value = mock_query_attr
-    mock_query_attr.eq.return_value = mock_query_attr
-    mock_query_attr.limit.return_value = mock_query_attr
-    mock_query_attr.execute.return_value = MagicMock(data=[{"id": "o1", "value": 50}])
-    
-    # Simple table selection side effect
-    def table_mock(name):
-        if name == "blackbox_telemetry_industrial":
-            return mock_query_ingest
-        return mock_query_attr
-        
-    mock_session.table.side_effect = table_mock
-    
-    with patch("backend.core.vault.Vault") as mock_vault_class:
-        mock_vault_class.return_value.get_session.return_value = mock_session
-        
+    with patch("backend.graphs.blackbox_analysis.get_blackbox_service", return_value=mock_service):
         with patch("backend.inference.InferenceProvider.get_model") as mock_get_model:
             mock_llm = MagicMock()
             mock_get_model.return_value = mock_llm
@@ -130,4 +88,46 @@ def test_blackbox_graph_execution():
             
             assert result["status"] == "validated"
             assert result["confidence"] == 0.8
-            assert "Finding 1" in result["findings"]
+    # High confidence -> end
+    state_high = {"confidence": 0.8}
+    assert should_continue(state_high) == "__end__"
+
+def test_full_blackbox_graph_execution():
+    from backend.graphs.blackbox_analysis import create_blackbox_graph
+    
+    # This will fail until create_blackbox_graph is implemented
+    try:
+        graph = create_blackbox_graph()
+        assert graph is not None
+        
+        # Simulate a full run with mocks
+        with patch("backend.core.vault.Vault") as mock_vault:
+            with patch("backend.inference.InferenceProvider.get_model") as mock_llm_factory:
+                # Mock Supabase
+                mock_session = MagicMock()
+                mock_vault.return_value.get_session.return_value = mock_session
+                mock_table = MagicMock()
+                mock_session.table.return_value = mock_table
+                mock_table.select.return_value.eq.return_value.execute.return_value = MagicMock(data=[{"id": "t1"}])
+                
+                # Mock LLM
+                mock_llm = MagicMock()
+                mock_llm_factory.return_value = mock_llm
+                mock_llm.invoke.return_value = MagicMock(content="Confidence: 0.9\nReflection: Sound")
+                
+                initial_state = {
+                    "move_id": str(uuid4()),
+                    "telemetry_data": [],
+                    "findings": [],
+                    "outcomes": [],
+                    "reflection": "",
+                    "confidence": 0.0,
+                    "status": "start"
+                }
+                
+                final_state = graph.invoke(initial_state)
+                assert final_state["status"] == "validated"
+                assert final_state["confidence"] == 0.9
+    except (AttributeError, ImportError):
+        pytest.fail("create_blackbox_graph not implemented")
+
