@@ -18,6 +18,7 @@ class HierarchicalSupervisor:
     Orchestrates specialized crews with surgical precision.
     """
     def __init__(self, llm: any, team_members: List[str], system_prompt: str):
+        self.llm = llm
         self.team_members = team_members
         options = team_members + ["FINISH"]
         
@@ -31,15 +32,31 @@ class HierarchicalSupervisor:
             ),
         ]).partial(options=str(options))
         
-        self.chain = self.prompt | llm.with_structured_output(RouterOutput)
+        # We don't pre-build the chain to allow easier mocking of llm
+        self._chain = None
+
+    @property
+    def chain(self):
+        if self._chain is None:
+            self._chain = self.prompt | self.llm.with_structured_output(RouterOutput)
+        return self._chain
 
     async def __call__(self, state: TypedDict):
         """The actual node logic, callable for LangGraph."""
         logger.info("Supervisor evaluating state...")
         # In a real SOTA system, we handle retry logic and JSON repair here
         response = await self.chain.ainvoke(state)
-        logger.info(f"Supervisor delegated to: {response.next_node}")
-        return {"next": response.next_node, "instructions": response.instructions}
+        
+        # Check if it's a dict or model
+        if hasattr(response, "next_node"):
+            next_node = response.next_node
+            instructions = response.instructions
+        else:
+            next_node = response.get("next_node")
+            instructions = response.get("instructions")
+
+        logger.info(f"Supervisor delegated to: {next_node}")
+        return {"next": str(next_node), "instructions": str(instructions)}
 
 def create_team_supervisor(llm: any, team_members: List[str], system_prompt: str):
     """Factory function for the HierarchicalSupervisor."""
