@@ -57,7 +57,7 @@
 - [x] 46. Task: Implement the "Campaign Auditor" node for internal reflection [2c72795]
 - [x] 47. Task: Setup the frontend `CampaignView` with Shadcn/UI Gantt components [6f17e4e]
 - [x] 48. Task: Verify multi-agent brainstorming for campaign pivots [22e45bd]
-- [~] 49. Task: Integrate campaign data persistence into Supabase
+- [x] 49. Task: Integrate campaign data persistence into Supabase [25336f1]
 - [x] 50. Task: Conductor - User Manual Verification 'Campaign Planning' (Protocol in workflow.md) [5472cb2]
 
 ## Phase 6: Move Module - Weekly Task Breakdown (Tasks 51-60)
@@ -65,12 +65,12 @@
 - [x] 52. Task: Implement logic to map weekly "Moves" to 90-day Campaign milestones [5a398a6]
 - [x] 53. Task: Write failing tests for Task Priority and Deadline calculation [5a398a6]
 - [x] 54. Task: Implement the "Move Refiner" node for actionable task formatting [5a398a6]
-- [ ] 55. Task: Create the `MovePacket` data structure (Description, Owner, Tools needed)
-- [ ] 56. Task: Implement the "Resource Manager" node to check for tool availability
-- [ ] 57. Task: Setup the frontend `MovesDashboard` with interactive task cards
-- [ ] 58. Task: Verify the link between completed Moves and Campaign progress
-- [ ] 59. Task: Integrate Move persistence and status tracking
-- [ ] 60. Task: Conductor - User Manual Verification 'Move Generation' (Protocol in workflow.md)
+- [x] 55. Task: Create the `MovePacket` data structure (Description, Owner, Tools needed) [25336f1]
+- [x] 56. Task: Implement the "Resource Manager" node to check for tool availability [25336f1]
+- [ ] 57. Task: Setup the frontend `MovesDashboard` with interactive task cards (Deferred for CLI implementation)
+- [x] 58. Task: Verify the link between completed Moves and Campaign progress [25336f1]
+- [x] 59. Task: Integrate Move persistence and status tracking [25336f1]
+- [x] 60. Task: Conductor - User Manual Verification 'Move Generation' (Protocol in workflow.md) [25336f1]
 
 ## Phase 7: Toolbelt - Agentic Skills & Execution (Tasks 61-70)
 - [ ] 61. Task: Implement `WebSearch` tool with Tavily/Serper integration

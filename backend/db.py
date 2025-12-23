@@ -1,9 +1,7 @@
-import json
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Optional
-from uuid import UUID
 
 import psycopg
 from langgraph.checkpoint.postgres import PostgresSaver
@@ -34,8 +32,8 @@ async def get_db_connection():
         try:
             await pool.open()
         except Exception:
-            pass # Ignore if already opening/opened in some versions
-            
+            pass  # Ignore if already opening/opened in some versions
+
     async with pool.connection() as conn:
         yield conn
 
@@ -62,11 +60,11 @@ async def init_checkpointer():
 
 
 async def vector_search(
-    workspace_id: str, 
-    embedding: list[float], 
-    table: str = "agent_memory_semantic", 
+    workspace_id: str,
+    embedding: list[float],
+    table: str = "agent_memory_semantic",
     limit: int = 5,
-    filters: Optional[dict] = None
+    filters: Optional[dict] = None,
 ):
     """
     Performs a pgvector similarity search, STRICTLY scoped to workspace_id.
@@ -76,10 +74,12 @@ async def vector_search(
     SCHEMA_MAP = {
         "muse_assets": {"content": "content", "workspace": "metadata->>'workspace_id'"},
         "agent_memory_semantic": {"content": "fact", "workspace": "tenant_id"},
-        "entity_embeddings": {"content": "description", "workspace": "workspace_id"}
+        "entity_embeddings": {"content": "description", "workspace": "workspace_id"},
     }
-    
-    schema = SCHEMA_MAP.get(table, {"content": "content", "workspace": "metadata->>'workspace_id'"})
+
+    schema = SCHEMA_MAP.get(
+        table, {"content": "content", "workspace": "metadata->>'workspace_id'"}
+    )
     content_col = schema["content"]
     workspace_col = schema["workspace"]
 
@@ -92,20 +92,20 @@ async def vector_search(
                 WHERE {workspace_col} = %s
             """
             params = [embedding, workspace_id]
-            
+
             # Dynamically add filters (assuming they are in metadata for all tables)
             if filters:
                 for key, value in filters.items():
                     query += f" AND metadata->>'{key}' = %s"
                     params.append(str(value))
-            
-            query += f"""
+
+            query += """
                 AND 1 - (embedding <=> %s::vector) > 0.5
                 ORDER BY embedding <=> %s::vector
                 LIMIT %s;
             """
             params.extend([embedding, embedding, limit])
-            
+
             await cur.execute(query, tuple(params))
             results = await cur.fetchall()
             return results
@@ -309,7 +309,10 @@ async def log_agent_decision(tenant_id: str, decision_data: dict):
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
             query = """
-                INSERT INTO agent_decision_audit (tenant_id, agent_id, decision_type, input_state, output_decision, rationale, cost_estimate)
+                INSERT INTO agent_decision_audit (
+                    tenant_id, agent_id, decision_type, input_state,
+                    output_decision, rationale, cost_estimate
+                )
                 VALUES (%s, %s, %s, %s, %s, %s, %s);
             """
             await cur.execute(

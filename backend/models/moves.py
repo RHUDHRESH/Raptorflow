@@ -31,3 +31,22 @@ class Move(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.now)
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class MovePacket(BaseModel):
+    """
+    SOTA Move Packet.
+    The final execution-ready structure for a 'Move'.
+    """
+
+    id: UUID = Field(default_factory=uuid4)
+    move_id: UUID  # Reference to the parent Move
+    title: str
+    description: str
+    owner: str = Field(default="Agent", description="Who executes this move (Agent/Human)")
+    required_tools: list[str] = Field(default_factory=list)
+    priority: str = "P1"
+    deadline: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.now)
+
+    model_config = ConfigDict(from_attributes=True)
