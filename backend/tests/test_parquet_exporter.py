@@ -19,3 +19,19 @@ def test_parquet_exporter_logic_flow(tmp_path):
     success = exporter.export_batch([], file_path)
     assert success is True
     assert os.path.exists(tmp_path)
+
+def test_export_batch_large_volume(tmp_path):
+    """Test the exporter logic for larger batches (simulated)."""
+    exporter = IsolatedMockParquetExporter(base_path=str(tmp_path))
+    large_batch = [{"id": i} for i in range(1000)]
+    file_path = os.path.join(tmp_path, "large_telemetry.parquet")
+    success = exporter.export_batch(large_batch, file_path)
+    assert success is True
+
+def test_export_batch_empty(tmp_path):
+    """Test the exporter logic for empty batches."""
+    exporter = IsolatedMockParquetExporter(base_path=str(tmp_path))
+    file_path = os.path.join(tmp_path, "empty.parquet")
+    # For now, we decide if empty batches should return True or False/Error
+    success = exporter.export_batch([], file_path)
+    assert success is True
