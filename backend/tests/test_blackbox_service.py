@@ -97,3 +97,29 @@ def test_trace_agent_decorator():
     assert telemetry.agent_id == "test-decorator-agent"
     assert telemetry.move_id == move_id
     assert telemetry.tokens == 50
+
+def test_blackbox_service_get_agent_audit_log():
+    mock_vault = MagicMock()
+    mock_session = MagicMock()
+    mock_vault.get_session.return_value = mock_session
+    
+    mock_query_builder = MagicMock()
+    mock_session.table.return_value = mock_query_builder
+    mock_query_builder.select.return_value = mock_query_builder
+    mock_query_builder.eq.return_value = mock_query_builder
+    mock_query_builder.order.return_value = mock_query_builder
+    mock_query_builder.limit.return_value = mock_query_builder
+    
+    mock_response = MagicMock()
+    mock_response.data = [{"id": "test-id", "agent_id": "test-agent"}]
+    mock_query_builder.execute.return_value = mock_response
+    
+    service = BlackboxService(vault=mock_vault)
+    # This will fail until implemented
+    try:
+        logs = service.get_agent_audit_log("test-agent")
+        assert len(logs) == 1
+        assert logs[0]["agent_id"] == "test-agent"
+        mock_session.table.assert_called_with("blackbox_telemetry_industrial")
+    except AttributeError:
+        pytest.fail("get_agent_audit_log not implemented")
