@@ -41,3 +41,43 @@ async def test_campaign_auditor_node_integration(mock_auditor_agents):
     
     state = await moves_campaigns_orchestrator.aget_state(config)
     assert "brand_alignment" in state.values.get("context_brief", {})
+
+@pytest.mark.asyncio
+async def test_campaign_auditor_node_direct():
+    from backend.graphs.moves_campaigns_orchestrator import campaign_auditor
+    mock_llm = MagicMock()
+    
+    with patch("backend.graphs.moves_campaigns_orchestrator.InferenceProvider.get_model", return_value=mock_llm), \
+         patch("backend.graphs.moves_campaigns_orchestrator.BrandVoiceAligner", new_callable=MagicMock) as mock_aligner:
+        
+        mock_aligner.return_value.side_effect = AsyncMock(return_value={"context_brief": {"brand_alignment": {"score": 0.9}}})
+        
+        state = {"context_brief": {}, "messages": []}
+        result = await campaign_auditor(state)
+        
+        assert "brand_alignment" in result["context_brief"]
+
+@pytest.mark.asyncio
+async def test_handle_error_node():
+    from backend.graphs.moves_campaigns_orchestrator import handle_error
+    state = {"error": "Test Error", "messages": []}
+    result = await handle_error(state)
+    assert result["status"] == "error"
+    assert "CRITICAL ERROR: Test Error" in result["messages"]
+    assert result["error"] is None
+
+def test_get_checkpointer_dev():
+    from backend.graphs.moves_campaigns_orchestrator import get_checkpointer
+    from langgraph.checkpoint.memory import MemorySaver
+    
+    with patch("os.getenv", return_value=None):
+        cp = get_checkpointer()
+        assert isinstance(cp, MemorySaver)
+
+def test_router_logic():
+    from backend.graphs.moves_campaigns_orchestrator import router, END
+    
+    assert router({"status": "planning"}) == "campaign"
+    assert router({"status": "monitoring"}) == "moves"
+    assert router({"error": "broken"}) == "error"
+    assert router({"status": "complete"}) == END

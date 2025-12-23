@@ -8,21 +8,44 @@ from langgraph.graph import END, START, StateGraph
 from backend.db import SupabaseSaver, get_pool
 from backend.memory.semantic import SemanticMemory
 from backend.memory.long_term import LongTermMemory
-from backend.agents.strategists import KPIDefiner
+from backend.agents.strategists import BrandVoiceAligner, KPIDefiner
 from backend.inference import InferenceProvider
 
 
 class MovesCampaignsState(TypedDict):
+
+
     """
+
+
     SOTA State Schema for Moves & Campaigns Orchestrator.
+
+
     Manages the lifecycle from business context to 90-day strategy and weekly moves.
+
+
     """
+
 
     # Core Context
+
+
     tenant_id: str
-    business_context: List[str]  # Ingested "Gold" context snippets
+
+
+    business_context: List[str] # Ingested "Gold" context snippets
+
+
+    context_brief: dict # Multi-agent analysis results (ICPs, UVPs, etc.)
+
+
+    
+
 
     # Campaign Strategy (90-Day Arc)
+
+
+
     campaign_id: Optional[str]
     strategy_arc: dict  # The generated 90-day plan
     kpi_targets: dict
@@ -70,6 +93,13 @@ async def inject_context(state: MovesCampaignsState):
 async def plan_campaign(state: MovesCampaignsState):
     # Placeholder for Phase 5 implementation
     return {"status": "monitoring", "messages": ["Campaign strategy generated."]}
+
+
+async def campaign_auditor(state: MovesCampaignsState):
+    """SOTA Audit Node: Reflexive check on strategy alignment."""
+    llm = InferenceProvider.get_model(model_tier="reasoning")
+    agent = BrandVoiceAligner(llm)
+    return await agent(state)
 
 
 async def approve_campaign(state: MovesCampaignsState):
@@ -143,6 +173,7 @@ workflow = StateGraph(MovesCampaignsState)
 workflow.add_node("init", initialize_orchestrator)
 workflow.add_node("inject_context", inject_context)
 workflow.add_node("plan_campaign", plan_campaign)
+workflow.add_node("campaign_auditor", campaign_auditor)
 workflow.add_node("approve_campaign", approve_campaign)
 workflow.add_node("generate_moves", generate_moves)
 workflow.add_node("approve_move", approve_move)
@@ -164,7 +195,8 @@ workflow.add_conditional_edges(
     },
 )
 
-workflow.add_edge("plan_campaign", "approve_campaign")
+workflow.add_edge("plan_campaign", "campaign_auditor")
+workflow.add_edge("campaign_auditor", "approve_campaign")
 workflow.add_edge("approve_campaign", "memory_updater")
 workflow.add_edge("generate_moves", "approve_move")
 workflow.add_edge("approve_move", "memory_updater")
