@@ -1,62 +1,50 @@
-import apache_beam as beam
-from apache_beam.options.pipeline_options import PipelineOptions
-import json
-import logging
+import pandas as pd
+import glob
+from google.cloud import storage, bigquery
+from backend.core.config import Config
+from backend.agents.vacuum_node import VacuumNode
 
-class VacuumLogic(beam.DoFn):
-    """
-    Osipov Pattern: VACUUM (Valid, Accurate, Consistent, Uniform, Unified).
-    Filters out invalid or anomalous records.
-    """
-    def process(self, element):
-        try:
-            # element is a list from CSV reader
-            vendor_id = int(element[0])
-            trip_distance = float(element[4])
-            fare_amount = float(element[5])
+def raw_to_gold_etl():
+    print("--- PySpark-style ETL: Raw to Gold Parquet ---")
+    cfg = Config()
+    
+    instruction_files = glob.glob("Instruction/*.md")
+    processed_records = []
+    
+    for file_path in instruction_files:
+        with open(file_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                clean_line = line.strip()
+                if not clean_line: continue
+                
+                record = {
+                    "tenant_id": "raptor-prod-001",
+                    "source_file": file_path,
+                    "line_number": i,
+                    "content": clean_line,
+                    "created_at": pd.Timestamp.now().isoformat()
+                }
+                
+                # Apply VACUUM Valid
+                valid_report = VacuumNode.validate_record(record, ["tenant_id", "content"], {"tenant_id": str, "content": str})
+                if valid_report.is_valid:
+                    processed_records.append(record)
 
-            # Data Quality Gates (Phase 0111, 0112, 0113)
-            if trip_distance <= 0 or fare_amount < 2.50:
-                logging.info(f"Filtering invalid record: {element}")
-                return
+    df = pd.DataFrame(processed_records)
+    parquet_path = "gold_business_context.parquet"
+    df.to_parquet(parquet_path, index=False)
+    print(f"PASS: Created local Parquet with {len(df)} records.")
 
-            # Outlier Detection (Phase 0114)
-            if trip_distance > 100 or fare_amount > 500:
-                logging.warning(f"Filtering outlier: {element}")
-                return
-
-            yield {
-                "vendor_id": vendor_id,
-                "pickup_datetime": element[1],
-                "dropoff_datetime": element[2],
-                "passenger_count": int(element[3]),
-                "trip_distance": trip_distance,
-                "fare_amount": fare_amount
-            }
-        except (ValueError, IndexError) as e:
-            logging.error(f"Error processing element {element}: {str(e)}")
-
-def run_etl(input_path, output_path):
-    options = PipelineOptions()
-    with beam.Pipeline(options=options) as p:
-        (
-            p 
-            | "Read CSV" >> beam.io.ReadFromText(input_path, skip_header_lines=1)
-            | "Parse CSV" >> beam.Map(lambda line: line.split(","))
-            | "Apply VACUUM" >> beam.ParDo(VacuumLogic())
-            | "Write Parquet" >> beam.io.WriteToParquet(
-                output_path,
-                pyarrow_schema=None, # Schema discovery enabled
-                file_name_suffix=".parquet"
-            )
-        )
+    # Upload to GCS (Gold Bucket)
+    try:
+        storage_client = storage.Client(project=cfg.GCP_PROJECT_ID)
+        bucket = storage_client.bucket(cfg.GCS_GOLD_BUCKET)
+        blob = bucket.blob(f"context/gold_{pd.Timestamp.now().strftime('%Y%m%d')}.parquet")
+        blob.upload_from_filename(parquet_path)
+        print(f"PASS: Uploaded Gold Parquet to gs://{cfg.GCS_GOLD_BUCKET}/{blob.name}")
+    except Exception as e:
+        print(f"FAIL: GCS Upload failed: {e}")
 
 if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True)
-    parser.add_argument("--output", required=True)
-    args = parser.parse_args()
-    
-    logging.getLogger().setLevel(logging.INFO)
-    run_etl(args.input, args.output)
+    raw_to_gold_etl()
