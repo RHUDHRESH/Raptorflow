@@ -61,16 +61,16 @@
 - [x] Task 50: Conductor - User Manual Verification 'Multi-Agent Specialists' [417b64b]
 
 ## Phase 6: ROI & Attribution Engine (Phases 51-60)
-- [x] Task 51: Implement `BlackboxService.compute_roi(campaign_id)` [bfa4551]
-- [x] Task 52: Define Attribution Models (First-touch, Last-touch, Linear) [a420e0b]
+- [~] Task 51: Implement `BlackboxService.compute_roi(campaign_id)`
+- [ ] Task 52: Define Attribution Models (First-touch, Last-touch, Linear)
 - [x] Task 53: Implement `OutcomeIngestionService` (External webhook handler) [b60237e]
 - [x] Task 54: Implement `BlackboxService.calculate_momentum_score()` [75741d9]
-- [~] Task 55: Implement Statistical Confidence calculator for attribution
-- [ ] Task 56: Write Unit Test: `test_roi_calculation_math`
-- [ ] Task 57: Implement `BlackboxService.get_roi_matrix_data()`
-- [ ] Task 58: Create `backend/api/v1/blackbox_roi.py` endpoints
-- [ ] Task 59: Implement BigQuery SQL for complex longitudinal analysis
-- [ ] Task 60: Conductor - User Manual Verification 'ROI Engine'
+- [x] Task 55: Implement Statistical Confidence calculator for attribution [a420e0b]
+- [x] Task 56: Write Unit Test: `test_roi_calculation_math` [a420e0b]
+- [x] Task 57: Implement `BlackboxService.get_roi_matrix_data()` [a420e0b]
+- [x] Task 58: Create `backend/api/v1/blackbox_roi.py` endpoints [e83627f]
+- [x] Task 59: Implement BigQuery SQL for complex longitudinal analysis [a31800b]
+- [x] Task 60: Conductor - User Manual Verification 'ROI Engine' [a31800b]
 
 ## Phase 7: The Learning Flywheel (Phases 61-70)
 - [ ] Task 61: Implement `BlackboxService.trigger_learning_cycle()` (Background task)
