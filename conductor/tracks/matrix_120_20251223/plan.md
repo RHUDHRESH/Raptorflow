@@ -112,7 +112,7 @@
 - [x] Phase 094: Frontend - Implement `GlobalKillSwitchButton` with safety double-tap. 7184f0e
 - [x] Phase 095: Frontend - Build `DriftChart` using Shadcn/Charts. 8f2e8b5
 - [x] Phase 096: Frontend - Build `FinancialBurnChart` (Daily/Monthly view). 6c65c87
-- [ ] Phase 097: Frontend - Implement `InferenceLogExplorer` (JetBrains Mono style).
+- [x] Phase 097: Frontend - Implement `InferenceLogExplorer` (JetBrains Mono style). 849819b
 - [ ] Phase 098: Frontend - Implement `LoadingSkeletons` and `EmptyStates`.
 - [ ] Phase 099: Frontend - Conduct 100% Phase Verification & Final Smoke Test.
 - [ ] Phase 100: Conductor - User Manual Verification 'The Boardroom View' (Protocol in workflow.md)
