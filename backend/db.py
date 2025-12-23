@@ -252,7 +252,7 @@ async def save_campaign(
             if campaign_id:
                 query = """
                     UPDATE campaigns
-                    SET title = %s, objective = %s, status = %s, arc_data = %s, kpi_targets = %s, updated_at = now()
+                    SET title = %s, objective = %s, status = %s, arc_data = %s, kpi_targets = %s, audit_data = %s, updated_at = now()
                     WHERE id = %s AND tenant_id = %s
                     RETURNING id;
                 """
@@ -264,14 +264,15 @@ async def save_campaign(
                         campaign_data.get("status", "draft"),
                         psycopg.types.json.Jsonb(campaign_data.get("arc_data", {})),
                         psycopg.types.json.Jsonb(campaign_data.get("kpi_targets", {})),
+                        psycopg.types.json.Jsonb(campaign_data.get("audit_data", {})),
                         campaign_id,
                         tenant_id,
                     ),
                 )
             else:
                 query = """
-                    INSERT INTO campaigns (tenant_id, title, objective, status, arc_data, kpi_targets)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    INSERT INTO campaigns (tenant_id, title, objective, status, arc_data, kpi_targets, audit_data)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                     RETURNING id;
                 """
                 await cur.execute(
@@ -283,6 +284,7 @@ async def save_campaign(
                         campaign_data.get("status", "draft"),
                         psycopg.types.json.Jsonb(campaign_data.get("arc_data", {})),
                         psycopg.types.json.Jsonb(campaign_data.get("kpi_targets", {})),
+                        psycopg.types.json.Jsonb(campaign_data.get("audit_data", {})),
                     ),
                 )
             result = await cur.fetchone()

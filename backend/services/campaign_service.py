@@ -47,16 +47,20 @@ class CampaignService:
                 if not row:
                     return None
 
-                # Assuming table order matches model. If not, map explicitly.
-                # Simplified mapping for now
+                # Assuming table order: id, tenant_id, title, objective, status, progress, start_date, end_date, created_at, updated_at, arc_data, kpi_targets, audit_data
+                # In production, we should map by column name.
                 return Campaign(
                     id=row[0],
                     tenant_id=row[1],
                     title=row[2],
                     objective=row[3],
                     status=row[4],
+                    progress=row[5] or 0.0,
                     start_date=row[6],
                     end_date=row[7],
+                    arc_data=row[10],
+                    kpi_targets=row[11],
+                    audit_data=row[12]
                 )
 
     async def generate_90_day_arc(self, campaign_id: str) -> Optional[dict]:

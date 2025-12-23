@@ -28,6 +28,11 @@ class Campaign(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
+    # SOTA Data Blobs
+    arc_data: Optional[dict] = None
+    kpi_targets: Optional[dict] = None
+    audit_data: Optional[dict] = None
+
     model_config = ConfigDict(from_attributes=True)
 
 

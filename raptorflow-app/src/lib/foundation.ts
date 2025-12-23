@@ -31,6 +31,17 @@ export type ToolOption = 'none' | 'sheets' | 'notion' | 'hubspot' | 'zoho' | 'pi
 export type ProofType = 'testimonials' | 'case-study' | 'metrics' | 'logos' | 'none';
 export type VoicePreference = 'calm-premium' | 'direct-punchy' | 'friendly-warm' | 'technical-precise' | 'bold-contrarian';
 
+// NEW: Trigger event types
+export type TriggerEvent =
+  | 'hiring-surge' | 'funding-round' | 'missed-target' | 'compliance-change'
+  | 'competitor-threat' | 'tech-migration' | 'team-expansion' | 'churn-spike'
+  | 'reorg' | 'new-leadership' | 'budget-approval' | 'seasonal-peak';
+
+// NEW: Alternative/competitor types
+export type AlternativeType =
+  | 'spreadsheets' | 'notion' | 'hubspot' | 'marketo' | 'agencies'
+  | 'freelancers' | 'zapier-glue' | 'internal-team' | 'nothing';
+
 // ==========================================
 // Section Data Interfaces
 // ==========================================
