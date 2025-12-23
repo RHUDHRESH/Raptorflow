@@ -94,8 +94,8 @@
 
 #### Block G: API, Security & Governance (Phases 81-90)
 - [x] Phase 081: Backend - Create `api/v1/matrix.py` FastAPI router. 426c735
-- [ ] Phase 082: Backend - Implement `GET /overview` (Aggregated health dashboard).
-- [x] Phase 083: Backend - Implement `POST /kill-switch` with audit logging. [2457dc7]
+- [x] Phase 082: Backend - Implement `GET /overview` (Aggregated health dashboard). ac1ac25
+- [ ] Phase 083: Backend - Implement `POST /kill-switch` with audit logging.
 - [x] Phase 084: Backend - Implement `GET /mlops/drift` (Detailed statistical report). [2457dc7]
 - [x] Phase 085: Backend - Implement `GET /governance/burn` (Financial data). [2457dc7]
 - [ ] Phase 086: Backend - Implement `PII_Redactor` utility for all telemetry logs. (Deferred)
