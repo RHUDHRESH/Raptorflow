@@ -4,8 +4,8 @@
 - [x] Task 1: Create `backend/models/blackbox.py` (Pydantic schemas for Telemetry, Outcomes, Learnings) [0a557c0]
 - [~] Task 2: Define SQL Migration for `blackbox_telemetry` (ID, move_id, agent_id, trace, tokens, latency, timestamp)
 - [ ] Task 3: Define SQL Migration for `blackbox_outcomes` (ID, source, value, confidence, timestamp)
-- [ ] Task 4: Define SQL Migration for `blackbox_learnings` (ID, content, embedding, source_ids, type)
-- [ ] Task 5: Setup BigQuery Dataset `raptorflow_analytics` and table `telemetry_stream`
+- [x] Task 4: Define SQL Migration for `blackbox_learnings` (ID, content, embedding, source_ids, type) [c66ca91]
+- [x] Task 5: Setup BigQuery Dataset `raptorflow_analytics` and table `telemetry_stream` [f5362dd]
 - [ ] Task 6: Configure GCP Secret Manager for Blackbox (API Keys for Search, Scrape)
 - [ ] Task 7: Initialize `backend/services/blackbox_service.py` skeleton
 - [ ] Task 8: Configure Upstash Redis client in `backend/core/cache.py` for Blackbox
