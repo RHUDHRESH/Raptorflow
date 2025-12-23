@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SystemStatusHeader } from "@/components/matrix/SystemStatusHeader";
 import { AgentPoolList } from "@/components/matrix/AgentPoolList";
+import { GlobalKillSwitch } from "@/components/matrix/GlobalKillSwitch";
 import { Activity, Zap, Shield, AlertTriangle } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -25,10 +26,7 @@ export default function MatrixPage() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="destructive" className="h-11 rounded-xl px-6 font-medium">
-            <Zap className="mr-2 h-4 w-4" />
-            Global Kill-Switch
-          </Button>
+          <GlobalKillSwitch />
         </div>
       </div>
 
