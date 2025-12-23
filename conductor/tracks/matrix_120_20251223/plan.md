@@ -12,7 +12,7 @@
 - [x] Phase 009: Backend - Implement centralized `serving.py` for logging model inference metadata. d0f3e1f
 - [x] Phase 010: Conductor - User Manual Verification 'Foundation & Core Telemetry' (Protocol in workflow.md)
 
-#### Block B: Osipov Data Engineering - The Gold Zone (Phases 11-20)
+#### Block B: Osipov Data Engineering - The Gold Zone (Phases 11-20) [checkpoint: aab7e9d]
 - [x] Phase 011: Backend - Configure GCS `raptorflow-gold-zone` bucket for Parquet storage. 8d2409f
 - [x] Phase 012: Backend - Implement `ParquetExporter` using `pyarrow` for telemetry archival. 2a6a5e9
 - [x] Phase 013: Backend - Write Red Phase tests for `ParquetExporter.export_batch()`. 8f5a739
@@ -22,7 +22,7 @@
 - [x] Phase 017: Backend - Write Red Phase tests for `BigQueryMatrixLoader.sync_partition()`. 5636db5
 - [x] Phase 018: Backend - Implement BigQuery views for longitudinal performance analysis. 51f7178
 - [x] Phase 019: Backend - Implement `StorageEfficiencyAuditor` (Osipov's cost tracking pattern). 1b1b7bb
-- [~] Phase 020: Conductor - User Manual Verification 'Osipov Data Engineering' (Protocol in workflow.md)
+- [x] Phase 020: Conductor - User Manual Verification 'Osipov Data Engineering' (Protocol in workflow.md)
 
 #### Block C: Taulli Agentic Spine & Supervisor Pattern (Phases 21-35)
 - [ ] Phase 021: Backend - Implement `MatrixSupervisorAgent` using LangGraph.
