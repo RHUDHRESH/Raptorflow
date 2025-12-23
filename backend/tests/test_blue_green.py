@@ -13,7 +13,7 @@ def test_workflow_has_blue_green_logic():
     found_traffic_mgmt = False
     for step in steps:
         if "deploy-cloudrun" in step.get("uses", ""):
-            if step.get("with", {}).get("no_traffic") == True:
+            if step.get("with", {}).get("no_traffic") is True:
                 found_traffic_mgmt = True
         if "gcloud run services update-traffic" in step.get("run", ""):
             found_traffic_mgmt = True

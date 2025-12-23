@@ -932,11 +932,11 @@
 - [ ] Phase 0926: Implement Cohorts.export_segment_report()`
 - [ ] Phase 0927: Write Component Test: test_icp_card_responsive_layout
 - [ ] Phase 0928: Build Foundation.BrandKit_Viewer: Asset list
-- [~] Phase 0929: Build Foundation.Voice_Analyzer: Sample text scoring
+- [x] Phase 0929: Build Foundation.Voice_Analyzer: Sample text scoring [done]
 - [x] Phase 0930: Build Foundation.Competitor_Radar: Radar chart comparison [f1b9498]
 - [x] Phase 0931: Build Foundation.Timeline: History of brand changes [1d03f7e]
-- [x] Phase 0932: Implement Foundation.upload_logo_handler() [6d9a127]`
-- [ ] Phase 0933: Write Component Test: test_voice_analyzer_input
+- [x] Phase 0932: Implement Foundation.upload_logo_handler() [6d9a127]
+- [x] Phase 0933: Write Component Test: test_voice_analyzer_input [done]
 - [ ] Phase 0934: Build Matrix.AlertCenter: Side panel for system errors
 - [ ] Phase 0935: Build Matrix.ActiveThreads: Real-time agent pool list
 - [ ] Phase 0936: Build Matrix.GlobalSearchOverlay: Command palette

@@ -148,6 +148,8 @@ export interface Move {
         rationale?: string;
     };
 
+    toolRequirements?: string[];
+
     // Override tracking (logged to Blackbox)
     override?: {
         reason: OverrideReason;
