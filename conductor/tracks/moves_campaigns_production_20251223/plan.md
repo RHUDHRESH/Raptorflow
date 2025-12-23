@@ -24,7 +24,7 @@
 - [x] 19. Task: Verify data quality scores (>95% valid records)
 - [x] 20. Task: Conductor - User Manual Verification 'Data Ingestion & VACUUM Engine' (Protocol in workflow.md)
 
-## Phase 3: Cognitive Spine - LangGraph Foundation (Tasks 21-30)
+## Phase 3: Cognitive Spine - LangGraph Foundation (Tasks 21-30) [checkpoint: 3d27320]
 - [x] 21. Task: Define `State` schema for the Moves & Campaigns orchestrator
 - [x] 22. Task: Implement LangGraph `SqliteSaver` for local persistence
 - [x] 23. Task: Write failing tests for Graph state transitions and cycle handling
