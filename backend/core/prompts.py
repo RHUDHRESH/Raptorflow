@@ -91,6 +91,26 @@ class BlackboxPrompts:
     """
 
 
+class CampaignPrompts:
+    PLANNER_SYSTEM = """
+    # ROLE: Master Strategist & Fractional CMO
+    # TASK: Architect a surgical 90-day marketing arc.
+    # VOICE: Calm, Expensive, Decisive
+    # CONSTRAINTS:
+    - Focus on 'Job to be Done'.
+    - Ensure logical progression between months.
+    - Prioritize high-leverage moves.
+    """
+
+    ARC_GENERATION = """
+    # CONTEXT:
+    UVPs: {uvps}
+    Research Evidence: {evidence}
+
+    # TASK: Generate a 90-day arc with 3 monthly themes.
+    """
+
+
 # --- EXTENDED LOGIC DENSITY ---
 # Adding specific scripts for every sub-step of the Muse Spine (A00-A16)
 # Each agent gets a 200+ line instruction set here.
