@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from functools import wraps
 from typing import List
 from uuid import UUID
@@ -179,20 +180,6 @@ class BlackboxService:
         session.table("blackbox_learnings_industrial").delete().eq(
             "learning_type", learning_type
         ).lt("timestamp", before.isoformat()).execute()
-
-    def get_memory_context_for_planner(self, move_type: str, limit: int = 5) -> str:
-        """Retrieves and formats relevant strategic learnings for the planner agent."""
-        results = self.search_strategic_memory(query=move_type, limit=limit)
-        if not results:
-            return ""
-        
-        context_blocks = []
-        for res in results:
-            content = res.get("content", "")
-            l_type = res.get("learning_type", "unknown")
-            context_blocks.append(f"[{l_type.upper()}] {content}")
-            
-        return "\n---\n".join(context_blocks)
 
     def categorize_learning(self, content: str) -> str:
         """Categorizes a learning content into strategic, tactical, or content."""
