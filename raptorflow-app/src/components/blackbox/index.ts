@@ -11,3 +11,4 @@ export * from './ExperimentDetail';
 export * from './BoardroomView';
 export * from './TelemetryFeed';
 export * from './EvidenceLog';
+export * from './AgentAuditLog';
