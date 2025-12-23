@@ -110,7 +110,7 @@
 - [x] Phase 092: Frontend - Implement `SystemStatusHeader` (RAG status indicator). 925a893
 - [x] Phase 093: Frontend - Implement `AgentPoolList` (Real-time active threads). e7e5633
 - [x] Phase 094: Frontend - Implement `GlobalKillSwitchButton` with safety double-tap. 7184f0e
-- [ ] Phase 095: Frontend - Build `DriftChart` using Shadcn/Charts.
+- [x] Phase 095: Frontend - Build `DriftChart` using Shadcn/Charts. 8f2e8b5
 - [ ] Phase 096: Frontend - Build `FinancialBurnChart` (Daily/Monthly view).
 - [ ] Phase 097: Frontend - Implement `InferenceLogExplorer` (JetBrains Mono style).
 - [ ] Phase 098: Frontend - Implement `LoadingSkeletons` and `EmptyStates`.
