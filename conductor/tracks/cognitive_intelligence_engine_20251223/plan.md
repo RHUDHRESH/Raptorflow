@@ -15,14 +15,14 @@
 ## Phase 2: Data Fabric & Cognitive Memory Layer (Phases 11-20)
 - [x] Phase 11: Design and Implement Supabase Schema for Brand/Positioning data. [f421da1]
 - [x] Phase 12: Build Vector Ingestion Pipeline for external data (PDF/URL). [41924db]
-- [~] Phase 13: Implement Semantic Memory Retrieval logic with pgvector.
-- [ ] Phase 14: Develop Episodic Memory system for tracking user interactions.
-- [ ] Phase 15: Integrate Procedural Memory for storing agent-tool usage patterns.
-- [ ] Phase 16: Setup Firecrawl/Jina integration for raw web data ingestion.
-- [ ] Phase 17: Build Data Validation Layer for incoming research artifacts.
-- [ ] Phase 18: Implement Rate Limiting and Cost Governing for Memory retrieval.
-- [ ] Phase 19: Optimize Memory Indexing for low-latency agent access.
-- [ ] Phase 20: Task: Conductor - User Manual Verification 'Data & Memory' (Protocol in workflow.md)
+- [x] Phase 13: Implement Semantic Memory Retrieval logic with pgvector. [92268e6]
+- [x] Phase 14: Develop Episodic Memory system for tracking user interactions. [b1638cf]
+- [x] Phase 15: Integrate Procedural Memory for storing agent-tool usage patterns. [b1638cf]
+- [x] Phase 16: Setup Firecrawl/Jina integration for raw web data ingestion. [b1638cf]
+- [x] Phase 17: Build Data Validation Layer for incoming research artifacts. [b1638cf]
+- [x] Phase 18: Implement Rate Limiting and Cost Governing for Memory retrieval. [b1638cf]
+- [x] Phase 19: Optimize Memory Indexing for low-latency agent access. [b1638cf]
+- [~] Phase 20: Task: Conductor - User Manual Verification 'Data & Memory' (Protocol in workflow.md)
 
 ## Phase 3: Core LangGraph "Cognitive Spine" Framework (Phases 21-30)
 - [ ] Phase 21: Define Global State Schema for the LangGraph workflow.
