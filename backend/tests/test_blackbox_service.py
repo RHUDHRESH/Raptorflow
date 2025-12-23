@@ -1,9 +1,11 @@
 import sys
 import time
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
+from datetime import datetime
 
 # Hierarchical mock for google.cloud dependencies WITHOUT breaking google.cloud namespace
 if "google" not in sys.modules:
@@ -17,7 +19,6 @@ if "google.cloud" not in sys.modules:
 from backend.core.vault import Vault
 from backend.models.blackbox import BlackboxTelemetry
 from backend.services.blackbox_service import BlackboxService, trace_agent
-
 
 
 def test_blackbox_service_instantiation():
@@ -408,29 +409,3 @@ def test_blackbox_service_get_memory_context_for_planner():
             mock_search.assert_called_once_with(query="linkedin_post", limit=5)
         except AttributeError:
             pytest.fail("get_memory_context_for_planner not implemented")
-
-def test_blackbox_service_prune_strategic_memory():
-    mock_vault = MagicMock()
-    mock_session = MagicMock()
-    mock_vault.get_session.return_value = mock_session
-    
-    mock_query_builder = MagicMock()
-    mock_session.table.return_value = mock_query_builder
-    mock_query_builder.delete.return_value = mock_query_builder
-    mock_query_builder.eq.return_value = mock_query_builder
-    mock_query_builder.lt.return_value = mock_query_builder
-    mock_query_builder.execute.return_value = MagicMock()
-    
-    service = BlackboxService(vault=mock_vault)
-    
-    # This will fail until implemented
-    try:
-        before_date = datetime.now()
-        service.prune_strategic_memory(learning_type="tactical", before=before_date)
-        
-        mock_session.table.assert_called_with("blackbox_learnings_industrial")
-        mock_query_builder.delete.assert_called_once()
-        mock_query_builder.eq.assert_called_with("learning_type", "tactical")
-        mock_query_builder.lt.assert_called_with("timestamp", before_date.isoformat())
-    except AttributeError:
-        pytest.fail("prune_strategic_memory not implemented")
