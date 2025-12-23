@@ -1,7 +1,11 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from backend.core.exceptions import RaptorFlowError
-from backend.core.middleware import CorrelationIDMiddleware, RequestLoggingMiddleware
+from backend.core.middleware import (
+    CorrelationIDMiddleware, 
+    RequestLoggingMiddleware, 
+    RateLimitMiddleware
+)
 from backend.api.v1.foundation import router as foundation_router
 from backend.api.v1.blackbox_telemetry import router as blackbox_telemetry_router
 from backend.api.v1.blackbox_memory import router as blackbox_memory_router
@@ -12,7 +16,10 @@ from backend.api.v1.matrix import router as matrix_router
 
 app = FastAPI(title="RaptorFlow Agentic Spine")
 
-# ... existing middleware ...
+# Middleware registration
+app.add_middleware(RateLimitMiddleware, limit=60, window=60) # 1 request per second avg
+app.add_middleware(CorrelationIDMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
 
 app.include_router(foundation_router)
 app.include_router(blackbox_telemetry_router)
@@ -35,7 +42,3 @@ async def raptorflow_exception_handler(request: Request, exc: RaptorFlowError):
 async def health_check():
     """System-wide health check."""
     return {"status": "healthy", "version": "1.0.0", "engine": "RaptorFlow 3000"}
-
-
-# API Versioning: /v1 prefix logic would usually be handled via routers
-# For now, we initialize the main app.

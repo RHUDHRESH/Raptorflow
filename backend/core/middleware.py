@@ -2,16 +2,46 @@ import time
 import uuid
 import contextvars
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import Request
+from fastapi import Request, HTTPException
 from backend.utils.logger import logger
 from backend.models.telemetry import TelemetryEvent, TelemetryEventType
+from collections import defaultdict
 
-# Context variable to store trace ID synchronously
-_trace_id_ctx_var: contextvars.ContextVar[str] = contextvars.ContextVar("trace_id", default="")
+# Simple memory-based rate limiter (Task 91)
+_rate_limit_store = defaultdict(list)
 
-def get_current_trace_id() -> str:
-    """Returns the current trace ID from the context."""
-    return _trace_id_ctx_var.get()
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    """
+    Industrial-grade rate limiting middleware.
+    Limits requests based on client IP to prevent API abuse.
+    """
+    def __init__(self, app, limit: int = 100, window: int = 60):
+        super().__init__(app)
+        self.limit = limit
+        self.window = window
+
+    async def dispatch(self, request: Request, call_next):
+        client_ip = request.client.host if request.client else "unknown"
+        now = time.time()
+        
+        # Only rate limit Blackbox API endpoints
+        if "/v1/blackbox/" in request.url.path:
+            # Cleanup old requests
+            _rate_limit_store[client_ip] = [
+                t for t in _rate_limit_store[client_ip] if now - t < self.window
+            ]
+            
+            if len(_rate_limit_store[client_ip]) >= self.limit:
+                logger.warning(f"Rate limit exceeded for IP: {client_ip}")
+                from fastapi.responses import JSONResponse
+                return JSONResponse(
+                    status_code=429,
+                    content={"error": "Too many requests. Please slow down.", "retry_after": self.window}
+                )
+            
+            _rate_limit_store[client_ip].append(now)
+            
+        return await call_next(request)
 
 class TraceIDMiddleware(BaseHTTPMiddleware):
     """
