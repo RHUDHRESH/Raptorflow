@@ -48,14 +48,13 @@ class CostGovernor:
     """
 
     PRICING = {
-        "gemini-1.5-pro": {"input": 0.00000125, "output": 0.00000375},
-        "gemini-1.5-flash": {"input": 0.000000075, "output": 0.0000003},
-        "gemini-2.0-flash": {"input": 0.0000001, "output": 0.0000004},  # Estimated
+        "gemini-2.0-flash": {"input": 0.0000001, "output": 0.0000004},
+        "gemini-2.0-flash-lite": {"input": 0.000000075, "output": 0.0000003},
         "gemini-2.5-flash-lite": {
             "input": 0.000000075,
             "output": 0.0000003,
-        },  # Estimated
-        "gemini-2.5-flash": {"input": 0.0000001, "output": 0.0000004},  # Estimated
+        },
+        "gemini-2.5-flash": {"input": 0.0000001, "output": 0.0000004},
         "default": {"input": 0.000001, "output": 0.000002},
     }
 

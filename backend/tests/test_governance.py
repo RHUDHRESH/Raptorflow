@@ -31,7 +31,7 @@ async def test_cost_governor_tracking():
     mock_cache.incrby = AsyncMock()
 
     governor = CostGovernor(cache=mock_cache)
-    await governor.log_cost("test-tenant", tokens=1000, model="gemini-1.5-pro")
+    await governor.log_cost("test-tenant", tokens=1000, model="gemini-2.5-flash")
 
     mock_cache.incrby.assert_called()
     # Check if key contains tenant and cost type
