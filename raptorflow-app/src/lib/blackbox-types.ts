@@ -25,7 +25,7 @@ export type ExperimentStatus = "draft" | "generated" | "launched" | "checked_in"
 
 export type BehavioralPrinciple =
     | "friction"           // Friction Killers
-    | "identity"           // Identity & Status  
+    | "identity"           // Identity & Status
     | "loss_aversion"      // Loss Aversion / Regret
     | "social_proof"       // Social Proof & Herd
     | "pattern_interrupt"  // Surprise / Pattern interrupt
@@ -91,7 +91,10 @@ export interface SkillPreset {
 }
 
 export interface LearningArtifact {
+    id: string;
     summary: string;
+    content?: string;
+    learning_type?: 'strategic' | 'tactical';
     skill_weight_deltas: SkillWeightDelta[];
     suggested_preset?: SkillPreset;
 }

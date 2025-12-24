@@ -20,10 +20,9 @@ export function getInferenceConfig(): InferenceConfig {
   const apiKey = process.env.INFERENCE_SIMPLE || process.env.NEXT_PUBLIC_INFERENCE_SIMPLE;
 
   if (!apiKey) {
-    console.error("CRITICAL: INFERENCE_SIMPLE (Vertex API Key) is missing.");
-    // We don't throw immediately to allow the UI to show a nice error boundary later
+    console.warn("WARNING: INFERENCE_SIMPLE (Vertex API Key) is missing. Using mock/bypass mode.");
     return {
-      apiKey: "",
+      apiKey: "missing-key-bypass", // Provide a dummy key to prevent downstream crashes
       provider: "vertex",
       region: process.env.NEXT_PUBLIC_GCP_REGION || "europe-west1",
       projectId: process.env.NEXT_PUBLIC_GCP_PROJECT_ID,

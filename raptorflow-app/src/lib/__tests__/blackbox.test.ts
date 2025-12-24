@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 // Mock supabase module
 vi.mock("../supabase", () => ({
@@ -47,7 +47,7 @@ describe("Blackbox API Integration", () => {
       Promise.resolve({
         json: () => Promise.resolve({ status: 'success' })
       })
-    ) as any;
+    ) as unknown as typeof fetch;
 
     const result = await triggerLearningCycle("test-move-id");
     expect(result.status).toBe('success');
@@ -59,7 +59,7 @@ describe("Blackbox API Integration", () => {
       Promise.resolve({
         json: () => Promise.resolve({ status: 'success' })
       })
-    ) as any;
+    ) as unknown as typeof fetch;
 
     const result = await runSpecialistAgent("roi_analyst", "test-move-id");
     expect(result.status).toBe('success');

@@ -2,12 +2,10 @@ import { VertexAIEmbeddings } from "@langchain/google-vertexai";
 import { createClient } from "@supabase/supabase-js";
 import { DynamicTool } from "@langchain/core/tools";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy-key';
 
-const supabase = (supabaseUrl && supabaseKey) 
-    ? createClient(supabaseUrl, supabaseKey)
-    : { rpc: () => Promise.resolve({ data: [], error: null }) } as any;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const embeddings = new VertexAIEmbeddings({
     model: "text-embedding-004"
@@ -16,10 +14,10 @@ const embeddings = new VertexAIEmbeddings({
 export async function searchMuseAssets(query: string, limit = 5) {
     try {
         const vector = await embeddings.embedQuery(query);
-        
+
         const { data, error } = await supabase.rpc('match_muse_assets', {
             query_embedding: vector,
-            match_threshold: 0.7, 
+            match_threshold: 0.7,
             match_count: limit
         });
 
@@ -28,7 +26,7 @@ export async function searchMuseAssets(query: string, limit = 5) {
             return [];
         }
 
-        return data.map((d: any) => d.content).join("\n\n");
+        return (data as { content: string }[]).map((d) => d.content).join("\n\n");
     } catch (e) {
         console.error("Embedding Error:", e);
         return "";

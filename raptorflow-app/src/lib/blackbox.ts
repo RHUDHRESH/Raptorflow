@@ -46,50 +46,141 @@ export function clearBlackboxState(): void {
 }
 
 // =====================================
-// Helper CRUD Operations
+// Experiment CRUD (Supabase)
 // =====================================
 
-export function addExperiment(experiment: Experiment): void {
-    const state = loadBlackboxState();
-    state.experiments = [experiment, ...state.experiments];
-    saveBlackboxState(state);
+async function getTenantId(): Promise<string> {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        return user?.id || '00000000-0000-0000-0000-000000000000';
+    } catch {
+        return '00000000-0000-0000-0000-000000000000';
+    }
 }
 
-export function updateExperiment(experiment: Experiment): void {
-    const state = loadBlackboxState();
-    state.experiments = state.experiments.map(e => e.id === experiment.id ? experiment : e);
-    saveBlackboxState(state);
+export async function getExperimentsDB(): Promise<Experiment[]> {
+    const tenantId = await getTenantId();
+    const { data, error } = await supabase
+        .from('experiments')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .order('created_at', { ascending: false });
+// ...
+export async function createExperimentDB(experiment: Experiment): Promise<void> {
+    const tenantId = await getTenantId();
+    const dbExp = { ...mapFrontendExperimentToDB(experiment), tenant_id: tenantId };
+    const { error } = await supabase
+        .from('experiments')
+        .insert(dbExp);
+// ...
+
+    if (error) {
+        console.error('Error creating experiment:', error);
+        throw error;
+    }
 }
 
-export function getExperiments(): Experiment[] {
-    return loadBlackboxState().experiments;
+export async function updateExperimentDB(experiment: Experiment): Promise<void> {
+    const dbExp = mapFrontendExperimentToDB(experiment);
+    const { error } = await supabase
+        .from('experiments')
+        .update(dbExp)
+        .eq('id', experiment.id);
+
+    if (error) {
+        console.error('Error updating experiment:', error);
+        throw error;
+    }
 }
 
-export function addLearning(learning: LearningArtifact): void {
-    const state = loadBlackboxState();
-    state.learnings = [learning, ...state.learnings];
+export async function deleteExperimentDB(id: string): Promise<void> {
+    const { error } = await supabase
+        .from('experiments')
+        .delete()
+        .eq('id', id);
 
-    // Also apply skill weight updates
-    learning.skill_weight_deltas.forEach(delta => {
-        const current = state.skill_weights[delta.skill_id] || 0.5;
-        state.skill_weights[delta.skill_id] = Math.max(0, Math.min(1, current + delta.delta));
-    });
-
-    saveBlackboxState(state);
+    if (error) {
+        console.error('Error deleting experiment:', error);
+        throw error;
+    }
 }
 
-export function getLearnings(): LearningArtifact[] {
-    return loadBlackboxState().learnings;
+function mapDBExperimentToFrontend(db: any): Experiment {
+    return {
+        id: db.id,
+        goal: db.goal,
+        risk_level: db.risk_level,
+        channel: db.channel,
+        title: db.title,
+        bet: db.bet,
+        why: db.why || '',
+        principle: db.principle,
+        effort: db.effort || '30m',
+        time_to_signal: db.time_to_signal || '48h',
+        skill_stack: [], // Not stored in flat table for now
+        asset_ids: db.asset_ids || [],
+        status: db.status,
+        created_at: db.created_at,
+        launched_at: db.launched_at,
+        self_report: db.self_report
+    };
 }
 
-export function getSkillWeights(): Record<string, number> {
-    return loadBlackboxState().skill_weights;
+function mapFrontendExperimentToDB(e: Experiment): any {
+    return {
+        id: e.id,
+        goal: e.goal,
+        risk_level: e.risk_level,
+        channel: e.channel,
+        title: e.title,
+        bet: e.bet,
+        why: e.why,
+        principle: e.principle,
+        effort: e.effort,
+        time_to_signal: e.time_to_signal,
+        status: e.status,
+        launched_at: e.launched_at,
+        self_report: e.self_report,
+        asset_ids: e.asset_ids
+    };
 }
 
 // =====================================
-// Backend Integration (Supabase)
+// Backend Persistence (Supabase)
 // =====================================
-import { supabase } from './supabase';
+
+
+export async function saveOutcome(outcome: {
+    source: string,
+    value: number,
+    confidence: number,
+    campaign_id?: string,
+    move_id?: string
+}) {
+    const { error } = await supabase
+        .from('blackbox_outcomes_industrial')
+        .insert(outcome);
+
+    if (error) {
+        console.error('Error saving outcome:', error);
+        throw error;
+    }
+}
+
+export async function saveLearning(learning: {
+    content: string,
+    learning_type: 'tactical' | 'strategic' | 'content',
+    source_ids?: string[]
+}) {
+    const { error } = await supabase
+        .from('blackbox_learnings_industrial')
+        .insert(learning);
+
+    if (error) {
+        console.error('Error saving learning:', error);
+        throw error;
+    }
+}
 
 export async function getOutcomesByCampaign(campaignId: string) {
     const { data, error } = await supabase
@@ -176,11 +267,22 @@ export async function getLearningsByMove(moveId: string) {
 // Agentic Triggers (API)
 // =====================================
 
-const API_BASE = '/api/proxy/blackbox'; // Assumes Next.js rewrite or proxy
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+export async function getLearningFeed(limit: number = 10) {
+    try {
+        const response = await fetch(`${API_URL}/v1/blackbox/learning/feed?limit=${limit}`);
+        if (!response.ok) throw new Error('Failed to fetch learning feed');
+        return await response.json();
+    } catch (err) {
+        console.error('Error fetching learning feed:', err);
+        return [];
+    }
+}
 
 export async function triggerLearningCycle(moveId: string) {
     try {
-        const response = await fetch(`${API_BASE}/learning/cycle/${moveId}`, {
+        const response = await fetch(`${API_URL}/v1/blackbox/learning/cycle/${moveId}`, {
             method: 'POST'
         });
         return await response.json();
@@ -192,7 +294,7 @@ export async function triggerLearningCycle(moveId: string) {
 
 export async function runSpecialistAgent(agentId: string, moveId: string, stateOverride?: any) {
     try {
-        const response = await fetch(`${API_BASE}/specialist/run/${agentId}/${moveId}`, {
+        const response = await fetch(`${API_URL}/v1/blackbox/specialist/run/${agentId}/${moveId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(stateOverride || {})

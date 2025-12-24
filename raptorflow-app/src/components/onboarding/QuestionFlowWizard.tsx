@@ -6,7 +6,7 @@ import {
     FoundationData,
     emptyFoundation,
     saveFoundation,
-    loadFoundation,
+    loadFoundationDB,
 } from '@/lib/foundation';
 import {
     QUESTIONS,
@@ -16,6 +16,7 @@ import {
     isFirstQuestionOfSection,
     getTotalQuestions,
 } from '@/lib/questionFlowData';
+import { triggerAgenticSynthesis } from '@/lib/icp-generator';
 import styles from './QuestionFlow.module.css';
 import { ReviewScreen } from './ReviewScreen';
 import { QuestionInput } from './QuestionInput';
@@ -23,6 +24,7 @@ import { ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ClarityScore } from './ClarityScore';
 import { useIcpStore } from '@/lib/icp-store';
+import { toast } from 'sonner';
 
 // =====================================
 // Types
@@ -53,34 +55,35 @@ export function QuestionFlowWizard() {
         section: null,
     });
     const [isShaking, setIsShaking] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [processingStatus, setProcessingStatus] = useState<string>('Initializing Synthesis...');
 
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Load saved data on mount
     useEffect(() => {
-        const saved = loadFoundation();
-        setData(saved);
-        const savedStep = saved.currentStep || 0;
+        const fetchInitialData = async () => {
+            const saved = await loadFoundationDB();
+            setData(saved);
+            const savedStep = saved.currentStep || 0;
 
-        // If already completed, redirect to dashboard
-        // User should start fresh or edit from settings if needed
-        if (saved.completedAt) {
-            router.push('/');
-            return;
-        }
+            // If already completed, redirect to dashboard
+            if (saved.completedAt) {
+                router.push('/');
+                return;
+            }
 
-        // Simple mapping won't work perfectly with conditions, better to just load index if possible
-        // For now, robustly default to 0 if mapping fails
-        const stepToQuestionMap: Record<number, number> = {
-            0: 0, 1: 5, 2: 10, 3: 15, 4: 20, 5: 0,
+            const stepToQuestionMap: Record<number, number> = {
+                0: 0, 1: 5, 2: 10, 3: 15, 4: 20, 5: 0,
+            };
+            setCurrentIndex(stepToQuestionMap[savedStep] || 0);
+            setIsLoaded(true);
+
+            if (saved.business?.name || savedStep > 0) {
+                setShowWelcome(false);
+            }
         };
-        // If we saved an exact question index, that would happen here, but we save section index.
-        setCurrentIndex(stepToQuestionMap[savedStep] || 0);
-        setIsLoaded(true);
-
-        if (saved.business?.name || savedStep > 0) {
-            setShowWelcome(false);
-        }
+        fetchInitialData();
     }, [router]);
 
     const jumpToSection = (sectionId: string) => {
@@ -223,18 +226,45 @@ export function QuestionFlowWizard() {
 
     const generateFromFoundation = useIcpStore(state => state.generateFromFoundation);
 
-    const handleComplete = useCallback(() => {
-        setShowCelebration(true);
+    const handleComplete = useCallback(async () => {
+        setIsProcessing(true);
+        setProcessingStatus('Architect is validating brand foundation...');
 
-        // Auto-generate ICPs from Foundation data
-        generateFromFoundation(data);
+        try {
+            // Trigger the multi-agent synthesis pipeline
+            const result = await triggerAgenticSynthesis(data);
 
-        setTimeout(() => {
+            setProcessingStatus('Prophet is projecting psychographic cohorts...');
+
+            // Sync generated ICPs to store
+            if (result.icps) {
+                // Update store with real AI-generated ICPs
+                useIcpStore.setState({
+                    icps: result.icps,
+                    activeIcpId: result.icps.find((i: any) => i.priority === 'primary')?.id || result.icps[0]?.id || null,
+                    lastGeneratedAt: new Date().toISOString()
+                });
+            }
+
+            setProcessingStatus('Strategist is drafting tactical moves...');
+            // Wait a moment for UX
+            await new Promise(r => setTimeout(r, 1500));
+
+            setShowCelebration(true);
             const completedData = { ...data, completedAt: new Date().toISOString(), currentStep: SECTIONS.length - 1 };
             saveFoundation(completedData);
-            router.push('/');
-        }, 3000);
-    }, [data, router, generateFromFoundation]);
+
+            setTimeout(() => {
+                router.push('/');
+            }, 3000);
+        } catch (error) {
+            console.error('Synthesis error:', error);
+            toast.error('Synthesis failed', {
+                description: 'We encountered an error processing your foundation. Please try again.'
+            });
+            setIsProcessing(false);
+        }
+    }, [data, router]);
 
 
 
@@ -328,6 +358,33 @@ export function QuestionFlowWizard() {
     }
 
     if (!isLoaded) return <div />;
+
+    if (isProcessing) {
+        return (
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 text-center">
+                <div className="relative mb-12">
+                    <div className="w-32 h-32 border-4 border-emerald-500/20 rounded-full animate-spin border-t-emerald-500" />
+                    <div className="absolute inset-0 flex items-center justify-center text-4xl">
+                        {processingStatus.includes('Architect') ? '📐' : processingStatus.includes('Prophet') ? '🔮' : '⚔️'}
+                    </div>
+                </div>
+                <h2 className="font-display text-4xl text-white mb-4 animate-pulse">
+                    {processingStatus}
+                </h2>
+                <p className="text-zinc-500 font-mono text-sm tracking-widest uppercase">
+                    RaptorFlow Synthesis Engine v2.0
+                </p>
+                <div className="mt-12 max-w-xs w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-emerald-500 transition-all duration-1000"
+                        style={{
+                            width: processingStatus.includes('Architect') ? '33%' : processingStatus.includes('Prophet') ? '66%' : '90%'
+                        }}
+                    />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.flowContainer}>
@@ -431,7 +488,18 @@ export function QuestionFlowWizard() {
                                 </div>
                                 <div className="flex gap-4 items-center">
                                     {!currentQuestion.required && !hasValue && (
-                                        <Button variant="ghost" onClick={goNext}>Skip</Button>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => {
+                                                toast('No problem! We\'ll make our best guess.', {
+                                                    description: 'You can refine this later in Settings.',
+                                                    duration: 3000,
+                                                });
+                                                goNext();
+                                            }}
+                                        >
+                                            Skip
+                                        </Button>
                                     )}
                                     <Button
                                         onClick={goNext}
@@ -456,5 +524,3 @@ export function QuestionFlowWizard() {
         </div>
     );
 }
-
-

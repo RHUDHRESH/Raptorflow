@@ -14,6 +14,12 @@ import {
     MoveGoal,
     ChannelType,
     MoveDuration,
+    DBCampaign,
+    DBMove,
+    MoveStatus,
+    CampaignStatus,
+    MoveSelfReport,
+    OverrideReason,
 } from './campaigns-types';
 
 // =====================================
@@ -197,12 +203,12 @@ export async function setActiveMove(moveId: string | null): Promise<void> {
 // Mappings (Frontend <-> DB)
 // =====================================
 
-function mapDBCampaignToFrontend(db: any): Campaign {
+function mapDBCampaignToFrontend(db: DBCampaign): Campaign {
     return {
         id: db.id,
         name: db.title,
         objective: db.objective as CampaignObjective,
-        status: db.status,
+        status: db.status as CampaignStatus,
         createdAt: db.created_at,
         startedAt: db.start_date,
         duration: 90,
@@ -216,7 +222,7 @@ function mapDBCampaignToFrontend(db: any): Campaign {
     };
 }
 
-function mapFrontendCampaignToDB(c: Campaign): any {
+function mapFrontendCampaignToDB(c: Campaign): Partial<DBCampaign> {
     return {
         id: c.id,
         tenant_id: '00000000-0000-0000-0000-000000000000',
@@ -228,32 +234,32 @@ function mapFrontendCampaignToDB(c: Campaign): any {
     };
 }
 
-function mapDBMoveToFrontend(db: any): Move {
+function mapDBMoveToFrontend(db: DBMove): Move {
     return {
         id: db.id,
         name: db.title,
         description: db.description,
-        owner: db.priority === 1 ? 'AI Agent' : 'Founder', // Simple heuristic
-        goal: 'distribution',
-        channel: 'linkedin',
-        duration: 7,
-        dailyEffort: 30,
-        status: db.status,
+        owner: db.priority === 1 ? 'AI Agent' : 'Founder',
+        goal: (db as any).goal || 'distribution',
+        channel: (db as any).channel || 'linkedin',
+        duration: (db as any).duration || 7,
+        dailyEffort: (db as any).daily_effort || 30,
+        status: db.status as MoveStatus,
         createdAt: db.created_at,
         campaignId: db.campaign_id,
-        checklist: [],
-        assetIds: [],
+        checklist: (db as any).checklist || [],
+        assetIds: (db as any).asset_ids || [],
         refinementData: db.refinement_data,
         toolRequirements: db.tool_requirements || [],
     };
 }
 
-function mapFrontendMoveToDB(m: Move): any {
+function mapFrontendMoveToDB(m: Move): Partial<DBMove> {
     return {
         id: m.id,
         campaign_id: m.campaignId,
         title: m.name,
-        description: m.outcomeTarget,
+        description: m.outcomeTarget || '',
         status: m.status,
         priority: 1,
     };
@@ -293,30 +299,30 @@ export function generateChecklistItemId(): string {
 }
 
 export function generateDefaultChecklist(
-    goal: MoveGoal,
-    channel: ChannelType,
-    duration: MoveDuration
+    _goal: MoveGoal,
+    _channel: ChannelType,
+    _duration: MoveDuration
 ): ChecklistItem[] {
     return [];
 }
 
-export async function triggerCampaignInference(campaignId: string): Promise<any> {
+export async function triggerCampaignInference(campaignId: string): Promise<Record<string, unknown> | null> {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const response = await fetch(`${apiUrl}/api/v1/campaigns/generate-arc/${campaignId}`, {
+    const response = await fetch(`${apiUrl}/v1/campaigns/generate-arc/${campaignId}`, {
         method: 'POST',
     });
     return response.ok ? await response.json() : null;
 }
 
-export async function getCampaignGantt(campaignId: string): Promise<any> {
+export async function getCampaignGantt(campaignId: string): Promise<Record<string, unknown> | null> {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const response = await fetch(`${apiUrl}/api/v1/campaigns/${campaignId}/gantt`);
+    const response = await fetch(`${apiUrl}/v1/campaigns/${campaignId}/gantt`);
     return response.ok ? await response.json() : null;
 }
 
-export async function applyCampaignPivot(campaignId: string, pivotData: any): Promise<any> {
+export async function applyCampaignPivot(campaignId: string, pivotData: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const response = await fetch(`${apiUrl}/api/v1/campaigns/${campaignId}/pivot`, {
+    const response = await fetch(`${apiUrl}/v1/campaigns/${campaignId}/pivot`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -326,23 +332,23 @@ export async function applyCampaignPivot(campaignId: string, pivotData: any): Pr
     return response.ok ? await response.json() : null;
 }
 
-export async function generateWeeklyMoves(campaignId: string): Promise<any> {
+export async function generateWeeklyMoves(campaignId: string): Promise<Record<string, unknown> | null> {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const response = await fetch(`${apiUrl}/api/v1/moves/generate-weekly/${campaignId}`, {
+    const response = await fetch(`${apiUrl}/v1/moves/generate-weekly/${campaignId}`, {
         method: 'POST',
     });
     return response.ok ? await response.json() : null;
 }
 
-export async function getMovesStatus(campaignId: string): Promise<any> {
+export async function getMovesStatus(campaignId: string): Promise<Record<string, unknown> | null> {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const response = await fetch(`${apiUrl}/api/v1/moves/generate-weekly/${campaignId}/status`);
+    const response = await fetch(`${apiUrl}/v1/moves/generate-weekly/${campaignId}/status`);
     return response.ok ? await response.json() : null;
 }
 
-export async function updateMoveStatus(moveId: string, status: string, result?: any): Promise<any> {
+export async function updateMoveStatus(moveId: string, status: string, result?: Record<string, unknown> | MoveSelfReport): Promise<Record<string, unknown> | null> {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const response = await fetch(`${apiUrl}/api/v1/moves/${moveId}/status`, {
+    const response = await fetch(`${apiUrl}/v1/moves/${moveId}/status`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
@@ -350,4 +356,51 @@ export async function updateMoveStatus(moveId: string, status: string, result?: 
         body: JSON.stringify({ status, result }),
     });
     return response.ok ? await response.json() : null;
+}
+
+export async function toggleChecklistItem(moveId: string, itemId: string): Promise<void> {
+    const { data: moveData } = await supabase
+        .from('moves')
+        .select('*')
+        .eq('id', moveId)
+        .single();
+
+    if (!moveData) return;
+
+    const move = mapDBMoveToFrontend(moveData);
+    const updatedChecklist = move.checklist.map(item =>
+        item.id === itemId ? { ...item, completed: !item.completed } : item
+    );
+
+    await updateMove({ ...move, checklist: updatedChecklist });
+}
+
+export function isMoveOverdue(move: Move): boolean {
+    if (!move.dueDate || move.status !== 'active') return false;
+    return new Date(move.dueDate) < new Date();
+}
+
+export async function extendMove(moveId: string, days: number): Promise<void> {
+    const { data: moveData } = await supabase
+        .from('moves')
+        .select('*')
+        .eq('id', moveId)
+        .single();
+
+    if (!moveData) return;
+
+    // In a real app, this would update the due date in DB.
+    // For now, we'll just log it.
+    console.log(`Extending move ${moveId} by ${days} days`);
+}
+
+export async function logMoveOverride(move: Move, campaign: Campaign, reason: OverrideReason): Promise<void> {
+    console.log(`[Blackbox] Move Override Logged:`, {
+        moveId: move.id,
+        campaignId: campaign.id,
+        reason,
+        timestamp: new Date().toISOString()
+    });
+
+    // Optional: Persist to Supabase if the table exists
 }

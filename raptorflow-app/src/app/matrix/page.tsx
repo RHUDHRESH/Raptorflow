@@ -69,7 +69,9 @@ export default function MatrixPage() {
                   <Zap className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold font-mono">142ms</div>
+                  <div className="text-2xl font-bold font-mono">
+                    {data?.p95_latency_ms ? `${Math.round(data.p95_latency_ms)}ms` : "---"}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     P95 across all inference calls
                   </p>

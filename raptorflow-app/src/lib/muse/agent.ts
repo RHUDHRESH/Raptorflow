@@ -1,5 +1,5 @@
 import { StateGraph, MessagesAnnotation, MemorySaver } from "@langchain/langgraph";
-import { gemini15Flash, getGemini15Flash } from "../vertexai";
+import { getGemini15Flash } from "../vertexai";
 import { loadSystemSkills } from "./skills-manager";
 import { convertSkillsToTools } from "./skill-converter";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
@@ -51,7 +51,14 @@ async function agentNode(state: typeof MessagesAnnotation.State) {
     // Use lazy-initialized model for tool selection
     const model = getGemini15Flash();
     if (!model) {
-        throw new Error("Vertex AI model not available - check GOOGLE_APPLICATION_CREDENTIALS");
+        console.warn("Vertex AI model not available - returning mock response");
+        return {
+            messages: [
+                new AIMessage({
+                    content: "I am currently in offline/mock mode because AI credentials (INFERENCE_SIMPLE) are missing. I can still help you navigate the UI, but I won't be able to generate real content until credentials are provided."
+                })
+            ]
+        };
     }
     const boundModel = model.bindTools(tools);
     const response = await boundModel.invoke(state.messages);

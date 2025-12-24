@@ -171,48 +171,24 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
         return message;
     }, []);
 
+import { spine } from '@/lib/muse/spine-client';
+
+// ...
+
     const handleMuseResponse = useCallback(async (userMessage: string, threadId?: string) => {
         setIsTyping(true);
 
         try {
-            const endpoint = threadId ? '/api/muse/resume' : '/api/muse/chat';
-            
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    message: userMessage,
-                    thread_id: threadId || undefined
-                })
-            });
+            const response = await spine.chat(userMessage, threadId);
 
-            if (!response.ok) throw new Error('Failed to reach Muse Agent');
-
-            const data = await response.json();
-            
             // Handle text response
-            if (data.response) {
-                addMessage('muse', data.response);
-            }
-
-            // Handle card response (e.g., clarification questions)
-            if (data.cards) {
-                data.cards.forEach((card: any) => {
-                    if (card.type === 'clarify_questions') {
-                        addMessage('muse', "I need a bit more detail to get this right:", 
-                            card.questions.map((q: string) => ({
-                                id: q,
-                                label: q,
-                                value: q
-                            }))
-                        );
-                    }
-                });
+            if (response.asset_content) {
+                addMessage('muse', response.asset_content);
             }
 
             // Save threadId for future context
-            if (data.thread_id) {
-                setCurrentContext(prev => ({ ...prev, threadId: data.thread_id }));
+            if (response.thread_id) {
+                setCurrentContext(prev => ({ ...prev, threadId: response.thread_id }));
             }
 
         } catch (error: any) {
@@ -229,7 +205,7 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
             m.id === messageId ? { ...m, selectedOption: option.id } : m
         ));
         addMessage('user', option.label);
-        
+
         // Pass threadId back to resume the graph
         handleMuseResponse(option.label, currentContext.threadId);
     }, [addMessage, handleMuseResponse, currentContext.threadId]);

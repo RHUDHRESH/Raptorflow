@@ -1,28 +1,221 @@
-from agents.shared.agents import IntentRouter, QualityGate, Intent
-from agents.shared.memory_updater import MemoryUpdaterAgent
-from agents.shared.context_assembler import ContextAssemblerAgent
-from skills.executor import SkillExecutor
-from core.toolbelt import Toolbelt
+import logging
+from datetime import datetime
 
-async def context_node(state: MuseState):
-    """T01/T02/A03: Pulls full context including learned memories."""
+from langgraph.graph import END, START, StateGraph
+
+from backend.agents.base import BaseCognitiveAgent
+from backend.agents.shared.agents import IntentRouter, QualityGate
+from backend.agents.shared.context_assembler import ContextAssemblerAgent
+from backend.models.cognitive import (
+    AgentMessage,
+    CognitiveIntelligenceState,
+    CognitiveStatus,
+)
+
+logger = logging.getLogger("raptorflow.graphs.muse_create")
+
+# --- Nodes ---
+
+
+async def router_node(state: CognitiveIntelligenceState):
+    """A00: Determines the intent and family of the asset."""
+    router = IntentRouter()
+    intent = await router.execute(state["raw_prompt"])
+
+    # Initialize brief with intent
+    brief = state.get("brief", {})
+    brief["asset_family"] = intent.asset_family
+    brief["goal"] = intent.goal
+    brief["mentions"] = intent.entities
+
+    msg = AgentMessage(
+        role="router",
+        content=f"Intent routed to {intent.asset_family} family. Goal: {intent.goal}",
+    )
+
+    return {
+        "brief": brief,
+        "messages": [msg],
+        "status": CognitiveStatus.PLANNING,
+        "last_agent": "router",
+    }
+
+
+async def context_node(state: CognitiveIntelligenceState):
+    """A03: Pulls full context including learned memories."""
     assembler = ContextAssemblerAgent()
-    ctx = await assembler.assemble(state["workspace_id"], state["user_id"], state["prompt"])
-    return {"context": ctx, "status": "drafting"}
+    # Assuming workspace_id and tenant_id are present in state
+    ctx = await assembler.assemble(
+        state.get("workspace_id", "default"),
+        state.get("tenant_id", "default"),
+        state["raw_prompt"],
+    )
 
-async def memory_update_node(state: MuseState):
+    # Merge with brief
+    brief = state.get("brief", {})
+    brief.update(ctx)
+
+    msg = AgentMessage(
+        role="assembler",
+        content="Context assembled: Brand voice, memories, and constraints loaded.",
+    )
+
+    return {
+        "brief": brief,
+        "messages": [msg],
+        "status": CognitiveStatus.RESEARCHING,
+        "last_agent": "assembler",
+    }
+
+
+async def drafting_node(state: CognitiveIntelligenceState):
+    """A04: Generates the first draft of the asset."""
+    family = state["brief"].get("asset_family", "text")
+
+    drafter = BaseCognitiveAgent(
+        name="drafter",
+        role="creator",
+        system_prompt=(
+            f"You are the RaptorFlow Creative Engine. "
+            f"Create a high-quality {family} asset based on the provided brief."
+        ),
+        model_tier="driver",
+    )
+
+    # We pass the full state to the agent
+    res = await drafter(state)
+
+    # Extract the content from the message
+    draft_content = res["messages"][0].content
+
+    return {
+        "messages": res["messages"],
+        "generated_assets": [
+            {"family": family, "content": draft_content, "version": "draft"}
+        ],
+        "status": CognitiveStatus.EXECUTING,
+        "last_agent": "drafter",
+        "token_usage": res["token_usage"],
+    }
+
+
+async def reflection_node(state: CognitiveIntelligenceState):
+    """A05: Critiques the draft against the quality gate."""
+    gate = QualityGate()
+
+    # Get the latest draft
+    last_asset = state["generated_assets"][-1]["content"]
+    brief = state["brief"]
+
+    audit_result = await gate.audit(last_asset, brief)
+
+    msg = AgentMessage(
+        role="critic",
+        content=(
+            f"Quality Audit: Score {audit_result.score}/100. "
+            f"Pass: {audit_result.pass_gate}. "
+            f"Fixes: {', '.join(audit_result.critical_fixes)}"
+        ),
+    )
+
+    reflection = {
+        "score": audit_result.score,
+        "fixes": audit_result.critical_fixes,
+        "pass": audit_result.pass_gate,
+        "timestamp": datetime.now().isoformat(),
+    }
+
+    return {
+        "messages": [msg],
+        "reflection_log": [reflection],
+        "quality_score": audit_result.score / 100,
+        "status": CognitiveStatus.AUDITING,
+        "last_agent": "critic",
+    }
+
+
+def decide_refinement(state: CognitiveIntelligenceState):
+    """Conditional edge: Should we refine or finalize?"""
+    last_reflection = state["reflection_log"][-1]
+
+    # If score is too low or gate failed, and we haven't done too many iterations
+    if not last_reflection["pass"] and len(state["reflection_log"]) < 3:
+        return "refine"
+    return "finalize"
+
+
+async def refinement_node(state: CognitiveIntelligenceState):
+    """A06: Refines the asset based on critique."""
+    # last_asset = state["generated_assets"][-1]["content"]
+    # fixes = state["reflection_log"][-1]["fixes"]
+
+    refiner = BaseCognitiveAgent(
+        name="refiner",
+        role="creator",
+        system_prompt=(
+            "You are the RaptorFlow Polishing Engine. "
+            "Refine the asset based on the provided critique and fixes."
+        ),
+        model_tier="reasoning",
+    )
+
+    # We can't easily change the state raw_prompt here without side effects,
+    # but BaseCognitiveAgent uses state['messages'] which includes the history.
+
+    res = await refiner(state)
+
+    refined_content = res["messages"][0].content
+
+    return {
+        "messages": res["messages"],
+        "generated_assets": [
+            {
+                "family": state["brief"].get("asset_family"),
+                "content": refined_content,
+                "version": "refined",
+            }
+        ],
+        "status": CognitiveStatus.REFINING,
+        "last_agent": "refiner",
+        "token_usage": res["token_usage"],
+    }
+
+
+async def finalize_node(state: CognitiveIntelligenceState):
+    """A07: Finalizes the asset and prepares for delivery."""
+    last_asset = state["generated_assets"][-1]
+    last_asset["version"] = "final"
+
+    msg = AgentMessage(
+        role="finalizer", content="Asset finalized and ready for deployment."
+    )
+
+    return {
+        "messages": [msg],
+        "status": CognitiveStatus.COMPLETE,
+        "last_agent": "finalizer",
+    }
+
+
+async def memory_update_node(state: CognitiveIntelligenceState):
     """A06: Learns from the final result vs initial draft."""
-    updater = MemoryUpdaterAgent()
-    rule = await updater.extract_preference(state["drafts"][0], state["current_draft"])
-    if rule and rule.confidence > 0.8:
-        belt = Toolbelt(os.getenv("DATABASE_URL"))
-        # Save rule to memories table
-        pass 
-    return {"status": "memory_updated"}
+    if len(state["generated_assets"]) > 1:
+        # Placeholder for actual memory update logic
+        # updater = MemoryUpdaterAgent()
+        # draft = state["generated_assets"][0]["content"]
+        # final = state["generated_assets"][-1]["content"]
+        # rule = await updater.extract_preference(draft, final)
+        pass
+
+    return {"status": CognitiveStatus.COMPLETE, "last_agent": "memory_updater"}
+
+
+# --- Graph Builder ---
+
 
 def build_muse_spine():
-    workflow = StateGraph(MuseState)
-    
+    workflow = StateGraph(CognitiveIntelligenceState)
+
     workflow.add_node("router", router_node)
     workflow.add_node("context", context_node)
     workflow.add_node("drafter", drafting_node)
@@ -30,23 +223,18 @@ def build_muse_spine():
     workflow.add_node("refiner", refinement_node)
     workflow.add_node("finalizer", finalize_node)
     workflow.add_node("memory_update", memory_update_node)
-    
+
     workflow.add_edge(START, "router")
     workflow.add_edge("router", "context")
     workflow.add_edge("context", "drafter")
     workflow.add_edge("drafter", "critic")
-    
+
     workflow.add_conditional_edges(
-        "critic",
-        decide_refinement,
-        {
-            "refine": "refiner",
-            "finalize": "finalizer"
-        }
+        "critic", decide_refinement, {"refine": "refiner", "finalize": "finalizer"}
     )
-    
+
     workflow.add_edge("refiner", "critic")
-    workflow.add_edge("finalizer", "memory_update") # Run memory update after finalization
+    workflow.add_edge("finalizer", "memory_update")
     workflow.add_edge("memory_update", END)
-    
+
     return workflow.compile()

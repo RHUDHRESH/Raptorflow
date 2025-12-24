@@ -395,6 +395,8 @@ export const emptyFoundation: FoundationData = {
 // Storage & Helpers
 // ==========================================
 
+import { supabase } from './supabase';
+
 const STORAGE_KEY = 'rf_brand_kit';
 const FOUNDATION_STORAGE_KEY = 'rf_foundation';
 
@@ -412,9 +414,25 @@ export const getBrandKit = (): BrandKit | null => {
   return null;
 };
 
-export const saveFoundation = (data: FoundationData) => {
+export const saveFoundation = async (data: FoundationData) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem(FOUNDATION_STORAGE_KEY, JSON.stringify(data));
+
+    // Sync to Supabase
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            await supabase
+                .from('foundation_state')
+                .upsert({
+                    tenant_id: user.id,
+                    data: data,
+                    updated_at: new Date().toISOString()
+                });
+        }
+    } catch (err) {
+        console.warn('Failed to sync foundation to Supabase', err);
+    }
 
     // Sync minimal data to legacy brand kit
     const legacyKit: BrandKit = {
@@ -428,20 +446,36 @@ export const saveFoundation = (data: FoundationData) => {
 };
 
 export const loadFoundation = (): FoundationData => {
-  if (typeof window !== 'undefined') {
-    const data = localStorage.getItem(FOUNDATION_STORAGE_KEY);
-    if (data) return JSON.parse(data);
-
-    // Fallback to legacy brand kit if foundation missing
-    const kit = getBrandKit();
-    if (kit) {
-      return {
-        ...emptyFoundation,
-        brandVoice: kit.brandVoice,
-      };
+    // This is the sync version for initial mount or legacy
+    if (typeof window !== 'undefined') {
+        const data = localStorage.getItem(FOUNDATION_STORAGE_KEY);
+        if (data) return JSON.parse(data);
     }
-  }
-  return emptyFoundation;
+    return emptyFoundation;
+};
+
+export const loadFoundationDB = async (): Promise<FoundationData> => {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const { data, error } = await supabase
+                .from('foundation_state')
+                .select('data')
+                .eq('tenant_id', user.id)
+                .single();
+
+            if (data && !error) {
+                // Update local cache
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem(FOUNDATION_STORAGE_KEY, JSON.stringify(data.data));
+                }
+                return data.data as FoundationData;
+            }
+        }
+    } catch (err) {
+        console.warn('Failed to load foundation from Supabase', err);
+    }
+    return loadFoundation();
 };
 
 export const ONBOARDING_STEPS = [
@@ -455,11 +489,17 @@ export const ONBOARDING_STEPS = [
 
 export async function uploadLogo(file: File): Promise<{ url: string; status: string }> {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const { data: { user } } = await supabase.auth.getUser();
+  const tenantId = user?.id || '00000000-0000-0000-0000-000000000000';
+
   const formData = new FormData();
   formData.append('file', file);
 
   const response = await fetch(`${API_URL}/v1/assets/upload-logo`, {
     method: 'POST',
+    headers: {
+        'X-Tenant-ID': tenantId
+    },
     body: formData,
   });
 

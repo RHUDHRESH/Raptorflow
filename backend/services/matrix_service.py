@@ -61,13 +61,23 @@ class MatrixService:
         Retrieves the complete aggregated health and cost dashboard.
         Combines deterministic checks with real-time telemetry.
         """
+        # Periodic prune
+        self.prune_stale_agents()
+
         health = await self._sanity.run_suite()
         cost = await self._cost.get_burn_report(workspace_id)
+
+        # Pull latency stats from L1
+        latencies = (
+            await self._latency.memory.retrieve(f"latencies:{workspace_id}") or []
+        )
+        p95_latency = self._latency._calculate_p95(latencies)
 
         return {
             "system_state": self._state.model_dump(),
             "health_report": health,
             "cost_report": cost,
+            "p95_latency_ms": p95_latency,
             "timestamp": datetime.now().isoformat(),
         }
 

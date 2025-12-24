@@ -21,7 +21,7 @@ export function useInferenceStatus(campaignId: string | null) {
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
             const response = await fetch(`${apiUrl}/api/v1/campaigns/generate-arc/${campaignId}/status`);
-            
+
             if (!response.ok) {
                 if (response.status === 404) {
                     // Not found might mean it hasn't started yet or doesn't exist
@@ -44,7 +44,7 @@ export function useInferenceStatus(campaignId: string | null) {
             }
         } catch (err) {
             console.error('Error polling status:', err);
-            // Don't set error state immediately to allow retries
+            setError(err instanceof Error ? err.message : 'An unknown error occurred');
         }
     }, [campaignId]);
 

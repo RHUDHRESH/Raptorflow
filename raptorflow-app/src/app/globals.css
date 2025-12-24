@@ -45,12 +45,12 @@
     --destructive-foreground: 0 0% 98%;
 
     --border: 75 2% 83%;
-    /* #E8E9E6 Fog (Approximation of C0C1BE/E8E9E6 based on settings.css usage) */
+    /* #C0C1BE Fog */
     --input: 75 2% 83%;
     --ring: 196 11% 20%;
 
     --radius: 1rem;
-    /* 16px (Per UI.md 14-16px) */
+    /* 16px */
 
     --chart-1: 196 11% 20%;
     /* Ink */

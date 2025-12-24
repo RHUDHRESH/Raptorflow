@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import {
     createCampaign,
     triggerCampaignInference,
@@ -47,35 +47,35 @@ describe('E2E Smoke Test: Full User Journey', () => {
         });
 
         // 2. Trigger Inference
-        (global.fetch as any).mockResolvedValueOnce({
+        (global.fetch as unknown as Mock).mockResolvedValueOnce({
             ok: true,
             json: async () => ({ status: 'started', campaign_id: campaignId }),
         });
         const inferenceResult = await triggerCampaignInference(campaignId);
-        expect(inferenceResult.status).toBe('started');
+        expect(inferenceResult!.status).toBe('started');
 
         // 3. Fetch Gantt Chart
-        (global.fetch as any).mockResolvedValueOnce({
+        (global.fetch as unknown as Mock).mockResolvedValueOnce({
             ok: true,
             json: async () => ({ items: [{ id: 'milestone-1', task: 'Setup', progress: 0 }] }),
         });
-        const gantt = await getCampaignGantt(campaignId);
+        const gantt = await getCampaignGantt(campaignId) as { items: { id: string; }[] };
         expect(gantt.items.length).toBeGreaterThan(0);
 
         // 4. Decompose Milestone into Moves
-        (global.fetch as any).mockResolvedValueOnce({
+        (global.fetch as unknown as Mock).mockResolvedValueOnce({
             ok: true,
             json: async () => ({ status: 'started', message: 'Decomposing...' }),
         });
         const decompositionResult = await generateWeeklyMoves(campaignId);
-        expect(decompositionResult.status).toBe('started');
+        expect(decompositionResult!.status).toBe('started');
 
         // 5. Complete a Move
-        (global.fetch as any).mockResolvedValueOnce({
+        (global.fetch as unknown as Mock).mockResolvedValueOnce({
             ok: true,
             json: async () => ({ status: 'updated' }),
         });
         const updateResult = await updateMoveStatus('move-1', 'completed', { result: 'Success' });
-        expect(updateResult.status).toBe('updated');
+        expect(updateResult!.status).toBe('updated');
     });
 });

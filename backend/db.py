@@ -78,7 +78,7 @@ async def vector_search(
     SCHEMA_MAP = {
         "muse_assets": {"content": "content", "workspace": "metadata->>'workspace_id'"},
         "agent_memory_semantic": {"content": "fact", "workspace": "tenant_id"},
-        "agent_memory_procedural": {"content": "fact", "workspace": "tenant_id"},
+        "agent_memory_episodic": {"content": "observation", "workspace": "thread_id"},
         "entity_embeddings": {"content": "description", "workspace": "workspace_id"},
     }
 
@@ -125,13 +125,20 @@ async def get_memory(
     """
     Retrieves memory (episodic or semantic) using vector similarity.
     """
+    table = (
+        "agent_memory_semantic"
+        if memory_type == "semantic"
+        else "agent_memory_episodic"
+    )
+    workspace_col = "tenant_id" if memory_type == "semantic" else "thread_id"
+    content_col = "fact" if memory_type == "semantic" else "observation"
+
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
-            query = """
-                SELECT id, content, metadata, 1 - (embedding <=> %s::vector) as similarity
-                FROM muse_assets
-                WHERE metadata->>'workspace_id' = %s
-                AND metadata->>'type' = %s
+            query = f"""
+                SELECT id, {content_col}, 1 - (embedding <=> %s::vector) as similarity
+                FROM {table}
+                WHERE {workspace_col} = %s
                 AND 1 - (embedding <=> %s::vector) > 0.7
                 ORDER BY embedding <=> %s::vector
                 LIMIT %s;
@@ -141,7 +148,6 @@ async def get_memory(
                 (
                     query_embedding,
                     workspace_id,
-                    memory_type,
                     query_embedding,
                     query_embedding,
                     limit,
@@ -219,7 +225,7 @@ async def save_asset_db(workspace_id: str, asset_data: dict):
             )
             result = await cur.fetchone()
             await conn.commit()
-            return result[0]
+            return str(result[0])
 
 
 async def save_asset_vault(

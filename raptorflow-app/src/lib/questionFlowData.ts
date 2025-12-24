@@ -1,27 +1,6 @@
 'use client';
 
 import {
-    BusinessStage,
-    BusinessType,
-    RevenueModel,
-    TeamSize,
-    CustomerType,
-    SCARFDriver,
-    DecisionStyle,
-    RiskTolerance,
-    PriceBand,
-    SalesMotion,
-    BuyerRoleChip,
-    RegionCode,
-    LanguageCode,
-    PrimaryGoal,
-    Constraint,
-    Channel,
-    ToolOption,
-    ProofType,
-    VoicePreference,
-    TriggerEvent,
-    AlternativeType,
     FoundationData
 } from './foundation';
 

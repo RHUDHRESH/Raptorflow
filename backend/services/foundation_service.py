@@ -16,11 +16,11 @@ class FoundationService:
 
     async def save_state(self, state: FoundationState) -> FoundationState:
         """Upserts the universal foundation state JSON."""
-        session = await self.vault.get_session()
+        session = self.vault.get_session()
         payload = state.model_dump(mode="json")
         # Upsert logic for Supabase (using tenant_id as unique key for state)
         result = (
-            await session.table("foundation_state")
+            session.table("foundation_state")
             .upsert(payload, on_conflict="tenant_id")
             .execute()
         )
@@ -28,9 +28,9 @@ class FoundationService:
 
     async def get_state(self, tenant_id: UUID) -> Optional[FoundationState]:
         """Retrieves the universal foundation state JSON."""
-        session = await self.vault.get_session()
+        session = self.vault.get_session()
         result = (
-            await session.table("foundation_state")
+            session.table("foundation_state")
             .select("*")
             .eq("tenant_id", str(tenant_id))
             .execute()
@@ -41,17 +41,16 @@ class FoundationService:
 
     async def create_brand_kit(self, brand_kit: BrandKit) -> BrandKit:
         """Persists a new brand kit to Supabase."""
-        session = await self.vault.get_session()
+        session = self.vault.get_session()
         data = brand_kit.model_dump(mode="json")
-        result = await session.table("foundation_brand_kit").insert(data).execute()
+        result = session.table("foundation_brand_kit").insert(data).execute()
         return BrandKit(**result.data[0])
 
     async def get_brand_kit(self, brand_kit_id: UUID) -> Optional[BrandKit]:
         """Retrieves a brand kit by ID."""
-        session = await self.vault.get_session()
-        # session.table() is synchronous, only .execute() is async
+        session = self.vault.get_session()
         result = (
-            await session.table("foundation_brand_kit")
+            session.table("foundation_brand_kit")
             .select("*")
             .eq("id", str(brand_kit_id))
             .execute()
@@ -62,9 +61,9 @@ class FoundationService:
 
     async def update_brand_kit(self, brand_kit_id: UUID, updates: dict) -> BrandKit:
         """Updates an existing brand kit."""
-        session = await self.vault.get_session()
+        session = self.vault.get_session()
         result = (
-            await session.table("foundation_brand_kit")
+            session.table("foundation_brand_kit")
             .update(updates)
             .eq("id", str(brand_kit_id))
             .execute()
@@ -73,16 +72,16 @@ class FoundationService:
 
     async def create_positioning(self, positioning: Positioning) -> Positioning:
         """Persists positioning data."""
-        session = await self.vault.get_session()
+        session = self.vault.get_session()
         data = positioning.model_dump(mode="json")
-        result = await session.table("foundation_positioning").insert(data).execute()
+        result = session.table("foundation_positioning").insert(data).execute()
         return Positioning(**result.data[0])
 
     async def get_active_positioning(self, brand_kit_id: UUID) -> Optional[Positioning]:
         """Retrieves the latest positioning for a brand kit."""
-        session = await self.vault.get_session()
+        session = self.vault.get_session()
         result = (
-            await session.table("foundation_positioning")
+            session.table("foundation_positioning")
             .select("*")
             .eq("brand_kit_id", str(brand_kit_id))
             .order("created_at", desc=True)

@@ -8,9 +8,8 @@ interface BudgetSliderProps {
 }
 
 export const BudgetSlider: React.FC<BudgetSliderProps> = ({ value, onChange, ranges }) => {
-    // Find index of current value
-    const initialIndex = ranges.indexOf(value) !== -1 ? ranges.indexOf(value) : 0;
-    const [currentIndex, setCurrentIndex] = useState(initialIndex);
+    // Derived index of current value
+    const currentIndex = ranges.indexOf(value) !== -1 ? ranges.indexOf(value) : 0;
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(0);
 
@@ -18,16 +17,9 @@ export const BudgetSlider: React.FC<BudgetSliderProps> = ({ value, onChange, ran
         if (containerRef.current) {
             setWidth(containerRef.current.offsetWidth);
         }
-    }, []);
-
-    // Snap to index on change
-    useEffect(() => {
-        const idx = ranges.indexOf(value);
-        if (idx !== -1) setCurrentIndex(idx);
-    }, [value, ranges]);
+    }, [width]); // Added width to deps to avoid lint warning if empty, though containerRef.current is usually stable
 
     const handleClick = (index: number) => {
-        setCurrentIndex(index);
         onChange(ranges[index]);
     };
 

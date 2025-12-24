@@ -26,9 +26,19 @@ export interface CompetitorDossierBackend {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+import { supabase } from './supabase';
+
+// ...
+
 export async function scanRecon(icpId: string): Promise<Signal[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    const tenantId = user?.id || '00000000-0000-0000-0000-000000000000';
+
     const response = await fetch(`${API_URL}/v1/radar/scan/recon?icp_id=${encodeURIComponent(icpId)}`, {
         method: 'POST',
+        headers: {
+            'X-Tenant-ID': tenantId
+        }
     });
     if (!response.ok) {
         throw new Error('Failed to perform recon scan');
@@ -38,8 +48,14 @@ export async function scanRecon(icpId: string): Promise<Signal[]> {
 }
 
 export async function generateDossier(icpId: string): Promise<Dossier[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    const tenantId = user?.id || '00000000-0000-0000-0000-000000000000';
+
     const response = await fetch(`${API_URL}/v1/radar/scan/dossier?icp_id=${encodeURIComponent(icpId)}`, {
         method: 'POST',
+        headers: {
+            'X-Tenant-ID': tenantId
+        }
     });
     if (!response.ok) {
         throw new Error('Failed to generate dossier');

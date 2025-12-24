@@ -76,39 +76,36 @@ const MOCK_CAMPAIGNS = [
 ];
 
 
-// Simulate generation with realistic timing
-function simulateGeneration(
+import { spine } from '@/lib/muse/spine-client';
+
+// Real generation using the Python Agentic Spine
+async function generateAsset(
     prompt: string,
     assetType: AssetType,
     context: Record<string, string> | undefined,
     onProgress: (progress: number) => void,
     onComplete: (content: string) => void
 ) {
-    const duration = 5000 + Math.random() * 10000; // 5-15 seconds
-    const steps = 20;
-    const stepDuration = duration / steps;
-    let currentStep = 0;
+    try {
+        onProgress(20);
 
-    const interval = setInterval(() => {
-        currentStep++;
-        const progress = Math.min(95, (currentStep / steps) * 100);
-        onProgress(progress);
+        // Construct the full prompt including context
+        const fullPrompt = context?.cohort
+            ? `Create a ${assetType} for the ${context.cohort} cohort. Prompt: ${prompt}`
+            : `Create a ${assetType}. Prompt: ${prompt}`;
 
-        if (currentStep >= steps) {
-            clearInterval(interval);
+        const response = await spine.createAsset(
+            fullPrompt,
+            'default_ws', // Hardcoded for demo
+            'default_tenant'
+        );
 
-            // Generate mock content based on type
-            const config = getAssetConfig(assetType);
-            const cohortInfo = context?.cohort ? `\n\n**Target Audience:** ${context.cohort}` : '';
-            const mockContent = `# ${config?.label || 'Asset'}\n\nGenerated based on: "${prompt}"${cohortInfo}\n\n[This is simulated content. Backend AI integration coming soon.]`;
-
-            setTimeout(() => {
-                onComplete(mockContent);
-            }, 500);
-        }
-    }, stepDuration);
-
-    return () => clearInterval(interval);
+        onProgress(100);
+        onComplete(response.asset_content);
+    } catch (error) {
+        console.error("Asset generation failed:", error);
+        onComplete("Failed to generate asset. Ensure backend is running.");
+    }
 }
 
 import { useSearchParams } from 'next/navigation';
@@ -138,8 +135,8 @@ function MusePageContent() {
 
         setJobs(prev => [...prev, newJob]);
 
-        // Start simulation
-        simulateGeneration(
+        // Start real generation
+        generateAsset(
             prompt,
             assetType,
             context,

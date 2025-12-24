@@ -8,7 +8,9 @@ import {
     OBJECTIVE_LABELS,
     CHANNEL_LABELS,
     OFFER_LABELS,
-    CampaignStatus
+    CampaignStatus,
+    Move,
+    MoveStatus
 } from '@/lib/campaigns-types';
 import {
     getCampaignProgress,
@@ -62,7 +64,7 @@ export function CampaignDetail({
 }: CampaignDetailProps) {
     const [ganttData, setGanttData] = useState<any>(null);
     const [isLoadingGantt, setIsLoadingGantt] = useState(false);
-    const [moves, setMoves] = useState<any[]>([]);
+    const [moves, setMoves] = useState<Move[]>([]);
     const [progress, setProgress] = useState<any>({ totalMoves: 0, completedMoves: 0, weekNumber: 0, totalWeeks: 0 });
 
     const { status: agentStatus } = useInferenceStatus(
@@ -132,9 +134,9 @@ export function CampaignDetail({
         if (!nextMove) return;
 
         const originalMoves = [...moves];
-        const updatedMoves = moves.map(m =>
-            m.id === nextMove.id ? { ...m, status: 'active' } :
-                (m.status === 'active' ? { ...m, status: 'queued' } : m)
+        const updatedMoves: Move[] = moves.map(m =>
+            m.id === nextMove.id ? { ...m, status: 'active' as MoveStatus } :
+                (m.status === 'active' ? { ...m, status: 'queued' as MoveStatus } : m)
         );
 
         // Optimistic update
@@ -287,11 +289,11 @@ export function CampaignDetail({
                     </section>
 
                     {/* Task 27: Strategic Arc Decomposition */}
-                    {campaign.strategyArc && (
+                    {campaign.strategyArc && (campaign.strategyArc as any).monthly_plans && (
                         <section className="space-y-4">
                             <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400">Strategic Arc Decomposition</h3>
                             <div className="grid grid-cols-3 gap-4">
-                                {campaign.strategyArc.monthly_plans?.map((plan: any) => (
+                                {(campaign.strategyArc as any).monthly_plans.map((plan: any) => (
                                     <div key={plan.month_number} className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 space-y-3 flex flex-col justify-between group">
                                         <div>
                                             <div className="text-[10px] font-bold text-accent uppercase mb-1">Month {plan.month_number}</div>
@@ -313,9 +315,8 @@ export function CampaignDetail({
                         </section>
                     )}
 
-                    {/* Audit Results (Task 19) */}
                     <section>
-                        <CampaignAuditorView alignments={auditData} overallScore={campaign.qualityScore} />
+                        <CampaignAuditorView alignments={auditData as any} overallScore={campaign.qualityScore} />
                     </section>
 
                     {/* Timeline */}
@@ -330,15 +331,15 @@ export function CampaignDetail({
                                 return (
                                     <div key={move.id} className="relative pl-12 group">
                                         <div className={`absolute left-[11px] top-3 w-4 h-4 rounded-full border-2 transition-colors z-10 bg-white dark:bg-zinc-900 ${isActive
-                                                ? 'border-emerald-500 ring-4 ring-emerald-50 dark:ring-emerald-900/30'
-                                                : isDone
-                                                    ? 'border-zinc-300 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800'
-                                                    : 'border-zinc-200 dark:border-zinc-800'
+                                            ? 'border-emerald-500 ring-4 ring-emerald-50 dark:ring-emerald-900/30'
+                                            : isDone
+                                                ? 'border-zinc-300 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800'
+                                                : 'border-zinc-200 dark:border-zinc-800'
                                             }`} />
 
                                         <div className={`p-4 rounded-xl border transition-all ${isActive
-                                                ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 shadow-sm'
-                                                : 'bg-transparent border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-900/50'
+                                            ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 shadow-sm'
+                                            : 'bg-transparent border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-900/50'
                                             }`}>
                                             <div className="flex justify-between items-center">
                                                 <div>

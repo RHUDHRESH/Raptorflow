@@ -2,17 +2,15 @@ import { VertexAIEmbeddings } from "@langchain/google-vertexai";
 import { createClient } from "@supabase/supabase-js";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabase = (supabaseUrl && supabaseKey) 
-    ? createClient(supabaseUrl, supabaseKey)
-    : null;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy-key';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const embeddings = new VertexAIEmbeddings({
     model: "text-embedding-004"
 });
 
-export async function ingestFileContent(content: string, metadata: any = {}) {
+export async function ingestFileContent(content: string, metadata: Record<string, unknown> = {}) {
     if (!supabase) throw new Error("Supabase not configured");
 
     // 1. Split text into chunks
@@ -20,13 +18,13 @@ export async function ingestFileContent(content: string, metadata: any = {}) {
         chunkSize: 1000,
         chunkOverlap: 200,
     });
-    
+
     const docs = await splitter.createDocuments([content]);
 
     // 2. Embed and Store
     for (const doc of docs) {
         const embedding = await embeddings.embedQuery(doc.pageContent);
-        
+
         const { error } = await supabase
             .from('muse_assets')
             .insert({
