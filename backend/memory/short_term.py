@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Any, Optional
 
-from backend.services.cache import get_cache
+from backend.core.cache import get_cache_manager
 
 logger = logging.getLogger("raptorflow.memory.short_term")
 
@@ -15,7 +15,8 @@ class L1ShortTermMemory:
     """
 
     def __init__(self, client: Any = None):
-        self.client = client or get_cache()
+        manager = get_cache_manager()
+        self.client = client or (manager.client if manager else None)
         self.prefix = "l1:"
 
     async def store(self, key: str, value: Any, ttl: int = 3600):

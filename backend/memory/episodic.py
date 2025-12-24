@@ -1,9 +1,9 @@
 import json
 from typing import Any, Dict, List, Optional
 
+from backend.core.cache import get_cache_manager
 from backend.db import get_memory, save_memory
 from backend.inference import InferenceProvider
-from backend.services.cache import get_cache
 
 
 class EpisodicMemory:
@@ -13,13 +13,16 @@ class EpisodicMemory:
     """
 
     def __init__(self, client: Any = None):
-        self.client = client or get_cache()
+        manager = get_cache_manager()
+        self.client = client or (manager.client if manager else None)
         self.prefix = "episodic:"
 
     def _get_key(self, session_id: str) -> str:
         return f"{self.prefix}{session_id}"
 
-    async def add_message(self, session_id: str, message: str, tenant_id: Optional[str] = None):
+    async def add_message(
+        self, session_id: str, message: str, tenant_id: Optional[str] = None
+    ):
         """Adds a message to the session's episodic history and optionally persists it."""
         key = self._get_key(session_id)
         current_history_raw = await self.client.get(key)
