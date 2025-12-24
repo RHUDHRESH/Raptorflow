@@ -11,7 +11,7 @@
     - [x] Enable `pgvector` extension and create vector index.
     - [x] Set up LangGraph checkpointing tables (if not handled automatically by helper).
 - [x] **Task 1.3: Vertex AI Client Configuration**
-    - [x] Create `src/lib/vertexai.ts` to initialize Gemini 2.0/1.5 models.
+    - [x] Create `src/lib/vertexai.ts` to initialize Gemini 2.5 Flash/Flash-Lite models.
     - [x] Set up environment variables for GCP Project, Location, and Credentials.
 - [x] **Task: Conductor - User Manual Verification 'Phase 1: Core Infrastructure & Dependencies' (Protocol in workflow.md)** [checkpoint: 0e43b54]
 
