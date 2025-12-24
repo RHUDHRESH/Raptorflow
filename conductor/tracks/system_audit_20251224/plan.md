@@ -27,11 +27,11 @@ This plan outlines the steps to audit the infrastructure, implement intelligent 
 ## Phase 3: Native Zero-Cost Search Tool
 *Goal: Build and integrate a 100% free search tool to replace paid APIs.*
 
-- [ ] **Task 1: Search Tool Core Development**
+- [~] **Task 1: Search Tool Core Development**
     - [ ] Prototype a DuckDuckGo/Brave Search-based scraper/aggregator.
     - [ ] Write unit tests for search result parsing and metadata extraction.
     - [ ] Implement the search tool as a native module in `backend/core/`.
-- [ ] **Task 2: API Replacement & Integration**
+- [x] **Task 2: API Replacement & Integration** (1d23193)
     - [ ] Locate all instances of Tavily/Perplexity usage.
     - [ ] Replace with the new native search tool.
     - [ ] Optimize for Cloud Run memory/CPU footprints to ensure economic viability.
