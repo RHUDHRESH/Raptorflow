@@ -3,12 +3,12 @@
 ## Phase 1: Matrix Operator UI & Skill Integration
 Goal: Transform the Matrix dashboard into an actionable operator view.
 
-- [~] Task: Create `OperatorActionsPanel` component in Matrix module.
-- [ ] Task: Implement `InferenceThrottling` UI (slider/input) and connect to `InferenceThrottlingSkill`.
-- [ ] Task: Implement `CachePurge` and `ArchiveLogs` one-click triggers.
-- [ ] Task: Implement `ResourceScaling` and `RetrainTrigger` controls with status feedback.
-- [ ] Task: Refactor Matrix layout to integrate the new Panel using the "Integrated Management" design.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Matrix Operator UI & Skill Integration' (Protocol in workflow.md)
+- [x] Task: Create `OperatorActionsPanel` component in Matrix module. 96e65c3
+- [x] Task: Implement `InferenceThrottling` UI (slider/input) and connect to `InferenceThrottlingSkill`. 96e65c3
+- [x] Task: Implement `CachePurge` and `ArchiveLogs` one-click triggers. 96e65c3
+- [x] Task: Implement `ResourceScaling` and `RetrainTrigger` controls with status feedback. 96e65c3
+- [x] Task: Refactor Matrix layout to integrate the new Panel using the "Integrated Management" design. 96e65c3
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Matrix Operator UI & Skill Integration' (Protocol in workflow.md) 96e65c3
 
 ## Phase 2: Black Box Hypothesis-Driven Engine
 Goal: Revamp the experiment generator to use real marketing heuristics and structured hypotheses.
