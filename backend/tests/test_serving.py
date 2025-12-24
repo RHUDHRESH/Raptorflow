@@ -22,7 +22,7 @@ def model_server(mock_matrix):
 async def test_log_inference_metadata(model_server, mock_matrix):
     """Test that model server logs inference metadata."""
     metadata = {
-        "model": "gemini-1.5-pro",
+        "model": "gemini-2.5-flash",
         "tokens_in": 100,
         "tokens_out": 200,
         "latency_ms": 150.5,
@@ -34,4 +34,4 @@ async def test_log_inference_metadata(model_server, mock_matrix):
     event = args[0]
     assert event.event_type == TelemetryEventType.INFERENCE_END
     assert event.source == "agent_1"
-    assert event.payload["model"] == "gemini-1.5-pro"
+    assert event.payload["model"] == "gemini-2.5-flash"
