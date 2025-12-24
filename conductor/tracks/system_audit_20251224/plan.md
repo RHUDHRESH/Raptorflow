@@ -17,7 +17,7 @@ This plan outlines the steps to audit the infrastructure, implement intelligent 
     - [ ] Identify all hardcoded or plain-text keys in `backend/` and `raptorflow-app/`.
     - [ ] Migrate all keys to GCP Secret Manager.
     - [ ] Implement backend logic to fetch secrets from ENV/Secret Manager at runtime.
-- [ ] **Task 4: Environment Standardization**
+- [x] **Task 4: Environment Standardization** (e30dea9)
     - [ ] Create a master `.env.example` covering all modules.
     - [ ] Audit and fix the PhonePe webhook and redirect configuration.
 - [ ] **Task: Conductor - User Manual Verification 'Infrastructure Security & Environment Hardening' (Protocol in workflow.md)**
