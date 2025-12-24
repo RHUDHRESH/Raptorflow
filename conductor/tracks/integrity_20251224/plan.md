@@ -6,7 +6,7 @@ This plan outlines the systematic audit and fix of the RaptorFlow ecosystem to e
 Goal: Ensure all environment variables and infrastructure connections are perfectly synchronized and verified.
 
 - [x] Task: Audit Frontend Environment Variables. Cross-reference `raptorflow-app/.env.example` (or code requirements) with local `.env`. Ensure `middleware.ts` Supabase vars are correctly injected. [0428f2f]
-- [ ] Task: Audit Backend Environment Variables. Verify `backend/.env` against `backend/core/config.py` and `vertex_setup.py`.
+- [x] Task: Audit Backend Environment Variables. Verify `backend/.env` against `backend/core/config.py` and `vertex_setup.py`. [8d3ea93]
 - [ ] Task: Infrastructure Connection Test. Write a diagnostic script to verify connectivity to Supabase, Upstash Redis, and GCP Secret Manager.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Environment & Configuration Audit' (Protocol in workflow.md)
 
