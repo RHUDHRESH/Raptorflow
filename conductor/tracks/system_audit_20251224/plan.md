@@ -13,7 +13,7 @@ This plan outlines the steps to audit the infrastructure, implement intelligent 
     - [ ] Configure GCS CORS policies for `raptorflow-app` domains.
     - [ ] Implement GCS lifecycle rules for temporary asset cleanup.
     - [ ] Audit Cloud Run service account permissions (IAM).
-- [ ] **Task 3: Secret Management Centralization**
+- [x] **Task 3: Secret Management Centralization** (077d5ee)
     - [ ] Identify all hardcoded or plain-text keys in `backend/` and `raptorflow-app/`.
     - [ ] Migrate all keys to GCP Secret Manager.
     - [ ] Implement backend logic to fetch secrets from ENV/Secret Manager at runtime.
