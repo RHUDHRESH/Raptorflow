@@ -26,7 +26,7 @@ This track focuses on a comprehensive audit and technical completion of the Rapt
 - **Intelligence-to-Task Mapping:**
     - **High Tier (Gemini 3 Flash Preview):** Complex Campaign creation, strategic positioning, and deep analysis.
     - **Mid Tier (Gemini 2.5/2.0 Flash):** Standard ICP generation, move execution, and Blackbox analysis.
-    - **Base Tier (Gemini 1.5 Flash):** Simple UI helpers, Muse grammar checks, and routine formatting.
+    - **Base Tier (Gemini 2.5 Flash-Lite):** Simple UI helpers, Muse grammar checks, and routine formatting.
 - **Security:** Inference must strictly use Vertex API keys sourced from ENV/Secret Manager. No hardcoding.
 - **Fallback Logic:** Implement a robust fallback system (Cascading or ENV-based) to ensure service continuity if a specific model or key fails.
 

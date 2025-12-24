@@ -6,7 +6,7 @@ The Cognitive Intelligence Engine is the industrial-grade "brain" of RaptorFlow.
 ## 2. Core Architectural Pillars (Learnings Integrated)
 
 ### 2.1 MLOps & Scalability (Osipov Principles)
-- **Vertex AI Inference:** Primary serverless inference via Google Vertex AI (Gemini 1.5 Pro/Flash).
+- **Vertex AI Inference:** Primary serverless inference via Google Vertex AI (Gemini 2.5 Flash/Flash-Lite).
 - **Data Pipelines:** Integrated validation and ingestion (Firecrawl/Jina) for high-fidelity research.
 - **Distributed Context:** Handling massive brand contexts through intelligent sharding and vector retrieval.
 - **Monitoring & CI/CD:** Automated testing for agent logic, telemetry for token usage, and latency tracking.
