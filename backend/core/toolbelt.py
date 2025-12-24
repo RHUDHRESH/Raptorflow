@@ -1,33 +1,30 @@
-import logging
-import asyncio
 import json
-from typing import List, Dict, Any, Optional
-from datetime import datetime
+import logging
 from functools import wraps
-from pydantic import BaseModel
-from abc import ABC, abstractmethod
-from tenacity import retry, wait_exponential, stop_after_attempt
-from backend.services.cache import get_cache
-from backend.tools.search import TavilyMultiHopTool, PerplexitySearchTool
+from typing import Any, Dict, List
+
+from backend.core.cache import get_cache_manager
 from backend.tools.muse import AssetGenTool
-from backend.core.base_tool import BaseRaptorTool
+from backend.tools.search import PerplexitySearchTool, TavilyMultiHopTool
 
 logger = logging.getLogger("raptorflow.toolbelt.v2")
+
 
 def cache_tool_output(ttl: int = 3600):
     """
     SOTA Decorator to cache tool outputs in Upstash Redis.
     Reduces redundant LLM/Search costs by ~90%.
     """
+
     def decorator(func):
         @wraps(func)
         async def wrapper(self, *args, **kwargs):
             # Generate a surgical cache key based on tool name and inputs
             key = f"tool_cache:{self.name}:{hash(str(kwargs))}"
-            cache = get_cache()
-            
+            cache = get_cache_manager()
+
             try:
-                cached_val = await cache.get(key)
+                cached_val = cache.get(key)
                 if cached_val:
                     logger.info(f"SOTA Cache HIT for tool: {self.name}")
                     return json.loads(cached_val)
@@ -35,15 +32,18 @@ def cache_tool_output(ttl: int = 3600):
                 logger.warning(f"Cache lookup failed: {e}")
 
             result = await func(self, *args, **kwargs)
-            
+
             try:
-                await cache.set(key, json.dumps(result), ex=ttl)
+                cache.set_with_expiry(key, json.dumps(result), expiry_seconds=ttl)
             except Exception as e:
                 logger.warning(f"Cache write failed: {e}")
-                
+
             return result
+
         return wrapper
+
     return decorator
+
 
 class ToolbeltV2:
     """
@@ -73,7 +73,9 @@ class ToolbeltV2:
         # Implementation...
         return {}
 
-    async def vector_search(self, embedding: List[float], workspace_id: str) -> List[Dict]:
+    async def vector_search(
+        self, embedding: List[float], workspace_id: str
+    ) -> List[Dict]:
         # pgvector search with HNSW index logic...
         return []
 
@@ -117,6 +119,3 @@ class ToolbeltV2:
     async def human_approval_required(self, thread_id: str, action: str):
         """Triggers a LangGraph interrupt hook."""
         pass
-
-    # ... This file continues until T44 is fully implemented ...
-    # Each function handles its own retries, logging, and metrics.

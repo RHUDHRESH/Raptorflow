@@ -1,7 +1,8 @@
-from typing import List, Optional, Dict, Any
-from uuid import UUID, uuid4
-from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+from uuid import UUID, uuid4
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FoundationBase(BaseModel):
@@ -48,3 +49,11 @@ class VoiceTone(FoundationBase):
     keywords: List[str] = Field(default_factory=list)
     examples: List[Dict[str, str]] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.now)
+
+
+class FoundationState(FoundationBase):
+    """Universal state storage for Onboarding JSON."""
+
+    tenant_id: UUID
+    data: Dict[str, Any] = Field(default_factory=dict)
+    updated_at: datetime = Field(default_factory=datetime.now)

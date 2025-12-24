@@ -1,16 +1,36 @@
-from fastapi import APIRouter, Depends, HTTPException, status
 from uuid import UUID
-from backend.models.foundation import BrandKit, Positioning
-from backend.services.foundation_service import FoundationService
+
+from fastapi import APIRouter, Depends, HTTPException, status
+
 from backend.core.vault import Vault
+from backend.models.foundation import BrandKit, FoundationState, Positioning
+from backend.services.foundation_service import FoundationService
 
 router = APIRouter(prefix="/v1/foundation", tags=["foundation"])
 
 
 async def get_foundation_service():
-    vault = Vault()
-    await vault.initialize()
-    return FoundationService(vault)
+    # Service initialization usually doesn't require initialize() if using vault properly
+    return FoundationService(Vault())
+
+
+@router.post("/state", response_model=FoundationState)
+async def save_foundation_state(
+    state: FoundationState, service: FoundationService = Depends(get_foundation_service)
+):
+    """Saves the comprehensive onboarding state JSON."""
+    return await service.save_state(state)
+
+
+@router.get("/state/{tenant_id}", response_model=FoundationState)
+async def get_foundation_state(
+    tenant_id: UUID, service: FoundationService = Depends(get_foundation_service)
+):
+    """Retrieves the comprehensive onboarding state JSON."""
+    state = await service.get_state(tenant_id)
+    if not state:
+        raise HTTPException(status_code=404, detail="Foundation state not found")
+    return state
 
 
 @router.post("/brand-kit", response_model=BrandKit, status_code=status.HTTP_201_CREATED)
