@@ -24,11 +24,11 @@ async def talk_to_fortress():
         if "Classify" in str(prompt):
             model_name = "Gemini 2.0 Flash (Intake)"
         elif "architect a surgical" in str(prompt):
-            model_name = "Gemini 3 Pro (Ultra)"
+            model_name = "Gemini 2.5 Pro (Ultra)"
         elif "Thought Leader" in str(prompt):
-            model_name = "Gemini 2.5 Flash (Driver)"
+            model_name = "Gemini 2.5 Flash Lite (Driver)"
         elif "ruthless visual editor" in str(prompt):
-            model_name = "Gemini 1.5 Flash (Mundane)"
+            model_name = "Gemini 2.5 Flash Lite (Mundane)"
 
         print(f"   [AI] {model_name} is thinking...")
         return MagicMock(

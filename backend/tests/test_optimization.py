@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from backend.core.sandbox import RaptorSandbox
+from backend.core.config import get_settings
 from backend.core.toolbelt import BaseRaptorTool, RaptorRateLimiter, cache_tool_output
 from backend.core.vault import RaptorVault
 from backend.graphs.spine_v3 import build_ultimate_spine
@@ -111,10 +112,11 @@ def test_raptor_sandbox_execution():
 
 def test_cost_evaluator_logic():
     """Verify that the cost evaluator flags expensive runs."""
+    settings = get_settings()
     evaluator = CostEvaluator(cost_threshold=0.05)
     # Expensive usage (10k tokens)
     usage = {"total_tokens": 10000}
-    result = evaluator.evaluate_cost(usage, "gemini-ultra")
+    result = evaluator.evaluate_cost(usage, settings.MODEL_REASONING_ULTRA)
 
     assert result["estimated_cost"] == 0.1  # 10 * 0.01
     assert result["is_above_threshold"] is True
@@ -181,11 +183,12 @@ async def test_latency_decorator_logging():
 @pytest.mark.asyncio
 async def test_telemetry_callback_logging():
     """Verify the telemetry callback captures usage data."""
+    settings = get_settings()
     callback = RaptorTelemetryCallback()
     mock_response = MagicMock()
     mock_response.llm_output = {
         "token_usage": {"total_tokens": 100},
-        "model_name": "gemini-pro",
+        "model_name": settings.MODEL_GENERAL,
     }
 
     with patch("backend.services.telemetry.logger.info") as mock_log:
@@ -225,20 +228,23 @@ def test_langsmith_config():
 @pytest.mark.asyncio
 async def test_model_routing_logic():
     """Test that the router selects the correct Gemini tiered model."""
+    settings = get_settings()
     with patch("backend.inference.ChatVertexAI") as MockChat:
         # 1. Ultra Reasoning (3 Pro)
         InferenceProvider.get_model(model_tier="ultra")
-        MockChat.assert_called_with(model_name="gemini-3-pro-preview", temperature=0.0)
+        MockChat.assert_called_with(
+            model_name=settings.MODEL_REASONING_ULTRA, temperature=0.0
+        )
 
         # 2. Reasoning (3 Flash)
         InferenceProvider.get_model(model_tier="reasoning")
         MockChat.assert_called_with(
-            model_name="gemini-3-flash-preview", temperature=0.0
+            model_name=settings.MODEL_REASONING, temperature=0.0
         )
 
         # 3. Daily Driver (2.5 Flash)
         InferenceProvider.get_model(model_tier="driver")
-        MockChat.assert_called_with(model_name="gemini-2.5-flash", temperature=0.0)
+        MockChat.assert_called_with(model_name=settings.MODEL_GENERAL, temperature=0.0)
 
 
 def test_parallel_execution_pattern():
