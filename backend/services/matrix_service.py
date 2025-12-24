@@ -1,11 +1,17 @@
-from typing import Dict, Optional, Any, List
 from datetime import datetime
-from backend.models.telemetry import SystemState, AgentState, AgentHealthStatus, TelemetryEvent
-from backend.services.cache import get_cache
-from backend.db import get_pool, SupabaseSaver, get_db_connection
-from backend.services.sanity_check import SystemSanityCheck
-from backend.services.latency_monitor import LatencyMonitor
+from typing import Any, Dict, List, Optional
+
+from backend.core.cache import get_cache_manager
+from backend.db import SupabaseSaver, get_db_connection, get_pool
+from backend.models.telemetry import (
+    AgentHealthStatus,
+    AgentState,
+    SystemState,
+    TelemetryEvent,
+)
 from backend.services.cost_governor import CostGovernor
+from backend.services.latency_monitor import LatencyMonitor
+from backend.services.sanity_check import SystemSanityCheck
 
 
 class StateCheckpointManager:
@@ -40,7 +46,8 @@ class MatrixService:
 
     def __init__(self):
         self._state = SystemState()
-        self._redis = get_cache()
+        manager = get_cache_manager()
+        self._redis = manager.client if manager else None
         self._sanity = SystemSanityCheck()
         self._latency = LatencyMonitor()
         self._cost = CostGovernor()
@@ -56,12 +63,12 @@ class MatrixService:
         """
         health = await self._sanity.run_suite()
         cost = await self._cost.get_burn_report(workspace_id)
-        
+
         return {
             "system_state": self._state.model_dump(),
             "health_report": health,
             "cost_report": cost,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
     async def initialize_telemetry_stream(self) -> bool:
@@ -78,29 +85,31 @@ class MatrixService:
         """Emits a telemetry event to the live stream."""
         try:
             # Push to a Redis stream or list for real-time dashboard
-            await self._redis.xadd("matrix_telemetry", {"event": event.model_dump_json()})
+            await self._redis.xadd(
+                "matrix_telemetry", {"event": event.model_dump_json()}
+            )
             return True
         except Exception as e:
             print(f"ERROR: Failed to emit telemetry event: {e}")
             return False
 
     async def capture_agent_heartbeat(
-        self, 
-        agent_id: str, 
-        task: Optional[str] = None, 
+        self,
+        agent_id: str,
+        task: Optional[str] = None,
         status: AgentHealthStatus = AgentHealthStatus.ONLINE,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """Captures a heartbeat from an active agent and updates global state."""
         agent_state = AgentState(
             status=status,
             last_heartbeat=datetime.now(),
             current_task=task,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
         self._state.active_agents[agent_id] = agent_state
         self._state.updated_at = datetime.now()
-        
+
         # Periodic prune (simplified for now)
         self.prune_stale_agents()
         return True
@@ -121,28 +130,29 @@ class MatrixService:
         self._state.kill_switch_engaged = True
         self._state.system_status = "halted"
         self._state.updated_at = datetime.now()
-        
+
         # 2. Log to Audit Trail
         try:
             async with get_db_connection() as conn:
                 async with conn.cursor() as cur:
                     query = """
                         INSERT INTO agent_decision_audit (
-                            tenant_id, agent_id, decision_type, input_state, 
+                            tenant_id, agent_id, decision_type, input_state,
                             output_decision, rationale
                         ) VALUES (%s, %s, %s, %s, %s, %s);
                     """
                     import psycopg
+
                     await cur.execute(
                         query,
                         (
-                            "system", # Global scope
+                            "system",  # Global scope
                             "MatrixAdmin",
                             "kill_switch",
                             psycopg.types.json.Jsonb({"status": "active"}),
                             psycopg.types.json.Jsonb({"status": "halted"}),
-                            reason
-                        )
+                            reason,
+                        ),
                     )
                     await conn.commit()
             return True
