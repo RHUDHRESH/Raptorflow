@@ -36,7 +36,7 @@ This track focuses on upgrading the Muse backend from a prototype to a "State-of
 - **Cache:** Upstash Redis
 - **Monitoring:** LangSmith
 - **Payments:** PhonePe Gateway
-- **Models:** Gemini 1.5 Pro/Flash, OpenAI o1/GPT-4o
+- **Models:** Gemini 2.5 Flash/Flash-Lite, OpenAI o1/GPT-4o
 
 ## 4. Acceptance Criteria
 1. Backend can persist state across sessions (Checkpointing).

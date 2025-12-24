@@ -16,7 +16,7 @@ This track delivers the commercial and multi-tenant backbone of RaptorFlow. It h
     - **Architect:** Foundation validation & contradiction detection.
     - **Prophet:** Psychographic ICP generation (2-3 profiles).
     - **Strategist:** 90-day campaign arc & move backlog drafting.
-- **Model Routing:** Enforce **Gemini 2.0 Flash (40%)** and **Gemini 1.5 Flash (60%)** split.
+- **Model Routing:** Enforce **Gemini 2.5 Flash (40%)** and **Gemini 2.5 Flash-Lite (60%)** split.
 - **Persistence:** AI outputs written to DB before exiting onboarding.
 
 ### 3. Multi-Provider Payment Gateway (Rupees)
@@ -42,7 +42,7 @@ This track delivers the commercial and multi-tenant backbone of RaptorFlow. It h
 
 ### 2. AI Onboarding & Model Fidelity
 - [ ] **End-to-End Success:** A new user completes onboarding, and AI-generated ICPs/Arcs are persisted and visible.
-- [ ] **Model Split:** Backend telemetry confirms the 40/60 distribution between Gemini 2.0 and 1.5 Flash.
+- [ ] **Model Split:** Backend telemetry confirms the 40/60 distribution between Gemini 2.5 Flash and 2.5 Flash-Lite.
 
 ### 3. Payments, Entitlements & Currency
 - [ ] **Currency Consistency:** The currency symbol **₹** and **INR/Rupees** is used in every billing UI, including checkout and invoices.

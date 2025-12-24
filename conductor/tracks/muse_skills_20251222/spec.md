@@ -45,9 +45,8 @@ Inspired by the Agent Skills Open Standard, a "Skill" is a structured package co
 ### 2.2 The Agent Orchestrator (LangGraph)
 -   **Framework:** LangGraph.js (Node.js/TS implementation).
 -   **Models:**
-    -   **Gemini 2.0 Flash (80%):** High-volume tasks (drafting, repurposing).
-    -   **Gemini 1.5 Pro (15%):** Reasoning, critiquing, complex synthesis.
-    -   **Gemini 1.5 Flash (5%):** Simple classification, chat routing.
+    -   **Gemini 2.5 Flash (85%):** High-volume tasks (drafting, repurposing) plus deeper reasoning and critique.
+    -   **Gemini 2.5 Flash-Lite (15%):** Simple classification, chat routing, and lightweight formatting.
     *(Note: "Gemini 3.5" and "3.0" mentioned in prompt are treated as future/placeholder names; we will use the best available Vertex AI equivalents).*
 
 ### 2.3 Memory & RAG (Supabase)
@@ -84,7 +83,7 @@ Inspired by the Agent Skills Open Standard, a "Skill" is a structured package co
 -   [ ] **Custom Skill Working:** I can create a "Haiku Writer" skill in the UI, and the agent successfully uses it.
 -   [ ] **Memory Persistence:** I can refresh the page, and the chat history/context is preserved (LangGraph checkpointing).
 -   [ ] **RAG Integration:** The agent can answer "What is my brand voice?" by citing the "Foundation" documents.
--   [ ] **Vertex AI Connected:** Logs show requests going to Gemini 2.0/1.5 on Vertex AI.
+-   [ ] **Vertex AI Connected:** Logs show requests going to Gemini 2.5 Flash/Flash-Lite on Vertex AI.
 
 ## 5. Technical Constraints
 -   **Stack:** Next.js (App Router), LangChain.js / LangGraph.js, Supabase, Vertex AI.

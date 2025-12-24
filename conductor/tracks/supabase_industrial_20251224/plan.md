@@ -12,7 +12,7 @@
 - [ ] Task: Implement Architect Node (Validation & Contradiction Detection).
 - [ ] Task: Implement Prophet Node (Psychographic ICP Generation).
 - [ ] Task: Implement Strategist Node (90-Day Arc & Move Backlog).
-- [ ] Task: Implement Model Router with 40/60 Gemini 2.0/1.5 Flash split.
+- [ ] Task: Implement Model Router with 40/60 Gemini 2.5 Flash/Flash-Lite split.
 - [ ] Task: Integrate Onboarding Spine with Supabase persistence.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: AI Onboarding' (Protocol in workflow.md)
 
