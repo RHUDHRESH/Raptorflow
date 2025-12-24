@@ -182,7 +182,7 @@
 - [ ] Phase 0179: Write Unit Test: `test_prompt_rendering`
 - [ ] Phase 0180: Implement `backend/core/models.py`: Model Router
 - [ ] Phase 0181: Implement `ModelRouter.get_model(tier='high'|'low')`
-- [ ] Phase 0182: Implement Model Fallback: Gemini 1.5 Pro -> Flash
+- [ ] Phase 0182: Implement Model Fallback: Gemini 2.5 Flash -> Flash-Lite
 - [ ] Phase 0183: Implement Rate Limit Handling for LLM calls
 - [ ] Phase 0184: Implement Token Usage Tracker (Global Request Context)
 - [ ] Phase 0185: Write Unit Test: `test_model_fallback`

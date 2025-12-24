@@ -39,7 +39,7 @@
 ## Phase 4: Base Agent Intelligence & Personas (Phases 31-40)
 - [x] Phase 31: Develop the Base Agent Class with integrated Tool calling. [6a59bb0]
 - [x] Phase 32: Design SOTA Prompt Templates for Strategy and Research. [6a59bb0]
-- [x] Phase 33: Implement Vertex AI Primary Inference with Model Fallback (Gemini 1.5 Pro -> Flash). [6a59bb0]
+- [x] Phase 33: Implement Vertex AI Primary Inference with Model Fallback (Gemini 2.5 Flash -> Flash-Lite). [6a59bb0]
 - [x] Phase 34: Define the "Strategist" Persona and Instruction Set. [6a59bb0]
 - [x] Phase 35: Define the "Researcher" Persona and Instruction Set. [6a59bb0]
 - [x] Phase 36: Define the "Creative Director" Persona and Instruction Set. [6a59bb0]
