@@ -1,7 +1,8 @@
 from typing import Optional
 from uuid import UUID
+
 from backend.core.vault import Vault
-from backend.models.foundation import BrandKit, Positioning
+from backend.models.foundation import BrandKit, FoundationState, Positioning
 
 
 class FoundationService:
@@ -12,6 +13,31 @@ class FoundationService:
 
     def __init__(self, vault: Vault):
         self.vault = vault
+
+    async def save_state(self, state: FoundationState) -> FoundationState:
+        """Upserts the universal foundation state JSON."""
+        session = await self.vault.get_session()
+        payload = state.model_dump(mode="json")
+        # Upsert logic for Supabase (using tenant_id as unique key for state)
+        result = (
+            await session.table("foundation_state")
+            .upsert(payload, on_conflict="tenant_id")
+            .execute()
+        )
+        return FoundationState(**result.data[0])
+
+    async def get_state(self, tenant_id: UUID) -> Optional[FoundationState]:
+        """Retrieves the universal foundation state JSON."""
+        session = await self.vault.get_session()
+        result = (
+            await session.table("foundation_state")
+            .select("*")
+            .eq("tenant_id", str(tenant_id))
+            .execute()
+        )
+        if not result.data:
+            return None
+        return FoundationState(**result.data[0])
 
     async def create_brand_kit(self, brand_kit: BrandKit) -> BrandKit:
         """Persists a new brand kit to Supabase."""
