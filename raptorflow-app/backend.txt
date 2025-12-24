@@ -42,7 +42,7 @@
 - **Cache**: Redis (session state, hot data, rate limiting)
 - **Object Storage**: S3/GCS (uploaded files, PDFs, images)
 - **AI Framework**: LangGraph, LangChain
-- **LLM Provider**: Google Vertex AI (Gemini 1.5 Pro, Gemini 2.0 Flash)
+- **LLM Provider**: Google Vertex AI (Gemini 2.5 Flash, Gemini 2.5 Flash-Lite)
 - **Embeddings**: Vertex AI `text-embedding-004`
 - **OCR**: Google Cloud Vision API
 - **Auth**: Supabase Auth (JWT)

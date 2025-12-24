@@ -5,7 +5,7 @@ This is the Python-based creative engine for RaptorFlow, built with FastAPI and 
 ## Tech Stack
 - **Framework:** FastAPI
 - **Orchestration:** LangGraph
-- **Inference:** Vertex AI (Gemini)
+- **Inference:** Vertex AI (Gemini 2.5 Flash/Flash-Lite)
 - **Database:** Supabase (PostgreSQL + pgvector)
 
 ## Setup

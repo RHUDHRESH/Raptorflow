@@ -5,7 +5,7 @@ Implementation of the "Shared Agent Platform" using a dedicated Python service (
 
 ## 2. Infrastructure
 - **Brain:** Python 3.11+, FastAPI, LangGraph, LangChain.
-- **Inference:** Vertex AI (Gemini 1.5 Flash for routing, 1.5 Pro for research/quality).
+- **Inference:** Vertex AI (Gemini 2.5 Flash-Lite for routing, 2.5 Flash for research/quality).
 - **Memory:** LangGraph `PostgresSaver` connecting directly to Supabase.
 - **Search:** `pgvector` for RAG and asset retrieval.
 - **Visuals:** Konva-based canvas state (JSON) managed by MemeDirector.
