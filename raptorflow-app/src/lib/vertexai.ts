@@ -142,7 +142,8 @@ export function getGemini2Flash(): GeminiChatModel | null {
 export function getGemini15Pro(): GeminiChatModel | null {
   if (!_gemini15Pro) {
     const config = getInferenceConfig();
-    const modelName = config.models.ultra || config.models.high || "gemini-1.5-pro";
+    const modelName =
+      config.models.ultra || config.models.high || "gemini-2.5-flash";
     _gemini15Pro = createModel(modelName, 0.5, 8192, config);
   }
   return _gemini15Pro;
