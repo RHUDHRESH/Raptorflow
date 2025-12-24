@@ -38,6 +38,14 @@ dependencies = [
 [tool.setuptools]
 packages = ["agents", "api", "core", "graphs", "memory", "ml", "models", "scripts", "services", "skills", "tools", "utils"]
 
+[tool.poetry.group.dev.dependencies]
+black = "^24.0.0"
+flake8 = "^7.0.0"
+mypy = "^1.8.0"
+isort = "^5.13.0"
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.0"
+
 [tool.pytest.ini_options]
 minversion = "8.0"
 addopts = "-ra -q"
