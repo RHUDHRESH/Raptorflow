@@ -34,15 +34,7 @@ This plan outlines the steps to audit the infrastructure, implement intelligent 
 ## Phase 4: Full-Stack Connectivity & State Integrity
 *Goal: Verify every button push and ensure data propagates correctly across modules.*
 
-- [ ] **Task 1: Onboarding & ICP Data Flow Audit**
-    - [ ] Audit the "thorough JSON" generation from Onboarding.
-    - [ ] Verify schema consistency when JSON is used by Cohorts, Muse, and Matrix.
-    - [ ] Implement schema validation checks at module entry points.
-- [ ] **Task 2: Module Connectivity Verification (E2E)**
-    - [ ] Implement Playwright E2E tests for Muse (grammar check, asset generation).
-    - [ ] Implement Playwright E2E tests for Matrix (dashboard loading, RAG status updates).
-    - [ ] Implement Playwright E2E tests for Blackbox (telemetry ingest).
-- [ ] **Task 3: Upstash Redis & Performance Audit**
-    - [ ] Verify Redis caching is functional and doesn't lead to stale data.
-    - [ ] Audit backend for optimal "operator view" responsiveness.
-- [ ] **Task: Conductor - User Manual Verification 'Full-Stack Connectivity & Verification' (Protocol in workflow.md)**
+- [x] **Task 1: Onboarding & ICP Data Flow Audit** (e12f31a)
+- [x] **Task 2: Module Connectivity Verification (E2E)** (f67dc1a)
+- [x] **Task 3: Upstash Redis & Performance Audit** (f67dc1a)
+- [~] **Task: Conductor - User Manual Verification 'Full-Stack Connectivity & Verification' (Protocol in workflow.md)**
