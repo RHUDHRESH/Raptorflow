@@ -14,7 +14,7 @@ This plan outlines the steps to audit the infrastructure, implement intelligent 
 ## Phase 2: Vertex AI Intelligent Routing & Resilience
 *Goal: Implement the weighted model distribution and task-specific intelligence routing.*
 
-- [ ] **Task 1: Task-to-Model Mapping Logic**
+- [x] **Task 1: Task-to-Model Mapping Logic** (8f29e74)
     - [ ] Define the `IntelligenceTier` enum (High, Mid, Base).
     - [ ] Write failing tests for the router (verifying correct model selection based on task type).
     - [ ] Implement the routing logic in `backend/core/vertex_setup.py`.
