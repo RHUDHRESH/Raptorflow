@@ -1,29 +1,20 @@
-import os
 import logging
-from typing import List, Dict, Any
-from tavily import TavilyClient
+from typing import Any, Dict, List
+
 from backend.core.base_tool import BaseRaptorTool, RaptorRateLimiter
+from backend.core.search_native import NativeSearch
 
 logger = logging.getLogger("raptorflow.tools.search")
 
+
 class TavilyMultiHopTool(BaseRaptorTool):
     """
-    SOTA Multi-hop Search Tool.
-    Performs deep research using Tavily's specialized AI search.
+    SOTA Multi-hop Search Tool (Native Replacement).
+    Performs deep research using RaptorFlow's zero-cost native engine.
     """
 
     def __init__(self):
-        self._client = None
-
-    @property
-    def client(self):
-        if self._client is None:
-            api_key = os.getenv("TAVILY_API_KEY")
-            if not api_key:
-                logger.error("TAVILY_API_KEY missing from environment.")
-                raise ValueError("TAVILY_API_KEY missing")
-            self._client = TavilyClient(api_key=api_key)
-        return self._client
+        self._search = NativeSearch()
 
     @property
     def name(self) -> str:
@@ -42,25 +33,21 @@ class TavilyMultiHopTool(BaseRaptorTool):
         self, query: str, search_depth: str = "advanced"
     ) -> List[Dict[str, Any]]:
         """
-        Executes the deep search.
+        Executes the search using the native engine.
         """
-        logger.info(f"Executing Tavily multi-hop search: {query}")
-        # Tavily search is synchronous, we run in thread for SOTA async performance
-        import asyncio
+        logger.info(f"Executing native multi-hop search: {query}")
+        results = await self._search.query(query, limit=5)
+        return results
 
-        response = await asyncio.to_thread(
-            self.client.search, query=query, search_depth=search_depth, max_results=5
-        )
-        return response.get("results", [])
 
 class PerplexitySearchTool(BaseRaptorTool):
     """
-    SOTA Real-time Search Tool.
-    Uses Perplexity for high-velocity news and trend extraction.
+    SOTA Real-time Search Tool (Native Replacement).
+    Uses RaptorFlow's native engine for high-velocity trend extraction.
     """
+
     def __init__(self):
-        self.api_key = os.getenv("PERPLEXITY_API_KEY")
-        self.url = "https://api.perplexity.ai/chat/completions"
+        self._search = NativeSearch()
 
     @property
     def name(self) -> str:
@@ -77,27 +64,19 @@ class PerplexitySearchTool(BaseRaptorTool):
     @RaptorRateLimiter.get_retry_decorator()
     async def _execute(self, query: str) -> str:
         """
-        Executes search via Perplexity's completion API.
+        Executes search via the native engine.
         """
-        import aiohttp
-        logger.info(f"Executing Perplexity real-time search: {query}")
-        
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "model": "sonar-pro", # SOTA model for 2025
-            "messages": [
-                {"role": "system", "content": "Be precise and cite sources."},
-                {"role": "user", "content": query}
-            ]
-        }
-        
-        async with aiohttp.ClientSession() as session:
-            async with session.post(self.url, json=payload, headers=headers) as resp:
-                if resp.status != 200:
-                    text = await resp.text()
-                    raise ValueError(f"Perplexity API failed ({resp.status}): {text}")
-                data = await resp.json()
-                return data["choices"][0]["message"]["content"]
+        logger.info(f"Executing native real-time search: {query}")
+        results = await self._search.query(query, limit=3)
+
+        if not results:
+            return "No recent data found for the query."
+
+        # Format results as a readable string to mimic Perplexity output
+        formatted = "Recent findings from native search:\n"
+        for i, res in enumerate(results, 1):
+            formatted += (
+                f"{i}. {res['title']}: {res['snippet']} (Source: {res['url']})\n"
+            )
+
+        return formatted

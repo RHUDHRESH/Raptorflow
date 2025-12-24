@@ -28,13 +28,14 @@ class Config(BaseSettings):
     UPSTASH_REDIS_REST_URL: Optional[str] = None
     UPSTASH_REDIS_REST_TOKEN: Optional[str] = None
 
-    # LLM Configuration
+    # AI & LLM Configuration
     LLM_PROVIDER: str = "google"
     LLM_MODEL: str = "gemini-1.5-pro"
     VERTEX_AI_API_KEY: Optional[str] = None
     VERTEX_AI_API_KEY_FALLBACK: Optional[str] = None
     OPENAI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
+    BRAVE_SEARCH_API_KEY: Optional[str] = None
 
     # Payment Configuration
     PHONEPE_MERCHANT_ID: Optional[str] = None
@@ -91,6 +92,9 @@ def get_settings() -> Config:
     settings.OPENAI_API_KEY = get_secret("OPENAI_API_KEY") or settings.OPENAI_API_KEY
     settings.ANTHROPIC_API_KEY = (
         get_secret("ANTHROPIC_API_KEY") or settings.ANTHROPIC_API_KEY
+    )
+    settings.BRAVE_SEARCH_API_KEY = (
+        get_secret("BRAVE_SEARCH_API_KEY") or settings.BRAVE_SEARCH_API_KEY
     )
 
     return settings
