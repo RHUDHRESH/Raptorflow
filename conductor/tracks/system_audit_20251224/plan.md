@@ -9,7 +9,7 @@ This plan outlines the steps to audit the infrastructure, implement intelligent 
     - [ ] Audit all tables for existing RLS policies.
     - [ ] Write SQL migrations to enforce "Least Privilege" access.
     - [ ] Verify Auth flows and session handling security.
-- [ ] **Task 2: GCP Storage & Cloud Run Hardening**
+- [x] **Task 2: GCP Storage & Cloud Run Hardening** (bed3712)
     - [ ] Configure GCS CORS policies for `raptorflow-app` domains.
     - [ ] Implement GCS lifecycle rules for temporary asset cleanup.
     - [ ] Audit Cloud Run service account permissions (IAM).
