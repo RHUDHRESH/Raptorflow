@@ -37,7 +37,7 @@ def test_config_vertex_ai_success():
         "SUPABASE_URL": "https://test.supabase.co",
         "SUPABASE_SERVICE_ROLE_KEY": "test-key",
         "LLM_PROVIDER": "google",
-        "LLM_MODEL": "gemini-1.5-pro",
+        "LLM_MODEL": "gemini-2.5-flash",
         "UPSTASH_REDIS_REST_URL": "https://test.upstash.io",
         "UPSTASH_REDIS_REST_TOKEN": "test-token",
     }
