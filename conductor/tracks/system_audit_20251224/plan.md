@@ -18,7 +18,7 @@ This plan outlines the steps to audit the infrastructure, implement intelligent 
     - [ ] Define the `IntelligenceTier` enum (High, Mid, Base).
     - [ ] Write failing tests for the router (verifying correct model selection based on task type).
     - [ ] Implement the routing logic in `backend/core/vertex_setup.py`.
-- [ ] **Task 2: Resilience & Fallback Implementation**
+- [x] **Task 2: Resilience & Fallback Implementation** (6f1bc81)
     - [ ] Write failing tests for model failure scenarios.
     - [ ] Implement cascading fallback logic (e.g., if Gemini 3 fails, try Gemini 2.5).
     - [ ] Ensure all routing uses ENV-sourced API keys exclusively.
