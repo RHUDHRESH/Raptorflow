@@ -7,8 +7,20 @@ from backend.core.config import get_settings
 
 
 def get_vertex_api_key():
+    """
+    Retrieves the Vertex AI API key with strict ENV-based fallback.
+    """
     settings = get_settings()
-    return settings.VERTEX_AI_API_KEY
+    primary = settings.VERTEX_AI_API_KEY
+    fallback = getattr(settings, "VERTEX_AI_API_KEY_FALLBACK", None)
+
+    if primary:
+        return primary
+    if fallback:
+        logger.info("Primary Vertex API Key missing. Using fallback key.")
+        return fallback
+
+    return None
 
 
 logger = logging.getLogger("raptorflow.inference")

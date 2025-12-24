@@ -32,6 +32,7 @@ class Config(BaseSettings):
     LLM_PROVIDER: str = "google"
     LLM_MODEL: str = "gemini-1.5-pro"
     VERTEX_AI_API_KEY: Optional[str] = None
+    VERTEX_AI_API_KEY_FALLBACK: Optional[str] = None
     OPENAI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
 
