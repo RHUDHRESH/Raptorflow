@@ -9,6 +9,9 @@ env/
 .pytest_cache/
 .coverage
 htmlcov/
+*.egg-info/
+# Logs
+*.log
 
 # Node.js
 node_modules/
