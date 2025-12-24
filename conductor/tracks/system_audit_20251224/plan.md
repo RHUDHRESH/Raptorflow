@@ -24,18 +24,12 @@ This plan outlines the steps to audit the infrastructure, implement intelligent 
     - [ ] Ensure all routing uses ENV-sourced API keys exclusively.
 - [x] **Task: Conductor - User Manual Verification 'Vertex AI Intelligent Routing & Resilience' (Protocol in workflow.md)** (99a5645)
 
-## Phase 3: Native Zero-Cost Search Tool
+## Phase 3: Native Zero-Cost Search Tool [checkpoint: 96770ff]
 *Goal: Build and integrate a 100% free search tool to replace paid APIs.*
 
-- [~] **Task 1: Search Tool Core Development**
-    - [ ] Prototype a DuckDuckGo/Brave Search-based scraper/aggregator.
-    - [ ] Write unit tests for search result parsing and metadata extraction.
-    - [ ] Implement the search tool as a native module in `backend/core/`.
+- [x] **Task 1: Search Tool Core Development** (6ef8cac)
 - [x] **Task 2: API Replacement & Integration** (1d23193)
-    - [ ] Locate all instances of Tavily/Perplexity usage.
-    - [ ] Replace with the new native search tool.
-    - [ ] Optimize for Cloud Run memory/CPU footprints to ensure economic viability.
-- [ ] **Task: Conductor - User Manual Verification 'Native Zero-Cost Search Tool' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Native Zero-Cost Search Tool' (Protocol in workflow.md)** (96770ff)
 
 ## Phase 4: Full-Stack Connectivity & State Integrity
 *Goal: Verify every button push and ensure data propagates correctly across modules.*
