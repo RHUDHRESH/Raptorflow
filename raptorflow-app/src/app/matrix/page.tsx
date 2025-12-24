@@ -8,6 +8,7 @@ import { GlobalKillSwitch } from "@/components/matrix/GlobalKillSwitch";
 import { DriftChart } from "@/components/matrix/DriftChart";
 import { FinancialBurnChart } from "@/components/matrix/FinancialBurnChart";
 import { InferenceLogExplorer } from "@/components/matrix/InferenceLogExplorer";
+import { OperatorActionsPanel } from "@/components/matrix/OperatorActionsPanel";
 import { MatrixMetricSkeleton } from "@/components/matrix/LoadingSkeletons";
 import { useMatrixOverview } from "@/hooks/useMatrixOverview";
 import { Activity, Zap, Shield, AlertTriangle } from "lucide-react";
@@ -112,11 +113,14 @@ export default function MatrixPage() {
         {/* 4. Secondary Panels */}
         <div className="grid gap-6 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <AgentPoolList />
+            <OperatorActionsPanel />
           </div>
 
           <div className="lg:col-span-4">
-            <InferenceLogExplorer />
+            <div className="flex flex-col space-y-6">
+              <AgentPoolList />
+              <InferenceLogExplorer />
+            </div>
           </div>
 
           <div className="lg:col-span-4">
