@@ -1,51 +1,56 @@
-import pytest
-from fastapi.testclient import TestClient
 from unittest.mock import MagicMock
 from uuid import uuid4
-from backend.main import app
+
+import pytest
+from fastapi.testclient import TestClient
+
 from backend.api.v1.blackbox_telemetry import get_blackbox_service
+from backend.main import app
 
 client = TestClient(app)
+
 
 def test_log_telemetry_endpoint():
     mock_service = MagicMock()
     app.dependency_overrides[get_blackbox_service] = lambda: mock_service
-    
+
     payload = {
         "move_id": str(uuid4()),
         "agent_id": "api-test-agent",
         "trace": {"api": "test"},
         "tokens": 20,
-        "latency": 0.2
+        "latency": 0.2,
     }
-    
+
     response = client.post("/v1/blackbox/telemetry", json=payload)
     assert response.status_code == 201
     mock_service.log_telemetry.assert_called_once()
-    
+
     app.dependency_overrides.clear()
+
 
 def test_get_agent_audit_log_endpoint():
     mock_service = MagicMock()
     mock_service.get_agent_audit_log.return_value = [{"id": "test"}]
     app.dependency_overrides[get_blackbox_service] = lambda: mock_service
-    
+
     response = client.get("/v1/blackbox/telemetry/audit/test-agent")
     assert response.status_code == 200
     assert len(response.json()) == 1
     mock_service.get_agent_audit_log.assert_called_with("test-agent")
-    
+
     app.dependency_overrides.clear()
+
 
 def test_calculate_move_cost_endpoint():
     mock_service = MagicMock()
     mock_service.calculate_move_cost.return_value = 500
     app.dependency_overrides[get_blackbox_service] = lambda: mock_service
-    
+
     move_id = uuid4()
     response = client.get(f"/v1/blackbox/telemetry/cost/{move_id}")
     assert response.status_code == 200
     assert response.json()["total_tokens"] == 500
     mock_service.calculate_move_cost.assert_called_with(move_id)
-    
+
     app.dependency_overrides.clear()

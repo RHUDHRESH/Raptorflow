@@ -151,6 +151,14 @@ export interface Move {
     checklist: ChecklistItem[];
     assetIds: string[];
 
+    // NEW: Actionable experiment details (like Blackbox)
+    hypothesis?: string;     // "If we do X, then Y will happen"
+    control?: string;        // Current state / what we're testing against
+    variant?: string;        // The specific change we're making
+    success_metric?: string; // What number to track (e.g., "reply rate", "CTR")
+    sample_size?: string;    // e.g., "500 emails", "1000 impressions"
+    action_steps?: string[]; // 3-5 specific things to DO
+
     status: MoveStatus;
     createdAt: string;
     startedAt?: string;

@@ -14,7 +14,7 @@ The Cognitive Intelligence Engine is the industrial-grade "brain" of RaptorFlow.
 ### 2.2 Agentic Intelligence (Taulli & Deshmukh Principles)
 - **LangGraph Spine:** State-managed cyclic workflows allowing for iterative refinement.
 - **Supervisor & Swarm Collaboration:** Hierarchical control with the ability to spawn task-specific swarms.
-- **Multi-Modal Memory:** 
+- **Multi-Modal Memory:**
     - *Semantic:* Long-term knowledge (pgvector).
     - *Episodic:* History of interactions and "Moves."
     - *Procedural:* Learned skills and tool usage patterns.

@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
 from backend.memory.episodic import EpisodicMemory
+
 
 @pytest.mark.asyncio
 async def test_episodic_memory_store_retrieve():
@@ -14,6 +17,7 @@ async def test_episodic_memory_store_retrieve():
     mock_redis.get.assert_called_with("episodic:session_1")
     mock_redis.set.assert_called()
 
+
 @pytest.mark.asyncio
 async def test_episodic_memory_get_history():
     mock_redis = AsyncMock()
@@ -22,6 +26,7 @@ async def test_episodic_memory_get_history():
     history = await memory.get_history("session_1")
     assert history == ["msg1", "msg2"]
     mock_redis.get.assert_called_with("episodic:session_1")
+
 
 @pytest.mark.asyncio
 async def test_episodic_memory_clear():

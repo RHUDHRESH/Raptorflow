@@ -47,7 +47,7 @@ class CampaignService:
                 if not row:
                     return None
 
-                # Assuming table order: id, tenant_id, title, objective, status, progress, 
+                # Assuming table order: id, tenant_id, title, objective, status, progress,
                 # start_date, end_date, created_at, updated_at, arc_data, kpi_targets, audit_data
                 # In production, we should map by column name.
                 return Campaign(

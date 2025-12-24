@@ -20,10 +20,10 @@ class SystemSanityCheck:
         """Pings Upstash Redis."""
         try:
             manager = get_cache_manager()
-            if not manager.client:
+            if manager is None or manager.client is None:
                 return False
-            manager.client.ping()
-            return True
+            # Upstash client ping is synchronous but usually fast
+            return bool(manager.client.ping())
         except Exception as e:
             logger.error(f"Sanity Check: Redis offline - {e}")
             return False
@@ -42,9 +42,7 @@ class SystemSanityCheck:
     async def check_inference(self) -> bool:
         """Verifies Vertex AI model access."""
         try:
-            # We don't want to run a full inference, just check if we can get the model
-            InferenceProvider.get_model(model_tier="fast")
-            return True
+            return InferenceProvider.is_ready()
         except Exception as e:
             logger.error(f"Sanity Check: Inference Provider error - {e}")
             return False

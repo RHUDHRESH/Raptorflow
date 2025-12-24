@@ -84,9 +84,9 @@ def supervisor_node(state: AnalysisState) -> Dict:
     Node: Orchestrates specialized agents (ROI, Drift, Competitor)
     to provide a multi-faceted analysis.
     """
-    from backend.agents.roi_analyst import ROIAnalystAgent
-    from backend.agents.drift_detector import StrategicDriftAgent
     from backend.agents.competitor_intel import CompetitorIntelligenceAgent
+    from backend.agents.drift_detector import StrategicDriftAgent
+    from backend.agents.roi_analyst import ROIAnalystAgent
 
     move_id = state["move_id"]
 
@@ -173,7 +173,7 @@ def create_blackbox_graph():
     Constructs and returns the Blackbox Analysis Graph.
     Uses Strictly Synchronous LangGraph orchestration.
     """
-    from langgraph.graph import StateGraph, START, END
+    from langgraph.graph import END, START, StateGraph
 
     workflow = StateGraph(AnalysisState)
 

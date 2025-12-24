@@ -1,8 +1,8 @@
 import os
 
-file_path = r'C:\Users\hp\OneDrive\Desktop\Raptorflow\conductor\tracks\massive_build_20251223\plan.md'
+file_path = r"C:\Users\hp\OneDrive\Desktop\Raptorflow\conductor\tracks\massive_build_20251223\plan.md"
 
-with open(file_path, 'r', encoding='utf-8') as f:
+with open(file_path, "r", encoding="utf-8") as f:
     lines = f.readlines()
 
 # Remove the old "Final Verification" if it exists at the end to allow for the new phases
@@ -16,7 +16,9 @@ end_target = 3000
 new_phases = []
 
 # --- BLOCK 6: Industrial Hardening (Continued) ---
-new_phases.append("\n## BLOCK 7: Industrial Hardening & Agentic Reflexion (2810–3000)\n")
+new_phases.append(
+    "\n## BLOCK 7: Industrial Hardening & Agentic Reflexion (2810–3000)\n"
+)
 
 # Taulli Patterns (2810 - 2850)
 taulli_tasks = [
@@ -49,7 +51,7 @@ taulli_tasks = [
     "Implement Spine.Lock: Prevent concurrent agent updates to same thread",
     "Implement Spine.TTL: Auto-expire stale agent locks",
     "Implement Spine.Observability: Real-time Upstash latency monitoring",
-    "Write Integration Test: test_upstash_state_locking_concurrency"
+    "Write Integration Test: test_upstash_state_locking_concurrency",
 ]
 
 # Osipov Patterns (2851 - 2890)
@@ -74,7 +76,7 @@ osipov_tasks = [
     "Implement Serving.Shadow: Run vNext in parallel with vProd on Cloud Run",
     "Implement Serving.Compare: Log behavioral diff between shadow and prod",
     "Implement Serving.Gate: Prevent promotion if shadow error rate > prod",
-    "Write Unit Test: test_shadow_inference_logging"
+    "Write Unit Test: test_shadow_inference_logging",
 ]
 
 # Service Hardening (2891 - 2930)
@@ -95,7 +97,7 @@ service_tasks = [
     "Implement Vercel.Hardening: Global Edge Middleware",
     "Implement Edge.Redirect: Geo-blocking for unauthorized regions",
     "Implement Edge.Auth: Session verification at the edge",
-    "Write E2E Test: test_edge_middleware_auth_speed"
+    "Write E2E Test: test_edge_middleware_auth_speed",
 ]
 
 # Safety & Final (2931 - 3000)
@@ -116,7 +118,7 @@ safety_tasks = [
     "Final Verification: Matrix Dashboard Real-time Latency Audit",
     "Create Final Artifact: RaptorFlow Industrial Build Documentation",
     "Create Final Artifact: Operator Manual for Global Launch",
-    "Conductor - User Manual Verification Phase 3000: MISSION COMPLETE"
+    "Conductor - User Manual Verification Phase 3000: MISSION COMPLETE",
 ]
 
 # Combine and number
@@ -130,10 +132,12 @@ for t in combined_tasks:
 
 # If we haven't reached 3000 yet, add padding tasks
 while current_p <= end_target:
-    new_phases.append(f"- [ ] Phase {current_p:04d}: Industrial Hardening: Sub-task {current_p - last_phase}\n")
+    new_phases.append(
+        f"- [ ] Phase {current_p:04d}: Industrial Hardening: Sub-task {current_p - last_phase}\n"
+    )
     current_p += 1
 
-with open(file_path, 'a', encoding='utf-8') as f:
+with open(file_path, "a", encoding="utf-8") as f:
     f.writelines(new_phases)
 
 print(f"Plan updated to {current_p - 1} phases.")

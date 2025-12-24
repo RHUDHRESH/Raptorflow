@@ -25,11 +25,11 @@ export function VoiceAnalyzer({ className, onAnalysisComplete }: VoiceAnalyzerPr
 
     const handleRunAnalysis = async () => {
         if (!text.trim()) return;
-        
+
         setIsAnalyzing(true);
         // Simulate AI analysis delay
         await new Promise(resolve => setTimeout(resolve, 2000));
-        
+
         const mockResults: VoiceAnalysisResults = {
             score: 82,
             alignment: 'high',
@@ -39,7 +39,7 @@ export function VoiceAnalyzer({ className, onAnalysisComplete }: VoiceAnalyzerPr
                 "Consider removing the last exclamation mark to maintain 'Quiet Luxury' tone."
             ]
         };
-        
+
         setResults(mockResults);
         setIsAnalyzing(false);
         onAnalysisComplete?.(mockResults);
@@ -64,7 +64,7 @@ export function VoiceAnalyzer({ className, onAnalysisComplete }: VoiceAnalyzerPr
                     <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2 block">
                         Sample Text
                     </label>
-                    <Textarea 
+                    <Textarea
                         placeholder="Paste sample copy here (e.g. LinkedIn post, Email draft)..."
                         className="min-h-[120px] bg-background/50 border-border/50 focus:border-primary/30 transition-all rounded-xl resize-none text-sm leading-relaxed"
                         value={text}
@@ -72,7 +72,7 @@ export function VoiceAnalyzer({ className, onAnalysisComplete }: VoiceAnalyzerPr
                     />
                 </div>
 
-                <Button 
+                <Button
                     variant="outline"
                     className="w-full h-12 rounded-xl border-primary/10 hover:bg-primary/5 text-[11px] font-semibold uppercase tracking-widest transition-all"
                     onClick={handleRunAnalysis}
@@ -116,17 +116,17 @@ export function VoiceAnalyzer({ className, onAnalysisComplete }: VoiceAnalyzerPr
                                     </div>
                                     <div className="h-12 w-12 rounded-full border-4 border-primary/10 flex items-center justify-center relative">
                                         <svg className="h-full w-full -rotate-90">
-                                            <circle 
-                                                cx="24" cy="24" r="20" 
-                                                fill="transparent" 
-                                                stroke="currentColor" 
+                                            <circle
+                                                cx="24" cy="24" r="20"
+                                                fill="transparent"
+                                                stroke="currentColor"
                                                 strokeWidth="4"
                                                 className="text-primary/20"
                                             />
-                                            <circle 
-                                                cx="24" cy="24" r="20" 
-                                                fill="transparent" 
-                                                stroke="currentColor" 
+                                            <circle
+                                                cx="24" cy="24" r="20"
+                                                fill="transparent"
+                                                stroke="currentColor"
                                                 strokeWidth="4"
                                                 strokeDasharray={125.6}
                                                 strokeDashoffset={125.6 * (1 - results.score/100)}

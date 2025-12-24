@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
         }
 
         const graph = createMuseGraph();
-        
+
         // Configuration for the run (threadId for persistence)
         const config = {
             configurable: {
@@ -31,13 +31,18 @@ export async function POST(req: NextRequest) {
 
         const lastMessage = result.messages[result.messages.length - 1];
 
-        return NextResponse.json({ 
+        return NextResponse.json({
             response: lastMessage.content,
-            threadId: config.configurable.thread_id 
+            threadId: config.configurable.thread_id
         });
 
     } catch (error: any) {
         console.error("Muse API Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        // Return a graceful fallback response instead of crashing
+        return NextResponse.json({
+            response: "I'm currently experiencing technical difficulties. Please try again in a moment, or check if your API credentials are configured correctly.",
+            threadId: "error-thread",
+            error: error.message
+        });
     }
 }

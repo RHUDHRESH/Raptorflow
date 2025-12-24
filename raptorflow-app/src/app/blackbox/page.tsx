@@ -147,7 +147,7 @@ export default function BlackBoxPage() {
         if (!exp) return;
         const dup = { ...exp, id: `exp-${Date.now()}`, status: 'draft' as ExperimentStatus, created_at: new Date().toISOString(), launched_at: undefined, self_report: undefined };
         const updated = [dup, ...experiments];
-        saveExperiments(updated);
+        setExperiments(updated);
         toast.success('Experiment duplicated');
     }, [experiments]);
 
@@ -160,7 +160,7 @@ export default function BlackBoxPage() {
 
         if (targetIndex >= 0 && targetIndex < newExperiments.length) {
             [newExperiments[index], newExperiments[targetIndex]] = [newExperiments[targetIndex], newExperiments[index]];
-            saveExperiments(newExperiments);
+            setExperiments(newExperiments);
         }
     }, [experiments]);
 
@@ -178,7 +178,7 @@ export default function BlackBoxPage() {
 
     const handleClear = useCallback(() => {
         if (confirm('Are you sure you want to delete all experiments?')) {
-            saveExperiments([]);
+            setExperiments([]);
             setLearnings([]);
             saveBlackboxState({ experiments: [], learnings: [], skill_weights: {} });
             toast.success('All cleared');

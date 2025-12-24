@@ -1,5 +1,10 @@
 import { QuestionFlowWizard } from '@/components/onboarding/QuestionFlowWizard';
+import { AppLayout } from '@/components/layout/AppLayout';
 
 export default function FoundationPage() {
-    return <QuestionFlowWizard />;
+    return (
+        <AppLayout>
+            <QuestionFlowWizard />
+        </AppLayout>
+    );
 }

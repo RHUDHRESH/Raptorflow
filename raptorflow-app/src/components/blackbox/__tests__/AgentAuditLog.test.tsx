@@ -13,7 +13,7 @@ describe("AgentAuditLog Component", () => {
     const mockEntries: any[] = [
       { id: '1', agent_id: 'AuditAgent', move_id: 'm1', trace: {}, tokens: 10, latency: 0.5, timestamp: new Date().toISOString() }
     ];
-    
+
     render(<AgentAuditLog entries={mockEntries} />);
     expect(screen.getByText(/AuditAgent/i)).toBeDefined();
   });

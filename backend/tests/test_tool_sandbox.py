@@ -1,14 +1,22 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+
 from backend.core.base_tool import BaseRaptorTool
+
 
 class FailingTool(BaseRaptorTool):
     @property
-    def name(self): return "failing_tool"
+    def name(self):
+        return "failing_tool"
+
     @property
-    def description(self): return "Fails always"
+    def description(self):
+        return "Fails always"
+
     async def _execute(self, **kwargs):
         raise ValueError("Simulated Tool Failure")
+
 
 @pytest.mark.asyncio
 async def test_tool_error_catching():
@@ -18,10 +26,11 @@ async def test_tool_error_catching():
     """
     tool = FailingTool()
     result = await tool.run()
-    
+
     assert result["success"] is False
     assert "Simulated Tool Failure" in result["error"]
     assert result["latency_ms"] == 0
+
 
 @pytest.mark.asyncio
 async def test_toolbelt_missing_tool_handling():
@@ -29,8 +38,9 @@ async def test_toolbelt_missing_tool_handling():
     Verify Toolbelt handles missing tools gracefully.
     """
     from backend.core.toolbelt import ToolbeltV2
+
     belt = ToolbeltV2()
     result = await belt.run_tool("non_existent_tool")
-    
+
     assert result["success"] is False
     assert "not found" in result["error"]

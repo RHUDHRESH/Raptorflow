@@ -1,41 +1,24 @@
 import { StateGraph, MessagesAnnotation, MemorySaver } from "@langchain/langgraph";
-import { getGemini15Flash } from "../vertexai";
+import { getInferenceConfig, isInferenceReady } from "../inference-config";
+import { invokeWithModelFallback } from "../vertexai";
 import { loadSystemSkills } from "./skills-manager";
 import { convertSkillsToTools } from "./skill-converter";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
-import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
-import { Pool } from 'pg';
+// PostgreSQL imports removed to avoid Turbopack symlink issues on Windows
+// import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
+// import { Pool } from 'pg';
 import { retrieveContextTool } from "./rag";
 import { saveAssetTool } from "./tools";
 import { AIMessage } from "@langchain/core/messages";
 
-// Lazy initialization for PostgreSQL pool and checkpointer
-let pool: Pool | null = null;
-let checkpointer: PostgresSaver | MemorySaver | null = null;
+// Singleton in-memory checkpointer for development
+// In production, this should be replaced with a persistent checkpointer
+let checkpointer: MemorySaver | null = null;
 
-function getPool(): Pool | null {
-    if (!process.env.DATABASE_URL) {
-        console.warn("DATABASE_URL not set - PostgreSQL pool unavailable");
-        return null;
-    }
-    if (!pool) {
-        pool = new Pool({
-            connectionString: process.env.DATABASE_URL,
-        });
-    }
-    return pool;
-}
-
-function getCheckpointer(): PostgresSaver | MemorySaver {
+function getCheckpointer(): MemorySaver {
     if (!checkpointer) {
-        const poolInstance = getPool();
-        if (poolInstance) {
-            checkpointer = new PostgresSaver(poolInstance);
-        } else {
-            // Fallback to in-memory checkpointer for development
-            console.warn("Using in-memory checkpointer - state will not persist across restarts");
-            checkpointer = new MemorySaver();
-        }
+        console.info("Using in-memory checkpointer for development");
+        checkpointer = new MemorySaver();
     }
     return checkpointer;
 }
@@ -48,9 +31,7 @@ async function getAllTools() {
 
 async function agentNode(state: typeof MessagesAnnotation.State) {
     const tools = await getAllTools();
-    // Use lazy-initialized model for tool selection
-    const model = getGemini15Flash();
-    if (!model) {
+    if (!isInferenceReady()) {
         console.warn("Vertex AI model not available - returning mock response");
         return {
             messages: [
@@ -60,9 +41,29 @@ async function agentNode(state: typeof MessagesAnnotation.State) {
             ]
         };
     }
-    const boundModel = model.bindTools(tools);
-    const response = await boundModel.invoke(state.messages);
-    return { messages: [response] };
+
+    const config = getInferenceConfig();
+    const modelName = config.models.general || "gemini-2.5-flash-lite";
+
+    try {
+        const response = await invokeWithModelFallback({
+            input: state.messages,
+            modelName,
+            temperature: 0.3,
+            maxTokens: 2048,
+            tools,
+        });
+        return { messages: [response as AIMessage] };
+    } catch (error) {
+        console.error("Muse model invocation failed:", error);
+        return {
+            messages: [
+                new AIMessage({
+                    content: "Model access failed. Please verify your Gemini model name and API key, then try again."
+                })
+            ]
+        };
+    }
 }
 
 async function executeTools(state: typeof MessagesAnnotation.State) {

@@ -159,7 +159,7 @@ export default function WizardLayout({
                             style={{ backgroundSize: '200% 100%' }}
                         />
                         <div
-                            className="h-full bg-[#2D3538] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] relative z-0"
+                            className="h-full bg-[#2D3538] transition-all duration-700 [transition-timing-function:cubic-bezier(0.25,1,0.5,1)] relative z-0"
                             style={{ width: `${progress}%` }}
                         />
                     </div>

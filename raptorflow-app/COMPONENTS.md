@@ -230,9 +230,9 @@ Radius:        var(--radius-md)
 Animation:     shimmer, 1.5s ease-in-out infinite
 
 Shimmer gradient:
-  linear-gradient(90deg, 
-    transparent, 
-    rgba(255,255,255,0.4), 
+  linear-gradient(90deg,
+    transparent,
+    rgba(255,255,255,0.4),
     transparent)
 ```
 

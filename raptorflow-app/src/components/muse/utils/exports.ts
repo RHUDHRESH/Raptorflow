@@ -37,10 +37,10 @@ export function downloadAsHtml(content: string, title: string, filename: string)
         h1 { font-size: 2em; margin-bottom: 0.5em; }
         h2 { font-size: 1.5em; margin-top: 1.5em; }
         p { margin: 1em 0; }
-        blockquote { 
-            border-left: 3px solid #ccc; 
-            margin: 1em 0; 
-            padding-left: 1em; 
+        blockquote {
+            border-left: 3px solid #ccc;
+            margin: 1em 0;
+            padding-left: 1em;
             color: #666;
         }
     </style>

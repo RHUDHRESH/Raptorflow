@@ -36,7 +36,7 @@ export function TelemetryFeed({ moveId, traces: initialTraces, className }: Tele
                 setTraces(data);
             };
             fetchTelemetry();
-            
+
             // Polling for "Live" effect if move is active
             const interval = setInterval(fetchTelemetry, 5000);
             return () => clearInterval(interval);

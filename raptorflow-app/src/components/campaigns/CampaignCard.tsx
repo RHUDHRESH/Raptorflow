@@ -21,7 +21,7 @@ interface CampaignCardProps {
 
 export function CampaignCard({ campaign, progress: initialProgress, activeMove, onClick }: CampaignCardProps) {
     const [progress, setProgress] = useState(initialProgress);
-    
+
     const { status: agentStatus } = useInferenceStatus(
         campaign.status === 'active' && !activeMove ? campaign.id : null
     );

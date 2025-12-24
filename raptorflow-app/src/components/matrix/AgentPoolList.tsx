@@ -33,9 +33,9 @@ export function AgentPoolList() {
         <ScrollArea className="h-[400px]">
           <div className="divide-y divide-border/50">
             {agentIds.length === 0 ? (
-              <MatrixEmptyState 
-                title="Pool Dormant" 
-                message="No active threads detected. Start a new campaign to wake the spine." 
+              <MatrixEmptyState
+                title="Pool Dormant"
+                message="No active threads detected. Start a new campaign to wake the spine."
               />
             ) : (
               agentIds.map((id) => (
@@ -56,7 +56,7 @@ export function AgentPoolList() {
                       LIVE
                     </Badge>
                   </div>
-                  
+
                   <div className="mt-3 flex items-center space-x-4 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
                     <div className="flex items-center">
                       <Activity className="mr-1 h-3 w-3" />

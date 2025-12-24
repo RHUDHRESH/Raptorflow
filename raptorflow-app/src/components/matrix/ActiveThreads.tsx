@@ -22,7 +22,7 @@ export function ActiveThreads({ threads, className }: ActiveThreadsProps) {
     const getStatusIcon = (status: AgentThread['status']) => {
         switch (status) {
             case 'thinking': return <Brain className="h-3 w-3 animate-pulse text-blue-500" />;
-            case 'executing': return <Cpu className="h-3 w-3 animate-spin duration-[3000ms] text-accent" />;
+            case 'executing': return <Cpu className="h-3 w-3 animate-spin [animation-duration:3000ms] text-accent" />;
             case 'validating': return <Layers className="h-3 w-3 text-green-500" />;
             default: return <Loader2 className="h-3 w-3 text-muted-foreground" />;
         }

@@ -1,6 +1,6 @@
 import { StateGraph, Annotation } from "@langchain/langgraph";
-import { ChatVertexAI } from "@langchain/google-vertexai";
-import { getGemini15Pro, getGemini15Flash } from "../vertexai";
+import { getInferenceConfig, isInferenceReady } from "../inference-config";
+import { invokeWithModelFallback } from "../vertexai";
 import { FoundationData, DerivedData, DerivedICP, DerivedPositioning, DerivedCompetitive, DerivedSoundbites, DerivedMarket } from "../foundation";
 import { Icp } from "@/types/icp-types";
 
@@ -40,8 +40,10 @@ export const OnboardingStateAnnotation = Annotation.Root({
  * Detects contradictions and refines brand voice.
  */
 async function architectNode(state: typeof OnboardingStateAnnotation.State) {
-    const model = getGemini15Flash();
-    if (!model) return { status: ["Architect: Model unavailable"], errors: ["Missing credentials"] };
+    if (!isInferenceReady()) return { status: ["Architect: Model unavailable"], errors: ["Missing credentials"] };
+
+    const config = getInferenceConfig();
+    const modelName = config.models.general || "gemini-2.5-flash-lite";
 
     const prompt = `
     You are the Lead Architect for RaptorFlow. Your job is to validate this founder's brand foundation.
@@ -65,7 +67,17 @@ async function architectNode(state: typeof OnboardingStateAnnotation.State) {
   `;
 
     try {
-        const response = await model.invoke(prompt);
+        const response = await invokeWithModelFallback({
+            input: prompt,
+            modelName,
+            temperature: 0.3,
+            maxTokens: 2048,
+            fallbackModels: [
+                config.models.reasoning,
+                config.models.high,
+                config.models.ultra
+            ].filter(Boolean) as string[],
+        });
         const result = JSON.parse(response.content as string);
         return {
             status: ["Architect: Foundation validated"],
@@ -86,8 +98,15 @@ async function architectNode(state: typeof OnboardingStateAnnotation.State) {
  * Prophet Node: Generates high-fidelity ICPs based on refined foundation.
  */
 async function prophetNode(state: typeof OnboardingStateAnnotation.State) {
-    const model = getGemini15Pro();
-    if (!model) return { errors: ["Prophet: Model unavailable"] };
+    if (!isInferenceReady()) return { errors: ["Prophet: Model unavailable"] };
+
+    const config = getInferenceConfig();
+    const modelName =
+        config.models.ultra ||
+        config.models.high ||
+        config.models.reasoning ||
+        config.models.general ||
+        "gemini-2.5-flash-lite";
 
     const prompt = `
     You are the Prophet for RaptorFlow. Your job is to generate 3 EMERGENT ICPs (Ideal Customer Profiles) based on the provided Foundation Data.
@@ -115,7 +134,17 @@ async function prophetNode(state: typeof OnboardingStateAnnotation.State) {
   `;
 
     try {
-        const response = await model.invoke(prompt);
+        const response = await invokeWithModelFallback({
+            input: prompt,
+            modelName,
+            temperature: 0.5,
+            maxTokens: 8192,
+            fallbackModels: [
+                config.models.high,
+                config.models.reasoning,
+                config.models.general
+            ].filter(Boolean) as string[],
+        });
         const text = response.content as string;
         const jsonMatch = text.match(/\[[\s\S]*\]/);
         if (!jsonMatch) throw new Error("No JSON array found in Prophet response");
@@ -142,8 +171,15 @@ async function prophetNode(state: typeof OnboardingStateAnnotation.State) {
  * Strategist Node: Generates the initial 90-day campaign and move backlog.
  */
 async function strategistNode(state: typeof OnboardingStateAnnotation.State) {
-    const model = getGemini15Pro();
-    if (!model) return { errors: ["Strategist: Model unavailable"] };
+    if (!isInferenceReady()) return { errors: ["Strategist: Model unavailable"] };
+
+    const config = getInferenceConfig();
+    const modelName =
+        config.models.ultra ||
+        config.models.high ||
+        config.models.reasoning ||
+        config.models.general ||
+        "gemini-2.5-flash-lite";
 
     const primaryIcp = state.icps.find(i => i.priority === 'primary') || state.icps[0];
 
@@ -166,7 +202,17 @@ async function strategistNode(state: typeof OnboardingStateAnnotation.State) {
   `;
 
     try {
-        const response = await model.invoke(prompt);
+        const response = await invokeWithModelFallback({
+            input: prompt,
+            modelName,
+            temperature: 0.5,
+            maxTokens: 8192,
+            fallbackModels: [
+                config.models.high,
+                config.models.reasoning,
+                config.models.general
+            ].filter(Boolean) as string[],
+        });
         const text = response.content as string;
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error("No JSON object found in Strategist response");

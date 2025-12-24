@@ -23,7 +23,7 @@ export function SystemStatusHeader() {
 
   // Map API status to UI config
   const status = data?.health_report?.status || "healthy";
-  
+
   const statusConfig = {
     healthy: {
       label: "SYSTEM ONLINE",

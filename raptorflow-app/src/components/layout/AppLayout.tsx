@@ -41,7 +41,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem className="hidden md:block">
-                                <BreadcrumbLink href="/">
+                                <BreadcrumbLink href="/dashboard">
                                     RaptorFlow
                                 </BreadcrumbLink>
                             </BreadcrumbItem>

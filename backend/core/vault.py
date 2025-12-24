@@ -1,12 +1,16 @@
-from google.cloud import secretmanager
-from backend.core.config import get_settings
 from functools import lru_cache
-from supabase import create_client, Client
+
+from google.cloud import secretmanager
+from supabase import Client, create_client
+
+from backend.core.config import get_settings
+
 
 class Vault:
     """
     Interface for GCP Secret Manager and Supabase.
     """
+
     def __init__(self):
         self.settings = get_settings()
         self.client = secretmanager.SecretManagerServiceClient()
@@ -17,8 +21,7 @@ class Vault:
         """Returns a synchronous Supabase client."""
         if not self._supabase_client:
             self._supabase_client = create_client(
-                self.settings.SUPABASE_URL,
-                self.settings.SUPABASE_SERVICE_ROLE_KEY
+                self.settings.SUPABASE_URL, self.settings.SUPABASE_SERVICE_ROLE_KEY
             )
         return self._supabase_client
 
@@ -28,7 +31,7 @@ class Vault:
         Access the payload for the given secret version if one exists.
         """
         name = f"projects/{self.project_id}/secrets/{secret_id}/versions/{version_id}"
-        
+
         try:
             response = self.client.access_secret_version(request={"name": name})
             return response.payload.data.decode("UTF-8")
@@ -36,12 +39,15 @@ class Vault:
             # Fallback to env if secret manager fails or secret not found
             # This is useful for local development
             import os
+
             val = os.getenv(secret_id)
             if val:
                 return val
             raise e
 
+
 _vault = None
+
 
 def get_vault() -> Vault:
     global _vault

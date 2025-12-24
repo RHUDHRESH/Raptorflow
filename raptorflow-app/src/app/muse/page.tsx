@@ -162,6 +162,8 @@ function MusePageContent() {
                 setJobs(prev => prev.map(j =>
                     j.id === jobId ? { ...j, status: 'complete', asset: newAsset } : j
                 ));
+                setSelectedAsset(newAsset);
+                setEditorOpen(true);
             }
         );
     }, []);

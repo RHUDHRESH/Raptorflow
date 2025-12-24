@@ -1,8 +1,9 @@
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
-from pydantic import BaseModel, Field, ConfigDict
-from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TelemetryEventType(str, Enum):
@@ -25,6 +26,7 @@ class AgentHealthStatus(str, Enum):
 
 class AgentState(BaseModel):
     """Real-time state of an individual agent."""
+
     status: AgentHealthStatus
     last_heartbeat: datetime = Field(default_factory=datetime.now)
     current_task: Optional[str] = None
@@ -33,6 +35,7 @@ class AgentState(BaseModel):
 
 class SystemState(BaseModel):
     """Global system state for the Matrix dashboard."""
+
     active_agents: Dict[str, AgentState] = Field(default_factory=dict)
     system_status: str = Field(default="operational")
     kill_switch_engaged: bool = Field(default=False)

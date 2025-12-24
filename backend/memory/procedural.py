@@ -1,9 +1,11 @@
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from backend.db import save_memory, vector_search
 from backend.inference import InferenceProvider
 
 logger = logging.getLogger("raptorflow.memory.procedural")
+
 
 class ProceduralMemory:
     """
@@ -20,7 +22,7 @@ class ProceduralMemory:
         tenant_id: str,
         intent: str,
         procedure: str,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         """Persists a successful tool-use pattern."""
         embedder = InferenceProvider.get_embeddings()
@@ -35,14 +37,11 @@ class ProceduralMemory:
             content=procedure,
             embedding=embedding,
             memory_type="procedural",
-            metadata=metadata
+            metadata=metadata,
         )
 
     async def get_procedure(
-        self,
-        tenant_id: str,
-        intent: str,
-        limit: int = 1
+        self, tenant_id: str, intent: str, limit: int = 1
     ) -> List[Dict[str, Any]]:
         """Retrieves the most relevant procedure for a given intent."""
         embedder = InferenceProvider.get_embeddings()
@@ -52,7 +51,7 @@ class ProceduralMemory:
             workspace_id=tenant_id,
             embedding=query_embedding,
             table=self.table,
-            limit=limit
+            limit=limit,
         )
 
         return [

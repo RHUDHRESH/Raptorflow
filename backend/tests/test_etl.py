@@ -1,5 +1,7 @@
 import pytest
+
 from backend.scripts.raw_to_gold_parquet import VacuumLogic
+
 
 def test_vacuum_logic_valid():
     logic = VacuumLogic()
@@ -11,11 +13,13 @@ def test_vacuum_logic_valid():
     assert results[0]["trip_distance"] == 2.5
     assert results[0]["fare_amount"] == 10.0
 
+
 def test_vacuum_logic_invalid_distance():
     logic = VacuumLogic()
     element = ["1", "2023-01-01 00:00:00", "2023-01-01 00:10:00", "1", "0.0", "10.0"]
     results = list(logic.process(element))
     assert len(results) == 0
+
 
 def test_vacuum_logic_invalid_fare():
     logic = VacuumLogic()
@@ -23,11 +27,13 @@ def test_vacuum_logic_invalid_fare():
     results = list(logic.process(element))
     assert len(results) == 0
 
+
 def test_vacuum_logic_outlier():
     logic = VacuumLogic()
     element = ["1", "2023-01-01 00:00:00", "2023-01-01 00:10:00", "1", "101.0", "10.0"]
     results = list(logic.process(element))
     assert len(results) == 0
+
 
 def test_vacuum_logic_error_handling():
     logic = VacuumLogic()
@@ -36,12 +42,14 @@ def test_vacuum_logic_error_handling():
     results = list(logic.process(element))
     assert len(results) == 0
 
+
 def test_vacuum_logic_null_check():
     logic = VacuumLogic()
     # element[0] is vendor_id, must not be empty
     element = ["", "2023-01-01 00:00:00", "2023-01-01 00:10:00", "1", "2.5", "10.0"]
     results = list(logic.process(element))
     assert len(results) == 0
+
 
 def test_vacuum_logic_null_check_datetime():
     logic = VacuumLogic()

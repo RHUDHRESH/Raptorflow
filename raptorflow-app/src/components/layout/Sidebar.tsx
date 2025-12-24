@@ -17,14 +17,14 @@ import {
 
 /**
  * Sidebar — Following COMPONENTS.md and UI.md spec
- * 
+ *
  * Width: 220px/240px (using w-60 aka 240px for comfortable spacing)
  * Background: surface
  * Typography: Inter Medium 13px/14px
  */
 
 const NAV_ITEMS = [
-    { name: 'Dashboard', href: '/', icon: DashboardIcon },
+    { name: 'Dashboard', href: '/dashboard', icon: DashboardIcon },
     { name: 'Foundation', href: '/foundation', icon: FoundationIcon },
     { name: 'Cohorts', href: '/cohorts', icon: CohortsIcon },
     { name: 'Moves', href: '/moves', icon: MovesIcon },

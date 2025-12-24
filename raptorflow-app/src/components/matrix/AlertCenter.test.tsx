@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { AlertCenter } from './AlertCenter';
+import { AlertCenter, SystemAlert } from './AlertCenter';
 import React from 'react';
 
 describe('AlertCenter', () => {
-    const mockAlerts = [
+    const mockAlerts: SystemAlert[] = [
         {
             id: '1',
             severity: 'critical',

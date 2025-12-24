@@ -1,7 +1,8 @@
 import logging
-from typing import Any, Callable, Awaitable, Optional
+from typing import Any, Awaitable, Callable, Optional
 
 logger = logging.getLogger("raptorflow.core.fallback")
+
 
 class FallbackManager:
     """
@@ -11,10 +12,10 @@ class FallbackManager:
     """
 
     async def execute_with_fallback(
-        self, 
-        func: Callable[[], Awaitable[Any]], 
+        self,
+        func: Callable[[], Awaitable[Any]],
         fallback_value: Any,
-        context: Optional[str] = None
+        context: Optional[str] = None,
     ) -> Any:
         """Executes an async function with a deterministic fallback on failure."""
         try:
@@ -27,8 +28,19 @@ class FallbackManager:
     def get_mundane_fallback(self, task_type: str) -> dict:
         """Returns a predefined heuristic response for common task types."""
         fallbacks = {
-            "planning": {"thought": "System under high load. Defaulting to standard 4-week growth plan.", "status": "degraded"},
-            "research": {"thought": "Research API unavailable. Using cached domain knowledge.", "status": "degraded"},
-            "refinement": {"thought": "Refinement failed. Proceeding with raw agent output.", "status": "degraded"}
+            "planning": {
+                "thought": "System under high load. Defaulting to standard 4-week growth plan.",
+                "status": "degraded",
+            },
+            "research": {
+                "thought": "Research API unavailable. Using cached domain knowledge.",
+                "status": "degraded",
+            },
+            "refinement": {
+                "thought": "Refinement failed. Proceeding with raw agent output.",
+                "status": "degraded",
+            },
         }
-        return fallbacks.get(task_type, {"thought": "Fallback triggered.", "status": "degraded"})
+        return fallbacks.get(
+            task_type, {"thought": "Fallback triggered.", "status": "degraded"}
+        )

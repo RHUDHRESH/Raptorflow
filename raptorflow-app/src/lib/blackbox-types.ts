@@ -16,10 +16,21 @@ export type ChannelType =
     | "email"
     | "linkedin"
     | "twitter"
-    | "whatsapp"
-    | "youtube"
     | "instagram"
+    | "tiktok"
+    | "youtube"
+    | "facebook"
+    | "google_ads"
+    | "website"
+    | "blog"
+    | "podcast"
     | "other";
+
+// Goal selection with primary + secondary
+export interface GoalSelection {
+    primary: GoalType;
+    secondary: GoalType[];
+}
 
 export type ExperimentStatus = "draft" | "generated" | "launched" | "checked_in" | "expired";
 
@@ -112,6 +123,15 @@ export interface Experiment {
     bet: string;            // One sentence
     why: string;            // One sentence explanation
     principle: BehavioralPrinciple;
+
+    // NEW: Actionable experiment details
+    hypothesis: string;     // "If we do X, then Y will happen"
+    control: string;        // Current state / what we're testing against
+    variant: string;        // The specific change we're making
+    success_metric: string; // What number to track (e.g., "reply rate", "CTR")
+    sample_size: string;    // e.g., "500 emails", "1000 impressions"
+    duration_days: number;  // How many days to run
+    action_steps: string[]; // 3-5 specific things to DO
 
     // Meta
     effort: "10m" | "30m" | "2h";

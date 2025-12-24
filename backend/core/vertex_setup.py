@@ -1,5 +1,3 @@
-import os
-
 from backend.core.config import get_settings
 
 
@@ -8,11 +6,18 @@ def get_embedding_client():
     Returns an initialized Vertex AI Embeddings client.
     Uses lazy import to avoid numpy/pandas crashes on certain systems.
     """
+    # Lazy import to prevent startup crashes
     from langchain_google_vertexai import VertexAIEmbeddings
 
     settings = get_settings()
-    model_name = os.getenv("EMBEDDING_MODEL", "text-embedding-004")
-    return VertexAIEmbeddings(model_name=model_name, api_key=settings.VERTEX_AI_API_KEY)
+    model_name = settings.EMBEDDING_MODEL
+    kwargs = {"model_name": model_name}
+    fields_set = getattr(settings, "model_fields_set", set())
+    if "GCP_PROJECT_ID" in fields_set:
+        kwargs["project"] = settings.GCP_PROJECT_ID
+    if "GCP_REGION" in fields_set:
+        kwargs["location"] = settings.GCP_REGION
+    return VertexAIEmbeddings(**kwargs)
 
 
 class VertexManager:

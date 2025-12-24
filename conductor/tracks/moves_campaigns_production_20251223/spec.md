@@ -21,7 +21,7 @@ This track implements the 'Moves' and 'Campaigns' modules of RaptorFlow as a pro
     - **Episodic:** Redis (Upstash) for session state and rapid recovery.
     - **Semantic:** pgvector (Supabase) for RAG-based business context.
     - **Long-term:** Postgres (Supabase) for outcome logs and audit trails.
-- **Serverless MLOps:** 
+- **Serverless MLOps:**
     - Data ingestion via 'VACUUM' protocol.
     - Distributed inference with intelligent caching.
     - Cost governance and performance telemetry.

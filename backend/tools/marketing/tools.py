@@ -1,29 +1,39 @@
 import re
-from typing import List, Dict, Any
-from pydantic import BaseModel
+from typing import Any, Dict, List
+
 
 class ToolbeltUtils:
     """Helper utilities for marketing tools."""
+
     @staticmethod
     def calculate_readability(text: str) -> float:
         # Simple Flesch-Kincaid implementation
         words = len(text.split())
-        sentences = len(re.split(r'[.!?]+', text))
-        syllables = len(re.findall(r'[aeiouy]+', text))
-        if words == 0 or sentences == 0: return 0
-        return 206.835 - 1.015 * (words/sentences) - 84.6 * (syllables/words)
+        sentences = len(re.split(r"[.!?]+", text))
+        syllables = len(re.findall(r"[aeiouy]+", text))
+        if words == 0 or sentences == 0:
+            return 0
+        return 206.835 - 1.015 * (words / sentences) - 84.6 * (syllables / words)
+
 
 class MarketingToolbelt:
     """
     Industrial toolbelt for Marketing Agents.
     Contains 20+ deterministic tools.
     """
-    
+
     # --- T41: Deliverability & Spam ---
     async def spam_score(self, text: str) -> Dict[str, Any]:
-        banned = ["free", "buy now", "click here", "guarantee", "urgent", "congratulations"]
-        found = [w for w in banned if w in text.toLowerCase()]
-        return {"score": 100 - len(found)*10, "violations": found}
+        banned = [
+            "free",
+            "buy now",
+            "click here",
+            "guarantee",
+            "urgent",
+            "congratulations",
+        ]
+        found = [w for w in banned if w in text.lower()]
+        return {"score": 100 - len(found) * 10, "violations": found}
 
     # --- T40: Brand Alignment ---
     async def check_tone(self, text: str, target_tone: str) -> Dict[str, Any]:

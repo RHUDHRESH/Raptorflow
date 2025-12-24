@@ -27,7 +27,7 @@ class LongTermMemory:
             async with conn.cursor() as cur:
                 query = """
                     INSERT INTO agent_decision_audit (
-                        tenant_id, agent_id, decision_type, input_state, 
+                        tenant_id, agent_id, decision_type, input_state,
                         output_decision, rationale, cost_estimate
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s);
                 """

@@ -35,7 +35,7 @@ export function CampaignGantt({ items, className }: CampaignGanttProps) {
     // Calculate chart range
     const minDate = new Date(Math.min(...sortedItems.map(i => new Date(i.start_date).getTime())));
     const maxDate = new Date(Math.max(...sortedItems.map(i => new Date(i.end_date).getTime())));
-    
+
     // Add some padding to the range (e.g., 7 days)
     minDate.setDate(minDate.getDate() - 2);
     maxDate.setDate(maxDate.getDate() + 2);
@@ -61,10 +61,10 @@ export function CampaignGantt({ items, className }: CampaignGanttProps) {
                     {sortedItems.map((item) => {
                         const start = new Date(item.start_date);
                         const end = new Date(item.end_date);
-                        
+
                         const startOffset = Math.max(0, (start.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24));
                         const duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-                        
+
                         const leftPercent = (startOffset / totalDays) * 100;
                         const widthPercent = (duration / totalDays) * 100;
 
@@ -82,19 +82,19 @@ export function CampaignGantt({ items, className }: CampaignGanttProps) {
                                     </div>
 
                                     {/* Bar */}
-                                    <div 
+                                    <div
                                         className="absolute top-1 bottom-1 bg-zinc-900 dark:bg-white rounded-md shadow-sm transition-all group-hover:opacity-90"
-                                        style={{ 
-                                            left: `${leftPercent}%`, 
-                                            width: `${widthPercent}%` 
+                                        style={{
+                                            left: `${leftPercent}%`,
+                                            width: `${widthPercent}%`
                                         }}
                                     >
                                         {/* Progress Overlay */}
-                                        <div 
+                                        <div
                                             className="absolute inset-0 bg-emerald-500/30"
                                             style={{ width: `${item.progress * 100}%` }}
                                         />
-                                        
+
                                         {/* Label on Hover */}
                                         <div className="absolute inset-0 flex items-center px-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <span className="text-[10px] font-bold text-white dark:text-zinc-900 drop-shadow-sm">

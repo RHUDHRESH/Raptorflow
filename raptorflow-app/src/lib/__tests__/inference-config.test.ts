@@ -16,13 +16,13 @@ describe("Inference Configuration", () => {
   it("should return ready=false when INFERENCE_SIMPLE is missing", () => {
     delete process.env.INFERENCE_SIMPLE;
     delete process.env.NEXT_PUBLIC_INFERENCE_SIMPLE;
-    
+
     expect(isInferenceReady()).toBe(false);
   });
 
   it("should load configuration from INFERENCE_SIMPLE", () => {
     process.env.INFERENCE_SIMPLE = "test-api-key";
-    
+
     const config = getInferenceConfig();
     expect(config.apiKey).toBe("test-api-key");
     expect(isInferenceReady()).toBe(true);
@@ -31,7 +31,7 @@ describe("Inference Configuration", () => {
   it("should load configuration from NEXT_PUBLIC_INFERENCE_SIMPLE as fallback", () => {
     delete process.env.INFERENCE_SIMPLE;
     process.env.NEXT_PUBLIC_INFERENCE_SIMPLE = "public-test-key";
-    
+
     const config = getInferenceConfig();
     expect(config.apiKey).toBe("public-test-key");
     expect(isInferenceReady()).toBe(true);

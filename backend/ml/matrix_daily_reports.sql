@@ -45,8 +45,8 @@ SELECT
   SUM(o.value) AS total_outcome_value,
   -- Join with telemetry to get cost (aggregated by move_id)
   (
-    SELECT SUM(tokens) * 0.000015 
-    FROM `raptorflow-481505.raptorflow_analytics.telemetry_stream` t 
+    SELECT SUM(tokens) * 0.000015
+    FROM `raptorflow-481505.raptorflow_analytics.telemetry_stream` t
     WHERE t.move_id IN (SELECT move_id FROM `raptorflow-481505.raptorflow_analytics.outcomes_stream` WHERE campaign_id = o.campaign_id)
   ) AS total_cost_usd
 FROM

@@ -110,14 +110,14 @@ export function ExperimentDetail({
                 <Tabs defaultValue="overview" className="flex-1 flex flex-col min-h-0">
                     <div className="px-5 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/30">
                         <TabsList className="bg-transparent h-12 p-0 gap-6">
-                            <TabsTrigger 
-                                value="overview" 
+                            <TabsTrigger
+                                value="overview"
                                 className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-zinc-900 dark:data-[state=active]:border-white rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white"
                             >
                                 Overview
                             </TabsTrigger>
-                            <TabsTrigger 
-                                value="audit" 
+                            <TabsTrigger
+                                value="audit"
                                 className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-zinc-900 dark:data-[state=active]:border-white rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white"
                             >
                                 Agent Audit Log
@@ -165,7 +165,7 @@ export function ExperimentDetail({
                                         <BrainCircuit className="w-4 h-4 text-accent" />
                                         <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 font-sans">Surgical Learning</h3>
                                     </div>
-                                    
+
                                     {learnings.length > 0 ? (
                                         <div className="space-y-2">
                                             {learnings.map(learning => (

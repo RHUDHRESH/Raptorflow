@@ -11,14 +11,14 @@ import { InferenceLogExplorer } from "@/components/matrix/InferenceLogExplorer";
 import { MatrixMetricSkeleton } from "@/components/matrix/LoadingSkeletons";
 import { useMatrixOverview } from "@/hooks/useMatrixOverview";
 import { Activity, Zap, Shield, AlertTriangle } from "lucide-react";
-import { AuthGuard } from "@/components/auth/AuthGuard";
+import { AppLayout } from "@/components/layout/AppLayout";
 
 export default function MatrixPage() {
   const { data, loading } = useMatrixOverview("verify_ws");
 
   return (
-    <AuthGuard>
-      <div className="flex-1 space-y-8 p-8 pt-6 animate-slide-up-fade">
+    <AppLayout>
+      <div className="flex-1 space-y-8 animate-slide-up-fade">
         {/* 1. Page Header */}
         <div className="flex items-center justify-between space-y-2">
           <div>
@@ -127,6 +127,6 @@ export default function MatrixPage() {
           </div>
         </div>
       </div>
-    </AuthGuard>
+    </AppLayout>
   );
 }

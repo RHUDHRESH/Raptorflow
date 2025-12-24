@@ -1,236 +1,255 @@
 'use client';
 
-import { AppLayout } from '@/components/layout/AppLayout';
-import { FadeIn, Stagger } from '@/components/ui/motion';
-import {
-  ArrowRightIcon,
-  FoundationIcon,
-  CohortsIcon,
-  CampaignsIcon,
-  MuseIcon,
-  AlertCircleIcon,
-  CheckCircleIcon
-} from '@/components/ui/icons';
 import Link from 'next/link';
-import { toast } from 'sonner';
-import { StrategicPivotList } from '@/components/matrix/StrategicPivotList';
+import { MarketingLayout } from '@/components/marketing/MarketingLayout';
+import { Button } from '@/components/ui/button';
+import { ChaosDiagnostic } from '@/components/marketing/ChaosDiagnostic';
+import { PositioningPlayground } from '@/components/marketing/PositioningPlayground';
+import { SystemFlowDiagram } from '@/components/marketing/SystemFlowDiagram';
+import { ChaosToClarity } from '@/components/marketing/ChaosToClarity';
+import { BeforeAfterGenerator } from '@/components/marketing/BeforeAfterGenerator';
+import { ModulesSpectacle } from '@/components/marketing/ModulesSpectacle';
 
-/**
- * Dashboard — Operator View (Polished)
- *
- * DESIGN PRINCIPLES (Onboarding Standard):
- * 1. Typography: Playfair >40px, Tracking Tight.
- * 2. Spacing: Grand Rhythm (gap-20+).
- * 3. Cards: rounded-2xl, subtle shadows.
- */
-export default function Dashboard() {
-  const handleStartExecution = () => {
-    toast.success('Opening Mission Control', {
-      description: 'Loading context for next move...',
-    });
-  };
+// Stats
+const stats = [
+  { value: '10', unit: 'min', label: 'to build your 90-day plan' },
+  { value: '1', unit: 'system', label: 'instead of 5+ tools' },
+  { value: '7', unit: 'moves', label: 'shipped every week' },
+];
 
-  const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-
+export default function LandingPage() {
   return (
-    <AppLayout>
-      <Stagger className="flex flex-col gap-20 md:gap-24 pb-32">
-
-        {/* Header Section */}
-        <section className="flex flex-col gap-4 max-w-3xl pt-8">
-          <FadeIn>
-            <h1 className="font-display text-5xl md:text-7xl font-semibold tracking-tight text-foreground leading-[1] -ml-0.5">
-              Good morning, Founder.
-            </h1>
-          </FadeIn>
-          <FadeIn delay={1}>
-            <p className="text-xl md:text-2xl text-muted-foreground/80 font-light tracking-wide">
-              {currentDate}
+    <MarketingLayout>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-24 lg:py-32">
+          <div className="mx-auto max-w-3xl text-center">
+            {/* Eyebrow */}
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6">
+              The Founder Marketing Operating System
             </p>
-          </FadeIn>
-        </section>
 
-        {/* PRIMARY ACTION: The "Next Move" */}
-        <FadeIn delay={2}>
-          {/* ... existing primary action code ... */}
-          <div className="group relative overflow-hidden rounded-2xl bg-card border border-border p-1 shadow-sm transition-all duration-500 hover:shadow-xl hover:border-border/80">
-            <div className="relative z-10 p-10 md:p-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-10">
-              <div className="space-y-6 max-w-3xl">
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-                  <p className="font-sans text-xs font-semibold tracking-widest uppercase text-muted-foreground">Highest Priority Move</p>
+            {/* Main Headline */}
+            <h1 className="font-display text-5xl lg:text-7xl font-medium tracking-tight text-foreground mb-6">
+              Marketing.
+              <br />
+              <span className="text-muted-foreground">Finally under control.</span>
+            </h1>
+
+            {/* Subheadline */}
+            <p className="text-lg lg:text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
+              Turn messy business context into clear positioning and a 90-day marketing war plan—then ship weekly Moves that drive revenue.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button asChild size="lg" className="h-14 px-8 text-base rounded-xl">
+                <Link href="/login">Get Started Free</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="h-14 px-8 text-base rounded-xl">
+                <Link href="#try-it">Try It Now — No Signup</Link>
+              </Button>
+            </div>
+
+            {/* Trust line */}
+            <p className="mt-8 text-sm text-muted-foreground">
+              No credit card required. Start in 2 minutes.
+            </p>
+          </div>
+        </div>
+
+        {/* Gradient background */}
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-foreground/5 to-transparent blur-3xl" />
+        </div>
+      </section>
+
+      {/* Pain Point Quote */}
+      <section className="border-y border-border bg-muted/30">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-16">
+          <blockquote className="mx-auto max-w-3xl text-center">
+            <p className="text-2xl lg:text-3xl font-display font-medium text-foreground leading-relaxed">
+              &quot;If your marketing is confusing, you are losing—silently.&quot;
+            </p>
+          </blockquote>
+        </div>
+      </section>
+
+      {/* 🚀 MOONSHOT: Chaos to Clarity Animation */}
+      <section className="py-24 lg:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center mb-12">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+              The Transformation
+            </p>
+            <h2 className="font-display text-4xl lg:text-5xl font-medium tracking-tight">
+              Watch the chaos organize
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Click to see what happens when you stop guessing and start systematizing.
+            </p>
+          </div>
+          <ChaosToClarity />
+        </div>
+      </section>
+
+      {/* 🚀 MOONSHOT: AI Demo Widget */}
+      <section id="try-it" className="py-24 lg:py-32 border-y border-border bg-muted/30">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center mb-12">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+              Try It Now
+            </p>
+            <h2 className="font-display text-4xl lg:text-5xl font-medium tracking-tight">
+              Positioning Playground
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Describe your business. Get your positioning, ICP, and first Moves instantly.
+            </p>
+          </div>
+          <PositioningPlayground />
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="grid grid-cols-3 gap-8">
+            {stats.map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="font-mono text-4xl lg:text-5xl font-semibold tracking-tight">{stat.value}</span>
+                  <span className="text-lg text-muted-foreground">{stat.unit}</span>
                 </div>
-                <h2 className="font-display text-4xl md:text-5xl font-medium tracking-tight text-foreground leading-[1.1]">
-                  Review & Approve Q1 Campaign Strategy
-                </h2>
-                <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
-                  Your "Q1 Growth" campaign needs a final review before assets are generated.
-                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
               </div>
-
-              <div className="shrink-0">
-                <Link href="/moves" onClick={handleStartExecution}>
-                  <button className="h-16 px-10 rounded-xl text-lg font-medium shadow-md shadow-foreground/5 group-hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center gap-3 bg-primary text-primary-foreground hover:bg-primary/90">
-                    Execute Move <ArrowRightIcon size={20} />
-                  </button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Abstract background - very subtle */}
-            <div className="absolute top-0 right-0 h-full w-2/3 bg-gradient-to-l from-muted/50 via-muted/10 to-transparent pointer-events-none" />
-            <div className="absolute -bottom-24 -right-24 h-64 w-64 bg-foreground/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+            ))}
           </div>
-        </FadeIn>
-
-        {/* STRATEGIC INTELLIGENCE (Task 21) */}
-        <StrategicPivotList />
-
-        {/* SYSTEM STATUS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-
-          {/* Foundation Status */}
-          <StatusCard
-            href="/foundation"
-            icon={FoundationIcon}
-            label="Foundation"
-            status="Healthy"
-            statusColor="emerald"
-            description="Brand positioning is calibrated and locked."
-            action="View details"
-            delay={3}
-          />
-
-          {/* Cohorts Status */}
-          <StatusCard
-            href="/cohorts"
-            icon={CohortsIcon}
-            label="Cohorts"
-            status="2 Active"
-            statusColor="neutral"
-            description="Segments A & B are performing well."
-            action="Manage segments"
-            delay={4}
-          />
-
-          {/* Campaigns Status */}
-          <StatusCard
-            href="/campaigns"
-            icon={CampaignsIcon}
-            label="Campaigns"
-            status="Attention"
-            statusColor="amber"
-            description="Q1 Growth needs approval."
-            action="View timeline"
-            delay={5}
-          />
-
-          {/* Muse Status */}
-          <StatusCard
-            href="/muse"
-            icon={MuseIcon}
-            label="Muse"
-            status="Ready"
-            statusColor="neutral"
-            description="Create new asset from scratch."
-            action="Open studio"
-            delay={6}
-          />
-
         </div>
+      </section>
 
-        {/* RECENT ACTIVITY / CONTEXT - "The Situation" continued */}
-        <section className="border-t border-border pt-16">
-          <FadeIn delay={7}>
-            <div className="flex items-end justify-between mb-10">
-              <div>
-                <h2 className="text-2xl font-display font-medium tracking-tight">Recent Intelligence</h2>
-                <p className="text-muted-foreground mt-1">Updates across your marketing engine.</p>
+      {/* 🚀 MOONSHOT: System Flow Diagram */}
+      <section className="py-24 lg:py-32 border-y border-border">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center mb-12">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+              The System
+            </p>
+            <h2 className="font-display text-4xl lg:text-5xl font-medium tracking-tight">
+              Everything connects
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Not 8 separate tools. One unified system where every piece feeds the next.
+            </p>
+          </div>
+          <SystemFlowDiagram />
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-24 lg:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center mb-16">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+              The Process
+            </p>
+            <h2 className="font-display text-4xl lg:text-5xl font-medium tracking-tight">
+              Clarify. Build. Run.
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Three steps to marketing that compounds instead of resetting every Monday.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {[
+              {
+                step: '01',
+                title: 'Clarify',
+                description: 'Intake → ICP → positioning → proof. We turn your messy context into crystal-clear strategy.',
+              },
+              {
+                step: '02',
+                title: 'Build',
+                description: '90-day war plan → weekly Moves → assets. Every piece connects to your positioning.',
+              },
+              {
+                step: '03',
+                title: 'Run',
+                description: 'Publish → track → tweak. Results compound because every week builds on the last.',
+              },
+            ].map((item) => (
+              <div key={item.step} className="relative">
+                <div className="text-6xl font-mono font-bold text-muted/30 mb-4">{item.step}</div>
+                <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{item.description}</p>
               </div>
-              <button className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border-b border-transparent hover:border-foreground pb-0.5">View all updates</button>
-            </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <div className="space-y-6">
-              <ActivityItem
-                icon={CheckCircleIcon}
-                iconColor="text-emerald-500"
-                title="Positioning Updated"
-                description="Core value prop refreshed based on new customer interviews."
-                time="2h ago"
-                module="Foundation"
-              />
-              <ActivityItem
-                icon={AlertCircleIcon}
-                iconColor="text-amber-500"
-                title="Competitor Price Drop"
-                description="Competitor X lowered pricing by 15%. Recommend reviewing 'Offer' module."
-                time="5h ago"
-                module="Radar"
-              />
-              <ActivityItem
-                icon={CampaignsIcon}
-                iconColor="text-muted-foreground"
-                title="Campaign Drafted"
-                description="'Founder-Led Sales' campaign drafted by Muse."
-                time="1d ago"
-                module="Muse"
-              />
-            </div>
-          </FadeIn>
-        </section>
+      {/* 🚀 MOONSHOT: Chaos Diagnostic Quiz */}
+      <section className="py-24 lg:py-32 border-y border-border bg-muted/30">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center mb-12">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+              Self-Assessment
+            </p>
+            <h2 className="font-display text-4xl lg:text-5xl font-medium tracking-tight">
+              What is your Marketing Chaos Score?
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              6 questions. 60 seconds. Get your personalized diagnosis.
+            </p>
+          </div>
+          <ChaosDiagnostic />
+        </div>
+      </section>
 
-      </Stagger>
-    </AppLayout>
+      {/* 🎯 SPECTACLE: Interactive Modules Showcase */}
+      <ModulesSpectacle />
+
+      {/* 🚀 MOONSHOT: Before/After Transformation Generator */}
+      <section className="py-24 lg:py-32 border-y border-border bg-muted/30">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <BeforeAfterGenerator />
+        </div>
+      </section>
+
+      {/* Testimonial / Quote */}
+      <section className="py-24 lg:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-3xl text-center">
+            <blockquote>
+              <p className="font-display text-3xl lg:text-4xl font-medium leading-relaxed text-foreground">
+                &quot;You should not have to guess your marketing.
+                <br />
+                <span className="text-muted-foreground">With RaptorFlow, you will not.&quot;</span>
+              </p>
+            </blockquote>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="border-t border-border bg-foreground text-background">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-24">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-display text-4xl lg:text-5xl font-medium tracking-tight mb-6">
+              Stop trying marketing.
+              <br />
+              Start running a machine.
+            </h2>
+            <p className="text-lg text-background/70 mb-10">
+              Give us your messy context. We will turn it into a plan you can actually execute.
+            </p>
+            <Button asChild size="lg" variant="secondary" className="h-14 px-8 text-base rounded-xl">
+              <Link href="/login">Get Started Free</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+    </MarketingLayout>
   );
-}
-
-function StatusCard({ href, icon: Icon, label, status, statusColor, description, action, delay }: any) {
-  const colorClasses = {
-    emerald: "text-emerald-700 bg-emerald-100/50",
-    amber: "text-amber-700 bg-amber-100/50",
-    neutral: "text-muted-foreground bg-muted",
-  }[statusColor as string] || "text-muted-foreground bg-muted";
-
-  return (
-    <FadeIn delay={delay}>
-      <Link href={href} className="block h-full">
-        <div className="h-full p-8 rounded-2xl border border-border bg-card hover:bg-card/80 hover:border-border transition-all duration-300 group flex flex-col justify-between hover:shadow-md">
-          <div className="space-y-6">
-            <div className="flex justify-between items-start">
-              <div className="p-3 rounded-xl bg-secondary text-secondary-foreground group-hover:text-foreground group-hover:bg-muted transition-colors">
-                <Icon size={24} />
-              </div>
-              <span className={`text-xs font-mono font-medium px-2.5 py-1 rounded-full ${colorClasses}`}>{status}</span>
-            </div>
-            <div>
-              <h3 className="font-display text-xl font-medium text-foreground mb-2">{label}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{description}</p>
-            </div>
-          </div>
-          <div className="mt-8 pt-6 border-t border-border flex justify-between items-center text-sm">
-            <span className="text-muted-foreground font-medium group-hover:text-foreground transition-colors">{action}</span>
-            <ArrowRightIcon className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform group-hover:text-foreground" />
-          </div>
-        </div>
-      </Link>
-    </FadeIn>
-  )
-}
-
-function ActivityItem({ icon: Icon, iconColor, title, description, time, module }: { icon: any, iconColor: string, title: string, description: string, time: string, module: string }) {
-  return (
-    <div className="group flex items-start gap-6 p-6 rounded-xl hover:bg-card border border-transparent hover:border-border transition-all duration-200 hover:shadow-sm">
-      <div className={`mt-1 p-2 rounded-full bg-background border border-border shadow-sm shrink-0 group-hover:border-border group-hover:shadow-md transition-all`}>
-        <Icon className={`h-4 w-4 ${iconColor}`} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-3 mb-2">
-          <h4 className="text-base font-medium text-foreground">{title}</h4>
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground border border-border px-2 py-0.5 rounded-full">{module}</span>
-        </div>
-        <p className="text-base text-muted-foreground leading-relaxed">{description}</p>
-      </div>
-      <span className="text-sm text-muted-foreground font-mono whitespace-nowrap pt-1">{time}</span>
-    </div>
-  )
 }

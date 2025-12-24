@@ -84,12 +84,12 @@ if (prefersReducedMotion) {
 
 ### 3. Animation Timing
 You apply these timing principles:
-- **Duration**: 
+- **Duration**:
   - Micro-interactions: 100-200ms
   - Page transitions: 200-400ms
   - Complex sequences: 300-500ms
   - Never exceed 1 second for UI animations
-  
+
 - **Easing**:
   - Entrances: `ease-out` (fast start, slow end)
   - Exits: `ease-in` (slow start, fast end)

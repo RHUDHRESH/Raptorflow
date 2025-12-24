@@ -1,7 +1,10 @@
-import pytest
 from typing import get_type_hints
-from backend.agents.supervisor import MatrixState
+
+import pytest
 from langchain_core.messages import BaseMessage
+
+from backend.agents.supervisor import MatrixState
+
 
 def test_matrix_state_structure():
     """Verify the structure of MatrixState TypedDict."""
@@ -11,13 +14,14 @@ def test_matrix_state_structure():
     assert "instructions" in hints
     assert "system_health" in hints
 
+
 def test_matrix_state_defaults():
     """Verify that we can initialize a dict matching MatrixState."""
     state: MatrixState = {
         "messages": [],
         "next": "START",
         "instructions": "",
-        "system_health": {"status": "ok"}
+        "system_health": {"status": "ok"},
     }
     assert state["next"] == "START"
     assert len(state["messages"]) == 0
