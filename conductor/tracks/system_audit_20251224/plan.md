@@ -11,7 +11,7 @@ This plan outlines the steps to audit the infrastructure, implement intelligent 
 - [x] **Task 4: Environment Standardization** (e30dea9)
 - [x] **Task: Conductor - User Manual Verification 'Infrastructure Security & Environment Hardening' (Protocol in workflow.md)** (67c86fe)
 
-## Phase 2: Vertex AI Intelligent Routing & Resilience
+## Phase 2: Vertex AI Intelligent Routing & Resilience [checkpoint: 99a5645]
 *Goal: Implement the weighted model distribution and task-specific intelligence routing.*
 
 - [x] **Task 1: Task-to-Model Mapping Logic** (8f29e74)
@@ -22,7 +22,7 @@ This plan outlines the steps to audit the infrastructure, implement intelligent 
     - [ ] Write failing tests for model failure scenarios.
     - [ ] Implement cascading fallback logic (e.g., if Gemini 3 fails, try Gemini 2.5).
     - [ ] Ensure all routing uses ENV-sourced API keys exclusively.
-- [ ] **Task: Conductor - User Manual Verification 'Vertex AI Intelligent Routing & Resilience' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Vertex AI Intelligent Routing & Resilience' (Protocol in workflow.md)** (99a5645)
 
 ## Phase 3: Native Zero-Cost Search Tool
 *Goal: Build and integrate a 100% free search tool to replace paid APIs.*
