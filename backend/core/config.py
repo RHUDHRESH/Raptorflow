@@ -43,6 +43,7 @@ class Config(BaseSettings):
     # Security
     SECRET_KEY: str = "industrial-secret-placeholder"
     AUTONOMY_LEVEL: str = "medium"
+    NEXT_PUBLIC_API_URL: str = "http://localhost:8000"
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
