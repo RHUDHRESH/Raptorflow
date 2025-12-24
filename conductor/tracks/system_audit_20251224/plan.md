@@ -2,25 +2,14 @@
 
 This plan outlines the steps to audit the infrastructure, implement intelligent model routing, build a free search tool, and verify system-wide connectivity using TDD principles.
 
-## Phase 1: Infrastructure Security & Environment Hardening
+## Phase 1: Infrastructure Security & Environment Hardening [checkpoint: 67c86fe]
 *Goal: Audit and secure all cloud services (GCP, Supabase, Upstash) and centralize secrets.*
 
 - [x] **Task 1: Supabase Security Audit & RLS Enforcement** (cce6daa)
-    - [ ] Audit all tables for existing RLS policies.
-    - [ ] Write SQL migrations to enforce "Least Privilege" access.
-    - [ ] Verify Auth flows and session handling security.
 - [x] **Task 2: GCP Storage & Cloud Run Hardening** (bed3712)
-    - [ ] Configure GCS CORS policies for `raptorflow-app` domains.
-    - [ ] Implement GCS lifecycle rules for temporary asset cleanup.
-    - [ ] Audit Cloud Run service account permissions (IAM).
 - [x] **Task 3: Secret Management Centralization** (077d5ee)
-    - [ ] Identify all hardcoded or plain-text keys in `backend/` and `raptorflow-app/`.
-    - [ ] Migrate all keys to GCP Secret Manager.
-    - [ ] Implement backend logic to fetch secrets from ENV/Secret Manager at runtime.
 - [x] **Task 4: Environment Standardization** (e30dea9)
-    - [ ] Create a master `.env.example` covering all modules.
-    - [ ] Audit and fix the PhonePe webhook and redirect configuration.
-- [ ] **Task: Conductor - User Manual Verification 'Infrastructure Security & Environment Hardening' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Infrastructure Security & Environment Hardening' (Protocol in workflow.md)** (67c86fe)
 
 ## Phase 2: Vertex AI Intelligent Routing & Resilience
 *Goal: Implement the weighted model distribution and task-specific intelligence routing.*
