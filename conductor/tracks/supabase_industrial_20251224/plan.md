@@ -1,11 +1,11 @@
 # Plan: Supabase Hardening, AI Onboarding, Multi-Payment (Rupees) & Account Management
 
 ## Phase 1: Supabase CLI-Driven Schema & Multi-Tenancy
-- [~] Task: Initialize Supabase locally and consolidate existing migrations.
-- [ ] Task: Create `workspaces` and `workspace_members` tables.
-- [ ] Task: Implement `tenant_id` (workspace_id) migration for all operational tables.
-- [ ] Task: Configure Row Level Security (RLS) policies for multi-tenant isolation.
-- [ ] Task: Set up path-isolated Supabase Storage buckets for brand assets.
+- [x] Task: Initialize Supabase locally and consolidate existing migrations. 2d224e6
+- [x] Task: Create `workspaces` and `workspace_members` tables. 2d224e6
+- [x] Task: Implement `tenant_id` (workspace_id) migration for all operational tables. 2d224e6
+- [x] Task: Configure Row Level Security (RLS) policies for multi-tenant isolation. 2d224e6
+- [x] Task: Set up path-isolated Supabase Storage buckets for brand assets. 2d224e6
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Database & Security' (Protocol in workflow.md)
 
 ## Phase 2: AI-Enabled Onboarding Agent Spine
