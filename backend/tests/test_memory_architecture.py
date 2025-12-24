@@ -1,6 +1,8 @@
-import pytest
 import json
 from unittest.mock import AsyncMock
+
+import pytest
+
 from backend.memory.short_term import L1ShortTermMemory
 
 
@@ -22,13 +24,12 @@ async def test_l1_short_term_memory():
     assert data["key"] == "value"
 
     # Test Delete
-        await memory.forget("trace_123")
-        mock_redis.delete.assert_called_with("l1:trace_123")
-    
-    
-    @pytest.mark.asyncio
-    async def test_l1_short_term_memory_ttl():
-    
+    await memory.forget("trace_123")
+    mock_redis.delete.assert_called_with("l1:trace_123")
+
+
+@pytest.mark.asyncio
+async def test_l1_short_term_memory_ttl():
     """Test L1 memory expiration logic."""
     mock_redis = AsyncMock()
     memory = L1ShortTermMemory(client=mock_redis)

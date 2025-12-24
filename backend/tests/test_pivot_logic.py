@@ -1,5 +1,7 @@
 import pytest
+
 from backend.core.pivoting import PivotEngine
+
 
 def test_pivot_logic_detection():
     """
@@ -10,7 +12,7 @@ def test_pivot_logic_detection():
     assert len(recs) == 1
     assert recs[0].urgency == "high"
     assert "research" in recs[0].proposed_pivot.lower()
-    
+
     # 2. Positive quality, no pivot
     recs_good = PivotEngine.evaluate_pivot(0.9, [])
     assert len(recs_good) == 0

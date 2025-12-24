@@ -1,8 +1,9 @@
-import os
 from typing import Optional
 from uuid import UUID
 
 from fastapi import Header, HTTPException, status
+
+from backend.core.config import get_settings
 
 
 async def get_tenant_id(x_tenant_id: Optional[str] = Header(None)) -> UUID:
@@ -15,9 +16,8 @@ async def get_tenant_id(x_tenant_id: Optional[str] = Header(None)) -> UUID:
     if not x_tenant_id:
         # For development/demo, allow fallback or fail
         # In a real build, this MUST raise 401
-        fallback = os.getenv(
-            "DEFAULT_TENANT_ID", "00000000-0000-0000-0000-000000000000"
-        )
+        settings = get_settings()
+        fallback = settings.DEFAULT_TENANT_ID
         return UUID(fallback)
 
     try:

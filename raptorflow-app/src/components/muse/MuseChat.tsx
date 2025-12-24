@@ -8,6 +8,7 @@ import { VariantSelector, generateMockVariants } from './VariantSelector';
 import { useIcpStore } from '@/lib/icp-store';
 import { selectSkill } from '@/lib/muse/skill-selector';
 import { SYSTEM_SKILLS } from '@/lib/muse/skills-inventory';
+import { spine } from '@/lib/muse/spine-client';
 
 interface Message {
     id: string;
@@ -51,8 +52,10 @@ interface CommandSuggestion {
 function parseIntent(message: string): { understood: boolean; assetType?: AssetType; needsClarification?: string } {
     const lower = message.toLowerCase();
 
+    const candidates = [...ASSET_TYPES].sort((a, b) => b.type.length - a.type.length);
+
     // Direct asset type matches
-    for (const asset of ASSET_TYPES) {
+    for (const asset of candidates) {
         if (lower.includes(asset.type.replace('-', ' ')) ||
             lower.includes(asset.label.toLowerCase())) {
             return { understood: true, assetType: asset.type };
@@ -66,6 +69,29 @@ function parseIntent(message: string): { understood: boolean; assetType?: AssetT
     }
 
     return { understood: false, needsClarification: 'unclear' };
+}
+
+const GREETING_WORDS = new Set(['hey', 'hi', 'hello', 'yo', 'sup']);
+
+function isGreeting(message: string): boolean {
+    const normalized = message.trim().toLowerCase().replace(/[.!?,]/g, '');
+    return GREETING_WORDS.has(normalized);
+}
+
+function buildAssetOptions(types: AssetType[]): ConversationOption[] {
+    return types.map((type) => {
+        const config = getAssetConfig(type);
+        return {
+            id: `asset-${type}`,
+            label: config?.label || type,
+            description: config?.description,
+            value: type,
+        };
+    });
+}
+
+function isAssetOption(value: ConversationOption['value']): value is AssetType {
+    return !!getAssetConfig(value as AssetType);
 }
 
 export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns = [], competitors = [], className }: MuseChatProps) {
@@ -86,6 +112,28 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
     }>({});
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
+
+    const assetOptions = useMemo(
+        () => buildAssetOptions(ASSET_TYPES.map(asset => asset.type)),
+        []
+    );
+
+    const extractContext = useCallback((message: string): Record<string, string> => {
+        const lower = message.toLowerCase();
+        const matchByName = <T extends { name: string }>(items: T[]) =>
+            items.find(item => lower.includes(item.name.toLowerCase()));
+
+        const matchedCohort = matchByName(cohorts);
+        const matchedCampaign = matchByName(campaigns);
+        const matchedCompetitor = matchByName(competitors);
+
+        const context: Record<string, string> = {};
+        if (matchedCohort) context.cohort = matchedCohort.name;
+        if (matchedCampaign) context.campaign = matchedCampaign.name;
+        if (matchedCompetitor) context.competitor = matchedCompetitor.name;
+
+        return context;
+    }, [cohorts, campaigns, competitors]);
 
     // Build command suggestions
     const commandSuggestions: CommandSuggestion[] = useMemo(() => {
@@ -171,10 +219,6 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
         return message;
     }, []);
 
-import { spine } from '@/lib/muse/spine-client';
-
-// ...
-
     const handleMuseResponse = useCallback(async (userMessage: string, threadId?: string) => {
         setIsTyping(true);
 
@@ -206,9 +250,27 @@ import { spine } from '@/lib/muse/spine-client';
         ));
         addMessage('user', option.label);
 
+        if (isAssetOption(option.value)) {
+            const assetType = option.value;
+            const context: Record<string, string> = {};
+            if (currentContext.cohort) context.cohort = currentContext.cohort;
+            if (currentContext.campaign) context.campaign = currentContext.campaign;
+            if (currentContext.prompt) {
+                setCurrentContext(prev => ({ ...prev, assetType }));
+                addMessage('muse', 'Hey, coming right up,');
+                onAssetCreate(currentContext.prompt, assetType, Object.keys(context).length ? context : undefined);
+                return;
+            }
+
+            setCurrentContext(prev => ({ ...prev, assetType }));
+            const assetLabel = getAssetConfig(assetType)?.label || assetType;
+            addMessage('muse', `Nice. What should the ${assetLabel.toLowerCase()} be about?`);
+            return;
+        }
+
         // Pass threadId back to resume the graph
         handleMuseResponse(option.label, currentContext.threadId);
-    }, [addMessage, handleMuseResponse, currentContext.threadId]);
+    }, [addMessage, handleMuseResponse, currentContext, onAssetCreate]);
 
     // Handle input change with command detection
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -253,8 +315,48 @@ import { spine } from '@/lib/muse/spine-client';
         setShowCommands(false);
         addMessage('user', userMessage);
 
+        const messageContext = extractContext(userMessage);
+        if (Object.keys(messageContext).length > 0) {
+            setCurrentContext(prev => ({ ...prev, ...messageContext }));
+        }
+
+        const contextForAsset: Record<string, string> = { ...messageContext };
+        if (currentContext.cohort && !contextForAsset.cohort) {
+            contextForAsset.cohort = currentContext.cohort;
+        }
+        if (currentContext.campaign && !contextForAsset.campaign) {
+            contextForAsset.campaign = currentContext.campaign;
+        }
+
+        if (isGreeting(userMessage)) {
+            setCurrentContext(prev => ({ ...prev, prompt: undefined, assetType: undefined }));
+            addMessage('muse', 'Hey,\nWhat would you like to create?', assetOptions);
+            return;
+        }
+
+        if (currentContext.assetType && !currentContext.prompt) {
+            addMessage('muse', 'Hey, coming right up,');
+            setCurrentContext(prev => ({ ...prev, prompt: userMessage }));
+            onAssetCreate(userMessage, currentContext.assetType, Object.keys(contextForAsset).length ? contextForAsset : undefined);
+            return;
+        }
+
+        const intent = parseIntent(userMessage);
+        if (intent.understood && intent.assetType) {
+            addMessage('muse', 'Hey, coming right up,');
+            setCurrentContext(prev => ({ ...prev, prompt: userMessage, assetType: intent.assetType }));
+            onAssetCreate(userMessage, intent.assetType, Object.keys(contextForAsset).length ? contextForAsset : undefined);
+            return;
+        }
+
+        if (intent.needsClarification === 'asset_type') {
+            setCurrentContext(prev => ({ ...prev, prompt: userMessage, assetType: undefined }));
+            addMessage('muse', 'Got it. What kind of asset should I create?', assetOptions);
+            return;
+        }
+
         handleMuseResponse(userMessage);
-    }, [input, addMessage, handleMuseResponse]);
+    }, [input, addMessage, assetOptions, extractContext, handleMuseResponse, onAssetCreate, currentContext]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (showCommands && commandSuggestions.length > 0) {

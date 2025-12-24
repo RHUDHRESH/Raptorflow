@@ -1,10 +1,13 @@
-import logging
 import json
-from typing import List, Dict, Any, Optional
+import logging
+from typing import Any, Dict, List, Optional
+
 import psycopg
+
 from backend.db import get_db_connection
 
 logger = logging.getLogger("raptorflow.memory.knowledge_graph")
+
 
 class KnowledgeGraphConnector:
     """
@@ -14,11 +17,11 @@ class KnowledgeGraphConnector:
     """
 
     async def add_concept(
-        self, 
-        workspace_id: str, 
-        name: str, 
+        self,
+        workspace_id: str,
+        name: str,
         description: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Adds a concept node to the knowledge graph."""
         async with get_db_connection() as conn:
@@ -26,7 +29,7 @@ class KnowledgeGraphConnector:
                 query = """
                     INSERT INTO knowledge_concepts (workspace_id, name, description, metadata)
                     VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (workspace_id, name) DO UPDATE 
+                    ON CONFLICT (workspace_id, name) DO UPDATE
                     SET description = EXCLUDED.description, metadata = knowledge_concepts.metadata || EXCLUDED.metadata
                     RETURNING id;
                 """
@@ -36,21 +39,21 @@ class KnowledgeGraphConnector:
                         workspace_id,
                         name,
                         description,
-                        psycopg.types.json.Jsonb(metadata or {})
-                    )
+                        psycopg.types.json.Jsonb(metadata or {}),
+                    ),
                 )
                 result = await cur.fetchone()
                 await conn.commit()
                 return result[0]
 
     async def link_concepts(
-        self, 
-        workspace_id: str, 
-        source_id: str, 
-        target_id: str, 
+        self,
+        workspace_id: str,
+        source_id: str,
+        target_id: str,
         relation: str,
         weight: float = 1.0,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """Creates a directed edge between two concept nodes."""
         async with get_db_connection() as conn:
@@ -69,13 +72,15 @@ class KnowledgeGraphConnector:
                         target_id,
                         relation,
                         weight,
-                        psycopg.types.json.Jsonb(metadata or {})
-                    )
+                        psycopg.types.json.Jsonb(metadata or {}),
+                    ),
                 )
                 await conn.commit()
                 return True
 
-    async def get_related_concepts(self, concept_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+    async def get_related_concepts(
+        self, concept_id: str, limit: int = 10
+    ) -> List[Dict[str, Any]]:
         """Retrieves related concepts for a given node."""
         async with get_db_connection() as conn:
             async with conn.cursor() as cur:

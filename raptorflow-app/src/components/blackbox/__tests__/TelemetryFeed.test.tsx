@@ -13,7 +13,7 @@ describe("TelemetryFeed Component", () => {
     const mockTraces: any[] = [
       { id: '1', agent_id: 'TestAgent', trace: { status: 'success' }, latency: 100, timestamp: new Date().toISOString() }
     ];
-    
+
     render(<TelemetryFeed traces={mockTraces} />);
     expect(screen.getByText(/TestAgent/i)).toBeDefined();
   });

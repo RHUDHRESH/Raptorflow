@@ -1,11 +1,11 @@
 import os
 
-file_path = r'C:\Users\hp\OneDrive\Desktop\Raptorflow\conductor\tracks\massive_build_20251223\plan.md'
+file_path = r"C:\Users\hp\OneDrive\Desktop\Raptorflow\conductor\tracks\massive_build_20251223\plan.md"
 
-with open(file_path, 'r', encoding='utf-8') as f:
+with open(file_path, "r", encoding="utf-8") as f:
     content = f.read()
 
-# We already have phases up to 2809. 
+# We already have phases up to 2809.
 # I will now overwrite the final block (2810-3000) with the highly specific critique-based tasks.
 
 # First, find where 2809 ends and truncate everything after it.
@@ -14,7 +14,7 @@ if marker in content:
     content = content.split(marker)[0] + marker + "\n"
 
 new_phases = """
-## BLOCK 7: Industrial Intelligence & MLOps Finality (2810–3000) 
+## BLOCK 7: Industrial Intelligence & MLOps Finality (2810–3000)
 
 ### 7.1 Taulli Multi-Framework Integration (CrewAI & AutoGen)
 - [ ] Phase 2810: Implement CrewAI 'Department' Pattern: Creative Execution Unit
@@ -112,7 +112,7 @@ new_phases += "- [ ] Phase 3000: Conductor - User Manual Verification MISSION CO
 
 content += new_phases
 
-with open(file_path, 'w', encoding='utf-8') as f:
+with open(file_path, "w", encoding="utf-8") as f:
     f.write(content)
 
 print("3000 Phase Plan Fully Realized with Book Insights.")

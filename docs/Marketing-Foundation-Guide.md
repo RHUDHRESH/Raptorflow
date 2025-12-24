@@ -1,7 +1,7 @@
 # The Unified Marketing Foundation Guide
 ## A Behavioral, Context-First, Worldview-Aligned Methodology
 
-> **The Thesis:** You are not hired to optimize. You are hired to transform perception.  
+> **The Thesis:** You are not hired to optimize. You are hired to transform perception.
 > Logic kills magic. Your job is to find the magic—then make it testable.
 
 ---
@@ -139,22 +139,22 @@ Week 3 (Validate)  → Experiments + iteration + final package
 
 1. **The Expensive Fix Question:**
    > "What expensive thing are you trying to fix that might be solved by just changing the words?"
-   
+
    *(Eurostar example: Instead of £6 billion to speed up tracks, put Wi-Fi on trains so time passes faster.)*
 
 2. **The Stupid Thing Question:**
    > "What's the 'stupid' thing your competitors aren't doing?"
-   
+
    *(Logic says if it were good, everyone would do it. You look for ideas that look like mistakes but are actually magic.)*
 
 3. **The Signaling Question:**
    > "What does your product 'signal' to the neighbors/peers/boss?"
-   
+
    *(We don't buy hybrids to save the planet; we buy them to look like we're saving the planet.)*
 
 4. **The Friction Question:**
    > "Where is the friction—and should we add some?"
-   
+
    *(General Mills made cake mix too easy. They had to add "add an egg" so people felt like they were cooking.)*
 
 5. **The Embarrassment Question:**

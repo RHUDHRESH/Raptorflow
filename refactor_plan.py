@@ -1,30 +1,30 @@
 import os
 
-file_path = r'C:\Users\hp\OneDrive\Desktop\Raptorflow\conductor\tracks\massive_build_20251223\plan.md'
+file_path = r"C:\Users\hp\OneDrive\Desktop\Raptorflow\conductor\tracks\massive_build_20251223\plan.md"
 
-with open(file_path, 'r', encoding='utf-8') as f:
+with open(file_path, "r", encoding="utf-8") as f:
     content = f.read()
 
 # 1. Fix the "packed" lines by replacing `n with actual newlines
-content = content.replace('`n', '\n')
+content = content.replace("`n", "\n")
 
 # 2. Global replacements for the tech stack
 replacements = {
-    'AWS_REGION': 'GCP_REGION',
-    'S3_INGEST_BUCKET': 'GCS_INGEST_BUCKET',
-    'AWS Glue': 'GCP Dataflow/BigQuery',
-    'AWS Athena': 'BigQuery',
-    'Glue ETL': 'BigQuery/Dataflow ETL',
-    'Athena': 'BigQuery',
-    'Glue': 'BigQuery/Dataflow',
-    ' S3 ': ' GCS ',
-    '(S3 ': '(GCS ',
-    '/S3/': '/GCS/',
-    ' S3': ' GCS',
-    'ECR': 'Artifact Registry',
-    'CloudFront': 'Cloud CDN',
-    'AWS Services': 'GCP Services',
-    'AWS': 'GCP'
+    "AWS_REGION": "GCP_REGION",
+    "S3_INGEST_BUCKET": "GCS_INGEST_BUCKET",
+    "AWS Glue": "GCP Dataflow/BigQuery",
+    "AWS Athena": "BigQuery",
+    "Glue ETL": "BigQuery/Dataflow ETL",
+    "Athena": "BigQuery",
+    "Glue": "BigQuery/Dataflow",
+    " S3 ": " GCS ",
+    "(S3 ": "(GCS ",
+    "/S3/": "/GCS/",
+    " S3": " GCS",
+    "ECR": "Artifact Registry",
+    "CloudFront": "Cloud CDN",
+    "AWS Services": "GCP Services",
+    "AWS": "GCP",
 }
 
 for old, new in replacements.items():
@@ -60,10 +60,10 @@ phonepe_phases = """
 if "- [ ] Phase 0214: Write Integration Test: `test_move_api`" in content:
     content = content.replace(
         "- [ ] Phase 0214: Write Integration Test: `test_move_api`",
-        "- [ ] Phase 0214: Write Integration Test: `test_move_api`" + phonepe_phases
+        "- [ ] Phase 0214: Write Integration Test: `test_move_api`" + phonepe_phases,
     )
 
-with open(file_path, 'w', encoding='utf-8') as f:
+with open(file_path, "w", encoding="utf-8") as f:
     f.write(content)
 
 print("Refactor complete.")

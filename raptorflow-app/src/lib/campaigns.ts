@@ -391,16 +391,8 @@ export async function extendMove(moveId: string, days: number): Promise<void> {
 
     // In a real app, this would update the due date in DB.
     // For now, we'll just log it.
-    console.log(`Extending move ${moveId} by ${days} days`);
 }
 
 export async function logMoveOverride(move: Move, campaign: Campaign, reason: OverrideReason): Promise<void> {
-    console.log(`[Blackbox] Move Override Logged:`, {
-        moveId: move.id,
-        campaignId: campaign.id,
-        reason,
-        timestamp: new Date().toISOString()
-    });
-
-    // Optional: Persist to Supabase if the table exists
+    // Audit log placeholder
 }

@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, status
-from typing import List, Dict
+from typing import Dict, List
 from uuid import UUID
+
+from fastapi import APIRouter, Depends, status
+
+from backend.core.vault import Vault
 from backend.models.blackbox import BlackboxTelemetry
 from backend.services.blackbox_service import BlackboxService
-from backend.core.vault import Vault
 
 router = APIRouter(prefix="/v1/blackbox/telemetry", tags=["blackbox"])
 
@@ -16,8 +18,8 @@ def get_blackbox_service():
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 def log_telemetry(
-    telemetry: BlackboxTelemetry, 
-    service: BlackboxService = Depends(get_blackbox_service)
+    telemetry: BlackboxTelemetry,
+    service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Logs a new agent execution trace."""
     service.log_telemetry(telemetry)
@@ -26,8 +28,7 @@ def log_telemetry(
 
 @router.get("/audit/{agent_id}", response_model=List[Dict])
 def get_agent_audit_log(
-    agent_id: str, 
-    service: BlackboxService = Depends(get_blackbox_service)
+    agent_id: str, service: BlackboxService = Depends(get_blackbox_service)
 ):
     """Retrieves recent traces for a specific agent."""
     return service.get_agent_audit_log(agent_id)
@@ -35,8 +36,7 @@ def get_agent_audit_log(
 
 @router.get("/cost/{move_id}")
 def calculate_move_cost(
-    move_id: UUID, 
-    service: BlackboxService = Depends(get_blackbox_service)
+    move_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
 ):
     """Calculates total token usage for a move."""
     total_tokens = service.calculate_move_cost(move_id)

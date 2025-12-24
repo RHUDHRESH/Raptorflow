@@ -10,7 +10,7 @@ import { TelemetryEmptyState } from "./EmptyStates";
 
 export function InferenceLogExplorer() {
   const { data, loading } = useMatrixOverview("verify_ws");
-  
+
   if (loading) return <MatrixListSkeleton />;
 
   // SOTA: Mock data for explorer if API doesn't provide enough yet
@@ -55,40 +55,43 @@ export function InferenceLogExplorer() {
             {events.length === 0 ? (
               <TelemetryEmptyState />
             ) : (
-              events.map((event) => (
-                <div key={event.event_id} className="p-3 border-b border-border/30 hover:bg-muted/10 transition-colors group">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-muted-foreground">[{new Date(event.timestamp).toLocaleTimeString()}]</span>
-                      <span className="font-bold text-primary uppercase">{event.source}</span>
+              events.map((event) => {
+                const metadata = event.metadata as Record<string, any>;
+                return (
+                  <div key={event.event_id} className="p-3 border-b border-border/30 hover:bg-muted/10 transition-colors group">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-muted-foreground">[{new Date(event.timestamp).toLocaleTimeString()}]</span>
+                        <span className="font-bold text-primary uppercase">{event.source}</span>
+                      </div>
+                      <Badge variant="outline" className="text-[9px] h-4 rounded-sm font-mono opacity-70 group-hover:opacity-100">
+                        {event.event_type}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="text-[9px] h-4 rounded-sm font-mono opacity-70 group-hover:opacity-100">
-                      {event.event_type}
-                    </Badge>
+
+                    <div className="grid grid-cols-3 gap-2 mt-2 text-muted-foreground">
+                      {metadata.model && (
+                        <div className="flex items-center">
+                          <Cpu className="mr-1 h-3 w-3" />
+                          {metadata.model}
+                        </div>
+                      )}
+                      {metadata.latency_ms && (
+                        <div className="flex items-center">
+                          <Terminal className="mr-1 h-3 w-3" />
+                          {metadata.latency_ms}ms
+                        </div>
+                      )}
+                      {metadata.tokens && (
+                        <div className="flex items-center">
+                          <Database className="mr-1 h-3 w-3" />
+                          {metadata.tokens} tokens
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  
-                  <div className="grid grid-cols-3 gap-2 mt-2 text-muted-foreground">
-                    {event.metadata.model && (
-                      <div className="flex items-center">
-                        <Cpu className="mr-1 h-3 w-3" />
-                        {event.metadata.model}
-                      </div>
-                    )}
-                    {event.metadata.latency_ms && (
-                      <div className="flex items-center">
-                        <Terminal className="mr-1 h-3 w-3" />
-                        {event.metadata.latency_ms}ms
-                      </div>
-                    )}
-                    {event.metadata.tokens && (
-                      <div className="flex items-center">
-                        <Database className="mr-1 h-3 w-3" />
-                        {event.metadata.tokens} tokens
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </ScrollArea>

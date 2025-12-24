@@ -24,8 +24,17 @@ export function generateExperiments(
     count: number = 3
 ): Experiment[] {
     // 1. Candidate Generation
-    // Pick levers that match goal (if restricted) or all
-    let candidates = LEVERS.filter(l => !l.allowed_goals || l.allowed_goals.includes(context.goal));
+    // Pick levers that match goal (if restricted) and channel (if restricted)
+    let candidates = LEVERS.filter(l => {
+        const goalMatch = !l.allowed_goals || l.allowed_goals.includes(context.goal);
+        const channelMatch = !l.allowed_channels || l.allowed_channels.includes(context.channel);
+        return goalMatch && channelMatch;
+    });
+
+    // If no channel-specific candidates, fall back to all levers matching goal
+    if (candidates.length < count) {
+        candidates = LEVERS.filter(l => !l.allowed_goals || l.allowed_goals.includes(context.goal));
+    }
 
     // 2. Ranking / Scoring (Simplified for v1)
     // Boost score for past winners, penalize past losers (not implemented yet)
@@ -48,17 +57,28 @@ export function generateExperiments(
             risk_level: context.risk_level,
             channel: context.channel,
 
-            title: interpolate(lever.title_template, context),
-            bet: interpolate(lever.bet_template, context),
+            // Content from lever template
+            title: lever.title,
+            bet: lever.hypothesis,
             why: lever.why,
             principle: lever.principle,
 
+            // NEW: Actionable experiment details
+            hypothesis: lever.hypothesis,
+            control: lever.control,
+            variant: lever.variant,
+            success_metric: lever.success_metric,
+            sample_size: lever.sample_size,
+            duration_days: lever.duration_days,
+            action_steps: lever.action_steps,
+
+            // Meta
             effort: defaults.effort,
             time_to_signal: defaults.time_to_signal,
 
+            // Execution
             skill_stack: skillStack,
             asset_ids: [],
-            // Asset plan based on channel
             asset_plan: generateAssetPlan(context.channel, constraint),
 
             status: "draft" as ExperimentStatus,
@@ -108,9 +128,14 @@ function generateAssetPlan(channel: ChannelType, constraint: ConstraintTemplate)
         email: 'email',
         linkedin: 'social_post',
         twitter: 'social_post',
-        whatsapp: 'text',
-        youtube: 'text', // script
         instagram: 'social_post',
+        tiktok: 'social_post',
+        youtube: 'text', // script
+        facebook: 'social_post',
+        google_ads: 'text',
+        website: 'text',
+        blog: 'text',
+        podcast: 'text',
         other: 'text'
     };
 
@@ -120,10 +145,4 @@ function generateAssetPlan(channel: ChannelType, constraint: ConstraintTemplate)
         target_length: constraint.id === 'short_length' ? 'short' : 'medium',
         notes: `Constraint: ${constraint.description}`
     };
-}
-
-function interpolate(template: string, _ctx: GenerationContext): string {
-    // Basic interpolation if we had dynamic vars (e.g. {goal} -> replies)
-    // For now mostly static templates
-    return template;
 }

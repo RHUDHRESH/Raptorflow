@@ -13,8 +13,8 @@ If any **NO** in sections 1–3 → do not ship.
 - [ ] Everything on this screen changes a decision or enables the CTA.
 - [ ] If I remove 50% of elements, the purpose is still clear.
 
-**Primary job:** ______________________  
-**Primary CTA:** ______________________  
+**Primary job:** ______________________
+**Primary CTA:** ______________________
 **Next screen after CTA:** ______________________
 
 ---

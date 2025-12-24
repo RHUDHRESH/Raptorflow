@@ -16,12 +16,9 @@ export default function MovesPage() {
     const { moves, refresh: refreshMoves } = useCampaigns(10000);
     const [showWizard, setShowWizard] = useState(false);
     const [selectedMove, setSelectedMove] = useState<Move | null>(null);
-    const [activeMove, setActiveMoveState] = useState<Move | null>(null);
 
-    useEffect(() => {
-        const active = moves.find(m => m.status === 'active');
-        setActiveMoveState(active || null);
-    }, [moves]);
+    // Derived active move
+    const activeMove = moves.find(m => m.status === 'active') || null;
 
     const handleMoveCreated = useCallback(() => {
         refreshMoves();
@@ -52,15 +49,18 @@ export default function MovesPage() {
 
     useEffect(() => {
         const hour = new Date().getHours();
-        setGreeting(hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening');
+        const newGreeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+        setGreeting(newGreeting);
 
-        if (hour < 10) setTimeTint('bg-orange-50/30 dark:bg-orange-950/10');
-        else if (hour > 18) setTimeTint('bg-blue-50/30 dark:bg-blue-950/10');
-        else setTimeTint('bg-white dark:bg-zinc-950');
+        let newTint = 'bg-white dark:bg-zinc-950';
+        if (hour < 10) newTint = 'bg-orange-50/30 dark:bg-orange-950/10';
+        else if (hour > 18) newTint = 'bg-blue-50/30 dark:bg-blue-950/10';
+        setTimeTint(newTint);
 
         setCurrentDate(new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'long' }));
 
-        document.title = `(${moves.filter(m => m.status === 'active').length}) Moves | RaptorFlow`;
+        const activeCount = moves.filter(m => m.status === 'active').length;
+        document.title = `(${activeCount}) Moves | RaptorFlow`;
 
         const statusInterval = setInterval(() => {
             const states = ['Live', 'Syncing...', 'Encrypted', 'Live'];
@@ -68,7 +68,7 @@ export default function MovesPage() {
             setStatusText(randomState);
         }, 5000);
 
-        const target = moves.filter(m => m.status === 'active').length;
+        const target = activeCount;
         let start = 0;
         const duration = 1000;
         const increment = target / (duration / 16);
@@ -100,8 +100,8 @@ export default function MovesPage() {
     return (
         <AppLayout>
             <InferenceErrorBoundary>
-                <div className={cn("min-h-screen transition-colors duration-[2000ms] selection:bg-emerald-500/30 selection:text-emerald-900 dark:selection:bg-emerald-500/30 dark:selection:text-emerald-100", timeTint)}>
-                    <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-emerald-500/10 dark:bg-emerald-500/5 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen pointer-events-none animate-pulse duration-[10000ms]" />
+                <div className={cn("min-h-screen transition-colors [transition-duration:2000ms] selection:bg-emerald-500/30 selection:text-emerald-900 dark:selection:bg-emerald-500/30 dark:selection:text-emerald-100", timeTint)}>
+                    <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-emerald-500/10 dark:bg-emerald-500/5 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen pointer-events-none animate-pulse [animation-duration:10000ms]" />
                     <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.015] pointer-events-none" />
 
                     <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-8 md:py-12 pb-32 animate-in fade-in duration-500 relative z-10">

@@ -9,6 +9,7 @@ This is the Python-based creative engine for RaptorFlow, built with FastAPI and 
 - **Database:** Supabase (PostgreSQL + pgvector)
 
 ## Setup
+1. Use Python 3.11-3.13 (Python 3.14 is not supported by current LangChain/Pydantic compatibility layers).
 1. Install dependencies:
    ```bash
    poetry install

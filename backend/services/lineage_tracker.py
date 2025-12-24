@@ -1,9 +1,11 @@
 import logging
-from typing import Dict, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, Optional
+
 from backend.db import get_db_connection
 
 logger = logging.getLogger("raptorflow.services.lineage_tracker")
+
 
 class ModelLineageTracker:
     """
@@ -13,11 +15,11 @@ class ModelLineageTracker:
     """
 
     async def register_model(
-        self, 
-        model_id: str, 
-        dataset_uri: str, 
+        self,
+        model_id: str,
+        dataset_uri: str,
         artifact_uri: str,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """Registers a new model version with its GCS lineage."""
         async with get_db_connection() as conn:
@@ -25,17 +27,23 @@ class ModelLineageTracker:
                 query = """
                     INSERT INTO model_lineage (model_id, dataset_uri, artifact_uri, metadata)
                     VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (model_id) DO UPDATE 
-                    SET dataset_uri = EXCLUDED.dataset_uri, 
+                    ON CONFLICT (model_id) DO UPDATE
+                    SET dataset_uri = EXCLUDED.dataset_uri,
                         artifact_uri = EXCLUDED.artifact_uri,
                         metadata = model_lineage.metadata || EXCLUDED.metadata,
                         updated_at = CURRENT_TIMESTAMP;
                 """
                 import psycopg
+
                 try:
                     await cur.execute(
-                        query, 
-                        (model_id, dataset_uri, artifact_uri, psycopg.types.json.Jsonb(metadata or {}))
+                        query,
+                        (
+                            model_id,
+                            dataset_uri,
+                            artifact_uri,
+                            psycopg.types.json.Jsonb(metadata or {}),
+                        ),
                     )
                     await conn.commit()
                     logger.info(f"Model lineage registered: {model_id}")
@@ -55,14 +63,14 @@ class ModelLineageTracker:
                 """
                 await cur.execute(query, (model_id,))
                 result = await cur.fetchone()
-                
+
                 if not result:
                     return None
-                    
+
                 return {
                     "model_id": result[0],
                     "dataset_uri": result[1],
                     "artifact_uri": result[2],
                     "registered_at": result[3],
-                    "metadata": result[4]
+                    "metadata": result[4],
                 }

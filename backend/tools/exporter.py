@@ -1,15 +1,18 @@
 import logging
 import os
-from typing import Dict, Any
+from typing import Any, Dict
+
 from backend.core.toolbelt import BaseRaptorTool
 
 logger = logging.getLogger("raptorflow.tools.exporter")
+
 
 class ResearchPDFExporterTool(BaseRaptorTool):
     """
     SOTA PDF Exporter Tool.
     Generates professional PDF briefs from research data.
     """
+
     @property
     def name(self) -> str:
         return "pdf_exporter"
@@ -32,14 +35,16 @@ class ResearchPDFExporterTool(BaseRaptorTool):
         return {
             "path": path,
             "status": "ready_for_review",
-            "metadata": {"size_bytes": len(content) * 1.5}
+            "metadata": {"size_bytes": len(content) * 1.5},
         }
+
 
 class StrategyRoadmapExporterTool(BaseRaptorTool):
     """
     SOTA Roadmap Synchronization Tool.
     Exports the 90-day strategic arc to PDF or syncs with Notion CRM.
     """
+
     @property
     def name(self) -> str:
         return "strategy_exporter"
@@ -51,18 +56,22 @@ class StrategyRoadmapExporterTool(BaseRaptorTool):
             "roadmap to the user's workspace (PDF or Notion). Input is the structured arc."
         )
 
-    async def _execute(self, arc: Dict[str, Any], export_type: str = "pdf") -> Dict[str, Any]:
+    async def _execute(
+        self, arc: Dict[str, Any], export_type: str = "pdf"
+    ) -> Dict[str, Any]:
         """
         Simulates strategy export and sync.
         """
         logger.info(f"Exporting strategic roadmap via {export_type}...")
         # In a full SOTA build, this calls the Notion SDK or PDF Generator
-        target_path = f"workspace/roadmaps/{arc.get('campaign_title', 'new_plan')}.{export_type}"
+        target_path = (
+            f"workspace/roadmaps/{arc.get('campaign_title', 'new_plan')}.{export_type}"
+        )
         return {
             "success": True,
             "destination": export_type,
             "path": target_path,
-            "sync_status": "synced"
+            "sync_status": "synced",
         }
 
 
@@ -94,14 +103,14 @@ class ParquetExporter:
                 if hasattr(event, "model_dump"):
                     data.append(event.model_dump())
                 else:
-                    data.append(event) # Assume it's already a dict
-            
+                    data.append(event)  # Assume it's already a dict
+
             # Convert to table
             table = pa.Table.from_pylist(data)
-            
+
             # Ensure directory exists
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            
+
             pq.write_table(table, file_path)
             return True
         except ImportError:

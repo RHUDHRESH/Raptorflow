@@ -1,7 +1,12 @@
 'use client';
 
 import ICPPage from '@/components/icp/ICPPage';
+import { AppLayout } from '@/components/layout/AppLayout';
 
 export default function Page() {
-    return <ICPPage />;
+    return (
+        <AppLayout>
+            <ICPPage />
+        </AppLayout>
+    );
 }

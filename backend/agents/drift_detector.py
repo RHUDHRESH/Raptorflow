@@ -1,4 +1,5 @@
-from typing import Dict, Any
+from typing import Any, Dict
+
 from backend.agents.blackbox_specialist import BlackboxSpecialist
 
 
@@ -14,7 +15,7 @@ class StrategicDriftAgent(BlackboxSpecialist):
     def run(self, move_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         trace = data.get("trace", "")
         brand_kit = data.get("brand_kit", "")
-        
+
         prompt = (
             "You are the RaptorFlow Strategic Drift Agent. Your goal is to detect if "
             "marketing execution is diverging from the core brand mission.\n\n"
@@ -25,8 +26,4 @@ class StrategicDriftAgent(BlackboxSpecialist):
         )
 
         response = self.model.invoke(prompt)
-        return {
-            "drift_report": response.content,
-            "status": "analyzed"
-        }
-
+        return {"drift_report": response.content, "status": "analyzed"}

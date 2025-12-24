@@ -1,5 +1,6 @@
 import uuid
-from typing import Dict, Any
+from typing import Any, Dict
+
 from backend.models.telemetry import TelemetryEvent, TelemetryEventType
 
 
@@ -15,6 +16,6 @@ class ModelServer:
             event_id=str(uuid.uuid4()),
             event_type=TelemetryEventType.INFERENCE_END,
             source=source,
-            payload=metadata
+            payload=metadata,
         )
         return await self.matrix_service.emit_event(event)

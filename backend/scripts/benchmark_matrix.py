@@ -15,13 +15,18 @@ def benchmark_matrix(url: str, iterations: int = 10):
 
     for i in range(iterations):
         start = time.perf_counter()
-        res = requests.get(f"{url}/v1/matrix/overview?workspace_id=verify_ws")
-        end = time.perf_counter()
+        try:
+            res = requests.get(
+                f"{url}/v1/matrix/overview?workspace_id=verify_ws", timeout=10
+            )
+            end = time.perf_counter()
 
-        if res.status_code == 200:
-            latencies.append((end - start) * 1000)  # ms
-        else:
-            print(f"Iteration {i} failed: {res.status_code}")
+            if res.status_code == 200:
+                latencies.append((end - start) * 1000)  # ms
+            else:
+                print(f"Iteration {i} failed: {res.status_code}")
+        except requests.exceptions.RequestException as e:
+            print(f"Iteration {i} error: {e}")
 
     if not latencies:
         return False
@@ -44,10 +49,12 @@ def benchmark_matrix(url: str, iterations: int = 10):
 
 
 if __name__ == "__main__":
+    import os
+
+    default_url = os.getenv("NEXT_PUBLIC_API_URL", "http://localhost:8000")
+
     parser = argparse.ArgumentParser(description="Performance Benchmarking")
-    parser.add_argument(
-        "--url", help="Base URL of Matrix API", default="http://localhost:8080"
-    )
+    parser.add_argument("--url", help="Base URL of Matrix API", default=default_url)
 
     # In CI/CD we would run it. For now we initialize.
     print("SOTA Benchmarker Initialized.")

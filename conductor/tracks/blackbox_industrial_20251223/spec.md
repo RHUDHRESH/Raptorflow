@@ -13,7 +13,7 @@ The Blackbox is the "Cognitive Spine" of RaptorFlow. It implements a serverless 
 
 ### 2.2 Advanced Agentic Architecture (Cognitive Tier)
 - **Multi-Agent Orchestration (LangGraph):** A deterministic state machine managing a `Supervisor` agent, `Researcher` agents (Scraper/Searcher), and `Analyst` agents.
-- **Short/Long-Term Memory:** 
+- **Short/Long-Term Memory:**
     - **Short-term:** Redis/Upstash for session state and current graph execution.
     - **Long-term:** Supabase `pgvector` for strategic embeddings and BigQuery for longitudinal history.
 - **Reflection & Self-Correction:** Agents perform internal "Quality Gates" before committing insights to the memory layer.

@@ -78,7 +78,7 @@ export function FinancialBurnChart() {
               <span>{usage.toFixed(1)}%</span>
             </div>
             <div className="relative h-4 w-full bg-muted/20 rounded-lg overflow-hidden border border-border/50">
-              <div 
+              <div
                 className={`absolute inset-y-0 left-0 transition-all duration-1000 ${statusColors[status]}`}
                 style={{ width: `${Math.min(100, usage)}%` }}
               />

@@ -1,35 +1,55 @@
+import json
+import os
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
-from backend.inference import InferenceProvider
-from backend.services.telemetry import RaptorTelemetry
+
 from backend.core.sandbox import RaptorSandbox
 from backend.core.toolbelt import BaseRaptorTool, RaptorRateLimiter, cache_tool_output
-from backend.services.telemetry import RaptorTelemetry, RaptorTelemetryCallback, trace_latency
-import os
-import json
+from backend.core.vault import RaptorVault
+from backend.graphs.spine_v3 import build_ultimate_spine
+from backend.inference import InferenceProvider
+from backend.services.telemetry import (
+    CostEvaluator,
+    RaptorEvaluator,
+    RaptorTelemetry,
+    RaptorTelemetryCallback,
+    trace_latency,
+)
+
 
 class TestTool(BaseRaptorTool):
     @property
-    def name(self): return "test_tool"
+    def name(self):
+        return "test_tool"
+
     @property
-    def description(self): return "test desc"
+    def description(self):
+        return "test desc"
+
     async def _execute(self, val: str):
         return f"Echo: {val}"
+
 
 class FlakyTool(BaseRaptorTool):
     def __init__(self):
         self.attempts = 0
+
     @property
-    def name(self): return "flaky_tool"
+    def name(self):
+        return "flaky_tool"
+
     @property
-    def description(self): return "flaky desc"
-    
+    def description(self):
+        return "flaky desc"
+
     @RaptorRateLimiter.get_retry_decorator()
     async def _execute(self):
         self.attempts += 1
         if self.attempts < 2:
             raise ValueError("SOTA Flaky Failure")
         return "SOTA Success"
+
 
 @pytest.mark.asyncio
 async def test_tool_resiliency_retry():
@@ -40,6 +60,7 @@ async def test_tool_resiliency_retry():
     assert result["data"] == "SOTA Success"
     assert tool.attempts == 2
 
+
 @pytest.mark.asyncio
 async def test_base_tool_interface():
     """Verify standard tool behavior and telemetry."""
@@ -49,7 +70,6 @@ async def test_base_tool_interface():
     assert result["data"] == "Echo: hello"
     assert "latency_ms" in result
 
-from backend.core.vault import RaptorVault
 
 @pytest.mark.asyncio
 async def test_raptor_vault_logic():
@@ -59,35 +79,35 @@ async def test_raptor_vault_logic():
         secret = await vault.get_secret("tavily_key")
         assert secret == "sota_secret"
 
-from backend.graphs.spine_v3 import build_ultimate_spine
 
 @pytest.mark.asyncio
 async def test_spine_v3_parallel_structure():
     """Verify that spine v3 has global parallel fan-out/fan-in."""
     app = build_ultimate_spine()
     edges = list(app.builder.edges)
-    
+
     # Check creative fan-out from strategy
-    creative_copy_edges = [e for e in edges if e[0] == "strategy_planning" and e[1] == "creative_copy"]
-    creative_visual_edges = [e for e in edges if e[0] == "strategy_planning" and e[1] == "creative_visual"]
+    creative_copy_edges = [
+        e for e in edges if e[0] == "strategy_planning" and e[1] == "creative_copy"
+    ]
+    creative_visual_edges = [
+        e for e in edges if e[0] == "strategy_planning" and e[1] == "creative_visual"
+    ]
     assert len(creative_copy_edges) == 1
     assert len(creative_visual_edges) == 1
-    
+
     # Check fan-in to QA
     qa_in_edges = [e for e in edges if e[1] == "qa"]
-    assert len(qa_in_edges) == 2 # from creative_copy and creative_visual
+    assert len(qa_in_edges) == 2  # from creative_copy and creative_visual
+
 
 def test_raptor_sandbox_execution():
-
     """Verify that the sandbox can execute simple python code."""
     sandbox = RaptorSandbox()
     result = sandbox.run("print(1 + 1)")
     assert result["success"] is True
     assert "2" in result["output"]
 
-from backend.services.telemetry import RaptorTelemetry, RaptorTelemetryCallback
-
-from backend.services.telemetry import RaptorTelemetry, RaptorTelemetryCallback, trace_latency, RaptorEvaluator, CostEvaluator
 
 def test_cost_evaluator_logic():
     """Verify that the cost evaluator flags expensive runs."""
@@ -95,53 +115,61 @@ def test_cost_evaluator_logic():
     # Expensive usage (10k tokens)
     usage = {"total_tokens": 10000}
     result = evaluator.evaluate_cost(usage, "gemini-ultra")
-    
-    assert result["estimated_cost"] == 0.1 # 10 * 0.01
+
+    assert result["estimated_cost"] == 0.1  # 10 * 0.01
     assert result["is_above_threshold"] is True
     assert result["action"] == "ALERT"
 
+
 class CachedTool(BaseRaptorTool):
     @property
-    def name(self): return "cached_tool"
+    def name(self):
+        return "cached_tool"
+
     @property
-    def description(self): return "cached desc"
-    
+    def description(self):
+        return "cached desc"
+
     @cache_tool_output(ttl=60)
     async def _execute(self, val: str):
         return f"Result: {val}"
+
 
 @pytest.mark.asyncio
 async def test_raptor_evaluator_logic():
     """Verify that the evaluator can score drafts."""
     mock_llm = AsyncMock()
     mock_llm.ainvoke.return_value = MagicMock(content="0.9")
-    
+
     evaluator = RaptorEvaluator(mock_llm)
     result = await evaluator.evaluate_asset("draft", "brief")
-    
-    assert result["grade"] == 0.95 # Mock result
+
+    assert result["grade"] == 0.95  # Mock result
     assert result["is_pass"] is True
+
 
 @pytest.mark.asyncio
 async def test_tool_caching_logic():
     """Verify that tool outputs are cached and retrieved."""
     mock_cache = MagicMock()
     mock_cache.get = AsyncMock(return_value=json.dumps("Result: hello"))
-    
+
     with patch("backend.core.toolbelt.get_cache", return_value=mock_cache):
         tool = CachedTool()
         result = await tool.run(val="hello")
-        
+
         assert result["data"] == "Result: hello"
         mock_cache.get.assert_called_once()
+
 
 @pytest.mark.asyncio
 async def test_latency_decorator_logging():
     """Verify that the latency decorator logs completion time."""
+
     @trace_latency("test_node")
     async def mock_node(state):
         return {"ok": True}
-    
+
     with patch("backend.services.telemetry.logger.info") as mock_log:
         await mock_node({})
         # Should be called at least once for "starting" and once for "completed"
@@ -149,37 +177,50 @@ async def test_latency_decorator_logging():
         args, _ = mock_log.call_args
         assert "completed in" in str(args[0])
 
+
 @pytest.mark.asyncio
 async def test_telemetry_callback_logging():
     """Verify the telemetry callback captures usage data."""
     callback = RaptorTelemetryCallback()
     mock_response = MagicMock()
-    mock_response.llm_output = {"token_usage": {"total_tokens": 100}, "model_name": "gemini-pro"}
-    
+    mock_response.llm_output = {
+        "token_usage": {"total_tokens": 100},
+        "model_name": "gemini-pro",
+    }
+
     with patch("backend.services.telemetry.logger.info") as mock_log:
         await callback.on_llm_end(mock_response)
         mock_log.assert_called_once()
         args, _ = mock_log.call_args
         assert "total_tokens" in str(args[0])
 
+
 def test_raptor_telemetry_service():
     """Verify the telemetry service correctly identifies status."""
     telemetry = RaptorTelemetry()
     # Should not crash on initialization
     assert telemetry is not None
-    
+
     enabled_in_env = os.getenv("LANGCHAIN_TRACING_V2", "false").lower() == "true"
     assert telemetry.is_enabled == enabled_in_env
 
+
 def test_langsmith_config():
     """Verify that LangSmith variables are expected in environment."""
-    # This check ensures we don't deploy to prod without observability
-    # In a real SOTA system, we might have a validator function
-    enabled = os.getenv("LANGCHAIN_TRACING_V2", "false").lower() == "true"
-    api_key = os.getenv("LANGCHAIN_API_KEY")
-    
+    # This check ensures we don't deploy to prod without observability.
+    # In a real system, we might use a validator function.
+    from backend.core.config import get_settings
+
+    telemetry = RaptorTelemetry()
+    settings = get_settings()
+    enabled = settings.LANGCHAIN_TRACING_V2.lower() == "true"
+    api_key = settings.LANGCHAIN_API_KEY
+
+    assert telemetry.is_enabled == enabled
+    # If enabled, ensure API key is present (basic sanity check)
     if enabled:
-        assert api_key is not None, "LangSmith is enabled but API key is missing!"
+        assert api_key is not None
+
 
 @pytest.mark.asyncio
 async def test_model_routing_logic():
@@ -188,23 +229,27 @@ async def test_model_routing_logic():
         # 1. Ultra Reasoning (3 Pro)
         InferenceProvider.get_model(model_tier="ultra")
         MockChat.assert_called_with(model_name="gemini-3-pro-preview", temperature=0.0)
-        
+
         # 2. Reasoning (3 Flash)
         InferenceProvider.get_model(model_tier="reasoning")
-        MockChat.assert_called_with(model_name="gemini-3-flash-preview", temperature=0.0)
+        MockChat.assert_called_with(
+            model_name="gemini-3-flash-preview", temperature=0.0
+        )
 
         # 3. Daily Driver (2.5 Flash)
         InferenceProvider.get_model(model_tier="driver")
         MockChat.assert_called_with(model_name="gemini-2.5-flash", temperature=0.0)
+
 
 def test_parallel_execution_pattern():
     """
     SOTA verification of LangGraph parallel execution.
     We verify the graph structure supports branching and joining.
     """
-    from langgraph.graph import StateGraph, START, END
-    from typing import TypedDict, List, Annotated
     import operator
+    from typing import Annotated, List, TypedDict
+
+    from langgraph.graph import END, START, StateGraph
 
     class ParallelState(TypedDict):
         results: Annotated[List[str], operator.add]

@@ -1,9 +1,9 @@
 import asyncio
-import aiohttp
 import logging
 import re
 from typing import Dict, List, Optional
 
+import aiohttp
 from bs4 import BeautifulSoup
 
 from backend.tools.scraper import FirecrawlScraperTool, JinaReaderTool
@@ -48,7 +48,9 @@ class AdvancedCrawler:
                         "source": "jina",
                     }
             except Exception as e:
-                logging.warning(f"Jina failed for {url}, falling back to BeautifulSoup: {e}")
+                logging.warning(
+                    f"Jina failed for {url}, falling back to BeautifulSoup: {e}"
+                )
 
             # Tier 3: Local BeautifulSoup Fallback (Reliable but messy)
             return await self._fallback_scrape(url)

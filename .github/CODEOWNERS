@@ -80,4 +80,3 @@
 **/*prompt*.ts                           @your-org/ai-team
 **/*agent*.ts                            @your-org/ai-team
 **/*llm*.ts                              @your-org/ai-team
-

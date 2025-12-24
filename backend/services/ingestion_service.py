@@ -1,12 +1,15 @@
 import asyncio
 import hashlib
 import logging
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 import httpx
 from bs4 import BeautifulSoup
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from backend.inference import InferenceProvider
+
 from backend.db import get_db_connection
+from backend.inference import InferenceProvider
+
 
 class IngestionService:
     """
@@ -17,9 +20,7 @@ class IngestionService:
     def __init__(self):
         self.embedder = InferenceProvider.get_embeddings()
         self.splitter = RecursiveCharacterTextSplitter(
-            chunk_size=800,
-            chunk_overlap=150,
-            separators=["\n\n", "\n", ".", " ", ""]
+            chunk_size=800, chunk_overlap=150, separators=["\n\n", "\n", ".", " ", ""]
         )
         self.logger = logging.getLogger("raptorflow.ingestion")
 
@@ -45,7 +46,7 @@ class IngestionService:
                         VALUES (%s, %s, %s, %s, %s)
                         ON CONFLICT (id) DO NOTHING
                         """,
-                        (chunk_id, tenant_id, chunk, emb, metadata)
+                        (chunk_id, tenant_id, chunk, emb, metadata),
                     )
                 await conn.commit()
 
@@ -56,15 +57,17 @@ class IngestionService:
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
             response.raise_for_status()
-            
-            soup = BeautifulSoup(response.text, 'html.parser')
+
+            soup = BeautifulSoup(response.text, "html.parser")
             # Remove script and style elements
             for script in soup(["script", "style"]):
                 script.decompose()
-            
-            return soup.get_text(separator=' ', strip=True)
+
+            return soup.get_text(separator=" ", strip=True)
 
     async def ingest_url(self, tenant_id: str, url: str):
         """Fetches and ingests content from a URL."""
         content = await self.fetch_url(url)
-        return await self.ingest_text(tenant_id, content, {"source": url, "type": "url"})
+        return await self.ingest_text(
+            tenant_id, content, {"source": url, "type": "url"}
+        )

@@ -1,7 +1,7 @@
-import os
-from typing import List, Optional
 from google.cloud import bigquery
-from backend.utils.logger import logger, log_ml_event
+
+from backend.core.config import get_settings
+from backend.utils.logger import log_ml_event, logger
 
 
 class Analytics:
@@ -11,7 +11,8 @@ class Analytics:
     """
 
     def __init__(self):
-        self.project_id = os.getenv("GCP_PROJECT_ID", "raptorflow-481505")
+        settings = get_settings()
+        self.project_id = settings.GCP_PROJECT_ID
         self.dataset_id = f"{self.project_id}.raptorflow_gold"
         self.client = bigquery.Client(project=self.project_id)
 

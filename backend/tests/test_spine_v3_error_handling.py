@@ -1,6 +1,8 @@
 import pytest
+
 from backend.graphs.spine_v3 import cognitive_spine_v3
-from backend.models.cognitive import CognitiveStatus, AgentMessage
+from backend.models.cognitive import AgentMessage, CognitiveStatus
+
 
 @pytest.mark.asyncio
 async def test_spine_v3_error_recovery():
@@ -12,14 +14,14 @@ async def test_spine_v3_error_recovery():
         "status": CognitiveStatus.EXECUTING,
         "error": "Tool timeout",
         "messages": [],
-        "raw_prompt": "Recover from error"
+        "raw_prompt": "Recover from error",
     }
-    
+
     config = {"configurable": {"thread_id": "test-thread-error"}}
-    
+
     final_state = await cognitive_spine_v3.ainvoke(initial_state, config)
     print(f"DEBUG MESSAGES: {[m.content for m in final_state['messages']]}")
-    
+
     assert final_state["status"] == CognitiveStatus.COMPLETE
     msgs = [m.content for m in final_state["messages"]]
     assert any("RECOVERY" in m for m in msgs)

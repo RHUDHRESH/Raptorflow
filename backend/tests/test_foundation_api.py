@@ -1,9 +1,11 @@
-import pytest
-from uuid import uuid4
-from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock
-from backend.main import app
+from uuid import uuid4
+
+import pytest
+from fastapi.testclient import TestClient
+
 from backend.api.v1.foundation import get_foundation_service
+from backend.main import app
 from backend.models.foundation import BrandKit
 
 client = TestClient(app)

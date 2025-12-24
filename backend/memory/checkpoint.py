@@ -1,8 +1,10 @@
 import logging
 from typing import Optional
+
 from backend.db import init_checkpointer
 
 logger = logging.getLogger("raptorflow.memory.checkpoint")
+
 
 class StateCheckpointManager:
     """
@@ -10,7 +12,8 @@ class StateCheckpointManager:
     Orchestrates LangGraph persistence using Supabase/Postgres.
     Singleton pattern ensures unified checkpointer access across the engine.
     """
-    _instance: Optional['StateCheckpointManager'] = None
+
+    _instance: Optional["StateCheckpointManager"] = None
     _checkpointer = None
 
     def __new__(cls):
@@ -33,4 +36,6 @@ class StateCheckpointManager:
         """Manually clears a checkpoint for a specific thread."""
         # Note: PostgresSaver doesn't always have a direct 'clear' but we can delete from the table
         # For now, we log the intent as LangGraph 0.2 manages lifecycle mostly automatically
-        logger.warning(f"Checkpoint clearing requested for thread {thread_id} (Manual DB action required).")
+        logger.warning(
+            f"Checkpoint clearing requested for thread {thread_id} (Manual DB action required)."
+        )

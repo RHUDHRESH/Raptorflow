@@ -387,7 +387,7 @@ export default function ICPWizard() {
                 valid = !!formData.name;
                 break;
             default:
-                valid = true; // Optional steps or multi-selects where 0 is allowed? 
+                valid = true; // Optional steps or multi-selects where 0 is allowed?
                 // Let's enforce 1 selection for most traits unless optional
                 if (step.id === 'mindset') valid = (formData.psycholinguistics?.mindsetTraits?.length || 0) > 0;
                 if (step.id === 'proof') valid = (formData.psycholinguistics?.proofPreference?.length || 0) > 0;
@@ -407,7 +407,7 @@ export default function ICPWizard() {
             try {
                 // simple merge or full replace
                 // For now, let's not overwrite if we already have state (which we don't on mount)
-                // Actually mount is tricky with React.strictMode. 
+                // Actually mount is tricky with React.strictMode.
                 // Let's just say if we are at step 0 and empty, load it.
             } catch (e) { }
         }

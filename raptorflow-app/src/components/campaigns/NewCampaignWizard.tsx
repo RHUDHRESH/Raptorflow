@@ -25,6 +25,7 @@ import {
     generateDefaultChecklist,
     triggerCampaignInference
 } from '@/lib/campaigns';
+import { getMovesForContext } from '@/lib/move-templates';
 import { Check, ChevronDown, ChevronRight, X, ArrowRight, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -84,51 +85,29 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
     const generatePreview = () => {
         if (!objective || !offer || channels.length === 0) return;
 
-        // Smart generation of moves based on objective
-        const moves: Move[] = [];
+        // Use move templates for rich, actionable moves
+        const templates = getMovesForContext(objective, channels, 3);
         const goals = OBJECTIVE_GOAL_ALIGNMENT[objective];
 
-        // Move 1: Setup & Initial Push
-        moves.push({
-            id: 'preview-1',
-            name: 'Foundation & Launch Sprint',
-            goal: goals[0] || 'distribution',
-            channel: channels[0],
-            duration: 7, // Shorter start
+        const moves: Move[] = templates.map((template, index) => ({
+            id: `preview-${index + 1}`,
+            name: template.name,
+            goal: template.goal || goals[index] || 'leads',
+            channel: channels[Math.min(index, channels.length - 1)],
+            duration: index === 0 ? 7 : duration, // First move shorter
             dailyEffort,
             status: 'draft',
             createdAt: new Date().toISOString(),
             checklist: [],
             assetIds: [],
-        });
-
-        // Move 2: Core Execution
-        moves.push({
-            id: 'preview-2',
-            name: `Core ${OBJECTIVE_LABELS[objective].label} Cycle`,
-            goal: goals[1] || goals[0] || 'leads',
-            channel: channels[0],
-            duration: duration,
-            dailyEffort,
-            status: 'draft',
-            createdAt: new Date().toISOString(),
-            checklist: [],
-            assetIds: [],
-        });
-
-        // Move 3: Optimization / Expand
-        moves.push({
-            id: 'preview-3',
-            name: channels.length > 1 ? `Expand to ${CHANNEL_LABELS[channels[1]]}` : 'Optimization Sprint',
-            goal: goals[2] || goals[0] || 'sales',
-            channel: channels[1] || channels[0],
-            duration: duration,
-            dailyEffort,
-            status: 'draft',
-            createdAt: new Date().toISOString(),
-            checklist: [],
-            assetIds: [],
-        });
+            // Rich actionable details from template
+            hypothesis: template.hypothesis,
+            control: template.control,
+            variant: template.variant,
+            success_metric: template.success_metric,
+            sample_size: template.sample_size,
+            action_steps: template.action_steps,
+        }));
 
         setPreviewMoves(moves);
     };
@@ -391,8 +370,8 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
     );
 
     const renderPreview = () => (
-        <div className="space-y-6">
-            <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-xl space-y-2 border border-zinc-100 dark:border-zinc-800">
+        <div className="space-y-6 max-h-[400px] overflow-y-auto">
+            <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-xl space-y-2 border border-zinc-100 dark:border-zinc-800 sticky top-0">
                 <h3 className="font-display font-semibold text-xl text-zinc-900 dark:text-zinc-100">
                     {objective && OBJECTIVE_LABELS[objective].label} Campaign
                 </h3>
@@ -403,24 +382,75 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
                 </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400">Your First 3 Moves</h4>
                 {previewMoves.map((move, i) => (
-                    <div key={i} className="flex gap-4 p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl relative overflow-hidden">
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-zinc-200 dark:bg-zinc-800" />
-                        <div className="flex-1">
-                            <h5 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 mb-1">
-                                {i === 0 && <span className="text-emerald-600 mr-2">● Active Now</span>}
-                                {move.name}
-                            </h5>
-                            <p className="text-xs text-zinc-500">
-                                {move.duration} days • {move.dailyEffort}m/day • {move.checklist?.length || 0} tasks
-                            </p>
-                        </div>
-                        {i === 0 && (
-                            <div className="flex items-center text-emerald-600 text-xs font-medium">
-                                <Sparkles className="w-3 h-3 mr-1" /> Ready
+                    <div key={i} className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                        {/* Header */}
+                        <div className="flex items-start gap-3 mb-3">
+                            <span className="w-7 h-7 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                {i + 1}
+                            </span>
+                            <div className="flex-1">
+                                <h5 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
+                                    {i === 0 && <span className="text-emerald-600 mr-2">●</span>}
+                                    {move.name}
+                                </h5>
+                                <p className="text-[10px] text-zinc-400 uppercase tracking-wide">
+                                    {move.duration} days • {move.dailyEffort}m/day • {CHANNEL_LABELS[move.channel]}
+                                </p>
                             </div>
+                        </div>
+
+                        {/* Hypothesis */}
+                        {move.hypothesis && (
+                            <div className="mb-3 p-3 bg-zinc-50 dark:bg-zinc-950 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                                <p className="text-[10px] text-zinc-400 uppercase tracking-wide mb-1">Hypothesis</p>
+                                <p className="text-xs font-sans text-zinc-700 dark:text-zinc-300">{move.hypothesis}</p>
+                            </div>
+                        )}
+
+                        {/* Control vs Variant */}
+                        {move.control && move.variant && (
+                            <div className="grid grid-cols-2 gap-2 mb-3">
+                                <div className="p-2 bg-zinc-50 dark:bg-zinc-950 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                                    <p className="text-[10px] text-red-500 uppercase tracking-wide mb-1">Control (A)</p>
+                                    <p className="text-[11px] text-zinc-600 dark:text-zinc-400">{move.control}</p>
+                                </div>
+                                <div className="p-2 bg-zinc-50 dark:bg-zinc-950 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                                    <p className="text-[10px] text-green-500 uppercase tracking-wide mb-1">Variant (B)</p>
+                                    <p className="text-[11px] text-zinc-600 dark:text-zinc-400">{move.variant}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Metrics row */}
+                        {move.success_metric && (
+                            <div className="flex gap-2 mb-3">
+                                <div className="flex-1 p-2 bg-zinc-50 dark:bg-zinc-950 rounded-lg border border-zinc-100 dark:border-zinc-800 text-center">
+                                    <p className="text-[10px] text-zinc-400 uppercase tracking-wide">Metric</p>
+                                    <p className="text-[11px] font-medium">{move.success_metric}</p>
+                                </div>
+                                <div className="flex-1 p-2 bg-zinc-50 dark:bg-zinc-950 rounded-lg border border-zinc-100 dark:border-zinc-800 text-center">
+                                    <p className="text-[10px] text-zinc-400 uppercase tracking-wide">Sample</p>
+                                    <p className="text-[11px] font-medium">{move.sample_size}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Action Steps */}
+                        {move.action_steps && move.action_steps.length > 0 && (
+                            <details className="group">
+                                <summary className="text-xs text-zinc-500 cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-300 flex items-center gap-1">
+                                    <span className="group-open:rotate-90 transition-transform">▶</span>
+                                    {move.action_steps.length} Action Steps
+                                </summary>
+                                <ol className="mt-2 space-y-1 pl-4 text-[11px] text-zinc-600 dark:text-zinc-400 list-decimal list-inside">
+                                    {move.action_steps.map((step, si) => (
+                                        <li key={si} className="leading-relaxed">{step}</li>
+                                    ))}
+                                </ol>
+                            </details>
                         )}
                     </div>
                 ))}

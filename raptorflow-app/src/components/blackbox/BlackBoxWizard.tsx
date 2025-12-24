@@ -5,12 +5,12 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { GoalSelector } from './GoalSelector';
 import { RiskSlider } from './RiskSlider';
-import { GoalType, RiskLevel, ChannelType, Experiment, ExperimentStatus } from '@/lib/blackbox-types';
-import { ArrowLeft, ArrowRight, Sparkles, Box, X, Mail, Linkedin, Twitter, MessageSquare, Video, Globe, RefreshCcw } from 'lucide-react';
+import { GoalType, GoalSelection, RiskLevel, ChannelType, Experiment, ExperimentStatus } from '@/lib/blackbox-types';
+import { ArrowLeft, ArrowRight, Sparkles, Box, X, Mail, Linkedin, Twitter, Video, Globe, Instagram, Music2, Facebook, Search, FileText, Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { generateExperiments } from '@/lib/blackbox/generator';
-import { addExperiment } from '@/lib/blackbox';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 
 interface BlackBoxWizardProps {
     open: boolean;
@@ -24,61 +24,45 @@ const CHANNELS = [
     { id: 'email' as ChannelType, label: 'Email', icon: Mail },
     { id: 'linkedin' as ChannelType, label: 'LinkedIn', icon: Linkedin },
     { id: 'twitter' as ChannelType, label: 'Twitter/X', icon: Twitter },
-    { id: 'whatsapp' as ChannelType, label: 'WhatsApp', icon: MessageSquare },
+    { id: 'instagram' as ChannelType, label: 'Instagram', icon: Instagram },
+    { id: 'tiktok' as ChannelType, label: 'TikTok', icon: Music2 },
     { id: 'youtube' as ChannelType, label: 'YouTube', icon: Video },
+    { id: 'facebook' as ChannelType, label: 'Facebook', icon: Facebook },
+    { id: 'google_ads' as ChannelType, label: 'Google Ads', icon: Search },
+    { id: 'website' as ChannelType, label: 'Website', icon: Globe },
+    { id: 'blog' as ChannelType, label: 'Blog/SEO', icon: FileText },
+    { id: 'podcast' as ChannelType, label: 'Podcast', icon: Mic },
     { id: 'other' as ChannelType, label: 'Other', icon: Globe },
 ];
 
-const EXPERIMENT_TEMPLATES = {
-    friction: [
-        { title: 'Ask for a reply, not a click', bet: 'Remove all links. Ask them to reply with a number instead.', why: 'Reduces friction + increases commitment' },
-        { title: 'One-line signup', bet: 'Strip your CTA to a single sentence with zero navigation.', why: 'Less choices = more action' },
-    ],
-    pattern_interrupt: [
-        { title: 'The Anti-Design Confession', bet: 'Send a plain-text email with one embarrassing business truth.', why: 'Pattern interrupt + authenticity signal' },
-        { title: 'Ugly ad experiment', bet: 'Use deliberately low-fi creative that looks unpolished.', why: 'Stands out in polished content' },
-    ],
-    social_proof: [
-        { title: 'Steal My Template Hook', bet: 'Offer a high-value checklist in exchange for a specific comment.', why: 'Social proof + reciprocity' },
-        { title: 'What 17 founders did', bet: 'Lead with aggregated proof from real people.', why: 'Herd effect reduces perceived risk' },
-    ],
-    identity: [
-        { title: 'People like you do X', bet: 'Open with identity-based framing that makes reader self-select.', why: 'Identity triggers are powerful' },
-        { title: 'Founder Confession', bet: 'Share a real mistake you made and what you learned.', why: 'Vulnerability builds trust' },
-    ],
-    loss_aversion: [
-        { title: 'You are leaking money here', bet: 'Lead with what they are losing, not what they will gain.', why: 'Loss aversion is 2x stronger than gain' },
-        { title: 'Most teams miss this', bet: 'Frame around regret prevention, not opportunity.', why: 'Fear of missing out drives action' },
-    ],
-    commitment: [
-        { title: 'Micro-yes ladder', bet: 'Ask a tiny yes-or-no question before the real ask.', why: 'Small commitments lead to bigger ones' },
-        { title: '2-step ask', bet: 'First ask for advice, then follow up with the real request.', why: 'Consistency principle' },
-    ],
-};
-
-const PRINCIPLES = Object.keys(EXPERIMENT_TEMPLATES) as Array<keyof typeof EXPERIMENT_TEMPLATES>;
-
 export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizardProps) {
     const [step, setStep] = useState<WizardStep>('goal');
-    const [goal, setGoal] = useState<GoalType | null>(null);
+    const [goals, setGoals] = useState<GoalSelection | null>(null);
     const [risk, setRisk] = useState<RiskLevel | null>(null);
     const [channel, setChannel] = useState<ChannelType | null>(null);
+    const [otherChannelText, setOtherChannelText] = useState('');
     const [generatedExperiments, setGeneratedExperiments] = useState<Experiment[]>([]);
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
         if (open) {
             setStep('goal');
-            setGoal(null);
+            setGoals(null);
             setRisk(null);
             setChannel(null);
+            setOtherChannelText('');
             setGeneratedExperiments([]);
             setProgress(0);
         }
     }, [open]);
 
     const handleGenerate = () => {
-        if (!goal || !risk || !channel) return;
+        if (!goals || !risk || !channel) return;
+        if (channel === 'other' && !otherChannelText.trim()) {
+            toast.error('Please specify the channel name');
+            return;
+        }
+
         setStep('generating');
         setProgress(0);
 
@@ -89,9 +73,9 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
         setTimeout(() => {
             clearInterval(interval);
 
-            // Use real generator
+            // Use real generator with primary goal
             const experiments = generateExperiments({
-                goal,
+                goal: goals.primary,
                 risk_level: risk,
                 channel
             }, 3);
@@ -102,7 +86,7 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
     };
 
     const handleNext = () => {
-        if (step === 'goal' && goal) setStep('risk');
+        if (step === 'goal' && goals) setStep('risk');
         else if (step === 'risk' && risk) setStep('channel');
         else if (step === 'channel' && channel) handleGenerate();
     };
@@ -113,22 +97,20 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
     };
 
     const handleComplete = () => {
-        try {
-            generatedExperiments.forEach(e => addExperiment(e));
-            toast.success('Experiments added to draft');
-            onComplete(generatedExperiments);
-            onOpenChange(false);
-        } catch (err) {
-            toast.error('Failed to save experiments');
-        }
+        onComplete(generatedExperiments);
+        onOpenChange(false);
     };
 
-    const canProceed = (step === 'goal' && !!goal) || (step === 'risk' && !!risk) || (step === 'channel' && !!channel);
+    const canProceed =
+        (step === 'goal' && !!goals) ||
+        (step === 'risk' && !!risk) ||
+        (step === 'channel' && !!channel && (channel !== 'other' || otherChannelText.trim()));
+
     const stepNum = step === 'goal' ? 1 : step === 'risk' ? 2 : 3;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-xl p-0 gap-0 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-2xl overflow-hidden">
+            <DialogContent className="max-w-2xl p-0 gap-0 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-2xl overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-zinc-900">
                     <div className="flex items-center gap-3">
@@ -153,8 +135,8 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
                 </div>
 
                 {/* Content */}
-                <div className="p-6 min-h-[340px] flex items-center justify-center">
-                    {step === 'goal' && <GoalSelector selectedGoal={goal} onSelect={setGoal} />}
+                <div className="p-6 min-h-[380px] flex items-center justify-center">
+                    {step === 'goal' && <GoalSelector selectedGoals={goals} onSelect={setGoals} />}
                     {step === 'risk' && <RiskSlider value={risk} onChange={setRisk} />}
 
                     {step === 'channel' && (
@@ -163,7 +145,7 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
                                 <h2 className="text-xl font-semibold mb-1 font-sans">Where will you run these?</h2>
                                 <p className="text-sm text-zinc-500 font-sans">Pick your primary channel.</p>
                             </div>
-                            <div className="grid grid-cols-3 gap-2 max-w-md mx-auto">
+                            <div className="grid grid-cols-4 gap-2 max-w-lg mx-auto">
                                 {CHANNELS.map((ch) => {
                                     const Icon = ch.icon;
                                     return (
@@ -171,18 +153,30 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
                                             key={ch.id}
                                             onClick={() => setChannel(ch.id)}
                                             className={cn(
-                                                "flex flex-col items-center gap-1.5 p-4 rounded-xl border-2 transition-all",
+                                                "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all",
                                                 channel === ch.id
                                                     ? "bg-zinc-900 border-zinc-900 text-white dark:bg-white dark:text-zinc-900"
                                                     : "border-zinc-200 hover:border-zinc-400 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400"
                                             )}
                                         >
                                             <Icon className="w-5 h-5" />
-                                            <span className="text-xs font-medium font-sans">{ch.label}</span>
+                                            <span className="text-[11px] font-medium font-sans">{ch.label}</span>
                                         </button>
                                     );
                                 })}
                             </div>
+
+                            {/* Other channel text input */}
+                            {channel === 'other' && (
+                                <div className="max-w-sm mx-auto">
+                                    <Input
+                                        placeholder="Enter channel name (e.g., WhatsApp, Slack, Discord)"
+                                        value={otherChannelText}
+                                        onChange={(e) => setOtherChannelText(e.target.value)}
+                                        className="text-center"
+                                    />
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -196,19 +190,69 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
                     )}
 
                     {step === 'results' && (
-                        <div className="w-full space-y-4">
-                            <div className="text-center">
-                                <h2 className="text-xl font-semibold mb-1 font-sans">Ready</h2>
-                                <p className="text-sm text-zinc-500 font-sans">3 experiments for <span className="font-medium text-zinc-700 dark:text-zinc-300">{goal}</span> via <span className="font-medium text-zinc-700 dark:text-zinc-300">{channel}</span></p>
+                        <div className="w-full space-y-4 max-h-[500px] overflow-y-auto">
+                            <div className="text-center sticky top-0 bg-white dark:bg-zinc-950 pb-2">
+                                <h2 className="text-xl font-semibold mb-1 font-sans">Your Experiments</h2>
+                                <p className="text-sm text-zinc-500 font-sans">
+                                    {generatedExperiments.length} ready-to-run experiments for <span className="font-medium text-zinc-700 dark:text-zinc-300">{goals?.primary}</span>
+                                </p>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-4">
                                 {generatedExperiments.map((e, i) => (
-                                    <div key={e.id} className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-100 dark:border-zinc-800">
-                                        <span className="w-6 h-6 rounded bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-xs font-bold font-mono">{i + 1}</span>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium truncate font-sans">{e.title}</p>
-                                            <p className="text-[10px] text-zinc-400 uppercase tracking-wide font-sans">{e.principle.replace('_', ' ')}</p>
+                                    <div key={e.id} className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                                        {/* Header */}
+                                        <div className="flex items-start gap-3 mb-3">
+                                            <span className="w-7 h-7 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-sm font-bold font-mono flex-shrink-0">
+                                                {i + 1}
+                                            </span>
+                                            <div className="flex-1">
+                                                <h3 className="text-base font-semibold font-sans">{e.title}</h3>
+                                                <p className="text-[10px] text-zinc-400 uppercase tracking-wide font-sans">{e.principle.replace('_', ' ')} • {e.duration_days} days</p>
+                                            </div>
                                         </div>
+
+                                        {/* Hypothesis */}
+                                        <div className="mb-3 p-3 bg-white dark:bg-zinc-950 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                                            <p className="text-xs text-zinc-400 uppercase tracking-wide mb-1 font-sans">Hypothesis</p>
+                                            <p className="text-sm font-sans text-zinc-700 dark:text-zinc-300">{e.hypothesis}</p>
+                                        </div>
+
+                                        {/* Control vs Variant */}
+                                        <div className="grid grid-cols-2 gap-2 mb-3">
+                                            <div className="p-2 bg-white dark:bg-zinc-950 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                                                <p className="text-[10px] text-red-500 uppercase tracking-wide mb-1 font-sans">Control (A)</p>
+                                                <p className="text-xs font-sans text-zinc-600 dark:text-zinc-400">{e.control}</p>
+                                            </div>
+                                            <div className="p-2 bg-white dark:bg-zinc-950 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                                                <p className="text-[10px] text-green-500 uppercase tracking-wide mb-1 font-sans">Variant (B)</p>
+                                                <p className="text-xs font-sans text-zinc-600 dark:text-zinc-400">{e.variant}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Metrics row */}
+                                        <div className="flex gap-2 mb-3">
+                                            <div className="flex-1 p-2 bg-white dark:bg-zinc-950 rounded-lg border border-zinc-100 dark:border-zinc-800 text-center">
+                                                <p className="text-[10px] text-zinc-400 uppercase tracking-wide font-sans">Metric</p>
+                                                <p className="text-xs font-medium font-sans">{e.success_metric}</p>
+                                            </div>
+                                            <div className="flex-1 p-2 bg-white dark:bg-zinc-950 rounded-lg border border-zinc-100 dark:border-zinc-800 text-center">
+                                                <p className="text-[10px] text-zinc-400 uppercase tracking-wide font-sans">Sample</p>
+                                                <p className="text-xs font-medium font-sans">{e.sample_size}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Steps */}
+                                        <details className="group">
+                                            <summary className="text-xs text-zinc-500 cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-300 font-sans flex items-center gap-1">
+                                                <span className="group-open:rotate-90 transition-transform">▶</span>
+                                                {e.action_steps.length} Action Steps
+                                            </summary>
+                                            <ol className="mt-2 space-y-1 pl-4 text-xs text-zinc-600 dark:text-zinc-400 font-sans list-decimal list-inside">
+                                                {e.action_steps.map((step, si) => (
+                                                    <li key={si} className="leading-relaxed">{step}</li>
+                                                ))}
+                                            </ol>
+                                        </details>
                                     </div>
                                 ))}
                             </div>

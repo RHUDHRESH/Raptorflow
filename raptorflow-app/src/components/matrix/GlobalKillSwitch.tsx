@@ -18,9 +18,9 @@ export function GlobalKillSwitch() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: "Manual UI Trigger" })
       });
-      
+
       if (!res.ok) throw new Error("Failed to engage kill-switch.");
-      
+
       setIsHalted(true);
       toast.error("SYSTEM HALTED", {
         description: "All agentic activity has been stopped immediately.",
@@ -47,16 +47,16 @@ export function GlobalKillSwitch() {
   if (isConfirming) {
     return (
       <div className="flex items-center space-x-2 animate-in fade-in zoom-in duration-200">
-        <Button 
-          variant="destructive" 
+        <Button
+          variant="destructive"
           className="h-11 rounded-xl px-6 font-bold"
           onClick={handleHalt}
           disabled={loading}
         >
           {loading ? "Engaging..." : "CONFIRM HALT"}
         </Button>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className="h-11 rounded-xl px-4"
           onClick={() => setIsConfirming(false)}
           disabled={loading}
@@ -68,8 +68,8 @@ export function GlobalKillSwitch() {
   }
 
   return (
-    <Button 
-      variant="destructive" 
+    <Button
+      variant="destructive"
       className="h-11 rounded-xl px-6 font-medium group relative overflow-hidden"
       onClick={() => setIsConfirming(true)}
     >

@@ -5,7 +5,11 @@ from typing import Any, Dict, List
 
 from backend.core.cache import get_cache_manager
 from backend.tools.muse import AssetGenTool
-from backend.tools.search import PerplexitySearchTool, TavilyMultiHopTool
+from backend.tools.search import (
+    PerplexitySearchTool,
+    RaptorSearchTool,
+    TavilyMultiHopTool,
+)
 
 logger = logging.getLogger("raptorflow.toolbelt.v2")
 
@@ -53,6 +57,7 @@ class ToolbeltV2:
 
     def __init__(self):
         self.tools = {
+            "raptor_search": RaptorSearchTool(),
             "tavily_search": TavilyMultiHopTool(),
             "perplexity_search": PerplexitySearchTool(),
             "asset_gen": AssetGenTool(),

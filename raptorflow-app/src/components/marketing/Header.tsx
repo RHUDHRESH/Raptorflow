@@ -33,7 +33,7 @@ export function Header() {
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
                 <nav className="flex h-16 items-center justify-between">
                     {/* Logo */}
-                    <Link href="/landing" className="flex items-center gap-2">
+                    <Link href="/" className="flex items-center gap-2">
                         <div className="flex items-center gap-2">
                             <div className="h-8 w-8 rounded-lg bg-foreground flex items-center justify-center">
                                 <span className="text-background font-display font-bold text-sm">RF</span>
@@ -89,11 +89,11 @@ export function Header() {
 
                     {/* CTA */}
                     <div className="hidden lg:flex lg:items-center lg:gap-4">
-                        <Link href="/foundation" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                        <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                             Log in
                         </Link>
                         <Button asChild className="h-10 px-6 rounded-xl">
-                            <Link href="/foundation">Get Started</Link>
+                            <Link href="/login">Get Started</Link>
                         </Button>
                     </div>
 
@@ -146,11 +146,11 @@ export function Header() {
                                 </div>
                             ))}
                             <div className="pt-4 border-t border-border flex flex-col gap-3">
-                                <Link href="/foundation" className="text-sm font-medium text-muted-foreground">
+                                <Link href="/login" className="text-sm font-medium text-muted-foreground">
                                     Log in
                                 </Link>
                                 <Button asChild className="w-full h-12 rounded-xl">
-                                    <Link href="/foundation">Get Started</Link>
+                                    <Link href="/login">Get Started</Link>
                                 </Button>
                             </div>
                         </div>

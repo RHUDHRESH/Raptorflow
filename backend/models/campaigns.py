@@ -1,8 +1,9 @@
+from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 from uuid import UUID, uuid4
-from pydantic import BaseModel, Field, ConfigDict
-from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CampaignStatus(str, Enum):
@@ -22,7 +23,9 @@ class Campaign(BaseModel):
     title: str
     objective: Optional[str] = None
     status: CampaignStatus = CampaignStatus.DRAFT
-    progress: float = Field(default=0.0, description="Total campaign completion (0.0 to 1.0)")
+    progress: float = Field(
+        default=0.0, description="Total campaign completion (0.0 to 1.0)"
+    )
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.now)

@@ -18,7 +18,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
       if (!session) {
         setIsAuthenticated(false);
-        router.push('/onboarding'); // Or /login if it exists
+        router.push('/login');
       } else {
         setIsAuthenticated(true);
       }
@@ -29,7 +29,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         setIsAuthenticated(false);
-        router.push('/onboarding');
+        router.push('/login');
       } else {
         setIsAuthenticated(true);
       }

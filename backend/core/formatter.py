@@ -1,15 +1,17 @@
 import logging
-from typing import Dict, Any, List
-from backend.agents.specialists.move_generator import WeeklyMove, ActionItem
+from typing import Any, Dict, List
+
+from backend.agents.specialists.move_generator import ActionItem, WeeklyMove
 
 logger = logging.getLogger("raptorflow.core.formatter")
+
 
 class ActionPacketFormatter:
     """
     Industrial-grade Action Packet Formatter.
     Transforms weekly moves into surgically precise execution units.
     """
-    
+
     @staticmethod
     def format_packet(move: WeeklyMove) -> List[Dict[str, Any]]:
         """
@@ -24,10 +26,10 @@ class ActionPacketFormatter:
                 "tools": item.tool_requirements,
                 "context": move.description,
                 "expected_outcome": move.desired_outcome,
-                "industrial_id": f"MOVE-W{move.week_number}-{hash(item.task) % 10000}"
+                "industrial_id": f"MOVE-W{move.week_number}-{hash(item.task) % 10000}",
             }
             packets.append(packet)
-            
+
         logger.info(f"Formatted {len(packets)} action packets for Move: {move.title}")
         return packets
 

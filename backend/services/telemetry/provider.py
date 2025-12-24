@@ -1,19 +1,22 @@
-import time
-from typing import Dict, Any, Optional
-from datetime import datetime
 import json
 import logging
+import time
+from datetime import datetime
+from typing import Any, Dict, Optional
+
 
 class TelemetryProvider:
     """
     Industrial Observability for Agentic Systems.
     Tracks Token Velocity, Cost, and Accuracy.
     """
-    
+
     def __init__(self):
         self.logger = logging.getLogger("raptorflow.telemetry")
 
-    def track_run(self, thread_id: str, workspace_id: str, agent_id: str, metrics: dict):
+    def track_run(
+        self, thread_id: str, workspace_id: str, agent_id: str, metrics: dict
+    ):
         """Logs detailed execution metrics for future optimization."""
         event = {
             "timestamp": datetime.now().isoformat(),
@@ -24,7 +27,7 @@ class TelemetryProvider:
             "tokens": metrics.get("tokens", 0),
             "cost_usd": metrics.get("cost_usd", 0.0),
             "success": metrics.get("success", True),
-            "quality_score": metrics.get("quality_score", 0)
+            "quality_score": metrics.get("quality_score", 0),
         }
         # In production, push to Prometheus/Datadog
         self.logger.info(f"AGENT_RUN: {json.dumps(event)}")

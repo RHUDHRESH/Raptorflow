@@ -44,7 +44,7 @@ describe('Move Generation & Status Tracking Integration', () => {
 
         const result = await getMovesStatus('test-camp-id');
 
-        expect(result.status).toBe('execution');
+        expect(result?.status).toBe('execution');
         expect(global.fetch).toHaveBeenCalledWith(
             expect.stringContaining('/api/v1/moves/generate-weekly/test-camp-id/status')
         );

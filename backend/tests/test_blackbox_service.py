@@ -251,13 +251,13 @@ def test_blackbox_service_get_learning_feed():
     mock_query_builder.select.return_value = mock_query_builder
     mock_query_builder.order.return_value = mock_query_builder
     mock_query_builder.limit.return_value = mock_query_builder
-    
+
     mock_response = MagicMock()
     mock_response.data = [{"id": "l1", "content": "Insight 1"}]
     mock_query_builder.execute.return_value = mock_response
 
     feed = service.get_learning_feed(limit=5)
-    
+
     assert len(feed) == 1
     assert feed[0]["id"] == "l1"
     mock_session.table.assert_called_with("blackbox_learnings_industrial")

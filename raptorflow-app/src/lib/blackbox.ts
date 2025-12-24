@@ -3,8 +3,10 @@
 import {
     BlackboxState,
     Experiment,
+
     LearningArtifact
 } from './blackbox-types';
+import { supabase } from './supabase';
 
 /**
  * Black Box Z — Persistence Layer (localStorage)
@@ -65,14 +67,22 @@ export async function getExperimentsDB(): Promise<Experiment[]> {
         .select('*')
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false });
-// ...
+
+
+    if (error) {
+        console.error('Error fetching experiments:', error);
+        return [];
+    }
+
+    return data ? data.map(mapDBExperimentToFrontend) : [];
+}
 export async function createExperimentDB(experiment: Experiment): Promise<void> {
     const tenantId = await getTenantId();
     const dbExp = { ...mapFrontendExperimentToDB(experiment), tenant_id: tenantId };
     const { error } = await supabase
         .from('experiments')
         .insert(dbExp);
-// ...
+
 
     if (error) {
         console.error('Error creating experiment:', error);
@@ -115,9 +125,19 @@ function mapDBExperimentToFrontend(db: any): Experiment {
         bet: db.bet,
         why: db.why || '',
         principle: db.principle,
+
+        // Actionable details
+        hypothesis: db.hypothesis || '',
+        control: db.control || '',
+        variant: db.variant || '',
+        success_metric: db.success_metric || '',
+        sample_size: db.sample_size || 'N/A',
+        duration_days: db.duration_days || 7,
+        action_steps: db.action_steps || [],
+
         effort: db.effort || '30m',
         time_to_signal: db.time_to_signal || '48h',
-        skill_stack: [], // Not stored in flat table for now
+        skill_stack: db.skill_stack || [],
         asset_ids: db.asset_ids || [],
         status: db.status,
         created_at: db.created_at,
@@ -136,12 +156,22 @@ function mapFrontendExperimentToDB(e: Experiment): any {
         bet: e.bet,
         why: e.why,
         principle: e.principle,
+
+        hypothesis: e.hypothesis,
+        control: e.control,
+        variant: e.variant,
+        success_metric: e.success_metric,
+        sample_size: e.sample_size,
+        duration_days: e.duration_days,
+        action_steps: e.action_steps,
+
         effort: e.effort,
         time_to_signal: e.time_to_signal,
         status: e.status,
         launched_at: e.launched_at,
         self_report: e.self_report,
-        asset_ids: e.asset_ids
+        asset_ids: e.asset_ids,
+        skill_stack: e.skill_stack
     };
 }
 

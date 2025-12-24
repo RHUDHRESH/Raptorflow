@@ -6,8 +6,8 @@ This is the exact spec for the War Room dashboard.
 
 ## Purpose Gate
 
-**Primary job:** Show the founder what to do next.  
-**Primary CTA:** "Start Move" button.  
+**Primary job:** Show the founder what to do next.
+**Primary CTA:** "Start Move" button.
 **Next screen:** Move execution flow.
 
 ---
@@ -91,10 +91,10 @@ Header:
 Items (5 max):
   Layout:     flex, space-between, padding 12px 0
   Border:     border-bottom 1px solid #E5E5E5 (last:none)
-  
-  Left:       
-    Dot (8px) + Name (16px, medium) 
-  Right:      
+
+  Left:
+    Dot (8px) + Name (16px, medium)
+  Right:
     Status text (14px, #737373)
 ```
 
@@ -115,11 +115,11 @@ Progress bar:
 
 Milestones:
   Layout:     flex, 2 items, gap 32px
-  
+
   Today:
     Label:    "TODAY" (12px, #A3A3A3)
     Text:     Milestone (14px, #171717)
-    
+
   Next:
     Label:    "NEXT" (12px, #A3A3A3)
     Text:     Milestone (14px, #737373)
@@ -134,7 +134,7 @@ Item:
   Label:      Metric name (12px, #A3A3A3, uppercase)
   Value:      Number (24px, JetBrains Mono, semibold)
   Delta:      "+8" or "−2" (14px, mono, #737373)
-  
+
 No colored deltas. Just gray with +/- sign.
 ```
 

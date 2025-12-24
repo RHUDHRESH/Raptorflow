@@ -1,7 +1,9 @@
-import pytest
-from uuid import uuid4
 from datetime import datetime
-from backend.models.blackbox import BlackboxTelemetry, BlackboxOutcome, BlackboxLearning
+from uuid import uuid4
+
+import pytest
+
+from backend.models.blackbox import BlackboxLearning, BlackboxOutcome, BlackboxTelemetry
 
 
 def test_blackbox_telemetry_schema():

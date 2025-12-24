@@ -27,13 +27,16 @@ app = FastAPI(title="RaptorFlow Agentic Spine")
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
     "https://raptorflow.vercel.app",
-    "https://raptorflow-hp.vercel.app",  # Potential staging
+    "https://raptorflow-hp.vercel.app",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex="http://localhost:.*",  # Robustness for dynamic local ports
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

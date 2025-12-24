@@ -60,14 +60,18 @@ export function NewMoveWizard({ open, onOpenChange, onComplete }: NewMoveWizardP
     const [activeConfigIndex, setActiveConfigIndex] = useState(0);
 
     useEffect(() => {
-        if (open) {
-            setCampaigns(getCampaigns().filter(c => c.status === 'active' || c.status === 'planned'));
-            // Reset to clean state
-            setActiveStep('select-goals');
-            setSelectedCampaignId(null);
-            setPendingMoves([]);
-            setActiveConfigIndex(0);
-        }
+        const fetchCampaigns = async () => {
+            if (open) {
+                const allCampaigns = await getCampaigns();
+                setCampaigns(allCampaigns.filter((c: Campaign) => c.status === 'active' || c.status === 'planned'));
+                // Reset to clean state
+                setActiveStep('select-goals');
+                setSelectedCampaignId(null);
+                setPendingMoves([]);
+                setActiveConfigIndex(0);
+            }
+        };
+        fetchCampaigns();
     }, [open]);
 
     const handleToggleGoal = (goal: MoveGoal) => {

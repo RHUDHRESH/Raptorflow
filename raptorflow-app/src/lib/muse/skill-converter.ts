@@ -1,7 +1,8 @@
 import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
 import { Skill } from "./skills-manager";
-import { gemini2Flash } from "../vertexai";
+import { getInferenceConfig, isInferenceReady } from "../inference-config";
+import { invokeWithModelFallback } from "../vertexai";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 
 export function convertSkillToTool(skill: Skill): DynamicStructuredTool {
@@ -21,6 +22,10 @@ export function convertSkillToTool(skill: Skill): DynamicStructuredTool {
         description: `${skill.name}: ${skill.description}`,
         schema: z.object(schemaShape),
         func: async (args) => {
+            if (!isInferenceReady()) {
+                return "AI model not available. Please configure INFERENCE_SIMPLE credentials.";
+            }
+
             // Execute the Skill using the LLM
             const systemMsg = new SystemMessage(
                 `${skill.instructions}\n\nCRITICAL: Be surgical. Cut the fluff. Every word must earn its place. Do not include introductory or concluding conversational filler.`
@@ -33,8 +38,16 @@ export function convertSkillToTool(skill: Skill): DynamicStructuredTool {
 
             const userMsg = new HumanMessage(inputStr);
 
+            const config = getInferenceConfig();
+            const modelName = config.models.general || "gemini-2.5-flash-lite";
+
             try {
-                const response = await gemini2Flash.invoke([systemMsg, userMsg]);
+                const response = await invokeWithModelFallback({
+                    input: [systemMsg, userMsg],
+                    modelName,
+                    temperature: 0.7,
+                    maxTokens: 8192,
+                });
                 // Return the content as the tool output
                 return typeof response.content === 'string' ? response.content : JSON.stringify(response.content);
             } catch (error) {

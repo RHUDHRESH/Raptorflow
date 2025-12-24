@@ -14,6 +14,7 @@ import {
     Settings,
     ChevronDown
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 import {
     Sidebar,
@@ -39,7 +40,7 @@ import {
 
 // Navigation Model as per UI.md (recommended sections)
 const navItems = [
-    { title: 'Home', url: '/', icon: Home },
+    { title: 'Home', url: '/dashboard', icon: Home },
     { title: 'Foundation', url: '/foundation', icon: Layers },
     { title: 'Cohorts', url: '/cohorts', icon: Users },
     { title: 'Moves', url: '/moves', icon: Zap },
@@ -78,19 +79,29 @@ export function AppSidebar() {
                                             isActive={isActive}
                                             tooltip={item.title}
                                             className={`
-                                                h-10 px-3 my-0.5 transition-all duration-200 rounded-lg group/item
-                                                ${isActive
-                                                    ? 'font-medium text-foreground bg-sidebar-accent shadow-sm border-l-[3px] border-foreground rounded-l-none pl-3.5'
-                                                    : 'text-muted-foreground/80 hover:text-foreground hover:bg-muted/50 hover:pl-4'
+                                                    h-10 px-0 my-0.5 transition-all duration-200 rounded-lg group/item
+                                                    ${isActive
+                                                    ? 'font-medium text-foreground'
+                                                    : 'text-muted-foreground/80 hover:text-foreground hover:bg-muted/50'
                                                 }
-                                            `}
+                                                `}
                                         >
-                                            <Link href={item.url} className="flex items-center gap-3">
+                                            <Link href={item.url} className="relative flex items-center gap-3 z-10 w-full p-2">
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="sidebar-active"
+                                                        className="absolute inset-0 bg-sidebar-accent border-l-[3px] border-foreground rounded-r-lg"
+                                                        initial={{ opacity: 0 }}
+                                                        animate={{ opacity: 1 }}
+                                                        exit={{ opacity: 0 }}
+                                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                                    />
+                                                )}
                                                 <item.icon className={`
-                                                    h-[18px] w-[18px] transition-colors
+                                                    h-[18px] w-[18px] transition-colors z-20 relative
                                                     ${isActive ? 'text-foreground stroke-[2px]' : 'text-muted-foreground stroke-[1.5px] group-hover/item:text-foreground'}
                                                 `} />
-                                                <span className={`text-[15px] tracking-tight ${isActive ? 'font-semibold' : 'font-medium'}`}>{item.title}</span>
+                                                <span className={`text-[15px] tracking-tight z-20 relative ${isActive ? 'font-semibold' : 'font-medium'}`}>{item.title}</span>
                                             </Link>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>

@@ -1,5 +1,5 @@
 # RaptorFlow — Muse + Shared Agent Platform (DEV.md)
-**This doc tells the team what to build (requirements + contracts). Not code.**  
+**This doc tells the team what to build (requirements + contracts). Not code.**
 Muse already exists visually (command box, suggestion cards, editor modal). This spec locks the **agent platform**, **skills**, **memory**, **RAG**, **storage**, and **UX contracts** that make it real.
 
 ---
@@ -94,19 +94,19 @@ Editor can request “side intelligence” via tool calls:
 You are building **graphs**, not “one giant agent.”
 
 ### 4.1 Graph list
-1. **MuseCreateGraph**  
+1. **MuseCreateGraph**
    `prompt → classify → (clarify?) → context → choose skill → generate → quality gate → store asset → return cards`
-2. **MuseRefineGraph**  
+2. **MuseRefineGraph**
    `asset_id + edit_intent → choose tool/skill → apply → new version → return patch + suggestions`
-3. **SkillCreateGraph** (user creates a skill from a good output)  
+3. **SkillCreateGraph** (user creates a skill from a good output)
    `asset + edits + preferences → extract steps → generate SkillSpec → tests → publish (private/workspace/public)`
-4. **SkillRunGraph**  
+4. **SkillRunGraph**
    `skill_id + inputs → run steps → validate outputs → store run → return result_card`
-5. **RAGIngestGraph**  
+5. **RAGIngestGraph**
    `source → normalize → chunk → embed → store vectors`
-6. **MemoryUpdateGraph**  
+6. **MemoryUpdateGraph**
    `feedback events → decide write → update preference weights → store memory_event`
-7. **MemeRenderGraph**  
+7. **MemeRenderGraph**
    `concept → layout plan → assets (images/fonts) → canvas JSON → raster export → store artifact`
 
 ### 4.2 Interrupt + resume rules

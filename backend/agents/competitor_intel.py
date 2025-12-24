@@ -1,4 +1,5 @@
-from typing import Dict, Any
+from typing import Any, Dict
+
 from backend.agents.blackbox_specialist import BlackboxSpecialist
 
 
@@ -13,7 +14,7 @@ class CompetitorIntelligenceAgent(BlackboxSpecialist):
 
     def run(self, move_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         telemetry = data.get("telemetry_data", [])
-        
+
         # Filter for scrape actions
         scrapes = [t for t in telemetry if "scrape" in str(t).lower()]
 
@@ -26,8 +27,4 @@ class CompetitorIntelligenceAgent(BlackboxSpecialist):
         )
 
         response = self.model.invoke(prompt)
-        return {
-            "competitor_insights": response.content,
-            "status": "analyzed"
-        }
-
+        return {"competitor_insights": response.content, "status": "analyzed"}

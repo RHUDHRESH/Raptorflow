@@ -1,15 +1,17 @@
 import asyncio
 import os
-from backend.agents.researchers import create_competitor_tracker
-from backend.agents.strategists import create_founder_profiler
+from unittest.mock import MagicMock
+
 from backend.agents.context_assembler import create_rag_node
 from backend.agents.quality import create_memory_governor
-from backend.services.telemetry import RaptorEvaluator, CostEvaluator
-from unittest.mock import MagicMock
+from backend.agents.researchers import create_competitor_tracker
+from backend.agents.strategists import create_founder_profiler
+from backend.services.telemetry import CostEvaluator, RaptorEvaluator
+
 
 async def verify_milestone_10():
     print("--- RaptorFlow SOTA Milestone 10 Diagnostic ---")
-    
+
     # 1. Advanced Memory Readiness
     print("\n[1/3] Verifying Entity & RAG Memory Nodes (Tracker, Profiler, RAG)...")
     try:
@@ -44,6 +46,7 @@ async def verify_milestone_10():
         print(f"FAIL: Evaluators: {e}")
 
     print("\n--- Milestone 10 Diagnostic Complete ---")
+
 
 if __name__ == "__main__":
     asyncio.run(verify_milestone_10())

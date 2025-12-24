@@ -15,7 +15,9 @@ def smoke_test(base_url: str, token: str):
     # 1. Verify Matrix Overview
     print("Step 1: Fetching Matrix Overview...")
     res = requests.get(
-        f"{base_url}/v1/matrix/overview?workspace_id=verify_ws", headers=headers
+        f"{base_url}/v1/matrix/overview?workspace_id=verify_ws",
+        headers=headers,
+        timeout=10,
     )
     if res.status_code == 200:
         print("✓ Matrix Overview Reachable.")
@@ -25,7 +27,7 @@ def smoke_test(base_url: str, token: str):
 
     # 2. Verify Deep Health
     print("Step 2: Checking System Health...")
-    res = requests.get(f"{base_url}/health", headers=headers)
+    res = requests.get(f"{base_url}/health", headers=headers, timeout=10)
     if res.status_code == 200:
         print("✓ Deep Health Check Passed.")
     else:

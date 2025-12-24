@@ -1,5 +1,7 @@
+import inspect
 from abc import ABC, abstractmethod
 from typing import Any, Dict
+
 from backend.inference import InferenceProvider
 
 
@@ -12,6 +14,8 @@ class BlackboxSpecialist(ABC):
     def __init__(self, agent_id: str, model_tier: str = "driver"):
         self.agent_id = agent_id
         self.llm = InferenceProvider.get_model(model_tier=model_tier)
+        # Legacy alias for sync agents/tests that still reference .model
+        self.model = self.llm
 
     @abstractmethod
     async def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
@@ -24,7 +28,10 @@ class BlackboxSpecialist(ABC):
         """
         Allows the specialist to be used as a LangGraph node.
         """
-        return await self.run(state)
+        result = self.run(state)
+        if inspect.isawaitable(result):
+            return await result
+        return result
 
 
 class ROIAnalystAgent(BlackboxSpecialist):

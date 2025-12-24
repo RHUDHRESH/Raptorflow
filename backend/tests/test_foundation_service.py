@@ -1,8 +1,10 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
-from backend.services.foundation_service import FoundationService
+
+import pytest
+
 from backend.models.foundation import BrandKit
+from backend.services.foundation_service import FoundationService
 
 
 @pytest.fixture

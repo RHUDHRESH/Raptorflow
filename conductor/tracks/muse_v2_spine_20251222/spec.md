@@ -19,7 +19,7 @@ The endpoint `/muse/create` must implement the following logic:
 3. **Confidence Low:** Return `clarify_questions` (max 3) and `interrupt()`.
 
 ### 3.2 Human-in-the-Loop (HITL)
-Graphs for **Publishing** or **External Actions** must use `interrupt()`. 
+Graphs for **Publishing** or **External Actions** must use `interrupt()`.
 - Graph state is saved to Supabase via `thread_id`.
 - UI polls or receives a "Pending Approval" state.
 

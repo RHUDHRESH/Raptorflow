@@ -1,9 +1,11 @@
 import logging
-from typing import Dict, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, Optional
+
 from backend.db import get_db_connection
 
 logger = logging.getLogger("raptorflow.services.cost_governor")
+
 
 class CostGovernor:
     """
@@ -33,7 +35,9 @@ class CostGovernor:
         try:
             burn = await self.calculate_daily_burn(workspace_id)
             if burn > self.daily_budget:
-                logger.warning(f"BUDGET EXCEEDED: ${burn:.2f} burn for workspace {workspace_id} (Budget: ${self.daily_budget:.2f})")
+                logger.warning(
+                    f"BUDGET EXCEEDED: ${burn:.2f} burn for workspace {workspace_id} (Budget: ${self.daily_budget:.2f})"
+                )
                 return True
             return False
         except Exception as e:
@@ -46,7 +50,9 @@ class CostGovernor:
         return {
             "daily_burn": burn,
             "budget": self.daily_budget,
-            "usage_percentage": (burn / self.daily_budget) * 100 if self.daily_budget > 0 else 0,
+            "usage_percentage": (
+                (burn / self.daily_budget) * 100 if self.daily_budget > 0 else 0
+            ),
             "status": "danger" if burn > self.daily_budget else "normal",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }

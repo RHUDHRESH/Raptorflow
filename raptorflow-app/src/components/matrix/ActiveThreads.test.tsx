@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { ActiveThreads } from './ActiveThreads';
+import { ActiveThreads, AgentThread } from './ActiveThreads';
 import React from 'react';
 
 describe('ActiveThreads', () => {
-    const mockThreads = [
+    const mockThreads: AgentThread[] = [
         {
             id: 't1',
             agentName: 'Strategist-Alpha',

@@ -1,16 +1,18 @@
-from unittest.mock import MagicMock, patch, AsyncMock
-from uuid import uuid4
-import pytest
 import asyncio
+from unittest.mock import AsyncMock, MagicMock, patch
+from uuid import uuid4
+
+import pytest
+
 from backend.graphs.blackbox_industrial import (
     AnalysisState,
-    ingest_telemetry_node,
-    extract_insights_node,
     attribute_outcomes_node,
-    supervisor_node,
+    create_blackbox_graph,
+    extract_insights_node,
+    ingest_telemetry_node,
     reflect_and_validate_node,
     should_continue,
-    create_blackbox_graph,
+    supervisor_node,
 )
 
 

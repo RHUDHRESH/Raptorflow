@@ -1,5 +1,4 @@
 import operator
-import os
 from typing import Annotated, List, Optional, TypedDict
 
 from langgraph.checkpoint.memory import MemorySaver
@@ -99,25 +98,19 @@ async def plan_campaign(state: MovesCampaignsState):
     result = await designer(state)
     arc = result["context_brief"]["campaign_arc"]
 
-        campaign_data = {
+    campaign_data = {
+        "title": arc.get("campaign_title", "90-Day Growth Arc"),
+        "objective": state.get("context_brief", {}).get(
+            "objective", "Scale B2B SaaS reach"
+        ),
+        "status": "active",
+        "arc_data": arc,
+        "kpi_targets": state.get("kpi_targets", {}),
+        "audit_data": state.get("context_brief", {}).get("brand_alignment", {}),
+    }
 
-            "title": arc.get("campaign_title", "90-Day Growth Arc"),
+    campaign_id_state = state.get("campaign_id")
 
-            "objective": state.get("context_brief", {}).get("objective", "Scale B2B SaaS reach"),
-
-            "status": "active",
-
-            "arc_data": arc,
-
-            "kpi_targets": state.get("kpi_targets", {}),
-
-            "audit_data": state.get("context_brief", {}).get("brand_alignment", {}),
-
-        }
-
-        campaign_id_state = state.get("campaign_id")
-
-    
     campaign_id = await save_campaign(
         tenant_id, campaign_data, campaign_id=campaign_id_state
     )
@@ -134,10 +127,10 @@ async def campaign_auditor(state: MovesCampaignsState):
     """SOTA Audit Node: Reflexive check on strategy alignment."""
     llm = InferenceProvider.get_model(model_tier="reasoning")
     agent = BrandVoiceAligner(llm)
-    
+
     result = await agent(state)
     audit_results = result.get("context_brief", {}).get("brand_alignment", {})
-    
+
     # Persist audit results
     tenant_id = state.get("tenant_id")
     campaign_id = state.get("campaign_id")
@@ -145,8 +138,12 @@ async def campaign_auditor(state: MovesCampaignsState):
         # Fetch current data to not overwrite arc_data if not in state
         # In a real build, we'd use a more surgical update_campaign_audit method
         campaign_data = {
-            "title": state.get("strategy_arc", {}).get("campaign_title", "90-Day Growth Arc"),
-            "objective": state.get("context_brief", {}).get("objective", "Scale B2B SaaS reach"),
+            "title": state.get("strategy_arc", {}).get(
+                "campaign_title", "90-Day Growth Arc"
+            ),
+            "objective": state.get("context_brief", {}).get(
+                "objective", "Scale B2B SaaS reach"
+            ),
             "status": "active",
             "arc_data": state.get("strategy_arc", {}),
             "kpi_targets": state.get("kpi_targets", {}),
@@ -312,8 +309,13 @@ workflow.add_edge("error_handler", END)
 
 
 # Initialize persistence checkpointer based on environment
+from backend.core.config import get_settings
+
+
 def get_checkpointer():
-    db_url = os.getenv("DATABASE_URL")
+    """Industrial checkpointer for production state management."""
+    settings = get_settings()
+    db_url = settings.DATABASE_URL
     if db_url and "supabase" in db_url:
         # Production persistence
         pool = get_pool()

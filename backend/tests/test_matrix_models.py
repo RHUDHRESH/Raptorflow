@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
-from backend.models.telemetry import TelemetryEvent, SystemState, AgentHealthStatus
+
+from backend.models.telemetry import AgentHealthStatus, SystemState, TelemetryEvent
 
 
 def test_telemetry_event_valid():

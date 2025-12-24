@@ -1,14 +1,11 @@
 import logging
-import operator
-import os
-from typing import Annotated, Dict, List, Optional, TypedDict
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
+from backend.core.config import get_settings
 from backend.db import SupabaseSaver, get_pool
 from backend.models.cognitive import CognitiveIntelligenceState, CognitiveStatus
-from backend.inference import InferenceProvider
 
 logger = logging.getLogger("raptorflow.cognitive.spine")
 
@@ -93,18 +90,23 @@ workflow.add_node("finalize", finalize_run)
 workflow.add_node("error_handler", handle_error)
 workflow.add_node("approve_assets", approve_assets)
 
+
 # Placeholder Nodes for Agents (Phase 4 & 5)
 async def strategist_placeholder(state: CognitiveIntelligenceState):
     return {"status": CognitiveStatus.RESEARCHING}
 
+
 async def researcher_placeholder(state: CognitiveIntelligenceState):
     return {"status": CognitiveStatus.EXECUTING}
+
 
 async def creator_placeholder(state: CognitiveIntelligenceState):
     return {"status": CognitiveStatus.AUDITING}
 
+
 async def critic_placeholder(state: CognitiveIntelligenceState):
     return {"status": CognitiveStatus.COMPLETE}
+
 
 workflow.add_node("strategist", strategist_placeholder)
 workflow.add_node("researcher", researcher_placeholder)
@@ -140,8 +142,9 @@ workflow.add_edge("error_handler", END)
 
 
 def get_checkpointer():
-    """Initializes the appropriate checkpointer based on environment."""
-    db_url = os.getenv("DATABASE_URL")
+    """Industrial checkpointer for production state management."""
+    settings = get_settings()
+    db_url = settings.DATABASE_URL
     if db_url and "supabase" in db_url:
         # Production persistence
         pool = get_pool()

@@ -1,6 +1,9 @@
 import os
+
 from google.cloud import secretmanager
+
 from backend.core.config import get_settings
+
 
 def create_secret(project_id: str, secret_id: str):
     """
@@ -24,10 +27,11 @@ def create_secret(project_id: str, secret_id: str):
         else:
             print(f"Error creating secret {secret_id}: {e}")
 
+
 def main():
     settings = get_settings()
     project_id = settings.GCP_PROJECT_ID
-    
+
     secrets = [
         "GOOGLE_APPLICATION_CREDENTIALS_JSON",
         "OPENAI_API_KEY",
@@ -36,12 +40,13 @@ def main():
         "SUPABASE_URL",
         "SUPABASE_SERVICE_ROLE_KEY",
         "UPSTASH_REDIS_REST_URL",
-        "UPSTASH_REDIS_REST_TOKEN"
+        "UPSTASH_REDIS_REST_TOKEN",
     ]
 
     print(f"Initializing secrets for project: {project_id}")
     for secret in secrets:
         create_secret(project_id, secret)
+
 
 if __name__ == "__main__":
     main()

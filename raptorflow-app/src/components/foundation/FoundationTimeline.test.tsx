@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { FoundationTimeline } from './FoundationTimeline';
+import { FoundationTimeline, TimelineEvent } from './FoundationTimeline';
 import React from 'react';
 
 describe('FoundationTimeline', () => {
-    const mockEvents = [
+    const mockEvents: TimelineEvent[] = [
         {
             id: '1',
             date: '2025-12-23T10:00:00Z',
