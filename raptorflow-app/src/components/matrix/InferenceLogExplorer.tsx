@@ -20,7 +20,7 @@ export function InferenceLogExplorer() {
       timestamp: new Date().toISOString(),
       event_type: "inference_end",
       source: "MoveGenerator",
-      metadata: { model: "gemini-1.5-ultra", latency_ms: 1240, tokens: 850 }
+      metadata: { model: "gemini-2.5-flash-lite", latency_ms: 1240, tokens: 850 }
     },
     {
       event_id: "ev_2",
