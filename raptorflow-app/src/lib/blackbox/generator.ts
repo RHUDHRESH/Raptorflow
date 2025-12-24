@@ -6,10 +6,9 @@ import {
     ExperimentStatus,
     BehavioralPrinciple,
     SkillRef,
-    SkillRole,
     AssetPlan
 } from '../blackbox-types';
-import { LEVERS, CONSTRAINTS, CHANNEL_DEFAULTS, LeverTemplate, ConstraintTemplate } from './templates';
+import { LEVERS, CONSTRAINTS, CHANNEL_DEFAULTS, ConstraintTemplate } from './templates';
 
 interface GenerationContext {
     goal: GoalType;
@@ -123,7 +122,7 @@ function generateAssetPlan(channel: ChannelType, constraint: ConstraintTemplate)
     };
 }
 
-function interpolate(template: string, ctx: GenerationContext): string {
+function interpolate(template: string, _ctx: GenerationContext): string {
     // Basic interpolation if we had dynamic vars (e.g. {goal} -> replies)
     // For now mostly static templates
     return template;

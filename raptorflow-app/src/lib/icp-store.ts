@@ -141,7 +141,7 @@ export const useIcpStore = create<IcpState>()(
                 const generated = generateICPsFromFoundation(data);
                 const now = new Date().toISOString();
 
-                const newIcps: Icp[] = generated.map((g, idx) => ({
+                const newIcps: Icp[] = generated.map((g, _idx) => ({
                     ...DEFAULT_ICP,
                     ...g.icp,
                     id: crypto.randomUUID(),

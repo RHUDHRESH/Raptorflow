@@ -5,6 +5,11 @@ import styles from './QuestionFlow.module.css';
 import { ArrowRight, Download, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { generateFoundationPDF } from '@/lib/pdfGenerator';
+import { FounderQuote } from './FounderQuote';
+import { FirstMoveTeaser } from './FirstMoveTeaser';
+import { BrandAura } from './BrandAura';
+import { PitchScript } from './PitchScript';
+import { ClarityScore } from './ClarityScore';
 
 interface ReviewScreenProps {
     data: FoundationData;
@@ -142,10 +147,15 @@ export function ReviewScreen({ data, onBack, onComplete, onEditSection }: Review
     return (
         <div className={styles.reviewContainer}>
             <div className={styles.reviewHeader}>
-                <h1 className={styles.reviewTitle}>Foundation Review</h1>
-                <p className={styles.reviewSubtitle}>
-                    Here's what we know about your business. Review and launch.
-                </p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className={styles.reviewTitle}>Foundation Review</h1>
+                        <p className={styles.reviewSubtitle}>
+                            Here's what we know about your business. Review and launch.
+                        </p>
+                    </div>
+                    <ClarityScore data={data} />
+                </div>
             </div>
 
             <div className={styles.reviewSections}>
@@ -166,6 +176,18 @@ export function ReviewScreen({ data, onBack, onComplete, onEditSection }: Review
                     </div>
                 ))}
             </div>
+
+            {/* Premium Components Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <FirstMoveTeaser data={data} />
+                <BrandAura data={data} />
+            </div>
+
+            {/* Founder Quote */}
+            <FounderQuote data={data} className="mt-6" />
+
+            {/* Pitch Script */}
+            <PitchScript data={data} className="mt-6" />
 
             <div className={styles.reviewActions}>
                 <Button variant="outline" onClick={onBack} className={styles.backButton}>

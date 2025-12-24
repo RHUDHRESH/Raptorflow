@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { createCampaign, triggerCampaignInference } from '@/lib/campaigns';
 import { Campaign } from '@/lib/campaigns-types';
 
@@ -40,7 +40,7 @@ describe('Campaign Creation-to-Persistence Integration', () => {
         await createCampaign(mockCampaign);
 
         // 2. Test triggerCampaignInference (Backend API call)
-        (global.fetch as any).mockResolvedValueOnce({
+        (global.fetch as unknown as vi.Mock).mockResolvedValueOnce({
             ok: true,
             json: async () => ({ status: 'started', campaign_id: 'test-uuid' }),
         });
@@ -55,7 +55,7 @@ describe('Campaign Creation-to-Persistence Integration', () => {
     });
 
     it('handles inference failure gracefully', async () => {
-        (global.fetch as any).mockResolvedValueOnce({
+        (global.fetch as unknown as vi.Mock).mockResolvedValueOnce({
             ok: false,
             status: 500,
         });
@@ -66,7 +66,7 @@ describe('Campaign Creation-to-Persistence Integration', () => {
 
     it('polls status correctly', async () => {
         // Mock initial status check
-        (global.fetch as any).mockResolvedValueOnce({
+        (global.fetch as unknown as vi.Mock).mockResolvedValueOnce({
             ok: true,
             json: async () => ({ status: 'planning', messages: ['Starting...'] }),
         });
@@ -120,7 +120,7 @@ describe('Campaign Creation-to-Persistence Integration', () => {
         }];
 
         const { supabase } = await import('@/lib/supabase');
-        (supabase.from as any).mockReturnValueOnce({
+        (supabase.from as unknown as Mock).mockReturnValueOnce({
             select: vi.fn().mockReturnThis(),
             order: vi.fn().mockResolvedValueOnce({ data: mockDBData, error: null }),
         });

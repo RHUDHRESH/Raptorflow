@@ -10,7 +10,17 @@ import {
     ExperimentDetail
 } from '@/components/blackbox';
 import { Experiment, SelfReport, ExperimentStatus, LearningArtifact } from '@/lib/blackbox-types';
-import { saveBlackboxState, loadBlackboxState, updateExperiment, addLearning, getEvidencePackage } from '@/lib/blackbox';
+import {
+    saveBlackboxState,
+    loadBlackboxState,
+    getEvidencePackage,
+    getExperimentsDB,
+    createExperimentDB,
+    updateExperimentDB,
+    deleteExperimentDB,
+    saveOutcome,
+    saveLearning
+} from '@/lib/blackbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,6 +44,7 @@ import { EmptyState } from '@/components/blackbox/EmptyState';
 export default function BlackBoxPage() {
     const [experiments, setExperiments] = useState<Experiment[]>([]);
     const [learnings, setLearnings] = useState<LearningArtifact[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [activeCheckin, setActiveCheckin] = useState<Experiment | null>(null);
     const [activeDetail, setActiveDetail] = useState<Experiment | null>(null);
     const [activeEdit, setActiveEdit] = useState<Experiment | null>(null);
@@ -43,57 +54,93 @@ export default function BlackBoxPage() {
     const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
     const [showAudit, setShowAudit] = useState(false);
 
-    useEffect(() => {
-        const state = loadBlackboxState();
-        setExperiments(state.experiments);
-        setLearnings(state.learnings);
+    const refreshData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const exps = await getExperimentsDB();
+            setExperiments(exps);
+            const state = loadBlackboxState();
+            setLearnings(state.learnings);
+        } catch (err) {
+            console.error('Failed to load Blackbox data', err);
+        } finally {
+            setIsLoading(false);
+        }
     }, []);
 
-    const saveExperiments = (newExperiments: Experiment[]) => {
-        setExperiments(newExperiments);
-        const state = loadBlackboxState();
-        saveBlackboxState({ ...state, experiments: newExperiments });
-    };
+    useEffect(() => {
+        refreshData();
+    }, [refreshData]);
 
-    const handleWizardComplete = useCallback((newExps: Experiment[]) => {
-        const updated = [...newExps, ...experiments];
-        saveExperiments(updated);
-        toast.success('3 experiments created');
-    }, [experiments]);
+    const handleWizardComplete = useCallback(async (newExps: Experiment[]) => {
+        try {
+            for (const exp of newExps) {
+                await createExperimentDB(exp);
+            }
+            refreshData();
+            toast.success('Experiments synced to Industrial Spine');
+        } catch (err) {
+            toast.error('Failed to sync experiments');
+        }
+    }, [refreshData]);
 
-    const handleLaunch = useCallback((id: string) => {
-        const updated = experiments.map(e =>
-            e.id === id ? { ...e, status: 'launched' as ExperimentStatus, launched_at: new Date().toISOString() } : e
-        );
-        saveExperiments(updated);
-        toast.success('Experiment launched');
-    }, [experiments]);
+    const handleLaunch = useCallback(async (id: string) => {
+        const exp = experiments.find(e => e.id === id);
+        if (!exp) return;
 
-    const handleCheckin = useCallback((report: SelfReport) => {
+        const updated = { ...exp, status: 'launched' as ExperimentStatus, launched_at: new Date().toISOString() };
+        try {
+            await updateExperimentDB(updated);
+            refreshData();
+            toast.success('Experiment launched');
+        } catch (err) {
+            toast.error('Failed to launch experiment');
+        }
+    }, [experiments, refreshData]);
+
+    const handleCheckin = useCallback(async (report: SelfReport) => {
         if (!activeCheckin) return;
 
-        const updatedExps = experiments.map(e =>
-            e.id === activeCheckin.id ? { ...e, status: 'checked_in' as ExperimentStatus, self_report: report } : e
-        );
-        saveExperiments(updatedExps);
+        const updatedExp = { ...activeCheckin, status: 'checked_in' as ExperimentStatus, self_report: report };
 
-        const learning: LearningArtifact = {
-            summary: report.outcome === 'great' || report.outcome === 'worked'
+        try {
+            await updateExperimentDB(updatedExp);
+
+            // Save as official industrial outcome
+            await saveOutcome({
+                source: `experiment:${activeCheckin.title}`,
+                value: report.metric_value,
+                confidence: 1.0,
+                move_id: activeCheckin.id
+            });
+
+            const learningContent = report.outcome === 'great' || report.outcome === 'worked'
                 ? `"${activeCheckin.title}" worked for ${activeCheckin.goal}.`
-                : `"${activeCheckin.title}" underperformed.`,
-            skill_weight_deltas: []
-        };
-        addLearning(learning);
-        setLearnings(prev => [learning, ...prev]);
-        setActiveCheckin(null);
-        toast.success('Check-in recorded');
-    }, [activeCheckin, experiments]);
+                : `"${activeCheckin.title}" underperformed.` + (report.why_chips ? ` Issues: ${report.why_chips.join(', ')}` : '');
 
-    const handleDelete = useCallback((id: string) => {
-        const updated = experiments.filter(e => e.id !== id);
-        saveExperiments(updated);
-        toast.success('Experiment deleted');
-    }, [experiments]);
+            await saveLearning({
+                content: learningContent,
+                learning_type: 'tactical',
+                source_ids: [activeCheckin.id]
+            });
+
+            refreshData();
+            setActiveCheckin(null);
+            toast.success('Check-in and Learning synced');
+        } catch (err) {
+            toast.error('Failed to record check-in');
+        }
+    }, [activeCheckin, refreshData]);
+
+    const handleDelete = useCallback(async (id: string) => {
+        try {
+            await deleteExperimentDB(id);
+            refreshData();
+            toast.success('Experiment deleted');
+        } catch (err) {
+            toast.error('Failed to delete experiment');
+        }
+    }, [refreshData]);
 
     const handleDuplicate = useCallback((id: string) => {
         const exp = experiments.find(e => e.id === id);
@@ -117,12 +164,16 @@ export default function BlackBoxPage() {
         }
     }, [experiments]);
 
-    const handleEditSave = () => {
+    const handleEditSave = async () => {
         if (!activeEdit) return;
-        const updated = experiments.map(e => e.id === activeEdit.id ? activeEdit : e);
-        saveExperiments(updated);
-        setActiveEdit(null);
-        toast.success('Experiment updated');
+        try {
+            await updateExperimentDB(activeEdit);
+            refreshData();
+            setActiveEdit(null);
+            toast.success('Experiment updated');
+        } catch (err) {
+            toast.error('Failed to update experiment');
+        }
     };
 
     const handleClear = useCallback(() => {
@@ -206,7 +257,7 @@ export default function BlackBoxPage() {
 
                 {experiments.length === 0 ? (
                     <div className="py-12">
-                        <EmptyState 
+                        <EmptyState
                             title="No intelligence gathered yet"
                             description="Execute your first marketing move to start capturing telemetry and extracting strategic insights."
                             actionLabel="Create First Experiment"
@@ -245,8 +296,8 @@ export default function BlackBoxPage() {
                                                             {learning.content}
                                                         </p>
                                                         <div className="pt-4 flex flex-wrap items-center gap-3">
-                                                            <Button 
-                                                                size="sm" 
+                                                            <Button
+                                                                size="sm"
                                                                 className="rounded-lg h-8 bg-foreground text-background px-4 font-sans text-xs"
                                                                 onClick={() => toast.info('Apply pivot coming soon')}
                                                             >
@@ -301,7 +352,7 @@ export default function BlackBoxPage() {
                                         variant="ghost"
                                         size="sm"
                                         className="h-6 px-2 text-[10px] font-mono text-muted-foreground hover:text-accent"
-                                        onClick={handleViewAuditLog}
+                                        onClick={() => handleViewAuditLog()}
                                     >
                                         <Terminal size={12} className="mr-1" /> View Audit Log
                                     </Button>

@@ -8,7 +8,7 @@ export interface MatrixOverview {
       status: string;
       last_heartbeat: string;
       current_task?: string;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
     }>;
   };
   health_report: {
@@ -20,12 +20,13 @@ export interface MatrixOverview {
     budget: number;
     status: string;
   };
+  p95_latency_ms?: number;
   recent_events?: Array<{
     event_id: string;
     timestamp: string;
     event_type: string;
     source: string;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
   }>;
 }
 
@@ -34,16 +35,17 @@ export function useMatrixOverview(workspaceId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
   useEffect(() => {
     async function fetchOverview() {
       try {
-        // In a real build, this would be an absolute URL or use a base config
-        const res = await fetch(`/api/v1/matrix/overview?workspace_id=${workspaceId}`);
+        const res = await fetch(`${API_URL}/v1/matrix/overview?workspace_id=${workspaceId}`);
         if (!res.ok) throw new Error("Failed to fetch matrix overview");
         const json = await res.json();
         setData(json);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : String(err));
       } finally {
         setLoading(false);
       }

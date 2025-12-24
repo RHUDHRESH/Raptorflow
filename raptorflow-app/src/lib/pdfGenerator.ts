@@ -1,7 +1,7 @@
 'use client';
 
 import { FoundationData } from '@/lib/foundation';
-import { SECTIONS } from '@/lib/questionFlowData';
+
 
 /**
  * Generate a PDF of the Foundation Blueprint
@@ -29,51 +29,51 @@ export async function generateFoundationPDF(data: FoundationData): Promise<void>
     <title>${businessName} — Foundation Blueprint</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             color: #2D3538;
             line-height: 1.6;
             padding: 48px;
             max-width: 800px;
             margin: 0 auto;
         }
-        .header { 
-            border-bottom: 2px solid #2D3538; 
-            padding-bottom: 24px; 
-            margin-bottom: 32px; 
+        .header {
+            border-bottom: 2px solid #2D3538;
+            padding-bottom: 24px;
+            margin-bottom: 32px;
         }
-        .logo { 
-            font-size: 12px; 
-            letter-spacing: 3px; 
-            color: #5B5F61; 
-            margin-bottom: 8px; 
+        .logo {
+            font-size: 12px;
+            letter-spacing: 3px;
+            color: #5B5F61;
+            margin-bottom: 8px;
         }
-        h1 { 
-            font-family: 'Playfair Display', Georgia, serif; 
-            font-size: 36px; 
-            font-weight: 400; 
-            margin-bottom: 8px; 
+        h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 36px;
+            font-weight: 400;
+            margin-bottom: 8px;
         }
         .date { font-size: 14px; color: #5B5F61; }
-        .section { 
-            margin-bottom: 32px; 
-            padding-bottom: 24px; 
-            border-bottom: 1px solid #C0C1BE; 
+        .section {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #C0C1BE;
         }
         .section:last-child { border-bottom: none; }
-        .section-title { 
-            font-size: 20px; 
-            font-weight: 600; 
-            margin-bottom: 16px; 
-            color: #2D3538; 
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #2D3538;
         }
         .field { margin-bottom: 12px; }
-        .field-label { 
-            font-size: 11px; 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
-            color: #5B5F61; 
-            margin-bottom: 4px; 
+        .field-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #5B5F61;
+            margin-bottom: 4px;
         }
         .field-value { font-size: 15px; }
         .positioning-statement {
@@ -85,13 +85,13 @@ export async function generateFoundationPDF(data: FoundationData): Promise<void>
             border-radius: 8px;
             margin-bottom: 16px;
         }
-        .footer { 
-            margin-top: 48px; 
-            padding-top: 24px; 
-            border-top: 1px solid #C0C1BE; 
-            font-size: 12px; 
-            color: #5B5F61; 
-            text-align: center; 
+        .footer {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid #C0C1BE;
+            font-size: 12px;
+            color: #5B5F61;
+            text-align: center;
         }
         @media print {
             body { padding: 24px; }
@@ -169,8 +169,8 @@ export async function generateFoundationPDF(data: FoundationData): Promise<void>
     <div class="section">
         <div class="section-title">Positioning</div>
         <div class="positioning-statement">
-            We are the <strong>${data.positioning?.category || '_____'}</strong> 
-            for <strong>${data.positioning?.targetAudience || '_____'}</strong> 
+            We are the <strong>${data.positioning?.category || '_____'}</strong>
+            for <strong>${data.positioning?.targetAudience || '_____'}</strong>
             who want <strong>${data.positioning?.psychologicalOutcome || '_____'}</strong>.
         </div>
         <div class="field">

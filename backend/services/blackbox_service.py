@@ -457,7 +457,7 @@ class BlackboxService:
         result = (
             session.table("blackbox_learnings_industrial")
             .select("*")
-            .order("created_at", desc=True)
+            .order("timestamp", desc=True)
             .limit(limit)
             .execute()
         )

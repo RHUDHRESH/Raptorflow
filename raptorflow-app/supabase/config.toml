@@ -23,8 +23,5 @@ enable_signup = true
 [storage]
 enabled = true
 
-[inngest]
-enabled = false
-
 [realtime]
 enabled = false

@@ -4,20 +4,18 @@ import matter from 'gray-matter';
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase Client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''; // Service role for backend access
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy-key'; // Service role for backend access
 
 // Prevent crash if envs are missing during build/test, but warn
-const supabase = (supabaseUrl && supabaseKey) 
-    ? createClient(supabaseUrl, supabaseKey)
-    : { from: () => ({ select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) }) } as any;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export interface SkillManifest {
     id: string;
     name: string;
     description: string;
     version: string;
-    inputs: Record<string, any>;
+    inputs: Record<string, unknown>;
     output: string;
     tools?: string[]; // List of tool names this skill uses
 }
@@ -68,7 +66,7 @@ export async function loadSystemSkills(): Promise<Skill[]> {
     return skills;
 }
 
-export async function loadCustomSkills(userId?: string): Promise<Skill[]> {
+export async function loadCustomSkills(_userId?: string): Promise<Skill[]> {
     if (!supabaseUrl || !supabaseKey) return [];
 
     const { data, error } = await supabase
@@ -81,15 +79,15 @@ export async function loadCustomSkills(userId?: string): Promise<Skill[]> {
         return [];
     }
 
-    return data.map((row: any) => ({
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        version: '1.0.0', 
+    return data.map((row: Record<string, unknown>) => ({
+        id: row.id as string,
+        name: row.name as string,
+        description: row.description as string,
+        version: '1.0.0',
         inputs: {}, // Default empty inputs for now
         output: 'string',
         tools: [],
-        instructions: row.instructions,
+        instructions: row.instructions as string,
         type: 'custom'
     }));
 }

@@ -15,6 +15,30 @@ interface GeneratedIcp {
 
 /**
  * Main generation function - creates ICPs from Foundation data
+ * NOW: Triggers the agentic synthesis pipeline via the backend
+ */
+export async function triggerAgenticSynthesis(data: FoundationData) {
+    try {
+        const response = await fetch('/api/onboarding/process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Synthesis failed');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Agentic Synthesis Error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Legacy generation function - creates ICPs from Foundation data
  */
 export function generateICPsFromFoundation(data: FoundationData): GeneratedIcp[] {
     const icps: GeneratedIcp[] = [];
@@ -22,7 +46,6 @@ export function generateICPsFromFoundation(data: FoundationData): GeneratedIcp[]
     const customerType = normalizeCustomerType(data.cohorts?.customerType);
     const stage = data.business?.stage || 'early';
     const buyerRole = data.cohorts?.buyerRole || '';
-    const decisionStyle = data.cohorts?.decisionStyle || '';
 
     // Determine which templates to use based on customer type
     const templates = selectTemplates(customerType, stage, buyerRole);
@@ -39,7 +62,7 @@ export function generateICPsFromFoundation(data: FoundationData): GeneratedIcp[]
 /**
  * Normalize customer type to array
  */
-function normalizeCustomerType(value: any): string[] {
+function normalizeCustomerType(value: string | string[] | undefined): string[] {
     if (!value) return [];
     if (Array.isArray(value)) return value;
     return [value];

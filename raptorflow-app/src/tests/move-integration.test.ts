@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { generateWeeklyMoves, getMovesStatus } from '@/lib/campaigns';
 
 // Mock Supabase
@@ -22,7 +22,7 @@ describe('Move Generation & Status Tracking Integration', () => {
     });
 
     it('successfully triggers move generation', async () => {
-        (global.fetch as any).mockResolvedValueOnce({
+        (global.fetch as unknown as Mock).mockResolvedValueOnce({
             ok: true,
             json: async () => ({ status: 'started', campaign_id: 'test-camp-id' }),
         });
@@ -37,7 +37,7 @@ describe('Move Generation & Status Tracking Integration', () => {
     });
 
     it('successfully polls move generation status', async () => {
-        (global.fetch as any).mockResolvedValueOnce({
+        (global.fetch as unknown as Mock).mockResolvedValueOnce({
             ok: true,
             json: async () => ({ status: 'execution', messages: ['Processing...'] }),
         });
@@ -51,7 +51,7 @@ describe('Move Generation & Status Tracking Integration', () => {
     });
 
     it('handles status errors gracefully', async () => {
-        (global.fetch as any).mockResolvedValueOnce({
+        (global.fetch as unknown as Mock).mockResolvedValueOnce({
             ok: false,
             status: 404,
         });
@@ -80,7 +80,7 @@ describe('Move Generation & Status Tracking Integration', () => {
         }];
 
         const { supabase } = await import('@/lib/supabase');
-        (supabase.from as any).mockReturnValueOnce({
+        (supabase.from as unknown as Mock).mockReturnValueOnce({
             select: vi.fn().mockReturnThis(),
             eq: vi.fn().mockReturnThis(),
             order: vi.fn().mockResolvedValueOnce({ data: mockDBData, error: null }),

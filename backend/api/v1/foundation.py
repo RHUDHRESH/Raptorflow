@@ -2,6 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from backend.core.auth import get_tenant_id
 from backend.core.vault import Vault
 from backend.models.foundation import BrandKit, FoundationState, Positioning
 from backend.services.foundation_service import FoundationService
@@ -10,21 +11,25 @@ router = APIRouter(prefix="/v1/foundation", tags=["foundation"])
 
 
 async def get_foundation_service():
-    # Service initialization usually doesn't require initialize() if using vault properly
     return FoundationService(Vault())
 
 
 @router.post("/state", response_model=FoundationState)
 async def save_foundation_state(
-    state: FoundationState, service: FoundationService = Depends(get_foundation_service)
+    state: FoundationState,
+    tenant_id: UUID = Depends(get_tenant_id),
+    service: FoundationService = Depends(get_foundation_service),
 ):
     """Saves the comprehensive onboarding state JSON."""
+    if state.tenant_id != tenant_id:
+        raise HTTPException(status_code=403, detail="Tenant ID mismatch.")
     return await service.save_state(state)
 
 
-@router.get("/state/{tenant_id}", response_model=FoundationState)
+@router.get("/state", response_model=FoundationState)
 async def get_foundation_state(
-    tenant_id: UUID, service: FoundationService = Depends(get_foundation_service)
+    tenant_id: UUID = Depends(get_tenant_id),
+    service: FoundationService = Depends(get_foundation_service),
 ):
     """Retrieves the comprehensive onboarding state JSON."""
     state = await service.get_state(tenant_id)
