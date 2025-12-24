@@ -26,7 +26,7 @@ def test_telemetry_captures_tokens():
         telemetry = Telemetry()
         telemetry.capture_token_usage(
             agent_name="Strategist",
-            model="gemini-1.5-pro",
+            model="gemini-2.5-flash",
             prompt_tokens=100,
             completion_tokens=50,
         )
@@ -34,4 +34,4 @@ def test_telemetry_captures_tokens():
         mock_log.assert_called_once()
         kwargs = mock_log.call_args[1]
         assert kwargs["extra"]["total_tokens"] == 150
-        assert kwargs["extra"]["model"] == "gemini-1.5-pro"
+        assert kwargs["extra"]["model"] == "gemini-2.5-flash"
