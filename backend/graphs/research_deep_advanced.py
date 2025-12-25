@@ -7,13 +7,29 @@ from backend.core.config import get_settings
 from backend.core.crawler_pipeline import CrawlerPipeline, CrawlPolicy
 from backend.core.research_engine import SearchProvider
 from backend.models.research_schemas import FactClaim, ResearchDeepState, WebDocument
+from backend.services.budget_governor import BudgetGovernor
 
 # --- Nodes ---
+
+_budget_governor = BudgetGovernor()
+
+
+async def _guard_budget(state: ResearchDeepState, agent_id: str) -> dict:
+    workspace_id = state.get("workspace_id") or state.get("tenant_id")
+    budget_check = await _budget_governor.check_budget(
+        workspace_id=workspace_id, agent_id=agent_id
+    )
+    if not budget_check["allowed"]:
+        return {"status": "error", "final_report_md": budget_check["reason"]}
+    return {}
 
 
 async def planning_node(state: ResearchDeepState):
     """Librarian plans the next wave of search."""
     agent = LibrarianAgent()
+    budget_guard = await _guard_budget(state, "LibrarianAgent")
+    if budget_guard:
+        return budget_guard
     queries = await agent.plan_search(state.objective, state.research_logs)
     return {
         "queries": queries,
@@ -95,6 +111,9 @@ async def verification_node(state: ResearchDeepState):
 async def synthesis_node(state: ResearchDeepState):
     """Final Agent assembles the premium report."""
     agent = SynthesisAgent()
+    budget_guard = await _guard_budget(state, "SynthesisAgent")
+    if budget_guard:
+        return budget_guard
     report = await agent.generate_report(state.objective, state.claims)
     return {"final_report_md": report, "status": "completed"}
 
