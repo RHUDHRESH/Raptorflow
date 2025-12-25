@@ -5,7 +5,8 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
 from backend.core.config import get_settings
-from backend.core.research_engine import ResearchEngine, SearchProvider
+from backend.core.research_engine import ResearchEngine
+from backend.core.search_provider import SearchProviderRegistry
 from backend.inference import InferenceProvider
 
 
@@ -41,7 +42,7 @@ class ResearchDeepAgent:
         ).with_structured_output(DeepInsight)
         self.engine = ResearchEngine()
         settings = get_settings()
-        self.search_api = SearchProvider(api_key=settings.SERPER_API_KEY or "")
+        self.search_api = SearchProviderRegistry(settings=settings)
 
     async def execute(self, task: str, context: Optional[dict] = None) -> DeepInsight:
         context = context or {}

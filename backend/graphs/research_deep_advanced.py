@@ -2,7 +2,7 @@ from langgraph.graph import END, START, StateGraph
 
 from backend.agents.shared.research_specialists import LibrarianAgent, SynthesisAgent
 from backend.core.config import get_settings
-from backend.core.research_engine import SearchProvider
+from backend.core.search_provider import SearchProviderRegistry
 from backend.models.research_schemas import ResearchDeepState
 
 # --- Nodes ---
@@ -22,7 +22,7 @@ async def planning_node(state: ResearchDeepState):
 async def discovery_node(state: ResearchDeepState):
     """Search API identifies top URLs."""
     settings = get_settings()
-    search = SearchProvider(api_key=settings.SERPER_API_KEY or "")
+    search = SearchProviderRegistry(settings=settings)
     all_urls = []
     for q in state.queries:
         links = await search.search(q, num_results=3)
