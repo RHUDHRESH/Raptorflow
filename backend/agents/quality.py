@@ -2,7 +2,7 @@ import logging
 from typing import List, Optional, TypedDict
 
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 logger = logging.getLogger("raptorflow.quality")
 

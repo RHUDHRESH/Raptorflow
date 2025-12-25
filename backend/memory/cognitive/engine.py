@@ -1,12 +1,12 @@
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from backend.db import get_db_connection
 from backend.inference import InferenceProvider
-from backend.models.cognitive import CognitiveStep, ModelTier
+from backend.models.cognitive import ModelTier
 
 
 class CognitiveMemoryEngine:
@@ -62,4 +62,4 @@ class CognitiveMemoryEngine:
     async def commit_fact(self, tenant_id: str, fact: str, metadata: dict = None):
         """Saves a hard fact about the business found in a conversation."""
         # SQL execution logic...
-        self.logger.info(f"Committed new fact for {workspace_id}: {fact}")
+        self.logger.info(f"Committed new fact for {tenant_id}: {fact}")

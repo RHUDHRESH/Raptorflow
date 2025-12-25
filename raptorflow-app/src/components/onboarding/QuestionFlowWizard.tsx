@@ -17,9 +17,16 @@ import {
     getTotalQuestions,
 } from '@/lib/questionFlowData';
 import { triggerAgenticSynthesis } from '@/lib/icp-generator';
+import { deriveFromFoundation } from '@/lib/derivation-engine';
+import { DerivedData } from '@/lib/foundation';
 import styles from './QuestionFlow.module.css';
 import { ReviewScreen } from './ReviewScreen';
 import { QuestionInput } from './QuestionInput';
+import { ICPRevealScreen } from './ICPRevealScreen';
+import { PositioningRevealScreen } from './PositioningRevealScreen';
+import { CompetitorsRevealScreen } from './CompetitorsRevealScreen';
+import { MessagingRevealScreen } from './MessagingRevealScreen';
+import { MarketRevealScreen } from './MarketRevealScreen';
 import { ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ClarityScore } from './ClarityScore';
@@ -57,6 +64,8 @@ export function QuestionFlowWizard() {
     const [isShaking, setIsShaking] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [processingStatus, setProcessingStatus] = useState<string>('Initializing Synthesis...');
+    const [revealStage, setRevealStage] = useState<'none' | 'icps' | 'positioning' | 'competitors' | 'messaging' | 'market'>('none');
+    const [derivedData, setDerivedData] = useState<DerivedData | null>(null);
 
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -227,46 +236,71 @@ export function QuestionFlowWizard() {
 
     const handleComplete = useCallback(async () => {
         setIsProcessing(true);
-        setProcessingStatus('Architect is validating brand foundation...');
+        setProcessingStatus('Synthesizing your business DNA...');
 
         try {
-            // Trigger the multi-agent synthesis pipeline
-            const result = await triggerAgenticSynthesis(data);
+            // Run the derivation engine
+            setProcessingStatus('Extracting compact objects...');
+            const derived = await deriveFromFoundation(data);
+            setDerivedData(derived);
 
-            setProcessingStatus('Prophet is projecting psychographic cohorts...');
+            setProcessingStatus('Generating ICP profiles...');
+            await new Promise(r => setTimeout(r, 1000));
 
             // Sync generated ICPs to store
-            if (result.icps) {
-                // Update store with real AI-generated ICPs
+            if (derived.icps) {
                 useIcpStore.setState({
-                    icps: result.icps,
-                    activeIcpId: result.icps.find((i: any) => i.priority === 'primary')?.id || result.icps[0]?.id || null,
+                    icps: derived.icps,
+                    activeIcpId: derived.icps.find((i: any) => i.priority === 'primary')?.id || derived.icps[0]?.id || null,
                     lastGeneratedAt: new Date().toISOString()
                 });
             }
 
-            setProcessingStatus('Strategist is drafting tactical moves...');
-            // Wait a moment for UX
-            await new Promise(r => setTimeout(r, 1500));
+            // Save completed foundation with derived data
+            const completedData = {
+                ...data,
+                completedAt: new Date().toISOString(),
+                currentStep: SECTIONS.length - 1,
+                derived: derived
+            };
+            await saveFoundation(completedData);
+
+            // Show reveal screens instead of redirecting
+            setIsProcessing(false);
+            setRevealStage('icps');
 
         } catch (error) {
-            console.error('Synthesis error:', error);
+            console.error('Derivation error:', error);
             setProcessingStatus('Fallback engine is drafting ICPs...');
             generateFromFoundation(data);
             toast('Synthesis offline', {
                 description: 'Using the local generator until credentials are configured.'
             });
             await new Promise(r => setTimeout(r, 800));
+
+            // Still save and redirect on error
+            const completedData = { ...data, completedAt: new Date().toISOString(), currentStep: SECTIONS.length - 1 };
+            await saveFoundation(completedData);
+            setIsProcessing(false);
+            router.push('/dashboard');
         }
-
-        setShowCelebration(true);
-        const completedData = { ...data, completedAt: new Date().toISOString(), currentStep: SECTIONS.length - 1 };
-        saveFoundation(completedData);
-
-        setTimeout(() => {
-            router.push('/');
-        }, 3000);
     }, [data, router, generateFromFoundation]);
+
+    // Reveal stage handlers
+    const handleRevealContinue = () => {
+        switch (revealStage) {
+            case 'icps': setRevealStage('positioning'); break;
+            case 'positioning': setRevealStage('competitors'); break;
+            case 'competitors': setRevealStage('messaging'); break;
+            case 'messaging': setRevealStage('market'); break;
+            case 'market':
+                toast.success('Foundation Complete!', {
+                    description: 'Your marketing system is ready.'
+                });
+                router.push('/dashboard');
+                break;
+        }
+    };
 
 
 
@@ -386,6 +420,37 @@ export function QuestionFlowWizard() {
                 </div>
             </div>
         );
+    }
+
+    // Reveal Screens (Sequential: ICPs → Positioning → Competitors → Messaging → Market)
+    if (revealStage !== 'none' && derivedData) {
+        switch (revealStage) {
+            case 'icps':
+                if (derivedData.icps) {
+                    return <ICPRevealScreen icps={derivedData.icps} onContinue={handleRevealContinue} />;
+                }
+                break;
+            case 'positioning':
+                if (derivedData.positioning) {
+                    return <PositioningRevealScreen positioning={derivedData.positioning} onContinue={handleRevealContinue} />;
+                }
+                break;
+            case 'competitors':
+                if (derivedData.competitive) {
+                    return <CompetitorsRevealScreen competitive={derivedData.competitive} onContinue={handleRevealContinue} />;
+                }
+                break;
+            case 'messaging':
+                if (derivedData.soundbites) {
+                    return <MessagingRevealScreen soundbites={derivedData.soundbites} onContinue={handleRevealContinue} />;
+                }
+                break;
+            case 'market':
+                if (derivedData.market) {
+                    return <MarketRevealScreen market={derivedData.market} onComplete={handleRevealContinue} />;
+                }
+                break;
+        }
     }
 
     return (
