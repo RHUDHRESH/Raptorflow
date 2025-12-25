@@ -1,9 +1,10 @@
 import argparse
+import os
 
 import requests
 
 
-def smoke_test(base_url: str, token: str):
+def smoke_test(base_url: str, token: str, internal_key: str | None = None):
     """
     SOTA Production Smoke Test.
     Auth -> Matrix -> Agent Trace.
@@ -27,7 +28,10 @@ def smoke_test(base_url: str, token: str):
 
     # 2. Verify Deep Health
     print("Step 2: Checking System Health...")
-    res = requests.get(f"{base_url}/health", headers=headers, timeout=10)
+    health_headers = dict(headers)
+    if internal_key:
+        health_headers["X-RF-Internal-Key"] = internal_key
+    res = requests.get(f"{base_url}/health", headers=health_headers, timeout=10)
     if res.status_code == 200:
         print("✓ Deep Health Check Passed.")
     else:
@@ -48,7 +52,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Production Smoke Test")
     parser.add_argument("--url", help="Base URL of Production API", required=True)
     parser.add_argument("--token", help="Auth Token", required=True)
+    parser.add_argument(
+        "--internal-key",
+        help="Internal key for deep health checks (overrides RF_INTERNAL_KEY env).",
+    )
 
     # args = parser.parse_args()
-    # smoke_test(args.url, args.token)
+    # smoke_test(
+    #     args.url,
+    #     args.token,
+    #     args.internal_key or os.getenv("RF_INTERNAL_KEY"),
+    # )
     print("SOTA Smoke Test Initialized. Ready for Production Gates.")
