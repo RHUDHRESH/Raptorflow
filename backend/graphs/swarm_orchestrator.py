@@ -13,6 +13,7 @@ from backend.models.cognitive import (
     RoutingMetadata,
     SharedMemoryHandles,
 )
+from backend.models.queue_controller import CapabilityProfile, QueueController
 
 logger = logging.getLogger("raptorflow.swarm.orchestrator")
 
@@ -207,6 +208,17 @@ class SwarmOrchestrator:
         state.setdefault("delegation_history", [])
         state.setdefault("shared_knowledge", {})
         state.setdefault("swarm_tasks", [])
+        queue_controller = state.get("queue_controller")
+        capability_profile = (
+            state.get("capability_profile")
+            or getattr(queue_controller, "capability_profile", None)
+            or CapabilityProfile()
+        )
+        state.setdefault("capability_profile", capability_profile)
+        state.setdefault(
+            "queue_controller",
+            queue_controller or QueueController(capability_profile=capability_profile),
+        )
         return state
 
     async def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
