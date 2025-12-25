@@ -1,8 +1,9 @@
-import abc
 import logging
 import time
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+from backend.core.tool_registry import MatrixSkill
 
 logger = logging.getLogger("raptorflow.skills.matrix")
 
@@ -42,24 +43,6 @@ class SkillPrivilegeMatrix:
         """Verifies if a role can execute a specific skill."""
         allowed_skills = self._matrix.get(role, [])
         return skill_name in allowed_skills
-
-
-class MatrixSkill(abc.ABC):
-    """
-    Base class for all Matrix specialized skills.
-    Skills are deterministic tools that agents can use to manipulate system state.
-    """
-
-    @property
-    @abc.abstractmethod
-    def name(self) -> str:
-        """The unique name of the skill."""
-        pass
-
-    @abc.abstractmethod
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Executes the skill logic."""
-        pass
 
 
 class SkillRegistry:
