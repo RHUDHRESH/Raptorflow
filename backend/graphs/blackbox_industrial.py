@@ -17,6 +17,7 @@ class AnalysisState(TypedDict):
     reflection: str
     confidence: float
     status: str
+    evaluation: Dict
 
 
 _budget_governor = BudgetGovernor()
@@ -198,6 +199,20 @@ def should_continue(state: AnalysisState) -> str:
     return "__end__"
 
 
+def evaluate_run(state: AnalysisState) -> Dict:
+    """Evaluates telemetry and findings at the end of the run."""
+    from backend.services.evaluation import EvaluationService
+
+    evaluator = EvaluationService()
+    evaluation = evaluator.evaluate_run(
+        telemetry_events=state.get("telemetry_events", state.get("telemetry_data", [])),
+        output_summary=state.get("reflection") or "\n".join(state.get("findings", [])),
+        run_id=state.get("move_id"),
+        tenant_id=state.get("tenant_id"),
+    )
+    return {"evaluation": evaluation}
+
+
 def create_blackbox_graph():
     """
     Constructs and returns the Blackbox Analysis Graph.
@@ -212,6 +227,7 @@ def create_blackbox_graph():
     workflow.add_node("attribute_outcomes", attribute_outcomes_node)
     workflow.add_node("supervisor", supervisor_node)
     workflow.add_node("reflect_and_validate", reflect_and_validate_node)
+    workflow.add_node("evaluate", evaluate_run)
 
     workflow.add_edge(START, "ingest_telemetry")
     workflow.add_edge("ingest_telemetry", "extract_insights")
@@ -220,7 +236,10 @@ def create_blackbox_graph():
     workflow.add_edge("supervisor", "reflect_and_validate")
 
     workflow.add_conditional_edges(
-        "reflect_and_validate", should_continue, {"retry": "supervisor", "__end__": END}
+        "reflect_and_validate",
+        should_continue,
+        {"retry": "supervisor", "__end__": "evaluate"},
     )
+    workflow.add_edge("evaluate", END)
 
     return workflow.compile()

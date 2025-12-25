@@ -1,7 +1,5 @@
 import operator
-from typing import Annotated, Awaitable, Callable, Dict, List, TypedDict
-
-from backend.services.budget_governor import BudgetGovernor
+from typing import Annotated, Any, Dict, List, TypedDict
 
 
 class AnalysisState(TypedDict):
@@ -20,29 +18,7 @@ class AnalysisState(TypedDict):
     reflection: str
     confidence: float
     status: Annotated[List[str], operator.add]
-
-
-_budget_governor = BudgetGovernor()
-
-
-def _budgeted_agent(
-    agent: Callable[[Dict], Awaitable[Dict]], agent_id: str
-) -> Callable[[AnalysisState], Awaitable[Dict]]:
-    async def _node(state: AnalysisState) -> Dict:
-        workspace_id = state.get("workspace_id") or state.get("tenant_id")
-        budget_check = await _budget_governor.check_budget(
-            workspace_id=workspace_id, agent_id=agent_id
-        )
-        if not budget_check["allowed"]:
-            return {
-                "status": ["error"],
-                "findings": [
-                    f"Budget governor blocked {agent_id}: {budget_check['reason']}"
-                ],
-            }
-        return await agent(state)
-
-    return _node
+    evaluation: Dict[str, Any]
 
 
 def get_blackbox_service():
@@ -144,6 +120,20 @@ def should_continue(state: AnalysisState) -> str:
     return "__end__"
 
 
+def evaluate_run(state: AnalysisState) -> Dict[str, Any]:
+    """Evaluates telemetry and findings at the end of the run."""
+    from backend.services.evaluation import EvaluationService
+
+    evaluator = EvaluationService()
+    evaluation = evaluator.evaluate_run(
+        telemetry_events=state.get("telemetry_events", state.get("telemetry_data", [])),
+        output_summary=state.get("reflection") or "\n".join(state.get("findings", [])),
+        run_id=state.get("move_id"),
+        tenant_id=state.get("tenant_id"),
+    )
+    return {"evaluation": evaluation}
+
+
 def create_blackbox_graph():
     """
     Constructs and returns the Blackbox Analysis Graph.
@@ -170,19 +160,12 @@ def create_blackbox_graph():
     workflow.add_node("ingest_telemetry", ingest_telemetry_node)
     workflow.add_node("extract_insights", extract_insights_node)
     workflow.add_node("attribute_outcomes", attribute_outcomes_node)
-    workflow.add_node("roi_analysis", _budgeted_agent(roi_analyst, "ROIAnalystAgent"))
-    workflow.add_node(
-        "drift_analysis", _budgeted_agent(drift_agent, "StrategicDriftAgent")
-    )
-    workflow.add_node(
-        "competitor_analysis",
-        _budgeted_agent(comp_agent, "CompetitorIntelligenceAgent"),
-    )
+    workflow.add_node("roi_analysis", roi_analyst)
+    workflow.add_node("drift_analysis", drift_agent)
+    workflow.add_node("competitor_analysis", comp_agent)
     workflow.add_node("reflect_and_validate", reflect_and_validate_node)
-    workflow.add_node(
-        "critique_analysis",
-        _budgeted_agent(critique_agent, "BlackboxCritiqueAgent"),
-    )
+    workflow.add_node("critique_analysis", critique_agent)
+    workflow.add_node("evaluate", evaluate_run)
 
     # 3. Define Flow
     workflow.add_edge(START, "ingest_telemetry")
@@ -205,7 +188,8 @@ def create_blackbox_graph():
     workflow.add_conditional_edges(
         "critique_analysis",
         should_continue,
-        {"extract_insights": "extract_insights", "__end__": END},
+        {"extract_insights": "extract_insights", "__end__": "evaluate"},
     )
+    workflow.add_edge("evaluate", END)
 
     return workflow.compile()
