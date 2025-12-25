@@ -11,8 +11,9 @@ from backend.core.crawler_pipeline import (
 
 class AdvancedCrawler:
     """
-    Industrial-grade Research Engine.
+    Industrial-grade Research Engine with Asset Parsing.
     Uses Firecrawl and Jina for surgical extraction, with BeautifulSoup fallback.
+    Enhanced with asset type detection and storage capabilities.
     """
 
     def __init__(self, max_concurrent: int = 5):

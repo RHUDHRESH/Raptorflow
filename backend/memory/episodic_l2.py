@@ -2,6 +2,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from backend.db import save_memory, vector_search
+from backend.memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
 
 logger = logging.getLogger("raptorflow.memory.episodic_l2")
 
@@ -23,11 +24,15 @@ class L2EpisodicMemory:
         content: str,
         embedding: List[float],
         metadata: Optional[Dict[str, Any]] = None,
+        workspace_importance: str = DEFAULT_IMPORTANCE,
+        agent_importance: str = DEFAULT_IMPORTANCE,
     ) -> str:
         """Saves a historical episode to pgvector."""
         if metadata is None:
             metadata = {}
         metadata["type"] = self.memory_type
+        policy = get_memory_policy()
+        metadata.update(policy.retention_metadata(workspace_importance, agent_importance))
 
         try:
             episode_id = await save_memory(
@@ -47,13 +52,18 @@ class L2EpisodicMemory:
         self,
         workspace_id: str,
         query_embedding: List[float],
-        limit: int = 5,
+        limit: Optional[int] = None,
         filters: Optional[Dict[str, Any]] = None,
+        workspace_importance: str = DEFAULT_IMPORTANCE,
+        agent_importance: str = DEFAULT_IMPORTANCE,
     ) -> List[Dict[str, Any]]:
         """Recalls similar past episodes using vector similarity search."""
         if filters is None:
             filters = {}
         filters["type"] = self.memory_type
+        if limit is None:
+            policy = get_memory_policy()
+            limit = policy.resolve(workspace_importance, agent_importance).recall_limit
 
         try:
             raw_results = await vector_search(

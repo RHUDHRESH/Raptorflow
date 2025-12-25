@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, List, Optional
 
-from backend.core.crawler_pipeline import CrawlPolicy, CrawlerPipeline, NormalizeStage
+from backend.core.crawler_pipeline import CrawlerPipeline, CrawlPolicy, NormalizeStage
 from backend.core.search_native import NativeSearch
 
 logger = logging.getLogger("raptorflow.research_engine")
