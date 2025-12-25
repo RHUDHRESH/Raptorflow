@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 
 from backend.core.cache import get_cache_client, get_cache_manager
 from backend.db import SupabaseSaver, get_db_connection, get_pool
+from backend.models.capabilities import CapabilityProfile
 from backend.models.telemetry import (
     AgentHealthStatus,
     AgentState,
@@ -12,8 +13,8 @@ from backend.models.telemetry import (
 from backend.services.cost_governor import CostGovernor
 from backend.services.latency_monitor import LatencyMonitor
 from backend.services.sanity_check import SystemSanityCheck
-from backend.services.swarm_health import SwarmHealthService
 from backend.services.storage_service import GCSLifecycleManager
+from backend.services.swarm_health import SwarmHealthService
 from backend.skills.matrix_skills import (
     ArchiveLogsSkill,
     CachePurgeSkill,
@@ -21,6 +22,7 @@ from backend.skills.matrix_skills import (
     InferenceThrottlingSkill,
     ResourceScalingSkill,
     RetrainTriggerSkill,
+    SkillPrivilegeMatrix,
     SkillRegistry,
     ToolExecutionWrapper,
 )
@@ -84,11 +86,22 @@ class MatrixService:
         self._registry.register(RetrainTriggerSkill())
 
     async def execute_skill(
-        self, skill_name: str, params: Dict[str, Any]
+        self,
+        skill_name: str,
+        params: Dict[str, Any],
+        capability_profile: Optional[CapabilityProfile] = None,
+        rbac_matrix: Optional[SkillPrivilegeMatrix] = None,
     ) -> Dict[str, Any]:
         """
         Executes a Matrix skill by name with full observability.
         """
+        if capability_profile:
+            matrix = rbac_matrix or SkillPrivilegeMatrix()
+            if not capability_profile.allows_skill(skill_name, rbac_matrix=matrix):
+                return {
+                    "success": False,
+                    "error": f"Skill '{skill_name}' not permitted by capability profile.",
+                }
         skill = self._registry.get(skill_name)
         if not skill:
             return {"success": False, "error": f"Skill '{skill_name}' not found."}
