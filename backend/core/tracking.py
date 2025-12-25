@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict, List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 logger = logging.getLogger("raptorflow.core.tracking")
 

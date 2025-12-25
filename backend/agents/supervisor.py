@@ -1,13 +1,10 @@
 import logging
-import uuid
 from datetime import datetime
-from typing import Annotated, Any, Dict, List, Literal, Optional, TypedDict
+from typing import Annotated, Any, Dict, List, Optional, TypedDict
 
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Field
-
-from backend.inference import InferenceProvider
 
 logger = logging.getLogger("raptorflow.supervisor")
 
