@@ -57,7 +57,7 @@ describe('System Audit: Frontend-to-Backend Connectivity', () => {
     it('initiates PhonePe payment via the new payments endpoint', async () => {
         (global.fetch as unknown as Mock).mockResolvedValueOnce({
             ok: true,
-            json: async () => ({ url: 'https://phonepe.com/pay', payload: '...', checksum: '...' }),
+            json: async () => ({ url: 'https://phonepe.com/pay' }),
         });
 
         const result = await initiatePayment('user-123', 100, 'tx-001', 'http://localhost:3000');

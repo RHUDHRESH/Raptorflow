@@ -1,66 +1,47 @@
-import base64
-import json
+import os
+from unittest.mock import Mock
 
 from backend.services.payment_service import PaymentService
 
 
-def test_generate_checksum():
-    """Verify X-VERIFY checksum generation logic."""
-    service = PaymentService()
-    service.salt_key = "test_salt"
-    service.salt_index = 1
-
-    payload = "test_payload"
-    endpoint = "/test"
-
-    # Manually calculate expected checksum
-    import hashlib
-
-    main_string = payload + endpoint + "test_salt"
-    sha256 = hashlib.sha256(main_string.encode("utf-8")).hexdigest()
-    expected = f"{sha256}###1"
-
-    assert service._generate_checksum(payload, endpoint) == expected
+def _set_phonepe_env() -> None:
+    os.environ.setdefault("PHONEPE_CLIENT_ID", "client-id")
+    os.environ.setdefault("PHONEPE_CLIENT_SECRET", "client-secret")
+    os.environ.setdefault("PHONEPE_CLIENT_VERSION", "1")
+    os.environ.setdefault("PHONEPE_ENV", "SANDBOX")
+    os.environ.setdefault("PHONEPE_WEBHOOK_USERNAME", "webhook-user")
+    os.environ.setdefault("PHONEPE_WEBHOOK_PASSWORD", "webhook-pass")
 
 
-def test_initiate_payment():
-    """Verify payment initiation payload structure."""
-    service = PaymentService()
-    service.merchant_id = "MID123"
+def test_initiate_payment_calls_sdk_with_expected_payload():
+    _set_phonepe_env()
+    gateway = Mock()
+    gateway.pay.return_value = {"redirectUrl": "https://phonepe.com/checkout"}
 
-    res = service.initiate_payment("user1", 100.0, "tx123", "http://redirect")
+    service = PaymentService(gateway=gateway)
+    result = service.initiate_payment(
+        "user1", 100.0, "order-123", "http://redirect"
+    )
 
-    assert "url" in res
-    assert "payload" in res
-    assert "checksum" in res
-
-    # Decode payload
-    decoded = base64.b64decode(res["payload"]).decode("utf-8")
-    data = json.loads(decoded)
-
-    assert data["merchantId"] == "MID123"
-    assert data["amount"] == 10000  # 100 * 100 paise
-    assert data["merchantTransactionId"] == "tx123"
+    gateway.pay.assert_called_once_with("order-123", 10000, "http://redirect")
+    assert result["url"] == "https://phonepe.com/checkout"
+    assert result["merchantOrderId"] == "order-123"
 
 
-def test_verify_webhook_success():
-    """Verify webhook validation with correct checksum."""
-    service = PaymentService()
-    service.salt_key = "test_salt"
-    service.salt_index = 1
+def test_webhook_validation_is_idempotent():
+    _set_phonepe_env()
+    gateway = Mock()
+    gateway.validate_callback.return_value = {
+        "payload": {"merchantOrderId": "order-123"}
+    }
+    gateway.get_order_status.return_value = {"state": "COMPLETED"}
 
-    response_payload = "test_response"
+    service = PaymentService(gateway=gateway)
 
-    import hashlib
+    first = service.handle_webhook("auth", "payload")
+    second = service.handle_webhook("auth", "payload")
 
-    main_string = response_payload + "test_salt"
-    sha256 = hashlib.sha256(main_string.encode("utf-8")).hexdigest()
-    x_verify = f"{sha256}###1"
-
-    assert service.verify_webhook(x_verify, response_payload) is True
-
-
-def test_verify_webhook_failure():
-    """Verify webhook validation fails with incorrect checksum."""
-    service = PaymentService()
-    assert service.verify_webhook("wrong", "payload") is False
+    assert first["status"] == "received"
+    assert second["status"] == "already_processed"
+    gateway.validate_callback.assert_called()
+    gateway.get_order_status.assert_called_once_with("order-123")

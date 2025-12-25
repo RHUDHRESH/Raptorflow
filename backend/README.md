@@ -20,6 +20,41 @@ This is the Python-based creative engine for RaptorFlow, built with FastAPI and 
    - `INFERENCE_PROVIDER`: "google" (default).
    - `RF_INTERNAL_KEY`: Secret key for API auth.
 
+### PhonePe Standard Checkout v2
+Set the following environment variables for PhonePe checkout:
+- `PHONEPE_CLIENT_ID`: Client ID from PhonePe dashboard.
+- `PHONEPE_CLIENT_SECRET`: Client secret from PhonePe dashboard.
+- `PHONEPE_CLIENT_VERSION`: Client version (e.g., `1`).
+- `PHONEPE_ENV`: `SANDBOX` for UAT or `PRODUCTION` for live payments.
+- `PHONEPE_WEBHOOK_USERNAME`: Webhook username configured in the PhonePe portal.
+- `PHONEPE_WEBHOOK_PASSWORD`: Webhook password configured in the PhonePe portal.
+
+**SANDBOX vs PRODUCTION**
+- Use `PHONEPE_ENV=SANDBOX` for testing against the sandbox environment.
+- Use `PHONEPE_ENV=PRODUCTION` when going live; ensure webhook credentials and redirect URLs are updated.
+
+### How to test locally (PhonePe)
+1. Run the backend:
+   ```bash
+   uvicorn backend.main:app --reload
+   ```
+2. Start an ngrok tunnel for the webhook endpoint:
+   ```bash
+   ngrok http 8000
+   ```
+3. Configure the PhonePe webhook URL to:
+   ```
+   https://<ngrok-subdomain>.ngrok.io/v1/payments/webhook
+   ```
+4. Initiate a payment:
+   ```bash
+   curl -X POST "http://localhost:8000/v1/payments/initiate?user_id=test&amount=10.5&transaction_id=order-123&redirect_url=http://localhost:3000/success"
+   ```
+5. Check order status after redirect (optional):
+   ```bash
+   curl "http://localhost:8000/v1/payments/status/order-123"
+   ```
+
 ## Deployment
 Deploy to Google Cloud Run:
 ```bash
