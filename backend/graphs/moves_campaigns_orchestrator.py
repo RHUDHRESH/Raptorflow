@@ -1,6 +1,7 @@
 import operator
 from typing import Annotated, List, Optional, TypedDict
 
+from langchain_core.messages import SystemMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
@@ -22,6 +23,7 @@ from backend.core.config import get_settings
 from backend.db import SupabaseSaver, get_pool, save_campaign
 from backend.inference import InferenceProvider
 from backend.memory.long_term import LongTermMemory
+from backend.memory.peer_review import PeerReviewMemory
 from backend.memory.semantic import SemanticMemory
 
 
@@ -51,6 +53,7 @@ class MovesCampaignsState(TypedDict):
     # Multi-Agent State
     last_agent: str
     messages: Annotated[List[str], operator.add]
+    peer_critiques: Annotated[List[dict], operator.add]
     error: Optional[str]
     status: str  # planning, execution, monitoring, complete
 
@@ -153,6 +156,60 @@ async def campaign_auditor(state: MovesCampaignsState):
         await save_campaign(tenant_id, campaign_data, campaign_id=campaign_id)
 
     return result
+
+
+async def peer_review(state: MovesCampaignsState):
+    """SOTA Peer Review Node: Agents critique each other's outputs."""
+    tenant_id = state.get("tenant_id")
+    if not tenant_id:
+        return {"messages": ["WARNING: No tenant_id for peer review."]}
+
+    llm = InferenceProvider.get_model(model_tier="reasoning")
+    critiques = []
+
+    review_targets = [
+        {
+            "reviewer": "Strategic Peer",
+            "target": "strategy_arc",
+            "focus": "campaign strategy arc",
+            "content": state.get("strategy_arc", {}),
+        },
+        {
+            "reviewer": "Execution Peer",
+            "target": "current_moves",
+            "focus": "weekly moves execution plan",
+            "content": state.get("current_moves", []),
+        },
+    ]
+
+    for target in review_targets:
+        if not target["content"]:
+            continue
+        prompt = f"""
+        # ROLE: {target['reviewer']}
+        # TASK: Critique the {target['focus']} produced by another agent.
+        # CONTENT: {target['content']}
+        # CRITERIA: Logic gaps, risk, missing details, misalignment.
+        """
+        response = await llm.ainvoke([SystemMessage(content=prompt)])
+        critiques.append(
+            {
+                "reviewer": target["reviewer"],
+                "target": target["target"],
+                "critique": response.content,
+            }
+        )
+
+    if not critiques:
+        return {"messages": ["Peer review skipped: no content to critique."]}
+
+    memory = PeerReviewMemory(tenant_id, state.get("workspace_id"))
+    await memory.append_critiques(critiques)
+
+    return {
+        "peer_critiques": critiques,
+        "messages": [f"Peer review completed with {len(critiques)} critiques."],
+    }
 
 
 async def approve_campaign(state: MovesCampaignsState):
@@ -263,6 +320,7 @@ workflow = StateGraph(MovesCampaignsState)
 workflow.add_node("init", initialize_orchestrator)
 workflow.add_node("inject_context", inject_context)
 workflow.add_node("plan_campaign", plan_campaign)
+workflow.add_node("peer_review", peer_review)
 workflow.add_node("campaign_auditor", campaign_auditor)
 workflow.add_node("approve_campaign", approve_campaign)
 workflow.add_node("generate_moves", generate_moves)
@@ -291,12 +349,14 @@ workflow.add_conditional_edges(
     },
 )
 
-workflow.add_edge("plan_campaign", "campaign_auditor")
+workflow.add_edge("plan_campaign", "peer_review")
+workflow.add_edge("peer_review", "campaign_auditor")
 workflow.add_edge("campaign_auditor", "approve_campaign")
 workflow.add_edge("approve_campaign", "memory_updater")
 
 workflow.add_edge("generate_moves", "refine_moves")
-workflow.add_edge("refine_moves", "check_resources")
+workflow.add_edge("refine_moves", "peer_review")
+workflow.add_edge("peer_review", "check_resources")
 workflow.add_edge("check_resources", "persist_moves")
 workflow.add_edge("persist_moves", "execute_skills")
 workflow.add_edge("execute_skills", "validate_safety")
