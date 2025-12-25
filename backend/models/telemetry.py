@@ -15,6 +15,7 @@ class TelemetryEventType(str, Enum):
     TOOL_END = "tool_end"
     ERROR = "error"
     SYSTEM_HALT = "system_halt"
+    STATE_TRANSITION = "state_transition"
 
 
 class AgentHealthStatus(str, Enum):
