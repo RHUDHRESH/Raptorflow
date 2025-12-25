@@ -3,6 +3,7 @@ from typing import List, TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from backend.agents.specialists.strategy import ICPArchitectAgent, OfferArchitectAgent
+from backend.services.budget_governor import BudgetGovernor
 
 
 class CampaignState(TypedDict):
@@ -16,14 +17,37 @@ class CampaignState(TypedDict):
     status: str
 
 
+_budget_governor = BudgetGovernor()
+
+
+async def _guard_budget(state: CampaignState, agent_id: str) -> dict:
+    workspace_id = state.get("workspace_id")
+    budget_check = await _budget_governor.check_budget(
+        workspace_id=workspace_id, agent_id=agent_id
+    )
+    if not budget_check["allowed"]:
+        return {
+            "status": "error",
+            "icps": [],
+            "offer": {},
+        }
+    return {}
+
+
 async def define_audience(state: CampaignState):
     agent = ICPArchitectAgent()
+    budget_guard = await _guard_budget(state, "ICPArchitectAgent")
+    if budget_guard:
+        return budget_guard
     res = await agent.build_profile(state["goal"])
     return {"icps": [res.content], "status": "offer_creation"}
 
 
 async def craft_offer(state: CampaignState):
     agent = OfferArchitectAgent()
+    budget_guard = await _guard_budget(state, "OfferArchitectAgent")
+    if budget_guard:
+        return budget_guard
     res = await agent.structure_offer(state["goal"])
     return {"offer": {"raw": res.content}, "status": "content_planning"}
 

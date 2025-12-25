@@ -1,6 +1,8 @@
 import operator
 from typing import Annotated, Dict, List, TypedDict
 
+from backend.services.budget_governor import BudgetGovernor
+
 
 class AnalysisState(TypedDict):
     """
@@ -15,6 +17,25 @@ class AnalysisState(TypedDict):
     reflection: str
     confidence: float
     status: str
+
+
+_budget_governor = BudgetGovernor()
+
+
+async def _guard_budget(state: AnalysisState, agent_id: str) -> Dict:
+    workspace_id = state.get("workspace_id") or state.get("tenant_id")
+    budget_check = await _budget_governor.check_budget(
+        workspace_id=workspace_id, agent_id=agent_id
+    )
+    if not budget_check["allowed"]:
+        return {
+            "status": "error",
+            "findings": [
+                f"Budget governor blocked {agent_id}: {budget_check['reason']}"
+            ],
+            "reflection": budget_check["reason"],
+        }
+    return {}
 
 
 def ingest_telemetry_node(state: AnalysisState) -> Dict:
@@ -79,7 +100,7 @@ def attribute_outcomes_node(state: AnalysisState) -> Dict:
     return {"outcomes": result.data, "status": "attributed"}
 
 
-def supervisor_node(state: AnalysisState) -> Dict:
+async def supervisor_node(state: AnalysisState) -> Dict:
     """
     Node: Orchestrates specialized agents (ROI, Drift, Competitor)
     to provide a multi-faceted analysis.
@@ -91,10 +112,16 @@ def supervisor_node(state: AnalysisState) -> Dict:
     move_id = state["move_id"]
 
     # 1. ROI Analysis
+    budget_guard = await _guard_budget(state, "ROIAnalystAgent")
+    if budget_guard:
+        return budget_guard
     roi_agent = ROIAnalystAgent()
     roi_result = roi_agent.run(move_id, {"outcomes": state.get("outcomes", [])})
 
     # 2. Strategic Drift Detection
+    budget_guard = await _guard_budget(state, "StrategicDriftAgent")
+    if budget_guard:
+        return budget_guard
     drift_agent = StrategicDriftAgent()
     drift_result = drift_agent.run(
         move_id,
@@ -102,6 +129,9 @@ def supervisor_node(state: AnalysisState) -> Dict:
     )
 
     # 3. Competitor Intelligence
+    budget_guard = await _guard_budget(state, "CompetitorIntelligenceAgent")
+    if budget_guard:
+        return budget_guard
     intel_agent = CompetitorIntelligenceAgent()
     intel_result = intel_agent.run(
         move_id, {"telemetry_data": state.get("telemetry_data", [])}

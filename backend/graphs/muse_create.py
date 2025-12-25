@@ -4,21 +4,49 @@ from datetime import datetime
 from langgraph.graph import END, START, StateGraph
 
 from backend.agents.base import BaseCognitiveAgent
-from backend.agents.shared.agents import QualityGate
+from backend.agents.shared.agents import IntentRouter, QualityGate
 from backend.agents.shared.context_assembler import ContextAssemblerAgent
-from backend.graphs.swarm_orchestrator import SwarmController
-from backend.models.cognitive import AgentMessage, CognitiveStatus
-from backend.models.swarm import SwarmState
+from backend.models.cognitive import (
+    AgentMessage,
+    CognitiveIntelligenceState,
+    CognitiveStatus,
+)
+from backend.services.budget_governor import BudgetGovernor
 
 logger = logging.getLogger("raptorflow.graphs.muse_create")
+
+_budget_governor = BudgetGovernor()
+
+
+async def _guard_budget(state: CognitiveIntelligenceState, agent_id: str) -> dict:
+    workspace_id = state.get("workspace_id") or state.get("tenant_id")
+    budget_check = await _budget_governor.check_budget(
+        workspace_id=workspace_id, agent_id=agent_id
+    )
+    if not budget_check["allowed"]:
+        return {
+            "status": CognitiveStatus.ERROR,
+            "messages": [
+                AgentMessage(
+                    role="system",
+                    content=f"Budget governor blocked {agent_id}: {budget_check['reason']}",
+                )
+            ],
+            "error": budget_check["reason"],
+        }
+    return {}
+
 
 # --- Nodes ---
 
 
-async def router_node(state: SwarmState):
+async def router_node(state: CognitiveIntelligenceState):
     """A00: Determines the intent and family of the asset."""
-    controller = SwarmController()
-    intent = await controller.route_intent(state["raw_prompt"])
+    router = IntentRouter()
+    budget_guard = await _guard_budget(state, "IntentRouter")
+    if budget_guard:
+        return budget_guard
+    intent = await router.execute(state["raw_prompt"])
 
     # Initialize brief with intent
     brief = state.get("brief", {})
@@ -39,9 +67,12 @@ async def router_node(state: SwarmState):
     }
 
 
-async def context_node(state: SwarmState):
+async def context_node(state: CognitiveIntelligenceState):
     """A03: Pulls full context including learned memories."""
     assembler = ContextAssemblerAgent()
+    budget_guard = await _guard_budget(state, "ContextAssemblerAgent")
+    if budget_guard:
+        return budget_guard
     # Assuming workspace_id and tenant_id are present in state
     ctx = await assembler.assemble(
         state.get("workspace_id", "default"),
@@ -66,7 +97,7 @@ async def context_node(state: SwarmState):
     }
 
 
-async def drafting_node(state: SwarmState):
+async def drafting_node(state: CognitiveIntelligenceState):
     """A04: Generates the first draft of the asset."""
     family = state["brief"].get("asset_family", "text")
 
@@ -76,6 +107,9 @@ async def drafting_node(state: SwarmState):
 
         # 1. Generate visual prompt first
         prompter = VisualPrompter(InferenceProvider.get_model("reasoning"))
+        budget_guard = await _guard_budget(state, "VisualPrompter")
+        if budget_guard:
+            return budget_guard
         # VisualPrompter expects TypedDict state, but CognitiveIntelligenceState is similar
         # We might need a small adapter if schemas differ significantly
         prompt_res = await prompter(state)
@@ -83,6 +117,9 @@ async def drafting_node(state: SwarmState):
 
         # 2. Generate actual image
         architect = ImageArchitect(model_tier="nano")
+        budget_guard = await _guard_budget(state, "ImageArchitect")
+        if budget_guard:
+            return budget_guard
         res = await architect(state)
 
         if "error" in res:
@@ -106,6 +143,9 @@ async def drafting_node(state: SwarmState):
     )
 
     # We pass the full state to the agent
+    budget_guard = await _guard_budget(state, "BaseCognitiveAgent:drafter")
+    if budget_guard:
+        return budget_guard
     res = await drafter(state)
 
     # Extract the content from the message
@@ -122,9 +162,12 @@ async def drafting_node(state: SwarmState):
     }
 
 
-async def reflection_node(state: SwarmState):
+async def reflection_node(state: CognitiveIntelligenceState):
     """A05: Critiques the draft against the quality gate."""
     gate = QualityGate()
+    budget_guard = await _guard_budget(state, "QualityGate")
+    if budget_guard:
+        return budget_guard
 
     # Get the latest draft
     last_asset = state["generated_assets"][-1]["content"]
@@ -157,7 +200,7 @@ async def reflection_node(state: SwarmState):
     }
 
 
-def decide_refinement(state: SwarmState):
+def decide_refinement(state: CognitiveIntelligenceState):
     """Conditional edge: Should we refine or finalize?"""
     last_reflection = state["reflection_log"][-1]
 
@@ -167,7 +210,7 @@ def decide_refinement(state: SwarmState):
     return "finalize"
 
 
-async def refinement_node(state: SwarmState):
+async def refinement_node(state: CognitiveIntelligenceState):
     """A06: Refines the asset based on critique."""
     # last_asset = state["generated_assets"][-1]["content"]
     # fixes = state["reflection_log"][-1]["fixes"]
@@ -185,6 +228,9 @@ async def refinement_node(state: SwarmState):
     # We can't easily change the state raw_prompt here without side effects,
     # but BaseCognitiveAgent uses state['messages'] which includes the history.
 
+    budget_guard = await _guard_budget(state, "BaseCognitiveAgent:refiner")
+    if budget_guard:
+        return budget_guard
     res = await refiner(state)
 
     refined_content = res["messages"][0].content
@@ -204,7 +250,7 @@ async def refinement_node(state: SwarmState):
     }
 
 
-async def finalize_node(state: SwarmState):
+async def finalize_node(state: CognitiveIntelligenceState):
     """A07: Finalizes the asset and prepares for delivery."""
     last_asset = state["generated_assets"][-1]
     last_asset["version"] = "final"
@@ -220,7 +266,7 @@ async def finalize_node(state: SwarmState):
     }
 
 
-async def memory_update_node(state: SwarmState):
+async def memory_update_node(state: CognitiveIntelligenceState):
     """A06: Learns from the final result vs initial draft."""
     if len(state["generated_assets"]) > 1:
         # Placeholder for actual memory update logic
@@ -237,7 +283,7 @@ async def memory_update_node(state: SwarmState):
 
 
 def build_muse_spine():
-    workflow = StateGraph(SwarmState)
+    workflow = StateGraph(CognitiveIntelligenceState)
 
     workflow.add_node("router", router_node)
     workflow.add_node("context", context_node)
