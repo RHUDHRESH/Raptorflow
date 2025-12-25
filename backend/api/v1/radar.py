@@ -3,7 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from backend.core.auth import get_tenant_id
+from backend.core.auth import get_current_user, get_tenant_id
 from backend.core.vault import Vault
 from backend.services.radar_service import RadarService
 
@@ -19,6 +19,7 @@ async def get_radar_service():
 async def scan_recon(
     icp_id: str,
     tenant_id: UUID = Depends(get_tenant_id),
+    _current_user: dict = Depends(get_current_user),
     service: RadarService = Depends(get_radar_service),
 ):
     """Performs a competitive signals scan."""
@@ -32,6 +33,7 @@ async def scan_recon(
 async def scan_dossier(
     icp_id: str,
     tenant_id: UUID = Depends(get_tenant_id),
+    _current_user: dict = Depends(get_current_user),
     service: RadarService = Depends(get_radar_service),
 ):
     """Generates deep competitor dossiers."""
