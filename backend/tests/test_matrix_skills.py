@@ -2,7 +2,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.skills.matrix_skills import MatrixSkill, SkillRegistry
+from backend.core.tool_registry import MatrixSkill
+from backend.skills.matrix_skills import SkillRegistry
 
 
 class MockSkill(MatrixSkill):
