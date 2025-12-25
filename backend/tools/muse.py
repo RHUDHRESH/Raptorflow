@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from langchain_core.prompts import ChatPromptTemplate
 
-from backend.core.base_tool import BaseRaptorTool, RaptorRateLimiter
+from backend.core.tool_registry import BaseRaptorTool, RaptorRateLimiter
 from backend.core.prompts import MarketingFrameworks, MusePrompts
 from backend.inference import InferenceProvider
 
