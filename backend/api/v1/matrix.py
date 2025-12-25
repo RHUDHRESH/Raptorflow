@@ -4,10 +4,11 @@ from typing import Any, Dict
 from fastapi import APIRouter, Depends, HTTPException
 
 from backend.core.auth import get_current_user
+from backend.models.capabilities import CapabilityProfile
 from backend.services.cost_governor import CostGovernor
 from backend.services.drift_detection import DriftDetectionService
 from backend.services.matrix_service import MatrixService
-from backend.services.swarm_health import SwarmHealthService
+from backend.skills.matrix_skills import UserRole
 
 router = APIRouter(prefix="/v1/matrix", tags=["matrix"])
 
@@ -15,11 +16,6 @@ router = APIRouter(prefix="/v1/matrix", tags=["matrix"])
 def get_matrix_service():
     """Dependency provider for MatrixService."""
     return MatrixService()
-
-
-def get_swarm_health_service():
-    """Dependency provider for SwarmHealthService."""
-    return SwarmHealthService()
 
 
 @router.get("/overview")
@@ -30,16 +26,6 @@ async def get_overview(
 ):
     """Retrieves the aggregated health dashboard for the entire ecosystem."""
     return await service.get_aggregated_overview(workspace_id)
-
-
-@router.get("/swarm-health")
-async def get_swarm_health(
-    workspace_id: str | None = None,
-    _current_user: dict = Depends(get_current_user),
-    service: SwarmHealthService = Depends(get_swarm_health_service),
-):
-    """Retrieves swarm health metrics for operational dashboards."""
-    return await service.get_health(workspace_id)
 
 
 @router.post("/kill-switch")
@@ -75,7 +61,15 @@ async def execute_matrix_skill(
     """
     Executes a specific Matrix operator skill.
     """
-    result = await service.execute_skill(skill_name, params)
+    role = _current_user.get("role")
+    capability_profile = None
+    if role in {r.value for r in UserRole}:
+        capability_profile = CapabilityProfile(
+            name="matrix_api", rbac_role=UserRole(role)
+        )
+    result = await service.execute_skill(
+        skill_name, params, capability_profile=capability_profile
+    )
     if not result.get("success"):
         raise HTTPException(
             status_code=400, detail=result.get("error", "Failed to execute skill")

@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from backend.core.prompts import MovePrompts
 from backend.core.toolbelt import ToolbeltV2
 from backend.db import log_agent_decision, save_move
-from backend.services.budget_governor import BudgetGovernor
+from backend.models.capabilities import CapabilityProfile
 
 logger = logging.getLogger("raptorflow.agents.moves")
 
@@ -194,9 +194,8 @@ class SkillExecutor:
     Orchestrates tool calls for a move based on its required skills.
     """
 
-    def __init__(self):
-        self.belt = ToolbeltV2()
-        self.budget_governor = BudgetGovernor()
+    def __init__(self, capability_profile: Optional[CapabilityProfile] = None):
+        self.belt = ToolbeltV2(capability_profile=capability_profile)
 
     async def __call__(self, state: TypedDict):
         """Execute tools for the current moves."""
@@ -206,10 +205,6 @@ class SkillExecutor:
 
         results = []
         messages = []
-        tool_usage = dict(state.get("tool_usage", {}) or {})
-        budget_usage = dict(state.get("budget_usage", {}) or {})
-        budget_usage.setdefault("active_tool_calls", 0)
-        budget_usage.setdefault("tool_calls", 0)
 
         for move in moves:
             # Map required_skills to tool_names in ToolbeltV2.
@@ -225,26 +220,6 @@ class SkillExecutor:
                 if tool_name:
                     logger.info(f"Executing skill '{skill}' via tool '{tool_name}'...")
 
-                    decision = self.budget_governor.evaluate(
-                        state,
-                        agent_id=state.get("last_agent", "orchestrator"),
-                        tool_name=tool_name,
-                        concurrency=budget_usage.get("active_tool_calls", 0),
-                    )
-                    await self.budget_governor.apply_decision(
-                        decision, agent_id=state.get("last_agent", "orchestrator")
-                    )
-                    if not decision.allowed:
-                        messages.append(
-                            f"✗ Budget gate blocked tool '{tool_name}': {decision.reason}"
-                        )
-                        continue
-
-                    if decision.action == "throttle":
-                        messages.append(
-                            f"⚠ Budget throttle active for '{tool_name}': {decision.reason}"
-                        )
-
                     # Prepare tool inputs based on skill type
                     tool_kwargs = {"query": move.get("title")}  # Default
                     if skill in ["Copy", "ImageGen"]:
@@ -256,15 +231,7 @@ class SkillExecutor:
                             "context": move.get("description"),
                         }
 
-                    budget_usage["active_tool_calls"] = (
-                        budget_usage.get("active_tool_calls", 0) + 1
-                    )
                     res = await self.belt.run_tool(tool_name, **tool_kwargs)
-                    budget_usage["active_tool_calls"] = max(
-                        budget_usage.get("active_tool_calls", 1) - 1, 0
-                    )
-                    budget_usage["tool_calls"] = budget_usage.get("tool_calls", 0) + 1
-                    tool_usage[tool_name] = tool_usage.get(tool_name, 0) + 1
 
                     if res["success"]:
                         results.append(
@@ -281,12 +248,7 @@ class SkillExecutor:
                     else:
                         messages.append(f"✗ Skill '{skill}' failed: {res['error']}")
 
-        return {
-            "pending_moves": results,
-            "messages": messages,
-            "tool_usage": tool_usage,
-            "budget_usage": budget_usage,
-        }
+        return {"pending_moves": results, "messages": messages}
 
 
 class SafetyValidator:
