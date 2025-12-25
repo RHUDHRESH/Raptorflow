@@ -7,5 +7,8 @@
     "start": "npm --prefix raptorflow-app run start",
     "lint": "npm --prefix raptorflow-app run lint",
     "test": "npm --prefix raptorflow-app run test"
+  },
+  "dependencies": {
+    "pg-sdk-node": "^2.0.2"
   }
 }

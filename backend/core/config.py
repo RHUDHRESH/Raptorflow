@@ -62,10 +62,13 @@ class Config(BaseSettings):
     PERPLEXITY_API_KEY: Optional[str] = None
     BRAVE_SEARCH_API_KEY: Optional[str] = None
 
-    # Payment Configuration
-    PHONEPE_MERCHANT_ID: Optional[str] = None
-    PHONEPE_SALT_KEY: Optional[str] = None
-    PHONEPE_SALT_INDEX: int = 1
+    # Payment Configuration (PhonePe Standard Checkout v2)
+    PHONEPE_CLIENT_ID: Optional[str] = None
+    PHONEPE_CLIENT_SECRET: Optional[str] = None
+    PHONEPE_CLIENT_VERSION: Optional[int] = None
+    PHONEPE_ENV: Optional[str] = None
+    PHONEPE_WEBHOOK_USERNAME: Optional[str] = None
+    PHONEPE_WEBHOOK_PASSWORD: Optional[str] = None
 
     # Security
     SECRET_KEY: str = "industrial-secret-placeholder"
