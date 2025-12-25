@@ -4,6 +4,7 @@ from typing import Annotated, List, Optional, TypedDict
 
 from pydantic import BaseModel, Field
 
+from backend.models.queue_controller import CapabilityProfile, QueueController
 
 class FortressTask(BaseModel):
     """SOTA structured task representation."""
@@ -34,6 +35,8 @@ class FortressState(TypedDict):
     task_queue: Annotated[List[FortressTask], operator.add]
     current_task_id: Optional[str]
     next_node: str  # The routing signal
+    capability_profile: CapabilityProfile
+    queue_controller: QueueController
 
     # Memory & Context
     messages: Annotated[List[any], operator.add]
