@@ -1,5 +1,5 @@
 from typing import Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -53,8 +53,11 @@ async def create_muse_asset(
             "error": None,
         }
 
+        base_thread_id = request.thread_id or str(uuid4())
+        thread_id = f"{tenant_id}:{_current_user['id']}:{base_thread_id}"
+
         # Configuration for LangGraph (thread_id for persistence)
-        config = {"configurable": {"thread_id": request.thread_id or "default"}}
+        config = {"configurable": {"thread_id": thread_id}}
 
         # Execute the graph
         # For a production build, this might be backgrounded or streamed.
@@ -70,7 +73,7 @@ async def create_muse_asset(
         return MuseResponse(
             status=result["status"],
             asset_content=final_asset,
-            thread_id=request.thread_id or "default",
+            thread_id=thread_id,
             quality_score=result.get("quality_score", 0.0),
         )
 
