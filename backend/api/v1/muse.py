@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from backend.core.auth import get_current_user, get_tenant_id
 from backend.graphs.muse_create import build_muse_spine
-from backend.models.cognitive import CognitiveStatus
+from backend.models.cognitive import CognitiveStatus, LifecycleState
 
 router = APIRouter(prefix="/v1/muse", tags=["muse"])
 
@@ -45,6 +45,8 @@ async def create_muse_asset(
             "generated_assets": [],
             "reflection_log": [],
             "status": CognitiveStatus.IDLE,
+            "lifecycle_state": LifecycleState.IDLE,
+            "lifecycle_transitions": [],
             "cost_accumulator": 0.0,
             "token_usage": {},
             "brief": {},

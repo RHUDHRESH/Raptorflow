@@ -5,6 +5,7 @@ from langgraph.graph import END, START, StateGraph
 
 from backend.core.config import get_settings
 from backend.db import SupabaseSaver, get_pool
+from backend.core.lifecycle import apply_lifecycle_transition
 from backend.models.cognitive import CognitiveIntelligenceState, CognitiveStatus
 
 logger = logging.getLogger("raptorflow.cognitive.spine")
@@ -19,12 +20,16 @@ async def initialize_cognitive_engine(state: CognitiveIntelligenceState):
     Sets up the initial state and transitions status to PLANNING.
     """
     logger.info(f"Initializing cognitive engine for tenant: {state.get('tenant_id')}")
-    return {
-        "status": CognitiveStatus.PLANNING,
-        "messages": [],
-        "cost_accumulator": 0.0,
-        "quality_score": 0.0,
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.PLANNING,
+        "initializer",
+        {
+            "messages": [],
+            "cost_accumulator": 0.0,
+            "quality_score": 0.0,
+        },
+    )
 
 
 async def finalize_run(state: CognitiveIntelligenceState):
@@ -33,7 +38,7 @@ async def finalize_run(state: CognitiveIntelligenceState):
     Cleans up state and ensures persistence.
     """
     logger.info("Cognitive run complete.")
-    return {"status": CognitiveStatus.COMPLETE}
+    return apply_lifecycle_transition(state, CognitiveStatus.COMPLETE, "finalize")
 
 
 async def handle_error(state: CognitiveIntelligenceState):
@@ -43,7 +48,12 @@ async def handle_error(state: CognitiveIntelligenceState):
     """
     error = state.get("error") or "Unknown cognitive error."
     logger.error(f"Cognitive Engine Error: {error}")
-    return {"status": CognitiveStatus.ERROR, "messages": [f"CRITICAL ERROR: {error}"]}
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.ERROR,
+        "error_handler",
+        {"messages": [f"CRITICAL ERROR: {error}"]},
+    )
 
 
 async def approve_assets(state: CognitiveIntelligenceState):
@@ -52,7 +62,12 @@ async def approve_assets(state: CognitiveIntelligenceState):
     Awaits human approval for generated marketing assets.
     """
     logger.info("Awaiting human approval for generated assets.")
-    return {"messages": ["Assets submitted for human review."]}
+    return apply_lifecycle_transition(
+        state,
+        state.get("status") or CognitiveStatus.AUDITING,
+        "approve_assets",
+        {"messages": ["Assets submitted for human review."]},
+    )
 
 
 # --- Router: Phase 23 ---
@@ -93,19 +108,23 @@ workflow.add_node("approve_assets", approve_assets)
 
 # Placeholder Nodes for Agents (Phase 4 & 5)
 async def strategist_placeholder(state: CognitiveIntelligenceState):
-    return {"status": CognitiveStatus.RESEARCHING}
+    return apply_lifecycle_transition(
+        state, CognitiveStatus.RESEARCHING, "strategist"
+    )
 
 
 async def researcher_placeholder(state: CognitiveIntelligenceState):
-    return {"status": CognitiveStatus.EXECUTING}
+    return apply_lifecycle_transition(
+        state, CognitiveStatus.EXECUTING, "researcher"
+    )
 
 
 async def creator_placeholder(state: CognitiveIntelligenceState):
-    return {"status": CognitiveStatus.AUDITING}
+    return apply_lifecycle_transition(state, CognitiveStatus.AUDITING, "creator")
 
 
 async def critic_placeholder(state: CognitiveIntelligenceState):
-    return {"status": CognitiveStatus.COMPLETE}
+    return apply_lifecycle_transition(state, CognitiveStatus.COMPLETE, "critic")
 
 
 workflow.add_node("strategist", strategist_placeholder)
