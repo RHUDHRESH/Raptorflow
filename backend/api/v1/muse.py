@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from backend.core.auth import get_current_user, get_tenant_id
 from backend.graphs.muse_create import build_muse_spine
 from backend.models.cognitive import CognitiveStatus
+from backend.models.swarm import SwarmState
 
 router = APIRouter(prefix="/v1/muse", tags=["muse"])
 
@@ -37,7 +38,7 @@ async def create_muse_asset(
         spine = build_muse_spine()
 
         # Initialize state
-        initial_state = {
+        initial_state: SwarmState = {
             "raw_prompt": request.prompt,
             "workspace_id": request.workspace_id,
             "tenant_id": str(tenant_id),
@@ -51,6 +52,17 @@ async def create_muse_asset(
             "research_bundle": {},
             "quality_score": 0.0,
             "error": None,
+            "current_plan": [],
+            "active_move": None,
+            "next_node": None,
+            "last_agent": "orchestrator",
+            "swarm_tasks": [],
+            "shared_knowledge": {},
+            "delegation_history": [],
+            "hierarchy": {},
+            "budgets": {},
+            "shared_memory_handles": {},
+            "learning_artifacts": [],
         }
 
         base_thread_id = request.thread_id or str(uuid4())
