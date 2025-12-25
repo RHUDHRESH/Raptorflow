@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useIcpStore } from '@/lib/icp-store';
 import { Icp } from '@/types/icp-types';
+import { getDefaultSalesMotion } from '@/lib/icp-logic';
 import WizardLayout from './wizard/WizardLayout';
 import WizardQuestion from './wizard/WizardQuestion';
 import StepReview from './wizard/StepReview';
@@ -307,10 +308,11 @@ export default function ICPWizard() {
         const type = formData.firmographics?.companyType?.[0];
         const motion = formData.firmographics?.salesMotion;
 
-        // Fix: Use correct lower-case type value matches as per IcpCompanyType
-        if (type === 'saas' && (!motion || motion.length === 0)) {
-            // Logic placeholder - no action needed yet as we don't want to force override without user input.
+        const defaultMotion = getDefaultSalesMotion(type);
+        if (defaultMotion && (!motion || motion.length === 0)) {
+            updateFirmo('salesMotion', defaultMotion);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formData.firmographics?.companyType]);
 
     const handleBack = () => {
