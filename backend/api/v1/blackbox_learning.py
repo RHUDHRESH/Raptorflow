@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from backend.core.auth import get_tenant_id
 from backend.core.vault import Vault
 from backend.services.blackbox_service import BlackboxService
 
@@ -47,10 +48,12 @@ def get_evidence_package(
 
 @router.post("/cycle/{move_id}")
 async def trigger_learning_cycle(
-    move_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+    move_id: UUID,
+    service: BlackboxService = Depends(get_blackbox_service),
+    tenant_id: UUID = Depends(get_tenant_id),
 ):
     """Triggers the multi-agentic learning cycle for a specific move."""
-    result = await service.trigger_learning_cycle(str(move_id))
+    result = await service.trigger_learning_cycle(str(move_id), tenant_id)
     return result
 
 

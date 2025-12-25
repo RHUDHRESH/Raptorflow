@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
+from backend.core.auth import get_tenant_id
 from backend.core.vault import Vault
 from backend.services.blackbox_service import AttributionModel, BlackboxService
 
@@ -20,15 +21,19 @@ def get_campaign_roi(
     campaign_id: UUID,
     model: AttributionModel = AttributionModel.LINEAR,
     service: BlackboxService = Depends(get_blackbox_service),
+    tenant_id: UUID = Depends(get_tenant_id),
 ):
     """Calculates ROI for a specific campaign using the chosen model."""
-    return service.compute_roi(campaign_id=campaign_id, model=model)
+    return service.compute_roi(campaign_id=campaign_id, tenant_id=tenant_id, model=model)
 
 
 @router.get("/matrix", response_model=List[Dict[str, Any]])
-def get_roi_matrix(service: BlackboxService = Depends(get_blackbox_service)):
+def get_roi_matrix(
+    service: BlackboxService = Depends(get_blackbox_service),
+    tenant_id: UUID = Depends(get_tenant_id),
+):
     """Retrieves ROI and momentum scores for all active campaigns."""
-    return service.get_roi_matrix_data()
+    return service.get_roi_matrix_data(tenant_id)
 
 
 @router.get("/momentum")
@@ -40,18 +45,22 @@ def get_momentum_score(service: BlackboxService = Depends(get_blackbox_service))
 
 @router.get("/outcomes/campaign/{campaign_id}")
 def get_outcomes_by_campaign(
-    campaign_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+    campaign_id: UUID,
+    service: BlackboxService = Depends(get_blackbox_service),
+    tenant_id: UUID = Depends(get_tenant_id),
 ):
     """Retrieves all business outcomes for a specific campaign."""
-    return service.get_outcomes_by_campaign(campaign_id)
+    return service.get_outcomes_by_campaign(campaign_id, tenant_id)
 
 
 @router.get("/outcomes/move/{move_id}")
 def get_outcomes_by_move(
-    move_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+    move_id: UUID,
+    service: BlackboxService = Depends(get_blackbox_service),
+    tenant_id: UUID = Depends(get_tenant_id),
 ):
     """Retrieves all business outcomes for a specific move."""
-    return service.get_outcomes_by_move(move_id)
+    return service.get_outcomes_by_move(move_id, tenant_id)
 
 
 @router.get("/evidence/{learning_id}")

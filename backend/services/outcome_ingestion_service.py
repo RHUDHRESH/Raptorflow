@@ -20,6 +20,7 @@ class OutcomeIngestionService:
         Parses external payload into a BlackboxOutcome and persists it.
         Example Payload: {"source": "linkedin_ads", "conversion_value": 150.0, "confidence": 0.9}
         """
+        tenant_id = payload.get("tenant_id")
         source = payload.get("source", "unknown")
         # Support various field names from different providers
         value = float(payload.get("conversion_value", payload.get("value", 0.0)))
@@ -30,6 +31,7 @@ class OutcomeIngestionService:
         move_id = payload.get("move_id")
 
         outcome = BlackboxOutcome(
+            tenant_id=tenant_id,
             source=source,
             value=value,
             confidence=confidence,
