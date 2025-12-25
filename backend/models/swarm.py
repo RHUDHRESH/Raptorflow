@@ -26,7 +26,7 @@ class SwarmTask(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
-class SwarmState(CognitiveIntelligenceState):
+class SwarmState(CognitiveIntelligenceState, total=False):
     """
     SOTA Swarm Intelligence State.
     Extends the base cognitive state with multi-agent coordination fields.
