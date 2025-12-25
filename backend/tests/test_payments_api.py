@@ -26,8 +26,8 @@ def test_initiate_payment_api():
         }
         response = client.post(
             "/v1/payments/initiate",
-            params={
-                "user_id": "user1",
+            headers={"Authorization": "Bearer test-token"},
+            json={
                 "amount": 10.5,
                 "transaction_id": "tx789",
                 "redirect_url": "http://localhost:3000/success",

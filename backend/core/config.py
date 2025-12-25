@@ -69,6 +69,9 @@ class Config(BaseSettings):
     PHONEPE_ENV: Optional[str] = None
     PHONEPE_WEBHOOK_USERNAME: Optional[str] = None
     PHONEPE_WEBHOOK_PASSWORD: Optional[str] = None
+    PAYMENT_REDIRECT_ALLOWLIST: str = (
+        "http://localhost:3000,http://127.0.0.1:3000"
+    )
 
     # Security
     SECRET_KEY: str = "industrial-secret-placeholder"
