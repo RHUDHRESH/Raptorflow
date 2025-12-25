@@ -38,14 +38,16 @@ class ResearcherAgent(BaseCognitiveAgent):
 
     def __init__(self):
         from backend.core.prompts import ResearchPrompts
-        from backend.tools.search import TavilyMultiHopTool
+        from backend.tools.registry import UnifiedToolRegistry
 
+        registry = UnifiedToolRegistry.default()
+        profiles = registry.get_capability_profiles(["tavily_search"])
         super().__init__(
             name="Researcher",
             role="researcher",
             system_prompt=ResearchPrompts.TREND_EXTRACTOR,
             model_tier="reasoning",  # Researchers need high reasoning
-            tools=[TavilyMultiHopTool()],
+            tools=registry.resolve_tools_from_profiles(profiles),
             output_schema=ResearchOutput,
         )
 
