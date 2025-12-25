@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
+from backend.core.auth import get_current_user
 from backend.services.move_service import MoveService, get_move_service
 
 router = APIRouter(prefix="/v1/moves", tags=["moves"])
@@ -11,6 +12,7 @@ router = APIRouter(prefix="/v1/moves", tags=["moves"])
 async def generate_weekly_moves(
     campaign_id: str,
     background_tasks: BackgroundTasks,
+    _current_user: dict = Depends(get_current_user),
     service: MoveService = Depends(get_move_service),
 ):
     """SOTA Endpoint: Triggers agentic move generation for a campaign."""
@@ -29,7 +31,9 @@ async def generate_weekly_moves(
 
 @router.get("/generate-weekly/{campaign_id}/status")
 async def get_moves_status(
-    campaign_id: str, service: MoveService = Depends(get_move_service)
+    campaign_id: str,
+    _current_user: dict = Depends(get_current_user),
+    service: MoveService = Depends(get_move_service),
 ):
     """SOTA Endpoint: Retrieves status of move generation."""
     result = await service.get_moves_generation_status(campaign_id)
@@ -42,6 +46,7 @@ async def get_moves_status(
 async def update_move_status(
     move_id: str,
     status_update: Dict[str, Any],
+    _current_user: dict = Depends(get_current_user),
     service: MoveService = Depends(get_move_service),
 ):
     """SOTA Endpoint: Updates the status and result of a specific move."""

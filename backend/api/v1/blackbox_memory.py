@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 
+from backend.core.auth import get_current_user
 from backend.core.vault import Vault
 from backend.services.blackbox_service import BlackboxService
 
@@ -30,7 +31,9 @@ class EvidenceLink(BaseModel):
 
 @router.post("/upsert", status_code=status.HTTP_201_CREATED)
 def upsert_learning(
-    learning: LearningCreate, service: BlackboxService = Depends(get_blackbox_service)
+    learning: LearningCreate,
+    _current_user: dict = Depends(get_current_user),
+    service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Generates embedding and persists a new strategic learning."""
     service.upsert_learning_embedding(
@@ -43,7 +46,10 @@ def upsert_learning(
 
 @router.get("/search", response_model=List[Dict])
 def search_memory(
-    query: str, limit: int = 5, service: BlackboxService = Depends(get_blackbox_service)
+    query: str,
+    limit: int = 5,
+    _current_user: dict = Depends(get_current_user),
+    service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Searches strategic memory for relevant insights."""
     return service.search_strategic_memory(query=query, limit=limit)
@@ -51,7 +57,9 @@ def search_memory(
 
 @router.post("/link-evidence")
 def link_evidence(
-    link: EvidenceLink, service: BlackboxService = Depends(get_blackbox_service)
+    link: EvidenceLink,
+    _current_user: dict = Depends(get_current_user),
+    service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Links existing traces to a learning."""
     service.link_learning_to_evidence(
@@ -64,6 +72,7 @@ def link_evidence(
 def get_planner_context(
     move_type: str,
     limit: int = 5,
+    _current_user: dict = Depends(get_current_user),
     service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Retrieves formatted context for the planner agent."""
@@ -75,6 +84,7 @@ def get_planner_context(
 def prune_memory(
     learning_type: str,
     before: datetime,
+    _current_user: dict = Depends(get_current_user),
     service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Removes outdated learnings."""
