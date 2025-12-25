@@ -1,4 +1,6 @@
 @import '../styles/tokens.css';
+@import '../styles/animations.css';
+@import '../components/ui/global-typing.css';
 
 @tailwind base;
 @tailwind components;

@@ -17,7 +17,7 @@ import {
     MoonIcon,
     SystemIcon,
     TrashIcon
-} from '@/components/ui/icons';
+} from '@/components/ui/Icons';
 import { Switch } from '@/components/ui/switch';
 
 type SettingsSection =

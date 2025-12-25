@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { ChevronDownIcon, MicIcon, MessageIcon, TargetIcon, SparklesIcon } from '@/components/ui/icons';
+import { ChevronDownIcon, MicIcon, MessageIcon, TargetIcon, SparklesIcon } from '@/components/ui/Icons';
 
 interface BrandVoice {
     tone: string;

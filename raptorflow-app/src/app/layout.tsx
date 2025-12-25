@@ -3,6 +3,7 @@ import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { Toaster } from "@/components/ui/sonner";
+import { TypingExperienceProvider } from '@/components/ui/typing/TypingExperienceProvider';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,9 +36,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${playfair.variable} ${jetbrainsMono.variable} antialiased`} suppressHydrationWarning>
-        {children}
-        <CommandPalette />
-        <Toaster position="bottom-right" />
+        <TypingExperienceProvider>
+          {children}
+          <CommandPalette />
+          <Toaster position="bottom-right" />
+        </TypingExperienceProvider>
       </body>
     </html>
   );

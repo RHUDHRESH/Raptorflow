@@ -6,7 +6,7 @@ import { Campaign } from '@/lib/campaigns-types';
 import { getCampaigns, getCampaignProgress, getMovesByCampaign } from '@/lib/campaigns';
 import { CampaignCard } from '@/components/campaigns/CampaignCard';
 import { CampaignEmptyState } from '@/components/campaigns/CampaignEmptyState';
-import { NewCampaignWizard } from '@/components/campaigns/NewCampaignWizard';
+// import NewCampaignWizard from '@/components/campaigns/NewCampaignWizard';
 import { CampaignDetail } from '@/components/campaigns/CampaignDetail';
 import { Button } from '@/components/ui/button';
 import { StrategicPivotCard } from '@/components/campaigns/StrategicPivotCard';
@@ -14,6 +14,7 @@ import { Sparkles, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { InferenceErrorBoundary } from '@/components/layout/InferenceErrorBoundary';
+import { TypingExperienceControls } from '@/components/ui/typing/TypingExperienceControls';
 
 export default function CampaignsPage() {
     const { campaigns, refresh: refreshCampaigns } = useCampaigns(10000);
@@ -65,6 +66,7 @@ export default function CampaignsPage() {
 
     return (
         <AppLayout>
+            <TypingExperienceControls />
             <InferenceErrorBoundary>
                 <div className="max-w-[1200px] mx-auto px-12 py-12 space-y-12 pb-24 animate-in fade-in duration-500">
                     <div className="flex items-end justify-between border-b border-zinc-200 dark:border-zinc-800 pb-8">
@@ -167,11 +169,11 @@ export default function CampaignsPage() {
                 </div>
             </InferenceErrorBoundary>
 
-            <NewCampaignWizard
+            {/* <NewCampaignWizard
                 open={showWizard}
                 onOpenChange={setShowWizard}
                 onComplete={handleCampaignCreated}
-            />
+            /> */}
 
             <CampaignDetail
                 campaign={selectedCampaign}

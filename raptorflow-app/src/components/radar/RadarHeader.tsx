@@ -3,7 +3,7 @@
 import React from 'react';
 import { RadarMode } from './types';
 import { cn } from '@/lib/utils';
-import { ChevronDownIcon, FilterIcon, ZapIcon } from '@/components/ui/icons';
+import { ChevronDownIcon, FilterIcon, ZapIcon } from '@/components/ui/Icons';
 import { Button } from '@/components/ui/button';
 
 interface RadarHeaderProps {

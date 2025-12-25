@@ -10,7 +10,7 @@ import {
     MuseIcon,
     AlertCircleIcon,
     CheckCircleIcon
-} from '@/components/ui/icons';
+} from '@/components/ui/Icons';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { StrategicPivotList } from '@/components/matrix/StrategicPivotList';
