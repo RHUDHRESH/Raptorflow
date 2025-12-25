@@ -84,6 +84,10 @@ class Config(BaseSettings):
         "serper": {"endpoint": "https://google.serper.dev/search"},
     }
 
+    # Rendering
+    JS_RENDERING_ENABLED: bool = False
+    JS_RENDERING_TIMEOUT_S: int = 20
+
     # Payment Configuration (PhonePe Standard Checkout v2)
     PHONEPE_CLIENT_ID: Optional[str] = None
     PHONEPE_CLIENT_SECRET: Optional[str] = None
