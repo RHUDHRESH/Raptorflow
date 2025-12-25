@@ -6,6 +6,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
 from backend.inference import InferenceProvider
+from backend.memory.swarm_learning import SwarmLearning
 
 logger = logging.getLogger("raptorflow.agents.memory_reflection")
 
@@ -29,10 +30,13 @@ class MemoryReflectionAgent:
     Functions as the 'System Conscience' that learns from historical activity.
     """
 
-    def __init__(self, model_tier: str = "smart"):
+    def __init__(
+        self, model_tier: str = "smart", swarm_learning: SwarmLearning | None = None
+    ):
         self.llm = InferenceProvider.get_model(
             model_tier=model_tier
         ).with_structured_output(DailyReflection)
+        self.swarm_learning = swarm_learning or SwarmLearning()
 
     async def reflect_on_traces(
         self, workspace_id: str, traces: List[Dict[str, Any]]
@@ -68,7 +72,16 @@ class MemoryReflectionAgent:
                 ]
             )
 
-            return reflection.model_dump()
+            reflection_payload = reflection.model_dump()
+            if self.swarm_learning:
+                await self.swarm_learning.record_learning(
+                    workspace_id=workspace_id,
+                    thread_id="reflection",
+                    learning=reflection_payload,
+                    metadata={"source": "memory_reflection"},
+                )
+
+            return reflection_payload
         except Exception as e:
             logger.error(f"Memory reflection failed: {e}")
             return {
