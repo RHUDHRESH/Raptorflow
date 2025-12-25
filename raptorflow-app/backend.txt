@@ -786,7 +786,7 @@ $$;
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/health` | Health check |
+| GET | `/health` | Health check (public: `{ "status": "ok" }`, internal: add `X-RF-Internal-Key`) |
 | GET | `/api/v1/auth/me` | Get current user |
 
 ---

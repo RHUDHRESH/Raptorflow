@@ -72,6 +72,31 @@ async def drafting_node(state: CognitiveIntelligenceState):
     """A04: Generates the first draft of the asset."""
     family = state["brief"].get("asset_family", "text")
 
+    if family == "image":
+        from backend.agents.creatives import ImageArchitect, VisualPrompter
+        from backend.inference import InferenceProvider
+
+        # 1. Generate visual prompt first
+        prompter = VisualPrompter(InferenceProvider.get_model("reasoning"))
+        # VisualPrompter expects TypedDict state, but CognitiveIntelligenceState is similar
+        # We might need a small adapter if schemas differ significantly
+        prompt_res = await prompter(state)
+        state["brief"]["image_prompt"] = prompt_res["current_brief"]["image_prompt"]
+
+        # 2. Generate actual image
+        architect = ImageArchitect(model_tier="nano")
+        res = await architect(state)
+
+        if "error" in res:
+            msg = AgentMessage(role="drafter", content=f"Error: {res['error']}")
+            return {"messages": [msg], "status": CognitiveStatus.FAILED}
+
+        return {
+            "generated_assets": res["generated_assets"],
+            "status": CognitiveStatus.EXECUTING,
+            "last_agent": "drafter",
+        }
+
     drafter = BaseCognitiveAgent(
         name="drafter",
         role="creator",

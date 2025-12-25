@@ -1,8 +1,9 @@
 from typing import Any, Dict, List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 
+from backend.core.auth import get_current_user
 from backend.core.vault import Vault
 from backend.services.blackbox_service import AttributionModel, BlackboxService
 
@@ -19,6 +20,7 @@ def get_blackbox_service():
 def get_campaign_roi(
     campaign_id: UUID,
     model: AttributionModel = AttributionModel.LINEAR,
+    _current_user: dict = Depends(get_current_user),
     service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Calculates ROI for a specific campaign using the chosen model."""
@@ -26,13 +28,19 @@ def get_campaign_roi(
 
 
 @router.get("/matrix", response_model=List[Dict[str, Any]])
-def get_roi_matrix(service: BlackboxService = Depends(get_blackbox_service)):
+def get_roi_matrix(
+    _current_user: dict = Depends(get_current_user),
+    service: BlackboxService = Depends(get_blackbox_service),
+):
     """Retrieves ROI and momentum scores for all active campaigns."""
     return service.get_roi_matrix_data()
 
 
 @router.get("/momentum")
-def get_momentum_score(service: BlackboxService = Depends(get_blackbox_service)):
+def get_momentum_score(
+    _current_user: dict = Depends(get_current_user),
+    service: BlackboxService = Depends(get_blackbox_service),
+):
     """Retrieves the overall system momentum score."""
     score = service.calculate_momentum_score()
     return {"momentum_score": score}
@@ -40,7 +48,9 @@ def get_momentum_score(service: BlackboxService = Depends(get_blackbox_service))
 
 @router.get("/outcomes/campaign/{campaign_id}")
 def get_outcomes_by_campaign(
-    campaign_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+    campaign_id: UUID,
+    _current_user: dict = Depends(get_current_user),
+    service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Retrieves all business outcomes for a specific campaign."""
     return service.get_outcomes_by_campaign(campaign_id)
@@ -48,7 +58,9 @@ def get_outcomes_by_campaign(
 
 @router.get("/outcomes/move/{move_id}")
 def get_outcomes_by_move(
-    move_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+    move_id: UUID,
+    _current_user: dict = Depends(get_current_user),
+    service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Retrieves all business outcomes for a specific move."""
     return service.get_outcomes_by_move(move_id)
@@ -56,7 +68,9 @@ def get_outcomes_by_move(
 
 @router.get("/evidence/{learning_id}")
 def get_evidence_package(
-    learning_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+    learning_id: UUID,
+    _current_user: dict = Depends(get_current_user),
+    service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Retrieves the evidence package (telemetry) for a learning."""
     return service.get_evidence_package(learning_id)

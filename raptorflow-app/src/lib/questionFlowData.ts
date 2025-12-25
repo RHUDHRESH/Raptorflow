@@ -164,7 +164,7 @@ export const QUESTIONS: Question[] = [
     // 5) Primary buyer role
     {
         id: 'know-buyer-role',
-        sectionId: 'know-you',
+        sectionId: 'clarifiers',
         type: 'multi-select',
         question: 'Who holds the purchasing power?',
         hint: 'Select the roles that typically make the buying decision.',
@@ -195,7 +195,7 @@ export const QUESTIONS: Question[] = [
     // 6.5) Industry / Vertical
     {
         id: 'know-industry',
-        sectionId: 'know-you',
+        sectionId: 'clarifiers',
         type: 'text',
         question: 'What industry are you in?',
         hint: 'e.g., Fintech, EdTech, Real Estate, Health & Wellness.',
@@ -207,7 +207,7 @@ export const QUESTIONS: Question[] = [
     // 7) Pricing band
     {
         id: 'know-price',
-        sectionId: 'know-you',
+        sectionId: 'clarifiers',
         type: 'radio-cards',
         question: 'What\'s your price range?',
         hint: 'Approximate ticket size per deal/sale.',
@@ -224,7 +224,7 @@ export const QUESTIONS: Question[] = [
     // 8) Sales motion
     {
         id: 'know-motion',
-        sectionId: 'know-you',
+        sectionId: 'clarifiers',
         type: 'radio-cards',
         question: 'How do customers buy from you?',
         field: 'business.salesMotion',
@@ -238,7 +238,7 @@ export const QUESTIONS: Question[] = [
     // 9) Best customers (Critical for ICP generation)
     {
         id: 'know-best-customers',
-        sectionId: 'know-you',
+        sectionId: 'deep-dive',
         type: 'text-list',
         question: 'Describe your 3 best customers',
         hint: 'Industry + size + role + why they\'re your best. Be specific.',
@@ -254,7 +254,7 @@ export const QUESTIONS: Question[] = [
     // 10) Trigger events (What makes them buy now)
     {
         id: 'know-triggers',
-        sectionId: 'know-you',
+        sectionId: 'deep-dive',
         type: 'multi-select',
         question: 'What makes them say "we need this NOW"?',
         hint: 'The moment they start actively looking.',
@@ -279,7 +279,7 @@ export const QUESTIONS: Question[] = [
     // 11) Current alternatives (What they used before)
     {
         id: 'know-alternatives',
-        sectionId: 'know-you',
+        sectionId: 'deep-dive',
         type: 'multi-select',
         question: 'What did they use before you?',
         hint: 'Current alternatives they\'re switching from.',
@@ -300,7 +300,7 @@ export const QUESTIONS: Question[] = [
     // 12) Pain ranking (Drag to reorder)
     {
         id: 'know-pains',
-        sectionId: 'know-you',
+        sectionId: 'deep-dive',
         type: 'drag-ranker',
         question: 'Rank their biggest pains',
         hint: 'Drag to reorder. #1 = most painful.',
@@ -318,7 +318,7 @@ export const QUESTIONS: Question[] = [
     // 13) Primary regions
     {
         id: 'know-regions',
-        sectionId: 'know-you',
+        sectionId: 'clarifiers',
         type: 'multi-select',
         question: 'Where can you actually sell?',
         hint: 'Select your primary markets.',
@@ -335,7 +335,7 @@ export const QUESTIONS: Question[] = [
     // 10) Languages
     {
         id: 'know-languages',
-        sectionId: 'know-you',
+        sectionId: 'clarifiers',
         type: 'multi-select',
         question: 'What languages do you market in?',
         field: 'cohorts.languages',
@@ -370,7 +370,7 @@ export const QUESTIONS: Question[] = [
     // 12) Constraints
     {
         id: 'know-constraints',
-        sectionId: 'know-you',
+        sectionId: 'clarifiers',
         type: 'multi-select',
         question: 'What are your biggest constraints?',
         hint: 'Select up to 2.',
@@ -388,7 +388,7 @@ export const QUESTIONS: Question[] = [
     // 13) Current channels
     {
         id: 'know-channels',
-        sectionId: 'know-you',
+        sectionId: 'clarifiers',
         type: 'multi-select',
         question: 'Which channels are you using today?',
         hint: 'Select your top 2 active channels.',
@@ -409,7 +409,7 @@ export const QUESTIONS: Question[] = [
     // 14) Current tools
     {
         id: 'know-tools',
-        sectionId: 'know-you',
+        sectionId: 'clarifiers',
         type: 'multi-select',
         question: 'What tools are you using for marketing?',
         field: 'reality.currentTools',
@@ -429,7 +429,7 @@ export const QUESTIONS: Question[] = [
     // 15) Proof inventory
     {
         id: 'know-proof',
-        sectionId: 'know-you',
+        sectionId: 'clarifiers',
         type: 'multi-select',
         question: 'What proof do you have?',
         hint: 'This helps us avoid fluff in your messaging.',
