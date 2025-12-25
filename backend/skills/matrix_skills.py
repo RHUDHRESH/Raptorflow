@@ -4,6 +4,8 @@ import time
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from backend.services.swarm_health import SwarmHealthService
+
 logger = logging.getLogger("raptorflow.skills.matrix")
 
 
@@ -291,6 +293,7 @@ class ToolExecutionWrapper:
 
     def __init__(self, skill: MatrixSkill):
         self.skill = skill
+        self._health = SwarmHealthService()
 
     async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Executes the wrapped skill with full observability."""
@@ -300,6 +303,7 @@ class ToolExecutionWrapper:
         try:
             data = await self.skill.execute(params)
             latency = (time.time() - start_time) * 1000
+            self._health.record_tool_execution(self.skill.name, True)
             return {
                 "success": True,
                 "data": data,
@@ -308,6 +312,7 @@ class ToolExecutionWrapper:
             }
         except Exception as e:
             logger.error(f"Matrix tool {self.skill.name} failed: {e}")
+            self._health.record_tool_execution(self.skill.name, False)
             return {
                 "success": False,
                 "data": None,

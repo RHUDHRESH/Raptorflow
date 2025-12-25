@@ -1,7 +1,8 @@
+import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from tenacity import retry, stop_after_attempt, wait_exponential
 
@@ -14,6 +15,10 @@ class RaptorRateLimiter:
     Provides exponential backoff and attempt tracking for external tools.
     """
 
+    _budget_delay_seconds: float = 0.0
+    _budget_blocked: bool = False
+    _budget_reason: Optional[str] = None
+
     @staticmethod
     def get_retry_decorator():
         return retry(
@@ -23,6 +28,27 @@ class RaptorRateLimiter:
                 f"Retrying tool execution: {retry_state.attempt_number}..."
             ),
         )
+
+    @classmethod
+    def apply_budget_throttle(
+        cls, delay_seconds: float, reason: str, blocked: bool = False
+    ):
+        cls._budget_delay_seconds = max(delay_seconds, 0.0)
+        cls._budget_blocked = blocked
+        cls._budget_reason = reason
+
+    @classmethod
+    def clear_budget_throttle(cls):
+        cls._budget_delay_seconds = 0.0
+        cls._budget_blocked = False
+        cls._budget_reason = None
+
+    @classmethod
+    async def wait_if_throttled(cls):
+        if cls._budget_blocked:
+            raise RuntimeError(cls._budget_reason or "Budget gate blocked tool call.")
+        if cls._budget_delay_seconds > 0:
+            await asyncio.sleep(cls._budget_delay_seconds)
 
 
 class BaseRaptorTool(ABC):
@@ -52,6 +78,11 @@ class BaseRaptorTool(ABC):
         """Wrapper with telemetry and error handling."""
         start_time = datetime.now()
         logger.info(f"Tool {self.name} starting...")
+        try:
+            await RaptorRateLimiter.wait_if_throttled()
+        except RuntimeError as exc:
+            logger.warning(f"Tool {self.name} throttled: {exc}")
+            return {"success": False, "data": None, "latency_ms": 0, "error": str(exc)}
         try:
             result = await self._execute(**kwargs)
             latency = (datetime.now() - start_time).total_seconds() * 1000
