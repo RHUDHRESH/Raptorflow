@@ -30,6 +30,7 @@ class Config(BaseSettings):
     # Supabase Configuration
     SUPABASE_URL: str = "https://placeholder.supabase.co"
     SUPABASE_SERVICE_ROLE_KEY: str = "placeholder-key"
+    SUPABASE_JWT_SECRET: Optional[str] = None
     DATABASE_URL: Optional[str] = None
 
     # Upstash Configuration
@@ -74,8 +75,14 @@ class Config(BaseSettings):
     SECRET_KEY: str = "industrial-secret-placeholder"
     RF_INTERNAL_KEY: Optional[str] = None
     DEFAULT_TENANT_ID: str = "00000000-0000-0000-0000-000000000000"
+    ALLOW_DEFAULT_TENANT_ID_FALLBACK: bool = False
     AUTONOMY_LEVEL: str = "medium"
     NEXT_PUBLIC_API_URL: str = "http://localhost:8000"
+    AUTH_JWKS_URL: Optional[str] = None
+    AUTH_ISSUER: Optional[str] = None
+    AUTH_AUDIENCE: Optional[str] = None
+    AUTH_JWT_SECRET: Optional[str] = None
+    AUTH_JWT_ALGORITHMS: str = "RS256,HS256"
 
     # Monitoring
     LANGCHAIN_TRACING_V2: str = "false"
@@ -139,6 +146,7 @@ def get_settings() -> Config:
     sensitive_keys = [
         "SUPABASE_URL",
         "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_JWT_SECRET",
         "DATABASE_URL",
         "UPSTASH_REDIS_REST_URL",
         "UPSTASH_REDIS_REST_TOKEN",
@@ -157,6 +165,11 @@ def get_settings() -> Config:
         "BRAVE_SEARCH_API_KEY",
         "SECRET_KEY",
         "RF_INTERNAL_KEY",
+        "AUTH_JWKS_URL",
+        "AUTH_ISSUER",
+        "AUTH_AUDIENCE",
+        "AUTH_JWT_SECRET",
+        "AUTH_JWT_ALGORITHMS",
         "LANGCHAIN_API_KEY",
     ]
 

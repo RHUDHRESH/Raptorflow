@@ -2,7 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
-from backend.core.auth import get_tenant_id
+from backend.core.auth import get_current_user, get_tenant_id
 from backend.core.config import get_settings
 from backend.services.storage_service import BrandAssetManager
 
@@ -18,6 +18,7 @@ async def get_brand_asset_manager():
 async def upload_logo(
     file: UploadFile = File(...),
     tenant_id: UUID = Depends(get_tenant_id),
+    _current_user: dict = Depends(get_current_user),
     manager: BrandAssetManager = Depends(get_brand_asset_manager),
 ):
     """

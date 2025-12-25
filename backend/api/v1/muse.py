@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.core.auth import get_tenant_id
+from backend.core.auth import get_current_user, get_tenant_id
 from backend.graphs.muse_create import build_muse_spine
 from backend.models.cognitive import CognitiveStatus
 
@@ -26,7 +26,9 @@ class MuseResponse(BaseModel):
 
 @router.post("/create", response_model=MuseResponse)
 async def create_muse_asset(
-    request: MuseCreateRequest, tenant_id: UUID = Depends(get_tenant_id)
+    request: MuseCreateRequest,
+    tenant_id: UUID = Depends(get_tenant_id),
+    _current_user: dict = Depends(get_current_user),
 ):
     """
     SOTA Endpoint: Triggers the full Muse Cognitive Spine.
