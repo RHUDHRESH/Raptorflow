@@ -32,8 +32,13 @@ async def test_memory_reflection_summarize_daily():
     )
     mock_llm.with_structured_output.return_value = mock_chain
 
-    with patch("backend.agents.memory_reflection.InferenceProvider") as mock_inference:
+    with patch(
+        "backend.agents.memory_reflection.InferenceProvider"
+    ) as mock_inference, patch(
+        "backend.agents.memory_reflection.SwarmLearning"
+    ) as mock_swarm_learning:
         mock_inference.get_model.return_value = mock_llm
+        mock_swarm_learning.return_value.record_learning = AsyncMock()
 
         agent = MemoryReflectionAgent()
         traces = [
