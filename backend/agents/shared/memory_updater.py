@@ -44,7 +44,8 @@ class MemoryUpdaterAgent:
 
             EXAMPLES:
             - AI used emojis, user removed them -> Rule: "no_emojis" | "User hates emojis."
-            - AI wrote 5 paragraphs, user merged into 2 -> Rule: "paragraph_length" | "Prefers short, consolidated blocks."
+            - AI wrote 5 paragraphs, user merged into 2 -> Rule: "paragraph_length" |
+              "Prefers short, consolidated blocks."
             - AI used 'Unlock', user changed to 'Build' -> Rule: "taboo_words" | "Avoid 'Unlock'; use 'Build'."
 
             Return null if no clear pattern is found.

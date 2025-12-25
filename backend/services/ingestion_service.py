@@ -1,7 +1,5 @@
-import asyncio
 import hashlib
 import logging
-from typing import Any, Dict, List
 
 import httpx
 from bs4 import BeautifulSoup

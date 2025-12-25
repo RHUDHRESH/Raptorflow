@@ -4,6 +4,8 @@ from typing import Dict, List, TypedDict
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
+from backend.db import get_memory, save_entity, summarize_recursively
+
 logger = logging.getLogger("raptorflow.researchers.reddit")
 
 
@@ -338,9 +340,6 @@ class GapFinder:
         return {"research_bundle": {"gaps": analysis.model_dump()}}
 
 
-from backend.db import get_memory, save_entity, summarize_recursively
-
-
 class CompetitorTracker:
     """
     SOTA Entity Memory Node.
@@ -388,7 +387,6 @@ class BrandHistoryContextualizer:
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
         workspace_id = state.get("workspace_id")
-        raw_prompt = state.get("raw_prompt", "")
         logger.info(f"Retrieving brand history for workspace: {workspace_id}")
 
         # In production, we'd generate an embedding for raw_prompt here
