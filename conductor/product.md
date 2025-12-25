@@ -19,7 +19,7 @@ RaptorFlow is the **Founder Marketing Operating System**. It is designed to repl
 - **Foundation:** The source of truth for Brand Kit and positioning. (Universal State Sync Implemented)
 - **Cohorts:** ICP and segmentation intelligence. (Implemented)
 - **Moves:** Weekly execution packets that drive momentum. (End-to-End Production Engine Implemented)
-- **Campaigns:** 90-day strategic arcs that align with business objectives. (End-to-End Production Engine Implemented)
+- **Campaigns:** 90-day strategic arcs with transparent, step-by-step planning and human-in-the-loop approvals. (SOTA Proactive Engine Implemented)
 - **Muse:** An asset factory for content generation and repurposing.
-- **Matrix:** The "Boardroom View" dashboard for RAG status and kill-switches. (Implemented)
-- **Blackbox:** The "Cognitive Spine" for industrial-scale telemetry, automated ROI attribution, and multi-agentic learning flywheel. (End-to-End Industrial Engine & UI Resonance Implemented)
+- **Matrix:** The "Boardroom View" dashboard with actionable operator skills (Throttling, Scaling, Cache Purge). (SOTA Actionable Dashboard Implemented)
+- **Blackbox:** The "Cognitive Spine" with hypothesis-driven experiments, integrated ROI analytics, and growth momentum hooks. (SOTA Hypothesis-Driven Engine Implemented)
