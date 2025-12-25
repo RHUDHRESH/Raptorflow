@@ -7,6 +7,7 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from backend.inference import InferenceProvider
+from backend.models.capabilities import CapabilityProfile
 from backend.models.cognitive import AgentMessage, CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.agents.base")
@@ -26,12 +27,14 @@ class BaseCognitiveAgent(ABC):
         model_tier: str = "driver",
         tools: Optional[List[BaseTool]] = None,
         output_schema: Optional[Type[BaseModel]] = None,
+        capability_profile: Optional[CapabilityProfile] = None,
     ):
         self.name = name
         self.role = role
         self.system_prompt = system_prompt
         self.model_tier = model_tier
-        self.tools = tools or []
+        self.capability_profile = capability_profile
+        self.tools = self._filter_tools(tools or [])
         self.output_schema = output_schema
 
         self.llm = InferenceProvider.get_model(model_tier=self.model_tier)
@@ -47,6 +50,15 @@ class BaseCognitiveAgent(ABC):
             )
         else:
             self.llm_with_structured = self.llm
+
+    def _filter_tools(self, tools: List[BaseTool]) -> List[BaseTool]:
+        if not self.capability_profile:
+            return tools
+        return [
+            tool
+            for tool in tools
+            if self.capability_profile.allows_tool(getattr(tool, "name", ""))
+        ]
 
     def _format_messages(self, state_messages: List[AgentMessage]) -> List[BaseMessage]:
         """Converts internal AgentMessage to LangChain messages."""
