@@ -1,6 +1,7 @@
 import operator
-from typing import Annotated, Dict, List, TypedDict
-from uuid import UUID
+from typing import Annotated, Awaitable, Callable, Dict, List, TypedDict
+
+from backend.services.budget_governor import BudgetGovernor
 
 
 class AnalysisState(TypedDict):
@@ -10,7 +11,6 @@ class AnalysisState(TypedDict):
     """
 
     move_id: str
-    tenant_id: str
 
     # Annotated with operator.add to allow multiple nodes to append findings/data
     telemetry_data: Annotated[List[Dict], operator.add]
@@ -20,6 +20,29 @@ class AnalysisState(TypedDict):
     reflection: str
     confidence: float
     status: Annotated[List[str], operator.add]
+
+
+_budget_governor = BudgetGovernor()
+
+
+def _budgeted_agent(
+    agent: Callable[[Dict], Awaitable[Dict]], agent_id: str
+) -> Callable[[AnalysisState], Awaitable[Dict]]:
+    async def _node(state: AnalysisState) -> Dict:
+        workspace_id = state.get("workspace_id") or state.get("tenant_id")
+        budget_check = await _budget_governor.check_budget(
+            workspace_id=workspace_id, agent_id=agent_id
+        )
+        if not budget_check["allowed"]:
+            return {
+                "status": ["error"],
+                "findings": [
+                    f"Budget governor blocked {agent_id}: {budget_check['reason']}"
+                ],
+            }
+        return await agent(state)
+
+    return _node
 
 
 def get_blackbox_service():
@@ -36,9 +59,7 @@ def ingest_telemetry_node(state: AnalysisState) -> Dict:
     Node: Ingests all telemetry associated with the move_id.
     """
     service = get_blackbox_service()
-    traces = service.get_telemetry_by_move(
-        state["move_id"], UUID(state["tenant_id"])
-    )
+    traces = service.get_telemetry_by_move(state["move_id"])
     return {"telemetry_data": traces, "status": ["ingested"]}
 
 
@@ -149,11 +170,19 @@ def create_blackbox_graph():
     workflow.add_node("ingest_telemetry", ingest_telemetry_node)
     workflow.add_node("extract_insights", extract_insights_node)
     workflow.add_node("attribute_outcomes", attribute_outcomes_node)
-    workflow.add_node("roi_analysis", roi_analyst)
-    workflow.add_node("drift_analysis", drift_agent)
-    workflow.add_node("competitor_analysis", comp_agent)
+    workflow.add_node("roi_analysis", _budgeted_agent(roi_analyst, "ROIAnalystAgent"))
+    workflow.add_node(
+        "drift_analysis", _budgeted_agent(drift_agent, "StrategicDriftAgent")
+    )
+    workflow.add_node(
+        "competitor_analysis",
+        _budgeted_agent(comp_agent, "CompetitorIntelligenceAgent"),
+    )
     workflow.add_node("reflect_and_validate", reflect_and_validate_node)
-    workflow.add_node("critique_analysis", critique_agent)
+    workflow.add_node(
+        "critique_analysis",
+        _budgeted_agent(critique_agent, "BlackboxCritiqueAgent"),
+    )
 
     # 3. Define Flow
     workflow.add_edge(START, "ingest_telemetry")
