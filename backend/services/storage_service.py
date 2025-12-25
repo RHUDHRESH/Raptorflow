@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Optional
 
 from google.cloud import storage
@@ -203,7 +203,7 @@ class BrandAssetManager:
         self, file_content: bytes, filename: str, content_type: str, tenant_id: str
     ) -> str:
         """
-        Uploads a logo to GCS and returns the public URL.
+        Uploads a logo to GCS and returns the blob path.
         """
         try:
             bucket = self.client.get_bucket(self.bucket_name)
@@ -212,12 +212,30 @@ class BrandAssetManager:
 
             blob.upload_from_string(file_content, content_type=content_type)
 
-            # Make public if required, or use signed URLs
-            # For this build, we use public access for simplicity in demo
-            blob.make_public()
-
             logger.info(f"Successfully uploaded logo: {filename} to {self.bucket_name}")
-            return blob.public_url
+            return blob.name
         except Exception as e:
             logger.error(f"Failed to upload logo: {e}")
             raise e
+
+    def generate_signed_url(
+        self, blob_name: str, expiration_minutes: int = 15
+    ) -> str:
+        """
+        Generates a signed URL for a blob.
+        """
+        bucket = self.client.get_bucket(self.bucket_name)
+        blob = bucket.blob(blob_name)
+        return blob.generate_signed_url(
+            expiration=timedelta(minutes=expiration_minutes),
+            version="v4",
+        )
+
+    def make_blob_public(self, blob_name: str) -> str:
+        """
+        Makes a blob public and returns its public URL.
+        """
+        bucket = self.client.get_bucket(self.bucket_name)
+        blob = bucket.blob(blob_name)
+        blob.make_public()
+        return blob.public_url
