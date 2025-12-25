@@ -12,6 +12,7 @@ from backend.models.telemetry import (
 from backend.services.cost_governor import CostGovernor
 from backend.services.latency_monitor import LatencyMonitor
 from backend.services.sanity_check import SystemSanityCheck
+from backend.services.swarm_health import SwarmHealthService
 from backend.services.storage_service import GCSLifecycleManager
 from backend.skills.matrix_skills import (
     ArchiveLogsSkill,
@@ -62,6 +63,7 @@ class MatrixService:
         self._sanity = SystemSanityCheck()
         self._latency = LatencyMonitor()
         self._cost = CostGovernor()
+        self._swarm_health = SwarmHealthService()
 
         # Initialize Skills
         self._registry = SkillRegistry()
@@ -114,11 +116,13 @@ class MatrixService:
             await self._latency.memory.retrieve(f"latencies:{workspace_id}") or []
         )
         p95_latency = self._latency._calculate_p95(latencies)
+        swarm_health = await self._swarm_health.get_health(workspace_id)
 
         return {
             "system_state": self._state.model_dump(),
             "health_report": health,
             "cost_report": cost,
+            "swarm_health": swarm_health,
             "p95_latency_ms": p95_latency,
             "timestamp": datetime.now().isoformat(),
         }
