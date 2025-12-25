@@ -1,5 +1,6 @@
 import operator
 from typing import Annotated, Dict, List, TypedDict
+from uuid import UUID
 
 
 class AnalysisState(TypedDict):
@@ -9,6 +10,7 @@ class AnalysisState(TypedDict):
     """
 
     move_id: str
+    tenant_id: str
 
     # Annotated with operator.add to allow multiple nodes to append findings/data
     telemetry_data: Annotated[List[Dict], operator.add]
@@ -34,7 +36,9 @@ def ingest_telemetry_node(state: AnalysisState) -> Dict:
     Node: Ingests all telemetry associated with the move_id.
     """
     service = get_blackbox_service()
-    traces = service.get_telemetry_by_move(state["move_id"])
+    traces = service.get_telemetry_by_move(
+        state["move_id"], UUID(state["tenant_id"])
+    )
     return {"telemetry_data": traces, "status": ["ingested"]}
 
 

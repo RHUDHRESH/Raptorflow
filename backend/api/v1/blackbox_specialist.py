@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from backend.core.auth import get_tenant_id
 from backend.core.vault import Vault
 from backend.services.blackbox_service import BlackboxService
 
@@ -21,6 +22,7 @@ async def run_specialist_agent(
     move_id: UUID,
     state_override: Dict[str, Any] = None,
     service: BlackboxService = Depends(get_blackbox_service),
+    tenant_id: UUID = Depends(get_tenant_id),
 ):
     """
     SOTA Endpoint: Directly triggers a specific specialist agent.
@@ -53,8 +55,8 @@ async def run_specialist_agent(
     agent = agent_cls()
 
     # Gather context (standard state)
-    traces = service.get_telemetry_by_move(str(move_id))
-    outcomes = service.get_outcomes_by_move(move_id)
+    traces = service.get_telemetry_by_move(str(move_id), tenant_id)
+    outcomes = service.get_outcomes_by_move(move_id, tenant_id)
 
     initial_state = {
         "move_id": str(move_id),
