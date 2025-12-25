@@ -46,6 +46,8 @@ class SwarmL1MemoryManager:
             raw_tasks = await self.l1.client.hgetall(self.tasks_key)
             tasks = []
             for field, val in raw_tasks.items():
+                if isinstance(val, bytes):
+                    val = val.decode("utf-8")
                 tasks.append(SwarmTask.model_validate_json(val))
             return tasks
         except Exception as e:
@@ -55,9 +57,20 @@ class SwarmL1MemoryManager:
     async def update_knowledge(self, key: str, value: Any):
         """Adds a finding to the swarm's shared knowledge pool."""
         try:
-            if self.l1.client:
-                await self.l1.client.hset(self.knowledge_key, key, json.dumps(value))
-                logger.info(f"Swarm knowledge '{key}' updated in L1 hash.")
+            if not self.l1.client:
+                return
+            if isinstance(value, bytes):
+                value = value.decode("utf-8")
+            if isinstance(value, str):
+                try:
+                    json.loads(value)
+                    serialized = value
+                except json.JSONDecodeError:
+                    serialized = json.dumps(value)
+            else:
+                serialized = json.dumps(value)
+            await self.l1.client.hset(self.knowledge_key, key, serialized)
+            logger.info(f"Swarm knowledge '{key}' updated in L1 hash.")
         except Exception as e:
             logger.error(f"Failed to update swarm knowledge in L1: {e}")
 
@@ -68,6 +81,8 @@ class SwarmL1MemoryManager:
                 return None
             raw = await self.l1.client.hget(self.knowledge_key, key)
             if raw:
+                if isinstance(raw, bytes):
+                    raw = raw.decode("utf-8")
                 return json.loads(raw)
             return None
         except Exception as e:
