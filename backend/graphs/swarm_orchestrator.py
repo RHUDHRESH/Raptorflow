@@ -1,6 +1,6 @@
 import inspect
 import logging
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, cast
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -201,9 +201,9 @@ class SwarmOrchestrator:
 
     def _ensure_metadata(self, state: Dict[str, Any]) -> Dict[str, Any]:
         state = state.copy()
-        state.setdefault("routing_metadata", RoutingMetadata())
-        state.setdefault("shared_memory_handles", SharedMemoryHandles())
-        state.setdefault("resource_budget", ResourceBudget())
+        state.setdefault("routing_metadata", cast(RoutingMetadata, {}))
+        state.setdefault("shared_memory_handles", cast(SharedMemoryHandles, {}))
+        state.setdefault("resource_budget", cast(ResourceBudget, {}))
         state.setdefault("delegation_history", [])
         state.setdefault("shared_knowledge", {})
         state.setdefault("swarm_tasks", [])
