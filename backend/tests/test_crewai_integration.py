@@ -68,13 +68,13 @@ class TestCrewAIAgentAdapter:
             goal="Test goal",
             backstory="Test backstory",
             temperature=0.1,
-            max_iter=5
+            max_iter=5,
         )
 
     @pytest.fixture
     def crewai_adapter(self, agent_config, mock_llm):
         """CrewAI adapter fixture."""
-        with patch('backend.agents.crewai_adapter.InferenceProvider') as mock_provider:
+        with patch("backend.agents.crewai_adapter.InferenceProvider") as mock_provider:
             mock_provider.get_model.return_value = mock_llm
             return CrewAIAgentAdapter(agent_config)
 
@@ -92,9 +92,9 @@ class TestCrewAIAgentAdapter:
         state = {
             "messages": [
                 AgentMessage(role="human", content="Test message"),
-                AgentMessage(role="assistant", content="Test response")
+                AgentMessage(role="assistant", content="Test response"),
             ],
-            "current_task": "test_task"
+            "current_task": "test_task",
         }
 
         result = crewai_adapter.adapt_to_cognitive_state(state)
@@ -155,7 +155,7 @@ class TestCrewTaskManager:
             description="Test task",
             expected_output="Test output",
             agent=mock_agent,
-            priority=TaskPriority.HIGH
+            priority=TaskPriority.HIGH,
         )
 
         assert task_id in task_manager.tasks
@@ -172,8 +172,11 @@ class TestCrewTaskManager:
             "Task 1", "Output 1", mock_agent, TaskPriority.HIGH
         )
         task2_id = task_manager.create_task(
-            "Task 2", "Output 2", mock_agent, TaskPriority.MEDIUM,
-            dependencies=[task1_id]
+            "Task 2",
+            "Output 2",
+            mock_agent,
+            TaskPriority.MEDIUM,
+            dependencies=[task1_id],
         )
 
         task2 = task_manager.get_task(task2_id)
@@ -211,9 +214,7 @@ class TestCrewTaskManager:
     @pytest.mark.asyncio
     async def test_task_execution(self, task_manager, mock_agent):
         """Test task execution."""
-        task_id = task_manager.create_task(
-            "Test task", "Test output", mock_agent
-        )
+        task_id = task_manager.create_task("Test task", "Test output", mock_agent)
 
         # Start scheduler
         await task_manager.start_scheduler()
@@ -232,9 +233,7 @@ class TestCrewTaskManager:
         # Create some tasks
         task_ids = []
         for i in range(5):
-            task_id = task_manager.create_task(
-                f"Task {i}", f"Output {i}", mock_agent
-            )
+            task_id = task_manager.create_task(f"Task {i}", f"Output {i}", mock_agent)
             task_ids.append(task_id)
 
         # Simulate some completions
@@ -288,7 +287,7 @@ class TestAdvancedCrewCoordinator:
         """Test crew creation."""
         crew_id = "test_crew"
 
-        with patch('crewai.Crew') as mock_crew_class:
+        with patch("crewai.Crew") as mock_crew_class:
             mock_crew = Mock()
             mock_crew.kickoff = Mock(return_value="Crew result")
             mock_crew_class.return_value = mock_crew
@@ -297,7 +296,7 @@ class TestAdvancedCrewCoordinator:
                 crew_id=crew_id,
                 agents=mock_agents,
                 tasks=mock_tasks,
-                process=CrewProcess.SEQUENTIAL
+                process=CrewProcess.SEQUENTIAL,
             )
 
             assert crew_id in crew_coordinator.active_crews
@@ -310,16 +309,14 @@ class TestAdvancedCrewCoordinator:
         """Test crew execution."""
         crew_id = "test_crew"
 
-        with patch('crewai.Crew') as mock_crew_class:
+        with patch("crewai.Crew") as mock_crew_class:
             mock_crew = Mock()
             mock_crew.kickoff = Mock(return_value="Crew result")
             mock_crew.tasks = mock_tasks
             mock_crew_class.return_value = mock_crew
 
             crew_coordinator.create_crew(
-                crew_id=crew_id,
-                agents=mock_agents,
-                tasks=mock_tasks
+                crew_id=crew_id, agents=mock_agents, tasks=mock_tasks
             )
 
             result = await crew_coordinator.execute_crew(crew_id)
@@ -331,7 +328,14 @@ class TestAdvancedCrewCoordinator:
     def test_crew_metrics(self, crew_coordinator):
         """Test crew metrics calculation."""
         crew_id = "test_crew"
-        metrics = crew_coordinator.crew_metrics[crew_id] = crew_coordinator.crew_metrics[crew_id] or type(crew_coordinator.crew_metrics.get(crew_id, type('MockMetrics', (), {})())).__bases__[0]()
+        metrics = crew_coordinator.crew_metrics[crew_id] = (
+            crew_coordinator.crew_metrics[crew_id]
+            or type(
+                crew_coordinator.crew_metrics.get(
+                    crew_id, type("MockMetrics", (), {})()
+                )
+            ).__bases__[0]()
+        )
 
         # Simulate some metrics
         metrics.tasks_completed = 8
@@ -349,9 +353,7 @@ class TestAdvancedCrewCoordinator:
         """Test conflict resolution."""
         conflict_type = ConflictType.RESOURCE
         involved_agents = ["agent_1", "agent_2"]
-        context = {
-            "agent_priorities": {"agent_1": 10, "agent_2": 5}
-        }
+        context = {"agent_priorities": {"agent_1": 10, "agent_2": 5}}
 
         resolution = await crew_coordinator.handle_conflict(
             "test_crew", conflict_type, involved_agents, context
@@ -381,13 +383,15 @@ class TestHybridIntegration:
             agent_type=AgentType.HYBRID_AGENT,
             name="Test Hybrid Agent",
             role="test_role",
-            execution_mode=ExecutionMode.ADAPTIVE
+            execution_mode=ExecutionMode.ADAPTIVE,
         )
 
     @pytest.fixture
     def hybrid_agent(self, hybrid_agent_config, mock_llm):
         """Hybrid agent fixture."""
-        with patch('backend.agents.hybrid_integration.InferenceProvider') as mock_provider:
+        with patch(
+            "backend.agents.hybrid_integration.InferenceProvider"
+        ) as mock_provider:
             mock_provider.get_model.return_value = mock_llm
             return HybridAgent(hybrid_agent_config)
 
@@ -414,9 +418,7 @@ class TestHybridIntegration:
     def test_performance_tracking(self, hybrid_agent):
         """Test performance tracking."""
         # Record some performance data
-        hybrid_agent._record_performance(
-            ExecutionMode.LANGGRAPH_ONLY, 1.5, True
-        )
+        hybrid_agent._record_performance(ExecutionMode.LANGGRAPH_ONLY, 1.5, True)
         hybrid_agent._record_performance(
             ExecutionMode.CREWAI_ONLY, 2.0, False, "Test error"
         )
@@ -444,10 +446,10 @@ class TestHybridIntegration:
             agent_id="test_agent",
             agent_type=AgentType.HYBRID_AGENT,
             name="Test Agent",
-            role="test"
+            role="test",
         )
 
-        with patch('backend.agents.hybrid_integration.InferenceProvider'):
+        with patch("backend.agents.hybrid_integration.InferenceProvider"):
             agent = HybridAgent(config)
             manager.register_agent(agent)
 
@@ -465,9 +467,9 @@ class TestHybridIntegration:
                 agent_id=agent_id,
                 agent_type=AgentType.HYBRID_AGENT,
                 name=f"Agent {agent_id}",
-                role="test"
+                role="test",
             )
-            with patch('backend.agents.hybrid_integration.InferenceProvider'):
+            with patch("backend.agents.hybrid_integration.InferenceProvider"):
                 agent = HybridAgent(config)
                 manager.register_agent(agent)
 
@@ -475,11 +477,7 @@ class TestHybridIntegration:
         workflow = manager.create_workflow(
             workflow_id="test_workflow",
             agents=agent_ids,
-            workflow_config={
-                "edges": [
-                    {"from": "agent1", "to": "agent2"}
-                ]
-            }
+            workflow_config={"edges": [{"from": "agent1", "to": "agent2"}]},
         )
 
         assert "test_workflow" in manager.workflows
@@ -493,15 +491,16 @@ class TestHybridIntegration:
         template_config = {
             "description": "Test template",
             "agents": ["agent1", "agent2"],
-            "edges": [
-                {"from": "agent1", "to": "agent2"}
-            ]
+            "edges": [{"from": "agent1", "to": "agent2"}],
         }
 
         manager.create_workflow_template("test_template", template_config)
 
         assert "test_template" in manager.workflow_templates
-        assert manager.workflow_templates["test_template"]["description"] == "Test template"
+        assert (
+            manager.workflow_templates["test_template"]["description"]
+            == "Test template"
+        )
 
 
 class TestIntegrationScenarios:
@@ -528,7 +527,7 @@ class TestIntegrationScenarios:
                 description=f"Task {i}",
                 expected_output=f"Output {i}",
                 agent=agent,
-                dependencies=dependencies
+                dependencies=dependencies,
             )
             task_ids.append(task_id)
 
@@ -551,10 +550,12 @@ class TestIntegrationScenarios:
             agent_id="hybrid_test",
             agent_type=AgentType.HYBRID_AGENT,
             name="Hybrid Test Agent",
-            role="test"
+            role="test",
         )
 
-        with patch('backend.agents.hybrid_integration.InferenceProvider') as mock_provider:
+        with patch(
+            "backend.agents.hybrid_integration.InferenceProvider"
+        ) as mock_provider:
             mock_llm = Mock()
             mock_llm.ainvoke = AsyncMock(return_value=Mock(content="Hybrid result"))
             mock_provider.get_model.return_value = mock_llm
@@ -580,7 +581,7 @@ class TestIntegrationScenarios:
         coordinator = get_crew_coordinator()
 
         # Create mock crew
-        with patch('crewai.Crew') as mock_crew_class:
+        with patch("crewai.Crew") as mock_crew_class:
             mock_crew = Mock()
             mock_crew.kickoff = AsyncMock(return_value="Coordinated result")
             mock_crew.tasks = [Mock(), Mock(), Mock()]
@@ -592,10 +593,7 @@ class TestIntegrationScenarios:
             tasks = [Mock() for _ in range(3)]
 
             coordinator.create_crew(
-                crew_id=crew_id,
-                agents=agents,
-                tasks=tasks,
-                auto_start_scheduler=True
+                crew_id=crew_id, agents=agents, tasks=tasks, auto_start_scheduler=True
             )
 
             # Start coordination loop
@@ -641,6 +639,7 @@ class TestDataFactory:
         state = HybridWorkflowState()
         if messages:
             from backend.models.cognitive import AgentMessage
+
             state.messages = [
                 AgentMessage(role="user", content=msg) for msg in messages
             ]
@@ -665,9 +664,7 @@ class TestPerformance:
             agent.execute = AsyncMock(return_value=f"Task {i}")
 
             task_id = task_manager.create_task(
-                description=f"Task {i}",
-                expected_output=f"Output {i}",
-                agent=agent
+                description=f"Task {i}", expected_output=f"Output {i}", agent=agent
             )
             task_ids.append(task_id)
 
@@ -690,8 +687,9 @@ class TestPerformance:
     @pytest.mark.asyncio
     async def test_memory_usage(self):
         """Test memory usage during extended operation."""
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss
@@ -708,7 +706,7 @@ class TestPerformance:
                 task_id = task_manager.create_task(
                     description=f"Batch {batch} Task {i}",
                     expected_output=f"Output {i}",
-                    agent=agent
+                    agent=agent,
                 )
                 task_ids.append(task_id)
 
@@ -736,6 +734,7 @@ class TestConfiguration:
             import crewai
             import crewai_tools
             import langgraph
+
             assert True
         except ImportError as e:
             pytest.fail(f"Missing dependency: {e}")
@@ -744,6 +743,7 @@ class TestConfiguration:
         """Test environment configuration."""
         # Test that configuration files exist
         import os
+
         backend_dir = "backend"
 
         assert os.path.exists(os.path.join(backend_dir, "pyproject.toml"))
@@ -753,7 +753,7 @@ class TestConfiguration:
             "crewai_adapter.py",
             "crewai_tasks.py",
             "crewai_coordination.py",
-            "hybrid_integration.py"
+            "hybrid_integration.py",
         ]
 
         for file in agent_files:
