@@ -1,10 +1,9 @@
-import abc
 import logging
 import time
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from backend.services.swarm_health import SwarmHealthService
+from backend.core.tool_registry import MatrixSkill
 
 logger = logging.getLogger("raptorflow.skills.matrix")
 
@@ -44,24 +43,6 @@ class SkillPrivilegeMatrix:
         """Verifies if a role can execute a specific skill."""
         allowed_skills = self._matrix.get(role, [])
         return skill_name in allowed_skills
-
-
-class MatrixSkill(abc.ABC):
-    """
-    Base class for all Matrix specialized skills.
-    Skills are deterministic tools that agents can use to manipulate system state.
-    """
-
-    @property
-    @abc.abstractmethod
-    def name(self) -> str:
-        """The unique name of the skill."""
-        pass
-
-    @abc.abstractmethod
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Executes the skill logic."""
-        pass
 
 
 class SkillRegistry:
@@ -143,13 +124,9 @@ class InferenceThrottlingSkill(MatrixSkill):
     async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         agent_id = params.get("agent_id")
         tpm_limit = params.get("tpm_limit", 1000)  # Tokens Per Minute
-        reason = params.get("reason")
 
         if not agent_id:
             return {"error": "agent_id is required"}
-
-        if reason:
-            logger.info(f"Inference throttling reason for {agent_id}: {reason}")
 
         logger.info(f"Applying throttling to {agent_id}: {tpm_limit} TPM")
 
@@ -162,7 +139,6 @@ class InferenceThrottlingSkill(MatrixSkill):
                 "throttling_applied": True,
                 "agent_id": agent_id,
                 "tpm_limit": tpm_limit,
-                "reason": reason,
                 "status": "active",
             }
         except Exception as e:
@@ -298,7 +274,6 @@ class ToolExecutionWrapper:
 
     def __init__(self, skill: MatrixSkill):
         self.skill = skill
-        self._health = SwarmHealthService()
 
     async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Executes the wrapped skill with full observability."""
@@ -308,7 +283,6 @@ class ToolExecutionWrapper:
         try:
             data = await self.skill.execute(params)
             latency = (time.time() - start_time) * 1000
-            self._health.record_tool_execution(self.skill.name, True)
             return {
                 "success": True,
                 "data": data,
@@ -317,7 +291,6 @@ class ToolExecutionWrapper:
             }
         except Exception as e:
             logger.error(f"Matrix tool {self.skill.name} failed: {e}")
-            self._health.record_tool_execution(self.skill.name, False)
             return {
                 "success": False,
                 "data": None,
