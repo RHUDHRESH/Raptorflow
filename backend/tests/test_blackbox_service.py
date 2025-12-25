@@ -44,7 +44,9 @@ def test_blackbox_service_log_telemetry_supabase():
     mock_query_builder.execute.return_value = MagicMock()
 
     service = BlackboxService(vault=mock_vault)
-    telemetry = BlackboxTelemetry(move_id=uuid4(), agent_id="test", tokens=10)
+    telemetry = BlackboxTelemetry(
+        tenant_id=uuid4(), move_id=uuid4(), agent_id="test", tokens=10
+    )
     service.log_telemetry(telemetry)
 
     mock_session.table.assert_called_once_with("blackbox_telemetry_industrial")
@@ -59,28 +61,29 @@ def test_blackbox_service_compute_roi():
 
     campaign_id = uuid4()
     move_id = str(uuid4())
+    tenant_id = uuid4()
 
     def table_side_effect(name):
         mock_query = MagicMock()
         if name == "moves":
-            mock_query.select.return_value.eq.return_value.order.return_value.execute.return_value = MagicMock(
+            mock_query.select.return_value.eq.return_value.eq.return_value.order.return_value.execute.return_value = MagicMock(
                 data=[{"id": move_id}]
             )
             return mock_query
         if name == "blackbox_telemetry_industrial":
-            mock_query.select.return_value.eq.return_value.execute.return_value = (
-                MagicMock(data=[{"tokens": 10000}])
-            )
+            (
+                mock_query.select.return_value.eq.return_value.eq.return_value.execute.return_value
+            ) = MagicMock(data=[{"tokens": 10000}])
             return mock_query
         if name == "blackbox_outcomes_industrial":
-            mock_query.select.return_value.eq.return_value.execute.return_value = (
-                MagicMock(data=[{"value": 1.20}])
-            )
+            (
+                mock_query.select.return_value.eq.return_value.eq.return_value.execute.return_value
+            ) = MagicMock(data=[{"value": 1.20}])
             return mock_query
         return MagicMock()
 
     mock_session.table.side_effect = table_side_effect
-    result = service.compute_roi(campaign_id)
+    result = service.compute_roi(campaign_id, tenant_id)
     assert result["roi"] == 5.0
 
 
@@ -114,7 +117,7 @@ def test_blackbox_service_attribution_confidence():
     with patch.object(
         service, "get_telemetry_by_move", return_value=[{"id": i} for i in range(10)]
     ):
-        conf = service.calculate_attribution_confidence("m1")
+        conf = service.calculate_attribution_confidence("m1", uuid4())
         assert conf == 0.63 or conf == 0.62
 
 
@@ -130,12 +133,14 @@ def test_blackbox_service_trigger_learning_cycle():
         "backend.graphs.blackbox_analysis.create_blackbox_graph",
         return_value=mock_graph,
     ):
-        with patch.object(service, "upsert_learning_embedding") as mock_upsert:
-            with patch.object(service, "categorize_learning", return_value="strategic"):
-                move_id = str(uuid4())
-                result = asyncio.run(service.trigger_learning_cycle(move_id))
-                assert result["findings_count"] == 1
-                mock_upsert.assert_called_once()
+            with patch.object(service, "upsert_learning_embedding") as mock_upsert:
+                with patch.object(service, "categorize_learning", return_value="strategic"):
+                    move_id = str(uuid4())
+                    result = asyncio.run(
+                        service.trigger_learning_cycle(move_id, uuid4())
+                    )
+                    assert result["findings_count"] == 1
+                    mock_upsert.assert_called_once()
 
 
 def test_blackbox_service_generate_pivot_recommendation():
@@ -145,15 +150,17 @@ def test_blackbox_service_generate_pivot_recommendation():
     service = BlackboxService(vault=mock_vault)
 
     with patch.object(service, "get_telemetry_by_move", return_value=[{"trace": "t1"}]):
-        mock_session.table.return_value.select.return_value.eq.return_value.execute.return_value = MagicMock(
-            data=[{"value": 100}]
-        )
+        (
+            mock_session.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value
+        ) = MagicMock(data=[{"value": 100}])
         mock_agent = MagicMock()
         mock_agent.run = AsyncMock(return_value={"pivots": "New Strategy"})
         with patch(
             "backend.agents.blackbox_specialist.LearningAgent", return_value=mock_agent
         ):
-            result = asyncio.run(service.generate_pivot_recommendation(str(uuid4())))
+            result = asyncio.run(
+                service.generate_pivot_recommendation(str(uuid4()), uuid4())
+            )
             assert result["pivot_recommendation"] == "New Strategy"
 
 
@@ -234,7 +241,7 @@ def test_learning_flywheel_output():
         with patch.object(service, "upsert_learning_embedding") as mock_upsert:
             with patch.object(service, "categorize_learning", return_value="strategic"):
                 move_id = str(uuid4())
-                asyncio.run(service.trigger_learning_cycle(move_id))
+                asyncio.run(service.trigger_learning_cycle(move_id, uuid4()))
 
                 # Should have upserted both findings
                 assert mock_upsert.call_count == 2

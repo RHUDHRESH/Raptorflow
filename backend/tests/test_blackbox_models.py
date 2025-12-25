@@ -8,6 +8,7 @@ from backend.models.blackbox import BlackboxLearning, BlackboxOutcome, BlackboxT
 
 def test_blackbox_telemetry_schema():
     data = {
+        "tenant_id": uuid4(),
         "move_id": uuid4(),
         "agent_id": "test-agent-v1",
         "trace": {"steps": ["thought", "action"]},
@@ -25,6 +26,7 @@ def test_blackbox_outcome_schema():
         pytest.fail("BlackboxOutcome model not imported")
 
     data = {
+        "tenant_id": uuid4(),
         "source": "conversion_pixel",
         "value": 1500.0,
         "confidence": 0.95,

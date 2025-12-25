@@ -6,6 +6,9 @@ from typing import Any, Dict, Optional
 
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+from backend.models.telemetry import TelemetryEventType
+from backend.services.telemetry_collector import get_telemetry_collector
+
 logger = logging.getLogger("raptorflow.toolbelt.base")
 
 
@@ -77,6 +80,23 @@ class BaseRaptorTool(ABC):
     async def run(self, **kwargs) -> Dict[str, Any]:
         """Wrapper with telemetry and error handling."""
         start_time = datetime.now()
+        collector = get_telemetry_collector()
+        metadata = {}
+        if "workspace_id" in kwargs:
+            metadata["workspace_id"] = kwargs.get("workspace_id")
+        if "tenant_id" in kwargs:
+            metadata["tenant_id"] = kwargs.get("tenant_id")
+        if "agent_name" in kwargs:
+            metadata["agent_name"] = kwargs.get("agent_name")
+        await collector.record_tool_event(
+            TelemetryEventType.TOOL_START,
+            self.name,
+            {
+                "parameters": list(kwargs.keys()),
+                "started_at": start_time.isoformat(),
+            },
+            metadata=metadata,
+        )
         logger.info(f"Tool {self.name} starting...")
         try:
             await RaptorRateLimiter.wait_if_throttled()
@@ -86,6 +106,15 @@ class BaseRaptorTool(ABC):
         try:
             result = await self._execute(**kwargs)
             latency = (datetime.now() - start_time).total_seconds() * 1000
+            await collector.record_tool_event(
+                TelemetryEventType.TOOL_END,
+                self.name,
+                {
+                    "duration_ms": latency,
+                    "success": True,
+                },
+                metadata=metadata,
+            )
             return {
                 "success": True,
                 "data": result,
@@ -94,4 +123,15 @@ class BaseRaptorTool(ABC):
             }
         except Exception as e:
             logger.error(f"Tool {self.name} failed: {e}")
+            duration_ms = (datetime.now() - start_time).total_seconds() * 1000
+            await collector.record_tool_event(
+                TelemetryEventType.TOOL_END,
+                self.name,
+                {
+                    "duration_ms": duration_ms,
+                    "success": False,
+                    "error": str(e),
+                },
+                metadata=metadata,
+            )
             return {"success": False, "data": None, "latency_ms": 0, "error": str(e)}
