@@ -92,6 +92,20 @@ class BlackboxService:
                 query = query.eq(key, value)
         return query
 
+    @staticmethod
+    def _infer_workspace_id(
+        tenant_id: Optional[UUID],
+        telemetry: List[Dict[str, Any]],
+        outcomes: List[Dict[str, Any]],
+    ) -> Optional[str]:
+        if tenant_id:
+            return str(tenant_id)
+        for record in telemetry + outcomes:
+            workspace_id = record.get("workspace_id") or record.get("tenant_id")
+            if workspace_id:
+                return str(workspace_id)
+        return None
+
     def _fetch_scoped_records(
         self,
         table: str,
@@ -435,12 +449,16 @@ class BlackboxService:
 
         return analysis
 
-    async def trigger_learning_cycle(self, move_id: str) -> Dict[str, Any]:
+    async def trigger_learning_cycle(
+        self, move_id: str, tenant_id: Optional[UUID] = None
+    ) -> Dict[str, Any]:
         """
         Triggers the multi-agentic learning cycle via LangGraph.
         Summarizes outcomes and telemetry into strategic learnings.
         """
         from backend.graphs.blackbox_analysis import create_blackbox_graph
+        from backend.memory.swarm_learning import record_learning
+        from backend.services.evaluation import OutputEvaluator
 
         graph = create_blackbox_graph()
         initial_state = {
@@ -454,12 +472,33 @@ class BlackboxService:
         }
 
         final_state = await graph.ainvoke(initial_state)
+        evaluator = OutputEvaluator()
+        workspace_id = self._infer_workspace_id(
+            tenant_id=tenant_id,
+            telemetry=final_state.get("telemetry_data", []),
+            outcomes=final_state.get("outcomes", []),
+        )
 
         # 1. Process findings into permanent memory
         for finding in final_state.get("findings", []):
             l_type = self.categorize_learning(finding)
             self.upsert_learning_embedding(
                 content=finding, learning_type=l_type, source_ids=[UUID(move_id)]
+            )
+            evaluation = evaluator.evaluate_output(
+                finding,
+                outcomes=final_state.get("outcomes", []),
+                confidence=final_state.get("confidence", 0.0),
+            )
+            await record_learning(
+                workspace_id=workspace_id,
+                content=finding,
+                evaluation=evaluation,
+                metadata={
+                    "move_id": move_id,
+                    "learning_type": l_type,
+                    "source": "blackbox_learning_cycle",
+                },
             )
 
         return {
