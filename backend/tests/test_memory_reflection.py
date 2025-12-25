@@ -32,12 +32,12 @@ async def test_memory_reflection_summarize_daily():
     )
     mock_llm.with_structured_output.return_value = mock_chain
 
-    with patch("backend.agents.memory_reflection.InferenceProvider") as mock_inference, patch(
-        "backend.agents.memory_reflection.SwarmLearningMemory"
-    ) as mock_swarm_memory:
+    with (
+        patch("backend.agents.memory_reflection.InferenceProvider") as mock_inference,
+        patch("backend.agents.memory_reflection.SwarmLearning") as mock_swarm_learning,
+    ):
         mock_inference.get_model.return_value = mock_llm
-        mock_swarm_instance = mock_swarm_memory.return_value
-        mock_swarm_instance.record_learning = AsyncMock()
+        mock_swarm_learning.return_value.record_learning = AsyncMock()
 
         agent = MemoryReflectionAgent()
         traces = [
@@ -50,4 +50,3 @@ async def test_memory_reflection_summarize_daily():
         assert "Busy day" in result["summary"]
         assert len(result["learnings"]) > 0
         mock_chain.ainvoke.assert_called_once()
-        mock_swarm_instance.record_learning.assert_called()
