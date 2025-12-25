@@ -221,3 +221,24 @@ class BrandAssetManager:
         except Exception as e:
             logger.error(f"Failed to upload logo: {e}")
             raise e
+
+    def upload_raw_asset(
+        self, file_content: bytes, filename: str, content_type: str, tenant_id: str
+    ) -> str:
+        """
+        Uploads a raw asset (PDF, PPTX, DOCX) to GCS and returns the public URL.
+        """
+        try:
+            bucket = self.client.get_bucket(self.bucket_name)
+            blob = bucket.blob(f"{tenant_id}/assets/raw/{filename}")
+
+            blob.upload_from_string(file_content, content_type=content_type)
+            blob.make_public()
+
+            logger.info(
+                f"Successfully uploaded raw asset: {filename} to {self.bucket_name}"
+            )
+            return blob.public_url
+        except Exception as e:
+            logger.error(f"Failed to upload raw asset: {e}")
+            raise e
