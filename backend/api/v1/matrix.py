@@ -3,6 +3,7 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from backend.core.auth import get_current_user
 from backend.services.cost_governor import CostGovernor
 from backend.services.drift_detection import DriftDetectionService
 from backend.services.matrix_service import MatrixService
@@ -17,7 +18,9 @@ def get_matrix_service():
 
 @router.get("/overview")
 async def get_overview(
-    workspace_id: str, service: MatrixService = Depends(get_matrix_service)
+    workspace_id: str,
+    _current_user: dict = Depends(get_current_user),
+    service: MatrixService = Depends(get_matrix_service),
 ):
     """Retrieves the aggregated health dashboard for the entire ecosystem."""
     return await service.get_aggregated_overview(workspace_id)
@@ -25,7 +28,9 @@ async def get_overview(
 
 @router.post("/kill-switch")
 async def engage_kill_switch(
-    reason: str = "Manual Trigger", service: MatrixService = Depends(get_matrix_service)
+    reason: str = "Manual Trigger",
+    _current_user: dict = Depends(get_current_user),
+    service: MatrixService = Depends(get_matrix_service),
 ):
     """
     SOTA Global Kill-Switch.
@@ -48,6 +53,7 @@ async def engage_kill_switch(
 async def execute_matrix_skill(
     skill_name: str,
     params: Dict[str, Any],
+    _current_user: dict = Depends(get_current_user),
     service: MatrixService = Depends(get_matrix_service),
 ):
     """
@@ -62,7 +68,7 @@ async def execute_matrix_skill(
 
 
 @router.get("/mlops/drift")
-async def get_drift_report():
+async def get_drift_report(_current_user: dict = Depends(get_current_user)):
     """
     Retrieves the latest statistical data drift report.
     """
@@ -72,7 +78,9 @@ async def get_drift_report():
 
 
 @router.get("/governance/burn")
-async def get_financial_burn(workspace_id: str):
+async def get_financial_burn(
+    workspace_id: str, _current_user: dict = Depends(get_current_user)
+):
     """
     Retrieves real-time financial burn data (Token costs).
     """
