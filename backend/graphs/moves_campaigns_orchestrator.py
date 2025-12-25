@@ -23,6 +23,7 @@ from backend.db import SupabaseSaver, get_pool, save_campaign
 from backend.inference import InferenceProvider
 from backend.memory.long_term import LongTermMemory
 from backend.memory.semantic import SemanticMemory
+from backend.services.budget_governor import BudgetGovernor
 
 
 class MovesCampaignsState(TypedDict):
@@ -57,9 +58,37 @@ class MovesCampaignsState(TypedDict):
     # MLOps & Governance
     quality_score: float
     cost_accumulator: float
+    token_usage: dict
+    tool_usage: dict
+    budget_caps: Optional[dict]
+    budget_usage: Optional[dict]
 
 
 # Nodes implementation
+budget_governor = BudgetGovernor()
+
+
+async def _budget_gate(state: MovesCampaignsState, agent_id: str):
+    decision = budget_governor.evaluate(
+        state,
+        agent_id=agent_id,
+        concurrency=(state.get("budget_usage") or {}).get("active_tool_calls", 0),
+    )
+    await budget_governor.apply_decision(decision, agent_id=agent_id)
+    if not decision.allowed:
+        return {
+            "status": "budget_exceeded",
+            "messages": [
+                f"Budget gate blocked {agent_id}: {decision.reason}",
+            ],
+        }
+    if decision.action == "throttle":
+        return {
+            "messages": [f"Budget throttle active for {agent_id}: {decision.reason}"]
+        }
+    return None
+
+
 async def initialize_orchestrator(state: MovesCampaignsState):
     status = state.get("status")
     if status == "new" or not status:
@@ -90,6 +119,10 @@ async def plan_campaign(state: MovesCampaignsState):
     tenant_id = state.get("tenant_id")
     if not tenant_id:
         return {"messages": ["WARNING: No tenant_id for campaign persistence."]}
+
+    gate = await _budget_gate(state, "campaign_arc_designer")
+    if gate:
+        return gate
 
     # Trigger the real agentic designer
     llm = InferenceProvider.get_model(model_tier="reasoning")
@@ -126,6 +159,10 @@ async def plan_campaign(state: MovesCampaignsState):
 
 async def campaign_auditor(state: MovesCampaignsState):
     """SOTA Audit Node: Reflexive check on strategy alignment."""
+    gate = await _budget_gate(state, "brand_voice_aligner")
+    if gate:
+        return gate
+
     llm = InferenceProvider.get_model(model_tier="reasoning")
     agent = BrandVoiceAligner(llm)
 
@@ -162,6 +199,10 @@ async def approve_campaign(state: MovesCampaignsState):
 
 async def generate_moves(state: MovesCampaignsState):
     """SOTA Node: Generates weekly moves from the campaign arc."""
+    gate = await _budget_gate(state, "move_generator")
+    if gate:
+        return gate
+
     llm = InferenceProvider.get_model(model_tier="reasoning")
     agent = MoveGenerator(llm)
     return await agent(state)
@@ -169,6 +210,10 @@ async def generate_moves(state: MovesCampaignsState):
 
 async def refine_moves(state: MovesCampaignsState):
     """SOTA Node: Refines moves for production readiness."""
+    gate = await _budget_gate(state, "move_refiner")
+    if gate:
+        return gate
+
     llm = InferenceProvider.get_model(model_tier="driver")
     agent = MoveRefiner(llm)
     return await agent(state)
@@ -188,6 +233,10 @@ async def persist_moves(state: MovesCampaignsState):
 
 async def execute_skills(state: MovesCampaignsState):
     """SOTA Node: Executes tools for the current moves."""
+    gate = await _budget_gate(state, "skill_executor")
+    if gate:
+        return gate
+
     agent = SkillExecutor()
     return await agent(state)
 
@@ -231,6 +280,10 @@ async def memory_updater(state: MovesCampaignsState):
 
 async def kpi_setter(state: MovesCampaignsState):
     """SOTA KPI Node: Defines campaign metrics."""
+    gate = await _budget_gate(state, "kpi_definer")
+    if gate:
+        return gate
+
     # Use driver model for metric definition
     llm = InferenceProvider.get_model(model_tier="driver")
     agent = KPIDefiner(llm)
@@ -251,6 +304,8 @@ def router(state: MovesCampaignsState):
     """SOTA Routing logic for the cognitive spine."""
     if state.get("error"):
         return "error"
+    if state.get("status") == "budget_exceeded":
+        return END
     if state["status"] == "planning":
         return "campaign"
     if state["status"] == "monitoring":
