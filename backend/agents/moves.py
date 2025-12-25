@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from backend.core.prompts import MovePrompts
 from backend.core.toolbelt import ToolbeltV2
+from backend.models.capabilities import CapabilityProfile
 from backend.db import log_agent_decision, save_move
 
 logger = logging.getLogger("raptorflow.agents.moves")
@@ -193,8 +194,8 @@ class SkillExecutor:
     Orchestrates tool calls for a move based on its required skills.
     """
 
-    def __init__(self):
-        self.belt = ToolbeltV2()
+    def __init__(self, capability_profile: Optional[CapabilityProfile] = None):
+        self.belt = ToolbeltV2(capability_profile=capability_profile)
 
     async def __call__(self, state: TypedDict):
         """Execute tools for the current moves."""

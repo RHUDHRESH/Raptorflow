@@ -1,10 +1,11 @@
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
-from backend.skills.matrix_skills import SkillRegistry
+from backend.models.capabilities import CapabilityProfile
+from backend.skills.matrix_skills import SkillPrivilegeMatrix, SkillRegistry
 
 logger = logging.getLogger("raptorflow.matrix.agents")
 
@@ -26,9 +27,17 @@ class SkillSelectorAgent:
     Uses few-shot prompting and structured output for reliability.
     """
 
-    def __init__(self, llm: Any, registry: SkillRegistry):
+    def __init__(
+        self,
+        llm: Any,
+        registry: SkillRegistry,
+        capability_profile: Optional[CapabilityProfile] = None,
+        rbac_matrix: Optional[SkillPrivilegeMatrix] = None,
+    ):
         self.llm = llm
         self.registry = registry
+        self.capability_profile = capability_profile
+        self.rbac_matrix = rbac_matrix or SkillPrivilegeMatrix()
 
         self.prompt = ChatPromptTemplate.from_messages(
             [
@@ -59,6 +68,14 @@ Rules:
         # In a real build, we'd fetch descriptions for each skill.
         # For now, we list the registered names.
         skills = self.registry.list_skills()
+        if self.capability_profile:
+            skills = [
+                skill
+                for skill in skills
+                if self.capability_profile.allows_skill(
+                    skill, rbac_matrix=self.rbac_matrix
+                )
+            ]
         skill_descriptions = "\n".join([f"- {s}" for s in skills])
 
         chain = self.prompt.partial(
