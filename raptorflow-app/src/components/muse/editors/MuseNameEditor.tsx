@@ -7,12 +7,10 @@ import {
     Check,
     Sparkles,
     RefreshCw,
-    Globe,
     Lightbulb,
     ThumbsUp,
     ThumbsDown,
-    Copy,
-    ExternalLink
+    Copy
 } from 'lucide-react';
 
 interface NameEditorProps {
@@ -31,8 +29,7 @@ interface NameEditorProps {
 interface NameOption {
     id: string;
     name: string;
-    type: 'product' | 'domain';
-    available?: boolean; // For domains
+    type: 'product';
     rationale?: string;
     score?: number; // 0-100
     liked?: boolean;
@@ -48,30 +45,13 @@ function generateMockNames(context?: NameEditorProps['context']): NameOption[] {
         { name: 'Apex', rationale: 'Connotes leadership and peak performance' },
     ];
 
-    const domainNames = [
-        { name: 'getvelocity.io', available: true },
-        { name: 'usecatalyst.com', available: false },
-        { name: 'tryforge.co', available: true },
-        { name: 'meridian.app', available: true },
-        { name: 'apex.dev', available: false },
-    ];
-
-    return [
-        ...productNames.map((p, i) => ({
-            id: `product-${i}`,
-            name: p.name,
-            type: 'product' as const,
-            rationale: p.rationale,
-            score: 70 + Math.floor(Math.random() * 25),
-        })),
-        ...domainNames.map((d, i) => ({
-            id: `domain-${i}`,
-            name: d.name,
-            type: 'domain' as const,
-            available: d.available,
-            score: 60 + Math.floor(Math.random() * 30),
-        })),
-    ];
+    return productNames.map((p, i) => ({
+        id: `product-${i}`,
+        name: p.name,
+        type: 'product' as const,
+        rationale: p.rationale,
+        score: 70 + Math.floor(Math.random() * 25),
+    }));
 }
 
 export function MuseNameEditor({
@@ -84,10 +64,7 @@ export function MuseNameEditor({
 }: NameEditorProps) {
     const [names, setNames] = useState<NameOption[]>(initialNames || generateMockNames(context));
     const [selectedName, setSelectedName] = useState<string | null>(null);
-    const [filter, setFilter] = useState<'all' | 'product' | 'domain'>('all');
     const [isGenerating, setIsGenerating] = useState(false);
-
-    const filteredNames = names.filter(n => filter === 'all' || n.type === filter);
 
     const handleLike = useCallback((id: string, liked: boolean) => {
         setNames(prev => prev.map(n =>
@@ -157,30 +134,10 @@ export function MuseNameEditor({
                 </div>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="px-6 py-3 border-b border-border/20 flex gap-2">
-                {(['all', 'product', 'domain'] as const).map(f => (
-                    <button
-                        key={f}
-                        onClick={() => setFilter(f)}
-                        className={cn(
-                            'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                            filter === f
-                                ? 'bg-foreground text-background'
-                                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                        )}
-                    >
-                        {f === 'all' && 'All'}
-                        {f === 'product' && <><Lightbulb className="h-3.5 w-3.5 inline mr-1.5" />Products</>}
-                        {f === 'domain' && <><Globe className="h-3.5 w-3.5 inline mr-1.5" />Domains</>}
-                    </button>
-                ))}
-            </div>
-
             {/* Names Grid */}
             <div className="flex-1 overflow-auto p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
-                    {filteredNames.map(option => (
+                    {names.map(option => (
                         <div
                             key={option.id}
                             onClick={() => setSelectedName(option.name)}
@@ -196,16 +153,13 @@ export function MuseNameEditor({
                                 <div className="flex items-center gap-3">
                                     <div className={cn(
                                         'h-10 w-10 rounded-xl flex items-center justify-center',
-                                        option.type === 'product' ? 'bg-amber-500/10' : 'bg-blue-500/10'
+                                        'bg-amber-500/10'
                                     )}>
-                                        {option.type === 'product'
-                                            ? <Lightbulb className="h-5 w-5 text-amber-600" />
-                                            : <Globe className="h-5 w-5 text-blue-600" />
-                                        }
+                                        <Lightbulb className="h-5 w-5 text-amber-600" />
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-semibold tracking-tight">{option.name}</h3>
-                                        <p className="text-xs text-muted-foreground capitalize">{option.type} name</p>
+                                        <p className="text-xs text-muted-foreground">Product name</p>
                                     </div>
                                 </div>
 
@@ -225,18 +179,6 @@ export function MuseNameEditor({
                             {/* Rationale or availability */}
                             {option.rationale && (
                                 <p className="text-sm text-muted-foreground mb-4">{option.rationale}</p>
-                            )}
-                            {option.type === 'domain' && (
-                                <div className={cn(
-                                    'flex items-center gap-2 text-sm',
-                                    option.available ? 'text-emerald-600' : 'text-red-500'
-                                )}>
-                                    <span className={cn(
-                                        'h-2 w-2 rounded-full',
-                                        option.available ? 'bg-emerald-500' : 'bg-red-500'
-                                    )} />
-                                    {option.available ? 'Available' : 'Taken'}
-                                </div>
                             )}
 
                             {/* Actions */}
@@ -266,14 +208,6 @@ export function MuseNameEditor({
                                 >
                                     <Copy className="h-4 w-4" />
                                 </button>
-                                {option.type === 'domain' && option.available && (
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); }}
-                                        className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors"
-                                    >
-                                        <ExternalLink className="h-4 w-4" />
-                                    </button>
-                                )}
                             </div>
 
                             {/* Selection indicator */}
@@ -287,7 +221,7 @@ export function MuseNameEditor({
                 </div>
 
                 {/* Empty state */}
-                {filteredNames.length === 0 && (
+                {names.length === 0 && (
                     <div className="text-center py-16">
                         <div className="w-14 h-14 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Sparkles className="h-7 w-7 text-muted-foreground/50" />

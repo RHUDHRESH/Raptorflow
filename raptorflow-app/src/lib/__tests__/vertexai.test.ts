@@ -28,8 +28,21 @@ describe('Vertex AI Configuration', () => {
         expect(getGemini15Flash()).toBeNull();
     });
 
-    it('returns model instances when API key is configured', async () => {
+    it('returns null when API key is configured for Vertex-only models', async () => {
         process.env.VERTEX_AI_API_KEY = 'test-key';
+        process.env.MODEL_GENERAL = 'gemini-2.5-flash-lite';
+        process.env.MODEL_REASONING_ULTRA = 'gemini-2.5-flash-lite';
+        process.env.MODEL_REASONING_HIGH = 'gemini-2.5-flash-lite';
+
+        const { getGemini2Flash, getGemini15Pro, getGemini15Flash } = await import('../vertexai');
+        expect(getGemini2Flash()).toBeNull();
+        expect(getGemini15Pro()).toBeNull();
+        expect(getGemini15Flash()).toBeNull();
+    });
+
+    it('returns model instances when ADC is enabled', async () => {
+        process.env.VERTEX_AI_USE_ADC = 'true';
+        process.env.GOOGLE_CLOUD_PROJECT = 'test-project';
 
         const { getGemini2Flash, getGemini15Pro, getGemini15Flash } = await import('../vertexai');
         expect(getGemini2Flash()).not.toBeNull();

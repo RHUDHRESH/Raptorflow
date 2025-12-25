@@ -1,7 +1,7 @@
 import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
 import { Skill } from "./skills-manager";
-import { getInferenceConfig, isInferenceReady } from "../inference-config";
+import { getInferenceConfig, getInferenceStatus } from "../inference-config";
 import { invokeWithModelFallback } from "../vertexai";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 
@@ -22,8 +22,9 @@ export function convertSkillToTool(skill: Skill): DynamicStructuredTool {
         description: `${skill.name}: ${skill.description}`,
         schema: z.object(schemaShape),
         func: async (args) => {
-            if (!isInferenceReady()) {
-                return "AI model not available. Please configure INFERENCE_SIMPLE credentials.";
+            const inferenceStatus = getInferenceStatus();
+            if (!inferenceStatus.ready) {
+                return inferenceStatus.reason || "AI model not available.";
             }
 
             // Execute the Skill using the LLM

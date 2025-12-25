@@ -1,5 +1,5 @@
 import { StateGraph, Annotation } from "@langchain/langgraph";
-import { getInferenceConfig, isInferenceReady } from "../inference-config";
+import { getInferenceConfig, getInferenceStatus } from "../inference-config";
 import { invokeWithModelFallback } from "../vertexai";
 import { FoundationData, DerivedData, DerivedICP, DerivedPositioning, DerivedCompetitive, DerivedSoundbites, DerivedMarket } from "../foundation";
 import { Icp } from "@/types/icp-types";
@@ -40,7 +40,13 @@ export const OnboardingStateAnnotation = Annotation.Root({
  * Detects contradictions and refines brand voice.
  */
 async function architectNode(state: typeof OnboardingStateAnnotation.State) {
-    if (!isInferenceReady()) return { status: ["Architect: Model unavailable"], errors: ["Missing credentials"] };
+    const inferenceStatus = getInferenceStatus();
+    if (!inferenceStatus.ready) {
+        return {
+            status: ["Architect: Model unavailable"],
+            errors: [inferenceStatus.reason || "Inference unavailable"],
+        };
+    }
 
     const config = getInferenceConfig();
     const modelName = config.models.general || "gemini-2.5-flash-lite";
@@ -98,7 +104,10 @@ async function architectNode(state: typeof OnboardingStateAnnotation.State) {
  * Prophet Node: Generates high-fidelity ICPs based on refined foundation.
  */
 async function prophetNode(state: typeof OnboardingStateAnnotation.State) {
-    if (!isInferenceReady()) return { errors: ["Prophet: Model unavailable"] };
+    const inferenceStatus = getInferenceStatus();
+    if (!inferenceStatus.ready) {
+        return { errors: [inferenceStatus.reason || "Prophet: Model unavailable"] };
+    }
 
     const config = getInferenceConfig();
     const modelName =
@@ -171,7 +180,10 @@ async function prophetNode(state: typeof OnboardingStateAnnotation.State) {
  * Strategist Node: Generates the initial 90-day campaign and move backlog.
  */
 async function strategistNode(state: typeof OnboardingStateAnnotation.State) {
-    if (!isInferenceReady()) return { errors: ["Strategist: Model unavailable"] };
+    const inferenceStatus = getInferenceStatus();
+    if (!inferenceStatus.ready) {
+        return { errors: [inferenceStatus.reason || "Strategist: Model unavailable"] };
+    }
 
     const config = getInferenceConfig();
     const modelName =

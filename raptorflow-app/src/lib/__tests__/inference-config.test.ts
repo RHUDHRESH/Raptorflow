@@ -25,7 +25,7 @@ describe("Inference Configuration", () => {
 
     const config = getInferenceConfig();
     expect(config.apiKey).toBe("test-api-key");
-    expect(isInferenceReady()).toBe(true);
+    expect(isInferenceReady()).toBe(false);
   });
 
   it("should load configuration from NEXT_PUBLIC_INFERENCE_SIMPLE as fallback", () => {
@@ -34,6 +34,13 @@ describe("Inference Configuration", () => {
 
     const config = getInferenceConfig();
     expect(config.apiKey).toBe("public-test-key");
+    expect(isInferenceReady()).toBe(false);
+  });
+
+  it("should be ready when ADC is enabled", () => {
+    process.env.VERTEX_AI_USE_ADC = "true";
+    process.env.GOOGLE_CLOUD_PROJECT = "test-project";
+
     expect(isInferenceReady()).toBe(true);
   });
 });

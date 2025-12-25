@@ -535,7 +535,7 @@ function WelcomeState({ onPromptClick }: { onPromptClick?: (prompt: string) => v
         { id: 'cold-email', label: 'Cold Sales Email', prompt: 'Write a cold sales email that gets replies. Focus on value, not features.', icon: '📧' },
         { id: 'linkedin', label: 'LinkedIn Announcement', prompt: 'Create a LinkedIn post announcing our latest update. Make it authentic, not corporate.', icon: '💼' },
         { id: 'tagline', label: 'New Tagline Ideas', prompt: 'Generate 5 tagline options for our brand. Short, memorable, aligned with positioning.', icon: '💬' },
-        { id: 'product-name', label: 'Product Name Ideas', prompt: 'Brainstorm product name ideas that are memorable and domain-available.', icon: '💡' },
+        { id: 'product-name', label: 'Product Name Ideas', prompt: 'Brainstorm product name ideas that are memorable and brandable.', icon: '💡' },
         { id: 'hook', label: 'Attention-Grabbing Hook', prompt: 'Write an opening hook for a landing page that stops the scroll.', icon: '🎣' },
         { id: 'meme', label: 'Industry Meme', prompt: 'Create a meme that pokes fun at a common pain point our audience faces.', icon: '😂' },
     ];

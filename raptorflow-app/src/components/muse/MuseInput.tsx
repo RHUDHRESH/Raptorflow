@@ -16,7 +16,6 @@ function detectAssetType(prompt: string): AssetType | undefined {
     const lower = prompt.toLowerCase();
 
     if (lower.includes('meme')) return 'meme';
-    if (lower.includes('wireframe')) return 'wireframe';
     if (lower.includes('sales email') || lower.includes('cold email')) return 'sales-email';
     if (lower.includes('nurture')) return 'nurture-email';
     if (lower.includes('email')) return 'email';
@@ -27,7 +26,6 @@ function detectAssetType(prompt: string): AssetType | undefined {
     if (lower.includes('social') || lower.includes('linkedin') || lower.includes('twitter')) return 'social-post';
     if (lower.includes('product description') || lower.includes('description')) return 'product-description';
     if (lower.includes('product name') || lower.includes('name idea')) return 'product-name';
-    if (lower.includes('domain')) return 'domain-name';
     if (lower.includes('pdf') || lower.includes('lead magnet')) return 'lead-gen-pdf';
     if (lower.includes('talking point') || lower.includes('sales call')) return 'sales-talking-points';
 

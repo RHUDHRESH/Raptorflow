@@ -67,10 +67,9 @@ export function QuestionFlowWizard() {
             setData(saved);
             const savedStep = saved.currentStep || 0;
 
-            // If already completed, redirect to dashboard
-            if (saved.completedAt) {
-                router.push('/');
-                return;
+            const isCompleted = Boolean(saved.completedAt);
+            if (isCompleted) {
+                setShowReview(true);
             }
 
             const stepToQuestionMap: Record<number, number> = {
@@ -79,7 +78,7 @@ export function QuestionFlowWizard() {
             setCurrentIndex(stepToQuestionMap[savedStep] || 0);
             setIsLoaded(true);
 
-            if (saved.business?.name || savedStep > 0) {
+            if (saved.business?.name || savedStep > 0 || isCompleted) {
                 setShowWelcome(false);
             }
         };
@@ -250,21 +249,24 @@ export function QuestionFlowWizard() {
             // Wait a moment for UX
             await new Promise(r => setTimeout(r, 1500));
 
-            setShowCelebration(true);
-            const completedData = { ...data, completedAt: new Date().toISOString(), currentStep: SECTIONS.length - 1 };
-            saveFoundation(completedData);
-
-            setTimeout(() => {
-                router.push('/');
-            }, 3000);
         } catch (error) {
             console.error('Synthesis error:', error);
-            toast.error('Synthesis failed', {
-                description: 'We encountered an error processing your foundation. Please try again.'
+            setProcessingStatus('Fallback engine is drafting ICPs...');
+            generateFromFoundation(data);
+            toast('Synthesis offline', {
+                description: 'Using the local generator until credentials are configured.'
             });
-            setIsProcessing(false);
+            await new Promise(r => setTimeout(r, 800));
         }
-    }, [data, router]);
+
+        setShowCelebration(true);
+        const completedData = { ...data, completedAt: new Date().toISOString(), currentStep: SECTIONS.length - 1 };
+        saveFoundation(completedData);
+
+        setTimeout(() => {
+            router.push('/');
+        }, 3000);
+    }, [data, router, generateFromFoundation]);
 
 
 
