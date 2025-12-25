@@ -12,16 +12,11 @@ import { getOutcomesByMove, getTelemetryByMove, getLearningsByMove, getROIMatrix
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AgentAuditLog } from './AgentAuditLog';
 import { Badge } from "@/components/ui/badge";
+import { GrowthHooks } from "@/lib/growth-hooks";
 
 export interface BlackboxOutcome {
-    id: string;
-    campaign_id?: string;
-    move_id?: string;
-    source: string;
-    value: number;
-    confidence: number;
-    timestamp: string;
-}
+// ...
+
 
 export interface BlackboxLearning {
     id: string;
@@ -320,7 +315,11 @@ export function ExperimentDetail({
 
                         {isLaunched && (
                             <Button
-                                onClick={() => { onCheckin?.(experiment.id); onOpenChange(false); }}
+                                onClick={() => {
+                                    onCheckin?.(experiment.id);
+                                    GrowthHooks.trackExperimentCompletion();
+                                    onOpenChange(false);
+                                }}
                                 variant="outline"
                                 className="rounded-xl border-zinc-900 dark:border-zinc-100 px-6 hover:bg-zinc-900 hover:text-white dark:hover:bg-zinc-100 dark:hover:text-zinc-900 transition-all"
                             >

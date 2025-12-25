@@ -60,6 +60,26 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
     const [activeStep, setActiveStep] = useState<Step>('objective');
     const [previewMoves, setPreviewMoves] = useState<Move[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [generationStatus, setGenerationStatus] = useState<string>('idle');
+
+    // ... (rest of the state)
+
+    const pollStatus = async (campaignId: string) => {
+        const interval = setInterval(async () => {
+            try {
+                const res = await fetch(`/api/v1/campaigns/generate-arc/${campaignId}/status`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setGenerationStatus(data.status);
+                    if (data.status === 'completed' || data.status === 'failed') {
+                        clearInterval(interval);
+                    }
+                }
+            } catch (err) {
+                console.error("Status polling failed:", err);
+            }
+        }, 2000);
+    };
 
     // Reset on open
     useEffect(() => {
