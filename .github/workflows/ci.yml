@@ -38,26 +38,26 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci
-          cd backend && npm ci
+          cd raptorflow-app && npm ci
+          cd ../backend && python -m pip install --upgrade pip && pip install poetry && poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
 
       - name: Check formatting (Frontend)
-        run: npm run format:check
+        run: cd raptorflow-app && npm run format:check
 
       - name: Lint (Frontend)
-        run: npm run lint
+        run: cd raptorflow-app && npm run lint
 
       - name: Type check (Frontend)
-        run: npm run type-check
+        run: cd raptorflow-app && npm run type-check
 
       - name: Lint (Backend)
-        run: cd backend && npm run lint
+        run: cd backend && python -m flake8 --max-line-length=120 backend/
 
       - name: Format check (Backend)
-        run: cd backend && npm run format:check
+        run: cd backend && python -m black --check --line-length 88 backend/
 
       - name: Type check (Backend)
-        run: cd backend && npm run build:orchestrator
+        run: cd backend && python -m mypy backend/
 
   # =====================================================
   # UNIT TESTS
@@ -97,25 +97,25 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Install dependencies
         run: |
-          npm ci
-          cd backend && npm ci
-
-      - name: Setup test database
-        run: |
-          cd backend
-          npx supabase db reset --local
+          cd raptorflow-app && npm ci
+          cd ../backend && python -m pip install --upgrade pip && pip install poetry && poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
 
       - name: Run backend unit tests
-        run: cd backend && npm run test
+        run: cd backend && python -m pytest tests/ -v
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
           REDIS_URL: redis://localhost:6379
-          NODE_ENV: test
+          PYTHONPATH: .
 
       - name: Run frontend unit tests
-        run: npm run test:unit
+        run: cd raptorflow-app && npm run test:unit
         env:
           NODE_ENV: test
 

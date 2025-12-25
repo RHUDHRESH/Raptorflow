@@ -11,7 +11,7 @@ def test_telemetry_event_valid():
         "timestamp": "2025-12-23T12:00:00Z",
         "event_type": "inference_start",
         "source": "agent_alpha",
-        "payload": {"model": "gemini-2.5-flash", "prompt_len": 150},
+        "payload": {"model": "gemini-2.0-flash", "prompt_len": 150},
         "metadata": {"session_id": "sess_456"},
     }
     event = TelemetryEvent(**data)

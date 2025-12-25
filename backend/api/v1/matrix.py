@@ -1,10 +1,8 @@
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 
-from backend.core.vault import Vault
-from backend.models.telemetry import SystemState, TelemetryEvent
 from backend.services.cost_governor import CostGovernor
 from backend.services.drift_detection import DriftDetectionService
 from backend.services.matrix_service import MatrixService
@@ -44,6 +42,23 @@ async def engage_kill_switch(
         "reason": reason,
         "timestamp": datetime.now().isoformat(),
     }
+
+
+@router.post("/skills/{skill_name}")
+async def execute_matrix_skill(
+    skill_name: str,
+    params: Dict[str, Any],
+    service: MatrixService = Depends(get_matrix_service),
+):
+    """
+    Executes a specific Matrix operator skill.
+    """
+    result = await service.execute_skill(skill_name, params)
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=400, detail=result.get("error", "Failed to execute skill")
+        )
+    return result
 
 
 @router.get("/mlops/drift")
