@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+from uuid import uuid4
 
 from backend.models.blackbox import BlackboxOutcome
 from backend.services.outcome_ingestion_service import OutcomeIngestionService
@@ -16,7 +17,12 @@ def test_outcome_ingestion_service_webhook():
 
     service = OutcomeIngestionService(vault=mock_vault)
 
-    payload = {"source": "stripe", "conversion_value": 299.0, "confidence": 1.0}
+    payload = {
+        "tenant_id": str(uuid4()),
+        "source": "stripe",
+        "conversion_value": 299.0,
+        "confidence": 1.0,
+    }
 
     outcome = service.ingest_webhook_payload(payload)
 
