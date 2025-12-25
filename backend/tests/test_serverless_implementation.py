@@ -118,7 +118,7 @@ class TestServerlessArchitecture:
         )
 
         assert pipeline.name == "test-pipeline"
-        assert pipeline.input_source == " FILE
+        assert pipeline.input_source == "s3://input/"
         assert pipeline.output_destination == "s3://output/"
         assert len(pipeline.processing_functions) == 2
 

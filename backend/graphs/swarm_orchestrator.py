@@ -152,8 +152,10 @@ class SwarmOrchestrator:
         router_agent: Optional[IntentRouterAgent] = None,
         output_model: type[BaseModel] = SwarmRoutingDecision,
     ):
-        self.supervisor_llm = supervisor_llm or llm or InferenceProvider.get_model(
-            model_tier="fast", temperature=0.0
+        self.supervisor_llm = (
+            supervisor_llm
+            or llm
+            or InferenceProvider.get_model(model_tier="fast", temperature=0.0)
         )
         self.intent_llm = intent_llm or self.supervisor_llm
         self.llm = self.supervisor_llm
@@ -397,7 +399,6 @@ class SwarmOrchestrator:
         return "\n".join(summary_parts)
 
 
-class SwarmController(SwarmOrchestrator):
-    """Backward-compatible wrapper for the swarm orchestrator."""
+SwarmController = SwarmOrchestrator
 
-    pass
+__all__ = ["SwarmController", "SwarmOrchestrator"]

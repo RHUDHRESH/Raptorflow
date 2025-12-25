@@ -394,8 +394,8 @@ class TestHybridIntegration:
     def test_hybrid_agent_initialization(self, hybrid_agent):
         """Test hybrid agent initialization."""
         assert hybrid_agent.agent_id == "test_hybrid_agent"
-        assert hybrid_agent.name == " .config.name
-        dolar hybrid_agent .config.role == ]; assert hybrid_agent.execution_mode == ExecutionMode.ADAPTIVE
+        assert hybrid_agent.name == hybrid_agent.config.name
+        assert hybrid_agent.config.role == "test_role"
 
     def test_execution_mode_selection(self, hybrid_agent):
         """Test execution mode selection logic."""
