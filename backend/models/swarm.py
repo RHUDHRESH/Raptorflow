@@ -39,3 +39,15 @@ class SwarmState(CognitiveIntelligenceState):
 
     # History of delegations and specialist interactions
     delegation_history: Annotated[List[Dict[str, Any]], operator.add]
+
+    # Organizational hierarchy for multi-agent coordination
+    hierarchy: Annotated[Dict[str, Any], dict]
+
+    # Budget allocations across agents or tasks
+    budgets: Annotated[Dict[str, float], dict]
+
+    # References to shared memory handles (e.g., Redis keys, vector IDs)
+    shared_memory_handles: Annotated[Dict[str, str], dict]
+
+    # Artifacts produced during learning cycles (reports, embeddings, summaries)
+    learning_artifacts: Annotated[List[Dict[str, Any]], operator.add]
