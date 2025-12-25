@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
+from backend.core.auth import get_current_user
 from backend.services.payment_service import PhonePeCallbackError, payment_service
 
 router = APIRouter(prefix="/v1/payments", tags=["Payments"])
@@ -7,7 +8,11 @@ router = APIRouter(prefix="/v1/payments", tags=["Payments"])
 
 @router.post("/initiate")
 async def initiate_payment(
-    user_id: str, amount: float, transaction_id: str, redirect_url: str
+    user_id: str,
+    amount: float,
+    transaction_id: str,
+    redirect_url: str,
+    _current_user: dict = Depends(get_current_user),
 ):
     """Initiates a PhonePe payment session."""
     return payment_service.initiate_payment(
@@ -16,7 +21,9 @@ async def initiate_payment(
 
 
 @router.get("/status/{merchant_order_id}")
-async def get_payment_status(merchant_order_id: str):
+async def get_payment_status(
+    merchant_order_id: str, _current_user: dict = Depends(get_current_user)
+):
     """Fetch the latest order status from PhonePe."""
     return payment_service.get_order_status(merchant_order_id)
 
