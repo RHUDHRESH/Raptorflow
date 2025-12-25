@@ -1,5 +1,5 @@
 import { StateGraph, MessagesAnnotation, MemorySaver } from "@langchain/langgraph";
-import { getInferenceConfig, isInferenceReady } from "../inference-config";
+import { getInferenceConfig, getInferenceStatus } from "../inference-config";
 import { invokeWithModelFallback } from "../vertexai";
 import { loadSystemSkills } from "./skills-manager";
 import { convertSkillsToTools } from "./skill-converter";
@@ -31,12 +31,14 @@ async function getAllTools() {
 
 async function agentNode(state: typeof MessagesAnnotation.State) {
     const tools = await getAllTools();
-    if (!isInferenceReady()) {
+    const inferenceStatus = getInferenceStatus();
+    if (!inferenceStatus.ready) {
         console.warn("Vertex AI model not available - returning mock response");
         return {
             messages: [
                 new AIMessage({
-                    content: "I am currently in offline/mock mode because AI credentials (INFERENCE_SIMPLE) are missing. I can still help you navigate the UI, but I won't be able to generate real content until credentials are provided."
+                    content: inferenceStatus.reason ||
+                        "AI inference is unavailable. Configure Vertex credentials to enable responses."
                 })
             ]
         };

@@ -12,10 +12,11 @@ let _gemini15Flash: GeminiChatModel | null = null;
 const MODEL_FALLBACK_ORDER = [
   "gemini-2.5-flash-lite",
   "gemini-2.5-flash",
-  "gemini-2.0-flash-lite",
-  "gemini-2.0-flash",
-  "gemini-1.5-flash",
 ];
+
+function isApiKeyCompatibleModel(modelName: string): boolean {
+  return !modelName.trim().toLowerCase().startsWith("gemini-2.5");
+}
 
 function hasDefaultCredentials(): boolean {
   return Boolean(
@@ -35,11 +36,13 @@ function buildModelChain(primary?: string, fallbacks?: string[]) {
 function isModelAccessError(error: unknown): boolean {
   const message =
     error instanceof Error ? error.message : String(error ?? "");
-  const status = (error as { response?: { status?: number } })?.response?.status;
-  if (status === 404 || status === 403) {
+  const status =
+    (error as { response?: { status?: number } })?.response?.status ??
+    (error as { status?: number })?.status;
+  if (status === 401 || status === 403 || status === 404) {
     return true;
   }
-  return /not found|not_found|does not have access|permission|403|404/i.test(
+  return /not found|not_found|does not have access|permission|401|403|404|unauthorized|api keys are not supported|credentials_missing/i.test(
     message
   );
 }
@@ -73,6 +76,13 @@ function createModel(
       }
 
       return new ChatVertexAI(modelConfig);
+    }
+
+    if (!isApiKeyCompatibleModel(modelName)) {
+      console.warn(
+        `Skipping ${modelName} because it requires Vertex AI credentials.`
+      );
+      return null;
     }
 
     return new ChatGoogleGenerativeAI({

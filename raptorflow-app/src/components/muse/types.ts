@@ -14,13 +14,11 @@ export type AssetType =
     | 'social-post'
     | 'product-description'
     | 'product-name'
-    | 'domain-name'
     | 'lead-gen-pdf'
     | 'sales-talking-points'
     // Visual
     | 'meme'
-    | 'social-card'
-    | 'wireframe';
+    | 'social-card';
 
 export type AssetCategory = 'text' | 'visual' | 'strategy';
 
@@ -44,13 +42,11 @@ export const ASSET_TYPES: AssetTypeConfig[] = [
     { type: 'social-post', label: 'Social Post', category: 'text', description: 'LinkedIn, Twitter, etc.', icon: 'Share2' },
     { type: 'product-description', label: 'Product Description', category: 'text', description: 'Feature and benefit copy', icon: 'Package' },
     { type: 'product-name', label: 'Product Name', category: 'strategy', description: 'Name ideas for products', icon: 'Lightbulb' },
-    { type: 'domain-name', label: 'Domain Name', category: 'strategy', description: 'Website domain suggestions', icon: 'Globe' },
     { type: 'lead-gen-pdf', label: 'Lead Gen PDF', category: 'text', description: 'PDF content outline', icon: 'FileText' },
     { type: 'sales-talking-points', label: 'Sales Talking Points', category: 'text', description: 'Key points for sales calls', icon: 'Mic' },
     // Visual assets
     { type: 'meme', label: 'Meme', category: 'visual', description: 'Image with text overlay', icon: 'Image' },
     { type: 'social-card', label: 'Social Card', category: 'visual', description: 'Visual post for feeds', icon: 'Layout' },
-    { type: 'wireframe', label: 'Wireframe', category: 'visual', description: 'Simple page layout sketch', icon: 'Box' },
 ];
 
 export type GenerationStatus = 'queued' | 'generating' | 'complete' | 'failed';

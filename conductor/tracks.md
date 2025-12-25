@@ -40,5 +40,5 @@
 
 ---
 
-## [~] Track: Growth Engine Modernization (Matrix, Black Box, Campaigns)
+## [x] Track: Growth Engine Modernization (Matrix, Black Box, Campaigns)
 *Link: [./conductor/tracks/growth_engine_modernization_20251225/](./conductor/tracks/growth_engine_modernization_20251225/)*

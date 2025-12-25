@@ -11,6 +11,7 @@ import { FadeIn, Stagger } from '@/components/ui/motion';
 import { ArrowLeft, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useMuseAssets } from '@/lib/muse/assets-store';
 
 // Mock data for demo - in real app this would come from context/store
 const MOCK_ASSETS: Asset[] = [
@@ -60,7 +61,7 @@ const MOCK_ASSETS: Asset[] = [
 ];
 
 export default function MuseLibraryPage() {
-    const [assets, setAssets] = useState<Asset[]>(MOCK_ASSETS);
+    const { assets, setAssets } = useMuseAssets(MOCK_ASSETS);
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     const [editorOpen, setEditorOpen] = useState(false);
 

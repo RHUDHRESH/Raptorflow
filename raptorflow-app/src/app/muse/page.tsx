@@ -18,6 +18,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { FolderIcon } from '@/components/ui/icons';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useMuseAssets } from '@/lib/muse/assets-store';
 
 // Mock data for demo
 const MOCK_ASSETS: Asset[] = [
@@ -115,7 +116,7 @@ function MusePageContent() {
     const searchParams = useSearchParams();
     const initialPrompt = searchParams.get('prompt') || undefined;
 
-    const [assets, setAssets] = useState<Asset[]>(MOCK_ASSETS);
+    const { assets, setAssets } = useMuseAssets(MOCK_ASSETS);
     const [jobs, setJobs] = useState<GenerationJob[]>([]);
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     const [editorOpen, setEditorOpen] = useState(false);
@@ -253,7 +254,7 @@ function MusePageContent() {
                 <DialogContent className="max-w-5xl h-[85vh] p-0 overflow-hidden">
                     {selectedAsset && (
                         // Route to appropriate editor based on asset type
-                        selectedAsset.type === 'product-name' || selectedAsset.type === 'domain-name' ? (
+                        selectedAsset.type === 'product-name' ? (
                             <MuseNameEditor
                                 title={selectedAsset.title}
                                 onSave={(name) => {
