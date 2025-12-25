@@ -1,6 +1,7 @@
 import operator
 from typing import Annotated, List, Optional, TypedDict
 
+from langchain_core.messages import SystemMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
@@ -22,7 +23,9 @@ from backend.core.config import get_settings
 from backend.db import SupabaseSaver, get_pool, save_campaign
 from backend.inference import InferenceProvider
 from backend.memory.long_term import LongTermMemory
+from backend.memory.peer_review import PeerReviewMemory
 from backend.memory.semantic import SemanticMemory
+from backend.services.budget_governor import BudgetGovernor
 
 
 class MovesCampaignsState(TypedDict):
@@ -51,15 +54,44 @@ class MovesCampaignsState(TypedDict):
     # Multi-Agent State
     last_agent: str
     messages: Annotated[List[str], operator.add]
+    peer_critiques: Annotated[List[dict], operator.add]
     error: Optional[str]
     status: str  # planning, execution, monitoring, complete
 
     # MLOps & Governance
     quality_score: float
     cost_accumulator: float
+    token_usage: dict
+    tool_usage: dict
+    budget_caps: Optional[dict]
+    budget_usage: Optional[dict]
 
 
 # Nodes implementation
+budget_governor = BudgetGovernor()
+
+
+async def _budget_gate(state: MovesCampaignsState, agent_id: str):
+    decision = budget_governor.evaluate(
+        state,
+        agent_id=agent_id,
+        concurrency=(state.get("budget_usage") or {}).get("active_tool_calls", 0),
+    )
+    await budget_governor.apply_decision(decision, agent_id=agent_id)
+    if not decision.allowed:
+        return {
+            "status": "budget_exceeded",
+            "messages": [
+                f"Budget gate blocked {agent_id}: {decision.reason}",
+            ],
+        }
+    if decision.action == "throttle":
+        return {
+            "messages": [f"Budget throttle active for {agent_id}: {decision.reason}"]
+        }
+    return None
+
+
 async def initialize_orchestrator(state: MovesCampaignsState):
     status = state.get("status")
     if status == "new" or not status:
@@ -90,6 +122,10 @@ async def plan_campaign(state: MovesCampaignsState):
     tenant_id = state.get("tenant_id")
     if not tenant_id:
         return {"messages": ["WARNING: No tenant_id for campaign persistence."]}
+
+    gate = await _budget_gate(state, "campaign_arc_designer")
+    if gate:
+        return gate
 
     # Trigger the real agentic designer
     llm = InferenceProvider.get_model(model_tier="reasoning")
@@ -126,6 +162,10 @@ async def plan_campaign(state: MovesCampaignsState):
 
 async def campaign_auditor(state: MovesCampaignsState):
     """SOTA Audit Node: Reflexive check on strategy alignment."""
+    gate = await _budget_gate(state, "brand_voice_aligner")
+    if gate:
+        return gate
+
     llm = InferenceProvider.get_model(model_tier="reasoning")
     agent = BrandVoiceAligner(llm)
 
@@ -155,6 +195,60 @@ async def campaign_auditor(state: MovesCampaignsState):
     return result
 
 
+async def peer_review(state: MovesCampaignsState):
+    """SOTA Peer Review Node: Agents critique each other's outputs."""
+    tenant_id = state.get("tenant_id")
+    if not tenant_id:
+        return {"messages": ["WARNING: No tenant_id for peer review."]}
+
+    llm = InferenceProvider.get_model(model_tier="reasoning")
+    critiques = []
+
+    review_targets = [
+        {
+            "reviewer": "Strategic Peer",
+            "target": "strategy_arc",
+            "focus": "campaign strategy arc",
+            "content": state.get("strategy_arc", {}),
+        },
+        {
+            "reviewer": "Execution Peer",
+            "target": "current_moves",
+            "focus": "weekly moves execution plan",
+            "content": state.get("current_moves", []),
+        },
+    ]
+
+    for target in review_targets:
+        if not target["content"]:
+            continue
+        prompt = f"""
+        # ROLE: {target['reviewer']}
+        # TASK: Critique the {target['focus']} produced by another agent.
+        # CONTENT: {target['content']}
+        # CRITERIA: Logic gaps, risk, missing details, misalignment.
+        """
+        response = await llm.ainvoke([SystemMessage(content=prompt)])
+        critiques.append(
+            {
+                "reviewer": target["reviewer"],
+                "target": target["target"],
+                "critique": response.content,
+            }
+        )
+
+    if not critiques:
+        return {"messages": ["Peer review skipped: no content to critique."]}
+
+    memory = PeerReviewMemory(tenant_id, state.get("workspace_id"))
+    await memory.append_critiques(critiques)
+
+    return {
+        "peer_critiques": critiques,
+        "messages": [f"Peer review completed with {len(critiques)} critiques."],
+    }
+
+
 async def approve_campaign(state: MovesCampaignsState):
     """SOTA HITL Node: Awaits human sign-off for the campaign strategy."""
     return {"messages": ["Campaign strategy approved by human."]}
@@ -162,6 +256,10 @@ async def approve_campaign(state: MovesCampaignsState):
 
 async def generate_moves(state: MovesCampaignsState):
     """SOTA Node: Generates weekly moves from the campaign arc."""
+    gate = await _budget_gate(state, "move_generator")
+    if gate:
+        return gate
+
     llm = InferenceProvider.get_model(model_tier="reasoning")
     agent = MoveGenerator(llm)
     return await agent(state)
@@ -169,6 +267,10 @@ async def generate_moves(state: MovesCampaignsState):
 
 async def refine_moves(state: MovesCampaignsState):
     """SOTA Node: Refines moves for production readiness."""
+    gate = await _budget_gate(state, "move_refiner")
+    if gate:
+        return gate
+
     llm = InferenceProvider.get_model(model_tier="driver")
     agent = MoveRefiner(llm)
     return await agent(state)
@@ -188,6 +290,10 @@ async def persist_moves(state: MovesCampaignsState):
 
 async def execute_skills(state: MovesCampaignsState):
     """SOTA Node: Executes tools for the current moves."""
+    gate = await _budget_gate(state, "skill_executor")
+    if gate:
+        return gate
+
     agent = SkillExecutor()
     return await agent(state)
 
@@ -231,6 +337,10 @@ async def memory_updater(state: MovesCampaignsState):
 
 async def kpi_setter(state: MovesCampaignsState):
     """SOTA KPI Node: Defines campaign metrics."""
+    gate = await _budget_gate(state, "kpi_definer")
+    if gate:
+        return gate
+
     # Use driver model for metric definition
     llm = InferenceProvider.get_model(model_tier="driver")
     agent = KPIDefiner(llm)
@@ -251,6 +361,8 @@ def router(state: MovesCampaignsState):
     """SOTA Routing logic for the cognitive spine."""
     if state.get("error"):
         return "error"
+    if state.get("status") == "budget_exceeded":
+        return END
     if state["status"] == "planning":
         return "campaign"
     if state["status"] == "monitoring":
@@ -263,6 +375,7 @@ workflow = StateGraph(MovesCampaignsState)
 workflow.add_node("init", initialize_orchestrator)
 workflow.add_node("inject_context", inject_context)
 workflow.add_node("plan_campaign", plan_campaign)
+workflow.add_node("peer_review", peer_review)
 workflow.add_node("campaign_auditor", campaign_auditor)
 workflow.add_node("approve_campaign", approve_campaign)
 workflow.add_node("generate_moves", generate_moves)
@@ -291,12 +404,14 @@ workflow.add_conditional_edges(
     },
 )
 
-workflow.add_edge("plan_campaign", "campaign_auditor")
+workflow.add_edge("plan_campaign", "peer_review")
+workflow.add_edge("peer_review", "campaign_auditor")
 workflow.add_edge("campaign_auditor", "approve_campaign")
 workflow.add_edge("approve_campaign", "memory_updater")
 
 workflow.add_edge("generate_moves", "refine_moves")
-workflow.add_edge("refine_moves", "check_resources")
+workflow.add_edge("refine_moves", "peer_review")
+workflow.add_edge("peer_review", "check_resources")
 workflow.add_edge("check_resources", "persist_moves")
 workflow.add_edge("persist_moves", "execute_skills")
 workflow.add_edge("execute_skills", "validate_safety")

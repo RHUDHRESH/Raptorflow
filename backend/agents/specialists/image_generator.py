@@ -6,7 +6,6 @@ from pydantic import BaseModel, Field
 from backend.agents.base import BaseCognitiveAgent
 from backend.core.prompts import CreativePrompts
 from backend.models.cognitive import CognitiveIntelligenceState
-from backend.tools.image_gen import DalleTool
 
 logger = logging.getLogger("raptorflow.agents.image_generator")
 
@@ -27,12 +26,16 @@ class ImageGenAgent(BaseCognitiveAgent):
     """
 
     def __init__(self):
+        from backend.tools.registry import UnifiedToolRegistry
+
+        registry = UnifiedToolRegistry.default()
+        profiles = registry.get_capability_profiles(["image_gen_dalle"])
         super().__init__(
             name="ImageGenerator",
             role="creator",
             system_prompt=CreativePrompts.VISUAL_ARCHITECT,
             model_tier="driver",
-            tools=[DalleTool()],
+            tools=registry.resolve_tools_from_profiles(profiles),
             output_schema=ImageOutput,
         )
 

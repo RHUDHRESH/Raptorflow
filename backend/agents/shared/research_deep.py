@@ -5,7 +5,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
 from backend.core.config import get_settings
-from backend.core.crawler_pipeline import CrawlPolicy, CrawlerPipeline
+from backend.core.crawler_pipeline import CrawlerPipeline, CrawlPolicy
 from backend.core.research_engine import SearchProvider
 from backend.inference import InferenceProvider
 

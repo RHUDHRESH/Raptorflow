@@ -1,11 +1,12 @@
+import re
+
 from langgraph.graph import END, START, StateGraph
 
 from backend.agents.shared.research_specialists import LibrarianAgent, SynthesisAgent
 from backend.core.config import get_settings
-from backend.core.crawler_pipeline import CrawlPolicy, CrawlerPipeline
+from backend.core.crawler_pipeline import CrawlerPipeline, CrawlPolicy
 from backend.core.research_engine import SearchProvider
-from backend.models.research_schemas import WebDocument
-from backend.models.research_schemas import ResearchDeepState
+from backend.models.research_schemas import FactClaim, ResearchDeepState, WebDocument
 
 # --- Nodes ---
 
@@ -65,7 +66,30 @@ async def verification_node(state: ResearchDeepState):
     """Fact-checker validates claims found in scraping."""
     # Logic to extract claims from docs and verify
     # This is where SOTA depth happens: cross-referencing Source A vs Source B
-    return {"status": "synthesis"}
+    extracted_claims = []
+    claim_index = 1
+    for doc in state.documents:
+        text = doc.summary or doc.raw_content
+        sentences = [
+            sentence.strip()
+            for sentence in re.split(r"(?<=[.!?])\s+", text)
+            if sentence.strip()
+        ]
+        if not sentences:
+            continue
+        claim_text = sentences[0]
+        extracted_claims.append(
+            FactClaim(
+                id=f"claim-{claim_index}",
+                claim=claim_text,
+                source_url=doc.url,
+                context_snippet=claim_text[:200],
+                confidence=0.45,
+            )
+        )
+        claim_index += 1
+
+    return {"status": "synthesis", "claims": extracted_claims}
 
 
 async def synthesis_node(state: ResearchDeepState):

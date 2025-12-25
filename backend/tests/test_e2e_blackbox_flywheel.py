@@ -28,9 +28,11 @@ class TestBlackboxE2E(unittest.TestCase):
         """
         move_id = uuid4()
         campaign_id = uuid4()
+        tenant_id = uuid4()
 
         # 1. Simulate Move Execution & Telemetry Logging
         telemetry = BlackboxTelemetry(
+            tenant_id=tenant_id,
             move_id=move_id,
             agent_id="research_agent",
             trace={"step": "market_scan", "found": ["link1", "link2"]},
@@ -44,6 +46,7 @@ class TestBlackboxE2E(unittest.TestCase):
 
         # 2. Simulate Outcome Attribution
         outcome = BlackboxOutcome(
+            tenant_id=tenant_id,
             campaign_id=campaign_id,
             move_id=move_id,
             source="linkedin",
@@ -74,7 +77,7 @@ class TestBlackboxE2E(unittest.TestCase):
         mock_inference.get_embeddings.return_value = mock_embed
 
         # Trigger Cycle
-        result = asyncio.run(self.service.trigger_learning_cycle(str(move_id)))
+        result = asyncio.run(self.service.trigger_learning_cycle(str(move_id), tenant_id))
 
         # 4. Verify Results
         self.assertEqual(result["findings_count"], 1)
