@@ -1,12 +1,9 @@
 import logging
-import operator
 import random
-from typing import Any, Dict, List, TypedDict
+from typing import TypedDict
 
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import BaseModel, Field
-
-from backend.core.toolbelt import BaseRaptorTool
+from pydantic import BaseModel
 
 logger = logging.getLogger("raptorflow.operators.notion")
 
@@ -66,11 +63,6 @@ class ImageCDNUploader:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
-        ephemeral_url = (
-            state.get("current_brief", {})
-            .get("image_prompt", {})
-            .get("temp_url", "ephemeral_id")
-        )
         logger.info(
             f"Moving image from ephemeral to permanent CDN ({self.bucket_name})..."
         )
@@ -93,7 +85,6 @@ class SocialPublisherAgent:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
-        content = state.get("current_draft", "No content")
         logger.info(f"MOCK PUBLISH: Delivering to {self.platform}...")
 
         # Simulating external API POST request

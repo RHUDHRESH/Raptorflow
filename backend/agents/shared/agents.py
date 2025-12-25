@@ -8,7 +8,9 @@ from backend.inference import InferenceProvider
 
 # --- A00: Intent Router ---
 class Intent(BaseModel):
-    asset_family: str = Field(description="email | social | meme | text | strategy")
+    asset_family: str = Field(
+        description="email | social | meme | text | strategy | image"
+    )
     confidence: float
     entities: List[str] = Field(description="@mentions found")
     goal: str

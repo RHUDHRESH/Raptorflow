@@ -4,6 +4,7 @@ from functools import wraps
 from typing import Any, Dict, List
 
 from backend.core.cache import get_cache_manager
+from backend.tools.image_gen import NanoBananaImageTool
 from backend.tools.muse import AssetGenTool
 from backend.tools.search import (
     PerplexitySearchTool,
@@ -61,6 +62,7 @@ class ToolbeltV2:
             "tavily_search": TavilyMultiHopTool(),
             "perplexity_search": PerplexitySearchTool(),
             "asset_gen": AssetGenTool(),
+            "nano_banana_gen": NanoBananaImageTool(),
         }
 
     async def run_tool(self, tool_name: str, **kwargs) -> Dict[str, Any]:
@@ -104,9 +106,17 @@ class ToolbeltV2:
     async def canvas_serialize(self, canvas_data: Dict) -> bool:
         return True
 
-    async def image_generate(self, prompt: str) -> str:
-        """Calls Imagen 3 or DALL-E 3."""
-        return "image_url"
+    async def image_generate(
+        self, tenant_id: str, prompt: str, aspect_ratio: str = "16:9"
+    ) -> str:
+        """Calls Nano Banana or DALL-E 3."""
+        res = await self.run_tool(
+            "nano_banana_gen",
+            tenant_id=tenant_id,
+            prompt=prompt,
+            aspect_ratio=aspect_ratio,
+        )
+        return res.get("image_url", "")
 
     async def image_edit(self, image_url: str, instruction: str) -> str:
         """Inpainting/Upscaling logic."""

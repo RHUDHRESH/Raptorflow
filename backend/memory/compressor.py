@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List
+from typing import List
 
 from backend.db import summarize_recursively
 from backend.inference import InferenceProvider
