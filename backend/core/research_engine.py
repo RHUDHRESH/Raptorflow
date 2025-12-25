@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 import aiohttp
 from bs4 import BeautifulSoup
 
+from backend.core.crawl_cache import CrawlCache
 from backend.core.search_native import NativeSearch
 
 logger = logging.getLogger("raptorflow.research_engine")
@@ -43,14 +44,37 @@ class ResearchEngine:
     async def fetch_page(self, url: str, timeout: int = 15) -> Optional[str]:
         """Fetches and cleans a single webpage."""
         session = await self.get_session()
+        cache = CrawlCache()
+        cached = cache.get(url)
+        if cached.entry and cached.is_fresh:
+            return cached.entry.get("content")
+
+        conditional_headers = {}
+        if cached.entry:
+            conditional_headers = cache.build_revalidation_headers(cached.entry)
         try:
-            async with session.get(url, timeout=timeout) as response:
+            headers = {**self.headers, **conditional_headers} if conditional_headers else None
+            async with session.get(url, timeout=timeout, headers=headers) as response:
+                if response.status == 304 and cached.entry:
+                    cache.touch(cached.entry)
+                    return cached.entry.get("content")
                 if response.status == 200:
                     html = await response.text()
-                    return self.clean_text(html)
+                    content = self.clean_text(html)
+                    cache.set(
+                        url,
+                        content,
+                        etag=response.headers.get("ETag"),
+                        last_modified=response.headers.get("Last-Modified"),
+                    )
+                    return content
                 logger.warning(f"Failed to fetch {url}: Status {response.status}")
+                if cached.entry:
+                    return cached.entry.get("content")
         except Exception as e:
             logger.error(f"Error fetching {url}: {str(e)}")
+            if cached.entry:
+                return cached.entry.get("content")
         return None
 
     async def batch_fetch(self, urls: List[str]) -> List[Dict[str, str]]:

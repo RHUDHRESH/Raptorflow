@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 import aiohttp
 from bs4 import BeautifulSoup
 
+from backend.core.crawl_cache import CrawlCache
 from backend.tools.scraper import FirecrawlScraperTool, JinaReaderTool
 
 
@@ -24,16 +25,32 @@ class AdvancedCrawler:
     async def scrape_semantic(self, url: str) -> Optional[Dict[str, str]]:
         """SOTA Extraction using tiered tools."""
         async with self.semaphore:
+            cache = CrawlCache()
+            cached = cache.get(url)
+            if cached.entry and cached.is_fresh:
+                return {
+                    "url": url,
+                    "title": cached.entry.get("title", ""),
+                    "content": cached.entry.get("content", ""),
+                    "source": cached.entry.get("source", "cache"),
+                }
+
             # Tier 1: Firecrawl (Best for structured/JS-heavy sites)
             try:
                 data = await self.firecrawl._execute(url)
                 if data and (data.get("markdown") or data.get("content")):
-                    return {
+                    result = {
                         "url": url,
                         "title": data.get("metadata", {}).get("title", ""),
                         "content": data.get("markdown") or data.get("content"),
                         "source": "firecrawl",
                     }
+                    cache.set(
+                        url,
+                        result["content"],
+                        metadata={"title": result["title"], "source": result["source"]},
+                    )
+                    return result
             except Exception as e:
                 logging.warning(f"Firecrawl failed for {url}, trying Jina: {e}")
 
@@ -41,12 +58,18 @@ class AdvancedCrawler:
             try:
                 data = await self.jina._execute(url)
                 if data and data.get("content"):
-                    return {
+                    result = {
                         "url": url,
                         "title": data.get("title", ""),
                         "content": data.get("content"),
                         "source": "jina",
                     }
+                    cache.set(
+                        url,
+                        result["content"],
+                        metadata={"title": result["title"], "source": result["source"]},
+                    )
+                    return result
             except Exception as e:
                 logging.warning(
                     f"Jina failed for {url}, falling back to BeautifulSoup: {e}"
@@ -57,9 +80,32 @@ class AdvancedCrawler:
 
     async def _fallback_scrape(self, url: str) -> Optional[Dict[str, str]]:
         """Classic extraction as a last resort."""
+        cache = CrawlCache()
+        cached = cache.get(url)
+        if cached.entry and cached.is_fresh:
+            return {
+                "url": url,
+                "title": cached.entry.get("title", ""),
+                "content": cached.entry.get("content", ""),
+                "source": cached.entry.get("source", "cache"),
+            }
+
         try:
             async with aiohttp.ClientSession(headers=self.headers) as session:
-                async with session.get(url, timeout=15) as response:
+                headers = {}
+                if cached.entry:
+                    headers = cache.build_revalidation_headers(cached.entry)
+                async with session.get(
+                    url, timeout=15, headers=headers or None
+                ) as response:
+                    if response.status == 304 and cached.entry:
+                        cache.touch(cached.entry)
+                        return {
+                            "url": url,
+                            "title": cached.entry.get("title", ""),
+                            "content": cached.entry.get("content", ""),
+                            "source": cached.entry.get("source", "cache"),
+                        }
                     if response.status != 200:
                         return None
                     html = await response.text()
@@ -73,12 +119,20 @@ class AdvancedCrawler:
 
                     text = re.sub(r"\n+", "\n", soup.get_text(separator=" ")).strip()
 
-                    return {
+                    result = {
                         "url": url,
                         "title": title,
                         "content": text[:10000],
                         "source": "fallback_bs4",
                     }
+                    cache.set(
+                        url,
+                        result["content"],
+                        etag=response.headers.get("ETag"),
+                        last_modified=response.headers.get("Last-Modified"),
+                        metadata={"title": result["title"], "source": result["source"]},
+                    )
+                    return result
         except Exception as e:
             logging.error(f"Fallback scrape failed for {url}: {e}")
             return None
