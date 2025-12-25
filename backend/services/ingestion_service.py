@@ -5,6 +5,7 @@ import httpx
 from bs4 import BeautifulSoup
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from backend.core.crawl_cache import CrawlCache
 from backend.db import get_db_connection
 from backend.inference import InferenceProvider
 
@@ -52,8 +53,19 @@ class IngestionService:
 
     async def fetch_url(self, url: str) -> str:
         """Extracts text content from a given URL."""
+        cache = CrawlCache()
+        cached = cache.get(url)
+        if cached.entry and cached.is_fresh:
+            return cached.entry.get("content", "")
+
         async with httpx.AsyncClient() as client:
-            response = await client.get(url)
+            headers = {}
+            if cached.entry:
+                headers = cache.build_revalidation_headers(cached.entry)
+            response = await client.get(url, headers=headers or None)
+            if response.status_code == httpx.codes.NOT_MODIFIED and cached.entry:
+                cache.touch(cached.entry)
+                return cached.entry.get("content", "")
             response.raise_for_status()
 
             soup = BeautifulSoup(response.text, "html.parser")
@@ -61,7 +73,14 @@ class IngestionService:
             for script in soup(["script", "style"]):
                 script.decompose()
 
-            return soup.get_text(separator=" ", strip=True)
+            content = soup.get_text(separator=" ", strip=True)
+            cache.set(
+                url,
+                content,
+                etag=response.headers.get("ETag"),
+                last_modified=response.headers.get("Last-Modified"),
+            )
+            return content
 
     async def ingest_url(self, tenant_id: str, url: str):
         """Fetches and ingests content from a URL."""
