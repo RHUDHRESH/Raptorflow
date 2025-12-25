@@ -5,20 +5,17 @@ from langgraph.graph import END, START, StateGraph
 
 from backend.agents.base import BaseCognitiveAgent
 from backend.agents.shared.agents import QualityGate
-from backend.graphs.swarm_orchestrator import SwarmController
 from backend.agents.shared.context_assembler import ContextAssemblerAgent
-from backend.models.cognitive import (
-    AgentMessage,
-    CognitiveIntelligenceState,
-    CognitiveStatus,
-)
+from backend.graphs.swarm_orchestrator import SwarmController
+from backend.models.cognitive import AgentMessage, CognitiveStatus
+from backend.models.swarm import SwarmState
 
 logger = logging.getLogger("raptorflow.graphs.muse_create")
 
 # --- Nodes ---
 
 
-async def router_node(state: CognitiveIntelligenceState):
+async def router_node(state: SwarmState):
     """A00: Determines the intent and family of the asset."""
     controller = SwarmController()
     intent = await controller.route_intent(state["raw_prompt"])
@@ -42,7 +39,7 @@ async def router_node(state: CognitiveIntelligenceState):
     }
 
 
-async def context_node(state: CognitiveIntelligenceState):
+async def context_node(state: SwarmState):
     """A03: Pulls full context including learned memories."""
     assembler = ContextAssemblerAgent()
     # Assuming workspace_id and tenant_id are present in state
@@ -69,7 +66,7 @@ async def context_node(state: CognitiveIntelligenceState):
     }
 
 
-async def drafting_node(state: CognitiveIntelligenceState):
+async def drafting_node(state: SwarmState):
     """A04: Generates the first draft of the asset."""
     family = state["brief"].get("asset_family", "text")
 
@@ -125,7 +122,7 @@ async def drafting_node(state: CognitiveIntelligenceState):
     }
 
 
-async def reflection_node(state: CognitiveIntelligenceState):
+async def reflection_node(state: SwarmState):
     """A05: Critiques the draft against the quality gate."""
     gate = QualityGate()
 
@@ -160,7 +157,7 @@ async def reflection_node(state: CognitiveIntelligenceState):
     }
 
 
-def decide_refinement(state: CognitiveIntelligenceState):
+def decide_refinement(state: SwarmState):
     """Conditional edge: Should we refine or finalize?"""
     last_reflection = state["reflection_log"][-1]
 
@@ -170,7 +167,7 @@ def decide_refinement(state: CognitiveIntelligenceState):
     return "finalize"
 
 
-async def refinement_node(state: CognitiveIntelligenceState):
+async def refinement_node(state: SwarmState):
     """A06: Refines the asset based on critique."""
     # last_asset = state["generated_assets"][-1]["content"]
     # fixes = state["reflection_log"][-1]["fixes"]
@@ -207,7 +204,7 @@ async def refinement_node(state: CognitiveIntelligenceState):
     }
 
 
-async def finalize_node(state: CognitiveIntelligenceState):
+async def finalize_node(state: SwarmState):
     """A07: Finalizes the asset and prepares for delivery."""
     last_asset = state["generated_assets"][-1]
     last_asset["version"] = "final"
@@ -223,7 +220,7 @@ async def finalize_node(state: CognitiveIntelligenceState):
     }
 
 
-async def memory_update_node(state: CognitiveIntelligenceState):
+async def memory_update_node(state: SwarmState):
     """A06: Learns from the final result vs initial draft."""
     if len(state["generated_assets"]) > 1:
         # Placeholder for actual memory update logic
@@ -240,7 +237,7 @@ async def memory_update_node(state: CognitiveIntelligenceState):
 
 
 def build_muse_spine():
-    workflow = StateGraph(CognitiveIntelligenceState)
+    workflow = StateGraph(SwarmState)
 
     workflow.add_node("router", router_node)
     workflow.add_node("context", context_node)

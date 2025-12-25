@@ -32,6 +32,10 @@ def test_swarm_state_schema():
         ],
         "shared_knowledge": {"competitors": []},
         "delegation_history": [],
+        "hierarchy": {"lead": "supervisor", "roles": ["researcher"]},
+        "budgets": {"token_budget": 10000.0},
+        "shared_memory_handles": {"swarm_cache": "swarm:thread_1"},
+        "learning_artifacts": [{"type": "summary", "content": "Initial learnings"}],
     }
 
     assert state["swarm_tasks"][0]["id"] == "task_1"
