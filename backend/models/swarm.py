@@ -5,6 +5,7 @@ from typing import Annotated, Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 from backend.models.cognitive import CognitiveIntelligenceState
+from backend.models.queue_controller import CapabilityProfile, QueueController
 
 
 class SwarmTaskStatus(str, Enum):
@@ -39,3 +40,7 @@ class SwarmState(CognitiveIntelligenceState):
 
     # History of delegations and specialist interactions
     delegation_history: Annotated[List[Dict[str, Any]], operator.add]
+
+    # Concurrency management
+    capability_profile: CapabilityProfile
+    queue_controller: QueueController
