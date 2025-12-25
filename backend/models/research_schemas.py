@@ -45,6 +45,7 @@ class ResearchDeepState(BaseModel):
     depth: int = 0
     max_depth: int = 3
     research_logs: List[str] = []
+    discovered_urls: List[str] = []
 
     # Output
     final_report_md: str = ""
