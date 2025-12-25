@@ -74,6 +74,7 @@ class Config(BaseSettings):
     SECRET_KEY: str = "industrial-secret-placeholder"
     RF_INTERNAL_KEY: Optional[str] = None
     DEFAULT_TENANT_ID: str = "00000000-0000-0000-0000-000000000000"
+    ALLOW_DEFAULT_TENANT_ID_FALLBACK: bool = False
     AUTONOMY_LEVEL: str = "medium"
     NEXT_PUBLIC_API_URL: str = "http://localhost:8000"
 
