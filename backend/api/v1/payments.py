@@ -1,13 +1,8 @@
-import base64
-import json
-
 from fastapi import APIRouter, HTTPException, Request
 
-from backend.core.config import get_settings
-from backend.services.payment_service import payment_service
+from backend.services.payment_service import PhonePeCallbackError, payment_service
 
 router = APIRouter(prefix="/v1/payments", tags=["Payments"])
-settings = get_settings()
 
 
 @router.post("/initiate")
@@ -20,29 +15,27 @@ async def initiate_payment(
     )
 
 
+@router.get("/status/{merchant_order_id}")
+async def get_payment_status(merchant_order_id: str):
+    """Fetch the latest order status from PhonePe."""
+    return payment_service.get_order_status(merchant_order_id)
+
+
 @router.post("/webhook")
 async def payment_webhook(request: Request):
     """
     PhonePe Webhook Handler.
-    Validates the checksum and updates transaction status in Supabase.
+    Validates callback authenticity using the SDK and updates transaction state.
     """
-    x_verify = request.headers.get("X-VERIFY")
-    if not x_verify:
-        raise HTTPException(status_code=400, detail="Missing X-VERIFY header")
+    authorization = request.headers.get("authorization")
+    if not authorization:
+        raise HTTPException(status_code=400, detail="Missing Authorization header")
 
-    body = await request.json()
-    response_base64 = body.get("response")
+    response_body = (await request.body()).decode("utf-8")
 
-    if not payment_service.verify_webhook(x_verify, response_base64):
-        raise HTTPException(status_code=401, detail="Invalid checksum")
-
-    # Decode response
-    response_json = base64.b64decode(response_base64).decode("utf-8")
-    data = json.loads(response_json)
-
-    # Placeholder for status processing to satisfy linter
-    print(
-        f"Received webhook for transaction {data.get('data', {}).get('merchantTransactionId')}: {data.get('code')}"
-    )
-
-    return {"status": "received"}
+    try:
+        return payment_service.handle_webhook(authorization, response_body)
+    except PhonePeCallbackError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
