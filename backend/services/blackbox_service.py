@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 from enum import Enum
 from functools import wraps
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from backend.core.vault import Vault
@@ -20,7 +20,7 @@ class AttributionModel(str, Enum):
     LINEAR = "linear"
 
 
-def trace_agent(service, agent_id: str):
+def trace_agent(service, agent_id: str, tenant_id: Optional[UUID] = None):
     """
     Synchronous decorator to automatically log agent execution to Blackbox.
     Expects the first argument of the decorated function to be move_id (UUID).
@@ -29,6 +29,9 @@ def trace_agent(service, agent_id: str):
     def decorator(func):
         @wraps(func)
         def wrapper(move_id, *args, **kwargs):
+            resolved_tenant_id = tenant_id or kwargs.get("tenant_id")
+            if not resolved_tenant_id:
+                raise ValueError("tenant_id is required to log blackbox telemetry.")
             start_time = time.time()
             try:
                 result = func(move_id, *args, **kwargs)
@@ -46,6 +49,7 @@ def trace_agent(service, agent_id: str):
                 )
 
                 telemetry = BlackboxTelemetry(
+                    tenant_id=resolved_tenant_id,
                     move_id=move_id,
                     agent_id=agent_id,
                     trace=masked_trace,
@@ -58,6 +62,7 @@ def trace_agent(service, agent_id: str):
                 # Log failure telemetry
                 latency = time.time() - start_time
                 telemetry = BlackboxTelemetry(
+                    tenant_id=resolved_tenant_id,
                     move_id=move_id,
                     agent_id=agent_id,
                     trace={"error": str(e), "status": "failed"},
@@ -116,37 +121,40 @@ class BlackboxService:
         if errors:
             print(f"BigQuery insertion errors: {errors}")
 
-    def get_agent_audit_log(self, agent_id: str, limit: int = 100):
+    def get_agent_audit_log(self, agent_id: str, tenant_id: UUID, limit: int = 100):
         """Retrieves latest telemetry logs for a specific agent."""
         session = self.vault.get_session()
         result = (
             session.table("blackbox_telemetry_industrial")
             .select("*")
             .eq("agent_id", agent_id)
+            .eq("tenant_id", str(tenant_id))
             .order("timestamp", ascending=False)
             .limit(limit)
             .execute()
         )
         return result.data
 
-    def calculate_move_cost(self, move_id: str):
+    def calculate_move_cost(self, move_id: str, tenant_id: UUID):
         """Aggregates total token cost for a specific move."""
         session = self.vault.get_session()
         result = (
             session.table("blackbox_telemetry_industrial")
             .select("tokens")
             .eq("move_id", str(move_id))
+            .eq("tenant_id", str(tenant_id))
             .execute()
         )
         return sum(row.get("tokens", 0) for row in result.data)
 
-    def get_telemetry_by_move(self, move_id: str) -> List[Dict]:
+    def get_telemetry_by_move(self, move_id: str, tenant_id: UUID) -> List[Dict]:
         """Retrieves all telemetry traces associated with a specific move."""
         session = self.vault.get_session()
         result = (
             session.table("blackbox_telemetry_industrial")
             .select("*")
             .eq("move_id", str(move_id))
+            .eq("tenant_id", str(tenant_id))
             .execute()
         )
         return result.data
@@ -175,7 +183,10 @@ class BlackboxService:
             print(f"BigQuery outcome insertion errors: {errors}")
 
     def compute_roi(
-        self, campaign_id: UUID, model: AttributionModel = AttributionModel.LINEAR
+        self,
+        campaign_id: UUID,
+        tenant_id: UUID,
+        model: AttributionModel = AttributionModel.LINEAR,
     ) -> Dict[str, Any]:
         """
         Calculates the Return on Investment for a campaign.
@@ -188,6 +199,7 @@ class BlackboxService:
             session.table("moves")
             .select("id")
             .eq("campaign_id", str(campaign_id))
+            .eq("tenant_id", str(tenant_id))
             .order("created_at")
             .execute()
         )
@@ -202,7 +214,9 @@ class BlackboxService:
             }
 
         # 2. Aggregate costs (tokens * simulated price $0.02/1k)
-        total_tokens = sum(self.calculate_move_cost(mid) for mid in move_ids)
+        total_tokens = sum(
+            self.calculate_move_cost(mid, tenant_id) for mid in move_ids
+        )
         total_cost = (total_tokens / 1000.0) * 0.02
 
         # 3. Aggregate Outcomes based on Attribution Model
@@ -210,6 +224,7 @@ class BlackboxService:
             session.table("blackbox_outcomes_industrial")
             .select("value", "move_id")
             .eq("campaign_id", str(campaign_id))
+            .eq("tenant_id", str(tenant_id))
             .execute()
         )
         outcomes = outcomes_res.data
@@ -261,28 +276,29 @@ class BlackboxService:
 
         return round((total_value / total_tokens) * 1000, 4)
 
-    def calculate_attribution_confidence(self, move_id: str) -> float:
+    def calculate_attribution_confidence(self, move_id: str, tenant_id: UUID) -> float:
         """Calculates confidence based on telemetry volume."""
-        telemetry = self.get_telemetry_by_move(move_id)
+        telemetry = self.get_telemetry_by_move(move_id, tenant_id)
         count = len(telemetry)
         if count == 0:
             return 0.0
         confidence = 0.3 + (0.65 * (math.log10(count) / 2.0))
         return min(round(confidence, 2), 1.0)
 
-    def get_roi_matrix_data(self) -> List[Dict]:
+    def get_roi_matrix_data(self, tenant_id: UUID) -> List[Dict]:
         """Retrieves ROI data for all active campaigns."""
         session = self.vault.get_session()
         camps = (
             session.table("campaigns")
             .select("id", "title")
             .eq("status", "active")
+            .eq("tenant_id", str(tenant_id))
             .execute()
         )
 
         matrix = []
         for c in camps.data:
-            roi_res = self.compute_roi(UUID(c["id"]))
+            roi_res = self.compute_roi(UUID(c["id"]), tenant_id)
             matrix.append(
                 {
                     "campaign_id": c["id"],
@@ -351,7 +367,9 @@ class BlackboxService:
 
         return analysis
 
-    async def trigger_learning_cycle(self, move_id: str) -> Dict[str, Any]:
+    async def trigger_learning_cycle(
+        self, move_id: str, tenant_id: UUID
+    ) -> Dict[str, Any]:
         """
         Triggers the multi-agentic learning cycle via LangGraph.
         Summarizes outcomes and telemetry into strategic learnings.
@@ -361,6 +379,7 @@ class BlackboxService:
         graph = create_blackbox_graph()
         initial_state = {
             "move_id": move_id,
+            "tenant_id": str(tenant_id),
             "telemetry_data": [],
             "findings": [],
             "outcomes": [],
@@ -385,7 +404,9 @@ class BlackboxService:
             "status": "cycle_complete",
         }
 
-    async def generate_pivot_recommendation(self, move_id: str) -> Dict[str, Any]:
+    async def generate_pivot_recommendation(
+        self, move_id: str, tenant_id: UUID
+    ) -> Dict[str, Any]:
         """
         Uses the LearningAgent to generate a high-level strategic pivot
         recommendation for a specific move.
@@ -393,12 +414,13 @@ class BlackboxService:
         from backend.agents.blackbox_specialist import LearningAgent
 
         # 1. Gather context
-        traces = self.get_telemetry_by_move(move_id)
+        traces = self.get_telemetry_by_move(move_id, tenant_id)
         outcomes_res = (
             self.vault.get_session()
             .table("blackbox_outcomes_industrial")
             .select("*")
             .eq("move_id", str(move_id))
+            .eq("tenant_id", str(tenant_id))
             .execute()
         )
         outcomes = outcomes_res.data
@@ -595,24 +617,28 @@ class BlackboxService:
 
         return True
 
-    def get_outcomes_by_campaign(self, campaign_id: UUID) -> List[Dict]:
+    def get_outcomes_by_campaign(
+        self, campaign_id: UUID, tenant_id: UUID
+    ) -> List[Dict]:
         """Retrieves all business outcomes for a specific campaign."""
         session = self.vault.get_session()
         result = (
             session.table("blackbox_outcomes_industrial")
             .select("*")
             .eq("campaign_id", str(campaign_id))
+            .eq("tenant_id", str(tenant_id))
             .execute()
         )
         return result.data
 
-    def get_outcomes_by_move(self, move_id: UUID) -> List[Dict]:
+    def get_outcomes_by_move(self, move_id: UUID, tenant_id: UUID) -> List[Dict]:
         """Retrieves all business outcomes for a specific move."""
         session = self.vault.get_session()
         result = (
             session.table("blackbox_outcomes_industrial")
             .select("*")
             .eq("move_id", str(move_id))
+            .eq("tenant_id", str(tenant_id))
             .execute()
         )
         return result.data

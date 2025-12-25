@@ -54,7 +54,11 @@ async def test_trigger_learning_cycle(mock_service):
     )
 
     move_id = str(uuid4())
-    response = client.post(f"/v1/blackbox/learning/cycle/{move_id}")
+    tenant_id = uuid4()
+    response = client.post(
+        f"/v1/blackbox/learning/cycle/{move_id}",
+        headers={"X-Tenant-ID": str(tenant_id)},
+    )
     assert response.status_code == 200
     assert response.json() == {"status": "cycle_complete"}
-    mock_service.trigger_learning_cycle.assert_called_once_with(move_id)
+    mock_service.trigger_learning_cycle.assert_called_once_with(move_id, tenant_id)
