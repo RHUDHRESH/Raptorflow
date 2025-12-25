@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.core.cache import get_cache_manager
+from backend.core.cache import get_cache_client, get_cache_manager
 from backend.db import SupabaseSaver, get_db_connection, get_pool
 from backend.models.telemetry import (
     AgentHealthStatus,
@@ -12,6 +12,17 @@ from backend.models.telemetry import (
 from backend.services.cost_governor import CostGovernor
 from backend.services.latency_monitor import LatencyMonitor
 from backend.services.sanity_check import SystemSanityCheck
+from backend.services.storage_service import GCSLifecycleManager
+from backend.skills.matrix_skills import (
+    ArchiveLogsSkill,
+    CachePurgeSkill,
+    EmergencyHaltSkill,
+    InferenceThrottlingSkill,
+    ResourceScalingSkill,
+    RetrainTriggerSkill,
+    SkillRegistry,
+    ToolExecutionWrapper,
+)
 
 
 class StateCheckpointManager:
@@ -51,6 +62,37 @@ class MatrixService:
         self._sanity = SystemSanityCheck()
         self._latency = LatencyMonitor()
         self._cost = CostGovernor()
+
+        # Initialize Skills
+        self._registry = SkillRegistry()
+        self._setup_skills()
+
+    def _setup_skills(self):
+        """Registers all available Matrix skills."""
+        redis_client = get_cache_client()
+        gcs_manager = GCSLifecycleManager(
+            source_bucket="raw-logs", target_bucket="gold-zone"
+        )
+
+        self._registry.register(EmergencyHaltSkill(self))
+        self._registry.register(InferenceThrottlingSkill(redis_client))
+        self._registry.register(CachePurgeSkill(redis_client))
+        self._registry.register(ResourceScalingSkill())
+        self._registry.register(ArchiveLogsSkill(gcs_manager))
+        self._registry.register(RetrainTriggerSkill())
+
+    async def execute_skill(
+        self, skill_name: str, params: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Executes a Matrix skill by name with full observability.
+        """
+        skill = self._registry.get(skill_name)
+        if not skill:
+            return {"success": False, "error": f"Skill '{skill_name}' not found."}
+
+        wrapper = ToolExecutionWrapper(skill)
+        return await wrapper.execute(params)
 
     def get_system_overview(self) -> SystemState:
         """Retrieves the current global system state (Legacy)."""

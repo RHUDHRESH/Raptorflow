@@ -8,8 +8,8 @@ SELECT
   CAST(timestamp AS DATE) AS report_date,
   agent_id,
   SUM(tokens) AS total_tokens,
-  -- Assuming $0.015 per 1k tokens as a weighted average for Gemini 1.5 Pro/Flash
-  ROUND(SUM(tokens) * 0.000015, 4) AS estimated_cost_usd,
+  -- Assuming $0.00019 per 1k tokens as a weighted average for Gemini 2.x Flash/Flash-Lite
+  ROUND(SUM(tokens) * 0.00000019, 4) AS estimated_cost_usd,
   COUNT(*) AS invocation_count
 FROM
   `raptorflow-481505.raptorflow_analytics.telemetry_stream`
@@ -45,7 +45,7 @@ SELECT
   SUM(o.value) AS total_outcome_value,
   -- Join with telemetry to get cost (aggregated by move_id)
   (
-    SELECT SUM(tokens) * 0.000015
+    SELECT SUM(tokens) * 0.00000019
     FROM `raptorflow-481505.raptorflow_analytics.telemetry_stream` t
     WHERE t.move_id IN (SELECT move_id FROM `raptorflow-481505.raptorflow_analytics.outcomes_stream` WHERE campaign_id = o.campaign_id)
   ) AS total_cost_usd

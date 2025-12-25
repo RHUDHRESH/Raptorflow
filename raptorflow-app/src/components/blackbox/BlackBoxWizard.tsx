@@ -5,8 +5,9 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { GoalSelector } from './GoalSelector';
 import { RiskSlider } from './RiskSlider';
+import { ExperimentBuilder } from './ExperimentBuilder';
 import { GoalType, GoalSelection, RiskLevel, ChannelType, Experiment, ExperimentStatus } from '@/lib/blackbox-types';
-import { ArrowLeft, ArrowRight, Sparkles, Box, X, Mail, Linkedin, Twitter, Video, Globe, Instagram, Music2, Facebook, Search, FileText, Mic } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Sparkles, Box, X, Mail, Linkedin, Twitter, Video, Globe, Instagram, Music2, Facebook, Search, FileText, Mic, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { generateExperiments } from '@/lib/blackbox/generator';
 import { toast } from 'sonner';
@@ -18,7 +19,7 @@ interface BlackBoxWizardProps {
     onComplete: (experiments: Experiment[]) => void;
 }
 
-type WizardStep = 'goal' | 'risk' | 'channel' | 'generating' | 'results';
+type WizardStep = 'goal' | 'risk' | 'channel' | 'building' | 'generating' | 'results';
 
 const CHANNELS = [
     { id: 'email' as ChannelType, label: 'Email', icon: Mail },
@@ -88,12 +89,18 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
     const handleNext = () => {
         if (step === 'goal' && goals) setStep('risk');
         else if (step === 'risk' && risk) setStep('channel');
-        else if (step === 'channel' && channel) handleGenerate();
+        else if (step === 'channel' && channel) setStep('building');
     };
 
     const handleBack = () => {
         if (step === 'risk') setStep('goal');
         else if (step === 'channel') setStep('risk');
+        else if (step === 'building') setStep('channel');
+    };
+
+    const handleManualComplete = (exp: Experiment) => {
+        setGeneratedExperiments([exp]);
+        setStep('results');
     };
 
     const handleComplete = () => {
@@ -106,11 +113,14 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
         (step === 'risk' && !!risk) ||
         (step === 'channel' && !!channel && (channel !== 'other' || otherChannelText.trim()));
 
-    const stepNum = step === 'goal' ? 1 : step === 'risk' ? 2 : 3;
+    const stepNum = step === 'goal' ? 1 : step === 'risk' ? 2 : step === 'channel' ? 3 : 4;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl p-0 gap-0 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-2xl overflow-hidden">
+            <DialogContent className={cn(
+                "p-0 gap-0 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-2xl overflow-hidden transition-all duration-500",
+                step === 'building' ? "max-w-6xl" : "max-w-2xl"
+            )}>
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-zinc-900">
                     <div className="flex items-center gap-3">
@@ -118,9 +128,11 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
                             <Box className="w-4 h-4 text-white dark:text-zinc-900" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-sm font-sans">New Black Box</h3>
-                            <p className="text-[10px] text-zinc-400 font-sans">
-                                {step === 'generating' ? 'Generating...' : step === 'results' ? 'Ready' : `Step ${stepNum} of 3`}
+                            <h3 className="font-semibold text-sm font-sans">
+                                {step === 'building' ? 'Experiment Design' : 'New Black Box'}
+                            </h3>
+                            <p className="text-[10px] text-zinc-400 font-sans uppercase tracking-widest">
+                                {step === 'generating' ? 'Generating...' : step === 'results' ? 'Ready' : `Phase ${stepNum} of 4`}
                             </p>
                         </div>
                     </div>
@@ -131,11 +143,14 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
 
                 {/* Progress */}
                 <div className="h-0.5 bg-zinc-100 dark:bg-zinc-900">
-                    <div className="h-full bg-zinc-900 dark:bg-white transition-all" style={{ width: step === 'results' ? '100%' : step === 'generating' ? `${progress}%` : `${stepNum * 33}%` }} />
+                    <div className="h-full bg-stone-800 dark:bg-white transition-all duration-700" style={{ width: step === 'results' ? '100%' : step === 'generating' ? `${progress}%` : `${stepNum * 25}%` }} />
                 </div>
 
                 {/* Content */}
-                <div className="p-6 min-h-[380px] flex items-center justify-center">
+                <div className={cn(
+                    "flex items-center justify-center overflow-y-auto custom-scrollbar",
+                    step === 'building' ? "p-8 max-h-[85vh]" : "p-6 min-h-[380px]"
+                )}>
                     {step === 'goal' && <GoalSelector selectedGoals={goals} onSelect={setGoals} />}
                     {step === 'risk' && <RiskSlider value={risk} onChange={setRisk} />}
 
@@ -178,6 +193,15 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
                                 </div>
                             )}
                         </div>
+                    )}
+
+                    {step === 'building' && goals && channel && risk && (
+                        <ExperimentBuilder
+                            goal={goals.primary}
+                            channel={channel}
+                            risk={risk}
+                            onComplete={handleManualComplete}
+                        />
                     )}
 
                     {step === 'generating' && (
@@ -261,23 +285,25 @@ export function BlackBoxWizard({ open, onOpenChange, onComplete }: BlackBoxWizar
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/50">
-                    <Button variant="ghost" onClick={handleBack} disabled={step === 'goal' || step === 'generating'} className={cn("rounded-lg font-sans", step === 'goal' && "invisible")}>
-                        <ArrowLeft className="w-4 h-4 mr-1" /> Back
-                    </Button>
-
-                    {step !== 'results' && step !== 'generating' && (
-                        <Button onClick={handleNext} disabled={!canProceed} className="rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 px-5 font-sans">
-                            {step === 'channel' ? 'Generate' : 'Next'} <ArrowRight className="w-4 h-4 ml-1" />
+                {step !== 'building' && (
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/50">
+                        <Button variant="ghost" onClick={handleBack} disabled={step === 'goal' || step === 'generating'} className={cn("rounded-lg font-sans", step === 'goal' && "invisible")}>
+                            <ArrowLeft className="w-4 h-4 mr-1" /> Back
                         </Button>
-                    )}
 
-                    {step === 'results' && (
-                        <Button onClick={handleComplete} className="rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 px-5 font-sans">
-                            <Sparkles className="w-4 h-4 mr-1.5" /> Start Experiments
-                        </Button>
-                    )}
-                </div>
+                        {step !== 'results' && step !== 'generating' && (
+                            <Button onClick={handleNext} disabled={!canProceed} className="rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 px-5 font-sans">
+                                {step === 'channel' ? 'Next' : 'Next'} <ArrowRight className="w-4 h-4 ml-1" />
+                            </Button>
+                        )}
+
+                        {step === 'results' && (
+                            <Button onClick={handleComplete} className="rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 px-5 font-sans">
+                                <Sparkles className="w-4 h-4 mr-1.5" /> Start Experiments
+                            </Button>
+                        )}
+                    </div>
+                )}
             </DialogContent>
         </Dialog>
     );
