@@ -18,6 +18,7 @@ from backend.agents.strategists import (
     CampaignArcDesigner,
     KPIDefiner,
 )
+from backend.core.config import get_settings
 from backend.db import SupabaseSaver, get_pool, save_campaign
 from backend.inference import InferenceProvider
 from backend.memory.long_term import LongTermMemory
@@ -309,7 +310,6 @@ workflow.add_edge("error_handler", END)
 
 
 # Initialize persistence checkpointer based on environment
-from backend.core.config import get_settings
 
 
 def get_checkpointer():

@@ -1,9 +1,8 @@
 import logging
-from abc import ABC, abstractmethod
-from typing import Any, AsyncIterator, Dict, List, Optional, Type, Union
+from abc import ABC
+from typing import Any, AsyncIterator, Dict, List, Optional, Type
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
