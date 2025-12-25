@@ -1,4 +1,6 @@
-from typing import List
+from typing import Any, List
+
+from backend.memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
 
 
 def count_tokens_heuristic(text: str) -> int:
@@ -6,7 +8,12 @@ def count_tokens_heuristic(text: str) -> int:
     return len(text) // 4
 
 
-def prune_context(context: List[str], max_tokens: int = 4000) -> List[str]:
+def prune_context(
+    context: List[str],
+    max_tokens: int | None = None,
+    workspace_importance: str = DEFAULT_IMPORTANCE,
+    agent_importance: str = DEFAULT_IMPORTANCE,
+) -> List[str]:
     """
     SOTA Context Pruning (Taulli Pattern).
     Ensures that the total business context fits within the LLM's surgical window.
@@ -14,6 +21,10 @@ def prune_context(context: List[str], max_tokens: int = 4000) -> List[str]:
     """
     if not context:
         return []
+
+    if max_tokens is None:
+        policy = get_memory_policy()
+        max_tokens = policy.resolve(workspace_importance, agent_importance).max_tokens
 
     pruned_list = []
     current_tokens = 0
@@ -37,9 +48,17 @@ class MemoryDecayPolicy:
     Supports count-based and token-based decay.
     """
 
-    def __init__(self, max_items: int = 20, max_tokens: int = 4000):
-        self.max_items = max_items
-        self.max_tokens = max_tokens
+    def __init__(
+        self,
+        max_items: int | None = None,
+        max_tokens: int | None = None,
+        workspace_importance: str = DEFAULT_IMPORTANCE,
+        agent_importance: str = DEFAULT_IMPORTANCE,
+    ):
+        policy = get_memory_policy()
+        rule = policy.resolve(workspace_importance, agent_importance)
+        self.max_items = rule.max_items if max_items is None else max_items
+        self.max_tokens = rule.max_tokens if max_tokens is None else max_tokens
 
     def prune_by_count(self, items: List[Any]) -> List[Any]:
         """Prunes a list of items to fit within max_items, keeping the newest."""

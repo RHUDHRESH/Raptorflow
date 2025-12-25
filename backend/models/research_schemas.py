@@ -1,8 +1,6 @@
-import operator
-from datetime import datetime
-from typing import Annotated, Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, HttpUrl
 
 
 class ResearchHypothesis(BaseModel):
@@ -41,6 +39,8 @@ class ResearchDeepState(BaseModel):
     queries: List[str] = []
     hypotheses: List[ResearchHypothesis] = []
     documents: List[WebDocument] = []
+    discovered_urls: List[HttpUrl] = []
+    scraped_docs: List[WebDocument] = []
     claims: List[FactClaim] = []
 
     # Progress

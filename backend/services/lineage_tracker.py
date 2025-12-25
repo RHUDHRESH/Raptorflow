@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 from typing import Any, Dict, Optional
 
 from backend.db import get_db_connection

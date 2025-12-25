@@ -1,6 +1,4 @@
-import logging
 import time
-from typing import Any, Dict
 
 from backend.utils.logger import logger
 
@@ -51,6 +49,24 @@ class Telemetry:
                 "prompt_tokens": prompt_tokens,
                 "completion_tokens": completion_tokens,
                 "total_tokens": prompt_tokens + completion_tokens,
+            },
+        )
+
+    @staticmethod
+    def capture_tool_execution(
+        tool_name: str,
+        success: bool,
+        latency_ms: float,
+        fallback_of: str | None = None,
+    ):
+        logger.info(
+            f"TOOL_EXECUTION: {tool_name}",
+            extra={
+                "event_type": "tool_execution",
+                "tool_name": tool_name,
+                "success": success,
+                "latency_ms": latency_ms,
+                "fallback_of": fallback_of,
             },
         )
 

@@ -3,8 +3,10 @@ import time
 from datetime import datetime
 from enum import Enum
 from functools import wraps
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from uuid import UUID
+
+from fastapi import HTTPException, status
 
 from backend.core.vault import Vault
 from backend.inference import InferenceProvider
@@ -82,6 +84,48 @@ class BlackboxService:
         self.vault = vault
         self._bigquery_client = None
 
+    def _apply_filters(self, query, filters: Dict[str, Any]):
+        for key, value in filters.items():
+            if isinstance(value, (list, tuple, set)):
+                query = query.in_(key, list(value))
+            else:
+                query = query.eq(key, value)
+        return query
+
+    def _fetch_scoped_records(
+        self,
+        table: str,
+        *,
+        select_fields: str,
+        tenant_id: Optional[UUID],
+        filters: Dict[str, Any],
+        enforce_access: bool,
+        allow_empty: bool,
+        forbidden_detail: str,
+        not_found_detail: str,
+    ) -> List[Dict[str, Any]]:
+        session = self.vault.get_session()
+        query = session.table(table).select(select_fields)
+        if tenant_id:
+            query = query.eq("workspace_id", str(tenant_id))
+        query = self._apply_filters(query, filters)
+        result = query.execute()
+        if result.data or not (tenant_id and enforce_access):
+            return result.data
+
+        unscoped_query = session.table(table).select("id")
+        unscoped_query = self._apply_filters(unscoped_query, filters)
+        unscoped_result = unscoped_query.execute()
+        if unscoped_result.data:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail=forbidden_detail
+            )
+        if not allow_empty:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=not_found_detail
+            )
+        return []
+
     def _get_bigquery_client(self):
         """Lazily initializes the BigQuery client."""
         if not self._bigquery_client:
@@ -90,14 +134,23 @@ class BlackboxService:
             self._bigquery_client = bigquery.Client(project=self.vault.project_id)
         return self._bigquery_client
 
-    def log_telemetry(self, telemetry: BlackboxTelemetry):
+    def log_telemetry(
+        self,
+        telemetry: BlackboxTelemetry,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+    ):
         """Logs an execution trace to both Supabase and BigQuery."""
+        if user_id:
+            telemetry.trace = {**telemetry.trace, "user_id": user_id}
         # Task 93: Ensure PII is masked before persistence
         telemetry.trace = mask_pii(telemetry.trace)
 
         # 1. Persist to Supabase
         session = self.vault.get_session()
         data = telemetry.model_dump(mode="json")
+        if tenant_id:
+            data["workspace_id"] = str(tenant_id)
         session.table("blackbox_telemetry_industrial").insert(data).execute()
 
         # 2. Stream to BigQuery
@@ -116,40 +169,71 @@ class BlackboxService:
         if errors:
             print(f"BigQuery insertion errors: {errors}")
 
-    def get_agent_audit_log(self, agent_id: str, limit: int = 100):
+    def get_agent_audit_log(
+        self,
+        agent_id: str,
+        limit: int = 100,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+        enforce_access: bool = False,
+    ):
         """Retrieves latest telemetry logs for a specific agent."""
-        session = self.vault.get_session()
-        result = (
-            session.table("blackbox_telemetry_industrial")
-            .select("*")
-            .eq("agent_id", agent_id)
-            .order("timestamp", ascending=False)
-            .limit(limit)
-            .execute()
+        scoped = self._fetch_scoped_records(
+            "blackbox_telemetry_industrial",
+            select_fields="*",
+            tenant_id=tenant_id,
+            filters={"agent_id": agent_id},
+            enforce_access=enforce_access,
+            allow_empty=True,
+            forbidden_detail="Agent telemetry is not accessible for this tenant.",
+            not_found_detail="Agent telemetry not found.",
         )
-        return result.data
+        return (
+            sorted(scoped, key=lambda row: row.get("timestamp", ""), reverse=True)[
+                :limit
+            ]
+            if scoped
+            else []
+        )
 
-    def calculate_move_cost(self, move_id: str):
+    def calculate_move_cost(
+        self,
+        move_id: str,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+        enforce_access: bool = False,
+    ):
         """Aggregates total token cost for a specific move."""
-        session = self.vault.get_session()
-        result = (
-            session.table("blackbox_telemetry_industrial")
-            .select("tokens")
-            .eq("move_id", str(move_id))
-            .execute()
+        scoped = self._fetch_scoped_records(
+            "blackbox_telemetry_industrial",
+            select_fields="tokens",
+            tenant_id=tenant_id,
+            filters={"move_id": str(move_id)},
+            enforce_access=enforce_access,
+            allow_empty=True,
+            forbidden_detail="Move telemetry is not accessible for this tenant.",
+            not_found_detail="Move telemetry not found.",
         )
-        return sum(row.get("tokens", 0) for row in result.data)
+        return sum(row.get("tokens", 0) for row in scoped)
 
-    def get_telemetry_by_move(self, move_id: str) -> List[Dict]:
+    def get_telemetry_by_move(
+        self,
+        move_id: str,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+        enforce_access: bool = False,
+    ) -> List[Dict]:
         """Retrieves all telemetry traces associated with a specific move."""
-        session = self.vault.get_session()
-        result = (
-            session.table("blackbox_telemetry_industrial")
-            .select("*")
-            .eq("move_id", str(move_id))
-            .execute()
+        return self._fetch_scoped_records(
+            "blackbox_telemetry_industrial",
+            select_fields="*",
+            tenant_id=tenant_id,
+            filters={"move_id": str(move_id)},
+            enforce_access=enforce_access,
+            allow_empty=True,
+            forbidden_detail="Move telemetry is not accessible for this tenant.",
+            not_found_detail="Move telemetry not found.",
         )
-        return result.data
 
     def attribute_outcome(self, outcome: BlackboxOutcome):
         """Attributes a business outcome to specific campaign/move."""
@@ -503,7 +587,12 @@ class BlackboxService:
         return telemetry_res.data
 
     def upsert_learning_embedding(
-        self, content: str, learning_type: str, source_ids: List[UUID] = None
+        self,
+        content: str,
+        learning_type: str,
+        source_ids: List[UUID] = None,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
     ):
         """Generates embedding and persists learning."""
         embed_model = InferenceProvider.get_embeddings()
@@ -516,9 +605,17 @@ class BlackboxService:
             "source_ids": [str(sid) for sid in (source_ids or [])],
             "learning_type": learning_type,
         }
+        if tenant_id:
+            data["workspace_id"] = str(tenant_id)
         session.table("blackbox_learnings_industrial").insert(data).execute()
 
-    def search_strategic_memory(self, query: str, limit: int = 5):
+    def search_strategic_memory(
+        self,
+        query: str,
+        limit: int = 5,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+    ):
         """Vector similarity search on learnings."""
         embed_model = InferenceProvider.get_embeddings()
         query_embedding = embed_model.embed_query(query)
@@ -530,23 +627,79 @@ class BlackboxService:
                 "query_embedding": query_embedding,
                 "match_threshold": 0.5,
                 "match_count": limit,
+                "p_workspace_id": str(tenant_id) if tenant_id else None,
             },
         ).execute()
         return result.data
 
-    def link_learning_to_evidence(self, learning_id: UUID, trace_ids: List[UUID]):
+    def link_learning_to_evidence(
+        self,
+        learning_id: UUID,
+        trace_ids: List[UUID],
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+        enforce_access: bool = False,
+    ):
         """Links learning to supporting traces."""
         session = self.vault.get_session()
+        self._fetch_scoped_records(
+            "blackbox_learnings_industrial",
+            select_fields="id",
+            tenant_id=tenant_id,
+            filters={"id": str(learning_id)},
+            enforce_access=enforce_access,
+            allow_empty=False,
+            forbidden_detail="Learning is not accessible for this tenant.",
+            not_found_detail="Learning not found.",
+        )
+
+        if trace_ids:
+            scoped_traces = self._fetch_scoped_records(
+                "blackbox_telemetry_industrial",
+                select_fields="id",
+                tenant_id=tenant_id,
+                filters={"id": [str(tid) for tid in trace_ids]},
+                enforce_access=False,
+                allow_empty=True,
+                forbidden_detail="",
+                not_found_detail="",
+            )
+            if tenant_id and enforce_access and len(scoped_traces) != len(trace_ids):
+                unscoped_traces = (
+                    session.table("blackbox_telemetry_industrial")
+                    .select("id")
+                    .in_("id", [str(tid) for tid in trace_ids])
+                    .execute()
+                )
+                if unscoped_traces.data:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Evidence traces are not accessible for this tenant.",
+                    )
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Evidence traces not found.",
+                )
+
         session.table("blackbox_learnings_industrial").update(
             {"source_ids": [str(tid) for tid in trace_ids]}
         ).eq("id", str(learning_id)).execute()
 
-    def prune_strategic_memory(self, learning_type: str, before: datetime):
+    def prune_strategic_memory(
+        self,
+        learning_type: str,
+        before: datetime,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+    ):
         """Removes outdated learnings."""
         session = self.vault.get_session()
-        session.table("blackbox_learnings_industrial").delete().eq(
-            "learning_type", learning_type
-        ).lt("timestamp", before.isoformat()).execute()
+        query = session.table("blackbox_learnings_industrial").delete()
+        if tenant_id:
+            query = query.eq("workspace_id", str(tenant_id))
+        query.eq("learning_type", learning_type).lt(
+            "timestamp", before.isoformat()
+        ).execute()
 
     def categorize_learning(self, content: str) -> str:
         """Uses Gemini to classify learning content."""
@@ -559,9 +712,17 @@ class BlackboxService:
                 return label
         return "tactical"
 
-    def get_memory_context_for_planner(self, move_type: str, limit: int = 5) -> str:
+    def get_memory_context_for_planner(
+        self,
+        move_type: str,
+        limit: int = 5,
+        tenant_id: Optional[UUID] = None,
+        user_id: Optional[str] = None,
+    ) -> str:
         """Formats relevant memory for agents."""
-        results = self.search_strategic_memory(query=move_type, limit=limit)
+        results = self.search_strategic_memory(
+            query=move_type, limit=limit, tenant_id=tenant_id, user_id=user_id
+        )
         if not results:
             return ""
         return "\n---\n".join(

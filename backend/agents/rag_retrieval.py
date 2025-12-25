@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
@@ -45,7 +45,10 @@ class RAGRetrievalNode:
         expansion = await self.expansion_llm.ainvoke(
             [
                 SystemMessage(
-                    content="Expand the user's request into 2-3 surgical search queries for a vector database to find relevant brand and project context."
+                    content=(
+                        "Expand the user's request into 2-3 surgical search queries for a vector database "
+                        "to find relevant brand and project context."
+                    )
                 ),
                 HumanMessage(content=last_message),
             ]

@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 
 from backend.db import save_memory, vector_search
 from backend.inference import InferenceProvider
+from backend.memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
 
 logger = logging.getLogger("raptorflow.memory.semantic_l3")
 
@@ -19,9 +20,17 @@ class L3SemanticMemory:
         self.memory_type = "semantic"
 
     async def search_foundation(
-        self, workspace_id: str, query: str, limit: int = 5
+        self,
+        workspace_id: str,
+        query: str,
+        limit: Optional[int] = None,
+        workspace_importance: str = DEFAULT_IMPORTANCE,
+        agent_importance: str = DEFAULT_IMPORTANCE,
     ) -> List[Dict[str, Any]]:
         """Searches for relevant brand foundation context."""
+        if limit is None:
+            policy = get_memory_policy()
+            limit = policy.resolve(workspace_importance, agent_importance).recall_limit
         try:
             embedder = InferenceProvider.get_embeddings()
             query_embedding = await embedder.aembed_query(query)
@@ -53,11 +62,15 @@ class L3SemanticMemory:
         content: str,
         embedding: List[float],
         metadata: Optional[Dict[str, Any]] = None,
+        workspace_importance: str = DEFAULT_IMPORTANCE,
+        agent_importance: str = DEFAULT_IMPORTANCE,
     ) -> str:
         """Saves a new brand foundation fact."""
         if metadata is None:
             metadata = {}
         metadata["type"] = "foundation"
+        policy = get_memory_policy()
+        metadata.update(policy.retention_metadata(workspace_importance, agent_importance))
 
         try:
             fact_id = await save_memory(

@@ -1,4 +1,4 @@
-/* Question Flow Wizard — The "Director's Cut" Split Layout */
+﻿/* Question Flow Wizard â€” The "Director's Cut" Split Layout */
 
 /* ===== Layout ===== */
 .flowContainer {
@@ -578,7 +578,7 @@
 
 /* Launch Card Content */
 .content {
-    position: relative;
+    position: fixed;
     z-index: 20;
     background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(24px);
@@ -703,7 +703,7 @@
     }
 
     .leftPanel {
-        width: 100%;
+        width: 100vw;
         padding: 24px;
         flex-direction: row;
         align-items: center;
@@ -737,7 +737,7 @@
 
     .gridFive>.cardBase {
         flex-basis: 100%;
-        width: 100%;
+        width: 100vw;
     }
 
     /* Stack on mobile */
@@ -748,7 +748,7 @@
 
 /* ===== Review Screen Styles ===== */
 .reviewContainer {
-    width: 100%;
+    width: 100vw;
     max-width: 800px;
     margin: 0 auto;
     animation: fadeIn 500ms ease-out;
