@@ -129,3 +129,28 @@ class SwarmLearning:
         except Exception as e:
             logger.error(f"SwarmLearning promote_learning failed: {e}")
             return False
+
+
+async def record_learning(
+    *,
+    workspace_id: Optional[str],
+    content: Any,
+    evaluation: Optional[Dict[str, Any]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+    ttl: int = 3600 * 24,
+) -> bool:
+    """Convenience helper for recording blackbox learnings via SwarmLearning."""
+    if not workspace_id:
+        logger.warning("SwarmLearning record_learning skipped: missing workspace_id")
+        return False
+
+    metadata = metadata or {}
+    thread_id = metadata.get("move_id") or "blackbox_learning"
+    learning_payload = {"content": content, "evaluation": evaluation}
+    return await SwarmLearning().record_learning(
+        workspace_id=workspace_id,
+        thread_id=str(thread_id),
+        learning=learning_payload,
+        metadata=metadata,
+        ttl=ttl,
+    )
