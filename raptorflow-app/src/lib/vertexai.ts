@@ -68,7 +68,6 @@ function createModel(
         temperature: temperature,
         maxOutputTokens: maxTokens,
         location: inference.region,
-        project: inference.projectId,
       };
 
       if (inference.apiKey) {
@@ -123,8 +122,8 @@ export async function invokeWithModelFallback<TInput>({
     }
     try {
       const target =
-        tools && tools.length ? (model as { bindTools: (t: unknown[]) => GeminiChatModel }).bindTools(tools) : model;
-      return await (target as { invoke: (i: TInput) => Promise<unknown> }).invoke(input);
+        tools && tools.length ? (model as any).bindTools(tools) : model;
+      return await (target as any).invoke(input);
     } catch (error) {
       lastError = error;
       if (!isModelAccessError(error)) {

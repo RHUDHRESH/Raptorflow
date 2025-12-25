@@ -3,19 +3,27 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Experiment } from '@/lib/blackbox-types';
-import { Clock, BarChart2, Sparkles, Rocket, CheckCircle2, Copy, X, Target, BrainCircuit } from 'lucide-react';
+import { AppIcon, Icons } from '@/components/ui/Icons';
 import { cn } from '@/lib/utils';
 import { EvidenceLog, EvidenceTrace } from './EvidenceLog';
 import { ResultsStrip } from './ResultsStrip';
-import { getOutcomesByMove, getTelemetryByMove, getLearningsByMove, getROIMatrix } from '@/lib/blackbox';
+import { getOutcomesByMove, getTelemetryByMove, getLearningsByMove } from '@/lib/blackbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AgentAuditLog } from './AgentAuditLog';
 import { Badge } from "@/components/ui/badge";
 import { GrowthHooks } from "@/lib/growth-hooks";
 
 export interface BlackboxOutcome {
-// ...
+    id: string;
+    experiment_id: string;
+    hypothesis: string;
+    confidence_score: number;
+    evidence: string[];
+    recommendations: string[];
+    created_at: string;
+}
 
 
 export interface BlackboxLearning {
@@ -52,19 +60,18 @@ export function ExperimentDetail({
             const fetchData = async () => {
                 setIsLoading(true);
                 try {
-                    const [telemetryData, outcomesData, learningsData, roi] = await Promise.all([
+                    const [telemetryData, outcomesData, learningsData] = await Promise.all([
                         getTelemetryByMove(experiment.id),
                         getOutcomesByMove(experiment.id),
-                        getLearningsByMove(experiment.id),
-                        getROIMatrix()
+                        getLearningsByMove(experiment.id)
                     ]);
                     setTraces(telemetryData);
                     setOutcomes(outcomesData);
                     setLearnings(learningsData);
 
-                    // Filter ROI data for similar goal
-                    const avgRoi = roi.length > 0 ? roi.reduce((acc: number, r: any) => acc + r.roi, 0) / roi.length : 0.42;
-                    const avgMomentum = roi.length > 0 ? roi[0].momentum : 8.4;
+                    // Set default ROI data
+                    const avgRoi = 0.42;
+                    const avgMomentum = 8.4;
                     setRoiData({ avgRoi, avgMomentum });
                 } catch (err) {
                     console.error('Failed to fetch experiment data:', err);
@@ -108,7 +115,7 @@ export function ExperimentDetail({
                         onClick={() => onOpenChange(false)}
                         className="w-8 h-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900 flex items-center justify-center transition-colors"
                     >
-                        <X className="w-4 h-4 text-zinc-400" />
+                        <AppIcon icon={Icons.Close} size={16} className="text-zinc-400" />
                     </button>
                 </div>
 
@@ -136,12 +143,13 @@ export function ExperimentDetail({
                             {experiment.hypothesis && (
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2 px-1">
-                                        <Target className="w-4 h-4 text-stone-800" />
+                                        <AppIcon icon={Icons.Target} size={16} className="text-stone-800" />
                                         <h3 className="text-xs font-bold uppercase tracking-widest text-stone-500 font-sans">Experiment Architecture</h3>
                                     </div>
                                     <Card className="rounded-xl border-stone-200 bg-stone-50/30 overflow-hidden">
                                         <div className="p-4 border-b border-stone-100">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-1">Hypothesis</p>
+                                            <AppIcon icon={Icons.Time} size={16} className="text-stone-800" />
                                             <p className="text-sm text-stone-800 leading-relaxed italic">&ldquo;{experiment.hypothesis}&rdquo;</p>
                                         </div>
                                         <div className="grid grid-cols-2">
@@ -172,7 +180,7 @@ export function ExperimentDetail({
                             {roiData && (
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2 px-1">
-                                        <BarChart2 className="w-4 h-4 text-stone-800" />
+                                        <AppIcon icon={Icons.Chart} size={16} className="text-stone-800" />
                                         <h3 className="text-xs font-bold uppercase tracking-widest text-stone-500 font-sans">Predicted Performance</h3>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
@@ -207,17 +215,16 @@ export function ExperimentDetail({
                             {/* Meta Grid */}
                             <div className="grid grid-cols-4 gap-3">
                                 {[
-                                    { icon: Clock, label: 'Effort', value: experiment.effort },
-                                    { icon: BarChart2, label: 'Signal', value: experiment.time_to_signal },
-                                    { icon: Target, label: 'Goal', value: experiment.goal },
-                                    { icon: Sparkles, label: 'Channel', value: experiment.channel },
+                                    { icon: Icons.Clock, label: 'Effort', value: experiment.effort },
+                                    { icon: Icons.BarChart2, label: 'Signal', value: experiment.time_to_signal },
+                                    { icon: Icons.Target, label: 'Goal', value: experiment.goal },
+                                    { icon: Icons.Sparkles, label: 'Channel', value: experiment.channel },
                                 ].map((item) => {
-                                    const Icon = item.icon;
                                     return (
                                         <div key={item.label} className="text-center p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                                            <Icon className="w-4 h-4 mx-auto text-zinc-400 mb-1" />
+                                            <AppIcon icon={item.icon} className="w-4 h-4 mx-auto text-zinc-400 mb-1" />
                                             <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 capitalize font-sans">{item.value}</p>
-                                            <p className="text-[9px] text-zinc-400 uppercase font-sans font-bold">{item.label}</p>
+                                            <p className="text-[9px] text-zinc-400 uppercase font-bold tracking-widest">{item.label}</p>
                                         </div>
                                     );
                                 })}
@@ -227,7 +234,7 @@ export function ExperimentDetail({
                             {(isCheckedIn || learnings.length > 0) && (
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2 px-1">
-                                        <BrainCircuit className="w-4 h-4 text-accent" />
+                                        <AppIcon icon={Icons.Brain} size={16} className="text-stone-800" />
                                         <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 font-sans">Surgical Learning</h3>
                                     </div>
 
@@ -271,11 +278,11 @@ export function ExperimentDetail({
                                         {outcomes.map((outcome) => (
                                             <div key={outcome.id} className="flex items-center justify-between p-4 bg-zinc-900 text-white rounded-xl">
                                                 <div>
-                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Source: {outcome.source}</p>
-                                                    <p className="text-xs font-medium text-zinc-300">Confidence: {(outcome.confidence * 100).toFixed(0)}%</p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Experiment ID: {outcome.experiment_id}</p>
+                                                    <p className="text-xs font-medium text-zinc-300">Confidence: {(outcome.confidence_score * 100).toFixed(0)}%</p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-2xl font-bold font-mono tracking-tight">{outcome.value}</p>
+                                                    <p className="text-2xl font-bold font-mono tracking-tight">{outcome.hypothesis}</p>
                                                     <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">{experiment.goal}</p>
                                                 </div>
                                             </div>
@@ -300,7 +307,7 @@ export function ExperimentDetail({
                 {/* Footer */}
                 <div className="p-5 border-t border-zinc-100 dark:border-zinc-900 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50 shrink-0">
                     <Button variant="ghost" size="sm" className="rounded-lg text-zinc-500 font-sans hover:bg-zinc-100">
-                        <Copy className="w-3.5 h-3.5 mr-2" /> Duplicate
+                        <AppIcon icon={Icons.Copy} size={14} className="mr-2" /> Duplicate
                     </Button>
 
                     <div className="flex items-center gap-3">
@@ -309,7 +316,7 @@ export function ExperimentDetail({
                                 onClick={() => { onLaunch?.(experiment.id); onOpenChange(false); }}
                                 className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 px-6 shadow-lg shadow-zinc-200 dark:shadow-none transition-all hover:scale-[1.02]"
                             >
-                                <Rocket className="w-3.5 h-3.5 mr-2" /> Launch Experiment
+                                <AppIcon icon={Icons.Rocket} size={14} className="mr-2" /> Launch Experiment
                             </Button>
                         )}
 
@@ -323,7 +330,7 @@ export function ExperimentDetail({
                                 variant="outline"
                                 className="rounded-xl border-zinc-900 dark:border-zinc-100 px-6 hover:bg-zinc-900 hover:text-white dark:hover:bg-zinc-100 dark:hover:text-zinc-900 transition-all"
                             >
-                                <CheckCircle2 className="w-3.5 h-3.5 mr-2" /> Manual Check-in
+                                <AppIcon icon={Icons.CheckCircle2} size={14} className="mr-2" /> Manual Check-in
                             </Button>
                         )}
                     </div>

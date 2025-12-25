@@ -13,7 +13,7 @@ import {
     MatrixIcon,
     BlackboxIcon,
     AppearanceIcon // Using AppearanceIcon for Settings as a placeholder or reuse
-} from '@/components/ui/icons';
+} from '@/components/ui/Icons';
 
 /**
  * Sidebar — Following COMPONENTS.md and UI.md spec

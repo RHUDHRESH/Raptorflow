@@ -6,11 +6,11 @@ const footerSections = {
     product: {
         title: 'Product',
         links: [
-            { label: 'Features', href: '/landing#features' },
+            { label: 'Features', href: '/features' },
             { label: 'Pricing', href: '/pricing' },
-            { label: 'Integrations', href: '/landing#integrations' },
-            { label: 'Changelog', href: '/landing#changelog' },
-            { label: 'Roadmap', href: '/landing#roadmap' },
+            { label: 'Integrations', href: '/integrations' },
+            { label: 'Changelog', href: '/changelog' },
+            { label: 'Roadmap', href: '/roadmap' },
         ],
     },
     features: {

@@ -9,6 +9,10 @@ import { useIcpStore } from '@/lib/icp-store';
 import { selectSkill } from '@/lib/muse/skill-selector';
 import { SYSTEM_SKILLS } from '@/lib/muse/skills-inventory';
 import { spine } from '@/lib/muse/spine-client';
+import { motion, AnimatePresence } from 'motion/react';
+import { gsap } from 'gsap';
+import { TypingText } from '@/components/ui/typing-text';
+import { useTypingExperience } from '@/components/ui/typing/TypingExperienceProvider';
 
 interface Message {
     id: string;
@@ -38,7 +42,7 @@ interface MuseChatProps {
 }
 
 // Command types
-type CommandType = 'asset' | 'cohort' | 'campaign' | 'competitor';
+type CommandType = 'asset' | 'cohort' | 'campaign' | 'competitor' | '/' | '@';
 
 interface CommandSuggestion {
     id: string;
@@ -94,13 +98,22 @@ function isAssetOption(value: ConversationOption['value']): value is AssetType {
     return !!getAssetConfig(value as AssetType);
 }
 
-export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns = [], competitors = [], className }: MuseChatProps) {
+export function MuseChat({
+    initialPrompt,
+    onAssetCreate,
+    cohorts = [],
+    campaigns = [],
+    competitors = [],
+    className
+}: MuseChatProps) {
+    const { playKeySound, playClickSound, playCompletionSound } = useTypingExperience();
     const [messages, setMessages] = useState<Message[]>([]);
-    const [input, setInput] = useState(initialPrompt || '');
+    const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [showCommands, setShowCommands] = useState(false);
+    const [commandType, setCommandType] = useState<CommandType | null>(null);
     const [commandFilter, setCommandFilter] = useState('');
-    const [commandType, setCommandType] = useState<'/' | '@' | null>(null);
     const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
     const [currentContext, setCurrentContext] = useState<{
         prompt?: string;
@@ -112,6 +125,20 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
     }>({});
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+
+    // GSAP animations for new messages
+    useEffect(() => {
+        if (messages.length > 0) {
+            gsap.from('.message-bubble-new', {
+                opacity: 0,
+                y: 20,
+                duration: 0.4,
+                stagger: 0.1,
+                ease: 'power2.out'
+            });
+        }
+    }, [messages.length]);
 
     const assetOptions = useMemo(
         () => buildAssetOptions(ASSET_TYPES.map(asset => asset.type)),
@@ -277,6 +304,9 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
         const value = e.target.value;
         setInput(value);
 
+        // Play typing sound for each character
+        playKeySound({ velocity: 0.3 });
+
         // Detect / or @ commands
         const lastWord = value.split(' ').pop() || '';
 
@@ -309,6 +339,9 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
 
     const handleSubmit = useCallback(() => {
         if (!input.trim()) return;
+
+        // Play click sound when sending
+        playClickSound({ velocity: 0.5 });
 
         const userMessage = input.trim();
         setInput('');
@@ -383,76 +416,155 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
     };
 
     return (
-        <div className={cn('flex flex-col h-full', className)}>
-            {/* Messages area */}
-            <div className="flex-1 overflow-auto px-6 py-8">
+        <div ref={chatContainerRef} className={cn('flex flex-col h-full', className)}>
+            {/* Messages area with enhanced animations */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                className="flex-1 overflow-auto px-6 py-8"
+            >
                 {messages.length === 0 ? (
-                    <WelcomeState onPromptClick={(prompt) => {
-                        setInput(prompt);
-                        inputRef.current?.focus();
-                    }} />
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <WelcomeState onPromptClick={(prompt) => {
+                            setInput(prompt);
+                            inputRef.current?.focus();
+                        }} />
+                    </motion.div>
                 ) : (
                     <div className="max-w-2xl mx-auto space-y-6">
-                        {messages.map(message => (
-                            <MessageBubble
-                                key={message.id}
-                                message={message}
-                                onOptionSelect={(option) => handleOptionSelect(message.id, option)}
-                                onVariantSelect={(variant) => {
-                                    // Handle variant selection - create asset from this variant
-                                    onAssetCreate(
-                                        variant.content,
-                                        currentContext.assetType || 'email',
-                                        {
-                                            cohort: currentContext.cohort || '',
-                                            originalPrompt: currentContext.prompt!
-                                        }
-                                    );
-                                }}
-                            />
-                        ))}
+                        <AnimatePresence>
+                            {messages.map((message, index) => (
+                                <motion.div
+                                    key={message.id}
+                                    layout
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{
+                                        duration: 0.4,
+                                        delay: index * 0.05,
+                                        ease: 'easeOut'
+                                    }}
+                                    className="message-bubble-new"
+                                >
+                                    <MessageBubble
+                                        message={message}
+                                        onOptionSelect={(option) => handleOptionSelect(message.id, option)}
+                                        onVariantSelect={(variant) => {
+                                            // Handle variant selection - create asset from this variant
+                                            onAssetCreate(
+                                                variant.content,
+                                                currentContext.assetType || 'email',
+                                                {
+                                                    cohort: currentContext.cohort || '',
+                                                    originalPrompt: currentContext.prompt!
+                                                }
+                                            );
+                                        }}
+                                    />
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
 
-                        {isTyping && (
-                            <div className="flex items-start gap-4">
-                                <div className="h-8 w-8 rounded-full bg-foreground flex items-center justify-center shrink-0">
-                                    <Sparkles className="h-4 w-4 text-background" />
-                                </div>
-                                <div className="flex items-center gap-1 pt-2">
-                                    <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse" />
-                                    <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse" style={{ animationDelay: '150ms' }} />
-                                    <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse" style={{ animationDelay: '300ms' }} />
-                                </div>
-                            </div>
-                        )}
+                        <AnimatePresence>
+                            {isTyping && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    className="flex items-start gap-4"
+                                >
+                                    <div className="h-8 w-8 rounded-full bg-foreground flex items-center justify-center shrink-0">
+                                        <motion.div
+                                            animate={{ rotate: 360 }}
+                                            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                                        >
+                                            <Sparkles className="h-4 w-4 text-background" />
+                                        </motion.div>
+                                    </div>
+                                    <div className="flex items-center gap-1 pt-2">
+                                        <TypingText
+                                            messages={[
+                                                "Thinking...",
+                                                "Crafting your response...",
+                                                "Almost there...",
+                                                "Putting it all together..."
+                                            ]}
+                                            className="text-xs text-muted-foreground/40"
+                                            speed={80}
+                                            deleteSpeed={40}
+                                            pauseDuration={1500}
+                                        />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         <div ref={messagesEndRef} />
                     </div>
                 )}
-            </div>
+            </motion.div>
 
-            {/* Input area */}
-            <div className="border-t border-border/40 p-6">
+            {/* Enhanced Input area with magnetic animations */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="border-t border-border/40 p-6"
+            >
                 <div className="max-w-2xl mx-auto relative">
-                    {/* Command suggestions dropdown */}
-                    {showCommands && commandSuggestions.length > 0 && (
-                        <div className="absolute bottom-full mb-2 left-0 right-0 bg-card border border-border/60 rounded-xl shadow-xl overflow-hidden z-10">
+                    {/* Enhanced Command suggestions dropdown */}
+                    <AnimatePresence mode="wait">
+                        {showCommands && commandSuggestions.length > 0 && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95, height: 0 }}
+                                animate={{ opacity: 1, y: 0, scale: 1, height: 'auto' }}
+                                exit={{ opacity: 0, y: -10, scale: 0.95, height: 0 }}
+                                transition={{
+                                    duration: 0.2,
+                                    height: { duration: 0.3, ease: 'easeInOut' }
+                                }}
+                                className="absolute bottom-full mb-2 left-0 right-0 bg-card border border-border/60 rounded-xl shadow-xl overflow-hidden z-10"
+                            >
                             <div className="p-2 border-b border-border/40 flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                     {commandType === '/' && <Hash className="h-3 w-3" />}
                                     {commandType === '@' && <AtSign className="h-3 w-3" />}
                                     <span>{commandType === '/' ? 'Asset Types' : 'References'}</span>
                                 </div>
-                                <button
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
                                     onClick={() => setShowCommands(false)}
                                     className="p-1 hover:bg-muted rounded"
                                 >
                                     <X className="h-3 w-3" />
-                                </button>
+                                </motion.button>
                             </div>
                             <div className="max-h-64 overflow-auto">
                                 {commandSuggestions.map((suggestion, index) => (
-                                    <button
+                                    <motion.button
                                         key={suggestion.id}
+                                        layout
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        whileHover={{
+                                            scale: 1.02,
+                                            x: 5,
+                                            backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                                            boxShadow: '0 2px 8px -2px rgba(0, 0, 0, 0.1)'
+                                        }}
+                                        whileTap={{
+                                            scale: 0.98,
+                                            x: 0,
+                                            backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                                        }}
                                         onClick={() => selectCommand(suggestion)}
                                         className={cn(
                                             'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors',
@@ -477,17 +589,31 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
                                                 <p className="text-xs text-muted-foreground truncate">{suggestion.description}</p>
                                             )}
                                         </div>
-                                    </button>
+                                    </motion.button>
                                 ))}
                             </div>
-                        </div>
+                        </motion.div>
                     )}
+                    </AnimatePresence>
 
-                    <div className={cn(
-                        'relative group rounded-2xl border bg-card transition-all duration-300',
-                        'border-border/60 shadow-sm',
-                        'focus-within:border-foreground/20 focus-within:shadow-lg focus-within:shadow-foreground/5'
-                    )}>
+                    <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileFocus={{
+                            scale: 1.03,
+                            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                        }}
+                        transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 30,
+                            mass: 0.8
+                        }}
+                        className={cn(
+                            'relative group rounded-2xl border bg-card transition-all duration-300',
+                            'border-border/60 shadow-sm',
+                            'focus-within:border-foreground/20 focus-within:shadow-lg focus-within:shadow-foreground/5'
+                        )}
+                    >
                         <textarea
                             ref={inputRef}
                             value={input}
@@ -504,7 +630,23 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
                             style={{ letterSpacing: '-0.01em' }}
                         />
 
-                        <button
+                        <motion.button
+                            whileHover={{
+                                scale: 1.15,
+                                boxShadow: '0 10px 20px -5px rgba(0, 0, 0, 0.3)',
+                                rotate: [0, -5, 5, 0]
+                            }}
+                            whileTap={{
+                                scale: 0.85,
+                                boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.2)',
+                                rotate: [0, 2, -2, 0]
+                            }}
+                            transition={{
+                                type: "spring",
+                                stiffness: 400,
+                                damping: 17,
+                                rotate: { duration: 0.3, repeat: 0 }
+                            }}
                             onClick={handleSubmit}
                             disabled={!input.trim()}
                             className={cn(
@@ -512,19 +654,18 @@ export function MuseChat({ initialPrompt, onAssetCreate, cohorts = [], campaigns
                                 'flex items-center justify-center h-10 w-10 rounded-xl',
                                 'bg-foreground text-background',
                                 'transition-all duration-200',
-                                'hover:scale-105 active:scale-95',
                                 'disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:scale-100'
                             )}
                         >
                             <Send className="h-4 w-4" />
-                        </button>
-                    </div>
+                        </motion.button>
+                    </motion.div>
 
                     <p className="text-center text-xs text-muted-foreground/40 mt-3">
                         Type <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[10px]">/</kbd> for asset types • <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[10px]">@</kbd> for cohorts, competitors, or campaigns
                     </p>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }
@@ -554,11 +695,23 @@ function WelcomeState({ onPromptClick }: { onPromptClick?: (prompt: string) => v
                 Describe an asset or pick a suggestion below.
             </p>
 
-            {/* Smart Prompts Grid */}
+            {/* Smart Prompts Grid with staggered animations */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full">
-                {smartPrompts.map((sp) => (
-                    <button
+                {smartPrompts.map((sp, index) => (
+                    <motion.button
                         key={sp.id}
+                        initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{
+                            duration: 0.5,
+                            delay: index * 0.1,
+                            ease: [0.175, 0.885, 0.32, 1.275]
+                        }}
+                        whileHover={{
+                            scale: 1.05,
+                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+                        }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => onPromptClick?.(sp.prompt)}
                         className={cn(
                             'group flex flex-col items-start gap-2 p-4 rounded-xl text-left',
@@ -567,9 +720,15 @@ function WelcomeState({ onPromptClick }: { onPromptClick?: (prompt: string) => v
                             'transition-all duration-200'
                         )}
                     >
-                        <span className="text-2xl">{sp.icon}</span>
+                        <motion.div
+                            className="text-2xl"
+                            whileHover={{ rotate: [0, -10, 10, 0] }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            {sp.icon}
+                        </motion.div>
                         <span className="text-sm font-medium group-hover:text-foreground transition-colors">{sp.label}</span>
-                    </button>
+                    </motion.button>
                 ))}
             </div>
 

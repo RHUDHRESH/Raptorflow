@@ -23,7 +23,7 @@ export function CompetitorsRevealScreen({ competitive, onContinue }: Competitors
 
     const containerRef = useRef<HTMLDivElement>(null);
     const leftPanelRef = useRef<HTMLDivElement>(null);
-    const statusQuoRef = useRef<HTMLDivElement>(null);
+    const statusQuoRef = useRef<HTMLButtonElement>(null);
     const wedgeRef = useRef<HTMLDivElement>(null);
     const indirectRef = useRef<HTMLDivElement>(null);
     const directRef = useRef<HTMLDivElement>(null);
