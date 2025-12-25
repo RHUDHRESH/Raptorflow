@@ -1,10 +1,10 @@
 from typing import Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.core.auth import get_tenant_id
+from backend.core.auth import get_current_user, get_tenant_id
 from backend.graphs.muse_create import build_muse_spine
 from backend.models.cognitive import CognitiveStatus
 
@@ -26,7 +26,9 @@ class MuseResponse(BaseModel):
 
 @router.post("/create", response_model=MuseResponse)
 async def create_muse_asset(
-    request: MuseCreateRequest, tenant_id: UUID = Depends(get_tenant_id)
+    request: MuseCreateRequest,
+    tenant_id: UUID = Depends(get_tenant_id),
+    current_user: dict = Depends(get_current_user),
 ):
     """
     SOTA Endpoint: Triggers the full Muse Cognitive Spine.
@@ -51,8 +53,11 @@ async def create_muse_asset(
             "error": None,
         }
 
+        base_thread_id = request.thread_id or str(uuid4())
+        thread_id = f"{tenant_id}:{current_user['id']}:{base_thread_id}"
+
         # Configuration for LangGraph (thread_id for persistence)
-        config = {"configurable": {"thread_id": request.thread_id or "default"}}
+        config = {"configurable": {"thread_id": thread_id}}
 
         # Execute the graph
         # For a production build, this might be backgrounded or streamed.
@@ -68,7 +73,7 @@ async def create_muse_asset(
         return MuseResponse(
             status=result["status"],
             asset_content=final_asset,
-            thread_id=request.thread_id or "default",
+            thread_id=thread_id,
             quality_score=result.get("quality_score", 0.0),
         )
 
