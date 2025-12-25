@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 
 def count_tokens_heuristic(text: str) -> int:

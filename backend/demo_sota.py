@@ -15,7 +15,7 @@ async def talk_to_fortress():
     print("=" * 60 + "\n")
 
     # 1. Build the Spine
-    app = build_ultimate_spine()
+    build_ultimate_spine()
 
     # 2. Mock the Inference Provider to show tiering
     async def mock_invoke(prompt, **kwargs):
@@ -47,8 +47,6 @@ async def talk_to_fortress():
         # 3. Start the Conversation
         user_prompt = "Launch a surgical marketing campaign for my new AI dev tool."
         print(f"USER: {user_prompt}\n")
-
-        config = {"configurable": {"thread_id": "demo_thread_1"}}
 
         # We simulate the first few steps manually to show the routing logic
         print("--- DISCOVERY PHASE (Mundane) ---")

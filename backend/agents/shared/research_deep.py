@@ -1,10 +1,13 @@
+import asyncio
 import json
 from typing import List, Optional
+from urllib.parse import urlparse
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
 from backend.core.config import get_settings
+from backend.core.discovery import discover_urls
 from backend.core.research_engine import ResearchEngine, SearchProvider
 from backend.inference import InferenceProvider
 
@@ -64,8 +67,29 @@ class ResearchDeepAgent:
             links = await self.search_api.search(query)
             all_urls.extend(links)
 
-        unique_urls = list(set(all_urls))[:10]  # Limit to top 10 for economy
-        scraped_data = await self.engine.batch_fetch(unique_urls)
+        unique_urls = list(set(all_urls))
+        domain_to_urls = {}
+        for url in unique_urls:
+            domain = urlparse(url).netloc
+            domain_to_urls.setdefault(domain, []).append(url)
+
+        discovery_tasks = [
+            asyncio.to_thread(discover_urls, domain) for domain in domain_to_urls
+        ]
+        discovered_lists = await asyncio.gather(*discovery_tasks)
+
+        prioritized_urls: List[str] = []
+        for domain, discovered in zip(domain_to_urls.keys(), discovered_lists):
+            if discovered:
+                merged = discovered + [
+                    url for url in domain_to_urls[domain] if url not in discovered
+                ]
+            else:
+                merged = domain_to_urls[domain]
+            prioritized_urls.extend(merged)
+
+        final_urls = prioritized_urls[:10]  # Limit to top 10 for economy
+        scraped_data = await self.engine.batch_fetch(final_urls)
 
         # Step 3: Synthesis with RAG-style context
         system_msg = SystemMessage(

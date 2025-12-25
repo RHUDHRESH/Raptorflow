@@ -61,6 +61,17 @@ Deploy to Google Cloud Run:
 gcloud run deploy raptorflow-spine --source .
 ```
 
+## Health checks (Ops)
+The public `/health` endpoint returns a minimal response:
+```json
+{"status": "ok"}
+```
+
+For deep component checks, include the internal key:
+```bash
+curl -H "X-RF-Internal-Key: $RF_INTERNAL_KEY" http://localhost:8000/health
+```
+
 ## Blackbox Architecture
 The Blackbox is the "Cognitive Spine" of RaptorFlow, handling industrial-scale telemetry and automated learning.
 

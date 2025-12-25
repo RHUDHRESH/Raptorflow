@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from backend.core.auth import get_current_user
 from backend.core.vault import Vault
 from backend.services.blackbox_service import BlackboxService
 
@@ -17,7 +18,9 @@ def get_blackbox_service():
 
 @router.get("/feed", response_model=List[Dict[str, Any]])
 def get_learning_feed(
-    limit: int = 10, service: BlackboxService = Depends(get_blackbox_service)
+    limit: int = 10,
+    _current_user: dict = Depends(get_current_user),
+    service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Retrieves the latest strategic learnings."""
     return service.get_learning_feed(limit=limit)
@@ -27,6 +30,7 @@ def get_learning_feed(
 def validate_insight(
     learning_id: UUID,
     status_update: Dict[str, str],
+    _current_user: dict = Depends(get_current_user),
     service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Updates the validation status of a strategic insight (HITL)."""
@@ -39,7 +43,9 @@ def validate_insight(
 
 @router.get("/evidence/{learning_id}", response_model=List[Dict[str, Any]])
 def get_evidence_package(
-    learning_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+    learning_id: UUID,
+    _current_user: dict = Depends(get_current_user),
+    service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Retrieves all telemetry traces associated with a specific learning."""
     return service.get_evidence_package(learning_id)
@@ -47,7 +53,9 @@ def get_evidence_package(
 
 @router.post("/cycle/{move_id}")
 async def trigger_learning_cycle(
-    move_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+    move_id: UUID,
+    _current_user: dict = Depends(get_current_user),
+    service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Triggers the multi-agentic learning cycle for a specific move."""
     result = await service.trigger_learning_cycle(str(move_id))
@@ -56,7 +64,9 @@ async def trigger_learning_cycle(
 
 @router.get("/move/{move_id}", response_model=List[Dict[str, Any]])
 def get_learnings_by_move(
-    move_id: UUID, service: BlackboxService = Depends(get_blackbox_service)
+    move_id: UUID,
+    _current_user: dict = Depends(get_current_user),
+    service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Retrieves all strategic learnings associated with a specific move."""
     return service.get_learnings_by_move(move_id)
