@@ -31,6 +31,7 @@ import { ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ClarityScore } from './ClarityScore';
 import { useIcpStore } from '@/lib/icp-store';
+import { Icp } from '@/types/icp-types';
 import { toast } from 'sonner';
 
 // =====================================
@@ -249,9 +250,50 @@ export function QuestionFlowWizard() {
 
             // Sync generated ICPs to store
             if (derived.icps) {
+                // Convert DerivedICP to Icp format
+                const convertedIcps: Icp[] = derived.icps.map((derivedIcp: any) => ({
+                    id: derivedIcp.id,
+                    workspaceId: 'default',
+                    name: derivedIcp.name,
+                    priority: derivedIcp.priority as 'primary' | 'secondary',
+                    status: 'active' as const,
+                    confidenceScore: derivedIcp.confidence || 0.8,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    firmographics: {
+                        companyType: [],
+                        geography: [],
+                        salesMotion: [],
+                        budgetComfort: [],
+                        decisionMaker: []
+                    },
+                    painMap: {
+                        primaryPains: [],
+                        secondaryPains: [],
+                        triggerEvents: [],
+                        urgencyLevel: 'soon'
+                    },
+                    psycholinguistics: {
+                        mindsetTraits: [],
+                        emotionalTriggers: [],
+                        tonePreference: [],
+                        wordsToUse: [],
+                        wordsToAvoid: [],
+                        proofPreference: [],
+                        ctaStyle: []
+                    },
+                    disqualifiers: {
+                        redFlags: [],
+                        dealBreakers: [],
+                        excludedCompanyTypes: [],
+                        excludedGeographies: [],
+                        excludedBehaviors: []
+                    }
+                }));
+
                 useIcpStore.setState({
-                    icps: derived.icps,
-                    activeIcpId: derived.icps.find((i: any) => i.priority === 'primary')?.id || derived.icps[0]?.id || null,
+                    icps: convertedIcps,
+                    activeIcpId: convertedIcps.find((i: Icp) => i.priority === 'primary')?.id || convertedIcps[0]?.id || null,
                     lastGeneratedAt: new Date().toISOString()
                 });
             }

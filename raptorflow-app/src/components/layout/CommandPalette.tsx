@@ -2,18 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import {
-    Home,
-    Layers,
-    Users,
-    Zap,
-    Target,
-    Sparkles,
-    LayoutGrid,
-    Box,
-    Settings,
-    Search
-} from 'lucide-react';
+import { AppIcon, Icons } from '@/components/ui/Icons';
 
 import {
     CommandDialog,
@@ -26,14 +15,14 @@ import {
 } from '@/components/ui/command';
 
 const navItems = [
-    { title: 'Home', url: '/', icon: Home },
-    { title: 'Foundation', url: '/foundation', icon: Layers },
-    { title: 'Cohorts', url: '/cohorts', icon: Users },
-    { title: 'Moves', url: '/moves', icon: Zap },
-    { title: 'Campaigns', url: '/campaigns', icon: Target },
-    { title: 'Muse', url: '/muse', icon: Sparkles },
-    { title: 'Matrix', url: '/matrix', icon: LayoutGrid },
-    { title: 'Blackbox', url: '/blackbox', icon: Box },
+    { title: 'Home', url: '/', icon: Icons.Home },
+    { title: 'Foundation', url: '/foundation', icon: Icons.Nature },
+    { title: 'Cohorts', url: '/cohorts', icon: Icons.Team },
+    { title: 'Moves', url: '/moves', icon: Icons.Moves },
+    { title: 'Campaigns', url: '/campaigns', icon: Icons.Campaigns },
+    { title: 'Muse', url: '/muse', icon: Icons.Edit },
+    { title: 'Matrix', url: '/matrix', icon: Icons.Brain },
+    { title: 'Blackbox', url: '/blackbox', icon: Icons.Security },
 ];
 
 export function CommandPalette() {
@@ -69,7 +58,7 @@ export function CommandPalette() {
                             value={item.title}
                             onSelect={() => runCommand(() => router.push(item.url))}
                         >
-                            <item.icon className="mr-2 h-4 w-4" />
+                            <AppIcon icon={item.icon} size={16} className="mr-2" />
                             <span>{item.title}</span>
                         </CommandItem>
                     ))}
@@ -77,11 +66,11 @@ export function CommandPalette() {
                 <CommandSeparator />
                 <CommandGroup heading="Actions">
                     <CommandItem onSelect={() => runCommand(() => console.log('Creating new campaign...'))}>
-                        <Target className="mr-2 h-4 w-4" />
+                        <AppIcon icon={Icons.Target} size={16} className="mr-2" />
                         <span>Create New Campaign</span>
                     </CommandItem>
                     <CommandItem onSelect={() => runCommand(() => console.log('Opening settings...'))}>
-                        <Settings className="mr-2 h-4 w-4" />
+                        <AppIcon icon={Icons.Settings} size={16} className="mr-2" />
                         <span>Open Settings</span>
                     </CommandItem>
                 </CommandGroup>

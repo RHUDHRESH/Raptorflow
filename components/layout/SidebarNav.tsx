@@ -4,12 +4,7 @@ import Link from "next/link";
 import { useAtom } from "jotai";
 import { activeSidebarAtom } from "@/lib/store/atoms";
 import { cn } from "@/lib/utils/cn";
-import {
-  Home,
-  Zap,
-  Rocket,
-  Settings,
-} from "lucide-react";
+import { AppIcon, Icons } from "@/components/ui/Icons";
 
 interface SidebarNavProps {
   collapsed?: boolean;
@@ -20,25 +15,25 @@ const navItems = [
     id: "home" as const,
     label: "Home",
     href: "/app/dashboard",
-    icon: Home,
+    icon: Icons.Home,
   },
   {
     id: "campaigns" as const,
     label: "Campaigns",
     href: "/app/campaigns",
-    icon: Zap,
+    icon: Icons.Campaigns,
   },
   {
     id: "moves" as const,
     label: "Moves",
     href: "/app/moves",
-    icon: Rocket,
+    icon: Icons.Moves,
   },
   {
     id: "settings" as const,
     label: "Settings",
     href: "/app/settings",
-    icon: Settings,
+    icon: Icons.Settings,
   },
 ];
 
@@ -48,7 +43,6 @@ export function SidebarNav({ collapsed }: SidebarNavProps) {
   return (
     <div className="space-y-2">
       {navItems.map((item) => {
-        const Icon = item.icon;
         const isActive = active === item.id;
 
         return (
@@ -63,7 +57,7 @@ export function SidebarNav({ collapsed }: SidebarNavProps) {
                 : "text-gray-700 hover:bg-gray-100"
             )}
           >
-            <Icon size={20} className="flex-shrink-0" />
+            <AppIcon icon={item.icon} size={20} className="flex-shrink-0" />
             {!collapsed && <span>{item.label}</span>}
           </Link>
         );

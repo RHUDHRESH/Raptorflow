@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { MuseChat } from '@/components/muse/MuseChat';
 import { GenerationCard } from '@/components/muse/GenerationCard';
 import { MuseTextEditor } from '@/components/muse/editors/MuseTextEditor';
 import { MuseCanvas } from '@/components/muse/editors/MuseCanvas';
 import { MuseNameEditor } from '@/components/muse/editors/MuseNameEditor';
+import { TypingExperienceControls } from '@/components/ui/typing/TypingExperienceControls';
 import {
     Asset,
     AssetType,
@@ -15,10 +16,15 @@ import {
     getAssetConfig
 } from '@/components/muse/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { FolderIcon } from '@/components/ui/icons';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useMuseAssets } from '@/lib/muse/assets-store';
+import { motion, AnimatePresence } from 'motion/react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger);
 
 // Mock data for demo
 const MOCK_ASSETS: Asset[] = [
@@ -115,11 +121,53 @@ import { Suspense } from 'react';
 function MusePageContent() {
     const searchParams = useSearchParams();
     const initialPrompt = searchParams.get('prompt') || undefined;
+    const pageRef = useRef<HTMLDivElement>(null);
+    const libraryButtonRef = useRef<HTMLAnchorElement>(null);
 
     const { assets, setAssets } = useMuseAssets(MOCK_ASSETS);
     const [jobs, setJobs] = useState<GenerationJob[]>([]);
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     const [editorOpen, setEditorOpen] = useState(false);
+
+    // GSAP entrance animations
+    useEffect(() => {
+        const ctx = gsap.context(() => {
+            // Animate page entrance
+            gsap.from('.muse-page-entrance', {
+                opacity: 0,
+                y: 30,
+                duration: 0.8,
+                ease: 'power3.out'
+            });
+
+            // Animate library button
+            gsap.from(libraryButtonRef.current, {
+                opacity: 0,
+                scale: 0.8,
+                duration: 0.6,
+                delay: 0.3,
+                ease: 'back.out(1.7)'
+            });
+        }, pageRef);
+
+        return () => ctx.revert();
+    }, []);
+
+    // Active jobs (not complete)
+    const activeJobs = jobs.filter(j => j.status !== 'complete');
+
+    // Animate new generation cards appearing
+    useEffect(() => {
+        if (activeJobs.length > 0) {
+            gsap.from('.generation-card-new', {
+                opacity: 0,
+                x: 100,
+                duration: 0.5,
+                stagger: 0.1,
+                ease: 'power2.out'
+            });
+        }
+    }, [activeJobs.length]);
 
     // Handle new asset creation from chat
     const handleCreate = useCallback((prompt: string, assetType: AssetType, context?: Record<string, string>) => {
@@ -194,107 +242,173 @@ function MusePageContent() {
         setEditorOpen(false);
     }, [selectedAsset]);
 
-    // Active jobs (not complete)
-    const activeJobs = jobs.filter(j => j.status !== 'complete');
-
     return (
         <AppLayout>
-            <div className="relative h-[calc(100vh-80px)] flex flex-col">
+            <TypingExperienceControls />
+            <div ref={pageRef} className="relative h-[calc(100vh-80px)] flex flex-col muse-page-entrance">
 
-                {/* Active generation cards - floating at top */}
-                {activeJobs.length > 0 && (
-                    <div className="absolute top-4 right-4 z-20 w-80 space-y-3">
-                        {activeJobs.map(job => (
-                            <GenerationCard
-                                key={job.id}
-                                job={job}
-                                onClick={() => handleJobClick(job)}
-                                className="shadow-xl"
-                            />
-                        ))}
-                    </div>
-                )}
-
-                {/* Library button - links to library page */}
-                <Link
-                    href="/muse/library"
-                    className={cn(
-                        'fixed bottom-6 left-[calc(var(--sidebar-width)+24px)] z-20',
-                        'flex items-center gap-2 h-11 px-5 rounded-full',
-                        'bg-foreground text-background',
-                        'text-sm font-medium',
-                        'shadow-lg shadow-foreground/10',
-                        'hover:scale-105 active:scale-95',
-                        'transition-all duration-200'
+                {/* Active generation cards - floating at top with enhanced animations */}
+                <AnimatePresence>
+                    {activeJobs.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="absolute top-4 right-4 z-20 w-80 space-y-3"
+                        >
+                            {activeJobs.map((job, index) => (
+                                <motion.div
+                                    key={job.id}
+                                    layout
+                                    initial={{ opacity: 0, x: 100 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 100 }}
+                                    transition={{
+                                        duration: 0.4,
+                                        delay: index * 0.1,
+                                        ease: 'easeOut'
+                                    }}
+                                    className="generation-card-new"
+                                >
+                                    <GenerationCard
+                                        job={job}
+                                        onClick={() => handleJobClick(job)}
+                                        className="shadow-xl hover:shadow-2xl transition-all duration-300"
+                                    />
+                                </motion.div>
+                            ))}
+                        </motion.div>
                     )}
+                </AnimatePresence>
+
+                {/* Enhanced Library button with magnetic hover effect */}
+                <motion.div
+                    animate={{
+                        y: [0, -5, 0],
+                    }}
+                    transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: 'easeInOut'
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="fixed bottom-6 left-[calc(var(--sidebar-width)+24px)] z-20"
                 >
-                    <FolderIcon size={16} />
-                    Library
-                    {assets.length > 0 && (
-                        <span className="ml-1 h-5 px-1.5 rounded-full bg-background/20 text-xs flex items-center justify-center">
-                            {assets.length}
-                        </span>
-                    )}
-                </Link>
+                    <Link
+                        ref={libraryButtonRef}
+                        href="/muse/library"
+                        className={cn(
+                            'flex items-center gap-2 h-11 px-5 rounded-full',
+                            'bg-foreground text-background',
+                            'text-sm font-medium',
+                            'shadow-lg shadow-foreground/10',
+                            'hover:shadow-xl hover:shadow-foreground/20',
+                            'transition-all duration-300'
+                        )}
+                    >
+                        <motion.div
+                            animate={{ rotate: [0, 10, -10, 0] }}
+                            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                            </svg>
+                        </motion.div>
+                        <span>Library</span>
+                        {assets.length > 0 && (
+                            <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="ml-1 h-5 px-1.5 rounded-full bg-background/20 text-xs flex items-center justify-center"
+                            >
+                                {assets.length}
+                            </motion.span>
+                        )}
+                    </Link>
+                </motion.div>
 
-                {/* Main chat interface */}
-                <MuseChat
-                    initialPrompt={initialPrompt}
-                    onAssetCreate={handleCreate}
-                    cohorts={MOCK_COHORTS}
-                    competitors={MOCK_COMPETITORS}
-                    campaigns={MOCK_CAMPAIGNS}
+                {/* Main chat interface with scroll-triggered animations */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
                     className="flex-1"
-                />
+                >
+                    <MuseChat
+                        initialPrompt={initialPrompt}
+                        onAssetCreate={handleCreate}
+                        cohorts={MOCK_COHORTS}
+                        competitors={MOCK_COMPETITORS}
+                        campaigns={MOCK_CAMPAIGNS}
+                        className="flex-1"
+                    />
+                </motion.div>
 
             </div>
 
-            {/* Editor Dialog */}
-            <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
-                <DialogContent className="max-w-5xl h-[85vh] p-0 overflow-hidden">
-                    {selectedAsset && (
-                        // Route to appropriate editor based on asset type
-                        selectedAsset.type === 'product-name' ? (
-                            <MuseNameEditor
-                                title={selectedAsset.title}
-                                onSave={(name) => {
-                                    setAssets(prev => prev.map(a =>
-                                        a.id === selectedAsset.id
-                                            ? { ...a, content: name, updatedAt: new Date() }
-                                            : a
-                                    ));
-                                    setEditorOpen(false);
+            {/* Enhanced Editor Dialog with animations */}
+            <AnimatePresence mode="wait">
+                {editorOpen && (
+                    <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+                        <DialogContent className="max-w-5xl h-[85vh] p-0 overflow-hidden">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                transition={{
+                                    duration: 0.3,
+                                    ease: [0.175, 0.885, 0.32, 1.275]
                                 }}
-                                onClose={() => setEditorOpen(false)}
-                            />
-                        ) : isVisualAsset(selectedAsset.type) ? (
-                            <MuseCanvas
-                                initialData={typeof selectedAsset.content === 'object' ? selectedAsset.content : undefined}
-                                onSave={(data) => {
-                                    if (selectedAsset) {
-                                        setAssets(prev => prev.map(a =>
-                                            a.id === selectedAsset.id
-                                                ? { ...a, content: data, updatedAt: new Date() }
-                                                : a
-                                        ));
-                                        setEditorOpen(false);
-                                    }
-                                }}
-                                onClose={() => setEditorOpen(false)}
-                            />
-                        ) : (
-                            <MuseTextEditor
-                                title={selectedAsset.title}
-                                initialContent={typeof selectedAsset.content === 'string' ? selectedAsset.content : ''}
-                                currentAsset={selectedAsset}
-                                allAssets={assets}
-                                onSave={handleSave}
-                                onClose={() => setEditorOpen(false)}
-                            />
-                        )
-                    )}
-                </DialogContent>
-            </Dialog>
+                                className="h-full"
+                            >
+                                {selectedAsset && (
+                                    // Route to appropriate editor based on asset type
+                                    selectedAsset.type === 'product-name' ? (
+                                        <MuseNameEditor
+                                            title={selectedAsset.title}
+                                            onSave={(name) => {
+                                                setAssets(prev => prev.map(a =>
+                                                    a.id === selectedAsset.id
+                                                        ? { ...a, content: name, updatedAt: new Date() }
+                                                        : a
+                                                ));
+                                                setEditorOpen(false);
+                                            }}
+                                            onClose={() => setEditorOpen(false)}
+                                        />
+                                    ) : isVisualAsset(selectedAsset.type) ? (
+                                        <MuseCanvas
+                                            initialData={typeof selectedAsset.content === 'object' ? selectedAsset.content : undefined}
+                                            onSave={(data) => {
+                                                if (selectedAsset) {
+                                                    setAssets(prev => prev.map(a =>
+                                                        a.id === selectedAsset.id
+                                                            ? { ...a, content: data, updatedAt: new Date() }
+                                                            : a
+                                                    ));
+                                                    setEditorOpen(false);
+                                                }
+                                            }}
+                                            onClose={() => setEditorOpen(false)}
+                                        />
+                                    ) : (
+                                        <MuseTextEditor
+                                            title={selectedAsset.title}
+                                            initialContent={typeof selectedAsset.content === 'string' ? selectedAsset.content : ''}
+                                            currentAsset={selectedAsset}
+                                            allAssets={assets}
+                                            onSave={handleSave}
+                                            onClose={() => setEditorOpen(false)}
+                                        />
+                                    )
+                                )}
+                            </motion.div>
+                        </DialogContent>
+                    </Dialog>
+                )}
+            </AnimatePresence>
         </AppLayout>
     );
 }
