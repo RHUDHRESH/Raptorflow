@@ -4,7 +4,12 @@ from typing import Annotated, Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from backend.models.cognitive import CognitiveIntelligenceState
+from backend.models.cognitive import (
+    CognitiveIntelligenceState,
+    ResourceBudget,
+    RoutingMetadata,
+    SharedMemoryHandles,
+)
 
 
 class SwarmTaskStatus(str, Enum):
@@ -25,11 +30,25 @@ class SwarmTask(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
+class SwarmSubtaskSpec(BaseModel):
+    """Structured specification for a swarm subtask before execution."""
+
+    id: str
+    specialist_type: str
+    objective: str
+    success_criteria: List[str] = Field(default_factory=list)
+    dependencies: List[str] = Field(default_factory=list)
+    inputs: Dict[str, Any] = Field(default_factory=dict)
+
+
 class SwarmState(CognitiveIntelligenceState):
     """
     SOTA Swarm Intelligence State.
     Extends the base cognitive state with multi-agent coordination fields.
     """
+
+    # Planned subtask specifications before execution
+    subtask_specs: Annotated[List[SwarmSubtaskSpec], operator.add]
 
     # List of delegated sub-tasks
     swarm_tasks: Annotated[List[SwarmTask], operator.add]
@@ -39,3 +58,12 @@ class SwarmState(CognitiveIntelligenceState):
 
     # History of delegations and specialist interactions
     delegation_history: Annotated[List[Dict[str, Any]], operator.add]
+
+    # Routing metadata for orchestration
+    routing_metadata: RoutingMetadata
+
+    # Shared memory handles for cross-agent state
+    shared_memory_handles: SharedMemoryHandles
+
+    # Resource budgets for the swarm run
+    resource_budget: ResourceBudget

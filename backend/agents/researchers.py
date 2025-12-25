@@ -5,6 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
 from backend.db import get_memory, save_entity, summarize_recursively
+from backend.models.cognitive import hydrate_shared_learnings
 
 logger = logging.getLogger("raptorflow.researchers.reddit")
 
@@ -53,6 +54,7 @@ class RedditSentimentAnalyst:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         # In a real SOTA graph, 'raw_research_data' would be populated by a search tool
         raw_data = state.get("research_bundle", {}).get(
             "raw_social_data", "No data available"
@@ -105,6 +107,7 @@ class LinkedInProfiler:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         raw_data = state.get("research_bundle", {}).get(
             "raw_linkedin_data", "No data available"
         )
@@ -155,6 +158,7 @@ class CompetitorFeatureMapper:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         raw_data = state.get("research_bundle", {}).get(
             "raw_competitor_data", "No data available"
         )
@@ -196,6 +200,7 @@ class EvidenceBundler:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         bundle_data = state.get("research_bundle", {})
         logger.info("Bundling research evidence...")
 
@@ -241,6 +246,7 @@ class SourceValidator:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         urls = state.get("research_bundle", {}).get("raw_urls", [])
         logger.info(f"Validating {len(urls)} sources...")
 
@@ -284,6 +290,7 @@ class TrendExtractor:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
         logger.info("Extracting market trends...")
 
@@ -329,6 +336,7 @@ class GapFinder:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         comp_data = state.get("research_bundle", {}).get("competitor_map", {})
         logger.info("Finding market gaps...")
 
@@ -348,6 +356,7 @@ class CompetitorTracker:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         workspace_id = state.get("workspace_id")
         comp_map = state.get("research_bundle", {}).get("competitor_map", {})
 
@@ -386,6 +395,7 @@ class BrandHistoryContextualizer:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         workspace_id = state.get("workspace_id")
         logger.info(f"Retrieving brand history for workspace: {workspace_id}")
 
@@ -420,6 +430,7 @@ class ResearchSummarizer:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
         logger.info("Summarizing research bundle...")
 
@@ -467,6 +478,7 @@ class VisualTrendAnalyzer:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         images = state.get("research_bundle", {}).get("raw_images", [])
         logger.info(f"Analyzing {len(images)} images multimodal style...")
 
@@ -508,6 +520,7 @@ class PositioningMapper:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         comp_data = state.get("research_bundle", {}).get("competitor_map", {})
         logger.info("Mapping market positioning...")
 
@@ -550,6 +563,7 @@ class SWOTAnalyzer:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
         logger.info("Generating SWOT analysis...")
 
@@ -590,6 +604,7 @@ class ResearchQAGuard:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         brief = state.get("research_bundle", {}).get("executive_brief", "")
         logger.info("Auditing research quality...")
 
