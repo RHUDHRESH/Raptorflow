@@ -7,6 +7,25 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class BudgetCaps(BaseModel):
+    """SOTA budget limits for agentic execution."""
+
+    token_cap: Optional[int] = None
+    tool_call_cap: Optional[int] = None
+    time_cap_seconds: Optional[int] = None
+    concurrency_cap: Optional[int] = None
+
+
+class BudgetUsage(BaseModel):
+    """Tracks budget consumption during a run."""
+
+    tokens_used: int = 0
+    tool_calls: int = 0
+    time_elapsed_seconds: float = 0.0
+    active_tool_calls: int = 0
+    started_at: Optional[datetime] = None
+
+
 class ModelTier(str, Enum):
     ULTRA = "ultra"
     SMART = "reasoning"
@@ -80,6 +99,9 @@ class CognitiveIntelligenceState(TypedDict):
     quality_score: float  # Aggregate quality 0-1
     cost_accumulator: float  # Estimated USD burn
     token_usage: Dict[str, int]  # Input/Output counts
+    tool_usage: Dict[str, int]
+    budget_caps: Optional[BudgetCaps]
+    budget_usage: Optional[BudgetUsage]
 
     # 6. Errors & Flow Control
     error: Optional[str]
