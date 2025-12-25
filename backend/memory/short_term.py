@@ -3,6 +3,7 @@ import logging
 from typing import Any, Optional
 
 from backend.core.cache import get_cache_manager
+from backend.memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
 
 logger = logging.getLogger("raptorflow.memory.short_term")
 
@@ -19,8 +20,18 @@ class L1ShortTermMemory:
         self.client = client or (manager.client if manager else None)
         self.prefix = "l1:"
 
-    async def store(self, key: str, value: Any, ttl: int = 3600):
+    async def store(
+        self,
+        key: str,
+        value: Any,
+        ttl: Optional[int] = None,
+        workspace_importance: str = DEFAULT_IMPORTANCE,
+        agent_importance: str = DEFAULT_IMPORTANCE,
+    ):
         """Stores a piece of state in L1 memory with a TTL."""
+        if ttl is None:
+            policy = get_memory_policy()
+            ttl = policy.resolve(workspace_importance, agent_importance).ttl_seconds
         full_key = f"{self.prefix}{key}"
         try:
             serialized = json.dumps(value)
