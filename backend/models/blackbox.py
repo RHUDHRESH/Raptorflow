@@ -9,6 +9,7 @@ class BlackboxTelemetry(BaseModel):
     """Pydantic model for Blackbox Telemetry (Execution Traces)."""
 
     id: UUID = Field(default_factory=uuid4)
+    tenant_id: UUID
     move_id: UUID
     agent_id: str
     trace: Dict[str, Any] = Field(default_factory=dict)
@@ -23,6 +24,7 @@ class BlackboxOutcome(BaseModel):
     """Pydantic model for Blackbox Outcomes (Conversion/Engagement)."""
 
     id: UUID = Field(default_factory=uuid4)
+    tenant_id: UUID
     campaign_id: Optional[UUID] = None
     move_id: Optional[UUID] = None
     source: str

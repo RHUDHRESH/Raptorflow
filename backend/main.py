@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -8,6 +8,7 @@ from backend.api.v1.blackbox_memory import router as blackbox_memory_router
 from backend.api.v1.blackbox_roi import router as blackbox_roi_router
 from backend.api.v1.blackbox_telemetry import router as blackbox_telemetry_router
 from backend.api.v1.campaigns import router as campaigns_router
+from backend.api.v1.feedback import router as feedback_router
 from backend.api.v1.foundation import router as foundation_router
 from backend.api.v1.matrix import router as matrix_router
 from backend.api.v1.moves import router as moves_router
@@ -15,6 +16,7 @@ from backend.api.v1.muse import router as muse_router
 from backend.api.v1.payments import router as payments_router
 from backend.api.v1.radar import router as radar_router
 from backend.core.exceptions import RaptorFlowError
+from backend.core.config import get_settings
 from backend.core.middleware import (
     CorrelationIDMiddleware,
     RateLimitMiddleware,
@@ -59,6 +61,7 @@ app.include_router(payments_router)
 app.include_router(radar_router)
 app.include_router(muse_router)
 app.include_router(assets_router)
+app.include_router(feedback_router)
 
 
 # Global Exception Handler
@@ -70,12 +73,25 @@ async def raptorflow_exception_handler(request: Request, exc: RaptorFlowError):
 
 
 @app.get("/health")
-async def health_check():
+async def health_check(
+    x_rf_internal_key: str | None = Header(default=None, alias="X-RF-Internal-Key"),
+    authorization: str | None = Header(default=None),
+):
     """
-    SOTA Deep Health Check.
-    Verifies connectivity to Supabase (DB) and Upstash (Redis).
-    Returns 503 Service Unavailable if any critical component is down.
+    Public health check returns a minimal status.
+    When the internal key is provided, returns deep health details for ops.
     """
+    settings = get_settings()
+    internal_key = settings.RF_INTERNAL_KEY
+    bearer_token = None
+    if authorization and authorization.lower().startswith("bearer "):
+        bearer_token = authorization.split(" ", 1)[1].strip()
+
+    provided_key = x_rf_internal_key or bearer_token
+
+    if not internal_key or provided_key != internal_key:
+        return {"status": "ok"}
+
     from backend.core.cache import get_cache_client
     from backend.db import get_pool
 

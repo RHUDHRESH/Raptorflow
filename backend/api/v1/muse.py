@@ -1,5 +1,5 @@
 from typing import Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from backend.core.auth import get_current_user, get_tenant_id
 from backend.graphs.muse_create import build_muse_spine
 from backend.models.cognitive import CognitiveStatus
+from backend.models.swarm import SwarmState
 
 router = APIRouter(prefix="/v1/muse", tags=["muse"])
 
@@ -37,7 +38,7 @@ async def create_muse_asset(
         spine = build_muse_spine()
 
         # Initialize state
-        initial_state = {
+        initial_state: SwarmState = {
             "raw_prompt": request.prompt,
             "workspace_id": request.workspace_id,
             "tenant_id": str(tenant_id),
@@ -51,10 +52,24 @@ async def create_muse_asset(
             "research_bundle": {},
             "quality_score": 0.0,
             "error": None,
+            "current_plan": [],
+            "active_move": None,
+            "next_node": None,
+            "last_agent": "orchestrator",
+            "swarm_tasks": [],
+            "shared_knowledge": {},
+            "delegation_history": [],
+            "hierarchy": {},
+            "budgets": {},
+            "shared_memory_handles": {},
+            "learning_artifacts": [],
         }
 
+        base_thread_id = request.thread_id or str(uuid4())
+        thread_id = f"{tenant_id}:{_current_user['id']}:{base_thread_id}"
+
         # Configuration for LangGraph (thread_id for persistence)
-        config = {"configurable": {"thread_id": request.thread_id or "default"}}
+        config = {"configurable": {"thread_id": thread_id}}
 
         # Execute the graph
         # For a production build, this might be backgrounded or streamed.
@@ -70,7 +85,7 @@ async def create_muse_asset(
         return MuseResponse(
             status=result["status"],
             asset_content=final_asset,
-            thread_id=request.thread_id or "default",
+            thread_id=thread_id,
             quality_score=result.get("quality_score", 0.0),
         )
 
