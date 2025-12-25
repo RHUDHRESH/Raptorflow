@@ -2,7 +2,8 @@ from typing import List, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from backend.agents.shared.agents import IntentRouter, QualityGate
+from backend.agents.shared.agents import QualityGate
+from backend.graphs.swarm_orchestrator import SwarmController
 from backend.agents.specialists.creatives import EmailSpecialistAgent
 from backend.memory.cognitive.engine import CognitiveMemoryEngine
 
@@ -40,12 +41,12 @@ async def initialize_spine(state: SpineState):
         state["workspace_id"], state["prompt"]
     )
 
-    router = IntentRouter()
-    intent = await router.execute(state["prompt"])
+    controller = SwarmController()
+    intent = await controller.route_intent(state["prompt"])
 
     return {
         "learned_rules": rules,
-        "intent": intent.dict(),
+        "intent": intent.to_intent_payload(),
         "status": "planning",
         "iterations": 0,
     }
