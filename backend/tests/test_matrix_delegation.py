@@ -1,17 +1,14 @@
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
-from backend.agents.supervisor import HierarchicalSupervisor
+from backend.graphs.swarm_orchestrator import SwarmController
 
 
 @pytest.mark.asyncio
 async def test_delegate_to_specialist_logic():
     """Test that the supervisor can delegate work to a specialist node."""
-    mock_llm = MagicMock()
-    supervisor = HierarchicalSupervisor(
-        llm=mock_llm, team_members=["DriftAnalyzer"], system_prompt="..."
-    )
+    supervisor = SwarmController()
 
     # Mock specialist node
     mock_specialist = AsyncMock()

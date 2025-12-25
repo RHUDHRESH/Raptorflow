@@ -1,16 +1,11 @@
-from unittest.mock import MagicMock
-
 import pytest
 
-from backend.agents.supervisor import HierarchicalSupervisor
+from backend.graphs.swarm_orchestrator import SwarmController
 
 
 def test_aggregate_findings_logic():
     """Test that the supervisor can aggregate multiple specialist findings."""
-    mock_llm = MagicMock()
-    supervisor = HierarchicalSupervisor(
-        llm=mock_llm, team_members=[], system_prompt="..."
-    )
+    supervisor = SwarmController()
 
     findings = [
         {"analysis_summary": "Drift detected in zone A", "drift_detected": True},

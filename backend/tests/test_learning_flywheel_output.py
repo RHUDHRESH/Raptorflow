@@ -16,6 +16,7 @@ async def test_learning_flywheel_output():
 
     service = BlackboxService(mock_vault)
     move_id = str(uuid4())
+    tenant_id = uuid4()
 
     # 1. Mock the LangGraph run
     mock_final_state = {
@@ -34,7 +35,7 @@ async def test_learning_flywheel_output():
         service.upsert_learning_embedding = MagicMock()
 
         # 3. Trigger cycle
-        result = await service.trigger_learning_cycle(move_id)
+        result = await service.trigger_learning_cycle(move_id, tenant_id)
 
         # 4. Assertions
         assert result["status"] == "cycle_complete"
