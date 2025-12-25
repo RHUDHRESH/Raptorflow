@@ -1,19 +1,52 @@
 import inspect
 import logging
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Field
 
 from backend.agents.router import IntentRouterAgent
+from backend.inference import InferenceProvider
 from backend.models.cognitive import (
     ResourceBudget,
     RoutingMetadata,
     SharedMemoryHandles,
 )
 
-logger = logging.getLogger("raptorflow.swarm_orchestrator")
+logger = logging.getLogger("raptorflow.swarm.orchestrator")
+
+
+class SwarmIntent(BaseModel):
+    asset_type: str = Field(
+        description="The family of asset (email, social, meme, strategy)"
+    )
+    confidence: float = Field(description="Confidence score 0.0 - 1.0")
+    extracted_goal: str = Field(description="What the user wants to achieve")
+    entities: List[str] = Field(
+        description="Extracted @mentions like cohorts or campaigns"
+    )
+    ambiguity_reasons: Optional[List[str]] = Field(
+        description="Reasons for low confidence",
+        default=None,
+    )
+
+    @property
+    def asset_family(self) -> str:
+        return self.asset_type
+
+    @property
+    def goal(self) -> str:
+        return self.extracted_goal
+
+    def to_intent_payload(self) -> Dict[str, Any]:
+        return {
+            "asset_family": self.asset_type,
+            "goal": self.extracted_goal,
+            "entities": self.entities,
+            "confidence": self.confidence,
+            "ambiguity_reasons": self.ambiguity_reasons,
+        }
 
 
 class SwarmRoutingDecision(BaseModel):
@@ -26,22 +59,100 @@ class SwarmRoutingDecision(BaseModel):
     rationale: Optional[str] = Field(default=None, description="Routing rationale.")
 
 
+class SwarmRouteDecision(BaseModel):
+    """Structured output for the Swarm controller router."""
+
+    next_node: str = Field(
+        description="The next specialist crew to call, or 'FINISH' to deliver to user."
+    )
+    instructions: str = Field(
+        description="Specific sub-task instructions for the specialist."
+    )
+
+
+class SwarmAgentAdapter:
+    """Adapter to normalize different agent call signatures."""
+
+    def __init__(
+        self,
+        name: str,
+        handler: Callable[[Dict[str, Any]], Awaitable[Dict[str, Any]]],
+    ) -> None:
+        self.name = name
+        self._handler = handler
+
+    async def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
+        result = self._handler(state)
+        if inspect.isawaitable(result):
+            return await result
+        return result
+
+    @staticmethod
+    def _wrap_result(result: Any) -> Awaitable[Dict[str, Any]]:
+        async def _wrapper() -> Dict[str, Any]:
+            if inspect.isawaitable(result):
+                return await result
+            return result
+
+        return _wrapper()
+
+    @classmethod
+    def from_callable(cls, name: str, agent: Callable[[Dict[str, Any]], Any]):
+        async def handler(state: Dict[str, Any]) -> Dict[str, Any]:
+            return await cls._wrap_result(agent(state))
+
+        return cls(name, handler)
+
+    @classmethod
+    def from_run_method(
+        cls,
+        name: str,
+        agent: Any,
+        *,
+        identifier_key: str = "move_id",
+        payload_builder: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None,
+    ):
+        def build_payload(state: Dict[str, Any]) -> Dict[str, Any]:
+            return payload_builder(state) if payload_builder else state
+
+        async def handler(state: Dict[str, Any]) -> Dict[str, Any]:
+            identifier = state.get(identifier_key)
+            return await cls._wrap_result(agent.run(identifier, build_payload(state)))
+
+        return cls(name, handler)
+
+    @classmethod
+    def from_execute_method(
+        cls,
+        name: str,
+        agent: Any,
+        *,
+        prompt_key: str = "prompt",
+    ):
+        async def handler(state: Dict[str, Any]) -> Dict[str, Any]:
+            return await cls._wrap_result(agent.execute(state[prompt_key]))
+
+        return cls(name, handler)
+
+
 class SwarmOrchestrator:
     """
-    Top-level Swarm Controller coordinating specialized sub-swarms.
-    Replaces ad-hoc routing and loop logic with a consistent orchestration layer.
+    Unified Swarm Controller coordinating specialized sub-swarms.
+    Combines intent routing, multi-agent supervision, and delegation logic.
     """
 
     def __init__(
         self,
-        llm: Any,
+        llm: Any = None,
         team_members: Optional[List[str]] = None,
         system_prompt: str = "",
         sub_swarms: Optional[Dict[str, Any]] = None,
         router_agent: Optional[IntentRouterAgent] = None,
         output_model: type[BaseModel] = SwarmRoutingDecision,
     ):
-        self.llm = llm
+        self.llm = llm or InferenceProvider.get_model(
+            model_tier="fast", temperature=0.0
+        )
         self.team_members = team_members or [
             "strategists",
             "researchers",
@@ -67,6 +178,9 @@ class SwarmOrchestrator:
         self.router_agent = router_agent or IntentRouterAgent()
         self.sub_swarms = sub_swarms or {}
         self.swarm_tree = self._build_swarm_tree()
+
+        # Intent routing chain
+        self.intent_chain = self.llm.with_structured_output(SwarmIntent)
 
     @property
     def chain(self):
@@ -126,12 +240,21 @@ class SwarmOrchestrator:
             "routing_metadata": routing_metadata,
         }
 
-    async def route_intent(self, query: str) -> str:
-        state = {"messages": [HumanMessage(content=query)]}
-        response = await self.chain.ainvoke(state)
-        if hasattr(response, "next_node"):
-            return str(response.next_node)
-        return str(response.get("next_node", "FINISH"))
+    async def route_intent(self, query: str) -> SwarmIntent:
+        """Route user intent using structured output."""
+        system_msg = SystemMessage(
+            content=(
+                "You are the Intent Router for RaptorFlow.\n"
+                "Classify user prompts into asset families: email, social, meme, or strategy.\n"
+                "Extract @mentions which represent campaigns, cohorts, or competitors.\n"
+                "Assign confidence based on how much detail is provided.\n"
+                "If the prompt is vague (e.g. 'write an email'), confidence must be < 0.7."
+            )
+        )
+
+        return await self.intent_chain.ainvoke(
+            [system_msg, HumanMessage(content=query)]
+        )
 
     async def execute_loop(
         self, initial_state: Dict[str, Any], nodes: Dict[str, Any]
@@ -253,3 +376,14 @@ class SwarmOrchestrator:
             return await result if inspect.isawaitable(result) else result
 
         return _invoke
+
+    def aggregate_findings(self, findings: List[Dict[str, Any]]) -> str:
+        logger.info("Aggregating %s specialist findings...", len(findings))
+
+        summary_parts = ["### MATRIX BOARDROOM SUMMARY ###"]
+        for i, finding in enumerate(findings):
+            source = finding.get("source", f"Specialist {i+1}")
+            text = finding.get("analysis_summary", "No summary provided.")
+            summary_parts.append(f"- [{source}]: {text}")
+
+        return "\n".join(summary_parts)
