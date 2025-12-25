@@ -76,6 +76,10 @@ class Config(BaseSettings):
     PERPLEXITY_API_KEY: Optional[str] = None
     BRAVE_SEARCH_API_KEY: Optional[str] = None
 
+    # Rendering
+    JS_RENDERING_ENABLED: bool = False
+    JS_RENDERING_TIMEOUT_S: int = 20
+
     # Payment Configuration (PhonePe Standard Checkout v2)
     PHONEPE_CLIENT_ID: Optional[str] = None
     PHONEPE_CLIENT_SECRET: Optional[str] = None
