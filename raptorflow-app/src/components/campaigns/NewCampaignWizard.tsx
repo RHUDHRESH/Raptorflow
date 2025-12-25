@@ -26,10 +26,10 @@ import {
     triggerCampaignInference
 } from '@/lib/campaigns';
 import { getMovesForContext } from '@/lib/move-templates';
-import { Check, ChevronDown, ChevronRight, X, ArrowRight, Sparkles } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, X, ArrowRight, Sparkles, LayoutPanelLeft, ShieldCheck, Edit3, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-
-// Mock cohorts for now
+import { ArcPreview } from './ArcPreview';
+import { Badge } from "@/components/ui/badge";
 const MOCK_COHORTS = [
     { id: 'c1', name: 'SaaS Founders (Seed)' },
     { id: 'c2', name: 'Marketing Agencies' },
@@ -43,7 +43,7 @@ interface NewCampaignWizardProps {
     onComplete: (campaign: Campaign) => void;
 }
 
-type Step = 'objective' | 'audience' | 'offer' | 'channels' | 'pace' | 'preview';
+type Step = 'objective' | 'audience' | 'offer' | 'channels' | 'pace' | 'approval' | 'preview';
 
 export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaignWizardProps) {
     // Form State
@@ -59,6 +59,7 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
     // Flow State
     const [activeStep, setActiveStep] = useState<Step>('objective');
     const [previewMoves, setPreviewMoves] = useState<Move[]>([]);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     // Reset on open
     useEffect(() => {
@@ -72,6 +73,7 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
             setCampaignDuration(90);
             setActiveStep('objective');
             setPreviewMoves([]);
+            setIsGenerating(false);
         }
     }, [open]);
 
@@ -112,6 +114,28 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
         setPreviewMoves(moves);
     };
 
+    const handleNext = () => {
+        if (activeStep === 'objective' && objective) setActiveStep('audience');
+        else if (activeStep === 'audience' && cohortId) setActiveStep('offer');
+        else if (activeStep === 'offer' && offer) setActiveStep('channels');
+        else if (activeStep === 'channels' && channels.length > 0) setActiveStep('pace');
+        else if (activeStep === 'pace') {
+            setIsGenerating(true);
+            setTimeout(() => {
+                setIsGenerating(false);
+                setActiveStep('approval');
+            }, 1500);
+        }
+    };
+
+    const handleBack = () => {
+        if (activeStep === 'audience') setActiveStep('objective');
+        else if (activeStep === 'offer') setActiveStep('audience');
+        else if (activeStep === 'channels') setActiveStep('offer');
+        else if (activeStep === 'pace') setActiveStep('channels');
+        else if (activeStep === 'approval') setActiveStep('pace');
+    };
+
     const handleCreate = async () => {
         if (!objective || !cohortId || !offer) return;
 
@@ -140,8 +164,8 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
 
             // Task 16: Trigger SOTA agentic inference for the 90-day arc
             toast.promise(triggerCampaignInference(campaignId), {
-                loading: 'Generating 90-day strategic arc...',
-                success: 'Strategic arc generated and moves populated',
+                loading: 'Finalizing 90-day strategic arc...',
+                success: 'Strategic arc deployed and moves populated',
                 error: 'Failed to generate arc, using basic template'
             });
 
@@ -168,6 +192,337 @@ export function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaig
             console.error(error);
         }
     };
+
+    // Render Steps
+    const renderObjectiveStep = () => (
+        <div className="space-y-6">
+            <div>
+                <h3 className="text-xl font-serif text-stone-800 mb-1">Select Primary Objective</h3>
+                <p className="text-xs text-stone-500 font-sans">The single outcome that defines campaign success.</p>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+                {(Object.entries(OBJECTIVE_LABELS) as [CampaignObjective, { label: string; description: string }][]).map(([key, info]) => (
+                    <button
+                        key={key}
+                        onClick={() => {
+                            setObjective(key);
+                        }}
+                        className={`text-left p-4 rounded-xl border transition-all duration-300 ${objective === key
+                            ? 'bg-stone-900 border-stone-900 text-white shadow-md'
+                            : 'bg-white border-stone-200 text-stone-600 hover:border-stone-400'
+                            }`}
+                    >
+                        <div className="flex items-center justify-between">
+                            <div className="font-bold text-sm tracking-tight">{info.label}</div>
+                            {objective === key && <Check className="w-4 h-4 text-stone-100" />}
+                        </div>
+                        <div className={`text-[11px] mt-1 ${objective === key ? 'text-stone-400' : 'text-stone-500'}`}>
+                            {info.description}
+                        </div>
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+
+    const renderAudienceStep = () => (
+        <div className="space-y-6">
+            <div>
+                <h3 className="text-xl font-serif text-stone-800 mb-1">Target Cohort</h3>
+                <p className="text-xs text-stone-500 font-sans">Who are we talking to in this initiative?</p>
+            </div>
+            <div className="space-y-2">
+                {MOCK_COHORTS.map(cohort => (
+                    <button
+                        key={cohort.id}
+                        onClick={() => {
+                            setCohortId(cohort.id);
+                            setCohortName(cohort.name);
+                        }}
+                        className={`w-full text-left p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${cohortId === cohort.id
+                            ? 'bg-stone-900 border-stone-900 text-white shadow-md'
+                            : 'bg-white border-stone-200 text-stone-600 hover:border-stone-400'
+                            }`}
+                    >
+                        <span className="text-sm font-bold">{cohort.name}</span>
+                        {cohortId === cohort.id && <Check className="w-4 h-4 text-stone-100" />}
+                    </button>
+                ))}
+                <button
+                    className="w-full text-left p-4 rounded-xl border border-dashed border-stone-300 text-stone-400 hover:text-stone-800 hover:border-stone-400 transition-colors"
+                    onClick={() => toast('Quick cohort creation coming soon')}
+                >
+                    <span className="text-sm">+ Create new cohort</span>
+                </button>
+            </div>
+        </div>
+    );
+
+    const renderOfferStep = () => (
+        <div className="space-y-6">
+            <div>
+                <h3 className="text-xl font-serif text-stone-800 mb-1">The Offer</h3>
+                <p className="text-xs text-stone-500 font-sans">The specific value exchange or call to action.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+                {(Object.entries(OFFER_LABELS) as [OfferType, string][]).map(([key, label]) => (
+                    <button
+                        key={key}
+                        onClick={() => {
+                            setOffer(key);
+                        }}
+                        className={`px-5 py-2.5 rounded-full border text-sm font-medium transition-all duration-300 ${offer === key
+                            ? 'bg-stone-900 border-stone-900 text-white shadow-md'
+                            : 'bg-white border-stone-200 text-stone-600 hover:border-stone-400'
+                            }`}
+                    >
+                        {label}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+
+    const renderChannelsStep = () => (
+        <div className="space-y-6">
+            <div>
+                <h3 className="text-xl font-serif text-stone-800 mb-1">Distribution Channels</h3>
+                <p className="text-xs text-stone-500 font-sans">Pick up to 2 primary channels for this campaign.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+                {(Object.entries(CHANNEL_LABELS) as [ChannelType, string][]).map(([key, label]) => {
+                    const isSelected = channels.includes(key);
+                    return (
+                        <button
+                            key={key}
+                            onClick={() => {
+                                let newChannels = [...channels];
+                                if (isSelected) {
+                                    newChannels = newChannels.filter(c => c !== key);
+                                } else {
+                                    if (newChannels.length >= 2) return; // Max 2
+                                    newChannels.push(key);
+                                }
+                                setChannels(newChannels);
+                            }}
+                            disabled={!isSelected && channels.length >= 2}
+                            className={`p-4 rounded-xl border text-sm text-left transition-all duration-300 ${isSelected
+                                ? 'bg-stone-900 border-stone-900 text-white shadow-md'
+                                : channels.length >= 2
+                                    ? 'opacity-50 cursor-not-allowed border-stone-50 text-stone-300'
+                                    : 'bg-white border-stone-200 text-stone-600 hover:border-stone-400'
+                                }`}
+                        >
+                            <div className="font-bold">{label}</div>
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+
+    const renderPaceStep = () => (
+        <div className="space-y-8">
+            <div>
+                <h3 className="text-xl font-serif text-stone-800 mb-1">Execution Pacing</h3>
+                <p className="text-xs text-stone-500 font-sans">Define your duration and operational capacity.</p>
+            </div>
+
+            {/* Campaign Duration */}
+            <div className="space-y-3">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Total Campaign Length</label>
+                <div className="flex gap-2">
+                    {[14, 28, 90].map(days => (
+                        <button
+                            key={days}
+                            onClick={() => setCampaignDuration(days as any)}
+                            className={`flex-1 py-3 rounded-xl border text-sm transition-all duration-300 ${campaignDuration === days
+                                ? 'bg-stone-900 border-stone-900 text-white shadow-md'
+                                : 'bg-white border-stone-200 text-stone-500 hover:border-stone-400'
+                                }`}
+                        >
+                            {days} Days
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Move Length */}
+            <div className="space-y-3">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Iteration (Move) Frequency</label>
+                <div className="flex gap-2">
+                    {[7, 14].map(days => (
+                        <button
+                            key={days}
+                            onClick={() => setDuration(days as MoveDuration)}
+                            className={`flex-1 py-3 rounded-xl border text-sm transition-all duration-300 ${duration === days
+                                ? 'bg-stone-900 border-stone-900 text-white shadow-md'
+                                : 'bg-white border-stone-200 text-stone-500 hover:border-stone-400'
+                                }`}
+                        >
+                            Every {days} Days
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Daily Effort */}
+            <div className="space-y-3">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Operational Capacity</label>
+                <div className="flex gap-2">
+                    {[15, 30, 60].map(mins => (
+                        <button
+                            key={mins}
+                            onClick={() => setDailyEffort(mins as any)}
+                            className={`flex-1 py-3 rounded-xl border text-sm transition-all duration-300 ${dailyEffort === mins
+                                ? 'bg-stone-900 border-stone-900 text-white shadow-md'
+                                : 'bg-white border-stone-200 text-stone-500 hover:border-stone-400'
+                                }`}
+                        >
+                            {mins}m / Day
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderApprovalStep = () => (
+        <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
+            <div className="text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-4">
+                    <ShieldCheck className="w-6 h-6 text-emerald-600" />
+                </div>
+                <h3 className="text-2xl font-serif text-stone-800">Human Approval Required</h3>
+                <p className="text-sm text-stone-500 font-sans max-w-sm mx-auto">
+                    The Cognitive Intelligence Engine has drafted your 90-day arc. Please review the moves on the right.
+                </p>
+            </div>
+
+            <div className="p-6 bg-stone-50 rounded-2xl border border-stone-100 space-y-4">
+                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                    <span>Strategic Summary</span>
+                    <Badge variant="outline" className="bg-white border-stone-200 text-stone-500">DRAFT</Badge>
+                </div>
+                <p className="text-sm text-stone-700 leading-relaxed italic">
+                    &ldquo;Based on your goal of <strong>{objective && OBJECTIVE_LABELS[objective].label}</strong> for <strong>{cohortName}</strong>,
+                    this arc focuses on {previewMoves[0]?.hypothesis?.split(' ').slice(0, 8).join(' ')}...&rdquo;
+                </p>
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                    <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Est. ROI</span>
+                        <div className="text-lg font-bold text-stone-800">+24%</div>
+                    </div>
+                    <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Complexity</span>
+                        <div className="text-lg font-bold text-stone-800">Medium</div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex items-center space-x-3">
+                <Button
+                    variant="outline"
+                    className="flex-1 rounded-xl h-12 border-stone-200 hover:bg-stone-50"
+                    onClick={() => setActiveStep('pace')}
+                >
+                    <Edit3 className="w-4 h-4 mr-2" /> Refine Setup
+                </Button>
+                <Button
+                    className="flex-1 rounded-xl h-12 bg-stone-900 hover:bg-black text-white"
+                    onClick={handleCreate}
+                >
+                    Approve & Launch
+                </Button>
+            </div>
+        </div>
+    );
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-6xl p-0 gap-0 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-3xl overflow-hidden transition-all duration-500 h-[85vh]">
+                <div className="flex h-full">
+                    {/* Left: Input Wizard (40%) */}
+                    <div className="w-[450px] border-r border-stone-100 flex flex-col bg-white">
+                        {/* Header */}
+                        <div className="px-8 py-6 border-b border-stone-50 flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 rounded-xl bg-stone-900 flex items-center justify-center">
+                                    <LayoutPanelLeft className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-sm font-bold uppercase tracking-widest text-stone-800">Campaign Wizard</h2>
+                                    <p className="text-[10px] text-stone-400 font-sans">BUILDER PHASE</p>
+                                </div>
+                            </div>
+                            <button onClick={() => onOpenChange(false)} className="w-8 h-8 rounded-full hover:bg-stone-50 flex items-center justify-center transition-colors">
+                                <X className="w-4 h-4 text-stone-300" />
+                            </button>
+                        </div>
+
+                        {/* Wizard Content */}
+                        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                            {isGenerating ? (
+                                <div className="h-full flex flex-col items-center justify-center space-y-4 text-center">
+                                    <div className="w-16 h-16 rounded-2xl bg-stone-50 flex items-center justify-center relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-stone-900/5 animate-pulse" />
+                                        <Sparkles className="w-8 h-8 text-stone-300 animate-bounce" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-serif text-stone-800">Agentic Brainstorming...</h3>
+                                        <p className="text-xs text-stone-400 max-w-[200px]">Simulating 90 days of marketing momentum based on your constraints.</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    {activeStep === 'objective' && renderObjectiveStep()}
+                                    {activeStep === 'audience' && renderAudienceStep()}
+                                    {activeStep === 'offer' && renderOfferStep()}
+                                    {activeStep === 'channels' && renderChannelsStep()}
+                                    {activeStep === 'pace' && renderPaceStep()}
+                                    {activeStep === 'approval' && renderApprovalStep()}
+                                </>
+                            )}
+                        </div>
+
+                        {/* Footer Nav */}
+                        {activeStep !== 'approval' && !isGenerating && (
+                            <div className="px-8 py-6 border-t border-stone-50 flex items-center justify-between bg-stone-50/30">
+                                <Button
+                                    variant="ghost"
+                                    onClick={handleBack}
+                                    disabled={activeStep === 'objective'}
+                                    className={cn("rounded-lg text-stone-400", activeStep === 'objective' && "invisible")}
+                                >
+                                    <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                                </Button>
+                                <Button
+                                    onClick={handleNext}
+                                    disabled={(activeStep === 'objective' && !objective) ||
+                                              (activeStep === 'audience' && !cohortId) ||
+                                              (activeStep === 'offer' && !offer) ||
+                                              (activeStep === 'channels' && channels.length === 0)}
+                                    className="rounded-xl bg-stone-900 text-white hover:bg-black px-6 h-11"
+                                >
+                                    {activeStep === 'pace' ? 'Generate Arc' : 'Next'} <ArrowRight className="w-4 h-4 ml-2" />
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Right: Dynamic Preview (60%) */}
+                    <div className="flex-1 bg-stone-50/50 p-10 overflow-hidden flex flex-col">
+                        <ArcPreview
+                            moves={previewMoves}
+                            duration={campaignDuration}
+                            objective={objective ? OBJECTIVE_LABELS[objective].label : 'your objective'}
+                        />
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
     // Render Steps
     const renderObjectiveStep = () => (
