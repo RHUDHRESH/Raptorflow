@@ -37,3 +37,11 @@
 
 ## [~] Track: End-to-End System Integrity Restoration
 *Link: [./conductor/tracks/integrity_20251224/](./conductor/tracks/integrity_20251224/)*
+<<<<<<< Updated upstream
+=======
+
+---
+
+## [x] Track: Growth Engine Modernization (Matrix, Black Box, Campaigns)
+*Link: [./conductor/tracks/growth_engine_modernization_20251225/](./conductor/tracks/growth_engine_modernization_20251225/)*
+>>>>>>> Stashed changes
