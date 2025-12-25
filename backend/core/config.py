@@ -47,6 +47,19 @@ class Config(BaseSettings):
     MODEL_REASONING: str = "gemini-2.5-flash-lite"
     MODEL_GENERAL: str = "gemini-2.5-flash-lite"
 
+    # Image Generation Models (Nano Banana)
+    MODEL_IMAGE_NANO: str = "gemini-2.5-flash-image"
+    MODEL_IMAGE_PRO: str = "gemini-3-pro-image-preview"
+
+    # Creative Asset Generation Settings
+    IMAGE_GEN_ENABLED: bool = True
+    IMAGE_MAX_COUNT_PER_REQUEST: int = 4
+    IMAGE_DEFAULT_STYLE: str = "photorealistic"
+
+    # Usage Tracking
+    ENABLE_USAGE_TRACKING: bool = True
+    MONTHLY_IMAGE_QUOTA: int = 100
+
     EMBEDDING_MODEL: str = "text-embedding-004"
 
     # Backend Vertex Keys
@@ -155,6 +168,11 @@ def get_settings() -> Config:
         "MODEL_REASONING_HIGH",
         "MODEL_REASONING",
         "MODEL_GENERAL",
+        "MODEL_IMAGE_NANO",
+        "MODEL_IMAGE_PRO",
+        "IMAGE_GEN_ENABLED",
+        "ENABLE_USAGE_TRACKING",
+        "MONTHLY_IMAGE_QUOTA",
         "OPENAI_API_KEY",
         "ANTHROPIC_API_KEY",
         "SERPER_API_KEY",

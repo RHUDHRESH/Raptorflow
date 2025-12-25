@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 
-from backend.core.auth import get_current_user
+from backend.core.auth import get_current_user, get_tenant_id
 from backend.core.vault import Vault
 from backend.services.blackbox_service import BlackboxService
 
@@ -32,7 +32,8 @@ class EvidenceLink(BaseModel):
 @router.post("/upsert", status_code=status.HTTP_201_CREATED)
 def upsert_learning(
     learning: LearningCreate,
-    _current_user: dict = Depends(get_current_user),
+    tenant_id: UUID = Depends(get_tenant_id),
+    current_user: dict = Depends(get_current_user),
     service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Generates embedding and persists a new strategic learning."""
@@ -40,6 +41,8 @@ def upsert_learning(
         content=learning.content,
         learning_type=learning.learning_type,
         source_ids=learning.source_ids,
+        tenant_id=tenant_id,
+        user_id=current_user.get("id"),
     )
     return {"status": "persisted"}
 
@@ -48,22 +51,30 @@ def upsert_learning(
 def search_memory(
     query: str,
     limit: int = 5,
-    _current_user: dict = Depends(get_current_user),
+    tenant_id: UUID = Depends(get_tenant_id),
+    current_user: dict = Depends(get_current_user),
     service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Searches strategic memory for relevant insights."""
-    return service.search_strategic_memory(query=query, limit=limit)
+    return service.search_strategic_memory(
+        query=query, limit=limit, tenant_id=tenant_id, user_id=current_user.get("id")
+    )
 
 
 @router.post("/link-evidence")
 def link_evidence(
     link: EvidenceLink,
-    _current_user: dict = Depends(get_current_user),
+    tenant_id: UUID = Depends(get_tenant_id),
+    current_user: dict = Depends(get_current_user),
     service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Links existing traces to a learning."""
     service.link_learning_to_evidence(
-        learning_id=link.learning_id, trace_ids=link.trace_ids
+        learning_id=link.learning_id,
+        trace_ids=link.trace_ids,
+        tenant_id=tenant_id,
+        user_id=current_user.get("id"),
+        enforce_access=True,
     )
     return {"status": "linked"}
 
@@ -72,11 +83,17 @@ def link_evidence(
 def get_planner_context(
     move_type: str,
     limit: int = 5,
-    _current_user: dict = Depends(get_current_user),
+    tenant_id: UUID = Depends(get_tenant_id),
+    current_user: dict = Depends(get_current_user),
     service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Retrieves formatted context for the planner agent."""
-    context = service.get_memory_context_for_planner(move_type=move_type, limit=limit)
+    context = service.get_memory_context_for_planner(
+        move_type=move_type,
+        limit=limit,
+        tenant_id=tenant_id,
+        user_id=current_user.get("id"),
+    )
     return {"context": context}
 
 
@@ -84,9 +101,15 @@ def get_planner_context(
 def prune_memory(
     learning_type: str,
     before: datetime,
-    _current_user: dict = Depends(get_current_user),
+    tenant_id: UUID = Depends(get_tenant_id),
+    current_user: dict = Depends(get_current_user),
     service: BlackboxService = Depends(get_blackbox_service),
 ):
     """Removes outdated learnings."""
-    service.prune_strategic_memory(learning_type=learning_type, before=before)
+    service.prune_strategic_memory(
+        learning_type=learning_type,
+        before=before,
+        tenant_id=tenant_id,
+        user_id=current_user.get("id"),
+    )
     return {"status": "pruned"}
