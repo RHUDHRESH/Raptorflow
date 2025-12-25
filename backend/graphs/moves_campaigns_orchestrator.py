@@ -23,6 +23,7 @@ from backend.db import SupabaseSaver, get_pool, save_campaign
 from backend.inference import InferenceProvider
 from backend.memory.long_term import LongTermMemory
 from backend.memory.semantic import SemanticMemory
+from backend.services.budget_governor import BudgetGovernor
 
 
 class MovesCampaignsState(TypedDict):
@@ -57,6 +58,28 @@ class MovesCampaignsState(TypedDict):
     # MLOps & Governance
     quality_score: float
     cost_accumulator: float
+
+
+# Budget guard
+_budget_governor = BudgetGovernor()
+
+
+async def _guard_budget(
+    state: MovesCampaignsState, agent_id: str
+) -> Optional[dict]:
+    workspace_id = state.get("workspace_id") or state.get("tenant_id")
+    budget_check = await _budget_governor.check_budget(
+        workspace_id=workspace_id, agent_id=agent_id
+    )
+    if not budget_check["allowed"]:
+        return {
+            "status": "error",
+            "messages": [
+                f"Budget governor blocked {agent_id}: {budget_check['reason']}"
+            ],
+            "error": budget_check["reason"],
+        }
+    return None
 
 
 # Nodes implementation
@@ -94,6 +117,9 @@ async def plan_campaign(state: MovesCampaignsState):
     # Trigger the real agentic designer
     llm = InferenceProvider.get_model(model_tier="reasoning")
     designer = CampaignArcDesigner(llm)
+    budget_guard = await _guard_budget(state, "CampaignArcDesigner")
+    if budget_guard:
+        return budget_guard
 
     # designer(state) returns {"context_brief": {"campaign_arc": ...}}
     result = await designer(state)
@@ -128,6 +154,9 @@ async def campaign_auditor(state: MovesCampaignsState):
     """SOTA Audit Node: Reflexive check on strategy alignment."""
     llm = InferenceProvider.get_model(model_tier="reasoning")
     agent = BrandVoiceAligner(llm)
+    budget_guard = await _guard_budget(state, "BrandVoiceAligner")
+    if budget_guard:
+        return budget_guard
 
     result = await agent(state)
     audit_results = result.get("context_brief", {}).get("brand_alignment", {})
@@ -164,6 +193,9 @@ async def generate_moves(state: MovesCampaignsState):
     """SOTA Node: Generates weekly moves from the campaign arc."""
     llm = InferenceProvider.get_model(model_tier="reasoning")
     agent = MoveGenerator(llm)
+    budget_guard = await _guard_budget(state, "MoveGenerator")
+    if budget_guard:
+        return budget_guard
     return await agent(state)
 
 
@@ -171,36 +203,54 @@ async def refine_moves(state: MovesCampaignsState):
     """SOTA Node: Refines moves for production readiness."""
     llm = InferenceProvider.get_model(model_tier="driver")
     agent = MoveRefiner(llm)
+    budget_guard = await _guard_budget(state, "MoveRefiner")
+    if budget_guard:
+        return budget_guard
     return await agent(state)
 
 
 async def check_resources(state: MovesCampaignsState):
     """SOTA Node: Verifies tool availability."""
     agent = ResourceManager()
+    budget_guard = await _guard_budget(state, "ResourceManager")
+    if budget_guard:
+        return budget_guard
     return await agent(state)
 
 
 async def persist_moves(state: MovesCampaignsState):
     """SOTA Node: Syncs moves to Supabase."""
     agent = MovePersistence()
+    budget_guard = await _guard_budget(state, "MovePersistence")
+    if budget_guard:
+        return budget_guard
     return await agent(state)
 
 
 async def execute_skills(state: MovesCampaignsState):
     """SOTA Node: Executes tools for the current moves."""
     agent = SkillExecutor()
+    budget_guard = await _guard_budget(state, "SkillExecutor")
+    if budget_guard:
+        return budget_guard
     return await agent(state)
 
 
 async def validate_safety(state: MovesCampaignsState):
     """SOTA Node: Validates tool outputs."""
     agent = SafetyValidator()
+    budget_guard = await _guard_budget(state, "SafetyValidator")
+    if budget_guard:
+        return budget_guard
     return await agent(state)
 
 
 async def track_progress(state: MovesCampaignsState):
     """SOTA Node: Updates campaign progress."""
     agent = ProgressTracker()
+    budget_guard = await _guard_budget(state, "ProgressTracker")
+    if budget_guard:
+        return budget_guard
     return await agent(state)
 
 
@@ -234,6 +284,9 @@ async def kpi_setter(state: MovesCampaignsState):
     # Use driver model for metric definition
     llm = InferenceProvider.get_model(model_tier="driver")
     agent = KPIDefiner(llm)
+    budget_guard = await _guard_budget(state, "KPIDefiner")
+    if budget_guard:
+        return budget_guard
     return await agent(state)
 
 

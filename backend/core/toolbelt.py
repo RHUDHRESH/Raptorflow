@@ -4,6 +4,7 @@ from functools import wraps
 from typing import Any, Dict, List
 
 from backend.core.cache import get_cache_manager
+from backend.services.budget_governor import BudgetGovernor
 from backend.tools.image_gen import NanoBananaImageTool
 from backend.tools.muse import AssetGenTool
 from backend.tools.search import (
@@ -64,6 +65,7 @@ class ToolbeltV2:
             "asset_gen": AssetGenTool(),
             "nano_banana_gen": NanoBananaImageTool(),
         }
+        self._budget_governor = BudgetGovernor()
 
     async def run_tool(self, tool_name: str, **kwargs) -> Dict[str, Any]:
         """SOTA Dispatcher for tool execution."""
@@ -72,6 +74,17 @@ class ToolbeltV2:
             return {
                 "success": False,
                 "error": f"Tool '{tool_name}' not found in registry.",
+            }
+        workspace_id = kwargs.pop("workspace_id", None)
+        agent_id = kwargs.pop("agent_id", None)
+        budget_check = await self._budget_governor.check_budget(
+            workspace_id=workspace_id, agent_id=agent_id
+        )
+        if not budget_check["allowed"]:
+            return {
+                "success": False,
+                "error": budget_check["reason"],
+                "budget": budget_check,
             }
         return await tool.run(**kwargs)
 

@@ -5,6 +5,7 @@ from langgraph.graph import END, START, StateGraph
 from backend.agents.shared.agents import IntentRouter, QualityGate
 from backend.agents.specialists.creatives import EmailSpecialistAgent
 from backend.memory.cognitive.engine import CognitiveMemoryEngine
+from backend.services.budget_governor import BudgetGovernor
 
 
 class SpineState(TypedDict):
@@ -30,6 +31,19 @@ class SpineState(TypedDict):
     status: str
 
 
+_budget_governor = BudgetGovernor()
+
+
+async def _guard_budget(state: SpineState, agent_id: str) -> dict:
+    workspace_id = state.get("workspace_id")
+    budget_check = await _budget_governor.check_budget(
+        workspace_id=workspace_id, agent_id=agent_id
+    )
+    if not budget_check["allowed"]:
+        return {"status": "error", "final_output": budget_check["reason"]}
+    return {}
+
+
 # --- Graph Nodes ---
 
 
@@ -41,6 +55,9 @@ async def initialize_spine(state: SpineState):
     )
 
     router = IntentRouter()
+    budget_guard = await _guard_budget(state, "IntentRouter")
+    if budget_guard:
+        return budget_guard
     intent = await router.execute(state["prompt"])
 
     return {
@@ -70,6 +87,9 @@ async def execute_draft(state: SpineState):
     intent = state["intent"]
     if intent["asset_family"] == "email":
         agent = EmailSpecialistAgent()
+        budget_guard = await _guard_budget(state, "EmailSpecialistAgent")
+        if budget_guard:
+            return budget_guard
         res = await agent.generate_variants(state["brief"])  # Simplified
         output = res[0].content
     else:
@@ -81,6 +101,9 @@ async def execute_draft(state: SpineState):
 async def internal_qa(state: SpineState):
     """Reflection Node: Critic finds flaws."""
     gate = QualityGate()
+    budget_guard = await _guard_budget(state, "QualityGate")
+    if budget_guard:
+        return budget_guard
     check = await gate.audit(state["final_output"], {"prompt": state["prompt"]})
     return {"quality_report": check.dict(), "iterations": state["iterations"] + 1}
 
