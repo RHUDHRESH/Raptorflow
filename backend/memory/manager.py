@@ -6,6 +6,7 @@ from backend.inference import InferenceProvider
 from backend.memory.episodic_l2 import L2EpisodicMemory
 from backend.memory.semantic_l3 import L3SemanticMemory
 from backend.memory.short_term import L1ShortTermMemory
+from backend.memory.swarm_learning import SwarmLearningMemory
 
 logger = logging.getLogger("raptorflow.memory.manager")
 
@@ -64,12 +65,20 @@ class MemoryManager:
             return False
 
     async def retrieve_context(
-        self, workspace_id: str, query: str, thread_id: Optional[str] = None
-    ) -> Dict[str, List[Dict[str, Any]]]:
+        self,
+        workspace_id: str,
+        query: str,
+        thread_id: Optional[str] = None,
+        swarm_scope: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """
         Retrieves unified context from all relevant memory tiers.
         """
-        context = {"short_term": [], "episodic": [], "semantic": []}
+        context: Dict[str, Any] = {
+            "short_term": [],
+            "episodic": [],
+            "semantic": [],
+        }
 
         try:
             # 1. Try L1 if thread_id provided
@@ -88,6 +97,12 @@ class MemoryManager:
             context["semantic"] = await self.l3.search_foundation(
                 workspace_id, query, limit=3
             )
+
+            if swarm_scope:
+                swarm_memory = SwarmLearningMemory()
+                context["swarm_learnings"] = await swarm_memory.retrieve_swarm_context(
+                    workspace_id=workspace_id, query=query, swarm_scope=swarm_scope
+                )
 
             return context
         except Exception as e:

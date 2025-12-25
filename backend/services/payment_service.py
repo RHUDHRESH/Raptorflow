@@ -104,6 +104,7 @@ class PaymentService:
         self.gateway = gateway or PhonePeNodeClient()
         self.order_states: Dict[str, str] = {}
         self.processed_orders: set[str] = set()
+        self.initiated_orders: set[str] = set()
         self._validated = False
 
     def _validate_phonepe_settings(self) -> None:
@@ -141,6 +142,7 @@ class PaymentService:
         amount_paise = int(round(amount * 100))
 
         response = self.gateway.pay(merchant_order_id, amount_paise, redirect_url)
+        self.initiated_orders.add(merchant_order_id)
 
         return {
             "url": response.get("redirectUrl"),
