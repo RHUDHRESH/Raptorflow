@@ -5,8 +5,8 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
 from backend.core.config import get_settings
-from backend.core.crawler_pipeline import CrawlerPipeline, CrawlPolicy
-from backend.core.research_engine import SearchProvider
+from backend.core.research_engine import ResearchEngine
+from backend.core.search_provider import SearchProviderRegistry
 from backend.inference import InferenceProvider
 
 
@@ -40,9 +40,9 @@ class ResearchDeepAgent:
         self.synthesizer = InferenceProvider.get_model(
             model_tier="ultra"
         ).with_structured_output(DeepInsight)
-        self.pipeline = CrawlerPipeline()
+        self.engine = ResearchEngine()
         settings = get_settings()
-        self.search_api = SearchProvider(api_key=settings.SERPER_API_KEY or "")
+        self.search_api = SearchProviderRegistry(settings=settings)
 
     async def execute(self, task: str, context: Optional[dict] = None) -> DeepInsight:
         context = context or {}
@@ -66,7 +66,7 @@ class ResearchDeepAgent:
             all_urls.extend(links)
 
         unique_urls = list(set(all_urls))[:10]  # Limit to top 10 for economy
-        scraped_data = await self.pipeline.fetch(unique_urls, CrawlPolicy())
+        scraped_data = await self.engine.batch_fetch(unique_urls)
 
         # Step 3: Synthesis with RAG-style context
         system_msg = SystemMessage(
@@ -80,8 +80,8 @@ class ResearchDeepAgent:
 
         data_packet = "\n\n".join(
             [
-                f"SOURCE: {result.url}\nCONTENT: {result.content[:3000]}"
-                for result in scraped_data
+                f"SOURCE: {d['url']}\nCONTENT: {d['content'][:3000]}"
+                for d in scraped_data
             ]
         )
 

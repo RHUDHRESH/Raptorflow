@@ -75,6 +75,14 @@ class Config(BaseSettings):
     TAVILY_API_KEY: Optional[str] = None
     PERPLEXITY_API_KEY: Optional[str] = None
     BRAVE_SEARCH_API_KEY: Optional[str] = None
+    SEARCH_PROVIDER_ORDER: list[str] = ["native", "serper"]
+    SEARCH_PROVIDER_QUOTAS: dict[str, Optional[int]] = {
+        "native": None,
+        "serper": 500,
+    }
+    SEARCH_PROVIDER_SETTINGS: dict[str, dict[str, str]] = {
+        "serper": {"endpoint": "https://google.serper.dev/search"},
+    }
 
     # Payment Configuration (PhonePe Standard Checkout v2)
     PHONEPE_CLIENT_ID: Optional[str] = None
