@@ -172,6 +172,22 @@ async def finalize_spine(state: CognitiveIntelligenceState) -> Dict[str, Any]:
     )
 
 
+async def evaluate_run(state: CognitiveIntelligenceState) -> Dict[str, Any]:
+    from backend.services.evaluation import EvaluationService
+
+    evaluator = EvaluationService()
+    evaluation = evaluator.evaluate_run(
+        telemetry_events=state.get("telemetry_events", []),
+        output_summary=state.get("final_output")
+        or state.get("current_plan")
+        or state.get("brief", {}).get("summary"),
+        user_feedback=state.get("user_feedback"),
+        run_id=state.get("thread_id"),
+        tenant_id=state.get("tenant_id") or state.get("workspace_id"),
+    )
+    return {"evaluation": evaluation}
+
+
 async def handle_spine_error(state: CognitiveIntelligenceState) -> Dict[str, Any]:
     return apply_lifecycle_transition(
         state,
@@ -192,6 +208,7 @@ workflow.add_node("aggregate", research_aggregator)
 workflow.add_node("execute", placeholder_execute)
 workflow.add_node("audit", human_audit_node)
 workflow.add_node("finalize", finalize_spine)
+workflow.add_node("evaluate", evaluate_run)
 workflow.add_node("error", handle_spine_error)
 
 workflow.add_edge(START, "init")
@@ -229,8 +246,9 @@ workflow.add_conditional_edges(
 )
 
 workflow.add_edge("audit", "finalize")
-workflow.add_edge("finalize", END)
-workflow.add_edge("error", END)
+workflow.add_edge("finalize", "evaluate")
+workflow.add_edge("evaluate", END)
+workflow.add_edge("error", "evaluate")
 
 
 def get_checkpointer():

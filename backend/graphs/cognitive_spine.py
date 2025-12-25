@@ -4,8 +4,8 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from backend.core.config import get_settings
-from backend.db import SupabaseSaver, get_pool
 from backend.core.lifecycle import apply_lifecycle_transition
+from backend.db import SupabaseSaver, get_pool
 from backend.models.cognitive import CognitiveIntelligenceState, CognitiveStatus
 
 logger = logging.getLogger("raptorflow.cognitive.spine")
@@ -39,6 +39,24 @@ async def finalize_run(state: CognitiveIntelligenceState):
     """
     logger.info("Cognitive run complete.")
     return apply_lifecycle_transition(state, CognitiveStatus.COMPLETE, "finalize")
+
+
+async def evaluate_run(state: CognitiveIntelligenceState):
+    """
+    Evaluates telemetry and feedback, persisting learnings post-run.
+    """
+    from backend.services.evaluation import EvaluationService
+
+    evaluator = EvaluationService()
+    evaluation = evaluator.evaluate_run(
+        telemetry_events=state.get("telemetry_events", []),
+        output_summary=state.get("final_output")
+        or state.get("brief", {}).get("summary"),
+        user_feedback=state.get("user_feedback"),
+        run_id=state.get("thread_id"),
+        tenant_id=state.get("tenant_id") or state.get("workspace_id"),
+    )
+    return {"evaluation": evaluation}
 
 
 async def handle_error(state: CognitiveIntelligenceState):
@@ -102,21 +120,18 @@ workflow = StateGraph(CognitiveIntelligenceState)
 # Add Base Nodes
 workflow.add_node("init", initialize_cognitive_engine)
 workflow.add_node("finalize", finalize_run)
+workflow.add_node("evaluate", evaluate_run)
 workflow.add_node("error_handler", handle_error)
 workflow.add_node("approve_assets", approve_assets)
 
 
 # Placeholder Nodes for Agents (Phase 4 & 5)
 async def strategist_placeholder(state: CognitiveIntelligenceState):
-    return apply_lifecycle_transition(
-        state, CognitiveStatus.RESEARCHING, "strategist"
-    )
+    return apply_lifecycle_transition(state, CognitiveStatus.RESEARCHING, "strategist")
 
 
 async def researcher_placeholder(state: CognitiveIntelligenceState):
-    return apply_lifecycle_transition(
-        state, CognitiveStatus.EXECUTING, "researcher"
-    )
+    return apply_lifecycle_transition(state, CognitiveStatus.EXECUTING, "researcher")
 
 
 async def creator_placeholder(state: CognitiveIntelligenceState):
@@ -154,8 +169,9 @@ workflow.add_edge("researcher", "creator")
 workflow.add_edge("creator", "approve_assets")
 workflow.add_edge("approve_assets", "critic")
 workflow.add_edge("critic", "finalize")
-workflow.add_edge("finalize", END)
-workflow.add_edge("error_handler", END)
+workflow.add_edge("finalize", "evaluate")
+workflow.add_edge("evaluate", END)
+workflow.add_edge("error_handler", "evaluate")
 
 # --- Persistence: Phase 25 ---
 
