@@ -39,6 +39,8 @@ class ResearchDeepState(BaseModel):
     queries: List[str] = []
     hypotheses: List[ResearchHypothesis] = []
     documents: List[WebDocument] = []
+    discovered_urls: List[HttpUrl] = []
+    scraped_docs: List[WebDocument] = []
     claims: List[FactClaim] = []
 
     # Progress
