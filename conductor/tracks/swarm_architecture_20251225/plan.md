@@ -5,13 +5,13 @@ This plan implements a multi-agent swarm architecture with shared memory, persis
 ## Phase 1: Foundation & Shared State (L1)
 *Focus: Setting up the underlying infrastructure for inter-agent communication.*
 
-- [~] **Task 1.1: Implement Shared State Schema**
+- [x] **Task 1.1: Implement Shared State Schema**
     - Write tests for a thread-safe `SwarmState` using LangGraph `TypedDict` and Redis.
     - Implement `SwarmState` to handle cross-agent message passing and shared context.
-- [ ] **Task 1.2: Upstash Redis Shared Memory Adapter**
+- [x] **Task 1.2: Upstash Redis Shared Memory Adapter**
     - Write tests for L1 volatile memory storage/retrieval.
     - Implement a Redis-backed `L1MemoryManager` for real-time inter-agent state sync.
-- [ ] **Task: Conductor - User Manual Verification 'Phase 1: Foundation & Shared State (L1)' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Phase 1: Foundation & Shared State (L1)' (Protocol in workflow.md)**
 
 ## Phase 2: Swarm Orchestration (Supervisor & Delegation)
 *Focus: Building the central intelligence that manages the swarm.*
