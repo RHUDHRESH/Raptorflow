@@ -387,3 +387,8 @@ class SwarmOrchestrator:
             summary_parts.append(f"- [{source}]: {text}")
 
         return "\n".join(summary_parts)
+
+
+SwarmController = SwarmOrchestrator
+
+__all__ = ["SwarmController", "SwarmOrchestrator"]
