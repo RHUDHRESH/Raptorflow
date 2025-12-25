@@ -3,7 +3,7 @@ import logging
 import os
 import re
 from dataclasses import dataclass
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable, List, Optional
 
 from backend.core.config import get_settings
 
@@ -91,6 +91,7 @@ def _extract_json(text: str) -> dict:
 class GenAIResponse:
     content: str
     response_metadata: dict
+    images: Optional[List[Any]] = None
 
 
 class GenAIModel:
@@ -127,14 +128,29 @@ class GenAIModel:
             self._client = genai.Client(api_key=self.api_key)
         return self._client
 
-    def _build_config(self) -> dict:
-        config = {"temperature": self.temperature}
+    def _build_config(self) -> Any:
+        from google.genai import types
+
+        config_args = {"temperature": self.temperature}
         if self.max_output_tokens is not None:
-            config["max_output_tokens"] = self.max_output_tokens
-        return config
+            config_args["max_output_tokens"] = self.max_output_tokens
+
+        # Nano Banana specific configuration
+        if "image" in self.model_name.lower():
+            config_args["response_modalities"] = ["IMAGE"]
+            # Default aspect ratio if none provided in future updates
+            # config_args["image_config"] = types.ImageConfig(aspect_ratio="16:9")
+
+        return types.GenerateContentConfig(**config_args)
 
     def _wrap_response(self, response) -> GenAIResponse:
         content = response.text or ""
+        images = []
+        if hasattr(response, "parts"):
+            for part in response.parts:
+                if part.inline_data:
+                    images.append(part.as_image())
+
         usage = {}
         metadata = getattr(response, "usage_metadata", None)
         if metadata:
@@ -149,54 +165,61 @@ class GenAIModel:
         return GenAIResponse(
             content=content,
             response_metadata={"token_usage": usage, "model_name": self.model_name},
+            images=images if images else None,
         )
 
-    def _call_sync(self, prompt: str) -> GenAIResponse:
+    def _call_sync(self, prompt: str, config: Optional[Any] = None) -> GenAIResponse:
         client = self._get_client()
         response = client.models.generate_content(
             model=self.model_name,
             contents=prompt,
-            config=self._build_config(),
+            config=config or self._build_config(),
         )
         return self._wrap_response(response)
 
-    async def _call_async(self, prompt: str) -> GenAIResponse:
+    async def _call_async(
+        self, prompt: str, config: Optional[Any] = None
+    ) -> GenAIResponse:
         client = self._get_client()
         response = await client.aio.models.generate_content(
             model=self.model_name,
             contents=prompt,
-            config=self._build_config(),
+            config=config or self._build_config(),
         )
         return self._wrap_response(response)
 
-    def _call_with_fallbacks_sync(self, prompt: str) -> GenAIResponse:
+    def _call_with_fallbacks_sync(
+        self, prompt: str, config: Optional[Any] = None
+    ) -> GenAIResponse:
         last_error = None
         for candidate in [self] + self._fallbacks:
             try:
-                return candidate._call_sync(prompt)
+                return candidate._call_sync(prompt, config=config)
             except Exception as exc:
                 last_error = exc
         raise last_error
 
-    async def _call_with_fallbacks_async(self, prompt: str) -> GenAIResponse:
+    async def _call_with_fallbacks_async(
+        self, prompt: str, config: Optional[Any] = None
+    ) -> GenAIResponse:
         last_error = None
         for candidate in [self] + self._fallbacks:
             try:
-                return await candidate._call_async(prompt)
+                return await candidate._call_async(prompt, config=config)
             except Exception as exc:
                 last_error = exc
         raise last_error
 
-    def invoke(self, messages):
+    def invoke(self, messages, config: Optional[Any] = None):
         prompt = _messages_to_prompt(messages)
-        return self._call_with_fallbacks_sync(prompt)
+        return self._call_with_fallbacks_sync(prompt, config=config)
 
-    async def ainvoke(self, messages):
+    async def ainvoke(self, messages, config: Optional[Any] = None):
         prompt = _messages_to_prompt(messages)
-        return await self._call_with_fallbacks_async(prompt)
+        return await self._call_with_fallbacks_async(prompt, config=config)
 
-    async def astream(self, messages):
-        response = await self.ainvoke(messages)
+    async def astream(self, messages, config: Optional[Any] = None):
+        response = await self.ainvoke(messages, config=config)
         yield response
 
 
@@ -220,14 +243,14 @@ class GenAIStructuredModel:
             return self._schema.model_validate(data)
         return self._schema.parse_obj(data)
 
-    def invoke(self, messages):
+    def invoke(self, messages, config: Optional[Any] = None):
         prompt = f"{self._schema_prompt()}\n\n{_messages_to_prompt(messages)}"
-        response = self._base.invoke(prompt)
+        response = self._base.invoke(prompt, config=config)
         return self._parse(response.content)
 
-    async def ainvoke(self, messages):
+    async def ainvoke(self, messages, config: Optional[Any] = None):
         prompt = f"{self._schema_prompt()}\n\n{_messages_to_prompt(messages)}"
-        response = await self._base.ainvoke(prompt)
+        response = await self._base.ainvoke(prompt, config=config)
         return self._parse(response.content)
 
     def bind_tools(self, tools):
@@ -427,6 +450,23 @@ class InferenceProvider:
             return primary_model
 
         raise ValueError(f"Unsupported provider: {provider}")
+
+    @staticmethod
+    def get_image_model(model_tier: str = "nano"):
+        """
+        Factory for Gemini Image Models (Nano Banana).
+        """
+        settings = get_settings()
+        api_key = get_vertex_api_key()
+
+        if model_tier == "pro":
+            model_name = settings.MODEL_IMAGE_PRO
+        else:
+            model_name = settings.MODEL_IMAGE_NANO
+
+        logger.info(f"Routing to Image Model: {model_name}")
+
+        return GenAIModel(model_name=model_name, api_key=api_key)
 
     @staticmethod
     def get_embeddings():

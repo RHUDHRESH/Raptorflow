@@ -1,7 +1,7 @@
 import logging
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, Optional
 
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Field
 

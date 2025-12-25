@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -15,6 +15,7 @@ from backend.api.v1.muse import router as muse_router
 from backend.api.v1.payments import router as payments_router
 from backend.api.v1.radar import router as radar_router
 from backend.core.exceptions import RaptorFlowError
+from backend.core.config import get_settings
 from backend.core.middleware import (
     CorrelationIDMiddleware,
     RateLimitMiddleware,
@@ -70,12 +71,25 @@ async def raptorflow_exception_handler(request: Request, exc: RaptorFlowError):
 
 
 @app.get("/health")
-async def health_check():
+async def health_check(
+    x_rf_internal_key: str | None = Header(default=None, alias="X-RF-Internal-Key"),
+    authorization: str | None = Header(default=None),
+):
     """
-    SOTA Deep Health Check.
-    Verifies connectivity to Supabase (DB) and Upstash (Redis).
-    Returns 503 Service Unavailable if any critical component is down.
+    Public health check returns a minimal status.
+    When the internal key is provided, returns deep health details for ops.
     """
+    settings = get_settings()
+    internal_key = settings.RF_INTERNAL_KEY
+    bearer_token = None
+    if authorization and authorization.lower().startswith("bearer "):
+        bearer_token = authorization.split(" ", 1)[1].strip()
+
+    provided_key = x_rf_internal_key or bearer_token
+
+    if not internal_key or provided_key != internal_key:
+        return {"status": "ok"}
+
     from backend.core.cache import get_cache_client
     from backend.db import get_pool
 

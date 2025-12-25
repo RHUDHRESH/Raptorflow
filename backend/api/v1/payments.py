@@ -38,7 +38,7 @@ def _get_allowed_redirect_origins() -> Set[str]:
 @router.post("/initiate")
 async def initiate_payment(
     payload: PaymentInitiateRequest,
-    current_user: dict = Depends(get_current_user),
+    _current_user: dict = Depends(get_current_user),
 ):
     """Initiates a PhonePe payment session."""
     try:
@@ -74,7 +74,7 @@ async def initiate_payment(
             detail="transaction_id has already been used.",
         )
 
-    user_id = current_user.get("id")
+    user_id = _current_user.get("id")
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -87,7 +87,9 @@ async def initiate_payment(
 
 
 @router.get("/status/{merchant_order_id}")
-async def get_payment_status(merchant_order_id: str):
+async def get_payment_status(
+    merchant_order_id: str, _current_user: dict = Depends(get_current_user)
+):
     """Fetch the latest order status from PhonePe."""
     return payment_service.get_order_status(merchant_order_id)
 

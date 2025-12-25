@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
+from backend.core.auth import get_current_user
 from backend.models.campaigns import GanttChart
 from backend.services.campaign_service import CampaignService, get_campaign_service
 
@@ -10,7 +11,9 @@ router = APIRouter(prefix="/v1/campaigns", tags=["campaigns"])
 
 @router.get("/{campaign_id}/gantt", response_model=GanttChart)
 async def get_campaign_gantt(
-    campaign_id: str, service: CampaignService = Depends(get_campaign_service)
+    campaign_id: str,
+    _current_user: dict = Depends(get_current_user),
+    service: CampaignService = Depends(get_campaign_service),
 ):
     """SOTA Endpoint: Retrieves Gantt chart data for a campaign."""
     gantt = await service.get_gantt_chart(campaign_id)
@@ -23,6 +26,7 @@ async def get_campaign_gantt(
 async def generate_campaign_arc(
     campaign_id: str,
     background_tasks: BackgroundTasks,
+    _current_user: dict = Depends(get_current_user),
     service: CampaignService = Depends(get_campaign_service),
 ):
     """SOTA Endpoint: Triggers agentic inference for a 90-day strategic arc in the background."""
@@ -43,7 +47,9 @@ async def generate_campaign_arc(
 
 @router.get("/generate-arc/{campaign_id}/status")
 async def get_campaign_arc_status(
-    campaign_id: str, service: CampaignService = Depends(get_campaign_service)
+    campaign_id: str,
+    _current_user: dict = Depends(get_current_user),
+    service: CampaignService = Depends(get_campaign_service),
 ):
     """SOTA Endpoint: Retrieves status of the agentic inference for a campaign."""
     result = await service.get_arc_generation_status(campaign_id)
@@ -58,6 +64,7 @@ async def get_campaign_arc_status(
 async def apply_campaign_pivot(
     campaign_id: str,
     pivot_data: Dict[str, Any],
+    _current_user: dict = Depends(get_current_user),
     service: CampaignService = Depends(get_campaign_service),
 ):
     """SOTA Endpoint: Applies a strategic pivot to a campaign's 90-day arc."""

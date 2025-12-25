@@ -1,22 +1,18 @@
 import contextvars
 import time
 import uuid
-from collections import defaultdict
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from backend.models.telemetry import TelemetryEvent, TelemetryEventType
+from backend.services.rate_limiter import GlobalRateLimiter
 from backend.utils.logger import logger
 
 # Context variable to store trace ID synchronously
 _trace_id_ctx_var: contextvars.ContextVar[str] = contextvars.ContextVar(
     "trace_id", default=""
 )
-
-# Simple memory-based rate limiter (Task 91)
-_rate_limit_store = defaultdict(list)
-
 
 def get_current_trace_id() -> str:
     """Returns the current trace ID from the context."""
@@ -33,19 +29,29 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.limit = limit
         self.window = window
+        self.limiter = GlobalRateLimiter(limit=limit, window_seconds=window)
+
+    @staticmethod
+    def _extract_client_ip(request: Request) -> str:
+        forwarded_for = request.headers.get("X-Forwarded-For", "")
+        if forwarded_for:
+            return forwarded_for.split(",")[0].strip()
+        real_ip = request.headers.get("X-Real-IP")
+        if real_ip:
+            return real_ip
+        forwarded = request.headers.get("Forwarded", "")
+        if forwarded:
+            for part in forwarded.split(";"):
+                if part.strip().lower().startswith("for="):
+                    return part.split("=", 1)[1].strip().strip('"')
+        return request.client.host if request.client else "unknown"
 
     async def dispatch(self, request: Request, call_next):
-        client_ip = request.client.host if request.client else "unknown"
-        now = time.time()
+        client_ip = self._extract_client_ip(request)
 
-        # Only rate limit Blackbox API endpoints
-        if "/v1/blackbox/" in request.url.path:
-            # Cleanup old requests
-            _rate_limit_store[client_ip] = [
-                t for t in _rate_limit_store[client_ip] if now - t < self.window
-            ]
-
-            if len(_rate_limit_store[client_ip]) >= self.limit:
+        if request.url.path.startswith("/v1/"):
+            allowed = await self.limiter.is_allowed(client_ip)
+            if not allowed:
                 logger.warning(f"Rate limit exceeded for IP: {client_ip}")
                 from fastapi.responses import JSONResponse
 
@@ -56,8 +62,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                         "retry_after": self.window,
                     },
                 )
-
-            _rate_limit_store[client_ip].append(now)
 
         return await call_next(request)
 

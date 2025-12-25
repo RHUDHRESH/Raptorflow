@@ -15,7 +15,6 @@ class SemanticRAGNode:
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
         workspace_id = state.get("workspace_id")
-        raw_prompt = state.get("raw_prompt", "")
         logger.info(f"Retrieving semantic facts for workspace {workspace_id}...")
 
         # 1. Embed raw_prompt (simulated)

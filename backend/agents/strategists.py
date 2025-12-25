@@ -1,8 +1,11 @@
 import logging
-from typing import List, Optional, TypedDict
+from typing import List, TypedDict
 
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
+
+from backend.core.prompts import CampaignPrompts
+from backend.db import save_entity
 
 logger = logging.getLogger("raptorflow.strategists.icp")
 
@@ -441,8 +444,6 @@ class CampaignArc(BaseModel):
     monthly_plans: List[MonthPlan]
 
 
-from backend.core.prompts import CampaignPrompts
-
 # ...
 
 
@@ -796,9 +797,6 @@ def create_strategy_refresh_hook(llm: any):
     return StrategyRefreshHook(llm)
 
 
-from backend.db import save_entity
-
-
 class FounderProfile(BaseModel):
     """SOTA structured founder archetype representation."""
 
@@ -843,7 +841,7 @@ class FounderArchetypeProfiler:
             workspace_id=workspace_id,
             name="Primary Founder",
             entity_type="founder",
-            description=f"Strategic profile for the primary founder.",
+            description="Strategic profile for the primary founder.",
             embedding=dummy_embedding,
             metadata=profile.model_dump(),
         )
