@@ -1,9 +1,12 @@
+import re
+
 from langgraph.graph import END, START, StateGraph
 
 from backend.agents.shared.research_specialists import LibrarianAgent, SynthesisAgent
 from backend.core.config import get_settings
+from backend.core.crawler_advanced import AdvancedCrawler
 from backend.core.research_engine import SearchProvider
-from backend.models.research_schemas import ResearchDeepState
+from backend.models.research_schemas import FactClaim, ResearchDeepState, WebDocument
 
 # --- Nodes ---
 
@@ -28,8 +31,11 @@ async def discovery_node(state: ResearchDeepState):
         links = await search.search(q, num_results=3)
         all_urls.extend(links)
 
+    discovered_urls = list(dict.fromkeys(all_urls))
+
     return {
         "status": "scraping",
+        "discovered_urls": discovered_urls,
         "research_logs": state.research_logs
         + [f"Discovered {len(all_urls)} potential sources."],
     }
@@ -37,17 +43,56 @@ async def discovery_node(state: ResearchDeepState):
 
 async def scraping_node(state: ResearchDeepState):
     """Crawler fetches and cleans content."""
-    # Note: In real graph, we'd pass URLs through state.
-    # Mocking for structure flow.
-    # results = await crawler.batch_crawl(state.discovered_urls)
-    return {"status": "analysis", "depth": state.depth + 1}
+    crawler = AdvancedCrawler()
+    urls = [str(url) for url in state.discovered_urls]
+    results = await crawler.batch_crawl(urls) if urls else []
+    scraped_docs = [
+        WebDocument(
+            url=result["url"],
+            title=result.get("title", ""),
+            raw_content=result.get("content", ""),
+            summary=(result.get("content", "")[:500]),
+            relevance_score=0.0,
+        )
+        for result in results
+        if result.get("url")
+    ]
+    return {
+        "status": "analysis",
+        "depth": state.depth + 1,
+        "scraped_docs": scraped_docs,
+        "documents": scraped_docs,
+    }
 
 
 async def verification_node(state: ResearchDeepState):
     """Fact-checker validates claims found in scraping."""
     # Logic to extract claims from docs and verify
     # This is where SOTA depth happens: cross-referencing Source A vs Source B
-    return {"status": "synthesis"}
+    extracted_claims = []
+    claim_index = 1
+    for doc in state.scraped_docs:
+        text = doc.summary or doc.raw_content
+        sentences = [
+            sentence.strip()
+            for sentence in re.split(r"(?<=[.!?])\s+", text)
+            if sentence.strip()
+        ]
+        if not sentences:
+            continue
+        claim_text = sentences[0]
+        extracted_claims.append(
+            FactClaim(
+                id=f"claim-{claim_index}",
+                claim=claim_text,
+                source_url=doc.url,
+                context_snippet=claim_text[:200],
+                confidence=0.45,
+            )
+        )
+        claim_index += 1
+
+    return {"status": "synthesis", "claims": extracted_claims}
 
 
 async def synthesis_node(state: ResearchDeepState):
