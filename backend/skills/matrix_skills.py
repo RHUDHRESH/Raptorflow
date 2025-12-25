@@ -141,9 +141,15 @@ class InferenceThrottlingSkill(MatrixSkill):
     async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         agent_id = params.get("agent_id")
         tpm_limit = params.get("tpm_limit", 1000)  # Tokens Per Minute
+        reason = params.get("reason")
 
         if not agent_id:
             return {"error": "agent_id is required"}
+
+        if reason:
+            logger.info(
+                f"Inference throttling reason for {agent_id}: {reason}"
+            )
 
         logger.info(f"Applying throttling to {agent_id}: {tpm_limit} TPM")
 
@@ -156,6 +162,7 @@ class InferenceThrottlingSkill(MatrixSkill):
                 "throttling_applied": True,
                 "agent_id": agent_id,
                 "tpm_limit": tpm_limit,
+                "reason": reason,
                 "status": "active",
             }
         except Exception as e:
