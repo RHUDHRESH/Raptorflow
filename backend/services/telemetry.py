@@ -1,6 +1,4 @@
-import logging
 import time
-from typing import Any, Dict
 
 from backend.utils.logger import logger
 

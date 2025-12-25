@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from backend.core.auth import get_current_user
 from backend.core.vault import Vault
 from backend.services.blackbox_service import BlackboxService
 
@@ -20,6 +21,7 @@ async def run_specialist_agent(
     agent_id: str,
     move_id: UUID,
     state_override: Dict[str, Any] = None,
+    _current_user: dict = Depends(get_current_user),
     service: BlackboxService = Depends(get_blackbox_service),
 ):
     """

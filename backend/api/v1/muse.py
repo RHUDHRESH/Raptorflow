@@ -28,7 +28,7 @@ class MuseResponse(BaseModel):
 async def create_muse_asset(
     request: MuseCreateRequest,
     tenant_id: UUID = Depends(get_tenant_id),
-    current_user: dict = Depends(get_current_user),
+    _current_user: dict = Depends(get_current_user),
 ):
     """
     SOTA Endpoint: Triggers the full Muse Cognitive Spine.
@@ -54,7 +54,7 @@ async def create_muse_asset(
         }
 
         base_thread_id = request.thread_id or str(uuid4())
-        thread_id = f"{tenant_id}:{current_user['id']}:{base_thread_id}"
+        thread_id = f"{tenant_id}:{_current_user['id']}:{base_thread_id}"
 
         # Configuration for LangGraph (thread_id for persistence)
         config = {"configurable": {"thread_id": thread_id}}
