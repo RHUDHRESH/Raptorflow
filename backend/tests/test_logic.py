@@ -1,15 +1,11 @@
 from typing import List, TypedDict
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from backend.agents.supervisor import (
-    HierarchicalSupervisor,
-    RouterOutput,
-    create_team_supervisor,
-)
+from backend.graphs.swarm_orchestrator import SwarmController, SwarmRouteDecision
 
 
 class TestState(TypedDict):
@@ -139,22 +135,23 @@ async def test_hierarchical_supervisor_delegation():
     """Verify that the supervisor delegates correctly using a direct chain mock."""
     mock_llm = MagicMock()
     mock_chain = AsyncMock()
-    mock_chain.ainvoke.return_value = RouterOutput(
+    mock_chain.ainvoke.return_value = SwarmRouteDecision(
         next_node="research", instructions="Find competitors"
     )
 
     # We mock the initialization of HierarchicalSupervisor to inject our mock_chain
-    with patch(
-        "backend.agents.supervisor.HierarchicalSupervisor.__init__", return_value=None
-    ) as mock_init:
-        supervisor = HierarchicalSupervisor(mock_llm, ["research"], "System prompt")
-        supervisor.chain = mock_chain
-
+    supervisor = SwarmController(
+        supervisor_llm=mock_llm, team_members=["research"], system_prompt="System prompt"
+    )
+    with patch.object(
+        SwarmController, "supervisor_chain", new_callable=PropertyMock
+    ) as mock_chain_prop:
+        mock_chain_prop.return_value = mock_chain
         state = {"messages": [MagicMock(content="Build me a brand")]}
         result = await supervisor(state)
 
-        assert result["next"] == "research"
-        assert result["instructions"] == "Find competitors"
+    assert result["next"] == "research"
+    assert result["instructions"] == "Find competitors"
 
 
 @pytest.mark.asyncio
