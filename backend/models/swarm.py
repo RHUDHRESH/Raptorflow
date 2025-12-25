@@ -4,7 +4,12 @@ from typing import Annotated, Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from backend.models.cognitive import CognitiveIntelligenceState
+from backend.models.cognitive import (
+    CognitiveIntelligenceState,
+    ResourceBudget,
+    RoutingMetadata,
+    SharedMemoryHandles,
+)
 
 
 class SwarmTaskStatus(str, Enum):
@@ -39,3 +44,12 @@ class SwarmState(CognitiveIntelligenceState):
 
     # History of delegations and specialist interactions
     delegation_history: Annotated[List[Dict[str, Any]], operator.add]
+
+    # Routing metadata for orchestration
+    routing_metadata: RoutingMetadata
+
+    # Shared memory handles for cross-agent state
+    shared_memory_handles: SharedMemoryHandles
+
+    # Resource budgets for the swarm run
+    resource_budget: ResourceBudget
