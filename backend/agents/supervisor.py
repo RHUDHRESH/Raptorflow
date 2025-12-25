@@ -137,6 +137,19 @@ class HierarchicalSupervisor:
             loop_count += 1
 
         current_state["next"] = "FINISH"
+        from backend.services.evaluation import EvaluationService
+
+        evaluator = EvaluationService()
+        evaluation = evaluator.evaluate_run(
+            telemetry_events=current_state.get("telemetry_events", []),
+            output_summary=current_state.get("final_output")
+            or current_state.get("summary")
+            or current_state.get("instructions"),
+            user_feedback=current_state.get("user_feedback"),
+            run_id=current_state.get("thread_id") or current_state.get("run_id"),
+            tenant_id=current_state.get("tenant_id") or current_state.get("workspace_id"),
+        )
+        current_state["evaluation"] = evaluation
         return current_state
 
     async def delegate_to_specialist(

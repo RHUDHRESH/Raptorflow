@@ -1,5 +1,5 @@
 import operator
-from typing import Annotated, List, Optional, TypedDict
+from typing import Annotated, Any, Dict, List, Optional, TypedDict
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
@@ -57,6 +57,9 @@ class MovesCampaignsState(TypedDict):
     # MLOps & Governance
     quality_score: float
     cost_accumulator: float
+    telemetry_events: List[dict]
+    evaluation: Dict[str, Any]
+    user_feedback: str
 
 
 # Nodes implementation
@@ -247,6 +250,23 @@ async def handle_error(state: MovesCampaignsState):
     }
 
 
+async def evaluate_run(state: MovesCampaignsState):
+    """Evaluates telemetry and feedback, persisting learnings post-run."""
+    from backend.services.evaluation import EvaluationService
+
+    evaluator = EvaluationService()
+    evaluation = evaluator.evaluate_run(
+        telemetry_events=state.get("telemetry_events", []),
+        output_summary=state.get("strategy_arc")
+        or state.get("current_moves")
+        or state.get("pending_results"),
+        user_feedback=state.get("user_feedback"),
+        run_id=state.get("campaign_id"),
+        tenant_id=state.get("tenant_id") or state.get("workspace_id"),
+    )
+    return {"evaluation": evaluation}
+
+
 def router(state: MovesCampaignsState):
     """SOTA Routing logic for the cognitive spine."""
     if state.get("error"):
@@ -275,6 +295,7 @@ workflow.add_node("track_progress", track_progress)
 workflow.add_node("approve_move", approve_move)
 workflow.add_node("memory_updater", memory_updater)
 workflow.add_node("kpi_setter", kpi_setter)
+workflow.add_node("evaluate", evaluate_run)
 workflow.add_node("error_handler", handle_error)
 
 workflow.add_edge(START, "init")
@@ -305,8 +326,9 @@ workflow.add_edge("approve_move", "track_progress")
 workflow.add_edge("track_progress", "memory_updater")
 
 workflow.add_edge("memory_updater", "kpi_setter")
-workflow.add_edge("kpi_setter", END)
-workflow.add_edge("error_handler", END)
+workflow.add_edge("kpi_setter", "evaluate")
+workflow.add_edge("evaluate", END)
+workflow.add_edge("error_handler", "evaluate")
 
 
 # Initialize persistence checkpointer based on environment
