@@ -4,6 +4,7 @@ from functools import wraps
 from typing import Any, Dict, List
 
 from backend.core.cache import get_cache_manager
+from backend.core.tool_registry import BaseRaptorTool, RaptorRateLimiter
 from backend.tools.image_gen import NanoBananaImageTool
 from backend.tools.muse import AssetGenTool
 from backend.tools.search import (
