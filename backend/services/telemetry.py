@@ -52,6 +52,24 @@ class Telemetry:
             },
         )
 
+    @staticmethod
+    def capture_tool_execution(
+        tool_name: str,
+        success: bool,
+        latency_ms: float,
+        fallback_of: str | None = None,
+    ):
+        logger.info(
+            f"TOOL_EXECUTION: {tool_name}",
+            extra={
+                "event_type": "tool_execution",
+                "tool_name": tool_name,
+                "success": success,
+                "latency_ms": latency_ms,
+                "fallback_of": fallback_of,
+            },
+        )
+
 
 def get_telemetry() -> Telemetry:
     return Telemetry()
