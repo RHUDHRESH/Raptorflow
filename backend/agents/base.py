@@ -8,8 +8,10 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from backend.inference import InferenceProvider
+from backend.memory.peer_review import PeerReviewMemory
 from backend.models.cognitive import AgentMessage, CognitiveIntelligenceState
 from backend.models.telemetry import TelemetryEventType
+from backend.services.budget_governor import BudgetGovernor
 from backend.services.telemetry_collector import get_telemetry_collector
 
 logger = logging.getLogger("raptorflow.agents.base")
@@ -64,7 +66,10 @@ class BaseCognitiveAgent(ABC):
         return lc_messages
 
     async def self_correct(
-        self, content: str, state: CognitiveIntelligenceState
+        self,
+        content: str,
+        state: CognitiveIntelligenceState,
+        use_peer_critiques: bool = False,
     ) -> str:
         """
         SOTA Self-Correction Loop.
@@ -72,11 +77,32 @@ class BaseCognitiveAgent(ABC):
         """
         logger.info(f"Agent {self.name} performing self-correction...")
 
+        peer_critiques = []
+        if use_peer_critiques:
+            peer_critiques = state.get("peer_critiques", []) or []
+            tenant_id = state.get("tenant_id")
+            if not peer_critiques and tenant_id:
+                memory = PeerReviewMemory(tenant_id, state.get("workspace_id"))
+                peer_critiques = await memory.get_recent_critiques()
+
+        peer_section = ""
+        if use_peer_critiques:
+            formatted = "\n".join(
+                [
+                    f"- {item.get('reviewer', 'Peer')}: {item.get('critique', '')}"
+                    for item in peer_critiques
+                ]
+            )
+            peer_section = "\n# PEER CRITIQUES:\n" + (
+                formatted if formatted else "None available."
+            )
+
         # 1. Generate Critique
         critique_prompt = f"""
         # ROLE: Ruthless Editorial Skeptic
         # TASK: Critique the following content for {self.role} quality.
         # CONTENT: {content}
+        {peer_section}
         # CRITERIA: Factual density, brand alignment, logic gaps.
         """
         critique_res = await self.llm.ainvoke([SystemMessage(content=critique_prompt)])
@@ -120,6 +146,28 @@ class BaseCognitiveAgent(ABC):
             {"status": "started"},
             metadata=metadata,
         )
+
+        if (
+            state.get("budget_caps")
+            or state.get("budget_usage")
+            or state.get("tool_usage")
+        ):
+            governor = BudgetGovernor()
+            decision = governor.evaluate(state, agent_id=self.name)
+            await governor.apply_decision(decision, agent_id=self.name)
+            if not decision.allowed:
+                logger.warning(
+                    f"Budget gate blocked agent {self.name}: {decision.reason}"
+                )
+                return {
+                    "messages": [
+                        AgentMessage(
+                            role=self.role,
+                            content=f"Budget gate blocked agent {self.name}: {decision.reason}",
+                        )
+                    ],
+                    "error": decision.reason,
+                }
 
         messages = self._format_messages(state.get("messages", []))
         input_tokens = 0

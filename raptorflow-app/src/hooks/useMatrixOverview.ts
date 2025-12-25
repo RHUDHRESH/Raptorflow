@@ -20,6 +20,36 @@ export interface MatrixOverview {
     budget: number;
     status: string;
   };
+  swarm_health?: {
+    status: "healthy" | "warning" | "unhealthy";
+    signals: string[];
+    tool_failure_rates: {
+      overall_failure_rate: number;
+      total_executions: number;
+      tools: Record<string, {
+        success: number;
+        failure: number;
+        total: number;
+        failure_rate: number;
+        last_seen?: string;
+      }>;
+      updated_at?: string;
+    };
+    budget_overrun: {
+      daily_burn: number;
+      budget: number;
+      usage_percentage: number;
+      status: string;
+      over_budget: boolean;
+      timestamp?: string;
+    };
+    queue_backlog: {
+      pending: number;
+      status: string;
+      updated_at?: string;
+    };
+    timestamp: string;
+  };
   p95_latency_ms?: number;
   recent_events?: Array<{
     event_id: string;

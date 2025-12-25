@@ -4,6 +4,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
 from backend.inference import InferenceProvider
+from backend.memory.swarm_learning import SwarmLearningMemory
 
 
 class StylePreference(BaseModel):
@@ -21,7 +22,12 @@ class MemoryUpdaterAgent:
         ).with_structured_output(StylePreference)
 
     async def learn_from_edit(
-        self, draft: str, final: str
+        self,
+        draft: str,
+        final: str,
+        workspace_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        swarm_scope: Optional[str] = None,
     ) -> Optional[StylePreference]:
         # SOTA Technique: Delta Analysis
         # Compare AI draft vs User's final version to extract style rules.
@@ -37,4 +43,20 @@ class MemoryUpdaterAgent:
         )
 
         comparison = f"DRAFT: {draft}\nFINAL: {final}"
-        return await self.llm.ainvoke([system_msg, HumanMessage(content=comparison)])
+        preference = await self.llm.ainvoke(
+            [system_msg, HumanMessage(content=comparison)]
+        )
+
+        if preference and workspace_id:
+            swarm_memory = SwarmLearningMemory()
+            await swarm_memory.record_learning(
+                workspace_id=workspace_id,
+                content=f"{preference.key}: {preference.value}",
+                source="user_feedback",
+                confidence=preference.confidence,
+                agent_id=agent_id,
+                swarm_scope=swarm_scope,
+                metadata={"preference_key": preference.key},
+            )
+
+        return preference

@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict
 
-from backend.core.base_tool import RaptorRateLimiter
+from backend.core.base_tool import BaseRaptorTool, RaptorRateLimiter
 from backend.core.config import get_settings
 
 logger = logging.getLogger("raptorflow.tools.image_gen")
@@ -48,6 +48,29 @@ class ImageGenerator:
             "revised_prompt": revised_prompt,
             "model": "dall-e-3",
         }
+
+
+class DalleTool(BaseRaptorTool):
+    """
+    Adapter for DALL-E 3 generation with the BaseRaptorTool interface.
+    """
+
+    def __init__(self):
+        self._generator = ImageGenerator()
+
+    @property
+    def name(self) -> str:
+        return self._generator.name
+
+    @property
+    def description(self) -> str:
+        return self._generator.description
+
+    @RaptorRateLimiter.get_retry_decorator()
+    async def _execute(
+        self, prompt: str, size: str = "1024x1024", quality: str = "standard"
+    ) -> Dict[str, Any]:
+        return await self._generator._execute(prompt, size=size, quality=quality)
 
 
 class NanoBananaImageTool:
