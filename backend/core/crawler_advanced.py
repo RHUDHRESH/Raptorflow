@@ -6,6 +6,8 @@ from typing import Dict, List, Optional
 import aiohttp
 from bs4 import BeautifulSoup
 
+from backend.core.config import get_settings
+from backend.core.renderers.playwright import PlaywrightRenderer, should_render
 from backend.tools.scraper import FirecrawlScraperTool, JinaReaderTool
 
 
@@ -63,6 +65,20 @@ class AdvancedCrawler:
                     if response.status != 200:
                         return None
                     html = await response.text()
+                    settings = get_settings()
+                    if settings.JS_RENDERING_ENABLED and should_render(html):
+                        renderer = PlaywrightRenderer(
+                            timeout_s=settings.JS_RENDERING_TIMEOUT_S,
+                            user_agent=self.headers.get("User-Agent"),
+                        )
+                        try:
+                            html = await renderer.render(url)
+                        except Exception as e:
+                            logging.warning(
+                                "JS rendering failed for %s, using static HTML: %s",
+                                url,
+                                e,
+                            )
 
                     soup = BeautifulSoup(html, "html.parser")
                     title = soup.title.string if soup.title else ""
