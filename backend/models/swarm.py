@@ -30,11 +30,25 @@ class SwarmTask(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
+class SwarmSubtaskSpec(BaseModel):
+    """Structured specification for a swarm subtask before execution."""
+
+    id: str
+    specialist_type: str
+    objective: str
+    success_criteria: List[str] = Field(default_factory=list)
+    dependencies: List[str] = Field(default_factory=list)
+    inputs: Dict[str, Any] = Field(default_factory=dict)
+
+
 class SwarmState(CognitiveIntelligenceState):
     """
     SOTA Swarm Intelligence State.
     Extends the base cognitive state with multi-agent coordination fields.
     """
+
+    # Planned subtask specifications before execution
+    subtask_specs: Annotated[List[SwarmSubtaskSpec], operator.add]
 
     # List of delegated sub-tasks
     swarm_tasks: Annotated[List[SwarmTask], operator.add]
