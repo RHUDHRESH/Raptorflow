@@ -1,4 +1,4 @@
-from typing import List, TypedDict
+from typing import Any, Dict, List, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
@@ -28,6 +28,9 @@ class SpineState(TypedDict):
     quality_report: dict
     iterations: int
     status: str
+    telemetry_events: List[dict]
+    evaluation: Dict[str, Any]
+    user_feedback: str
 
 
 # --- Graph Nodes ---
@@ -93,6 +96,21 @@ def router_logic(state: SpineState):
     return "rework"
 
 
+async def evaluate_run(state: SpineState):
+    """Evaluates the run and persists learning artifacts."""
+    from backend.services.evaluation import EvaluationService
+
+    evaluator = EvaluationService()
+    evaluation = evaluator.evaluate_run(
+        telemetry_events=state.get("telemetry_events", []),
+        output_summary=state.get("final_output"),
+        user_feedback=state.get("user_feedback"),
+        run_id=state.get("thread_id"),
+        tenant_id=state.get("workspace_id"),
+    )
+    return {"evaluation": evaluation}
+
+
 # --- Assembly ---
 
 
@@ -103,6 +121,7 @@ def build_spine_v2():
     workflow.add_node("plan", plan_mission)
     workflow.add_node("draft", execute_draft)
     workflow.add_node("qa", internal_qa)
+    workflow.add_node("evaluate", evaluate_run)
 
     workflow.add_edge(START, "init")
     workflow.add_edge("init", "plan")
@@ -110,7 +129,8 @@ def build_spine_v2():
     workflow.add_edge("draft", "qa")
 
     workflow.add_conditional_edges(
-        "qa", router_logic, {"rework": "draft", "complete": END}
+        "qa", router_logic, {"rework": "draft", "complete": "evaluate"}
     )
+    workflow.add_edge("evaluate", END)
 
     return workflow.compile()
