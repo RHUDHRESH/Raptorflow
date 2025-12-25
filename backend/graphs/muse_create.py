@@ -4,7 +4,8 @@ from datetime import datetime
 from langgraph.graph import END, START, StateGraph
 
 from backend.agents.base import BaseCognitiveAgent
-from backend.agents.shared.agents import IntentRouter, QualityGate
+from backend.agents.shared.agents import QualityGate
+from backend.graphs.swarm_orchestrator import SwarmController
 from backend.agents.shared.context_assembler import ContextAssemblerAgent
 from backend.models.cognitive import (
     AgentMessage,
@@ -19,8 +20,8 @@ logger = logging.getLogger("raptorflow.graphs.muse_create")
 
 async def router_node(state: CognitiveIntelligenceState):
     """A00: Determines the intent and family of the asset."""
-    router = IntentRouter()
-    intent = await router.execute(state["raw_prompt"])
+    controller = SwarmController()
+    intent = await controller.route_intent(state["raw_prompt"])
 
     # Initialize brief with intent
     brief = state.get("brief", {})
