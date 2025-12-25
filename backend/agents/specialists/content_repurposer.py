@@ -1,7 +1,7 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from backend.agents.base import BaseCognitiveAgent
 from backend.models.cognitive import CognitiveIntelligenceState

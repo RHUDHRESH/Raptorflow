@@ -1,13 +1,11 @@
 import logging
-import uuid
 from datetime import datetime
-from typing import Annotated, Any, Dict, List, Literal, Optional, TypedDict
+from typing import Annotated, Any, Dict, List, Optional, TypedDict
 
 from langchain_core.messages import BaseMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Field
 
-from backend.inference import InferenceProvider
+from backend.graphs.swarm_orchestrator import SwarmOrchestrator
 
 logger = logging.getLogger("raptorflow.supervisor")
 
@@ -33,126 +31,19 @@ class RouterOutput(BaseModel):
     )
 
 
-class HierarchicalSupervisor:
+class HierarchicalSupervisor(SwarmOrchestrator):
     """
-    SOTA Supervisor Node.
+    Compatibility wrapper around the Swarm Orchestrator.
     Orchestrates specialized crews with surgical precision.
     """
 
     def __init__(self, llm: any, team_members: List[str], system_prompt: str):
-        self.llm = llm
-        self.team_members = team_members
-        options = team_members + ["FINISH"]
-
-        self.prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", system_prompt),
-                MessagesPlaceholder(variable_name="messages"),
-                (
-                    "system",
-                    "Given the conversation above, who should act next?"
-                    " Or should we FINISH? Select one of: {options}",
-                ),
-            ]
-        ).partial(options=str(options))
-
-        # We don't pre-build the chain to allow easier mocking of llm
-        self._chain = None
-
-    @property
-    def chain(self):
-        if self._chain is None:
-            self._chain = self.prompt | self.llm.with_structured_output(RouterOutput)
-        return self._chain
-
-    async def __call__(self, state: TypedDict):
-        """The actual node logic, callable for LangGraph."""
-        logger.info("Supervisor evaluating state...")
-        # In a real SOTA system, we handle retry logic and JSON repair here
-        response = await self.chain.ainvoke(state)
-
-        # Check if it's a dict or model
-        if hasattr(response, "next_node"):
-            next_node = response.next_node
-            instructions = response.instructions
-        else:
-            next_node = response.get("next_node")
-            instructions = response.get("instructions")
-
-        logger.info(f"Supervisor delegated to: {next_node}")
-        return {"next": str(next_node), "instructions": str(instructions)}
-
-    async def route_intent(self, query: str) -> str:
-        """
-        Determines the appropriate specialist crew based on a raw user query.
-        """
-        from langchain_core.messages import HumanMessage
-
-        state = {"messages": [HumanMessage(content=query)]}
-        response = await self.chain.ainvoke(state)
-
-        if hasattr(response, "next_node"):
-            return str(response.next_node)
-        return str(response.get("next_node", "FINISH"))
-
-    async def execute_loop(
-        self, initial_state: Dict[str, Any], nodes: Dict[str, any]
-    ) -> Dict[str, Any]:
-        """
-        Manages a multi-turn agentic loop between specialists.
-        """
-        from langchain_core.messages import AIMessage
-
-        current_state = initial_state.copy()
-        if "messages" not in current_state:
-            current_state["messages"] = []
-
-        loop_count = 0
-        max_loops = 10
-
-        while loop_count < max_loops:
-            # 1. Ask supervisor who goes next
-            decision = await self.__call__(current_state)
-            next_node = decision["next"]
-            instructions = decision["instructions"]
-
-            if next_node == "FINISH":
-                break
-
-            # 2. Call specialist
-            if next_node in nodes:
-                specialist_node = nodes[next_node]
-                # Inject instructions into state for the specialist
-                current_state["instructions"] = instructions
-                result = await self.delegate_to_specialist(
-                    next_node, current_state, specialist_node
-                )
-
-                # 3. Update state with specialist finding
-                summary = result.get("analysis_summary", "Task completed.")
-                current_state["messages"].append(
-                    AIMessage(content=f"[{next_node}]: {summary}")
-                )
-            else:
-                logger.error(f"Specialist {next_node} not found in nodes.")
-                break
-
-            loop_count += 1
-
-        current_state["next"] = "FINISH"
-        return current_state
-
-    async def delegate_to_specialist(
-        self, specialist_name: str, state: Dict[str, Any], specialist_node: any
-    ) -> Dict[str, Any]:
-        """
-        Executes a specialist node with the given instructions.
-        """
-        logger.info(f"Delegating task to specialist: {specialist_name}")
-        # specialist_node is typically a LangGraph node or callable
-        # We pass the state containing instructions
-        result = await specialist_node(state)
-        return result
+        super().__init__(
+            llm=llm,
+            team_members=team_members,
+            system_prompt=system_prompt,
+            output_model=RouterOutput,
+        )
 
     def aggregate_findings(self, findings: List[Dict[str, Any]]) -> str:
         """

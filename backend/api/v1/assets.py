@@ -1,8 +1,9 @@
+from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
 
-from backend.core.auth import get_tenant_id
+from backend.core.auth import get_current_user, get_tenant_id
 from backend.core.config import get_settings
 from backend.services.storage_service import BrandAssetManager
 
@@ -17,7 +18,10 @@ async def get_brand_asset_manager():
 @router.post("/upload-logo")
 async def upload_logo(
     file: UploadFile = File(...),
+    public: bool = False,
+    authorization: Optional[str] = Header(None),
     tenant_id: UUID = Depends(get_tenant_id),
+    _current_user: dict = Depends(get_current_user),
     manager: BrandAssetManager = Depends(get_brand_asset_manager),
 ):
     """
@@ -36,14 +40,27 @@ async def upload_logo(
     if len(content) > 5 * 1024 * 1024:  # 5MB limit
         raise HTTPException(status_code=400, detail="File too large. Maximum 5MB.")
 
-    # 3. Upload to GCS
+    # 3. Authorize public assets if requested
+    if public:
+        current_user = await get_current_user(authorization)
+        if current_user.get("role") not in {"founder", "admin"}:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to publish public assets.",
+            )
+
+    # 4. Upload to GCS
     try:
-        public_url = manager.upload_logo(
+        blob_name = manager.upload_logo(
             file_content=content,
             filename=file.filename,
             content_type=file.content_type,
             tenant_id=str(tenant_id),
         )
-        return {"url": public_url, "status": "success"}
+        if public:
+            asset_url = manager.make_blob_public(blob_name)
+        else:
+            asset_url = manager.generate_signed_url(blob_name)
+        return {"url": asset_url, "status": "success", "public": public}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")

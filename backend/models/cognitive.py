@@ -7,6 +7,25 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class BudgetCaps(BaseModel):
+    """SOTA budget limits for agentic execution."""
+
+    token_cap: Optional[int] = None
+    tool_call_cap: Optional[int] = None
+    time_cap_seconds: Optional[int] = None
+    concurrency_cap: Optional[int] = None
+
+
+class BudgetUsage(BaseModel):
+    """Tracks budget consumption during a run."""
+
+    tokens_used: int = 0
+    tool_calls: int = 0
+    time_elapsed_seconds: float = 0.0
+    active_tool_calls: int = 0
+    started_at: Optional[datetime] = None
+
+
 class ModelTier(str, Enum):
     ULTRA = "ultra"
     SMART = "reasoning"
@@ -80,10 +99,47 @@ class CognitiveIntelligenceState(TypedDict):
     quality_score: float  # Aggregate quality 0-1
     cost_accumulator: float  # Estimated USD burn
     token_usage: Dict[str, int]  # Input/Output counts
+    tool_usage: Dict[str, int]
+    budget_caps: Optional[BudgetCaps]
+    budget_usage: Optional[BudgetUsage]
 
     # 6. Errors & Flow Control
     error: Optional[str]
     next_node: Optional[str]  # Manual override for complex routing
+
+    # 7. Swarm Orchestration Metadata
+    routing_metadata: "RoutingMetadata"
+    shared_memory_handles: "SharedMemoryHandles"
+    resource_budget: "ResourceBudget"
+
+
+class RoutingMetadata(TypedDict, total=False):
+    """Explicit routing metadata for swarm orchestration."""
+
+    current_node: Optional[str]
+    next_node: Optional[str]
+    intent: Optional[Dict[str, Any]]
+    instructions: Optional[str]
+    rationale: Optional[str]
+    route_history: Annotated[List[Dict[str, Any]], operator.add]
+
+
+class SharedMemoryHandles(TypedDict, total=False):
+    """Shared memory identifiers for swarm execution."""
+
+    workspace_memory_id: Optional[str]
+    thread_memory_id: Optional[str]
+    blackbox_memory_id: Optional[str]
+    vector_index: Optional[str]
+
+
+class ResourceBudget(TypedDict, total=False):
+    """Resource budgets for a swarm run."""
+
+    max_tokens: Optional[int]
+    max_cost: Optional[float]
+    max_rounds: Optional[int]
+    max_time_s: Optional[int]
 
 
 class AgentThread(BaseModel):

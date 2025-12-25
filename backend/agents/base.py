@@ -1,14 +1,14 @@
 import logging
-from abc import ABC, abstractmethod
-from typing import Any, AsyncIterator, Dict, List, Optional, Type, Union
+from abc import ABC
+from typing import Any, AsyncIterator, Dict, List, Optional, Type
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from backend.inference import InferenceProvider
 from backend.models.cognitive import AgentMessage, CognitiveIntelligenceState
+from backend.services.budget_governor import BudgetGovernor
 
 logger = logging.getLogger("raptorflow.agents.base")
 
@@ -106,6 +106,26 @@ class BaseCognitiveAgent(ABC):
         Node execution logic with token tracking.
         """
         logger.info(f"Agent {self.name} ({self.role}) executing...")
+
+        if state.get("budget_caps") or state.get("budget_usage") or state.get(
+            "tool_usage"
+        ):
+            governor = BudgetGovernor()
+            decision = governor.evaluate(state, agent_id=self.name)
+            await governor.apply_decision(decision, agent_id=self.name)
+            if not decision.allowed:
+                logger.warning(
+                    f"Budget gate blocked agent {self.name}: {decision.reason}"
+                )
+                return {
+                    "messages": [
+                        AgentMessage(
+                            role=self.role,
+                            content=f"Budget gate blocked agent {self.name}: {decision.reason}",
+                        )
+                    ],
+                    "error": decision.reason,
+                }
 
         messages = self._format_messages(state.get("messages", []))
 
