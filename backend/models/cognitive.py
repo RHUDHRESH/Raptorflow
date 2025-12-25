@@ -23,6 +23,19 @@ class CognitiveStatus(str, Enum):
     AUDITING = "auditing"
     COMPLETE = "complete"
     ERROR = "error"
+    FAILED = "failed"
+
+
+class LifecycleState(str, Enum):
+    IDLE = CognitiveStatus.IDLE.value
+    PLANNING = CognitiveStatus.PLANNING.value
+    RESEARCHING = CognitiveStatus.RESEARCHING.value
+    EXECUTING = CognitiveStatus.EXECUTING.value
+    REFINING = CognitiveStatus.REFINING.value
+    AUDITING = CognitiveStatus.AUDITING.value
+    COMPLETE = CognitiveStatus.COMPLETE.value
+    ERROR = CognitiveStatus.ERROR.value
+    FAILED = CognitiveStatus.FAILED.value
 
 
 class CognitiveStep(BaseModel):
@@ -77,6 +90,8 @@ class CognitiveIntelligenceState(TypedDict):
 
     # 5. MLOps & Governance
     status: CognitiveStatus
+    lifecycle_state: LifecycleState
+    lifecycle_transitions: Annotated[List[Dict[str, Any]], operator.add]
     quality_score: float  # Aggregate quality 0-1
     cost_accumulator: float  # Estimated USD burn
     token_usage: Dict[str, int]  # Input/Output counts

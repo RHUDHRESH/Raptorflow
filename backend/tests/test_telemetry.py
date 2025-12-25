@@ -35,3 +35,22 @@ def test_telemetry_captures_tokens():
         kwargs = mock_log.call_args[1]
         assert kwargs["extra"]["total_tokens"] == 150
         assert kwargs["extra"]["model"] == "gemini-2.5-flash"
+
+
+def test_telemetry_captures_state_transition():
+    """Verify lifecycle state transitions are logged."""
+    with patch("backend.services.telemetry.logger.info") as mock_log:
+        telemetry = Telemetry()
+        telemetry.capture_state_transition(
+            actor="planner",
+            from_state="idle",
+            to_state="planning",
+            task_id="task_999",
+            metadata={"node": "router"},
+        )
+
+        mock_log.assert_called_once()
+        args, kwargs = mock_log.call_args
+        assert "STATE_TRANSITION: planner idle -> planning" in args[0]
+        assert kwargs["extra"]["from_state"] == "idle"
+        assert kwargs["extra"]["to_state"] == "planning"

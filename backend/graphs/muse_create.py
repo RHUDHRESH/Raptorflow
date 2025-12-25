@@ -6,6 +6,7 @@ from langgraph.graph import END, START, StateGraph
 from backend.agents.base import BaseCognitiveAgent
 from backend.agents.shared.agents import IntentRouter, QualityGate
 from backend.agents.shared.context_assembler import ContextAssemblerAgent
+from backend.core.lifecycle import apply_lifecycle_transition
 from backend.models.cognitive import (
     AgentMessage,
     CognitiveIntelligenceState,
@@ -33,12 +34,16 @@ async def router_node(state: CognitiveIntelligenceState):
         content=f"Intent routed to {intent.asset_family} family. Goal: {intent.goal}",
     )
 
-    return {
-        "brief": brief,
-        "messages": [msg],
-        "status": CognitiveStatus.PLANNING,
-        "last_agent": "router",
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.PLANNING,
+        "router",
+        {
+            "brief": brief,
+            "messages": [msg],
+            "last_agent": "router",
+        },
+    )
 
 
 async def context_node(state: CognitiveIntelligenceState):
@@ -60,12 +65,16 @@ async def context_node(state: CognitiveIntelligenceState):
         content="Context assembled: Brand voice, memories, and constraints loaded.",
     )
 
-    return {
-        "brief": brief,
-        "messages": [msg],
-        "status": CognitiveStatus.RESEARCHING,
-        "last_agent": "assembler",
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.RESEARCHING,
+        "assembler",
+        {
+            "brief": brief,
+            "messages": [msg],
+            "last_agent": "assembler",
+        },
+    )
 
 
 async def drafting_node(state: CognitiveIntelligenceState):
@@ -89,13 +98,22 @@ async def drafting_node(state: CognitiveIntelligenceState):
 
         if "error" in res:
             msg = AgentMessage(role="drafter", content=f"Error: {res['error']}")
-            return {"messages": [msg], "status": CognitiveStatus.FAILED}
+            return apply_lifecycle_transition(
+                state,
+                CognitiveStatus.FAILED,
+                "drafter",
+                {"messages": [msg], "last_agent": "drafter"},
+            )
 
-        return {
-            "generated_assets": res["generated_assets"],
-            "status": CognitiveStatus.EXECUTING,
-            "last_agent": "drafter",
-        }
+        return apply_lifecycle_transition(
+            state,
+            CognitiveStatus.EXECUTING,
+            "drafter",
+            {
+                "generated_assets": res["generated_assets"],
+                "last_agent": "drafter",
+            },
+        )
 
     drafter = BaseCognitiveAgent(
         name="drafter",
@@ -113,15 +131,19 @@ async def drafting_node(state: CognitiveIntelligenceState):
     # Extract the content from the message
     draft_content = res["messages"][0].content
 
-    return {
-        "messages": res["messages"],
-        "generated_assets": [
-            {"family": family, "content": draft_content, "version": "draft"}
-        ],
-        "status": CognitiveStatus.EXECUTING,
-        "last_agent": "drafter",
-        "token_usage": res["token_usage"],
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.EXECUTING,
+        "drafter",
+        {
+            "messages": res["messages"],
+            "generated_assets": [
+                {"family": family, "content": draft_content, "version": "draft"}
+            ],
+            "last_agent": "drafter",
+            "token_usage": res["token_usage"],
+        },
+    )
 
 
 async def reflection_node(state: CognitiveIntelligenceState):
@@ -150,13 +172,17 @@ async def reflection_node(state: CognitiveIntelligenceState):
         "timestamp": datetime.now().isoformat(),
     }
 
-    return {
-        "messages": [msg],
-        "reflection_log": [reflection],
-        "quality_score": audit_result.score / 100,
-        "status": CognitiveStatus.AUDITING,
-        "last_agent": "critic",
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.AUDITING,
+        "critic",
+        {
+            "messages": [msg],
+            "reflection_log": [reflection],
+            "quality_score": audit_result.score / 100,
+            "last_agent": "critic",
+        },
+    )
 
 
 def decide_refinement(state: CognitiveIntelligenceState):
@@ -191,19 +217,23 @@ async def refinement_node(state: CognitiveIntelligenceState):
 
     refined_content = res["messages"][0].content
 
-    return {
-        "messages": res["messages"],
-        "generated_assets": [
-            {
-                "family": state["brief"].get("asset_family"),
-                "content": refined_content,
-                "version": "refined",
-            }
-        ],
-        "status": CognitiveStatus.REFINING,
-        "last_agent": "refiner",
-        "token_usage": res["token_usage"],
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.REFINING,
+        "refiner",
+        {
+            "messages": res["messages"],
+            "generated_assets": [
+                {
+                    "family": state["brief"].get("asset_family"),
+                    "content": refined_content,
+                    "version": "refined",
+                }
+            ],
+            "last_agent": "refiner",
+            "token_usage": res["token_usage"],
+        },
+    )
 
 
 async def finalize_node(state: CognitiveIntelligenceState):
@@ -215,11 +245,12 @@ async def finalize_node(state: CognitiveIntelligenceState):
         role="finalizer", content="Asset finalized and ready for deployment."
     )
 
-    return {
-        "messages": [msg],
-        "status": CognitiveStatus.COMPLETE,
-        "last_agent": "finalizer",
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.COMPLETE,
+        "finalizer",
+        {"messages": [msg], "last_agent": "finalizer"},
+    )
 
 
 async def memory_update_node(state: CognitiveIntelligenceState):
@@ -232,7 +263,12 @@ async def memory_update_node(state: CognitiveIntelligenceState):
         # rule = await updater.extract_preference(draft, final)
         pass
 
-    return {"status": CognitiveStatus.COMPLETE, "last_agent": "memory_updater"}
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.COMPLETE,
+        "memory_updater",
+        {"last_agent": "memory_updater"},
+    )
 
 
 # --- Graph Builder ---

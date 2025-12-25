@@ -1,4 +1,5 @@
 import time
+from typing import Any, Dict, Optional
 
 from backend.utils.logger import logger
 
@@ -49,6 +50,26 @@ class Telemetry:
                 "prompt_tokens": prompt_tokens,
                 "completion_tokens": completion_tokens,
                 "total_tokens": prompt_tokens + completion_tokens,
+            },
+        )
+
+    @staticmethod
+    def capture_state_transition(
+        actor: str,
+        from_state: str,
+        to_state: str,
+        task_id: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ):
+        logger.info(
+            f"STATE_TRANSITION: {actor} {from_state} -> {to_state}",
+            extra={
+                "event_type": "state_transition",
+                "actor": actor,
+                "from_state": from_state,
+                "to_state": to_state,
+                "task_id": task_id,
+                "metadata": metadata or {},
             },
         )
 
