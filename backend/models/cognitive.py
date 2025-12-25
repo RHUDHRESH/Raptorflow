@@ -144,6 +144,7 @@ class RoutingMetadata(TypedDict, total=False):
 class SharedMemoryHandles(TypedDict, total=False):
     """Shared memory identifiers for swarm execution."""
 
+    swarm_cache: Optional[str]
     workspace_memory_id: Optional[str]
     thread_memory_id: Optional[str]
     blackbox_memory_id: Optional[str]
