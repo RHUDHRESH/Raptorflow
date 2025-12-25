@@ -1,17 +1,88 @@
-from fastapi import APIRouter, HTTPException, Request
+from typing import Set
+from urllib.parse import urlparse
 
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, Field
+
+from backend.core.auth import get_current_user
+from backend.core.config import get_settings
 from backend.services.payment_service import PhonePeCallbackError, payment_service
 
 router = APIRouter(prefix="/v1/payments", tags=["Payments"])
 
 
+class PaymentInitiateRequest(BaseModel):
+    amount: float = Field(..., gt=0)
+    transaction_id: str
+    redirect_url: str
+
+
+def _normalize_origin(url: str) -> str:
+    parsed = urlparse(url)
+    if not parsed.scheme or not parsed.netloc:
+        raise ValueError("redirect_url must be a valid absolute URL.")
+    return f"{parsed.scheme}://{parsed.netloc}"
+
+
+def _get_allowed_redirect_origins() -> Set[str]:
+    settings = get_settings()
+    raw_allowlist = settings.PAYMENT_REDIRECT_ALLOWLIST
+    allowed = {
+        _normalize_origin(entry.strip())
+        for entry in raw_allowlist.split(",")
+        if entry.strip()
+    }
+    return allowed
+
+
 @router.post("/initiate")
 async def initiate_payment(
-    user_id: str, amount: float, transaction_id: str, redirect_url: str
+    payload: PaymentInitiateRequest,
+    current_user: dict = Depends(get_current_user),
 ):
     """Initiates a PhonePe payment session."""
+    try:
+        redirect_origin = _normalize_origin(payload.redirect_url)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    try:
+        allowed_origins = _get_allowed_redirect_origins()
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        ) from exc
+    if not allowed_origins:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Redirect allowlist is not configured.",
+        )
+
+    if redirect_origin not in allowed_origins:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="redirect_url is not in the allowlist.",
+        )
+
+    if (
+        payload.transaction_id in payment_service.initiated_orders
+        or payload.transaction_id in payment_service.processed_orders
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="transaction_id has already been used.",
+        )
+
+    user_id = current_user.get("id")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authenticated user is missing an id.",
+        )
+
     return payment_service.initiate_payment(
-        user_id, amount, transaction_id, redirect_url
+        user_id, payload.amount, payload.transaction_id, payload.redirect_url
     )
 
 
