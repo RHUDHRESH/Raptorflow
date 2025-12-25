@@ -2,17 +2,19 @@ import inspect
 import logging
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, cast
 
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Field
 
 from backend.agents.router import IntentRouterAgent
 from backend.inference import InferenceProvider
 from backend.models.cognitive import (
+    AgentMessage,
     ResourceBudget,
     RoutingMetadata,
     SharedMemoryHandles,
 )
+from backend.models.queue_controller import CapabilityProfile, QueueController
 
 logger = logging.getLogger("raptorflow.swarm.orchestrator")
 
@@ -217,13 +219,28 @@ class SwarmOrchestrator:
         state.setdefault("delegation_history", [])
         state.setdefault("shared_knowledge", {})
         state.setdefault("swarm_tasks", [])
+        queue_controller = state.get("queue_controller")
+        capability_profile = (
+            state.get("capability_profile")
+            or getattr(queue_controller, "capability_profile", None)
+            or CapabilityProfile()
+        )
+        state.setdefault("capability_profile", capability_profile)
+        state.setdefault(
+            "queue_controller",
+            queue_controller or QueueController(capability_profile=capability_profile),
+        )
         return state
 
     async def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
         logger.info("Swarm Controller evaluating state...")
         state = self._ensure_metadata(state)
 
-        response = await self.supervisor_chain.ainvoke(state)
+        state_for_chain = state.copy()
+        state_for_chain["messages"] = self._format_messages(
+            state_for_chain.get("messages", [])
+        )
+        response = await self.chain.ainvoke(state_for_chain)
         next_node = getattr(response, "next_node", None) or response.get("next_node")
         instructions = getattr(response, "instructions", None) or response.get(
             "instructions"
@@ -294,7 +311,14 @@ class SwarmOrchestrator:
 
                 summary = result.get("analysis_summary", "Task completed.")
                 current_state["messages"].append(
-                    AIMessage(content=f"[{next_node}]: {summary}")
+                    AgentMessage(
+                        role=next_node,
+                        content=f"[{next_node}]: {summary}",
+                        metadata={
+                            "source": next_node,
+                            "instructions": instructions,
+                        },
+                    )
                 )
                 current_state["delegation_history"].append(
                     {
@@ -311,6 +335,36 @@ class SwarmOrchestrator:
 
         current_state["next"] = "FINISH"
         return current_state
+
+    def _format_messages(self, state_messages: List[Any]) -> List[BaseMessage]:
+        lc_messages: List[BaseMessage] = []
+        for message in state_messages:
+            if isinstance(message, BaseMessage):
+                lc_messages.append(message)
+                continue
+
+            if isinstance(message, AgentMessage):
+                role = message.role
+                content = message.content
+            elif isinstance(message, dict):
+                role = message.get("role", "human")
+                content = message.get("content", "")
+            else:
+                role = "human"
+                content = str(message)
+
+            if role in {"human", "user"}:
+                lc_messages.append(HumanMessage(content=content))
+            elif role == "system":
+                lc_messages.append(SystemMessage(content=content))
+            else:
+                prefix = f"[{role}]: "
+                formatted = (
+                    content if content.startswith(prefix) else f"{prefix}{content}"
+                )
+                lc_messages.append(AIMessage(content=formatted))
+
+        return lc_messages
 
     async def delegate_to_specialist(
         self, specialist_name: str, state: Dict[str, Any], specialist_node: Any
