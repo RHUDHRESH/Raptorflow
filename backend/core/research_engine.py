@@ -6,8 +6,6 @@ from urllib.parse import urlparse
 import aiohttp
 from bs4 import BeautifulSoup
 
-from backend.core.search_native import NativeSearch
-
 logger = logging.getLogger("raptorflow.research_engine")
 
 
@@ -69,16 +67,3 @@ class ResearchEngine:
                     }
                 )
         return valid_results
-
-
-class SearchProvider:
-    """Abstraction for Native zero-cost Search."""
-
-    def __init__(self, api_key: str = ""):
-        # api_key is kept for backward compatibility but unused by NativeSearch
-        self._native = NativeSearch()
-
-    async def search(self, query: str, num_results: int = 5) -> List[str]:
-        """Performs native search and returns links."""
-        results = await self._native.query(query, limit=num_results)
-        return [res["url"] for res in results]
