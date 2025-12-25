@@ -85,6 +85,40 @@ class CognitiveIntelligenceState(TypedDict):
     error: Optional[str]
     next_node: Optional[str]  # Manual override for complex routing
 
+    # 7. Swarm Orchestration Metadata
+    routing_metadata: "RoutingMetadata"
+    shared_memory_handles: "SharedMemoryHandles"
+    resource_budget: "ResourceBudget"
+
+
+class RoutingMetadata(TypedDict, total=False):
+    """Explicit routing metadata for swarm orchestration."""
+
+    current_node: Optional[str]
+    next_node: Optional[str]
+    intent: Optional[Dict[str, Any]]
+    instructions: Optional[str]
+    rationale: Optional[str]
+    route_history: Annotated[List[Dict[str, Any]], operator.add]
+
+
+class SharedMemoryHandles(TypedDict, total=False):
+    """Shared memory identifiers for swarm execution."""
+
+    workspace_memory_id: Optional[str]
+    thread_memory_id: Optional[str]
+    blackbox_memory_id: Optional[str]
+    vector_index: Optional[str]
+
+
+class ResourceBudget(TypedDict, total=False):
+    """Resource budgets for a swarm run."""
+
+    max_tokens: Optional[int]
+    max_cost: Optional[float]
+    max_rounds: Optional[int]
+    max_time_s: Optional[int]
+
 
 class AgentThread(BaseModel):
     """Represents a persistent conversation thread for an agentic run."""
