@@ -1,10 +1,10 @@
 import json
 import logging
 from functools import wraps
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from backend.core.cache import get_cache_manager
-from backend.services.budget_governor import BudgetGovernor
+from backend.models.capabilities import CapabilityProfile
 from backend.tools.image_gen import NanoBananaImageTool
 from backend.tools.muse import AssetGenTool
 from backend.tools.search import (
@@ -57,7 +57,8 @@ class ToolbeltV2:
     The complete implementation of the deterministic agent layer.
     """
 
-    def __init__(self):
+    def __init__(self, capability_profile: Optional[CapabilityProfile] = None):
+        self.capability_profile = capability_profile
         self.tools = {
             "raptor_search": RaptorSearchTool(),
             "tavily_search": TavilyMultiHopTool(),
@@ -65,26 +66,21 @@ class ToolbeltV2:
             "asset_gen": AssetGenTool(),
             "nano_banana_gen": NanoBananaImageTool(),
         }
-        self._budget_governor = BudgetGovernor()
 
     async def run_tool(self, tool_name: str, **kwargs) -> Dict[str, Any]:
         """SOTA Dispatcher for tool execution."""
+        if self.capability_profile and not self.capability_profile.allows_tool(
+            tool_name
+        ):
+            return {
+                "success": False,
+                "error": f"Tool '{tool_name}' not permitted by capability profile.",
+            }
         tool = self.tools.get(tool_name)
         if not tool:
             return {
                 "success": False,
                 "error": f"Tool '{tool_name}' not found in registry.",
-            }
-        workspace_id = kwargs.pop("workspace_id", None)
-        agent_id = kwargs.pop("agent_id", None)
-        budget_check = await self._budget_governor.check_budget(
-            workspace_id=workspace_id, agent_id=agent_id
-        )
-        if not budget_check["allowed"]:
-            return {
-                "success": False,
-                "error": budget_check["reason"],
-                "budget": budget_check,
             }
         return await tool.run(**kwargs)
 
