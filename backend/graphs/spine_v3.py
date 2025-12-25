@@ -14,6 +14,7 @@ from backend.agents.specialists.icp_architect import ICPArchitectAgent
 from backend.agents.specialists.move_generator import MoveGeneratorAgent
 from backend.agents.specialists.value_proposition import ValuePropositionAgent
 from backend.core.config import get_settings
+from backend.core.lifecycle import apply_lifecycle_transition
 from backend.core.pivoting import PivotEngine
 from backend.db import SupabaseSaver, get_pool
 from backend.models.cognitive import (
@@ -21,38 +22,18 @@ from backend.models.cognitive import (
     CognitiveIntelligenceState,
     CognitiveStatus,
 )
-from backend.services.budget_governor import BudgetGovernor
 
 logger = logging.getLogger("raptorflow.graphs.spine_v3")
-
-_budget_governor = BudgetGovernor()
-
-
-async def _guard_budget(
-    state: CognitiveIntelligenceState, agent_id: str
-) -> Dict[str, Any]:
-    workspace_id = state.get("workspace_id") or state.get("tenant_id")
-    budget_check = await _budget_governor.check_budget(
-        workspace_id=workspace_id, agent_id=agent_id
-    )
-    if not budget_check["allowed"]:
-        return {
-            "status": CognitiveStatus.ERROR,
-            "messages": [
-                AgentMessage(
-                    role="system",
-                    content=f"Budget governor blocked {agent_id}: {budget_check['reason']}",
-                )
-            ],
-            "error": budget_check["reason"],
-        }
-    return {}
 
 
 async def initialize_spine(state: CognitiveIntelligenceState) -> Dict[str, Any]:
     """Initializes the cognitive spine state."""
     logger.info(f"Initializing spine for tenant: {state.get('tenant_id')}")
-    updates = {"status": state.get("status") or CognitiveStatus.PLANNING}
+    updates = apply_lifecycle_transition(
+        state,
+        state.get("status") or CognitiveStatus.PLANNING,
+        "initializer",
+    )
     if not state.get("messages"):
         updates["messages"] = [
             AgentMessage(role="system", content="Cognitive Spine Initialized.")
@@ -79,60 +60,61 @@ async def brand_foundation_node(state: CognitiveIntelligenceState) -> Dict[str, 
     """Phase 41/42: Brand Kit & Positioning."""
     logger.info("Spine: Executing Brand Foundation")
     bk_agent = BrandKitAgent()
-    budget_guard = await _guard_budget(state, "BrandKitAgent")
-    if budget_guard:
-        return budget_guard
     bk_res = await bk_agent(state)
 
     # After foundation, we might want to run goal alignment (Phase 52)
     ga_agent = GoalAlignerAgent()
-    budget_guard = await _guard_budget(state, "GoalAlignerAgent")
-    if budget_guard:
-        return budget_guard
     ga_res = await ga_agent(state)
 
     combined_messages = bk_res["messages"] + ga_res["messages"]
-    return {
-        "status": CognitiveStatus.RESEARCHING,
-        "messages": combined_messages
-        + [
-            AgentMessage(
-                role="system", content="Foundation & Goals set. Moving to research."
-            )
-        ],
-        "brief": {**bk_res.get("output", {}), **ga_res.get("output", {})},
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.RESEARCHING,
+        "brand_foundation",
+        {
+            "messages": combined_messages
+            + [
+                AgentMessage(
+                    role="system",
+                    content="Foundation & Goals set. Moving to research.",
+                )
+            ],
+            "brief": {**bk_res.get("output", {}), **ga_res.get("output", {})},
+        },
+    )
 
 
 async def icp_architect_node(state: CognitiveIntelligenceState) -> Dict[str, Any]:
     """Phase 43/44: ICP Intelligence."""
     agent = ICPArchitectAgent()
-    budget_guard = await _guard_budget(state, "ICPArchitectAgent")
-    if budget_guard:
-        return budget_guard
-    return await agent(state)
+    res = await agent(state)
+    actor = res.get("last_agent", "icp_architect")
+    return apply_lifecycle_transition(state, CognitiveStatus.RESEARCHING, actor, res)
 
 
 async def competitor_intel_node(state: CognitiveIntelligenceState) -> Dict[str, Any]:
     """Phase 45: Competitor Mapping."""
     agent = CompetitorIntelligenceAgent()
-    budget_guard = await _guard_budget(state, "CompetitorIntelligenceAgent")
-    if budget_guard:
-        return budget_guard
-    return await agent(state)
+    res = await agent(state)
+    actor = res.get("last_agent", "competitor_intel")
+    return apply_lifecycle_transition(state, CognitiveStatus.RESEARCHING, actor, res)
 
 
 async def research_aggregator(state: CognitiveIntelligenceState) -> Dict[str, Any]:
     """Sync point for parallel research."""
-    return {
-        "status": CognitiveStatus.EXECUTING,
-        "messages": [
-            AgentMessage(
-                role="system",
-                content="Research complete. Architecting campaign strategy.",
-            )
-        ],
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.EXECUTING,
+        "research_aggregator",
+        {
+            "messages": [
+                AgentMessage(
+                    role="system",
+                    content="Research complete. Architecting campaign strategy.",
+                )
+            ]
+        },
+    )
 
 
 async def execute_campaign_planning(
@@ -143,27 +125,22 @@ async def execute_campaign_planning(
     cp_agent = CampaignPlannerAgent()
     mg_agent = MoveGeneratorAgent()
 
-    budget_guard = await _guard_budget(state, "CampaignPlannerAgent")
-    if budget_guard:
-        return budget_guard
     cp_res = await cp_agent(state)
-    budget_guard = await _guard_budget(state, "MoveGeneratorAgent")
-    if budget_guard:
-        return budget_guard
     mg_res = await mg_agent(state)
 
     # Phase 46/47/48 Specialists can also be run here
     vp_agent = ValuePropositionAgent()
-    budget_guard = await _guard_budget(state, "ValuePropositionAgent")
-    if budget_guard:
-        return budget_guard
     vp_res = await vp_agent(state)
 
-    return {
-        "messages": cp_res["messages"] + mg_res["messages"] + vp_res["messages"],
-        "status": CognitiveStatus.AUDITING,
-        "current_plan": mg_res.get("output", {}).get("moves", []),
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.AUDITING,
+        "campaign_planning",
+        {
+            "messages": cp_res["messages"] + mg_res["messages"] + vp_res["messages"],
+            "current_plan": mg_res.get("output", {}).get("moves", []),
+        },
+    )
 
 
 async def placeholder_execute(state: CognitiveIntelligenceState) -> Dict[str, Any]:
@@ -171,26 +148,37 @@ async def placeholder_execute(state: CognitiveIntelligenceState) -> Dict[str, An
 
 
 async def human_audit_node(state: CognitiveIntelligenceState) -> Dict[str, Any]:
-    return {
-        "status": CognitiveStatus.COMPLETE,
-        "messages": [AgentMessage(role="human", content="Audit complete.")],
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.COMPLETE,
+        "human_audit",
+        {"messages": [AgentMessage(role="human", content="Audit complete.")]},
+    )
 
 
 async def finalize_spine(state: CognitiveIntelligenceState) -> Dict[str, Any]:
-    return {
-        "status": CognitiveStatus.COMPLETE,
-        "messages": [
-            AgentMessage(role="system", content="Cognitive Spine Execution Complete.")
-        ],
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.COMPLETE,
+        "finalize_spine",
+        {
+            "messages": [
+                AgentMessage(
+                    role="system",
+                    content="Cognitive Spine Execution Complete.",
+                )
+            ]
+        },
+    )
 
 
 async def handle_spine_error(state: CognitiveIntelligenceState) -> Dict[str, Any]:
-    return {
-        "status": CognitiveStatus.ERROR,
-        "messages": [AgentMessage(role="system", content="CRITICAL ERROR in Spine.")],
-    }
+    return apply_lifecycle_transition(
+        state,
+        CognitiveStatus.ERROR,
+        "spine_error",
+        {"messages": [AgentMessage(role="system", content="CRITICAL ERROR in Spine.")]},
+    )
 
 
 # Graph Assembly
