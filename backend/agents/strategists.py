@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from backend.core.prompts import CampaignPrompts
 from backend.db import save_entity
+from backend.models.cognitive import hydrate_shared_learnings
 
 logger = logging.getLogger("raptorflow.strategists.icp")
 
@@ -44,6 +45,7 @@ class ICPDemographicProfiler:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
         logger.info("Profiling target demographics...")
 
@@ -90,6 +92,7 @@ class ICPPsychographicProfiler:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
         logger.info("Profiling target psychographics...")
 
@@ -135,6 +138,7 @@ class PainPointMapper:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
         logger.info("Mapping customer pain points...")
 
@@ -180,6 +184,7 @@ class UVPArchitect:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         pain_points = state.get("context_brief", {}).get("pain_points", {})
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
         logger.info("Architecting UVPs...")
@@ -229,6 +234,7 @@ class BrandVoiceAligner:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         brand_kit = state.get("context_brief", {}).get(
             "brand_kit", "Default RaptorFlow Kit"
         )
@@ -277,6 +283,7 @@ class AntiPersonaProfiler:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
         icp = state.get("context_brief", {}).get("icp_demographics", {})
         logger.info("Profiling Anti-Personas...")
@@ -325,6 +332,7 @@ class CategoryArchitect:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         uvps = state.get("context_brief", {}).get("uvps", {})
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
         logger.info("Architecting market categories...")
@@ -372,6 +380,7 @@ class TaglineGenerator:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         uvps = state.get("context_brief", {}).get("uvps", {})
         logger.info("Generating surgical taglines...")
 
@@ -406,6 +415,7 @@ class StrategyReplanner:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         alignments = (
             state.get("context_brief", {})
             .get("brand_alignment", {})
@@ -464,6 +474,7 @@ class CampaignArcDesigner:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         uvps = state.get("context_brief", {}).get("uvps", {})
         evidence = state.get("business_context", [])  # Pull from injected RAG context
         logger.info("Designing 90-day campaign arc...")
@@ -513,6 +524,7 @@ class MoveSequencer:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         arc = state.get("context_brief", {}).get("campaign_arc", {})
         logger.info("Sequencing weekly execution moves...")
 
@@ -561,6 +573,7 @@ class BudgetAllocator:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
         icp = state.get("context_brief", {}).get("icp_demographics", {})
         logger.info("Allocating marketing budget...")
@@ -607,6 +620,7 @@ class ChannelSelector:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         icp = state.get("context_brief", {}).get("icp_demographics", {})
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
         logger.info("Selecting optimal distribution channels...")
@@ -655,6 +669,7 @@ class KPIDefiner:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         channels = state.get("context_brief", {}).get("channels", {})
         arc = state.get("context_brief", {}).get("campaign_arc", {})
         logger.info("Defining success metrics (KPIs)...")
@@ -702,6 +717,7 @@ class FunnelDesigner:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         arc = state.get("context_brief", {}).get("campaign_arc", {})
         channels = state.get("context_brief", {}).get("channels", {})
         logger.info("Designing conversion funnel...")
@@ -749,6 +765,7 @@ class StrategicConflictResolver:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         arc = state.get("context_brief", {}).get("campaign_arc", {})
         history = state.get("research_bundle", {}).get("historical_context", [])
         logger.info("Checking for strategic conflicts...")
@@ -773,6 +790,7 @@ class StrategyRefreshHook:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
 
         logger.info("Evaluating strategic data sufficiency...")
@@ -827,6 +845,7 @@ class FounderArchetypeProfiler:
 
     async def __call__(self, state: TypedDict):
         """Node execution logic."""
+        state = await hydrate_shared_learnings(state)
         workspace_id = state.get("workspace_id")
         evidence = state.get("research_bundle", {}).get("final_evidence", {})
         logger.info("Profiling founder archetype...")
