@@ -1,4 +1,5 @@
 import time
+from typing import Any, Dict, Optional
 
 from backend.utils.logger import logger
 
@@ -53,20 +54,22 @@ class Telemetry:
         )
 
     @staticmethod
-    def capture_tool_execution(
-        tool_name: str,
-        success: bool,
-        latency_ms: float,
-        fallback_of: str | None = None,
+    def capture_state_transition(
+        actor: str,
+        from_state: str,
+        to_state: str,
+        task_id: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         logger.info(
-            f"TOOL_EXECUTION: {tool_name}",
+            f"STATE_TRANSITION: {actor} {from_state} -> {to_state}",
             extra={
-                "event_type": "tool_execution",
-                "tool_name": tool_name,
-                "success": success,
-                "latency_ms": latency_ms,
-                "fallback_of": fallback_of,
+                "event_type": "state_transition",
+                "actor": actor,
+                "from_state": from_state,
+                "to_state": to_state,
+                "task_id": task_id,
+                "metadata": metadata or {},
             },
         )
 
