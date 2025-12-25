@@ -1,4 +1,5 @@
 import logging
+import time
 from abc import ABC
 from typing import Any, AsyncIterator, Dict, List, Optional, Type
 
@@ -8,6 +9,8 @@ from pydantic import BaseModel
 
 from backend.inference import InferenceProvider
 from backend.models.cognitive import AgentMessage, CognitiveIntelligenceState
+from backend.models.telemetry import TelemetryEventType
+from backend.services.telemetry_collector import get_telemetry_collector
 
 logger = logging.getLogger("raptorflow.agents.base")
 
@@ -105,40 +108,73 @@ class BaseCognitiveAgent(ABC):
         Node execution logic with token tracking.
         """
         logger.info(f"Agent {self.name} ({self.role}) executing...")
+        start_time = time.perf_counter()
+        collector = get_telemetry_collector()
+        metadata = {
+            "tenant_id": state.get("tenant_id"),
+            "workspace_id": state.get("workspace_id"),
+        }
+        await collector.record_agent_event(
+            TelemetryEventType.AGENT_START,
+            self.name,
+            {"status": "started"},
+            metadata=metadata,
+        )
 
         messages = self._format_messages(state.get("messages", []))
+        input_tokens = 0
+        output_tokens = 0
+        success = False
 
         # If output schema is set, use structured output
-        if self.output_schema:
-            response = await self.llm_with_structured.ainvoke(messages)
-            content = (
-                str(response.model_dump())
-                if hasattr(response, "model_dump")
-                else str(response)
+        try:
+            if self.output_schema:
+                response = await self.llm_with_structured.ainvoke(messages)
+                content = (
+                    str(response.model_dump())
+                    if hasattr(response, "model_dump")
+                    else str(response)
+                )
+                # Metadata for structured output might be nested differently
+                response_metadata = (
+                    getattr(response, "response_metadata", {})
+                    if hasattr(response, "response_metadata")
+                    else {}
+                )
+            else:
+                response = await self.llm_with_tools.ainvoke(messages)
+                content = response.content
+                response_metadata = getattr(response, "response_metadata", {})
+
+            # Extract Token Usage (Vertex AI pattern)
+            token_usage = response_metadata.get("token_usage", {})
+            input_tokens = token_usage.get("prompt_token_count", 0)
+            output_tokens = token_usage.get("candidates_token_count", 0)
+
+            logger.info(
+                f"Agent {self.name} tokens: {input_tokens} in, {output_tokens} out"
             )
-            # Metadata for structured output might be nested differently
-            metadata = (
-                getattr(response, "response_metadata", {})
-                if hasattr(response, "response_metadata")
-                else {}
+            success = True
+
+            return {
+                "messages": [AgentMessage(role=self.role, content=content)],
+                "last_agent": self.name,
+                "token_usage": {
+                    f"{self.name}_input": input_tokens,
+                    f"{self.name}_output": output_tokens,
+                },
+            }
+        finally:
+            duration_ms = (time.perf_counter() - start_time) * 1000
+            await collector.record_agent_event(
+                TelemetryEventType.AGENT_END,
+                self.name,
+                {
+                    "duration_ms": duration_ms,
+                    "success": success,
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "total_tokens": input_tokens + output_tokens,
+                },
+                metadata=metadata,
             )
-        else:
-            response = await self.llm_with_tools.ainvoke(messages)
-            content = response.content
-            metadata = getattr(response, "response_metadata", {})
-
-        # Extract Token Usage (Vertex AI pattern)
-        token_usage = metadata.get("token_usage", {})
-        input_tokens = token_usage.get("prompt_token_count", 0)
-        output_tokens = token_usage.get("candidates_token_count", 0)
-
-        logger.info(f"Agent {self.name} tokens: {input_tokens} in, {output_tokens} out")
-
-        return {
-            "messages": [AgentMessage(role=self.role, content=content)],
-            "last_agent": self.name,
-            "token_usage": {
-                f"{self.name}_input": input_tokens,
-                f"{self.name}_output": output_tokens,
-            },
-        }
