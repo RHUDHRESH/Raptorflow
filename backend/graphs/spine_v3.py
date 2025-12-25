@@ -21,8 +21,32 @@ from backend.models.cognitive import (
     CognitiveIntelligenceState,
     CognitiveStatus,
 )
+from backend.services.budget_governor import BudgetGovernor
 
 logger = logging.getLogger("raptorflow.graphs.spine_v3")
+
+_budget_governor = BudgetGovernor()
+
+
+async def _guard_budget(
+    state: CognitiveIntelligenceState, agent_id: str
+) -> Dict[str, Any]:
+    workspace_id = state.get("workspace_id") or state.get("tenant_id")
+    budget_check = await _budget_governor.check_budget(
+        workspace_id=workspace_id, agent_id=agent_id
+    )
+    if not budget_check["allowed"]:
+        return {
+            "status": CognitiveStatus.ERROR,
+            "messages": [
+                AgentMessage(
+                    role="system",
+                    content=f"Budget governor blocked {agent_id}: {budget_check['reason']}",
+                )
+            ],
+            "error": budget_check["reason"],
+        }
+    return {}
 
 
 async def initialize_spine(state: CognitiveIntelligenceState) -> Dict[str, Any]:
@@ -55,10 +79,16 @@ async def brand_foundation_node(state: CognitiveIntelligenceState) -> Dict[str, 
     """Phase 41/42: Brand Kit & Positioning."""
     logger.info("Spine: Executing Brand Foundation")
     bk_agent = BrandKitAgent()
+    budget_guard = await _guard_budget(state, "BrandKitAgent")
+    if budget_guard:
+        return budget_guard
     bk_res = await bk_agent(state)
 
     # After foundation, we might want to run goal alignment (Phase 52)
     ga_agent = GoalAlignerAgent()
+    budget_guard = await _guard_budget(state, "GoalAlignerAgent")
+    if budget_guard:
+        return budget_guard
     ga_res = await ga_agent(state)
 
     combined_messages = bk_res["messages"] + ga_res["messages"]
@@ -77,12 +107,18 @@ async def brand_foundation_node(state: CognitiveIntelligenceState) -> Dict[str, 
 async def icp_architect_node(state: CognitiveIntelligenceState) -> Dict[str, Any]:
     """Phase 43/44: ICP Intelligence."""
     agent = ICPArchitectAgent()
+    budget_guard = await _guard_budget(state, "ICPArchitectAgent")
+    if budget_guard:
+        return budget_guard
     return await agent(state)
 
 
 async def competitor_intel_node(state: CognitiveIntelligenceState) -> Dict[str, Any]:
     """Phase 45: Competitor Mapping."""
     agent = CompetitorIntelligenceAgent()
+    budget_guard = await _guard_budget(state, "CompetitorIntelligenceAgent")
+    if budget_guard:
+        return budget_guard
     return await agent(state)
 
 
@@ -107,11 +143,20 @@ async def execute_campaign_planning(
     cp_agent = CampaignPlannerAgent()
     mg_agent = MoveGeneratorAgent()
 
+    budget_guard = await _guard_budget(state, "CampaignPlannerAgent")
+    if budget_guard:
+        return budget_guard
     cp_res = await cp_agent(state)
+    budget_guard = await _guard_budget(state, "MoveGeneratorAgent")
+    if budget_guard:
+        return budget_guard
     mg_res = await mg_agent(state)
 
     # Phase 46/47/48 Specialists can also be run here
     vp_agent = ValuePropositionAgent()
+    budget_guard = await _guard_budget(state, "ValuePropositionAgent")
+    if budget_guard:
+        return budget_guard
     vp_res = await vp_agent(state)
 
     return {
