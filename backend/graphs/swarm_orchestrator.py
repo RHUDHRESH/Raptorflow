@@ -144,15 +144,19 @@ class SwarmOrchestrator:
     def __init__(
         self,
         llm: Any = None,
+        supervisor_llm: Any = None,
+        intent_llm: Any = None,
         team_members: Optional[List[str]] = None,
         system_prompt: str = "",
         sub_swarms: Optional[Dict[str, Any]] = None,
         router_agent: Optional[IntentRouterAgent] = None,
         output_model: type[BaseModel] = SwarmRoutingDecision,
     ):
-        self.llm = llm or InferenceProvider.get_model(
+        self.supervisor_llm = supervisor_llm or llm or InferenceProvider.get_model(
             model_tier="fast", temperature=0.0
         )
+        self.intent_llm = intent_llm or self.supervisor_llm
+        self.llm = self.supervisor_llm
         self.team_members = team_members or [
             "strategists",
             "researchers",
@@ -180,7 +184,7 @@ class SwarmOrchestrator:
         self.swarm_tree = self._build_swarm_tree()
 
         # Intent routing chain
-        self.intent_chain = self.llm.with_structured_output(SwarmIntent)
+        self.intent_chain = self.intent_llm.with_structured_output(SwarmIntent)
 
     @property
     def chain(self):
@@ -189,6 +193,10 @@ class SwarmOrchestrator:
                 self.output_model
             )
         return self._chain
+
+    @property
+    def supervisor_chain(self):
+        return self.chain
 
     def _build_swarm_tree(self) -> Dict[str, Tuple[str, ...]]:
         return {
@@ -213,7 +221,7 @@ class SwarmOrchestrator:
         logger.info("Swarm Controller evaluating state...")
         state = self._ensure_metadata(state)
 
-        response = await self.chain.ainvoke(state)
+        response = await self.supervisor_chain.ainvoke(state)
         next_node = getattr(response, "next_node", None) or response.get("next_node")
         instructions = getattr(response, "instructions", None) or response.get(
             "instructions"
@@ -387,3 +395,9 @@ class SwarmOrchestrator:
             summary_parts.append(f"- [{source}]: {text}")
 
         return "\n".join(summary_parts)
+
+
+class SwarmController(SwarmOrchestrator):
+    """Backward-compatible wrapper for the swarm orchestrator."""
+
+    pass
