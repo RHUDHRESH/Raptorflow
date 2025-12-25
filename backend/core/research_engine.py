@@ -6,6 +6,10 @@ from urllib.parse import urlparse
 import aiohttp
 from bs4 import BeautifulSoup
 
+from backend.core.config import get_settings
+from backend.core.renderers.playwright import PlaywrightRenderer, should_render
+from backend.core.search_native import NativeSearch
+
 logger = logging.getLogger("raptorflow.research_engine")
 
 
@@ -45,6 +49,20 @@ class ResearchEngine:
             async with session.get(url, timeout=timeout) as response:
                 if response.status == 200:
                     html = await response.text()
+                    settings = get_settings()
+                    if settings.JS_RENDERING_ENABLED and should_render(html):
+                        renderer = PlaywrightRenderer(
+                            timeout_s=settings.JS_RENDERING_TIMEOUT_S,
+                            user_agent=self.headers.get("User-Agent"),
+                        )
+                        try:
+                            html = await renderer.render(url)
+                        except Exception as e:
+                            logger.warning(
+                                "JS rendering failed for %s, using static HTML: %s",
+                                url,
+                                e,
+                            )
                     return self.clean_text(html)
                 logger.warning(f"Failed to fetch {url}: Status {response.status}")
         except Exception as e:
@@ -67,3 +85,16 @@ class ResearchEngine:
                     }
                 )
         return valid_results
+
+
+class SearchProvider:
+    """Abstraction for Native zero-cost Search."""
+
+    def __init__(self, api_key: str = ""):
+        # api_key is kept for backward compatibility but unused by NativeSearch
+        self._native = NativeSearch()
+
+    async def search(self, query: str, num_results: int = 5) -> List[str]:
+        """Performs native search and returns links."""
+        results = await self._native.query(query, limit=num_results)
+        return [res["url"] for res in results]
