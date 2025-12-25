@@ -4,7 +4,7 @@ from langgraph.graph import END, START, StateGraph
 
 from backend.agents.shared.research_specialists import LibrarianAgent, SynthesisAgent
 from backend.core.config import get_settings
-from backend.core.crawler_advanced import AdvancedCrawler
+from backend.core.crawler_pipeline import CrawlerPipeline, CrawlPolicy
 from backend.core.research_engine import SearchProvider
 from backend.models.research_schemas import FactClaim, ResearchDeepState, WebDocument
 
@@ -31,11 +31,9 @@ async def discovery_node(state: ResearchDeepState):
         links = await search.search(q, num_results=3)
         all_urls.extend(links)
 
-    discovered_urls = list(dict.fromkeys(all_urls))
-
     return {
         "status": "scraping",
-        "discovered_urls": discovered_urls,
+        "discovered_urls": all_urls,
         "research_logs": state.research_logs
         + [f"Discovered {len(all_urls)} potential sources."],
     }
@@ -43,25 +41,24 @@ async def discovery_node(state: ResearchDeepState):
 
 async def scraping_node(state: ResearchDeepState):
     """Crawler fetches and cleans content."""
-    crawler = AdvancedCrawler()
-    urls = [str(url) for url in state.discovered_urls]
-    results = await crawler.batch_crawl(urls) if urls else []
-    scraped_docs = [
+    pipeline = CrawlerPipeline()
+    results = await pipeline.fetch(state.discovered_urls, CrawlPolicy())
+    documents = [
         WebDocument(
-            url=result["url"],
-            title=result.get("title", ""),
-            raw_content=result.get("content", ""),
-            summary=(result.get("content", "")[:500]),
+            url=result.url,
+            title=result.title or result.url,
+            raw_content=result.content,
+            summary=result.content[:200],
             relevance_score=0.0,
         )
         for result in results
-        if result.get("url")
     ]
     return {
         "status": "analysis",
         "depth": state.depth + 1,
-        "scraped_docs": scraped_docs,
-        "documents": scraped_docs,
+        "documents": state.documents + documents,
+        "research_logs": state.research_logs
+        + [f"Scraped {len(results)} sources via pipeline."],
     }
 
 
@@ -71,7 +68,7 @@ async def verification_node(state: ResearchDeepState):
     # This is where SOTA depth happens: cross-referencing Source A vs Source B
     extracted_claims = []
     claim_index = 1
-    for doc in state.scraped_docs:
+    for doc in state.documents:
         text = doc.summary or doc.raw_content
         sentences = [
             sentence.strip()
