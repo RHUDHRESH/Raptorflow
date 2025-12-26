@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from typing import Any, Optional
+from typing import Optional
 
 import redis.asyncio as redis
 
@@ -60,7 +60,9 @@ class RadarCache:
         try:
             return json.loads(raw)
         except json.JSONDecodeError:
-            logger.warning("Failed to decode scheduler status payload for %s", tenant_id)
+            logger.warning(
+                "Failed to decode scheduler status payload for %s", tenant_id
+            )
             return None
 
     async def close(self) -> None:
