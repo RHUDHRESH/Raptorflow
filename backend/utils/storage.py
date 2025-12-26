@@ -80,6 +80,29 @@ async def upload_image_to_gcs(
         return f"local://{filename}"
 
 
+async def upload_text_to_gcs(
+    text: str,
+    content_type: str = "text/plain",
+    bucket_name: Optional[str] = None,
+) -> str:
+    """Uploads text payloads to Google Cloud Storage and returns the public URL."""
+    settings = get_settings()
+    bucket_name = bucket_name or settings.GCS_INGEST_BUCKET
+    filename = f"radar_{uuid.uuid4()}.txt"
+
+    try:
+        client = storage.Client(project=settings.GCP_PROJECT_ID)
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob(filename)
+        blob.upload_from_string(text.encode("utf-8"), content_type=content_type)
+        url = f"https://storage.googleapis.com/{bucket_name}/{filename}"
+        logger.info("Uploaded text payload to %s", url)
+        return url
+    except Exception as e:
+        logger.error("Unexpected GCS error: %s", str(e))
+        return f"local://{filename}"
+
+
 def pil_to_bytes(image) -> bytes:
     """Converts a PIL Image object to bytes."""
     img_byte_arr = io.BytesIO()
