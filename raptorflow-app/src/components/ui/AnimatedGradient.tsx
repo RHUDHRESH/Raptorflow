@@ -57,7 +57,7 @@ export function GradientMesh({ className }: { className?: string }) {
             <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
           </radialGradient>
         </defs>
-        
+
         <motion.circle
           cx="300"
           cy="300"
@@ -74,7 +74,7 @@ export function GradientMesh({ className }: { className?: string }) {
             ease: 'easeInOut',
           }}
         />
-        
+
         <motion.circle
           cx="700"
           cy="700"
@@ -91,7 +91,7 @@ export function GradientMesh({ className }: { className?: string }) {
             ease: 'easeInOut',
           }}
         />
-        
+
         <motion.circle
           cx="500"
           cy="500"

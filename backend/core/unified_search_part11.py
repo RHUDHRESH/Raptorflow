@@ -25,18 +25,10 @@ from core.unified_search_part1 import (
     SearchSession,
 )
 from core.unified_search_part2 import SearchProvider, create_search_provider
-from core.unified_search_part3 import (
-    AdvancedCrawler,
-    CrawlPolicy,
-    ExtractedContent,
-)
+from core.unified_search_part3 import AdvancedCrawler, CrawlPolicy, ExtractedContent
 from core.unified_search_part4 import ResultConsolidator, ResultRanker
 from core.unified_search_part5 import CircuitBreaker, FaultTolerantExecutor
-from core.unified_search_part6 import (
-    DeepResearchAgent,
-    ResearchDepth,
-    ResearchPlan,
-)
+from core.unified_search_part6 import DeepResearchAgent, ResearchDepth, ResearchPlan
 from core.unified_search_part7 import (
     SimpleResearchRequest,
     SimpleSearchRequest,

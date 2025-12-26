@@ -17,10 +17,7 @@ from langgraph.graph import END, StateGraph
 from pydantic import BaseModel
 
 from agents.crewai_adapter import CrewAgentConfig, CrewAIAgentAdapter
-from agents.crewai_coordination import (
-    AdvancedCrewCoordinator,
-    get_crew_coordinator,
-)
+from agents.crewai_coordination import AdvancedCrewCoordinator, get_crew_coordinator
 from agents.crewai_tasks import CrewTaskManager, TaskPriority
 from models.cognitive import AgentMessage, CognitiveIntelligenceState
 

@@ -31,7 +31,9 @@ class IntentRouterAgent:
         self.memory = SwarmLearningMemory()
         self.settings = get_settings()
 
-    async def route(self, prompt: str, workspace_id: Optional[str] = None) -> RouterOutput:
+    async def route(
+        self, prompt: str, workspace_id: Optional[str] = None
+    ) -> RouterOutput:
         feedback_context = await self._get_feedback_context(prompt, workspace_id)
         system_msg = SystemMessage(
             content="""

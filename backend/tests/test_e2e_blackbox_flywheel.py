@@ -77,7 +77,9 @@ class TestBlackboxE2E(unittest.TestCase):
         mock_inference.get_embeddings.return_value = mock_embed
 
         # Trigger Cycle
-        result = asyncio.run(self.service.trigger_learning_cycle(str(move_id), tenant_id))
+        result = asyncio.run(
+            self.service.trigger_learning_cycle(str(move_id), tenant_id)
+        )
 
         # 4. Verify Results
         self.assertEqual(result["findings_count"], 1)

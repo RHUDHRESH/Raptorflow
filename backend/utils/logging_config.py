@@ -1,7 +1,7 @@
 import logging
 import logging.config
 import os
-from typing import Dict, Any
+from typing import Any, Dict
 
 # Production-grade logging configuration
 LOGGING_CONFIG: Dict[str, Any] = {
@@ -115,11 +115,11 @@ def setup_logging():
     """Initialize logging configuration."""
     # Create logs directory if it doesn't exist
     os.makedirs("logs", exist_ok=True)
-    
+
     # Use JSON format in production
     if os.getenv("ENVIRONMENT") == "production":
         LOGGING_CONFIG["handlers"]["console"]["formatter"] = "json"
-    
+
     # Apply configuration
     logging.config.dictConfig(LOGGING_CONFIG)
 

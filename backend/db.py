@@ -31,17 +31,17 @@ def get_pool() -> AsyncConnectionPool:
         try:
             # Optimized connection pool configuration
             _pool = AsyncConnectionPool(
-                DB_URI, 
-                min_size=5,           # Increased minimum connections
-                max_size=50,          # Increased maximum for production
+                DB_URI,
+                min_size=5,  # Increased minimum connections
+                max_size=50,  # Increased maximum for production
                 open=False,
-                timeout=30,           # Connection timeout
-                max_lifetime=3600,    # 1 hour lifetime (increased)
-                max_idle=600,         # 10 minutes idle timeout
+                timeout=30,  # Connection timeout
+                max_lifetime=3600,  # 1 hour lifetime (increased)
+                max_idle=600,  # 10 minutes idle timeout
                 check=AsyncConnectionPool.ConnectionCheck(
                     # Health check configuration
                     timeout=5,
-                    command="SELECT 1"
+                    command="SELECT 1",
                 ),
                 kwargs={
                     # Connection parameters optimization
@@ -50,8 +50,8 @@ def get_pool() -> AsyncConnectionPool:
                     "application_name": "raptorflow_backend",
                     "connect_timeout": 10,
                     "command_timeout": 30,
-                    "options": "-c default_transaction_isolation=read_committed"
-                }
+                    "options": "-c default_transaction_isolation=read_committed",
+                },
             )
             logger.info(f"Created optimized database pool: min_size=5, max_size=50")
         except Exception as e:
@@ -148,18 +148,23 @@ async def vector_search(
     # Input validation
     if not workspace_id or not isinstance(workspace_id, str):
         raise ValueError("workspace_id must be a non-empty string")
-    
+
     if not embedding or not isinstance(embedding, list) or len(embedding) == 0:
         raise ValueError("embedding must be a non-empty list of floats")
-    
+
     if not all(isinstance(x, (int, float)) for x in embedding):
         raise ValueError("embedding must contain only numeric values")
-    
+
     if limit <= 0 or limit > 100:
         raise ValueError("limit must be between 1 and 100")
-    
+
     # Validate table name against allowed tables
-    allowed_tables = ["muse_assets", "agent_memory_semantic", "agent_memory_episodic", "entity_embeddings"]
+    allowed_tables = [
+        "muse_assets",
+        "agent_memory_semantic",
+        "agent_memory_episodic",
+        "entity_embeddings",
+    ]
     if table not in allowed_tables:
         raise ValueError(f"table must be one of: {allowed_tables}")
     # Map table to its specific column names

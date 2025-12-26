@@ -38,7 +38,9 @@ class SwarmTaskDecomposer:
                 ("user", "{goal}"),
             ]
         )
-        self.chain = self.prompt | self.llm.with_structured_output(SwarmDecompositionPlan)
+        self.chain = self.prompt | self.llm.with_structured_output(
+            SwarmDecompositionPlan
+        )
 
     async def __call__(self, state: TypedDict) -> dict:
         """Generate swarm subtask specs from the incoming state."""

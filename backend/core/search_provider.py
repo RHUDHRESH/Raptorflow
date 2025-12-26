@@ -156,7 +156,10 @@ class SearchProviderRegistry:
             return []
         total = len(self._providers)
         return (
-            ((self._cursor + offset) % total, self._providers[(self._cursor + offset) % total])
+            (
+                (self._cursor + offset) % total,
+                self._providers[(self._cursor + offset) % total],
+            )
             for offset in range(total)
         )
 

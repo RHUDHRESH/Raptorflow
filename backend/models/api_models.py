@@ -1,11 +1,12 @@
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field, validator
 import re
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field, validator
 
 
 class BaseRequestModel(BaseModel):
     """Base model for all API requests with common validation."""
-    
+
     class Config:
         extra = "forbid"  # Prevent unknown fields
         validate_assignment = True
@@ -13,10 +14,11 @@ class BaseRequestModel(BaseModel):
 
 class BaseResponseModel(BaseModel):
     """Base response model for all API responses."""
+
     success: bool = True
     message: Optional[str] = None
     data: Optional[Any] = None
-    
+
     class Config:
         json_encoders = {
             # Add any custom encoders if needed
@@ -25,6 +27,7 @@ class BaseResponseModel(BaseModel):
 
 class ErrorResponseModel(BaseModel):
     """Error response model."""
+
     success: bool = False
     error: str
     message: Optional[str] = None
@@ -33,6 +36,7 @@ class ErrorResponseModel(BaseModel):
 
 class PaginatedResponseModel(BaseModel):
     """Paginated response model."""
+
     success: bool = True
     data: List[Any]
     pagination: Dict[str, Any]
@@ -42,20 +46,24 @@ class PaginatedResponseModel(BaseModel):
 # Campaign Models
 class CampaignCreateRequest(BaseRequestModel):
     """Request model for creating campaigns."""
+
     title: str = Field(..., min_length=1, max_length=200, description="Campaign title")
-    objective: str = Field(..., min_length=10, max_length=1000, description="Campaign objective")
+    objective: str = Field(
+        ..., min_length=10, max_length=1000, description="Campaign objective"
+    )
     status: Optional[str] = Field("draft", regex="^(draft|active|paused|completed)$")
-    
-    @validator('title')
+
+    @validator("title")
     def validate_title(cls, v):
         if not v or not v.strip():
-            raise ValueError('Title cannot be empty')
+            raise ValueError("Title cannot be empty")
         # Remove any potentially harmful characters
-        return re.sub(r'[<>"\']', '', v.strip())
+        return re.sub(r'[<>"\']', "", v.strip())
 
 
 class CampaignUpdateRequest(BaseRequestModel):
     """Request model for updating campaigns."""
+
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     objective: Optional[str] = Field(None, min_length=10, max_length=1000)
     status: Optional[str] = Field(None, regex="^(draft|active|paused|completed)$")
@@ -65,6 +73,7 @@ class CampaignUpdateRequest(BaseRequestModel):
 
 class CampaignResponse(BaseModel):
     """Response model for campaign data."""
+
     id: str
     title: str
     objective: str
@@ -79,6 +88,7 @@ class CampaignResponse(BaseModel):
 # Move Models
 class MoveCreateRequest(BaseRequestModel):
     """Request model for creating moves."""
+
     title: str = Field(..., min_length=1, max_length=200)
     description: str = Field(..., min_length=10, max_length=2000)
     priority: Optional[int] = Field(3, ge=1, le=5)
@@ -88,6 +98,7 @@ class MoveCreateRequest(BaseRequestModel):
 
 class MoveResponse(BaseModel):
     """Response model for move data."""
+
     id: str
     campaign_id: str
     title: str
@@ -104,19 +115,21 @@ class MoveResponse(BaseModel):
 # Asset Models
 class AssetCreateRequest(BaseRequestModel):
     """Request model for creating assets."""
+
     content: str = Field(..., min_length=1, max_length=50000)
     asset_type: str = Field(..., regex="^(image|text|video|document|creative)$")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
-    
-    @validator('content')
+
+    @validator("content")
     def validate_content(cls, v):
         if not v or not v.strip():
-            raise ValueError('Content cannot be empty')
+            raise ValueError("Content cannot be empty")
         return v.strip()
 
 
 class AssetResponse(BaseModel):
     """Response model for asset data."""
+
     id: str
     content: str
     asset_type: str
@@ -128,26 +141,28 @@ class AssetResponse(BaseModel):
 # Vector Search Models
 class VectorSearchRequest(BaseRequestModel):
     """Request model for vector search."""
+
     embedding: List[float] = Field(..., min_items=1, max_items=1536)
     limit: Optional[int] = Field(10, ge=1, le=100)
     memory_type: Optional[str] = Field("semantic", regex="^(semantic|episodic)$")
     filters: Optional[Dict[str, Any]] = Field(default_factory=dict)
-    
-    @validator('embedding')
+
+    @validator("embedding")
     def validate_embedding(cls, v):
         if len(v) == 0:
-            raise ValueError('Embedding cannot be empty')
+            raise ValueError("Embedding cannot be empty")
         # Check for valid float values
         for i, val in enumerate(v):
             if not isinstance(val, (int, float)):
-                raise ValueError(f'Embedding value at index {i} is not a number: {val}')
+                raise ValueError(f"Embedding value at index {i} is not a number: {val}")
             if abs(val) > 10:  # Basic sanity check
-                raise ValueError(f'Embedding value at index {i} seems invalid: {val}')
+                raise ValueError(f"Embedding value at index {i} seems invalid: {val}")
         return v
 
 
 class VectorSearchResponse(BaseModel):
     """Response model for vector search results."""
+
     results: List[Dict[str, Any]]
     total_found: int
     search_time_ms: float
@@ -156,20 +171,22 @@ class VectorSearchResponse(BaseModel):
 # Memory Models
 class MemorySaveRequest(BaseRequestModel):
     """Request model for saving memory."""
+
     content: str = Field(..., min_length=1, max_length=10000)
     embedding: List[float] = Field(..., min_items=1, max_items=1536)
     memory_type: str = Field("semantic", regex="^(semantic|episodic)$")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
-    
-    @validator('content')
+
+    @validator("content")
     def validate_content(cls, v):
         if not v or not v.strip():
-            raise ValueError('Content cannot be empty')
+            raise ValueError("Content cannot be empty")
         return v.strip()
 
 
 class MemoryResponse(BaseModel):
     """Response model for memory data."""
+
     id: str
     content: str
     memory_type: str
@@ -181,11 +198,13 @@ class MemoryResponse(BaseModel):
 # Health Check Models
 class HealthCheckRequest(BaseRequestModel):
     """Request model for health checks (minimal)."""
+
     detailed: Optional[bool] = Field(False)
 
 
 class HealthCheckResponse(BaseModel):
     """Response model for health check."""
+
     status: str
     timestamp: str
     version: str
@@ -194,6 +213,7 @@ class HealthCheckResponse(BaseModel):
 
 class DetailedHealthCheckResponse(HealthCheckResponse):
     """Detailed health check response with external services."""
+
     database: str
     cache: str
     supabase_auth: Optional[str] = None
@@ -204,6 +224,7 @@ class DetailedHealthCheckResponse(HealthCheckResponse):
 # Metrics Models
 class MetricsResponse(BaseModel):
     """Response model for metrics data."""
+
     counters: Dict[str, float]
     gauges: Dict[str, float]
     histograms: Dict[str, int]
@@ -211,6 +232,7 @@ class MetricsResponse(BaseModel):
 
 class HistogramSummaryResponse(BaseModel):
     """Response model for histogram summary."""
+
     count: int
     sum: float
     min: float
@@ -224,6 +246,7 @@ class HistogramSummaryResponse(BaseModel):
 # Task Queue Models
 class TaskStatusResponse(BaseModel):
     """Response model for task status."""
+
     task_id: str
     status: str
     created_at: str
@@ -235,6 +258,7 @@ class TaskStatusResponse(BaseModel):
 
 class QueueStatsResponse(BaseModel):
     """Response model for queue statistics."""
+
     pending: int
     running: int
     completed: int
@@ -246,11 +270,13 @@ class QueueStatsResponse(BaseModel):
 # Foundation Models
 class FoundationStateRequest(BaseRequestModel):
     """Request model for foundation state."""
+
     state_data: Dict[str, Any] = Field(..., description="Foundation state data")
 
 
 class FoundationStateResponse(BaseModel):
     """Response model for foundation state."""
+
     workspace_id: str
     state_data: Dict[str, Any]
     updated_at: str
@@ -258,11 +284,13 @@ class FoundationStateResponse(BaseModel):
 
 class BrandKitRequest(BaseRequestModel):
     """Request model for brand kit."""
+
     brand_data: Dict[str, Any] = Field(..., description="Brand kit data")
 
 
 class BrandKitResponse(BaseModel):
     """Response model for brand kit."""
+
     id: str
     workspace_id: str
     brand_data: Dict[str, Any]
@@ -272,11 +300,13 @@ class BrandKitResponse(BaseModel):
 
 class PositioningRequest(BaseRequestModel):
     """Request model for positioning."""
+
     positioning_data: Dict[str, Any] = Field(..., description="Positioning data")
 
 
 class PositioningResponse(BaseModel):
     """Response model for positioning."""
+
     id: str
     workspace_id: str
     positioning_data: Dict[str, Any]
@@ -288,6 +318,7 @@ class PositioningResponse(BaseModel):
 # Blackbox Models
 class BlackboxIdeaResponse(BaseModel):
     """Response model for Blackbox ideas."""
+
     id: str
     title: str
     summary: str
@@ -301,6 +332,7 @@ class BlackboxIdeaResponse(BaseModel):
 
 class BlackboxSimulationResponse(BaseModel):
     """Response model for Blackbox simulations."""
+
     idea_id: str
     simulation_results: Dict[str, Any]
     confidence_score: float
@@ -310,6 +342,7 @@ class BlackboxSimulationResponse(BaseModel):
 # Matrix Models
 class MatrixSignalResponse(BaseModel):
     """Response model for Matrix signals."""
+
     id: str
     signal_type: str
     strength: float
@@ -320,6 +353,7 @@ class MatrixSignalResponse(BaseModel):
 
 class MatrixInsightResponse(BaseModel):
     """Response model for Matrix insights."""
+
     id: str
     insight_text: str
     confidence: float
@@ -331,14 +365,18 @@ class MatrixInsightResponse(BaseModel):
 # Muse Models
 class MuseGenerationRequest(BaseRequestModel):
     """Request model for Muse asset generation."""
+
     prompt: str = Field(..., min_length=5, max_length=1000)
     asset_type: str = Field(..., regex="^(image|text|creative)$")
-    style: Optional[str] = Field("professional", regex="^(professional|casual|bold|minimal)$")
+    style: Optional[str] = Field(
+        "professional", regex="^(professional|casual|bold|minimal)$"
+    )
     count: Optional[int] = Field(1, ge=1, le=5)
 
 
 class MuseAssetResponse(BaseModel):
     """Response model for Muse assets."""
+
     id: str
     content: str
     asset_type: str
@@ -349,6 +387,7 @@ class MuseAssetResponse(BaseModel):
 
 class MuseGenerationResponse(BaseModel):
     """Response model for Muse generation results."""
+
     task_id: str
     status: str
     generated_assets: Optional[List[MuseAssetResponse]] = None
@@ -358,6 +397,7 @@ class MuseGenerationResponse(BaseModel):
 # Radar Models
 class RadarSignalResponse(BaseModel):
     """Response model for Radar signals."""
+
     id: str
     signal_data: Dict[str, Any]
     signal_type: str
@@ -368,6 +408,7 @@ class RadarSignalResponse(BaseModel):
 
 class RadarAlertResponse(BaseModel):
     """Response model for Radar alerts."""
+
     id: str
     alert_type: str
     severity: str
@@ -379,6 +420,7 @@ class RadarAlertResponse(BaseModel):
 # Payment Models
 class PaymentIntentRequest(BaseRequestModel):
     """Request model for payment intent creation."""
+
     amount: int = Field(..., ge=100, description="Amount in cents")
     currency: Optional[str] = Field("usd", regex="^(usd|eur|gbp)$")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
@@ -386,6 +428,7 @@ class PaymentIntentRequest(BaseRequestModel):
 
 class PaymentIntentResponse(BaseModel):
     """Response model for payment intent."""
+
     id: str
     amount: int
     currency: str
@@ -396,6 +439,7 @@ class PaymentIntentResponse(BaseModel):
 
 class SubscriptionResponse(BaseModel):
     """Response model for subscription data."""
+
     id: str
     plan_id: str
     status: str
@@ -407,6 +451,7 @@ class SubscriptionResponse(BaseModel):
 # Feedback Models
 class FeedbackRequest(BaseRequestModel):
     """Request model for user feedback."""
+
     feedback_type: str = Field(..., regex="^(bug|feature|general)$")
     content: str = Field(..., min_length=10, max_length=2000)
     rating: Optional[int] = Field(None, ge=1, le=5)
@@ -415,6 +460,7 @@ class FeedbackRequest(BaseRequestModel):
 
 class FeedbackResponse(BaseModel):
     """Response model for feedback submission."""
+
     id: str
     feedback_type: str
     status: str

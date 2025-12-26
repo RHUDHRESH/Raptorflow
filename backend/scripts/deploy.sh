@@ -58,61 +58,61 @@ validate_environment() {
 # Build Docker image
 build_image() {
     log_info "Building Docker image for $ENVIRONMENT environment..."
-    
+
     if [[ "$ENVIRONMENT" == "production" ]]; then
         docker build -f Dockerfile.production -t $REGISTRY:$VERSION .
     else
         docker build -f Dockerfile -t $REGISTRY:$ENVIRONMENT-$VERSION .
     fi
-    
+
     log_info "Docker image built successfully"
 }
 
 # Push Docker image
 push_image() {
     log_info "Pushing Docker image to registry..."
-    
+
     if [[ "$ENVIRONMENT" == "production" ]]; then
         docker push $REGISTRY:$VERSION
     else
         docker push $REGISTRY:$ENVIRONMENT-$VERSION
     fi
-    
+
     log_info "Docker image pushed successfully"
 }
 
 # Deploy to Kubernetes
 deploy_kubernetes() {
     log_info "Deploying to $ENVIRONMENT environment..."
-    
+
     # Set namespace context
     kubectl config use-context $ENVIRONMENT
-    
+
     # Apply deployment
     if [[ "$ENVIRONMENT" == "production" ]]; then
         kubectl apply -f k8s/production-deployment.yaml -n $NAMESPACE
     else
         kubectl apply -f k8s/staging-deployment.yaml -n $NAMESPACE
     fi
-    
+
     # Wait for deployment to be ready
     log_info "Waiting for deployment to be ready..."
     kubectl rollout status deployment/raptorflow-api-$ENVIRONMENT -n $NAMESPACE --timeout=300s
-    
+
     log_info "Deployment completed successfully"
 }
 
 # Run smoke tests
 run_smoke_tests() {
     log_info "Running smoke tests..."
-    
+
     # Get service URL
     if [[ "$ENVIRONMENT" == "production" ]]; then
         SERVICE_URL="https://api.raptorflow.com"
     else
         SERVICE_URL="https://staging-api.raptorflow.com"
     fi
-    
+
     # Test health endpoint
     if curl -f -s "$SERVICE_URL/health" > /dev/null; then
         log_info "Health check passed"
@@ -120,44 +120,44 @@ run_smoke_tests() {
         log_error "Health check failed"
         exit 1
     fi
-    
+
     # Test metrics endpoint
     if curl -f -s "$SERVICE_URL/metrics" > /dev/null; then
         log_info "Metrics endpoint check passed"
     else
         log_warn "Metrics endpoint check failed (may be expected)"
     fi
-    
+
     log_info "Smoke tests completed successfully"
 }
 
 # Rollback deployment
 rollback() {
     log_warn "Rolling back deployment..."
-    
+
     kubectl rollout undo deployment/raptorflow-api-$ENVIRONMENT -n $NAMESPACE
-    
+
     log_info "Rollback completed"
 }
 
 # Main deployment function
 deploy() {
     log_info "Starting deployment to $ENVIRONMENT environment..."
-    
+
     check_kubectl
     check_docker
     validate_environment
-    
+
     # Build and push image
     build_image
     push_image
-    
+
     # Deploy to Kubernetes
     deploy_kubernetes
-    
+
     # Run smoke tests
     run_smoke_tests
-    
+
     log_info "Deployment to $ENVIRONMENT completed successfully!"
 }
 

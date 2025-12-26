@@ -1,10 +1,16 @@
 import json
 import logging
-from typing import Any, List, Optional
 from datetime import datetime
+from typing import Any, List, Optional
 
 from memory.short_term import L1ShortTermMemory
-from models.swarm import SwarmTask, CompetitorProfile, CompetitorGroup, CompetitorInsight, CompetitorAnalysis
+from models.swarm import (
+    CompetitorAnalysis,
+    CompetitorGroup,
+    CompetitorInsight,
+    CompetitorProfile,
+    SwarmTask,
+)
 
 logger = logging.getLogger("raptorflow.memory.swarm_l1")
 
@@ -104,11 +110,15 @@ class SwarmL1MemoryManager:
                 await self.l1.client.hset(full_key, field, serialized)
                 logger.info(f"Competitor Profile {competitor.id} updated in L1 hash.")
             else:
-                logger.warning("No Redis client available for competitor profile update.")
+                logger.warning(
+                    "No Redis client available for competitor profile update."
+                )
         except Exception as e:
             logger.error(f"Failed to update competitor profile in L1: {e}")
 
-    async def get_competitor_profile(self, competitor_id: str) -> Optional[CompetitorProfile]:
+    async def get_competitor_profile(
+        self, competitor_id: str
+    ) -> Optional[CompetitorProfile]:
         """Retrieves a specific competitor profile."""
         try:
             if not self.l1.client:
@@ -177,7 +187,9 @@ class SwarmL1MemoryManager:
             # Use a list to store insights (as a JSON array in Redis)
             existing_insights = await self.get_all_competitor_insights()
             existing_insights.append(insight)
-            serialized = json.dumps([insight.model_dump() for insight in existing_insights])
+            serialized = json.dumps(
+                [insight.model_dump() for insight in existing_insights]
+            )
             await self.l1.client.set(self.competitor_insights_key, serialized)
             logger.info(f"Competitor Insight {insight.id} added to L1.")
         except Exception as e:
@@ -193,7 +205,10 @@ class SwarmL1MemoryManager:
                 if isinstance(raw, bytes):
                     raw = raw.decode("utf-8")
                 insights_data = json.loads(raw)
-                return [CompetitorInsight.model_validate(insight) for insight in insights_data]
+                return [
+                    CompetitorInsight.model_validate(insight)
+                    for insight in insights_data
+                ]
             return []
         except Exception as e:
             logger.error(f"Failed to retrieve competitor insights from L1: {e}")
@@ -207,7 +222,9 @@ class SwarmL1MemoryManager:
             # Use a list to store analyses
             existing_analyses = await self.get_all_competitor_analyses()
             existing_analyses.append(analysis)
-            serialized = json.dumps([analysis.model_dump() for analysis in existing_analyses])
+            serialized = json.dumps(
+                [analysis.model_dump() for analysis in existing_analyses]
+            )
             await self.l1.client.set(self.competitor_analyses_key, serialized)
             logger.info(f"Competitor Analysis {analysis.id} added to L1.")
         except Exception as e:
@@ -223,7 +240,10 @@ class SwarmL1MemoryManager:
                 if isinstance(raw, bytes):
                     raw = raw.decode("utf-8")
                 analyses_data = json.loads(raw)
-                return [CompetitorAnalysis.model_validate(analysis) for analysis in analyses_data]
+                return [
+                    CompetitorAnalysis.model_validate(analysis)
+                    for analysis in analyses_data
+                ]
             return []
         except Exception as e:
             logger.error(f"Failed to retrieve competitor analyses from L1: {e}")

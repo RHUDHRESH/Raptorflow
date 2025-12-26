@@ -24,7 +24,9 @@ class GlobalRateLimiter:
         """Checks if the request for resource_id is within rate limits."""
         if not self.client:
             # Fail-closed for security - block requests if rate limiter unavailable
-            logger.error("Rate limiter client not available. Blocking requests for security.")
+            logger.error(
+                "Rate limiter client not available. Blocking requests for security."
+            )
             return False
 
         # Simple sliding window using Redis list or sorted set
@@ -54,7 +56,7 @@ class GlobalRateLimiter:
         """Get remaining requests for the current window."""
         if not self.client:
             return None
-        
+
         try:
             now = int(time.time())
             key = f"ratelimit:{resource_id}:{now // self.window}"
@@ -70,7 +72,7 @@ class GlobalRateLimiter:
         """Reset rate limit for a specific resource (admin use)."""
         if not self.client:
             return False
-        
+
         try:
             now = int(time.time())
             key = f"ratelimit:{resource_id}:{now // self.window}"

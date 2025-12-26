@@ -14,4 +14,3 @@ export { OrganicDivider, AnimatedOrganicDivider, LayeredWaveDivider } from './Or
 export { TiltedFeatureCards } from './TiltedFeatureCards';
 export { FloatingStats } from './FloatingStats';
 export { EnhancedFinalCTA } from './EnhancedFinalCTA';
-

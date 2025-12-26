@@ -4,10 +4,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
 from uuid import UUID, uuid4
 
-from memory.consolidated import (
-    MemoryFragment,
-    SwarmMemoryConsolidator,
-)
+from memory.consolidated import MemoryFragment, SwarmMemoryConsolidator
 from models.cognitive import AgentMessage, CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.memory.swarm_coordinator")
@@ -22,7 +19,7 @@ class SwarmMemoryCoordinator:
     def __init__(self, workspace_id: str):
         if not workspace_id or not isinstance(workspace_id, str):
             raise ValueError("workspace_id must be a non-empty string")
-        
+
         self.workspace_id = workspace_id
         self.consolidator = SwarmMemoryConsolidator(workspace_id)
 
@@ -427,7 +424,9 @@ async def hydrate_state_with_swarm_memory(
 
             # Add relevant memories to messages for context
             if context.get("personal_memory"):
-                for fragment in context["personal_memory"][:3]:  # Limit to prevent context overflow
+                for fragment in context["personal_memory"][
+                    :3
+                ]:  # Limit to prevent context overflow
                     memory_message = AgentMessage(
                         role="system",
                         content=f"[Memory from {fragment.agent_id}]: {str(fragment.content)[:200]}...",

@@ -128,7 +128,7 @@ export function EnhancedHero() {
                 <Link href="/login">Get Started Free</Link>
               </Button>
             </MagneticButton>
-            
+
             <MagneticButton strength={0.4}>
               <Button
                 asChild

@@ -9,7 +9,6 @@ from core.cache import get_cache_client
 from core.config import get_settings
 from core.vault import get_vault
 
-
 DEFAULT_MAX_AGE_SECONDS = 900
 DEFAULT_ENTRY_TTL_SECONDS = 86400
 
@@ -104,7 +103,9 @@ class CrawlCache:
             if result.data:
                 entry = result.data[0].get("payload")
 
-        return CacheLookup(entry=entry, is_fresh=_is_fresh(entry, max_age_seconds) if entry else False)
+        return CacheLookup(
+            entry=entry, is_fresh=_is_fresh(entry, max_age_seconds) if entry else False
+        )
 
     def set(
         self,

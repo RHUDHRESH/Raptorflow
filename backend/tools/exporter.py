@@ -96,13 +96,14 @@ class ParquetExporter:
 
         # Import pyarrow with dependency management
         from core.dependencies import get_data_dependencies
+
         data_deps = get_data_dependencies()
         pa = data_deps.import_pyarrow()
-        
+
         if pa is None:
             logger.error("pyarrow not installed. Parquet export failed.")
             return False
-        
+
         try:
             import pyarrow.parquet as pq
 

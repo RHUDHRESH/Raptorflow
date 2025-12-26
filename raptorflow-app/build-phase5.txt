@@ -10,28 +10,28 @@
   Running TypeScript ...
   Collecting page data using 11 workers ...
   Generating static pages using 11 workers (0/46) ...
-node.exe : (node:8868) Warning: 
-`--localstorage-file` was provided without a valid 
+node.exe : (node:8868) Warning:
+`--localstorage-file` was provided without a valid
 path
 At line:1 char:1
-+ & "C:\Program Files\nodejs/node.exe" "C:\Program 
++ & "C:\Program Files\nodejs/node.exe" "C:\Program
 Files\nodejs/node_mo ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: ((nod    
-e:8868) War...ut a valid path:String) [], Rem    
+    + CategoryInfo          : NotSpecified: ((nod
+e:8868) War...ut a valid path:String) [], Rem
 oteException
     + FullyQualifiedErrorId : NativeCommandError
- 
-(Use `node --trace-warnings ...` to show where the 
+
+(Use `node --trace-warnings ...` to show where the
 warning was created)
-  Generating static pages using 11 workers (11/46) 
-(node:8200) Warning: `--localstorage-file` was 
+  Generating static pages using 11 workers (11/46)
+(node:8200) Warning: `--localstorage-file` was
 provided without a valid path
-(Use `node --trace-warnings ...` to show where the 
+(Use `node --trace-warnings ...` to show where the
 warning was created)
-  Generating static pages using 11 workers (22/46) 
-  Generating static pages using 11 workers (34/46) 
+  Generating static pages using 11 workers (22/46)
+  Generating static pages using 11 workers (34/46)
 Γ£ô Generating static pages using 11 workers (46/46) in 3.0s
   Finalizing page optimization ...
 
@@ -87,4 +87,3 @@ Route (app)
 
 Γùï  (Static)   prerendered as static content
 ╞Æ  (Dynamic)  server-rendered on demand
-

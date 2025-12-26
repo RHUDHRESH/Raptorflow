@@ -59,7 +59,7 @@ export function AbstractArtwork({
             }
             transition={{ duration: 2.5, ease: 'easeInOut', delay: 0.2 }}
           />
-          
+
           {/* Geometric shapes */}
           <motion.polygon
             points="400,200 500,400 400,600 300,400"
@@ -70,7 +70,7 @@ export function AbstractArtwork({
             animate={animate ? { opacity: 0.3, scale: 1 } : undefined}
             transition={{ duration: 1, delay: 0.5 }}
           />
-          
+
           <motion.rect
             x="250"
             y="250"
@@ -117,7 +117,7 @@ export function AbstractArtwork({
             animate={animate ? { pathLength: 1 } : undefined}
             transition={{ duration: 3, ease: 'easeInOut', delay: 0.3 }}
           />
-          
+
           {/* Organic blobs */}
           <motion.ellipse
             cx="300"

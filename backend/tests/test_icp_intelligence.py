@@ -2,11 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from agents.specialists.icp_architect import (
-    ICPArchitectAgent,
-    ICPOutput,
-    ICPPersona,
-)
+from agents.specialists.icp_architect import ICPArchitectAgent, ICPOutput, ICPPersona
 from models.cognitive import AgentMessage
 
 

@@ -1,10 +1,11 @@
 import asyncio
-import pytest
 import json
 import logging
-from typing import Dict, Any, Optional, List
-from datetime import datetime, timedelta
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+import pytest
 
 logger = logging.getLogger("raptorflow.testing.config")
 
@@ -12,35 +13,35 @@ logger = logging.getLogger("raptorflow.testing.config")
 @dataclass
 class TestConfiguration:
     """Test configuration for all test types."""
-    
+
     # General settings
     test_environment: str = "testing"
     base_url: str = "http://localhost:8000"
     database_url: str = "sqlite:///test.db"
     redis_url: str = "redis://localhost:6379/1"
-    
+
     # Test execution settings
     timeout: int = 30
     max_retries: int = 3
     parallel_tests: bool = True
     cleanup_after_test: bool = True
     generate_reports: bool = True
-    
+
     # Unit test settings
     unit_test_timeout: int = 10
     unit_test_retries: int = 1
-    
+
     # Integration test settings
     integration_test_timeout: int = 30
     integration_test_retries: int = 2
-    
+
     # Load test settings
     load_test_concurrent_users: int = 100
     load_test_ramp_up_time: int = 60
     load_test_duration: int = 300
     load_test_requests_per_second: int = 50
     load_test_endpoints: List[str] = None
-    
+
     # Security test settings
     security_test_sql_injection: bool = True
     security_test_xss: bool = True
@@ -48,46 +49,46 @@ class TestConfiguration:
     security_test_rate_limiting: bool = True
     security_test_input_validation: bool = True
     security_test_authorization: bool = True
-    
+
     # Report settings
     report_format: str = "json"  # json, html, xml
     report_include_details: bool = True
     report_include_recommendations: bool = True
-    
+
     def __post_init__(self):
         if self.load_test_endpoints is None:
             self.load_test_endpoints = [
                 "/health",
-                "/metrics", 
+                "/metrics",
                 "/api/v1/campaigns",
                 "/api/v1/moves",
-                "/api/v1/users"
+                "/api/v1/users",
             ]
 
 
 class TestConfigManager:
     """Test configuration manager."""
-    
+
     def __init__(self):
         self.config = TestConfiguration()
         self.config_file = "test_config.json"
-    
+
     def load_config(self, config_file: str = None) -> TestConfiguration:
         """Load configuration from file."""
         file_path = config_file or self.config_file
-        
+
         try:
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 config_data = json.load(f)
-            
+
             # Update configuration with loaded data
             for key, value in config_data.items():
                 if hasattr(self.config, key):
                     setattr(self.config, key, value)
-            
+
             logger.info(f"Configuration loaded from {file_path}")
             return self.config
-            
+
         except FileNotFoundError:
             logger.warning(f"Config file {file_path} not found, using defaults")
             return self.config
@@ -97,11 +98,11 @@ class TestConfigManager:
         except Exception as e:
             logger.error(f"Error loading config: {e}")
             return self.config
-    
+
     def save_config(self, config_file: str = None):
         """Save configuration to file."""
         file_path = config_file or self.config_file
-        
+
         try:
             config_data = {
                 "test_environment": self.config.test_environment,
@@ -130,14 +131,14 @@ class TestConfigManager:
                 "security_test_authorization": self.config.security_test_authorization,
                 "report_format": self.config.report_format,
                 "report_include_details": self.config.report_include_details,
-                "report_include_recommendations": self.config.report_include_recommendations
+                "report_include_recommendations": self.config.report_include_recommendations,
             }
-            
-            with open(file_path, 'w') as f:
+
+            with open(file_path, "w") as f:
                 json.dump(config_data, f, indent=2)
-            
+
             logger.info(f"Configuration saved to {file_path}")
-            
+
         except Exception as e:
             logger.error(f"Error saving config: {e}")
 

@@ -470,7 +470,11 @@ from pydantic import BaseModel, Field
 
 from agents.router import IntentRouterAgent
 from inference import InferenceProvider
-from memory.swarm_coordinator import get_swarm_memory_coordinator, hydrate_state_with_swarm_memory, record_agent_execution
+from memory.swarm_coordinator import (
+    get_swarm_memory_coordinator,
+    hydrate_state_with_swarm_memory,
+    record_agent_execution,
+)
 from models.cognitive import (
     AgentMessage,
     CognitiveIntelligenceState,
@@ -675,7 +679,7 @@ class SwarmOrchestrator:
         state.setdefault("delegation_history", [])
         state.setdefault("shared_knowledge", {})
         state.setdefault("swarm_tasks", [])
-        
+
         # Initialize competitor tracking
         state.setdefault("competitor_profiles", {})
         state.setdefault("competitor_groups", {})

@@ -6,19 +6,6 @@ from fastapi import FastAPI, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-# Core imports
-from core.config import get_settings
-from core.exceptions import RaptorFlowError
-from core.middleware import (
-    CorrelationIDMiddleware,
-    RateLimitMiddleware,
-    RequestLoggingMiddleware,
-)
-from utils.logging_config import setup_logging
-
-# Database imports
-from db import close_pool
-
 # API router imports
 from api.v1.assets import router as assets_router
 from api.v1.blackbox_learning import router as blackbox_learning_router
@@ -34,30 +21,50 @@ from api.v1.muse import router as muse_router
 from api.v1.payments import router as payments_router
 from api.v1.radar import router as radar_router
 from api.v1.radar_analytics import router as radar_analytics_router
-from api.v1.radar_scheduler import router as radar_scheduler_router
 from api.v1.radar_notifications import router as radar_notifications_router
+from api.v1.radar_scheduler import router as radar_scheduler_router
+
+# Core imports
+from core.config import get_settings
+from core.exceptions import RaptorFlowError
+from core.middleware import (
+    CorrelationIDMiddleware,
+    RateLimitMiddleware,
+    RequestLoggingMiddleware,
+)
+
+# Database imports
+from db import close_pool
+from utils.logging_config import setup_logging
 
 # Initialize logging first
 setup_logging()
 import logging
+
 logger = logging.getLogger("raptorflow.main")
 
 # Validate environment variables
 from core.env_validator import validate_environment
+
 if not validate_environment():
     logger.error("Environment validation failed. Please check your configuration.")
     sys.exit(1)
 
+from core.advanced_ratelimit import (
+    RateLimitMiddleware,
+    start_advanced_rate_limiting,
+    stop_advanced_rate_limiting,
+)
+from core.compression import CompressionMiddleware
+from core.db_monitor import start_pool_monitoring, stop_pool_monitoring
+from core.degradation import start_degradation_monitoring, stop_degradation_monitoring
+from core.metrics import MetricsMiddleware, start_metrics, stop_metrics
+from core.security import SecurityHeadersMiddleware
+
 # Import task queue
 from core.tasks import start_task_queue, stop_task_queue
-from core.metrics import start_metrics, stop_metrics, MetricsMiddleware
-from core.versioning import get_version_manager, VersionMiddleware
-from core.tracing import start_tracing, stop_tracing, TracingMiddleware
-from core.degradation import start_degradation_monitoring, stop_degradation_monitoring
-from core.advanced_ratelimit import start_advanced_rate_limiting, stop_advanced_rate_limiting, RateLimitMiddleware
-from core.db_monitor import start_pool_monitoring, stop_pool_monitoring
-from core.compression import CompressionMiddleware
-from core.security import SecurityHeadersMiddleware
+from core.tracing import TracingMiddleware, start_tracing, stop_tracing
+from core.versioning import VersionMiddleware, get_version_manager
 
 app = FastAPI(
     title="RaptorFlow API",
@@ -76,6 +83,7 @@ app = FastAPI(
     },
 )
 
+
 # Graceful shutdown handler
 async def shutdown():
     """Cleanup resources on shutdown."""
@@ -91,14 +99,17 @@ async def shutdown():
     except Exception as e:
         print(f"Error during shutdown: {e}")
 
+
 def signal_handler(signum, frame):
     """Handle shutdown signals."""
     print(f"Received signal {signum}, shutting down...")
     sys.exit(0)
 
+
 # Register signal handlers
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -108,12 +119,13 @@ async def startup_event():
     await start_tracing()
     await start_degradation_monitoring()
     await start_advanced_rate_limiting()
-    
+
     # Start database pool monitoring
     from db import get_pool
+
     pool = get_pool()
     await start_pool_monitoring(pool)
-    
+
     logger.info("RaptorFlow backend started successfully")
 
 
@@ -121,6 +133,7 @@ async def startup_event():
 async def shutdown_event():
     """FastAPI shutdown event."""
     await shutdown()
+
 
 # CORS Configuration
 origins = [
@@ -227,9 +240,11 @@ async def health_check(
         # Check Supabase Auth
         try:
             from core.secrets import get_secret
+
             supabase_url = get_secret("SUPABASE_URL")
             if supabase_url:
                 import httpx
+
                 async with httpx.AsyncClient(timeout=5.0) as client:
                     response = await client.get(f"{supabase_url}/auth/v1/settings")
                     if response.status_code == 200:
@@ -245,6 +260,7 @@ async def health_check(
         # Check GCP Secret Manager
         try:
             from core.secrets import get_secret
+
             test_secret = get_secret("TEST_SECRET")
             health_status["components"]["gcp_secrets"] = "up"
         except Exception as e:
@@ -254,9 +270,12 @@ async def health_check(
         # Check Rate Limiter
         try:
             from services.rate_limiter import GlobalRateLimiter
+
             limiter = GlobalRateLimiter()
             test_result = await limiter.is_allowed("health_check_test")
-            health_status["components"]["rate_limiter"] = "up" if test_result else "degraded"
+            health_status["components"]["rate_limiter"] = (
+                "up" if test_result else "degraded"
+            )
         except Exception as e:
             health_status["components"]["rate_limiter"] = f"down: {str(e)}"
             is_degraded = True

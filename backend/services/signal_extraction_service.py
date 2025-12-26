@@ -1,6 +1,7 @@
 """
 Signal Extraction Service - Extracts meaningful signals from scraped content
 """
+
 import hashlib
 import logging
 import re
@@ -8,8 +9,8 @@ from datetime import datetime, timedelta
 from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional, Tuple
 
-from core.crawler_advanced import AdvancedCrawler
 from core.crawl_cache import content_hash, normalize_url
+from core.crawler_advanced import AdvancedCrawler
 from inference import InferenceProvider
 from models.radar_models import (
     Evidence,
@@ -32,7 +33,7 @@ class SignalExtractionService:
     def __init__(self):
         self.crawler = AdvancedCrawler()
         self.llm = InferenceProvider.get_model(model_tier="reasoning")
-        
+
         # Enhanced signal pattern matching with more sophisticated regex
         self.signal_patterns = {
             SignalCategory.OFFER: [
@@ -107,10 +108,10 @@ class SignalExtractionService:
         }
 
     async def extract_signals_from_source(
-        self, 
-        source_url: str, 
+        self,
+        source_url: str,
         previous_content: Optional[str] = None,
-        tenant_id: str = "default"
+        tenant_id: str = "default",
     ) -> List[Signal]:
         """
         Extract signals from a source URL, comparing with previous content if available.
@@ -124,7 +125,7 @@ class SignalExtractionService:
 
             current_content = scrape_result.get("content", "")
             current_title = scrape_result.get("title", "")
-            
+
             # Generate evidence
             evidence = Evidence(
                 type=EvidenceType.URL,
@@ -135,8 +136,8 @@ class SignalExtractionService:
                 metadata={
                     "title": current_title,
                     "scrape_source": scrape_result.get("source", "unknown"),
-                    "content_length": len(current_content)
-                }
+                    "content_length": len(current_content),
+                },
             )
 
             # Extract signals based on content analysis
@@ -164,20 +165,20 @@ class SignalExtractionService:
         new_content: str,
         source_url: str,
         evidence: Evidence,
-        tenant_id: str
+        tenant_id: str,
     ) -> List[Signal]:
         """Extract signals based on content changes."""
         signals = []
 
         # Calculate content similarity
         similarity = SequenceMatcher(None, old_content, new_content).ratio()
-        
+
         if similarity > 0.95:  # Very similar, likely no meaningful changes
             return signals
 
         # Find significant changes
         changes = self._detect_content_changes(old_content, new_content)
-        
+
         for change_type, changed_content in changes:
             # Categorize the change
             category = self._categorize_content(changed_content)
@@ -188,18 +189,14 @@ class SignalExtractionService:
             signal = await self._create_signal_from_content(
                 changed_content, category, source_url, evidence, tenant_id
             )
-            
+
             if signal:
                 signals.append(signal)
 
         return signals
 
     async def _extract_content_signals(
-        self,
-        content: str,
-        source_url: str,
-        evidence: Evidence,
-        tenant_id: str
+        self, content: str, source_url: str, evidence: Evidence, tenant_id: str
     ) -> List[Signal]:
         """Extract signals from full content analysis."""
         signals = []
@@ -207,15 +204,15 @@ class SignalExtractionService:
         # Use LLM to identify potential signals
         prompt = f"""
         Analyze this web content for competitive intelligence signals:
-        
+
         Content: {content[:2000]}
-        
+
         Identify 3-5 significant signals that would be valuable for competitive analysis.
         For each signal, provide:
         1. Category (offer/hook/proof/cta/objection/trend)
         2. Brief description
         3. Why it matters
-        
+
         Return as JSON list:
         [
             {{
@@ -229,12 +226,12 @@ class SignalExtractionService:
         try:
             response = await self.llm.ainvoke(prompt)
             llm_signals = self._parse_llm_response(response.content)
-            
+
             for signal_data in llm_signals:
                 category = SignalCategory(signal_data.get("category", "trend"))
                 description = signal_data.get("description", "")
                 significance = signal_data.get("significance", "")
-                
+
                 signal = Signal(
                     tenant_id=tenant_id,
                     category=category,
@@ -244,65 +241,77 @@ class SignalExtractionService:
                     freshness=self._calculate_freshness(),
                     evidence=[evidence],
                     action_suggestion=significance,
-                    source_url=source_url
+                    source_url=source_url,
                 )
                 signals.append(signal)
 
         except Exception as e:
             logger.error(f"LLM signal extraction failed: {e}")
             # Fallback to pattern matching
-            signals = self._extract_pattern_signals(content, source_url, evidence, tenant_id)
+            signals = self._extract_pattern_signals(
+                content, source_url, evidence, tenant_id
+            )
 
         return signals
 
-    def _detect_content_changes(self, old_content: str, new_content: str) -> List[Tuple[str, str]]:
+    def _detect_content_changes(
+        self, old_content: str, new_content: str
+    ) -> List[Tuple[str, str]]:
         """Detect and categorize content changes."""
         changes = []
-        
+
         # Split content into sections for comparison
         old_sections = self._split_content(old_content)
         new_sections = self._split_content(new_content)
-        
+
         # Find added/modified sections
         for section in new_sections:
             if section not in old_sections:
                 # New content detected
-                if any(pattern in section.lower() for patterns in self.signal_patterns.values() for pattern in patterns):
+                if any(
+                    pattern in section.lower()
+                    for patterns in self.signal_patterns.values()
+                    for pattern in patterns
+                ):
                     changes.append(("new_content", section))
-        
+
         # Find removed sections
         for section in old_sections:
             if section not in new_sections:
                 # Removed content detected
-                if any(pattern in section.lower() for patterns in self.signal_patterns.values() for pattern in patterns):
+                if any(
+                    pattern in section.lower()
+                    for patterns in self.signal_patterns.values()
+                    for pattern in patterns
+                ):
                     changes.append(("removed_content", section))
-        
+
         return changes
 
     def _split_content(self, content: str) -> List[str]:
         """Split content into meaningful sections."""
         # Split by paragraphs and major headings
         sections = []
-        
+
         # Split by double newlines (paragraphs)
-        paragraphs = content.split('\n\n')
-        
+        paragraphs = content.split("\n\n")
+
         for paragraph in paragraphs:
             paragraph = paragraph.strip()
             if len(paragraph) > 50:  # Only keep substantial paragraphs
                 sections.append(paragraph)
-        
+
         return sections
 
     def _categorize_content(self, content: str) -> Optional[SignalCategory]:
         """Categorize content based on pattern matching."""
         content_lower = content.lower()
-        
+
         for category, patterns in self.signal_patterns.items():
             for pattern in patterns:
                 if re.search(pattern, content_lower):
                     return category
-        
+
         return None
 
     async def _create_signal_from_content(
@@ -311,23 +320,23 @@ class SignalExtractionService:
         category: SignalCategory,
         source_url: str,
         evidence: Evidence,
-        tenant_id: str
+        tenant_id: str,
     ) -> Optional[Signal]:
         """Create a signal from content."""
         try:
             # Generate action suggestion using LLM
             prompt = f"""
             Analyze this competitive signal and suggest an action:
-            
+
             Signal: {content}
             Category: {category.value}
-            
+
             Suggest a specific, actionable response (max 50 words).
             """
-            
+
             response = await self.llm.ainvoke(prompt)
             action_suggestion = response.content.strip()[:200]
-            
+
             signal = Signal(
                 tenant_id=tenant_id,
                 category=category,
@@ -337,9 +346,9 @@ class SignalExtractionService:
                 freshness=self._calculate_freshness(),
                 evidence=[evidence],
                 action_suggestion=action_suggestion,
-                source_url=source_url
+                source_url=source_url,
             )
-            
+
             return signal
 
         except Exception as e:
@@ -347,25 +356,21 @@ class SignalExtractionService:
             return None
 
     def _extract_pattern_signals(
-        self,
-        content: str,
-        source_url: str,
-        evidence: Evidence,
-        tenant_id: str
+        self, content: str, source_url: str, evidence: Evidence, tenant_id: str
     ) -> List[Signal]:
         """Fallback pattern-based signal extraction."""
         signals = []
-        
+
         for category, patterns in self.signal_patterns.items():
             for pattern in patterns:
                 matches = re.finditer(pattern, content, re.IGNORECASE)
-                
+
                 for match in matches:
                     # Extract context around the match
                     start = max(0, match.start() - 100)
                     end = min(len(content), match.end() + 100)
                     context = content[start:end].strip()
-                    
+
                     signal = Signal(
                         tenant_id=tenant_id,
                         category=category,
@@ -374,32 +379,29 @@ class SignalExtractionService:
                         strength=self._calculate_strength(context, 1, 0.6),
                         freshness=self._calculate_freshness(),
                         evidence=[evidence],
-                        source_url=source_url
+                        source_url=source_url,
                     )
                     signals.append(signal)
-        
+
         return signals
 
     def _calculate_strength(
-        self, 
-        content: str, 
-        evidence_count: int, 
-        confidence: float
+        self, content: str, evidence_count: int, confidence: float
     ) -> SignalStrength:
         """Calculate signal strength based on evidence and confidence."""
         # Evidence weight (max 0.6)
         evidence_weight = min(evidence_count * 0.2, 0.6)
-        
+
         # Confidence weight (max 0.4)
         confidence_weight = confidence * 0.4
-        
+
         # Content quality factors
         content_length = len(content)
         length_weight = min(content_length / 1000, 0.2)
-        
+
         # Calculate total score
         total_score = evidence_weight + confidence_weight + length_weight
-        
+
         if total_score >= 0.7:
             return SignalStrength.HIGH
         elif total_score >= 0.4:
@@ -407,13 +409,15 @@ class SignalExtractionService:
         else:
             return SignalStrength.LOW
 
-    def _calculate_freshness(self, created_at: Optional[datetime] = None) -> SignalFreshness:
+    def _calculate_freshness(
+        self, created_at: Optional[datetime] = None
+    ) -> SignalFreshness:
         """Calculate signal freshness based on age."""
         if created_at is None:
             created_at = datetime.utcnow()
-        
+
         age = datetime.utcnow() - created_at
-        
+
         if age.days <= 7:
             return SignalFreshness.FRESH
         elif age.days <= 30:
@@ -425,7 +429,7 @@ class SignalExtractionService:
         """Parse LLM response for signal data."""
         try:
             import json
-            
+
             # Extract JSON from response
             if "```json" in response:
                 json_str = response.split("```json")[1].split("```")[0]
@@ -433,9 +437,9 @@ class SignalExtractionService:
                 json_str = response.split("```")[1].split("```")[0]
             else:
                 json_str = response
-            
+
             return json.loads(json_str)
-            
+
         except Exception as e:
             logger.error(f"Failed to parse LLM response: {e}")
             return []

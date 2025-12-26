@@ -1,11 +1,7 @@
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from agents.strategists import (
-    BrandVoiceAligner,
-    CampaignArcDesigner,
-    KPIDefiner,
-)
+from agents.strategists import BrandVoiceAligner, CampaignArcDesigner, KPIDefiner
 
 
 async def verify():

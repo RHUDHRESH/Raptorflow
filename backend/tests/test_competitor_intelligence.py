@@ -1,32 +1,39 @@
-import pytest
 import asyncio
-from datetime import datetime, timedelta
-from unittest.mock import Mock, AsyncMock, patch
 import uuid
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, Mock, patch
 
-from models.swarm import (
-    SwarmState,
-    CompetitorProfile,
-    CompetitorGroup,
-    CompetitorInsight,
-    CompetitorAnalysis,
-    CompetitorType,
-    CompetitorThreatLevel,
-    SwarmTask,
-    SwarmTaskStatus,
-)
-from agents.specialists.swarm_competitor_intelligence import SwarmCompetitorIntelligenceAgent
-from memory.swarm_l1 import SwarmL1MemoryManager
-from services.competitor_monitoring import CompetitorMonitoringService, CompetitorAnalysisService, MonitoringFrequency
-from nodes.competitor_intelligence import CompetitorIntelligenceNode
+import pytest
+
 from agents.specialists.competitor_intelligence import (
     CompetitorIntelligenceAgent,
     CompetitorMapOutput,
+)
+from agents.specialists.competitor_intelligence import (
     CompetitorProfile as OldCompetitorProfile,
 )
+from agents.specialists.swarm_competitor_intelligence import (
+    SwarmCompetitorIntelligenceAgent,
+)
+from memory.swarm_l1 import SwarmL1MemoryManager
 from models.cognitive import AgentMessage
-
-
+from models.swarm import (
+    CompetitorAnalysis,
+    CompetitorGroup,
+    CompetitorInsight,
+    CompetitorProfile,
+    CompetitorThreatLevel,
+    CompetitorType,
+    SwarmState,
+    SwarmTask,
+    SwarmTaskStatus,
+)
+from nodes.competitor_intelligence import CompetitorIntelligenceNode
+from services.competitor_monitoring import (
+    CompetitorAnalysisService,
+    CompetitorMonitoringService,
+    MonitoringFrequency,
+)
 
 
 # Legacy test for backward compatibility
@@ -87,9 +94,9 @@ class TestCompetitorModels:
             pricing_model="subscription",
             strengths=["strong brand", "good product"],
             weaknesses=["poor support", "high price"],
-            confidence_score=0.8
+            confidence_score=0.8,
         )
-        
+
         assert profile.id == "comp_1"
         assert profile.name == "Test Competitor"
         assert profile.competitor_type == CompetitorType.DIRECT
@@ -106,9 +113,9 @@ class TestCompetitorModels:
             description="Group of direct competitors",
             competitor_ids=["comp_1", "comp_2"],
             common_characteristics=["similar pricing", "same market segment"],
-            market_segment="enterprise"
+            market_segment="enterprise",
         )
-        
+
         assert group.id == "group_1"
         assert group.name == "Direct Competitors"
         assert len(group.competitor_ids) == 2
@@ -125,9 +132,9 @@ class TestCompetitorModels:
             impact_assessment="medium",
             confidence=0.9,
             source="web_scraping",
-            tags=["pricing", "increase"]
+            tags=["pricing", "increase"],
         )
-        
+
         assert insight.id == "insight_1"
         assert insight.competitor_id == "comp_1"
         assert insight.insight_type == "pricing_change"
@@ -143,9 +150,9 @@ class TestCompetitorModels:
             key_findings=["finding1", "finding2"],
             recommendations=["recommendation1"],
             threat_level=CompetitorThreatLevel.HIGH,
-            confidence_score=0.85
+            confidence_score=0.85,
         )
-        
+
         assert analysis.id == "analysis_1"
         assert analysis.analysis_type == "swot"
         assert len(analysis.competitor_ids) == 2
@@ -160,14 +167,14 @@ class TestCompetitorModels:
                     id="comp_1",
                     name="Test Competitor",
                     competitor_type=CompetitorType.DIRECT,
-                    threat_level=CompetitorThreatLevel.MEDIUM
+                    threat_level=CompetitorThreatLevel.MEDIUM,
                 )
             },
             competitor_groups={
                 "group_1": CompetitorGroup(
                     id="group_1",
                     name="Test Group",
-                    description="Test group description"
+                    description="Test group description",
                 )
             },
             competitor_insights=[
@@ -176,13 +183,13 @@ class TestCompetitorModels:
                     competitor_id="comp_1",
                     insight_type="general",
                     title="Test Insight",
-                    description="Test description"
+                    description="Test description",
                 )
             ],
             active_competitor_watchlist=["comp_1"],
-            competitive_landscape_summary="Test summary"
+            competitive_landscape_summary="Test summary",
         )
-        
+
         assert len(state.competitor_profiles) == 1
         assert len(state.competitor_groups) == 1
         assert len(state.competitor_insights) == 1
@@ -203,27 +210,30 @@ class TestSwarmCompetitorIntelligenceAgent:
         """Create a sample swarm state."""
         return SwarmState(
             shared_knowledge={"objective": "Analyze competitive landscape"},
-            competitive_landscape_summary="Current market has 3 main competitors"
+            competitive_landscape_summary="Current market has 3 main competitors",
         )
 
     @pytest.mark.asyncio
     async def test_discover_competitors(self, agent, sample_state):
         """Test competitor discovery operation."""
-        with patch.object(agent, '_call_llm') as mock_llm:
+        with patch.object(agent, "_call_llm") as mock_llm:
             # Mock LLM response
-            from agents.specialists.swarm_competitor_intelligence import CompetitorResearchOutput
+            from agents.specialists.swarm_competitor_intelligence import (
+                CompetitorResearchOutput,
+            )
+
             mock_response = CompetitorResearchOutput(
                 discovered_competitors=[],
                 market_insights=["Market is growing", "Competition is intense"],
                 competitive_gaps=["No AI features", "Poor mobile experience"],
                 recommendations=["Focus on AI", "Improve mobile"],
                 confidence_score=0.8,
-                research_summary="Discovered 5 new competitors"
+                research_summary="Discovered 5 new competitors",
             )
             mock_llm.return_value = mock_response
-            
+
             result = await agent.discover_competitors(sample_state)
-            
+
             assert "discovered_competitors" in result
             assert "market_insights" in result
             assert "competitive_gaps" in result
@@ -239,31 +249,34 @@ class TestSwarmCompetitorIntelligenceAgent:
             id="comp_1",
             name="Test Competitor",
             competitor_type=CompetitorType.DIRECT,
-            threat_level=CompetitorThreatLevel.MEDIUM
+            threat_level=CompetitorThreatLevel.MEDIUM,
         )
         sample_state.competitor_profiles = {"comp_1": competitor}
-        
-        with patch.object(agent, '_call_llm') as mock_llm:
+
+        with patch.object(agent, "_call_llm") as mock_llm:
             # Mock LLM response
-            from agents.specialists.swarm_competitor_intelligence import CompetitorAnalysisOutput
+            from agents.specialists.swarm_competitor_intelligence import (
+                CompetitorAnalysisOutput,
+            )
+
             mock_response = CompetitorAnalysisOutput(
                 analysis_type="swot",
                 swot_analysis={
                     "strengths": ["Strong brand"],
                     "weaknesses": ["High price"],
                     "opportunities": ["New markets"],
-                    "threats": ["New competitors"]
+                    "threats": ["New competitors"],
                 },
                 competitive_positioning="Strong market position",
                 threat_assessment=CompetitorThreatLevel.MEDIUM,
                 strategic_recommendations=["Lower prices", "Expand to new markets"],
                 market_opportunities=["Emerging markets"],
-                confidence_score=0.75
+                confidence_score=0.75,
             )
             mock_llm.return_value = mock_response
-            
+
             result = await agent.analyze_competitors(sample_state, ["comp_1"])
-            
+
             assert "analysis" in result
             assert "swot_analysis" in result
             assert "competitive_positioning" in result
@@ -281,11 +294,11 @@ class TestSwarmCompetitorIntelligenceAgent:
             "impact_assessment": "high",
             "confidence": 0.9,
             "source": "web_monitoring",
-            "tags": ["pricing", "increase"]
+            "tags": ["pricing", "increase"],
         }
-        
+
         result = await agent.track_competitor_insights(sample_state, insight_data)
-        
+
         assert "insight" in result
         assert "updated_state" in result
         assert result["status"] == "tracked"
@@ -305,24 +318,24 @@ class TestCompetitorIntelligenceNode:
         """Create a sample swarm state."""
         return SwarmState(
             instructions="Discover new competitors in the market",
-            shared_knowledge={"objective": "Competitive analysis"}
+            shared_knowledge={"objective": "Competitive analysis"},
         )
 
     @pytest.mark.asyncio
     async def test_handle_discovery(self, node, sample_state):
         """Test handling competitor discovery."""
-        with patch.object(node.agent, 'discover_competitors') as mock_discover:
+        with patch.object(node.agent, "discover_competitors") as mock_discover:
             mock_discover.return_value = {
                 "discovered_competitors": [],
                 "market_insights": ["Market is growing"],
                 "competitive_gaps": ["No AI features"],
                 "recommendations": ["Add AI features"],
                 "confidence_score": 0.8,
-                "updated_state": sample_state
+                "updated_state": sample_state,
             }
-            
+
             result = await node._handle_discovery(sample_state)
-            
+
             assert "analysis_summary" in result
             assert "discovered_competitors" in result
             assert "market_insights" in result
@@ -334,17 +347,16 @@ class TestCompetitorIntelligenceNode:
         state = SwarmState(target_competitors=["comp_1", "comp_2"])
         result = node._extract_target_competitors(state)
         assert result == ["comp_1", "comp_2"]
-        
+
         # Test with @mentions in instructions
         state = SwarmState(instructions="Analyze @comp_1 and @comp_3")
         result = node._extract_target_competitors(state)
         assert "comp_1" in result
         assert "comp_3" in result
-        
+
         # Test with both
         state = SwarmState(
-            target_competitors=["comp_1"],
-            instructions="Also analyze @comp_2"
+            target_competitors=["comp_1"], instructions="Also analyze @comp_2"
         )
         result = node._extract_target_competitors(state)
         assert "comp_1" in result
