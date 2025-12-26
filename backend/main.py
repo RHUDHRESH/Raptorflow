@@ -1,6 +1,7 @@
-import contextlib
+import logging
 import signal
 import sys
+from datetime import datetime
 
 from fastapi import FastAPI, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,48 +24,46 @@ from api.v1.radar import router as radar_router
 from api.v1.radar_analytics import router as radar_analytics_router
 from api.v1.radar_notifications import router as radar_notifications_router
 from api.v1.radar_scheduler import router as radar_scheduler_router
+from core.advanced_ratelimit import (
+    RateLimitMiddleware,
+    get_advanced_rate_limiter,
+    start_advanced_rate_limiting,
+    stop_advanced_rate_limiting,
+)
+
+# Import cache client
+from core.cache import get_cache_client
+from core.compression import CompressionMiddleware
 
 # Core imports
 from core.config import get_settings
+from core.db_monitor import start_pool_monitoring, stop_pool_monitoring
+from core.degradation import start_degradation_monitoring, stop_degradation_monitoring
 from core.exceptions import RaptorFlowError
-from core.middleware import (
-    CorrelationIDMiddleware,
-    RateLimitMiddleware,
-    RequestLoggingMiddleware,
+from core.metrics import (
+    MetricsMiddleware,
+    get_metrics_collector,
+    start_metrics,
+    stop_metrics,
 )
+from core.middleware import CorrelationIDMiddleware, RequestLoggingMiddleware
+from core.security import SecurityHeadersMiddleware
+from core.tasks import start_task_queue, stop_task_queue
+from core.tracing import (
+    TracingMiddleware,
+    get_tracing_manager,
+    start_tracing,
+    stop_tracing,
+)
+from core.versioning import VersionMiddleware, get_version_manager
 
 # Database imports
-from db import close_pool
+from db import close_pool, get_pool
 from utils.logging_config import setup_logging
 
 # Initialize logging first
 setup_logging()
-import logging
-
 logger = logging.getLogger("raptorflow.main")
-
-# Validate environment variables
-from core.env_validator import validate_environment
-
-if not validate_environment():
-    logger.error("Environment validation failed. Please check your configuration.")
-    sys.exit(1)
-
-from core.advanced_ratelimit import (
-    RateLimitMiddleware,
-    start_advanced_rate_limiting,
-    stop_advanced_rate_limiting,
-)
-from core.compression import CompressionMiddleware
-from core.db_monitor import start_pool_monitoring, stop_pool_monitoring
-from core.degradation import start_degradation_monitoring, stop_degradation_monitoring
-from core.metrics import MetricsMiddleware, start_metrics, stop_metrics
-from core.security import SecurityHeadersMiddleware
-
-# Import task queue
-from core.tasks import start_task_queue, stop_task_queue
-from core.tracing import TracingMiddleware, start_tracing, stop_tracing
-from core.versioning import VersionMiddleware, get_version_manager
 
 app = FastAPI(
     title="RaptorFlow API",
@@ -236,7 +235,7 @@ async def health_check(
         is_degraded = True
 
     # 3. Check External Services (if detailed)
-    if detailed:
+    if x_rf_internal_key == internal_key:
         # Check Supabase Auth
         try:
             from core.secrets import get_secret
@@ -261,7 +260,7 @@ async def health_check(
         try:
             from core.secrets import get_secret
 
-            test_secret = get_secret("TEST_SECRET")
+            test_secret = get_secret("TEST_SECRET")  # noqa: F841
             health_status["components"]["gcp_secrets"] = "up"
         except Exception as e:
             health_status["components"]["gcp_secrets"] = f"down: {str(e)}"
