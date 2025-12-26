@@ -24,6 +24,7 @@ from api.v1.radar import router as radar_router
 from api.v1.radar_analytics import router as radar_analytics_router
 from api.v1.radar_notifications import router as radar_notifications_router
 from api.v1.radar_scheduler import router as radar_scheduler_router
+from api.v1.synthesis import router as synthesis_router
 from core.advanced_ratelimit import (
     RateLimitMiddleware,
     get_advanced_rate_limiter,
@@ -177,6 +178,7 @@ app.include_router(radar_router)
 app.include_router(radar_analytics_router)
 app.include_router(radar_scheduler_router)
 app.include_router(radar_notifications_router)
+app.include_router(synthesis_router)
 app.include_router(muse_router)
 app.include_router(assets_router)
 app.include_router(feedback_router)
