@@ -1059,6 +1059,23 @@ export interface DerivedData {
 }
 
 // ==========================================
+// Proof Vault Types
+// ==========================================
+
+export interface ProofItem {
+  id: string;
+  type: 'testimonial' | 'case_study' | 'metric' | 'logo' | 'screenshot' | 'document';
+  title: string;
+  content: string;
+  source?: string;
+  date?: string;
+  tags: string[];
+  rating?: number;
+  verified?: boolean;
+  linkedPhases?: number[];
+}
+
+// ==========================================
 // Main Foundation Data
 // ==========================================
 
@@ -1112,6 +1129,9 @@ export interface FoundationData {
 
   // NEW: Phase 6 Soundbite Forge
   phase6?: Phase6Data;
+
+  // NEW: Evidence & Proof Vault
+  proofVault?: ProofItem[];
 
   // Legacy support
   brandVoice?: string;
