@@ -10,6 +10,9 @@ interface AssetChainPanelProps {
     className?: string;
 }
 
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
 export function AssetChainPanel({
     currentAsset,
     allAssets,
@@ -32,44 +35,50 @@ export function AssetChainPanel({
         const Icon = config ? require('lucide-react')[config.icon] : LinkIcon;
 
         return (
-            <div
+            <Card
                 key={asset.id}
                 onClick={() => relationship !== 'current' && onSelectAsset?.(asset)}
                 className={cn(
-                    'p-3 rounded-lg border transition-all',
+                    'transition-all duration-200',
                     relationship === 'current'
-                        ? 'bg-primary/5 border-primary ring-1 ring-primary/20 cursor-default'
-                        : 'bg-card border-border hover:border-primary/50 cursor-pointer hover:shadow-sm'
+                        ? 'bg-primary/5 border-primary shadow-sm'
+                        : 'bg-card border-border hover:border-primary/50 cursor-pointer hover:shadow-md'
                 )}
             >
-                <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                        <div className={cn(
-                            'h-8 w-8 rounded-full flex items-center justify-center',
-                            relationship === 'current' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
-                        )}>
-                            {Icon && <Icon className="h-4 w-4" />}
-                        </div>
-                        <div>
-                            <p className={cn(
-                                'text-sm font-medium leading-none',
-                                relationship === 'current' ? 'text-primary' : 'text-foreground'
+                <CardContent className="p-3">
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                            <div className={cn(
+                                'h-8 w-8 rounded-lg flex items-center justify-center border',
+                                relationship === 'current'
+                                    ? 'bg-primary/10 text-primary border-primary/20'
+                                    : 'bg-muted/50 text-muted-foreground border-border/50'
                             )}>
-                                {config?.label || 'Asset'}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
-                                {asset.title}
-                            </p>
+                                {Icon && <Icon className="h-4 w-4" />}
+                            </div>
+                            <div className="space-y-0.5">
+                                <p className={cn(
+                                    'text-sm font-medium leading-none',
+                                    relationship === 'current' ? 'text-primary' : 'text-foreground'
+                                )}>
+                                    {config?.label || 'Asset'}
+                                </p>
+                                <p className="text-xs text-muted-foreground line-clamp-1 max-w-[180px]">
+                                    {asset.title}
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                {relationship !== 'current' && (
-                    <div className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
-                        <ExternalLink className="h-3 w-3" />
-                        {relationship === 'parent' ? 'Source' : 'Derived'}
-                    </div>
-                )}
-            </div>
+                    {relationship !== 'current' && (
+                        <div className="mt-3 flex items-center">
+                            <Badge variant="outline" className="text-[9px] h-5 px-1.5 gap-1 font-normal text-muted-foreground">
+                                <ExternalLink className="h-2.5 w-2.5" />
+                                {relationship === 'parent' ? 'Source' : 'Derived'}
+                            </Badge>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         );
     };
 

@@ -23,20 +23,28 @@ function getIcon(iconName: string): LucideIcon {
     return icons[iconName] || LucideIcons.FileText;
 }
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
+// ... existing imports ...
+
 export function AssetTypeSelector({ onSelect, selectedType, className }: AssetTypeSelectorProps) {
     return (
-        <div className={cn('space-y-8', className)}>
-            {CATEGORIES.map(category => {
-                const items = ASSET_TYPES.filter(a => a.category === category.key);
-                if (items.length === 0) return null;
-
-                return (
-                    <div key={category.key} className="space-y-3">
-                        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+        <div className={cn('space-y-4', className)}>
+            <Tabs defaultValue="text" className="w-full">
+                <TabsList className="w-full grid grid-cols-3 mb-4">
+                    {CATEGORIES.map(category => (
+                        <TabsTrigger key={category.key} value={category.key}>
                             {category.label}
-                        </p>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                            {items.map(item => (
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
+
+                {CATEGORIES.map(category => (
+                    <TabsContent key={category.key} value={category.key} className="space-y-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                            {ASSET_TYPES.filter(a => a.category === category.key).map(item => (
                                 <AssetTypeButton
                                     key={item.type}
                                     config={item}
@@ -45,9 +53,9 @@ export function AssetTypeSelector({ onSelect, selectedType, className }: AssetTy
                                 />
                             ))}
                         </div>
-                    </div>
-                );
-            })}
+                    </TabsContent>
+                ))}
+            </Tabs>
         </div>
     );
 }
@@ -64,27 +72,31 @@ function AssetTypeButton({
     const Icon = getIcon(config.icon);
 
     return (
-        <button
+        <Card
             onClick={onClick}
             className={cn(
-                'flex flex-col items-center gap-2 p-4 rounded-xl border transition-all duration-200',
-                'hover:border-foreground/20 hover:bg-muted/30',
+                'cursor-pointer transition-all duration-200 hover:shadow-md h-full',
+                'hover:border-primary/50 hover:bg-muted/30',
                 isSelected
-                    ? 'border-foreground bg-foreground/5'
-                    : 'border-border/60 bg-card'
+                    ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                    : 'border-border/60'
             )}
         >
-            <Icon className={cn(
-                'h-5 w-5 transition-colors',
-                isSelected ? 'text-foreground' : 'text-muted-foreground'
-            )} />
-            <span className={cn(
-                'text-xs font-medium transition-colors',
-                isSelected ? 'text-foreground' : 'text-muted-foreground'
-            )}>
-                {config.label}
-            </span>
-        </button>
+            <CardContent className="p-4 flex flex-col items-center gap-2.5 text-center h-full justify-center">
+                <div className={cn(
+                    "p-2 rounded-lg transition-colors",
+                    isSelected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                )}>
+                    <Icon className="h-5 w-5" />
+                </div>
+                <span className={cn(
+                    'text-xs font-medium leading-tight',
+                    isSelected ? 'text-primary' : 'text-foreground'
+                )}>
+                    {config.label}
+                </span>
+            </CardContent>
+        </Card>
     );
 }
 
@@ -106,20 +118,18 @@ export function AssetTypeChips({
                 const Icon = getIcon(config.icon);
 
                 return (
-                    <button
+                    <Badge
                         key={type}
+                        variant="secondary"
                         onClick={() => onSelect(type)}
                         className={cn(
-                            'flex items-center gap-1.5 px-3 py-1.5 rounded-full',
-                            'border border-border/60 bg-card',
-                            'text-xs font-medium text-muted-foreground',
-                            'hover:border-foreground/20 hover:text-foreground hover:bg-muted/30',
-                            'transition-all duration-200'
+                            'cursor-pointer hover:bg-secondary/80 gap-1.5 px-3 py-1.5',
+                            'border border-border/40 transition-all active:scale-95'
                         )}
                     >
-                        <Icon className="h-3.5 w-3.5" />
+                        <Icon className="h-3 w-3 opacity-70" />
                         {config.label}
-                    </button>
+                    </Badge>
                 );
             })}
         </div>
