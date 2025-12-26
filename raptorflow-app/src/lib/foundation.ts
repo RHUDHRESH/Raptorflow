@@ -168,7 +168,7 @@ export interface Phase1Discovery {
 }
 
 // ==========================================
-// Phase 3 — Differentiation Blueprint
+// Phase 3 — Differentiation Blueprint (Framework 3.0)
 // ==========================================
 
 // JTBD Forces (Push/Pull/Anxiety/Habit)
@@ -183,6 +183,9 @@ export interface JTBDJob {
 
 export interface JTBDForces {
   jobs: JTBDJob[];
+  functional?: string; // Precision 3.0
+  emotional?: string;  // Precision 3.0
+  social?: string;     // Precision 3.0
   strugglingMoments: string[];
   forces: {
     push: string[];
@@ -192,6 +195,41 @@ export interface JTBDForces {
   };
   switchTriggers: string[];
   successMetrics: string[];
+}
+
+export interface MessageHierarchy {
+  essence: string;
+  coreMessage: string;
+  pillars: Array<{
+    title: string;
+    description: string;
+    proofPoints: string[];
+  }>;
+}
+
+export interface AwarenessMatrix {
+  unaware: string;
+  problem: string;
+  solution: string;
+  product: string;
+  most: string;
+}
+
+// Complete Phase 3 Data
+export interface Phase3Data {
+  primaryContextId: string;
+  primaryContext: PrimaryContext;
+  jtbd: JTBDForces;
+  hierarchy?: MessageHierarchy; // Precision 3.0
+  awarenessMatrix?: AwarenessMatrix; // Precision 3.0
+  vpc: VPCData;
+  differentiators: Differentiator[];
+  strategyCanvas: StrategyCanvas;
+  errc: ERRCGrid;
+  claims: Claim[];
+  primaryClaimId: string;
+  proofStack: ProofStackEntry[];
+  lockedAt?: string;
 }
 
 // Value Proposition Canvas
@@ -682,15 +720,15 @@ export interface Phase5Data {
 // Awareness Stage (Schwartz)
 export type AwarenessStage = 'unaware' | 'problem' | 'solution' | 'product' | 'most';
 
-// Soundbite Types (7 types)
+// Soundbite Types (Precision 3.0 - 7 types)
 export type SoundbiteType =
-  | 'problem-reveal'
-  | 'agitate'
-  | 'jtbd-progress'
+  | 'problem_revelation'
+  | 'agitation'
   | 'mechanism'
-  | 'proof-punch'
-  | 'objection-kill'
-  | 'action';
+  | 'objection_handling'
+  | 'transformation'
+  | 'positioning'
+  | 'urgency';
 
 // Rigor Gate Scores
 export interface RigorScores {
@@ -1190,10 +1228,25 @@ export const emptyPhase3: Phase3Data = {
   primaryContext: { youSell: '', to: '', soTheyCan: '' },
   jtbd: {
     jobs: [],
+    functional: '',
+    emotional: '',
+    social: '',
     strugglingMoments: [],
     forces: { push: [], pull: [], anxiety: [], habit: [] },
     switchTriggers: [],
     successMetrics: []
+  },
+  hierarchy: {
+    essence: '',
+    coreMessage: '',
+    pillars: []
+  },
+  awarenessMatrix: {
+    unaware: '',
+    problem: '',
+    solution: '',
+    product: '',
+    most: ''
   },
   vpc: {
     customerProfile: { jobs: [], pains: [], gains: [] },
