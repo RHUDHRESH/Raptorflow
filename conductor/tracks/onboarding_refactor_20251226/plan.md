@@ -13,12 +13,12 @@
   - Implement Gemini-powered prompts in the backend to transform Phase 3-5 inputs into draft soundbites.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation & Backend' (Protocol in workflow.md)
 
-## Phase 2: Onboarding Flow Refactoring (The Fix)
+## Phase 2: Onboarding Flow Refactoring (The Fix) [checkpoint: 8543fcf]
 *Goal: Remove redundant steps and establish the new high-fidelity phase structure in `src/app/foundation/`.*
 
-- [ ] **Task 2.1: Audit and Prune Existing Onboarding**
+- [x] **Task 2.1: Audit and Prune Existing Onboarding** (9d77138)
   - Identify and remove duplicate ICP/Question components in `raptorflow-app/src/app/foundation` and related components.
-- [ ] **Task 2.2: Implement Phase Navigation & UI Scaffold**
+- [x] **Task 2.2: Implement Phase Navigation & UI Scaffold** (fc76a0f)
   - Establish the route structure for `foundation/phase3`, `phase4`, `phase5`, and `phase6`.
   - Create the layout for transitions using Framer Motion, adhering to "Quiet Luxury" style.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: UI Refactoring' (Protocol in workflow.md)
