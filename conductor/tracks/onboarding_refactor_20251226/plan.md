@@ -46,7 +46,7 @@
   - Implement the centralized sidebar/modal for storing and linking evidence (stats, testimonials).
 - [ ] Task: Conductor - User Manual Verification 'Phase 4/5: Research & Proof' (Protocol in workflow.md)
 
-## Phase 5: Phase 6 Implementation (Precision Soundbite Studio)
+## Phase 5: Phase 6 Implementation (Precision Soundbite Studio) [checkpoint: 415efbf]
 *Goal: The final engine at `foundation/phase6` that generates and validates the 7 soundbites.*
 
 - [x] **Task 5.1: Hybrid Draft & Refine Studio** (3ce1536)
