@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from backend.graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
+from graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
 
 @pytest.mark.asyncio

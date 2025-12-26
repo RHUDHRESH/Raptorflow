@@ -2,34 +2,41 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Campaign } from '@/lib/campaigns-types';
-import { getCampaigns, getCampaignProgress, getMovesByCampaign } from '@/lib/campaigns';
+import { Campaign, CampaignObjective, RAGStatus } from '@/lib/campaigns-types';
+import { getCampaignProgress, getMovesByCampaign } from '@/lib/campaigns';
 import { CampaignCard } from '@/components/campaigns/CampaignCard';
-import { CampaignEmptyState } from '@/components/campaigns/CampaignEmptyState';
-// import NewCampaignWizard from '@/components/campaigns/NewCampaignWizard';
-import { CampaignDetail } from '@/components/campaigns/CampaignDetail';
+import { NewCampaignWizard } from '@/components/campaigns/NewCampaignWizard';
 import { Button } from '@/components/ui/button';
-import { StrategicPivotCard } from '@/components/campaigns/StrategicPivotCard';
-import { Sparkles, Plus } from 'lucide-react';
-import { toast } from 'sonner';
+import {
+    Plus,
+    Search,
+    ChevronDown,
+    Target,
+    Zap,
+    Users,
+    DollarSign,
+    RefreshCw,
+    Rocket,
+    Briefcase,
+    ArrowRight
+} from 'lucide-react';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { InferenceErrorBoundary } from '@/components/layout/InferenceErrorBoundary';
-import { TypingExperienceControls } from '@/components/ui/typing/TypingExperienceControls';
+import styles from '@/components/campaigns/Campaigns.module.css';
+
+type FilterStatus = 'all' | 'active' | 'planned' | 'paused' | 'completed';
+type FilterObjective = 'all' | CampaignObjective;
+type FilterRAG = 'all' | RAGStatus;
 
 export default function CampaignsPage() {
     const { campaigns, refresh: refreshCampaigns } = useCampaigns(10000);
     const [showWizard, setShowWizard] = useState(false);
-    const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
     const [campaignMetadata, setCampaignMetadata] = useState<Record<string, any>>({});
 
-    // Task 21: Mock pivot for display
-    const mockPivot = {
-        id: 'p1',
-        title: 'LinkedIn Outreach Pivot',
-        description: 'Focus on Founders in B2B SaaS Niche',
-        rationale: 'Recent agent research shows 40% higher engagement in this segment.',
-        severity: 'medium' as const
-    };
+    // Filters
+    const [statusFilter, setStatusFilter] = useState<FilterStatus>('active');
+    const [objectiveFilter, setObjectiveFilter] = useState<FilterObjective>('all');
+    const [ragFilter, setRagFilter] = useState<FilterRAG>('all');
 
     useEffect(() => {
         const fetchMeta = async () => {
@@ -39,7 +46,12 @@ export default function CampaignsPage() {
                     getCampaignProgress(c.id),
                     getMovesByCampaign(c.id)
                 ]);
-                meta[c.id] = { progress, activeMove: moves.find(m => m.status === 'active') };
+                meta[c.id] = {
+                    progress,
+                    activeMove: moves.find(m => m.status === 'active'),
+                    queuedMoves: moves.filter(m => m.status === 'queued'),
+                    completedMoves: moves.filter(m => m.status === 'completed')
+                };
             }
             setCampaignMetadata(meta);
         };
@@ -51,137 +63,229 @@ export default function CampaignsPage() {
         setShowWizard(false);
     }, [refreshCampaigns]);
 
-    const handleCampaignUpdated = useCallback((campaign: Campaign) => {
-        refreshCampaigns(); // Proper sync
-        setSelectedCampaign(campaign);
-    }, [refreshCampaigns]);
+    // Filter campaigns
+    const filteredCampaigns = campaigns.filter(c => {
+        if (statusFilter !== 'all' && c.status !== statusFilter) return false;
+        if (objectiveFilter !== 'all' && c.objective !== objectiveFilter) return false;
+        if (ragFilter !== 'all' && c.ragStatus !== ragFilter) return false;
+        return true;
+    });
 
-    const handleCampaignDeleted = useCallback((campaignId: string) => {
-        refreshCampaigns(); // Proper sync
-        setSelectedCampaign(null);
-    }, [refreshCampaigns]);
+    // Group by urgency
+    const needsAttention = filteredCampaigns.filter(c =>
+        c.status === 'active' && (c.ragStatus === 'amber' || c.ragStatus === 'red')
+    );
+    const activeCampaigns = filteredCampaigns.filter(c =>
+        c.status === 'active' && c.ragStatus === 'green'
+    );
+    const scheduledCampaigns = filteredCampaigns.filter(c => c.status === 'planned');
+    const completedCampaigns = filteredCampaigns.filter(c =>
+        c.status === 'completed' || c.status === 'archived'
+    );
 
-    const activeCampaigns = campaigns.filter(c => c.status === 'active' || c.status === 'planned');
-    const otherCampaigns = campaigns.filter(c => c.status !== 'active' && c.status !== 'planned');
+    const isEmpty = campaigns.length === 0;
 
     return (
         <AppLayout>
-            <TypingExperienceControls />
             <InferenceErrorBoundary>
-                <div className="max-w-[1200px] mx-auto px-12 py-12 space-y-12 pb-24 animate-in fade-in duration-500">
-                    <div className="flex items-end justify-between border-b border-zinc-200 dark:border-zinc-800 pb-8">
-                        <div>
-                            <div className="text-xs font-bold uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500 mb-3 ml-1">
-                                Execution
-                            </div>
-                            <h1 className="text-[40px] leading-[1.1] font-display font-medium text-zinc-900 dark:text-zinc-100">
-                                Campaigns
-                            </h1>
-                            <p className="text-base text-zinc-500 dark:text-zinc-400 mt-4 max-w-xl leading-relaxed">
-                                Organize your marketing into focused 90-day initiatives.
-                                Stop guessing, start executing.
-                            </p>
+                <div className={styles.pageContainer}>
+                    {/* Sticky Top Bar */}
+                    <div className={styles.topBar}>
+                        <div className={styles.topBarLeft}>
+                            <h1 className={styles.pageTitle}>Campaigns</h1>
                         </div>
-                        {campaigns.length > 0 && (
-                            <Button
+
+                        <div className={styles.topBarRight}>
+                            <button className={styles.searchBtn}>
+                                <Search style={{ width: 18, height: 18 }} />
+                            </button>
+                            <button
+                                className={styles.primaryBtn}
                                 onClick={() => setShowWizard(true)}
-                                className="rounded-full bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100 h-11 px-6 shadow-sm hover:shadow-md transition-all"
                             >
-                                <Plus className="w-4 h-4 mr-2" />
-                                Create Campaign
-                            </Button>
-                        )}
+                                <Plus style={{ width: 16, height: 16 }} />
+                                New Campaign
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Strategic Pivots (Task 21) */}
-                    {activeCampaigns.length > 0 && (
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Sparkles className="h-4 w-4 text-accent" />
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                                    Agent Recommendations
-                                </h3>
-                            </div>
-                            <StrategicPivotCard
-                                pivot={mockPivot}
-                                onApply={() => toast.success('Pivot applied to campaign strategy')}
-                                onIgnore={() => {}}
-                            />
+                    {/* Command Strip - Filters */}
+                    {!isEmpty && (
+                        <div className={styles.commandStrip}>
+                            <button
+                                className={`${styles.filterChip} ${statusFilter === 'active' ? styles.active : ''}`}
+                                onClick={() => setStatusFilter(statusFilter === 'active' ? 'all' : 'active')}
+                            >
+                                Status: Active
+                                <ChevronDown style={{ width: 14, height: 14 }} />
+                            </button>
+
+                            <button
+                                className={`${styles.filterChip} ${objectiveFilter !== 'all' ? styles.active : ''}`}
+                                onClick={() => setObjectiveFilter('all')}
+                            >
+                                Objective
+                                <ChevronDown style={{ width: 14, height: 14 }} />
+                            </button>
+
+                            <button
+                                className={`${styles.filterChip} ${ragFilter !== 'all' ? styles.active : ''}`}
+                                onClick={() => setRagFilter('all')}
+                            >
+                                RAG
+                                <ChevronDown style={{ width: 14, height: 14 }} />
+                            </button>
+
+                            <button className={styles.filterChip}>
+                                Duration
+                                <ChevronDown style={{ width: 14, height: 14 }} />
+                            </button>
+
+                            <button className={`${styles.filterChip} ${styles.sortChip}`}>
+                                Sort: Needs attention
+                                <ChevronDown style={{ width: 14, height: 14 }} />
+                            </button>
                         </div>
                     )}
 
-                    <div className="min-h-[400px]">
-                        {campaigns.length === 0 ? (
-                            <CampaignEmptyState onCreateCampaign={() => setShowWizard(true)} />
-                        ) : (
-                            <div className="space-y-12 animate-in slide-in-from-bottom-4 duration-700 fade-in fill-mode-backwards delay-150">
-                                {activeCampaigns.length > 0 && (
-                                    <div className="space-y-6">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 ml-1" />
-                                            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                                                Active Initiatives
-                                            </h3>
+                    {/* Main Content */}
+                    <div className={styles.mainContent}>
+                        {isEmpty ? (
+                            /* Empty State */
+                            <div className={styles.emptyState}>
+                                <div className={styles.emptyIcon}>
+                                    <Target style={{ width: 36, height: 36 }} />
+                                </div>
+                                <h2 className={styles.emptyTitle}>Launch Your First Campaign</h2>
+                                <p className={styles.emptyText}>
+                                    Campaigns are 90-day focused initiatives. Each one contains Moves—tactical sprints that drive real results.
+                                </p>
+                                <div className={styles.emptyActions}>
+                                    <button
+                                        className={styles.emptyTile}
+                                        onClick={() => setShowWizard(true)}
+                                    >
+                                        <div className={styles.emptyTileIcon}>
+                                            <Rocket style={{ width: 22, height: 22 }} />
                                         </div>
-                                        <div className="grid grid-cols-1 gap-6">
-                                            {activeCampaigns.map(campaign => (
-                                                <div
+                                        <div className={styles.emptyTileTitle}>Acquisition Campaign</div>
+                                        <div className={styles.emptyTileDesc}>
+                                            Book calls, generate leads, grow pipeline
+                                        </div>
+                                    </button>
+                                    <button
+                                        className={styles.emptyTile}
+                                        onClick={() => setShowWizard(true)}
+                                    >
+                                        <div className={styles.emptyTileIcon}>
+                                            <Briefcase style={{ width: 22, height: 22 }} />
+                                        </div>
+                                        <div className={styles.emptyTileTitle}>Custom Campaign</div>
+                                        <div className={styles.emptyTileDesc}>
+                                            Build from scratch with your own objective
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            /* Campaign Sections */
+                            <>
+                                {/* Needs Attention */}
+                                {needsAttention.length > 0 && (
+                                    <div className={styles.section}>
+                                        <div className={styles.sectionHeader}>
+                                            <div className={styles.sectionIndicator}>
+                                                <div className={`${styles.sectionDot} ${styles.attention}`} />
+                                                <span className={styles.sectionTitle}>Needs Attention</span>
+                                            </div>
+                                            <span className={styles.sectionCount}>({needsAttention.length})</span>
+                                        </div>
+                                        <div className={`${styles.campaignsGrid} ${needsAttention.length === 1 ? styles.single : ''}`}>
+                                            {needsAttention.map(campaign => (
+                                                <CampaignCard
                                                     key={campaign.id}
-                                                    className="group transition-all duration-300 hover:-translate-y-1"
-                                                >
-                                                    <CampaignCard
-                                                        campaign={campaign}
-                                                        progress={campaignMetadata[campaign.id]?.progress}
-                                                        activeMove={campaignMetadata[campaign.id]?.activeMove}
-                                                        onClick={() => setSelectedCampaign(campaign)}
-                                                    />
-                                                </div>
+                                                    campaign={campaign}
+                                                    progress={campaignMetadata[campaign.id]?.progress}
+                                                    activeMove={campaignMetadata[campaign.id]?.activeMove}
+                                                    variant="attention"
+                                                />
                                             ))}
                                         </div>
                                     </div>
                                 )}
 
-                                {otherCampaigns.length > 0 && (
-                                    <div className="space-y-6">
-                                        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-600 pl-4">
-                                            Library / Archives
-                                        </h3>
-                                        <div className="grid grid-cols-1 gap-6 opacity-80 hover:opacity-100 transition-opacity">
-                                            {otherCampaigns.map(campaign => (
-                                                <div
+                                {/* Active */}
+                                {activeCampaigns.length > 0 && (
+                                    <div className={styles.section}>
+                                        <div className={styles.sectionHeader}>
+                                            <div className={styles.sectionIndicator}>
+                                                <div className={`${styles.sectionDot} ${styles.active}`} />
+                                                <span className={styles.sectionTitle}>Active</span>
+                                            </div>
+                                            <span className={styles.sectionCount}>({activeCampaigns.length})</span>
+                                        </div>
+                                        <div className={styles.campaignsGrid}>
+                                            {activeCampaigns.map(campaign => (
+                                                <CampaignCard
                                                     key={campaign.id}
-                                                    className="group transition-all duration-300 hover:-translate-y-1"
-                                                >
-                                                    <CampaignCard
-                                                        campaign={campaign}
-                                                        progress={campaignMetadata[campaign.id]?.progress}
-                                                        activeMove={campaignMetadata[campaign.id]?.activeMove}
-                                                        onClick={() => setSelectedCampaign(campaign)}
-                                                    />
-                                                </div>
+                                                    campaign={campaign}
+                                                    progress={campaignMetadata[campaign.id]?.progress}
+                                                    activeMove={campaignMetadata[campaign.id]?.activeMove}
+                                                />
                                             ))}
                                         </div>
                                     </div>
                                 )}
-                            </div>
+
+                                {/* Scheduled */}
+                                {scheduledCampaigns.length > 0 && (
+                                    <div className={styles.section}>
+                                        <div className={styles.sectionHeader}>
+                                            <div className={styles.sectionIndicator}>
+                                                <div className={`${styles.sectionDot} ${styles.scheduled}`} />
+                                                <span className={styles.sectionTitle}>Scheduled</span>
+                                            </div>
+                                            <span className={styles.sectionCount}>({scheduledCampaigns.length})</span>
+                                        </div>
+                                        <div className={styles.campaignsGrid}>
+                                            {scheduledCampaigns.map(campaign => (
+                                                <CampaignCard
+                                                    key={campaign.id}
+                                                    campaign={campaign}
+                                                    progress={campaignMetadata[campaign.id]?.progress}
+                                                    activeMove={campaignMetadata[campaign.id]?.activeMove}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Completed / Archived */}
+                                {completedCampaigns.length > 0 && (
+                                    <div className={styles.section}>
+                                        <div className={styles.sectionHeader}>
+                                            <div className={styles.sectionIndicator}>
+                                                <div className={`${styles.sectionDot} ${styles.completed}`} />
+                                                <span className={styles.sectionTitle}>Completed / Archived</span>
+                                            </div>
+                                            <span className={styles.sectionCount}>({completedCampaigns.length})</span>
+                                            <button className={styles.expandBtn}>
+                                                Expand
+                                                <ArrowRight style={{ width: 14, height: 14 }} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
             </InferenceErrorBoundary>
 
-            {/* <NewCampaignWizard
+            <NewCampaignWizard
                 open={showWizard}
                 onOpenChange={setShowWizard}
                 onComplete={handleCampaignCreated}
-            /> */}
-
-            <CampaignDetail
-                campaign={selectedCampaign}
-                open={!!selectedCampaign}
-                onOpenChange={(open) => !open && setSelectedCampaign(null)}
-                onUpdate={handleCampaignUpdated}
-                onDelete={handleCampaignDeleted}
-                onRefresh={refreshCampaigns}
             />
         </AppLayout>
     );

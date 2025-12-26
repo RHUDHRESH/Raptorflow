@@ -348,6 +348,19 @@
 /* Make sure the wrapped items (4th and 5th) look good */
 /* They will naturally wrap and center due to justify-content: center */
 
+/* 7 Items: 4-3 Layout (centered bottom row) */
+.gridSeven {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+}
+
+.gridSeven>.cardBase {
+    flex-basis: calc(25% - 12px);
+    width: calc(25% - 12px);
+}
+
 /* Choice Cards (Always 2col) */
 .choiceCardsGrid {
     display: grid;

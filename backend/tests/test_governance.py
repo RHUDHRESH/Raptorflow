@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from backend.core.governance import CostGovernor, RateLimiter
+from core.governance import CostGovernor, RateLimiter
 
 
 @pytest.mark.asyncio

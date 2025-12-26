@@ -3,10 +3,10 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from backend.models.campaigns import Campaign, CampaignStatus
-from backend.models.foundation import BrandKit
-from backend.models.moves import Move, MoveStatus
-from backend.models.telemetry import TelemetryLog
+from models.campaigns import Campaign, CampaignStatus
+from models.foundation import BrandKit
+from models.moves import Move, MoveStatus
+from models.telemetry import TelemetryLog
 
 
 def test_brand_kit_validation():

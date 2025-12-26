@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from backend.models.cognitive import AgentResponse
+from models.cognitive import AgentResponse
 
 # --- SHARED AGENTS (A00-A10) ---
 

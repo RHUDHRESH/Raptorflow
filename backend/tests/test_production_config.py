@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 from pydantic import ValidationError
 
-from backend.core.config import Config
+from core.config import Config
 
 
 def test_config_production_requirements_failure():

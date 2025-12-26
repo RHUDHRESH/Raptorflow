@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from upstash_redis import Redis
 
-from backend.core.config import get_settings
+from core.config import get_settings
 
 
 def get_cache_client() -> Redis:
@@ -14,8 +14,7 @@ def get_cache_client() -> Redis:
     """
     settings = get_settings()
     if not settings.UPSTASH_REDIS_REST_URL or not settings.UPSTASH_REDIS_REST_TOKEN:
-        # Provide a dummy client or handle gracefully if keys missing during audit
-        return None
+        raise ValueError("Upstash Redis configuration missing. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.")
     return Redis(
         url=settings.UPSTASH_REDIS_REST_URL, token=settings.UPSTASH_REDIS_REST_TOKEN
     )

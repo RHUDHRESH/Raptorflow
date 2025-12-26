@@ -2,8 +2,8 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
-from backend.core.auth import get_current_user
-from backend.services.move_service import MoveService, get_move_service
+from core.auth import get_current_user
+from services.move_service import MoveService, get_move_service
 
 router = APIRouter(prefix="/v1/moves", tags=["moves"])
 

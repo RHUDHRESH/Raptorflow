@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from backend.db import init_checkpointer
+from db import init_checkpointer
 
 logger = logging.getLogger("raptorflow.memory.checkpoint")
 

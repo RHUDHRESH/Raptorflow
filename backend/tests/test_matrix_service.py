@@ -3,13 +3,13 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.models.telemetry import (
+from models.telemetry import (
     AgentHealthStatus,
     AgentState,
     SystemState,
     TelemetryEvent,
 )
-from backend.services.matrix_service import MatrixService
+from services.matrix_service import MatrixService
 
 
 @pytest.fixture

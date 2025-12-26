@@ -255,21 +255,21 @@ export function MuseTextEditor({
     };
 
     return (
-        <div className={cn('flex flex-col h-full bg-background', className)}>
+        <div className={cn('flex flex-col h-full bg-[#F8F9F7]', className)}>
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E6E3] bg-white">
                 <div className="flex items-center gap-4">
                     {onClose && (
                         <button
                             onClick={onClose}
-                            className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-muted transition-colors"
+                            className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-[#F8F9F7] transition-colors"
                         >
-                            <X className="h-4 w-4" />
+                            <X className="h-4 w-4 text-[#5B5F61]" />
                         </button>
                     )}
                     <div>
-                        <h1 className="text-lg font-semibold">{title}</h1>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <h1 className="text-lg font-semibold text-[#2D3538]">{title}</h1>
+                        <div className="flex items-center gap-2 text-xs text-[#9D9F9F]">
                             <span>{wordCount} words</span>
                             <span>•</span>
                             <span>{readingTime} min read</span>
@@ -372,9 +372,9 @@ export function MuseTextEditor({
                         disabled={isSaving}
                         className={cn(
                             'h-9 px-4 rounded-lg',
-                            'bg-foreground text-background',
+                            'bg-[#1a1d1e] text-white',
                             'text-sm font-medium',
-                            'hover:opacity-90 transition-opacity',
+                            'hover:bg-[#2D3538] transition-colors',
                             'disabled:opacity-70'
                         )}
                     >
@@ -384,7 +384,7 @@ export function MuseTextEditor({
             </div>
 
             {/* Toolbar */}
-            <div className="flex items-center gap-1 px-6 py-2 border-b border-border/20">
+            <div className="flex items-center gap-1 px-6 py-2 border-b border-[#E5E6E3] bg-white">
                 <ToolbarButton icon={Bold} label="Bold" />
                 <ToolbarButton icon={Italic} label="Italic" />
                 <div className="w-px h-5 bg-border/40 mx-1" />
@@ -519,7 +519,7 @@ export function MuseTextEditor({
                 </div>
 
                 {/* Intelligence Side-Rail (Always Visible) */}
-                <div className="w-14 border-l border-border/40 flex flex-col items-center py-4 gap-4 bg-muted/5">
+                <div className="w-14 border-l border-[#E5E6E3] flex flex-col items-center py-4 gap-4 bg-white">
                     <RailButton
                         icon={Clock}
                         active={activePanel === 'history'}
@@ -565,7 +565,7 @@ export function MuseTextEditor({
                 {/* Contextual Panel (Expands when button clicked) */}
                 <div
                     className={cn(
-                        'border-l border-border/40 bg-card transition-all duration-300 ease-in-out overflow-hidden',
+                        'border-l border-[#E5E6E3] bg-white transition-all duration-300 ease-in-out overflow-hidden',
                         activePanel ? 'w-80' : 'w-0 border-0'
                     )}
                 >

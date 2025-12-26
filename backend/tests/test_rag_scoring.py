@@ -1,6 +1,6 @@
 import pytest
 
-from backend.agents.rag_retrieval import RAG
+from agents.rag_retrieval import RAG
 
 
 def test_rag_relevance_scoring_exact_match():

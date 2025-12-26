@@ -1,9 +1,9 @@
 from langgraph.graph import END, START, StateGraph
 
-from backend.agents.shared.research_specialists import LibrarianAgent, SynthesisAgent
-from backend.core.config import get_settings
-from backend.core.search_provider import SearchProviderRegistry
-from backend.models.research_schemas import ResearchDeepState
+from agents.shared.research_specialists import LibrarianAgent, SynthesisAgent
+from core.config import get_settings
+from core.search_provider import SearchProviderRegistry
+from models.research_schemas import ResearchDeepState
 
 # --- Nodes ---
 

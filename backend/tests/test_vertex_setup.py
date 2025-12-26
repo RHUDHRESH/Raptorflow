@@ -7,7 +7,7 @@ import pytest
 mock_vertex = MagicMock()
 sys.modules["langchain_google_vertexai"] = mock_vertex
 
-from backend.core.vertex_setup import get_embedding_client
+from core.vertex_setup import get_embedding_client
 
 
 def test_vertex_embedding_client_setup():

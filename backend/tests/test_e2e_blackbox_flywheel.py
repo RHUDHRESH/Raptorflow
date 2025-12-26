@@ -3,9 +3,9 @@ import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
-from backend.core.vault import Vault
-from backend.models.blackbox import BlackboxOutcome, BlackboxTelemetry
-from backend.services.blackbox_service import BlackboxService
+from core.vault import Vault
+from models.blackbox import BlackboxOutcome, BlackboxTelemetry
+from services.blackbox_service import BlackboxService
 
 
 class TestBlackboxE2E(unittest.TestCase):

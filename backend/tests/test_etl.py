@@ -1,6 +1,6 @@
 import pytest
 
-from backend.scripts.raw_to_gold_parquet import VacuumLogic
+from scripts.raw_to_gold_parquet import VacuumLogic
 
 
 def test_vacuum_logic_valid():

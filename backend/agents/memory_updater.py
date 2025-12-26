@@ -3,8 +3,8 @@ from typing import Optional
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
-from backend.inference import InferenceProvider
-from backend.memory.swarm_learning import SwarmLearning
+from inference import InferenceProvider
+from memory.swarm_learning import SwarmLearning
 
 
 class StylePreference(BaseModel):

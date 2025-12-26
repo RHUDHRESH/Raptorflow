@@ -2,8 +2,8 @@ from typing import List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from backend.inference import InferenceProvider
-from backend.models.cognitive import AgentResponse, CognitiveStep, ModelTier
+from inference import InferenceProvider
+from models.cognitive import AgentResponse, CognitiveStep, ModelTier
 
 
 class ICPArchitectAgent:

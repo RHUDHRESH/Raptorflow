@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.quality import (
+from agents.quality import (
     BrandAlignment,
     ComplianceResult,
     ContentStats,

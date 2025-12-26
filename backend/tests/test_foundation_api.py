@@ -4,9 +4,9 @@ from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.api.v1.foundation import get_foundation_service
-from backend.main import app
-from backend.models.foundation import BrandKit
+from api.v1.foundation import get_foundation_service
+from main import app
+from models.foundation import BrandKit
 
 client = TestClient(app)
 

@@ -3,12 +3,12 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from backend.core.auth import get_current_user
-from backend.models.capabilities import CapabilityProfile
-from backend.services.cost_governor import CostGovernor
-from backend.services.drift_detection import DriftDetectionService
-from backend.services.matrix_service import MatrixService
-from backend.skills.matrix_skills import UserRole
+from core.auth import get_current_user
+from models.capabilities import CapabilityProfile
+from services.cost_governor import CostGovernor
+from services.drift_detection import DriftDetectionService
+from services.matrix_service import MatrixService
+from skills.matrix_skills import UserRole
 
 router = APIRouter(prefix="/v1/matrix", tags=["matrix"])
 

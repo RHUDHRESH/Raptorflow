@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.base import BaseCognitiveAgent
-from backend.models.cognitive import AgentMessage, CognitiveIntelligenceState
+from agents.base import BaseCognitiveAgent
+from models.cognitive import AgentMessage, CognitiveIntelligenceState
 
 
 class ConcreteAgent(BaseCognitiveAgent):

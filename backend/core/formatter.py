@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict, List
 
-from backend.agents.specialists.move_generator import WeeklyMove
+from agents.specialists.move_generator import WeeklyMove
 
 logger = logging.getLogger("raptorflow.core.formatter")
 

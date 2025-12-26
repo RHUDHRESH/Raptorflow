@@ -4,10 +4,10 @@ from typing import List, Optional, TypedDict
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
-from backend.core.prompts import MovePrompts
-from backend.core.toolbelt import ToolbeltV2
-from backend.db import log_agent_decision, save_move
-from backend.models.capabilities import CapabilityProfile
+from core.prompts import MovePrompts
+from core.toolbelt import ToolbeltV2
+from db import log_agent_decision, save_move
+from models.capabilities import CapabilityProfile
 
 logger = logging.getLogger("raptorflow.agents.moves")
 

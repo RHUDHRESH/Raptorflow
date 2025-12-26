@@ -1,6 +1,6 @@
 from typing import Any, List
 
-from backend.memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
+from memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
 
 
 def count_tokens_heuristic(text: str) -> int:

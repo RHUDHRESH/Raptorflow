@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.brand_kit import BrandKitAgent, BrandKitOutput
-from backend.models.cognitive import AgentMessage
+from agents.specialists.brand_kit import BrandKitAgent, BrandKitOutput
+from models.cognitive import AgentMessage
 
 
 @pytest.mark.asyncio

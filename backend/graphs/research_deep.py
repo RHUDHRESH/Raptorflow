@@ -2,7 +2,7 @@ from typing import List, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from backend.core.research_engine import ResearchEngine
+from core.research_engine import ResearchEngine
 
 
 class ResearchState(TypedDict):

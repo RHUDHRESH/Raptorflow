@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.core.serving import ModelServer
-from backend.models.telemetry import TelemetryEvent, TelemetryEventType
+from core.serving import ModelServer
+from models.telemetry import TelemetryEvent, TelemetryEventType
 
 
 @pytest.fixture

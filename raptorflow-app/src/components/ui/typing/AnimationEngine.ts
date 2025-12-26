@@ -42,6 +42,18 @@ export class AnimationEngine {
       easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
       properties: ['transform', 'box-shadow']
     });
+    // Luxury Profile - Microscopic, elegant transitions (NO SCALE)
+    this.animationProfiles.set('luxury', {
+      name: 'luxury',
+      keyframes: [
+        { borderColor: 'var(--border)', boxShadow: 'none' },
+        { borderColor: 'var(--accent)', boxShadow: '0 0 0 2px rgba(215, 201, 174, 0.1)' },
+        { borderColor: 'var(--border)', boxShadow: 'none' }
+      ],
+      duration: 80,
+      easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+      properties: ['border-color', 'box-shadow']
+    });
 
     // Professional Profile - Clean, purposeful animations
     this.animationProfiles.set('professional', {

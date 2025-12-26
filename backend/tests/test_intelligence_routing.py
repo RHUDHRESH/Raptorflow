@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 # Prevent real imports that cause crashes
 sys.modules["langchain_google_vertexai"] = MagicMock()
 
-from backend.core.config import get_settings  # noqa: E402
-from backend.inference import InferenceProvider  # noqa: E402
+from core.config import get_settings  # noqa: E402
+from inference import InferenceProvider  # noqa: E402
 
 
 def test_intelligence_mapping_ultra():

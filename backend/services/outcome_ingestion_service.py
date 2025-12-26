@@ -1,8 +1,8 @@
 import logging
 from typing import Any, Dict
 
-from backend.core.vault import Vault
-from backend.models.blackbox import BlackboxOutcome
+from core.vault import Vault
+from models.blackbox import BlackboxOutcome
 
 logger = logging.getLogger("raptorflow.outcomes")
 

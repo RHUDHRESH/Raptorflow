@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from backend.core.vault import Vault
+from core.vault import Vault
 
 
 def fetch_historical_performance_tool(campaign_id: str) -> Dict[str, Any]:

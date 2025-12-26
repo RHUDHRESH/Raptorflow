@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 import fitz
 import pdfplumber
 
-from backend.core.parsers.types import ParsedAsset
+from core.parsers.types import ParsedAsset
 
 
 def _extract_title(metadata: Dict[str, Any]) -> str:

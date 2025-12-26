@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.researchers import (
+from agents.researchers import (
     CompetitorAnalysis,
     CompetitorPlan,
     EvidenceBundle,
@@ -36,7 +36,7 @@ from backend.agents.researchers import (
     create_trend_extractor,
     create_visual_trend_analyzer,
 )
-from backend.tools.search import PerplexitySearchTool, TavilyMultiHopTool
+from tools.search import PerplexitySearchTool, TavilyMultiHopTool
 
 
 @pytest.mark.asyncio

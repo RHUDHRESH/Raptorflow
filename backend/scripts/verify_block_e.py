@@ -3,9 +3,9 @@ import json
 
 from langchain_core.messages import HumanMessage
 
-from backend.agents.rag_retrieval import RAGRetrievalNode
-from backend.memory.manager import MemoryManager
-from backend.models.cognitive import AgentMessage
+from agents.rag_retrieval import RAGRetrievalNode
+from memory.manager import MemoryManager
+from models.cognitive import AgentMessage
 
 
 async def verify_block_e():

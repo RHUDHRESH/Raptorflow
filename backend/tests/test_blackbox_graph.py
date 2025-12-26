@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import pytest
 
-from backend.graphs.blackbox_industrial import (
+from graphs.blackbox_industrial import (
     AnalysisState,
     attribute_outcomes_node,
     create_blackbox_graph,
@@ -97,7 +97,7 @@ def test_blackbox_graph_routing():
 
 
 def test_learning_agent():
-    from backend.agents.blackbox_specialist import LearningAgent
+    from agents.blackbox_specialist import LearningAgent
 
     agent = LearningAgent()
     assert agent.agent_id == "learning_agent"

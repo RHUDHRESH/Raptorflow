@@ -2,8 +2,8 @@ from typing import List, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from backend.agents.specialists.strategy import ICPArchitectAgent, OfferArchitectAgent
-from backend.services.budget_governor import BudgetGovernor
+from agents.specialists.strategy import ICPArchitectAgent, OfferArchitectAgent
+from services.budget_governor import BudgetGovernor
 
 
 class CampaignState(TypedDict):

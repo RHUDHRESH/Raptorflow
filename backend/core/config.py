@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from backend.core.secrets import get_secret
+from core.secrets import get_secret
 
 logger = logging.getLogger("raptorflow.config")
 
@@ -27,11 +27,26 @@ class Config(BaseSettings):
     GCP_PROJECT_ID: str = "raptorflow-481505"
     GCP_REGION: str = "europe-west1"
 
-    # Supabase Configuration
-    SUPABASE_URL: str = "https://placeholder.supabase.co"
-    SUPABASE_SERVICE_ROLE_KEY: str = "placeholder-key"
-    SUPABASE_JWT_SECRET: Optional[str] = None
+    # Database Configuration
     DATABASE_URL: Optional[str] = None
+    
+    # Supabase Configuration
+    SUPABASE_URL: Optional[str] = None
+    SUPABASE_SERVICE_ROLE_KEY: Optional[str] = None
+    SUPABASE_JWT_SECRET: Optional[str] = None
+    
+    # Database Pool Configuration
+    DB_POOL_MIN_SIZE: int = 5
+    DB_POOL_MAX_SIZE: int = 20
+    DB_POOL_MAX_OVERFLOW: int = 10
+    DB_POOL_TIMEOUT: int = 30
+    DB_POOL_RECYCLE: int = 3600
+    DB_HEALTH_CHECK_INTERVAL: int = 60
+    DB_HEALTH_CHECK_TIMEOUT: int = 10
+    DB_MAX_RETRIES: int = 3
+    DB_RETRY_DELAY: float = 1.0
+    DB_CIRCUIT_BREAKER_THRESHOLD: int = 5
+    DB_CIRCUIT_BREAKER_TIMEOUT: int = 300
 
     # Upstash Configuration
     UPSTASH_REDIS_REST_URL: Optional[str] = None
@@ -138,6 +153,30 @@ class Config(BaseSettings):
         if not self.UPSTASH_REDIS_REST_URL or not self.UPSTASH_REDIS_REST_TOKEN:
             logger.warning(
                 "Upstash Redis config missing. Cache and State features will fail."
+            )
+
+        # Validate PhonePe configuration if payments are enabled
+        if not self.PHONEPE_CLIENT_ID or not self.PHONEPE_CLIENT_SECRET:
+            logger.warning(
+                "PhonePe configuration missing. Payment features will fail."
+            )
+
+        # Validate image generation settings
+        if self.IMAGE_GEN_ENABLED and not self.VERTEX_AI_API_KEY:
+            logger.warning(
+                "Image generation enabled but VERTEX_AI_API_KEY missing. Image features will fail."
+            )
+
+        # Validate search provider configuration
+        if "serper" in self.SEARCH_PROVIDER_ORDER and not self.SERPER_API_KEY:
+            logger.warning(
+                "Serper search provider configured but SERPER_API_KEY missing. Search may be limited."
+            )
+
+        # Validate security settings
+        if not self.SECRET_KEY or "placeholder" in self.SECRET_KEY:
+            logger.warning(
+                "SECRET_KEY is placeholder or missing. Security may be compromised."
             )
 
         return True

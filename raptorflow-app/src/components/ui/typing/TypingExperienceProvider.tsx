@@ -61,8 +61,8 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
   const [isInitialized, setIsInitialized] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [isAnimationEnabled, setIsAnimationEnabled] = useState(true);
-  const [currentSoundProfile, setCurrentSoundProfile] = useState('professional');
-  const [currentAnimationProfile, setCurrentAnimationProfile] = useState('subtle');
+  const [currentSoundProfile, setCurrentSoundProfile] = useState('luxury');
+  const [currentAnimationProfile, setCurrentAnimationProfile] = useState('luxury');
   const [currentContext, setCurrentContext] = useState<TypingContext | null>(null);
 
   // Engine instances
@@ -76,11 +76,11 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
       try {
         // Initialize Audio Engine
         const audioConfig: AudioConfig = {
-          volume: 0.15,  // Reduced from 0.3 to 0.15 for much calmer experience
+          volume: 0.1,  // Further reduced for luxury feel
           adaptiveVolume: true,
           spatialAudio: false,
-          soundProfile: 'professional',
-          sensitivityMode: 'minimal',  // Changed to minimal for less sensitivity
+          soundProfile: 'luxury',
+          sensitivityMode: 'minimal',  // Keep minimal for less noise
           ...config.sound
         };
 
@@ -101,9 +101,9 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
 
         // Initialize Context Manager
         const contextualSettings: ContextualSettings = {
-          soundProfile: 'professional',
-          animationProfile: 'subtle',
-          volume: 0.3,
+          soundProfile: 'luxury',
+          animationProfile: 'luxury',
+          volume: 0.2, // Reduced from 0.3
           intensity: 'subtle',
           features: {
             completionSounds: true,

@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.researcher import ResearcherAgent
+from agents.specialists.researcher import ResearcherAgent
 
 
 def test_researcher_agent_tool_binding():

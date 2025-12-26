@@ -4,7 +4,7 @@ from typing import Annotated, Any, Dict, List, Optional, TypedDict
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from backend.agents.moves import (
+from agents.moves import (
     MoveGenerator,
     MovePersistence,
     MoveRefiner,
@@ -13,16 +13,16 @@ from backend.agents.moves import (
     SafetyValidator,
     SkillExecutor,
 )
-from backend.agents.strategists import (
+from agents.strategists import (
     BrandVoiceAligner,
     CampaignArcDesigner,
     KPIDefiner,
 )
-from backend.core.config import get_settings
-from backend.db import SupabaseSaver, get_pool, save_campaign
-from backend.inference import InferenceProvider
-from backend.memory.long_term import LongTermMemory
-from backend.memory.semantic import SemanticMemory
+from core.config import get_settings
+from db import SupabaseSaver, get_pool, save_campaign
+from inference import InferenceProvider
+from memory.long_term import LongTermMemory
+from memory.semantic import SemanticMemory
 
 
 class MovesCampaignsState(TypedDict):
@@ -252,7 +252,7 @@ async def handle_error(state: MovesCampaignsState):
 
 async def evaluate_run(state: MovesCampaignsState):
     """Evaluates telemetry and feedback, persisting learnings post-run."""
-    from backend.services.evaluation import EvaluationService
+    from services.evaluation import EvaluationService
 
     evaluator = EvaluationService()
     evaluation = evaluator.evaluate_run(

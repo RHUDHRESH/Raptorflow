@@ -4,20 +4,20 @@ from typing import Any, Dict, List
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from backend.agents.specialists.brand_kit import BrandKitAgent
-from backend.agents.specialists.campaign_planner import CampaignPlannerAgent
-from backend.agents.specialists.competitor_intelligence import (
+from agents.specialists.brand_kit import BrandKitAgent
+from agents.specialists.campaign_planner import CampaignPlannerAgent
+from agents.specialists.competitor_intelligence import (
     CompetitorIntelligenceAgent,
 )
-from backend.agents.specialists.goal_aligner import GoalAlignerAgent
-from backend.agents.specialists.icp_architect import ICPArchitectAgent
-from backend.agents.specialists.move_generator import MoveGeneratorAgent
-from backend.agents.specialists.value_proposition import ValuePropositionAgent
-from backend.core.config import get_settings
-from backend.core.lifecycle import apply_lifecycle_transition
-from backend.core.pivoting import PivotEngine
-from backend.db import SupabaseSaver, get_pool
-from backend.models.cognitive import (
+from agents.specialists.goal_aligner import GoalAlignerAgent
+from agents.specialists.icp_architect import ICPArchitectAgent
+from agents.specialists.move_generator import MoveGeneratorAgent
+from agents.specialists.value_proposition import ValuePropositionAgent
+from core.config import get_settings
+from core.lifecycle import apply_lifecycle_transition
+from core.pivoting import PivotEngine
+from db import SupabaseSaver, get_pool
+from models.cognitive import (
     AgentMessage,
     CognitiveIntelligenceState,
     CognitiveStatus,
@@ -173,7 +173,7 @@ async def finalize_spine(state: CognitiveIntelligenceState) -> Dict[str, Any]:
 
 
 async def evaluate_run(state: CognitiveIntelligenceState) -> Dict[str, Any]:
-    from backend.services.evaluation import EvaluationService
+    from services.evaluation import EvaluationService
 
     evaluator = EvaluationService()
     evaluation = evaluator.evaluate_run(

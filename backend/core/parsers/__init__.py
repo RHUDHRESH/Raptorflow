@@ -1,10 +1,10 @@
 from typing import Dict, Optional
 from urllib.parse import urlparse
 
-from backend.core.parsers.docx import parse_docx
-from backend.core.parsers.pdf import parse_pdf
-from backend.core.parsers.pptx import parse_pptx
-from backend.core.parsers.types import ParsedAsset
+from core.parsers.docx import parse_docx
+from core.parsers.pdf import parse_pdf
+from core.parsers.pptx import parse_pptx
+from core.parsers.types import ParsedAsset
 
 ASSET_SUFFIXES = {
     ".pdf": "pdf",

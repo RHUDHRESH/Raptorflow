@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.creatives import (
+from agents.creatives import (
     AdAnalysis,
     AdCopy,
     BlogPost,

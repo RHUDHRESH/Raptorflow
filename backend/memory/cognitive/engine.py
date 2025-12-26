@@ -4,9 +4,9 @@ from typing import Dict, List, Optional
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from backend.db import get_db_connection
-from backend.inference import InferenceProvider
-from backend.models.cognitive import ModelTier
+from db import get_db_connection
+from inference import InferenceProvider
+from models.cognitive import ModelTier
 
 
 class CognitiveMemoryEngine:

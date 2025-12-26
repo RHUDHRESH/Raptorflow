@@ -2,14 +2,14 @@ from unittest.mock import AsyncMock, MagicMock
 
 from fastapi.testclient import TestClient
 
-from backend.main import app
+from main import app
 
 client = TestClient(app)
 
 
 def test_apply_pivot_endpoint_success():
     """Verify that the pivot endpoint returns 200."""
-    from backend.api.v1.campaigns import get_campaign_service
+    from api.v1.campaigns import get_campaign_service
 
     mock_service = MagicMock()
     mock_service.apply_pivot = AsyncMock(
@@ -31,7 +31,7 @@ def test_apply_pivot_endpoint_success():
 
 def test_apply_pivot_endpoint_not_found():
     """Verify that the endpoint handles missing campaigns."""
-    from backend.api.v1.campaigns import get_campaign_service
+    from api.v1.campaigns import get_campaign_service
 
     mock_service = MagicMock()
     mock_service.apply_pivot = AsyncMock(return_value=None)

@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from backend.graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
+from graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
 
 def test_graph_rendering_mermaid():

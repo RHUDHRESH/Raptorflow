@@ -1,155 +1,216 @@
 'use client';
 
 import React from 'react';
-import { Move, GOAL_LABELS, CHANNEL_LABELS } from '@/lib/campaigns-types';
-import { ChevronRight, MoreHorizontal, Clock } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Move, GOAL_LABELS, CHANNEL_LABELS, RAGStatus } from '@/lib/campaigns-types';
+import { MoreHorizontal, Clock } from 'lucide-react';
 
 interface MoveCardProps {
     move: Move;
     onClick: () => void;
-    compact?: boolean;
-    variant?: 'card' | 'row';
+    onLogProgress?: () => void;
 }
 
-export function MoveCard({ move, onClick, compact = false, variant = 'card' }: MoveCardProps) {
-    const isDone = move.status === 'completed' || move.status === 'abandoned';
-    const isActive = move.status === 'active';
-
-    // Status badges
-    const StatusBadge = () => {
-        if (move.status === 'active') {
-            return (
-                <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border border-emerald-200 dark:border-emerald-800">
-                    Active
-                </span>
-            );
-        }
-        if (move.status === 'queued') {
-            return (
-                <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border border-zinc-200 dark:border-zinc-700">
-                    Queued
-                </span>
-            );
-        }
-        return (
-            <span className="bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500 px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border border-zinc-200 dark:border-zinc-700">
-                {move.status}
-            </span>
-        );
-    };
-
-    if (variant === 'row') {
-        return (
-            <div className="relative group/card">
-                <button
-                    onClick={onClick}
-                    className="w-full text-left bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all duration-200 py-4 px-4 pl-2 hover:pl-6 rounded-lg active:scale-[0.99]"
-                >
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-4 min-w-0 overflow-hidden">
-                            {/* Status Dot */}
-                            <div className={cn(
-                                "w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-300",
-                                move.status === 'active' ? "bg-emerald-500 ring-2 ring-emerald-100 dark:ring-emerald-900 scale-125 shadow-[0_0_8px_rgba(16,185,129,0.4)]" :
-                                    move.status === 'queued' ? "bg-zinc-300 dark:bg-zinc-600 group-hover/card:bg-zinc-400" :
-                                        "bg-zinc-200 dark:bg-zinc-700"
-                            )} />
-
-                            <div className="min-w-0">
-                                {/* Name */}
-                                <h3 className={cn(
-                                    "font-display font-medium text-lg text-zinc-900 dark:text-zinc-100 truncate transition-colors group-hover/card:text-black dark:group-hover/card:text-white leading-normal",
-                                    isDone && "text-zinc-400 dark:text-zinc-600 line-through"
-                                )}>
-                                    {move.name}
-                                </h3>
-
-                                {/* Meta Row - Simplified for sidebar */}
-                                <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                                    <span className={cn(
-                                        "px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border border-transparent shadow-sm",
-                                        move.status === 'queued' ? "bg-white dark:bg-zinc-800 text-zinc-500 group-hover/card:border-zinc-200 dark:group-hover/card:border-zinc-700" : "hidden"
-                                    )}>
-                                        Up Next
-                                    </span>
-                                    <span className="flex items-center gap-1 font-mono text-[10px] tracking-wide tabular-nums opacity-80 group-hover/card:opacity-100 transition-opacity">
-                                        <Clock className="w-3 h-3 text-zinc-300 dark:text-zinc-600 stroke-[1.5]" />
-                                        {move.duration}d
-                                    </span>
-                                    <span className="text-zinc-200 dark:text-zinc-800">•</span>
-                                    <span className="font-medium truncate text-[10px] uppercase tracking-wider text-zinc-400 group-hover/card:text-zinc-600 dark:group-hover/card:text-zinc-300 transition-colors">
-                                        {CHANNEL_LABELS[move.channel]}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <ChevronRight className="w-4 h-4 text-zinc-200 group-hover/card:text-zinc-400 dark:text-zinc-700 dark:group-hover/card:text-zinc-500 transition-all duration-300 shrink-0 group-hover/card:translate-x-1 stroke-[1.5]" />
-                    </div>
-                </button>
-                {/* Fading Separator (Tidbit #3) */}
-                <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-zinc-100 to-transparent dark:via-zinc-800 pointer-events-none group-last/card:hidden" />
-            </div>
-        );
+// Calculate RAG status deterministically
+function calculateRAG(move: Move): { status: RAGStatus; reason: string } {
+    // If already set, use it
+    if (move.rag && move.ragReason) {
+        return { status: move.rag, reason: move.ragReason };
     }
 
+    const now = new Date();
+    const startedAt = move.startedAt ? new Date(move.startedAt) : null;
+
+    if (!startedAt || move.status !== 'active') {
+        return { status: 'green', reason: 'Ready to start' };
+    }
+
+    // Calculate days elapsed
+    const daysElapsed = Math.floor((now.getTime() - startedAt.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const dayNumber = Math.min(daysElapsed, move.duration);
+
+    // Calculate completion rate
+    const totalTasks = move.checklist?.length || 0;
+    const completedTasks = move.checklist?.filter(t => t.completed).length || 0;
+    const expectedProgress = (dayNumber / move.duration) * totalTasks;
+    const actualProgress = completedTasks;
+
+    // Check confidence trend (if available)
+    const confidence = move.confidence || 7;
+
+    // RAG logic
+    if (confidence <= 4) {
+        return { status: 'red', reason: `Low confidence (${confidence}/10)` };
+    }
+
+    if (actualProgress < expectedProgress * 0.5) {
+        return { status: 'red', reason: 'Behind pace by 50%+' };
+    }
+
+    if (actualProgress < expectedProgress * 0.7) {
+        return { status: 'amber', reason: 'Behind expected pace' };
+    }
+
+    if (confidence <= 6) {
+        return { status: 'amber', reason: `Confidence dropping (${confidence}/10)` };
+    }
+
+    return { status: 'green', reason: 'On pace' };
+}
+
+// Calculate day number
+function getDayNumber(move: Move): number {
+    if (!move.startedAt) return 0;
+    const now = new Date();
+    const startedAt = new Date(move.startedAt);
+    const daysElapsed = Math.floor((now.getTime() - startedAt.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    return Math.min(daysElapsed, move.duration);
+}
+
+// Get progress percentage
+function getProgress(move: Move): number {
+    const total = move.checklist?.length || 0;
+    const completed = move.checklist?.filter(t => t.completed).length || 0;
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+}
+
+// Get last activity
+function getLastActivity(move: Move): string {
+    // Check daily metrics for most recent
+    if (move.dailyMetrics && move.dailyMetrics.length > 0) {
+        const last = move.dailyMetrics[move.dailyMetrics.length - 1];
+        if (last.submittedAt) {
+            const date = new Date(last.submittedAt);
+            const now = new Date();
+            const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+            if (diffDays === 0) return 'today';
+            if (diffDays === 1) return 'yesterday';
+            return `${diffDays}d ago`;
+        }
+    }
+    return 'never';
+}
+
+export function MoveCard({ move, onClick, onLogProgress }: MoveCardProps) {
+    const rag = calculateRAG(move);
+    const dayNumber = getDayNumber(move);
+    const progress = getProgress(move);
+    const lastActivity = getLastActivity(move);
+    const totalTasks = move.checklist?.length || 0;
+    const completedTasks = move.checklist?.filter(t => t.completed).length || 0;
+
+    // Get next action
+    const nextAction = move.nextAction || (() => {
+        const nextTask = move.checklist?.find(t => !t.completed);
+        if (nextTask) {
+            return {
+                label: nextTask.label,
+                dueDate: 'today',
+                estimatedMinutes: 20
+            };
+        }
+        return null;
+    })();
+
+    // Micro metrics (default or from dailyMetrics)
+    const latestMetrics = move.dailyMetrics?.[move.dailyMetrics.length - 1];
+    const leads = latestMetrics?.leads || 0;
+    const replies = latestMetrics?.replies || 0;
+    const calls = latestMetrics?.calls || 0;
+    const confidence = move.confidence || 7;
+
+    // RAG colors
+    const ragColors = {
+        green: { bg: 'bg-[#F0FDF4]', dot: 'bg-[#22C55E]', text: 'text-[#16A34A]' },
+        amber: { bg: 'bg-[#FFFBEB]', dot: 'bg-[#F59E0B]', text: 'text-[#D97706]' },
+        red: { bg: 'bg-[#FEF2F2]', dot: 'bg-[#EF4444]', text: 'text-[#DC2626]' }
+    };
+
     return (
-        <button
+        <div
             onClick={onClick}
-            className={cn(
-                "w-full text-left bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl transition-all duration-300 group relative overflow-hidden",
-                "hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-200/50 dark:hover:shadow-none hover:-translate-y-1",
-                compact ? 'p-5' : 'p-6'
-            )}
+            className="bg-white border border-[#E5E6E3] rounded-2xl p-5 cursor-pointer transition-all duration-200 hover:border-[#C0C1BE] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]"
         >
-            <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                        <h3 className={cn(
-                            "font-display font-medium text-zinc-900 dark:text-zinc-100 truncate",
-                            compact ? 'text-lg' : 'text-xl'
-                        )}>
-                            {move.name}
-                        </h3>
-                        <StatusBadge />
-                    </div>
-
-                    <div className="flex items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-                        <span className="text-zinc-900 dark:text-zinc-200 font-medium flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-zinc-400" />
-                            {move.duration} days
+            {/* Header */}
+            <div className="flex items-start justify-between mb-3">
+                <div>
+                    <h3 className="text-[16px] font-semibold text-[#2D3538] mb-1.5">{move.name}</h3>
+                    <div className="flex items-center gap-1.5">
+                        <span className="h-[22px] px-2 bg-[#F8F9F7] rounded-md text-[10px] font-semibold uppercase tracking-[0.05em] text-[#5B5F61] flex items-center">
+                            {GOAL_LABELS[move.goal]?.label || move.goal}
                         </span>
-
-                        <span className="text-zinc-300 dark:text-zinc-700">•</span>
-
-                        <span className="font-medium">{CHANNEL_LABELS[move.channel]}</span>
-
-                        {isActive && move.startedAt && (
-                            <>
-                                <span className="text-zinc-300 dark:text-zinc-700">•</span>
-                                <span className="text-emerald-700 dark:text-emerald-400 font-medium">
-                                    Ends {new Date(new Date(move.startedAt).getTime() + move.duration * 86400000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                </span>
-                            </>
-                        )}
-
-                        {/* Campaign context if available */}
-                        {move.campaignName && !compact && (
-                            <>
-                                <span className="text-zinc-300 dark:text-zinc-700">•</span>
-                                <span className="truncate max-w-[150px] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-xs text-zinc-600 dark:text-zinc-400">
-                                    {move.campaignName}
-                                </span>
-                            </>
-                        )}
+                        <span className="h-[22px] px-2 bg-[#F8F9F7] rounded-md text-[10px] font-semibold uppercase tracking-[0.05em] text-[#5B5F61] flex items-center">
+                            {CHANNEL_LABELS[move.channel]}
+                        </span>
+                        <span className="h-[22px] px-2 bg-[#F8F9F7] rounded-md text-[10px] font-semibold uppercase tracking-[0.05em] text-[#5B5F61] flex items-center">
+                            {move.duration}D
+                        </span>
                     </div>
                 </div>
+                <button
+                    onClick={(e) => { e.stopPropagation(); onLogProgress?.(); }}
+                    className="h-8 px-3.5 bg-[#F8F9F7] border border-[#E5E6E3] rounded-lg text-[12px] font-medium text-[#2D3538] hover:bg-[#1A1D1E] hover:border-[#1A1D1E] hover:text-white transition-colors"
+                >
+                    Log progress
+                </button>
+            </div>
 
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-50 dark:bg-zinc-800 text-zinc-300 dark:text-zinc-600 group-hover:bg-zinc-100 dark:group-hover:bg-zinc-700 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-all">
-                    <ChevronRight className="w-4 h-4" />
+            {/* Outcome */}
+            {move.outcomeTarget && (
+                <p className="text-[14px] text-[#5B5F61] mb-4 leading-relaxed">
+                    <strong className="text-[#2D3538]">Outcome:</strong> {move.outcomeTarget}
+                </p>
+            )}
+
+            {/* Progress Row */}
+            <div className="flex items-center gap-4 mb-3">
+                <span className="text-[12px] font-mono font-medium text-[#2D3538]">Day {dayNumber}/{move.duration}</span>
+                <div className="flex-1 h-1 bg-[#E5E6E3] rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-[#2D3538] rounded-full transition-all duration-300"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+                <span className="text-[11px] font-mono text-[#9D9F9F]">Tasks {completedTasks}/{totalTasks}</span>
+                <span className="text-[11px] text-[#C0C1BE]">Last: {lastActivity}</span>
+            </div>
+
+            {/* RAG Status */}
+            <div className={`flex items-center gap-2 mb-3 px-3 py-2 rounded-lg ${ragColors[rag.status].bg}`}>
+                <div className={`w-2 h-2 rounded-full ${ragColors[rag.status].dot}`} />
+                <span className={`text-[11px] font-semibold uppercase tracking-[0.05em] ${ragColors[rag.status].text}`}>
+                    {rag.status.toUpperCase()}
+                </span>
+                <span className="text-[12px] text-[#5B5F61]">— {rag.reason}</span>
+            </div>
+
+            {/* Next Action */}
+            {nextAction && (
+                <div className="flex items-center gap-2 px-4 py-3 bg-[#1A1D1E] rounded-xl mb-4">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-white/50">Next:</span>
+                    <span className="flex-1 text-[14px] font-medium text-white">{nextAction.label}</span>
+                    <span className="text-[11px] font-mono text-white/50">Due {nextAction.dueDate}</span>
+                </div>
+            )}
+
+            {/* Micro Metrics */}
+            <div className="flex items-center gap-4 pt-3 border-t border-[#E5E6E3]">
+                <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] text-[#9D9F9F]">Leads</span>
+                    <span className="text-[13px] font-mono font-medium text-[#2D3538]">{leads}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] text-[#9D9F9F]">Replies</span>
+                    <span className="text-[13px] font-mono font-medium text-[#2D3538]">{replies}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] text-[#9D9F9F]">Calls</span>
+                    <span className="text-[13px] font-mono font-medium text-[#2D3538]">{calls}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] text-[#9D9F9F]">Conf</span>
+                    <span className="text-[13px] font-mono font-medium text-[#2D3538]">{confidence}/10</span>
                 </div>
             </div>
-        </button>
+        </div>
     );
 }

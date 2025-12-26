@@ -2,7 +2,7 @@ import os
 
 from google.cloud import secretmanager
 
-from backend.core.config import get_settings
+from core.config import get_settings
 
 
 def create_secret(project_id: str, secret_id: str):

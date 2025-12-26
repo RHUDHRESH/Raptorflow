@@ -2,11 +2,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.muse_briefer import (
+from agents.specialists.muse_briefer import (
     CreativeBriefOutput,
     MuseBriefingAgent,
 )
-from backend.models.cognitive import AgentMessage
+from models.cognitive import AgentMessage
 
 
 @pytest.mark.asyncio

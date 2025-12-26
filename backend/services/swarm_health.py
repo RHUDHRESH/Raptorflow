@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from backend.core.cache import CacheManager, get_cache_manager
-from backend.services.cost_governor import CostGovernor
+from core.cache import CacheManager, get_cache_manager
+from services.cost_governor import CostGovernor
 
 
 class SwarmHealthService:

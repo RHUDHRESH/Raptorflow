@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.services.matrix_service import MatrixService
+from services.matrix_service import MatrixService
 
 
 @pytest.mark.asyncio

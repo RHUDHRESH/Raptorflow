@@ -16,13 +16,13 @@ from crewai import Task as CrewAITask
 from langgraph.graph import StateGraph
 from pydantic import BaseModel
 
-from backend.agents.crewai_adapter import (
+from agents.crewai_adapter import (
     RAPTORFLOW_AGENT_CONFIGS,
     AgentRole,
     CrewAgentConfig,
     CrewAIAgentAdapter,
 )
-from backend.agents.crewai_coordination import (
+from agents.crewai_coordination import (
     AdvancedCrewCoordinator,
     ConflictType,
     CrewConflictResolver,
@@ -30,13 +30,13 @@ from backend.agents.crewai_coordination import (
     CrewScalingManager,
     get_crew_coordinator,
 )
-from backend.agents.crewai_tasks import (
+from agents.crewai_tasks import (
     CrewTaskManager,
     EnhancedTask,
     TaskPriority,
     TaskStatus,
 )
-from backend.agents.hybrid_integration import (
+from agents.hybrid_integration import (
     AgentType,
     ExecutionMode,
     HybridAgent,
@@ -87,7 +87,7 @@ class TestCrewAIAgentAdapter:
 
     def test_adapt_to_cognitive_state(self, crewai_adapter):
         """Test cognitive state adaptation."""
-        from backend.models.cognitive import AgentMessage
+        from models.cognitive import AgentMessage
 
         state = {
             "messages": [
@@ -638,7 +638,7 @@ class TestDataFactory:
         """Create a hybrid workflow state."""
         state = HybridWorkflowState()
         if messages:
-            from backend.models.cognitive import AgentMessage
+            from models.cognitive import AgentMessage
 
             state.messages = [
                 AgentMessage(role="user", content=msg) for msg in messages

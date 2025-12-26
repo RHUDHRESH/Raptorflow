@@ -2,183 +2,138 @@
 
 import Link from 'next/link';
 import { MarketingLayout } from '@/components/marketing/MarketingLayout';
-import { Button } from '@/components/ui/button';
 
 export default function CookiesPage() {
     return (
         <MarketingLayout>
-            {/* Hero */}
             <section className="py-24 lg:py-32">
-                <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                    <div className="mx-auto max-w-3xl">
-                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+                <div className="mx-auto max-w-4xl px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h1 className="font-serif text-5xl lg:text-6xl font-medium text-gray-900 mb-6 leading-tight">
                             Cookie Policy
-                        </p>
-                        <h1 className="font-display text-5xl lg:text-6xl font-medium tracking-tight mb-6">
-                            How we use cookies.
                         </h1>
-                        <p className="text-lg text-muted-foreground leading-relaxed">
-                            Last updated: December 20, 2024
+                        <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
+                            Last updated: December 26, 2024
                         </p>
                     </div>
-                </div>
-            </section>
 
-            {/* Content */}
-            <section className="pb-24 lg:pb-32">
-                <div className="mx-auto max-w-4xl px-6 lg:px-8">
-                    <div className="prose prose-lg max-w-none">
-                        <div className="space-y-8">
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">What Are Cookies</h2>
-                                <p className="text-muted-foreground">
-                                    Cookies are small text files that are stored on your device when you visit websites. They help us provide you with a better experience by remembering your preferences and improving website functionality.
+                    <div className="prose prose-lg max-w-none space-y-8">
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">What Are Cookies</h2>
+                            <p>
+                                Cookies are small text files that are stored on your device (computer, tablet, or mobile) when you visit a website. They are widely used to make websites work more efficiently and to provide information to website owners.
+                            </p>
+                            <p>
+                                This Cookie Policy explains how RaptorFlow uses cookies and similar technologies when you visit our website and use our services.
+                            </p>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">How We Use Cookies</h2>
+                            <p>
+                                We use cookies for several purposes to enhance your experience and improve our services:
+                            </p>
+                            <ul className="list-disc pl-6 space-y-2">
+                                <li><strong>Essential Cookies:</strong> These are necessary for the website to function and cannot be switched off in our systems.</li>
+                                <li><strong>Performance Cookies:</strong> These help us understand how visitors interact with our website by collecting and reporting information anonymously.</li>
+                                <li><strong>Functional Cookies:</strong> These enable the website to provide enhanced functionality and personalization.</li>
+                                <li><strong>Marketing Cookies:</strong> These are used to track visitors across websites to display relevant advertisements.</li>
+                            </ul>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Types of Cookies We Use</h2>
+                            <p>
+                                We use the following types of cookies on our website:
+                            </p>
+                            <ul className="list-disc pl-6 space-y-2">
+                                <li><strong>Session Cookies:</strong> These are temporary cookies that are erased when you close your browser.</li>
+                                <li><strong>Persistent Cookies:</strong> These remain on your device for a set period or until you delete them.</li>
+                                <li><strong>First-Party Cookies:</strong> These are set by our website directly.</li>
+                                <li><strong>Third-Party Cookies:</strong> These are set by external services we use on our website.</li>
+                            </ul>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Third-Party Cookies</h2>
+                            <p>
+                                We may use third-party services that set their own cookies on your device when you use our website. These third-party services include:
+                            </p>
+                            <ul className="list-disc pl-6 space-y-2">
+                                <li><strong>Analytics Services:</strong> Google Analytics and similar tools to understand website usage patterns.</li>
+                                <li><strong>Payment Processors:</strong> Secure payment gateways for processing subscriptions and transactions.</li>
+                                <li><strong>Marketing Platforms:</strong> Tools for tracking campaign performance and user engagement.</li>
+                                <li><strong>Social Media:</strong> Integration with social media platforms for sharing and authentication.</li>
+                            </ul>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Managing Your Cookie Preferences</h2>
+                            <p>
+                                You have several options to manage cookies:
+                            </p>
+                            <ul className="list-disc pl-6 space-y-2">
+                                <li><strong>Browser Settings:</strong> Most browsers allow you to control cookies through their settings. You can accept or reject cookies, or delete specific cookies.</li>
+                                <li><strong>Cookie Consent Banner:</strong> When you first visit our website, you'll see a cookie consent banner where you can choose which types of cookies to accept.</li>
+                                <li><strong>Opt-Out Tools:</strong> Some third-party services provide opt-out tools for their advertising cookies.</li>
+                            </ul>
+                            <p>
+                                Please note that disabling certain cookies may affect the functionality and performance of our website.
+                            </p>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Cookie Duration</h2>
+                            <p>
+                                Different cookies have different lifespans:
+                            </p>
+                            <ul className="list-disc pl-6 space-y-2">
+                                <li><strong>Session Cookies:</strong> Expire when you close your browser</li>
+                                <li><strong>Persistent Cookies:</strong> Typically expire after 30 days to 2 years</li>
+                                <li><strong>Authentication Cookies:</strong> Expire after 24 hours of inactivity</li>
+                                <li><strong>Analytics Cookies:</strong> Expire after 2 years</li>
+                            </ul>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Your Rights Under DPDPA 2023</h2>
+                            <p>
+                                Under the Digital Personal Data Protection Act, 2023, you have the right to:
+                            </p>
+                            <ul className="list-disc pl-6 space-y-2">
+                                <li>Know what personal data is being collected through cookies</li>
+                                <li>Withdraw consent for non-essential cookies</li>
+                                <li>Request deletion of data collected through cookies</li>
+                                <li>Opt out of targeted advertising</li>
+                            </ul>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Updates to This Cookie Policy</h2>
+                            <p>
+                                We may update this Cookie Policy from time to time to reflect changes in our use of cookies, legal requirements, or business practices. We will notify you of any material changes by posting the updated policy on our website and updating the "Last updated" date at the top of this policy.
+                            </p>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Contact Information</h2>
+                            <div className="space-y-2">
+                                <p>
+                                    <strong>RaptorFlow</strong><br />
+                                    Email: privacy@raptorflow.com<br />
+                                    Website: www.raptorflow.com
                                 </p>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">How We Use Cookies</h2>
-                                <p className="text-muted-foreground mb-4">
-                                    We use cookies for several purposes:
+                                <p className="text-sm">
+                                    This Cookie Policy is effective as of December 26, 2024 and complies with the Digital Personal Data Protection Act, 2023 (India).
                                 </p>
-                                <ul className="space-y-2 text-muted-foreground">
-                                    <li>• <strong>Essential Cookies:</strong> Required for the website to function properly</li>
-                                    <li>• <strong>Performance Cookies:</strong> Help us understand how visitors interact with our website</li>
-                                    <li>• <strong>Functional Cookies:</strong> Remember your preferences and settings</li>
-                                    <li>• <strong>Marketing Cookies:</strong> Used to deliver relevant advertisements and track marketing campaigns</li>
-                                </ul>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Types of Cookies We Use</h2>
-                                <div className="space-y-4">
-                                    <div>
-                                        <h3 className="text-lg font-medium mb-2">Essential Cookies</h3>
-                                        <p className="text-muted-foreground">
-                                            These cookies are necessary for the website to function and cannot be switched off. They include authentication cookies and security tokens.
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-medium mb-2">Analytics Cookies</h3>
-                                        <p className="text-muted-foreground">
-                                            We use Google Analytics and similar tools to understand how our website is used. This helps us improve user experience and website performance.
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-medium mb-2">Functional Cookies</h3>
-                                        <p className="text-muted-foreground">
-                                            These cookies remember your preferences, such as language settings and login status, to provide a more personalized experience.
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-medium mb-2">Advertising Cookies</h3>
-                                        <p className="text-muted-foreground">
-                                            These cookies are used to deliver advertisements that are relevant to you and your interests. They also help us measure the effectiveness of our marketing campaigns.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Third-Party Cookies</h2>
-                                <p className="text-muted-foreground mb-4">
-                                    We use third-party services that may place cookies on your device:
-                                </p>
-                                <div className="space-y-3">
-                                    <div className="bg-muted/50 rounded-lg p-4">
-                                        <h4 className="font-medium mb-1">Google Analytics</h4>
-                                        <p className="text-sm text-muted-foreground">
-                                            Used for website analytics and performance monitoring.
-                                        </p>
-                                    </div>
-                                    <div className="bg-muted/50 rounded-lg p-4">
-                                        <h4 className="font-medium mb-1">Payment Processors</h4>
-                                        <p className="text-sm text-muted-foreground">
-                                            Stripe and other payment providers use cookies for secure payment processing.
-                                        </p>
-                                    </div>
-                                    <div className="bg-muted/50 rounded-lg p-4">
-                                        <h4 className="font-medium mb-1">Customer Support</h4>
-                                        <p className="text-sm text-muted-foreground">
-                                            Intercom and similar tools use cookies for customer support functionality.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Managing Your Cookie Preferences</h2>
-                                <p className="text-muted-foreground mb-4">
-                                    You can control cookies in several ways:
-                                </p>
-                                <ul className="space-y-2 text-muted-foreground">
-                                    <li>• <strong>Browser Settings:</strong> Most browsers allow you to block or delete cookies through their settings</li>
-                                    <li>• <strong>Cookie Banner:</strong> Use our cookie consent banner to manage preferences when you first visit</li>
-                                    <li>• <strong>Privacy Settings:</strong> Update your preferences at any time through your account settings</li>
-                                </ul>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Cookie Duration</h2>
-                                <p className="text-muted-foreground mb-4">
-                                    Cookies have different lifespans:
-                                </p>
-                                <ul className="space-y-2 text-muted-foreground">
-                                    <li>• <strong>Session Cookies:</strong> Expire when you close your browser</li>
-                                    <li>• <strong>Persistent Cookies:</strong> Remain on your device for a set period or until you delete them</li>
-                                    <li>• <strong>Authentication Cookies:</strong> Typically last 30 days to maintain your login session</li>
-                                </ul>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Your Rights</h2>
-                                <p className="text-muted-foreground">
-                                    You have the right to accept or reject non-essential cookies. However, please note that blocking certain cookies may affect your user experience and some features of the website may not function properly.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">International Data Transfers</h2>
-                                <p className="text-muted-foreground">
-                                    Some third-party services may process your data outside your country. We ensure that appropriate safeguards are in place for international data transfers, including standard contractual clauses and other legal mechanisms.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Updates to This Policy</h2>
-                                <p className="text-muted-foreground">
-                                    We may update this Cookie Policy from time to time to reflect changes in our practices or for legal reasons. We will notify you of any significant changes by posting the updated policy on this page.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Contact Us</h2>
-                                <p className="text-muted-foreground mb-4">
-                                    If you have questions about our use of cookies, please contact us:
-                                </p>
-                                <div className="space-y-2 text-muted-foreground">
-                                    <p>Email: privacy@raptorflow.com</p>
-                                    <p>Address: Remote (Global)</p>
-                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            {/* CTA */}
-            <section className="border-t border-border bg-foreground text-background py-24">
-                <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                    <div className="mx-auto max-w-2xl text-center">
-                        <h2 className="font-display text-4xl font-medium mb-6">
-                            Questions about cookies?
-                        </h2>
-                        <p className="text-lg text-background/70 mb-10">
-                            We are transparent about how we use data to improve your experience.
-                        </p>
-                        <Button asChild size="lg" variant="secondary" className="h-14 px-8 text-base rounded-xl">
-                            <Link href="mailto:privacy@raptorflow.com">Contact Privacy Team</Link>
-                        </Button>
+                    <div className="text-center mt-16">
+                        <Link href="/" className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-6 py-3 text-white font-medium hover:bg-gray-800 transition-colors">
+                            Back to Home
+                        </Link>
                     </div>
                 </div>
             </section>

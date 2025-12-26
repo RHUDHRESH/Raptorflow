@@ -1,7 +1,7 @@
 import uuid
 from typing import Any, Dict
 
-from backend.models.telemetry import TelemetryEvent, TelemetryEventType
+from models.telemetry import TelemetryEvent, TelemetryEventType
 
 
 class ModelServer:

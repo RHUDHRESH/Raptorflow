@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.db import vector_search
+from db import vector_search
 
 
 @pytest.mark.asyncio

@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.icp_architect import (
+from agents.specialists.icp_architect import (
     ICPArchitectAgent,
     ICPOutput,
     ICPPersona,
 )
-from backend.models.cognitive import AgentMessage
+from models.cognitive import AgentMessage
 
 
 @pytest.mark.asyncio

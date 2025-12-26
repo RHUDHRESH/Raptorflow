@@ -2,13 +2,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.move_generator import (
+from agents.specialists.move_generator import (
     ActionItem,
     MoveGeneratorAgent,
     MovePacketOutput,
     WeeklyMove,
 )
-from backend.models.cognitive import AgentMessage
+from models.cognitive import AgentMessage
 
 
 @pytest.mark.asyncio

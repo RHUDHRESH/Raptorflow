@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 import pytest
 from langchain_core.messages import HumanMessage
 
-from backend.graphs.swarm_orchestrator import (
+from graphs.swarm_orchestrator import (
     SwarmController,
     SwarmIntent,
     SwarmRouteDecision,

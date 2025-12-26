@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.context_assembler import create_rag_node
-from backend.db import get_memory, summarize_recursively
+from agents.context_assembler import create_rag_node
+from db import get_memory, summarize_recursively
 
 
 @pytest.mark.asyncio

@@ -2,8 +2,8 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from backend.inference import InferenceProvider
-from backend.models.cognitive import ModelTier
+from inference import InferenceProvider
+from models.cognitive import ModelTier
 
 logger = logging.getLogger("raptorflow.services.shadow_inference")
 

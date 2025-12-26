@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from backend.memory.swarm_l1 import SwarmL1MemoryManager
-from backend.models.swarm import SwarmTask
+from memory.swarm_l1 import SwarmL1MemoryManager
+from models.swarm import SwarmTask
 
 
 @pytest.mark.asyncio

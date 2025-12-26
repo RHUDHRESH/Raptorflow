@@ -3,13 +3,13 @@ from uuid import uuid4
 
 import pytest
 
-from backend.models.campaigns import Campaign, CampaignStatus
-from backend.services.campaign_service import CampaignService
+from models.campaigns import Campaign, CampaignStatus
+from services.campaign_service import CampaignService
 
 
 @pytest.mark.asyncio
 async def test_campaign_service_save_campaign():
-    import backend.services.campaign_service
+    import services.campaign_service
 
     mock_cursor = AsyncMock()
     mock_conn = MagicMock()

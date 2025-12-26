@@ -1,7 +1,7 @@
 import pytest
 
-from backend.agents.specialists.move_generator import ActionItem, WeeklyMove
-from backend.core.formatter import ActionPacketFormatter
+from agents.specialists.move_generator import ActionItem, WeeklyMove
+from core.formatter import ActionPacketFormatter
 
 
 def test_action_packet_formatting_logic():

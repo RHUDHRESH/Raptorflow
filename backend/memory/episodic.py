@@ -1,9 +1,9 @@
 import json
 from typing import Any, Dict, List, Optional
 
-from backend.core.cache import get_cache_manager
-from backend.db import get_memory, save_memory
-from backend.inference import InferenceProvider
+from core.cache import get_cache_manager
+from db import get_memory, save_memory
+from inference import InferenceProvider
 
 
 class EpisodicMemory:

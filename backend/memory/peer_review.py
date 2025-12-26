@@ -1,7 +1,7 @@
 import logging
 from typing import Any, List, Optional
 
-from backend.memory.short_term import L1ShortTermMemory
+from memory.short_term import L1ShortTermMemory
 
 logger = logging.getLogger("raptorflow.memory.peer_review")
 

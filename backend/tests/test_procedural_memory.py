@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from backend.memory.procedural import ProceduralMemory
+from memory.procedural import ProceduralMemory
 
 
 @pytest.mark.asyncio

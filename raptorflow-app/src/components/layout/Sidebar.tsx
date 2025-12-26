@@ -29,9 +29,8 @@ const NAV_ITEMS = [
     { name: 'Cohorts', href: '/cohorts', icon: CohortsIcon },
     { name: 'Moves', href: '/moves', icon: MovesIcon },
     { name: 'Campaigns', href: '/campaigns', icon: CampaignsIcon },
-    { name: 'Radar', href: '/radar', icon: MatrixIcon }, // Reusing MatrixIcon or similar for Radar
+    { name: 'Radar', href: '/radar', icon: MatrixIcon },
     { name: 'Muse', href: '/muse', icon: MuseIcon },
-    { name: 'Matrix', href: '/matrix', icon: MatrixIcon },
     { name: 'Blackbox', href: '/blackbox', icon: BlackboxIcon },
 ];
 

@@ -7,7 +7,7 @@ import pytest
 mock_vertex = MagicMock()
 sys.modules["langchain_google_vertexai"] = mock_vertex
 
-from backend.inference import InferenceProvider
+from inference import InferenceProvider
 
 
 def test_inference_fallback_configuration():

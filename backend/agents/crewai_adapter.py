@@ -12,8 +12,8 @@ from crewai import Agent, Crew, Task
 from crewai_tools import BaseTool
 from pydantic import BaseModel
 
-from backend.models.capabilities import CapabilityProfile
-from backend.models.cognitive import AgentMessage, CognitiveIntelligenceState
+from models.capabilities import CapabilityProfile
+from models.cognitive import AgentMessage, CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.crewai.agents")
 
@@ -68,7 +68,7 @@ class CrewAIAgentAdapter:
         self.model_tier = model_tier
 
         # Import here to avoid circular dependencies
-        from backend.inference import InferenceProvider
+        from inference import InferenceProvider
 
         self.llm = InferenceProvider.get_model(model_tier=model_tier)
 

@@ -1,6 +1,6 @@
 import pytest
 
-from backend.agents.shared.pool_monitor import AgentPoolMonitor
+from agents.shared.pool_monitor import AgentPoolMonitor
 
 
 def test_agent_pool_monitor_registration():

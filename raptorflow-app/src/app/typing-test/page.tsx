@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import { TypingExperienceControls } from '@/components/ui/typing/TypingExperienceControls';
 import { useTypingExperience } from '@/components/ui/typing/TypingExperienceProvider';
 
 export default function TypingTestPage() {
@@ -96,8 +95,6 @@ export default function TypingTestPage() {
         </div>
       </div>
 
-      {/* 10x Controls */}
-      <TypingExperienceControls />
     </div>
   );
 }

@@ -2,13 +2,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.campaign_planner import (
+from agents.specialists.campaign_planner import (
     CampaignArcOutput,
     CampaignPlannerAgent,
     MonthlyArc,
     StrategicMilestone,
 )
-from backend.models.cognitive import AgentMessage
+from models.cognitive import AgentMessage
 
 
 @pytest.mark.asyncio

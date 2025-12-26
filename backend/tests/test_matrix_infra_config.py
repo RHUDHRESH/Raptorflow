@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
-from backend.core.config import get_settings
-from backend.core.secrets import get_secret
+from core.config import get_settings
+from core.secrets import get_secret
 
 
 def test_get_secret_with_gcp_manager(monkeypatch):
@@ -60,9 +60,9 @@ def test_module_imports_use_settings():
         # We need to reload or carefully import since these might have been imported already
         import importlib
 
-        import backend.db
-        import backend.inference
-        import backend.tools.image_gen
+        import db
+        import inference
+        import tools.image_gen
 
         importlib.reload(backend.db)
         importlib.reload(backend.inference)
@@ -71,7 +71,7 @@ def test_module_imports_use_settings():
         assert backend.db.DB_URI == "mocked-secret"
 
         # Test get_vertex_api_key in inference
-        from backend.inference import get_vertex_api_key
+        from inference import get_vertex_api_key
 
         with patch("backend.inference.get_settings") as mock_get_settings:
             mock_get_settings.return_value.VERTEX_AI_API_KEY = "vertex-key"

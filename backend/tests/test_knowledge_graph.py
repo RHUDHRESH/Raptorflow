@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.memory.knowledge_graph import KnowledgeGraphConnector
+from memory.knowledge_graph import KnowledgeGraphConnector
 
 
 @pytest.mark.asyncio

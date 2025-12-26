@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.content_repurposer import (
+from agents.specialists.content_repurposer import (
     ContentRepurposerAgent,
     MicroAsset,
     RepurposedOutput,

@@ -5,9 +5,9 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 
-from backend.core.auth import get_current_user, get_tenant_id
-from backend.core.vault import Vault
-from backend.services.blackbox_service import BlackboxService
+from core.auth import get_current_user, get_tenant_id
+from core.vault import Vault
+from services.blackbox_service import BlackboxService
 
 router = APIRouter(prefix="/v1/blackbox/memory", tags=["blackbox"])
 

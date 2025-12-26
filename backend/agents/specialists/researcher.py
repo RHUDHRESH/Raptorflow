@@ -3,8 +3,8 @@ from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
 
-from backend.agents.base import BaseCognitiveAgent
-from backend.models.cognitive import CognitiveIntelligenceState
+from agents.base import BaseCognitiveAgent
+from models.cognitive import CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.agents.researcher")
 
@@ -37,8 +37,8 @@ class ResearcherAgent(BaseCognitiveAgent):
     """
 
     def __init__(self):
-        from backend.core.prompts import ResearchPrompts
-        from backend.tools.registry import UnifiedToolRegistry
+        from core.prompts import ResearchPrompts
+        from tools.registry import UnifiedToolRegistry
 
         registry = UnifiedToolRegistry.default()
         profiles = registry.get_capability_profiles(["tavily_search"])

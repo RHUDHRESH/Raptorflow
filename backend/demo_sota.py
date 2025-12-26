@@ -2,7 +2,7 @@ import asyncio
 import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from backend.graphs.spine_v3 import build_ultimate_spine
+from graphs.spine_v3 import build_ultimate_spine
 
 # Configure clean logging to show the "Inner Monologue"
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -50,19 +50,19 @@ async def talk_to_fortress():
 
         # We simulate the first few steps manually to show the routing logic
         print("--- DISCOVERY PHASE (Mundane) ---")
-        from backend.agents.classifier import Intent
+        from agents.classifier import Intent
 
         mock_inst.with_structured_output.return_value.ainvoke.return_value = Intent(
             classification="campaign",
             confidence=0.99,
             reasoning="Clear campaign intent.",
         )
-        from backend.graphs.spine_v3 import discovery_node
+        from graphs.spine_v3 import discovery_node
 
         await discovery_node({"raw_prompt": user_prompt})
 
         print("\n--- STRATEGY PHASE (Ultra) ---")
-        from backend.agents.strategists import UVP, UVPAnalysis
+        from agents.strategists import UVP, UVPAnalysis
 
         mock_inst.with_structured_output.return_value.ainvoke.return_value = (
             UVPAnalysis(
@@ -75,13 +75,13 @@ async def talk_to_fortress():
                 ]
             )
         )
-        from backend.agents.strategists import create_uvp_architect
+        from agents.strategists import create_uvp_architect
 
         uvp_arch = create_uvp_architect(mock_inst)
         await uvp_arch({"context_brief": {}, "research_bundle": {}})
 
         print("\n--- PRODUCTION PHASE (Driver) ---")
-        from backend.agents.creatives import LinkedInPost
+        from agents.creatives import LinkedInPost
 
         mock_inst.with_structured_output.return_value.ainvoke.return_value = (
             LinkedInPost(
@@ -91,7 +91,7 @@ async def talk_to_fortress():
                 post_vibe="Calm",
             )
         )
-        from backend.agents.creatives import create_linkedin_architect
+        from agents.creatives import create_linkedin_architect
 
         creative = create_linkedin_architect(mock_inst)
         await creative({"context_brief": {}, "research_bundle": {}})

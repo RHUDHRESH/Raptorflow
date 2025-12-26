@@ -2,9 +2,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.strategist import PositioningOutput
-from backend.graphs.spine_v3 import cognitive_spine_v3
-from backend.models.cognitive import AgentMessage, CognitiveStatus
+from agents.specialists.strategist import PositioningOutput
+from graphs.spine_v3 import cognitive_spine_v3
+from models.cognitive import AgentMessage, CognitiveStatus
 
 
 @pytest.mark.asyncio

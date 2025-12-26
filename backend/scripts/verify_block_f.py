@@ -1,9 +1,9 @@
 import asyncio
 
-from backend.core.fallback import FallbackManager
-from backend.services.circuit_breaker import KillSwitchCircuitBreaker
-from backend.services.latency_monitor import LatencyMonitor
-from backend.services.sanity_check import SystemSanityCheck
+from core.fallback import FallbackManager
+from services.circuit_breaker import KillSwitchCircuitBreaker
+from services.latency_monitor import LatencyMonitor
+from services.sanity_check import SystemSanityCheck
 
 
 async def verify_block_f():

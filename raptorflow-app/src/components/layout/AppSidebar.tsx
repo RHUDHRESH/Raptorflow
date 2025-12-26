@@ -15,6 +15,7 @@ import {
     ChevronDown
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 import {
     Sidebar,
@@ -29,7 +30,7 @@ import {
     SidebarSeparator,
     SidebarHeader,
 } from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -38,15 +39,15 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Navigation Model as per UI.md (recommended sections)
+// Navigation as per UI.md + Foundation Vibe
 const navItems = [
     { title: 'Home', url: '/dashboard', icon: Home },
     { title: 'Foundation', url: '/foundation', icon: Layers },
     { title: 'Cohorts', url: '/cohorts', icon: Users },
     { title: 'Moves', url: '/moves', icon: Zap },
     { title: 'Campaigns', url: '/campaigns', icon: Megaphone },
+    { title: 'Radar', url: '/radar', icon: LayoutGrid },
     { title: 'Muse', url: '/muse', icon: Sparkles },
-    { title: 'Matrix', url: '/matrix', icon: LayoutGrid },
     { title: 'Blackbox', url: '/blackbox', icon: Box },
 ];
 
@@ -54,22 +55,27 @@ export function AppSidebar() {
     const pathname = usePathname();
 
     return (
-        <Sidebar collapsible="icon" variant="sidebar">
-            <SidebarHeader className="p-4 pl-6">
-                <Link href="/" className="flex items-center gap-3 font-display text-xl font-semibold tracking-tight text-foreground group-hover:opacity-100 transition-opacity">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background shadow-lg shadow-foreground/20">
-                        <span className="text-sm font-bold font-sans">RF</span>
+        <Sidebar
+            collapsible="icon"
+            variant="sidebar"
+            className="border-r border-[#2B3437] bg-[#0E1112]"
+        >
+            <SidebarHeader className="p-8 pb-4">
+                <Link href="/" className="flex items-center gap-4 group transition-all">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E9ECE6] text-[#0E1112] shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-transform group-hover:scale-105">
+                        <span className="text-[14px] font-bold font-sans">RF</span>
                     </div>
-                    <span className="group-data-[collapsible=icon]:hidden opacity-90">RaptorFlow</span>
+                    <div className="flex flex-col group-data-[collapsible=icon]:hidden">
+                        <span className="font-serif text-[18px] font-medium text-[#E9ECE6] tracking-tight leading-tight">RaptorFlow</span>
+                        <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#B8BDB7] opacity-40">Founder OS</span>
+                    </div>
                 </Link>
             </SidebarHeader>
 
-            <SidebarSeparator className="opacity-30 mx-4" />
-
-            <SidebarContent className="px-3 py-6">
+            <SidebarContent className="px-5 py-8">
                 <SidebarGroup>
                     <SidebarGroupContent>
-                        <SidebarMenu className="gap-2">
+                        <SidebarMenu className="gap-3">
                             {navItems.map((item) => {
                                 const isActive = pathname === item.url;
                                 return (
@@ -78,30 +84,32 @@ export function AppSidebar() {
                                             asChild
                                             isActive={isActive}
                                             tooltip={item.title}
-                                            className={`
-                                                    h-10 px-0 my-0.5 transition-all duration-200 rounded-lg group/item
-                                                    ${isActive
-                                                    ? 'font-medium text-foreground'
-                                                    : 'text-muted-foreground/80 hover:text-foreground hover:bg-muted/50'
-                                                }
-                                                `}
+                                            className={cn(
+                                                "h-12 px-3 transition-all duration-300 rounded-xl group/item relative overflow-hidden",
+                                                isActive
+                                                    ? 'bg-[#E9ECE6]/[0.05] text-[#E9ECE6]'
+                                                    : 'text-[#B8BDB7] hover:text-[#E9ECE6] hover:bg-[#E9ECE6]/[0.02]'
+                                            )}
                                         >
-                                            <Link href={item.url} className="relative flex items-center gap-3 z-10 w-full p-2">
-                                                {isActive && (
-                                                    <motion.div
-                                                        layoutId="sidebar-active"
-                                                        className="absolute inset-0 bg-sidebar-accent border-l-[3px] border-foreground rounded-r-lg"
-                                                        initial={{ opacity: 0 }}
-                                                        animate={{ opacity: 1 }}
-                                                        exit={{ opacity: 0 }}
-                                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                                    />
-                                                )}
-                                                <item.icon className={`
-                                                    h-[18px] w-[18px] transition-colors z-20 relative
-                                                    ${isActive ? 'text-foreground stroke-[2px]' : 'text-muted-foreground stroke-[1.5px] group-hover/item:text-foreground'}
-                                                `} />
-                                                <span className={`text-[15px] tracking-tight z-20 relative ${isActive ? 'font-semibold' : 'font-medium'}`}>{item.title}</span>
+                                            <Link href={item.url} className="flex items-center gap-4 w-full">
+                                                <div className="relative z-10">
+                                                    <item.icon className={cn(
+                                                        "h-[20px] w-[20px] transition-all duration-300",
+                                                        isActive ? 'stroke-[2px] opacity-100' : 'stroke-[1.5px] opacity-50 group-hover/item:opacity-100'
+                                                    )} />
+                                                    {isActive && (
+                                                        <motion.div
+                                                            layoutId="sidebar-active-dot"
+                                                            className="absolute -right-2 -top-1 w-1.5 h-1.5 bg-[#E9ECE6] rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                                                        />
+                                                    )}
+                                                </div>
+                                                <span className={cn(
+                                                    "text-[15px] tracking-tight transition-all duration-300",
+                                                    isActive ? 'font-medium' : 'font-normal opacity-60 group-hover/item:opacity-100'
+                                                )}>
+                                                    {item.title}
+                                                </span>
                                             </Link>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
@@ -112,32 +120,40 @@ export function AppSidebar() {
                 </SidebarGroup>
             </SidebarContent>
 
-            <SidebarFooter className="p-4">
+            <SidebarFooter className="p-6 border-t border-[#2B3437]">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-xl hover:bg-muted/50 transition-colors">
-                                    <Avatar className="h-9 w-9 rounded-lg border border-border/50">
-                                        <AvatarFallback className="rounded-lg bg-muted text-muted-foreground font-medium">FD</AvatarFallback>
+                                <SidebarMenuButton
+                                    size="lg"
+                                    className="data-[state=open]:bg-[#E9ECE6]/[0.05] data-[state=open]:text-[#E9ECE6] rounded-xl hover:bg-[#E9ECE6]/[0.03] transition-all duration-300 px-3"
+                                >
+                                    <Avatar className="h-9 w-9 rounded-xl border border-[#2B3437]">
+                                        <AvatarFallback className="rounded-xl bg-[#141A1C] text-[#E9ECE6] font-medium text-xs">FD</AvatarFallback>
                                     </Avatar>
-                                    <div className="grid flex-1 text-left text-sm leading-tight ml-1">
-                                        <span className="truncate font-semibold tracking-tight">Founder</span>
-                                        <span className="truncate text-xs text-muted-foreground">you@startup.com</span>
+                                    <div className="grid flex-1 text-left text-sm leading-tight ml-3 group-data-[collapsible=icon]:hidden">
+                                        <span className="truncate font-medium text-[#E9ECE6] tracking-tight">Founder</span>
+                                        <span className="truncate text-xs text-[#B8BDB7] opacity-40">you@startup.com</span>
                                     </div>
-                                    <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
+                                    <ChevronDown className="ml-auto h-4 w-4 text-[#B8BDB7] opacity-30 group-data-[collapsible=icon]:hidden" />
                                 </SidebarMenuButton>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] rounded-lg" side="top" align="start" sideOffset={4}>
-                                <DropdownMenuItem asChild>
-                                    <Link href="/settings" className="cursor-pointer">
-                                        <Settings className="mr-2 h-4 w-4" />
-                                        Settings
+                            <DropdownMenuContent
+                                className="w-[--radix-dropdown-menu-trigger-width] rounded-xl bg-[#141A1C] border-[#2B3437] text-[#E9ECE6]"
+                                side="top"
+                                align="start"
+                                sideOffset={8}
+                            >
+                                <DropdownMenuItem asChild className="focus:bg-[#E9ECE6]/[0.05] focus:text-[#E9ECE6] cursor-pointer rounded-lg mx-1 my-1">
+                                    <Link href="/settings">
+                                        <Settings className="mr-3 h-4 w-4 opacity-60" />
+                                        <span className="text-[14px]">Settings</span>
                                     </Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>
-                                    Log out
+                                <DropdownMenuSeparator className="bg-[#2B3437]" />
+                                <DropdownMenuItem className="focus:bg-red-500/10 focus:text-red-400 cursor-pointer rounded-lg mx-1 my-1">
+                                    <span className="text-[14px]">Log out</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -145,7 +161,7 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarFooter>
 
-            <SidebarRail />
+            <SidebarRail className="hover:after:bg-[#2B3437]" />
         </Sidebar>
     );
 }

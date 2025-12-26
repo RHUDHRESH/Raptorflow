@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.db import SupabaseSaver, get_pool, init_checkpointer, save_asset_vault
+from db import SupabaseSaver, get_pool, init_checkpointer, save_asset_vault
 
 
 @pytest.mark.asyncio
@@ -24,7 +24,7 @@ async def test_asset_vaulting_logic():
 
 from langgraph.checkpoint.base import Checkpoint
 
-from backend.services.cache import get_cache
+from services.cache import get_cache
 
 
 @pytest.mark.asyncio

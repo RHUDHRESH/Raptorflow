@@ -6,9 +6,9 @@ from typing import Dict, List, Optional
 import aiohttp
 from bs4 import BeautifulSoup
 
-from backend.core.config import get_settings
-from backend.core.renderers.playwright import PlaywrightRenderer, should_render
-from backend.tools.scraper import FirecrawlScraperTool, JinaReaderTool
+from core.config import get_settings
+from core.renderers.playwright import PlaywrightRenderer, should_render
+from tools.scraper import FirecrawlScraperTool, JinaReaderTool
 
 
 class AdvancedCrawler:

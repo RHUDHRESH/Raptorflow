@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.services.cost_governor import CostGovernor
+from services.cost_governor import CostGovernor
 
 
 @pytest.mark.asyncio

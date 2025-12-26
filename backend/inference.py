@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Iterable, List, Optional
 
-from backend.core.config import get_settings
+from core.config import get_settings
 
 
 def get_vertex_api_key():

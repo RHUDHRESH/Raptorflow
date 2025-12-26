@@ -1,9 +1,9 @@
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from backend.memory.episodic import EpisodicMemory
-from backend.memory.long_term import LongTermMemory
-from backend.memory.semantic import SemanticMemory
+from memory.episodic import EpisodicMemory
+from memory.long_term import LongTermMemory
+from memory.semantic import SemanticMemory
 
 
 async def verify():

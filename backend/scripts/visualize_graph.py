@@ -1,6 +1,6 @@
 import os
 
-from backend.graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
+from graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
 
 def visualize():

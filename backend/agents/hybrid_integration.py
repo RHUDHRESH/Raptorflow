@@ -16,13 +16,13 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 from pydantic import BaseModel
 
-from backend.agents.crewai_adapter import CrewAgentConfig, CrewAIAgentAdapter
-from backend.agents.crewai_coordination import (
+from agents.crewai_adapter import CrewAgentConfig, CrewAIAgentAdapter
+from agents.crewai_coordination import (
     AdvancedCrewCoordinator,
     get_crew_coordinator,
 )
-from backend.agents.crewai_tasks import CrewTaskManager, TaskPriority
-from backend.models.cognitive import AgentMessage, CognitiveIntelligenceState
+from agents.crewai_tasks import CrewTaskManager, TaskPriority
+from models.cognitive import AgentMessage, CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.hybrid.integration")
 

@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from backend.core.cache import get_cache_manager
+from core.cache import get_cache_manager
 
 logger = logging.getLogger("raptorflow.core.governance")
 

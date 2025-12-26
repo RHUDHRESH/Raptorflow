@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.core.secrets import get_secret
+from core.secrets import get_secret
 
 
 def test_get_secret_env_fallback():

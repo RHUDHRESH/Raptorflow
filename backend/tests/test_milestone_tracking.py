@@ -1,6 +1,6 @@
 import pytest
 
-from backend.core.tracking import MilestoneTracker
+from core.tracking import MilestoneTracker
 
 
 def test_milestone_tracking_logic():

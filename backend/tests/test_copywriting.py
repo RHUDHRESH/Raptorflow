@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.copywriter import CopyOutput, CopywriterAgent
-from backend.models.cognitive import AgentMessage
+from agents.specialists.copywriter import CopyOutput, CopywriterAgent
+from models.cognitive import AgentMessage
 
 
 @pytest.mark.asyncio

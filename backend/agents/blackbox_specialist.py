@@ -2,7 +2,7 @@ import inspect
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
-from backend.inference import InferenceProvider
+from inference import InferenceProvider
 
 
 class BlackboxSpecialist(ABC):

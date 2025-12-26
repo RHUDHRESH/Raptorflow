@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.creative_director import (
+from agents.specialists.creative_director import (
     CreativeAsset,
     CreativeDirectorAgent,
     CreativeOutput,
 )
-from backend.models.cognitive import CognitiveStatus
+from models.cognitive import CognitiveStatus
 
 
 @pytest.mark.asyncio

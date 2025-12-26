@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from backend.models.campaigns import GanttChart, GanttItem
+from models.campaigns import GanttChart, GanttItem
 
 
 def test_gantt_item_validation():

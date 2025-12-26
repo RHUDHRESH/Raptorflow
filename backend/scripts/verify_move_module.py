@@ -1,7 +1,7 @@
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from backend.agents.moves import (
+from agents.moves import (
     MoveGenerator,
     MovePersistence,
     MoveRefiner,

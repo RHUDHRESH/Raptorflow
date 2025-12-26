@@ -15,7 +15,7 @@ from uuid import uuid4  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 # Import app AFTER mocking
-from backend.main import app  # noqa: E402
+from main import app  # noqa: E402
 
 client = TestClient(app)
 
@@ -50,7 +50,7 @@ def test_foundation_state_sync_scaffolding():
 
 def test_cache_manager_logic():
     """Verify CacheManager scaffolding."""
-    from backend.core.cache import CacheManager
+    from core.cache import CacheManager
 
     mock_redis = MagicMock()
     mock_redis.get.return_value = '{"status": "success"}'

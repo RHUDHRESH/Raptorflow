@@ -6,7 +6,7 @@ from uuid import UUID
 
 from pydantic import ValidationError
 
-from backend.models.telemetry import TelemetryEvent, TelemetryEventType
+from models.telemetry import TelemetryEvent, TelemetryEventType
 
 logger = logging.getLogger("raptorflow.services.evaluation")
 
@@ -18,8 +18,8 @@ class EvaluationService:
 
     def __init__(self, blackbox_service: Optional[Any] = None):
         if blackbox_service is None:
-            from backend.core.vault import Vault
-            from backend.services.blackbox_service import BlackboxService
+            from core.vault import Vault
+            from services.blackbox_service import BlackboxService
 
             blackbox_service = BlackboxService(Vault())
         self._blackbox = blackbox_service

@@ -3,14 +3,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.main import app
+from main import app
 
 client = TestClient(app)
 
 
 def test_get_campaign_gantt_endpoint():
     """Verify that the Gantt endpoint returns structured data."""
-    from backend.api.v1.campaigns import get_campaign_service
+    from api.v1.campaigns import get_campaign_service
 
     mock_gantt = {
         "items": [
@@ -39,7 +39,7 @@ def test_get_campaign_gantt_endpoint():
 
 
 def test_get_campaign_service():
-    from backend.api.v1.campaigns import get_campaign_service
-    from backend.services.campaign_service import CampaignService
+    from api.v1.campaigns import get_campaign_service
+    from services.campaign_service import CampaignService
 
     assert isinstance(get_campaign_service(), CampaignService)

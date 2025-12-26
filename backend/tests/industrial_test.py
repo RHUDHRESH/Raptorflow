@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.graphs.spine_v3 import build_ultimate_spine
+from graphs.spine_v3 import build_ultimate_spine
 
 
 @pytest.mark.asyncio

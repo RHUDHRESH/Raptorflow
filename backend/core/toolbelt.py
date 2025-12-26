@@ -3,10 +3,10 @@ import logging
 from functools import wraps
 from typing import Any, Dict, List
 
-from backend.core.cache import get_cache_manager
-from backend.tools.image_gen import NanoBananaImageTool
-from backend.tools.muse import AssetGenTool
-from backend.tools.search import (
+from core.cache import get_cache_manager
+from tools.image_gen import NanoBananaImageTool
+from tools.muse import AssetGenTool
+from tools.search import (
     PerplexitySearchTool,
     RaptorSearchTool,
     TavilyMultiHopTool,

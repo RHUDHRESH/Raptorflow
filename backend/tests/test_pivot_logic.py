@@ -1,6 +1,6 @@
 import pytest
 
-from backend.core.pivoting import PivotEngine
+from core.pivoting import PivotEngine
 
 
 def test_pivot_logic_detection():

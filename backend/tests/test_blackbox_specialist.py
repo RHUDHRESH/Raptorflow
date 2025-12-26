@@ -7,7 +7,7 @@ import pytest
 mock_vertex = MagicMock()
 sys.modules["langchain_google_vertexai"] = mock_vertex
 
-from backend.agents.blackbox_specialist import BlackboxSpecialist
+from agents.blackbox_specialist import BlackboxSpecialist
 
 
 def test_blackbox_specialist_base():
@@ -32,7 +32,7 @@ def test_blackbox_specialist_base():
 def test_roi_analyst_agent():
     # This will fail until ROIAnalystAgent is implemented
     try:
-        from backend.agents.roi_analyst import ROIAnalystAgent
+        from agents.roi_analyst import ROIAnalystAgent
 
         with patch("backend.inference.InferenceProvider.get_model") as mock_get_model:
             mock_llm = MagicMock()
@@ -52,7 +52,7 @@ def test_roi_analyst_agent():
 def test_strategic_drift_agent():
     # This will fail until StrategicDriftAgent is implemented
     try:
-        from backend.agents.drift_detector import StrategicDriftAgent
+        from agents.drift_detector import StrategicDriftAgent
 
         with patch("backend.inference.InferenceProvider.get_model") as mock_get_model:
             mock_llm = MagicMock()
@@ -76,7 +76,7 @@ def test_strategic_drift_agent():
 def test_competitor_intelligence_agent():
     # This will fail until CompetitorIntelligenceAgent is implemented
     try:
-        from backend.agents.competitor_intel import CompetitorIntelligenceAgent
+        from agents.competitor_intel import CompetitorIntelligenceAgent
 
         with patch("backend.inference.InferenceProvider.get_model") as mock_get_model:
             mock_llm = MagicMock()
@@ -98,9 +98,9 @@ def test_competitor_intelligence_agent():
 
 
 def test_agent_specialization_accuracy():
-    from backend.agents.competitor_intel import CompetitorIntelligenceAgent
-    from backend.agents.drift_detector import StrategicDriftAgent
-    from backend.agents.roi_analyst import ROIAnalystAgent
+    from agents.competitor_intel import CompetitorIntelligenceAgent
+    from agents.drift_detector import StrategicDriftAgent
+    from agents.roi_analyst import ROIAnalystAgent
 
     with patch("backend.inference.InferenceProvider.get_model") as mock_get_model:
         mock_llm = MagicMock()

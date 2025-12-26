@@ -2,9 +2,9 @@ import asyncio
 import logging
 from typing import Any, Dict
 
-from backend.core.cache import get_cache_manager
-from backend.db import get_db_connection
-from backend.inference import InferenceProvider
+from core.cache import get_cache_manager
+from db import get_db_connection
+from inference import InferenceProvider
 
 logger = logging.getLogger("raptorflow.services.sanity_check")
 

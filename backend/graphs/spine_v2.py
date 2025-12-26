@@ -2,10 +2,10 @@ from typing import Any, Dict, List, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from backend.agents.shared.agents import IntentRouter, QualityGate
-from backend.agents.specialists.creatives import EmailSpecialistAgent
-from backend.memory.cognitive.engine import CognitiveMemoryEngine
-from backend.services.budget_governor import BudgetGovernor
+from agents.shared.agents import IntentRouter, QualityGate
+from agents.specialists.creatives import EmailSpecialistAgent
+from memory.cognitive.engine import CognitiveMemoryEngine
+from services.budget_governor import BudgetGovernor
 
 
 class SpineState(TypedDict):
@@ -121,7 +121,7 @@ def router_logic(state: SpineState):
 
 async def evaluate_run(state: SpineState):
     """Evaluates the run and persists learning artifacts."""
-    from backend.services.evaluation import EvaluationService
+    from services.evaluation import EvaluationService
 
     evaluator = EvaluationService()
     evaluation = evaluator.evaluate_run(

@@ -97,57 +97,44 @@ export default function MuseLibraryPage() {
     }, [selectedAsset]);
 
     return (
-        <AppLayout>
-            <Stagger className="flex flex-col gap-8 pb-24">
-                {/* Header */}
-                <FadeIn>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <Link
-                                href="/muse"
-                                className={cn(
-                                    'flex items-center justify-center h-10 w-10 rounded-xl',
-                                    'border border-border/60 bg-card',
-                                    'hover:bg-muted/50 transition-colors'
-                                )}
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                            </Link>
-                            <div>
-                                <h1 className="font-display text-3xl font-semibold tracking-tight">
-                                    Asset Library
-                                </h1>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                    All your created assets in one place
-                                </p>
-                            </div>
-                        </div>
-
+        <AppLayout fullBleed>
+            <div className="min-h-screen bg-[#F8F9F7] px-8 lg:px-16 py-10">
+                {/* Editorial Header */}
+                <header className="flex items-end justify-between mb-12">
+                    <div className="flex items-center gap-5">
                         <Link
                             href="/muse"
-                            className={cn(
-                                'flex items-center gap-2 h-10 px-5 rounded-xl',
-                                'bg-foreground text-background',
-                                'text-sm font-medium',
-                                'hover:opacity-90 transition-opacity'
-                            )}
+                            className="flex items-center justify-center h-11 w-11 rounded-xl border border-[#E5E6E3] bg-white hover:bg-[#F8F9F7] transition-colors"
                         >
-                            <Plus className="h-4 w-4" />
-                            Create New
+                            <ArrowLeft className="h-4 w-4 text-[#5B5F61]" />
                         </Link>
+                        <div>
+                            <h1 className="font-serif text-[36px] text-[#2D3538] tracking-tight leading-none">
+                                Library
+                            </h1>
+                            <p className="font-sans text-[14px] text-[#5B5F61] mt-2">
+                                All your created assets in one place
+                            </p>
+                        </div>
                     </div>
-                </FadeIn>
+
+                    <Link
+                        href="/muse"
+                        className="flex items-center gap-2 h-11 px-5 rounded-xl bg-[#1a1d1e] text-white text-[13px] font-medium tracking-tight shadow-md hover:shadow-lg transition-all"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Create New
+                    </Link>
+                </header>
 
                 {/* Asset Library */}
-                <FadeIn delay={1}>
-                    <AssetLibrary
-                        assets={assets}
-                        onAssetClick={handleOpenAsset}
-                        onAssetDelete={handleDeleteAsset}
-                        onAssetDuplicate={handleDuplicateAsset}
-                    />
-                </FadeIn>
-            </Stagger>
+                <AssetLibrary
+                    assets={assets}
+                    onAssetClick={handleOpenAsset}
+                    onAssetDelete={handleDeleteAsset}
+                    onAssetDuplicate={handleDuplicateAsset}
+                />
+            </div>
 
             {/* Editor Dialog */}
             <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
