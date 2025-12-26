@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Shield, 
-  MessageSquare, 
-  BarChart3, 
-  Users, 
-  Image, 
-  FileText, 
-  Plus, 
-  Search, 
+import {
+  Shield,
+  MessageSquare,
+  BarChart3,
+  Users,
+  Image,
+  FileText,
+  Plus,
+  Search,
   Filter,
   Star,
   Clock,
@@ -44,15 +44,15 @@ const proofTypes = [
   { value: 'document', label: 'Document', icon: FileText, color: 'bg-gray-100 text-gray-700' },
 ];
 
-function ProofCard({ item, onEdit, onDelete, currentPhase }: { 
-  item: ProofItem; 
-  onEdit: (item: ProofItem) => void; 
+function ProofCard({ item, onEdit, onDelete, currentPhase }: {
+  item: ProofItem;
+  onEdit: (item: ProofItem) => void;
   onDelete: (id: string) => void;
   currentPhase?: number;
 }) {
   const typeConfig = proofTypes.find(t => t.value === item.type);
   const Icon = typeConfig?.icon || Shield;
-  
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
       {/* Header */}
@@ -118,8 +118,8 @@ function ProofCard({ item, onEdit, onDelete, currentPhase }: {
         {item.linkedPhases && item.linkedPhases.length > 0 && (
           <div className="flex gap-1">
             {item.linkedPhases.map(phase => (
-              <Badge 
-                key={phase} 
+              <Badge
+                key={phase}
                 variant={phase === currentPhase ? "default" : "outline"}
                 className="text-xs"
               >
@@ -133,12 +133,12 @@ function ProofCard({ item, onEdit, onDelete, currentPhase }: {
   );
 }
 
-function AddProofDialog({ 
-  onAdd, 
+function AddProofDialog({
+  onAdd,
   currentPhase,
-  trigger 
-}: { 
-  onAdd: (item: Omit<ProofItem, 'id'>) => void; 
+  trigger
+}: {
+  onAdd: (item: Omit<ProofItem, 'id'>) => void;
   currentPhase?: number;
   trigger: React.ReactNode;
 }) {
@@ -184,12 +184,12 @@ function AddProofDialog({
         <DialogHeader>
           <DialogTitle>Add Evidence to Proof Vault</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           {/* Type Selection */}
           <div>
             <label className="text-sm font-medium">Evidence Type</label>
-            <Select value={formData.type} onValueChange={(value: ProofItem['type']) => 
+            <Select value={formData.type} onValueChange={(value: ProofItem['type']) =>
               setFormData(prev => ({ ...prev, type: value }))
             }>
               <SelectTrigger>
@@ -253,7 +253,7 @@ function AddProofDialog({
           <div className="flex gap-4">
             <div>
               <label className="text-sm font-medium">Rating</label>
-              <Select value={formData.rating.toString()} onValueChange={(value) => 
+              <Select value={formData.rating.toString()} onValueChange={(value) =>
                 setFormData(prev => ({ ...prev, rating: parseInt(value) }))
               }>
                 <SelectTrigger className="w-20">
@@ -271,7 +271,7 @@ function AddProofDialog({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -310,9 +310,9 @@ export function ProofVault({ items, onAddItem, onUpdateItem, onDeleteItem, curre
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     const matchesType = filterType === 'all' || item.type === filterType;
-    
+
     return matchesSearch && matchesType;
   });
 
@@ -333,9 +333,9 @@ export function ProofVault({ items, onAddItem, onUpdateItem, onDeleteItem, curre
           <h2 className="text-xl font-semibold text-gray-900">Evidence & Proof Vault</h2>
           <p className="text-sm text-gray-600">Centralized repository for all evidence and proof points</p>
         </div>
-        
-        <AddProofDialog 
-          onAdd={onAddItem} 
+
+        <AddProofDialog
+          onAdd={onAddItem}
           currentPhase={currentPhase}
           trigger={
             <Button>
@@ -359,7 +359,7 @@ export function ProofVault({ items, onAddItem, onUpdateItem, onDeleteItem, curre
             />
           </div>
         </div>
-        
+
         <Select value={filterType} onValueChange={setFilterType}>
           <SelectTrigger className="w-48">
             <Filter className="w-4 h-4 mr-2" />
@@ -417,13 +417,13 @@ export function ProofVault({ items, onAddItem, onUpdateItem, onDeleteItem, curre
           <Shield className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No evidence found</h3>
           <p className="text-gray-600 mb-4">
-            {searchTerm || filterType !== 'all' 
-              ? 'Try adjusting your search or filters' 
+            {searchTerm || filterType !== 'all'
+              ? 'Try adjusting your search or filters'
               : 'Start building your proof vault by adding your first evidence'
             }
           </p>
-          <AddProofDialog 
-            onAdd={onAddItem} 
+          <AddProofDialog
+            onAdd={onAddItem}
             currentPhase={currentPhase}
             trigger={
               <Button>
@@ -442,7 +442,7 @@ export function ProofVault({ items, onAddItem, onUpdateItem, onDeleteItem, curre
             <DialogHeader>
               <DialogTitle>Edit Evidence</DialogTitle>
             </DialogHeader>
-            
+
             <div className="space-y-4">
               {/* Similar form fields as AddProofDialog but pre-filled */}
               <div>
@@ -452,7 +452,7 @@ export function ProofVault({ items, onAddItem, onUpdateItem, onDeleteItem, curre
                   onChange={(e) => setEditingItem(prev => prev ? {...prev, title: e.target.value} : null)}
                 />
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium">Content</label>
                 <Textarea
@@ -461,7 +461,7 @@ export function ProofVault({ items, onAddItem, onUpdateItem, onDeleteItem, curre
                   rows={4}
                 />
               </div>
-              
+
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setEditingItem(null)}>
                   Cancel

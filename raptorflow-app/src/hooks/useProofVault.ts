@@ -14,7 +14,7 @@ export function useProofVault(initialItems: ProofItem[] = []) {
   }, []);
 
   const updateItem = useCallback((id: string, updates: Partial<ProofItem>) => {
-    setItems(prev => prev.map(item => 
+    setItems(prev => prev.map(item =>
       item.id === id ? { ...item, ...updates } : item
     ));
   }, []);
@@ -41,7 +41,7 @@ export function useProofVault(initialItems: ProofItem[] = []) {
 
   const searchItems = useCallback((query: string) => {
     const lowercaseQuery = query.toLowerCase();
-    return items.filter(item => 
+    return items.filter(item =>
       item.title.toLowerCase().includes(lowercaseQuery) ||
       item.content.toLowerCase().includes(lowercaseQuery) ||
       item.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery)) ||
