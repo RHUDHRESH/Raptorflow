@@ -35,7 +35,7 @@
   - Create the segmentation UI for mapping awareness tiers.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: JTBD & Hierarchy' (Protocol in workflow.md)
 
-## Phase 4: Phase 4 & 5 Implementation (Agitation, Mechanism & Proof Vault)
+## Phase 4: Phase 4 & 5 Implementation (Agitation, Mechanism & Proof Vault) [checkpoint: 05dc91e]
 *Goal: Build the research and differentiation tools at `foundation/phase4` and `foundation/phase5`.*
 
 - [~] **Task 4.1: Research Boards & Agitation Logic (Phase 4)**
