@@ -6,7 +6,14 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import text
 
 from core.database_pool import get_db_session
-from models.radar_models import Dossier, Evidence, RadarSource, ScanJob, Signal, SignalCluster
+from models.radar_models import (
+    Dossier,
+    Evidence,
+    RadarSource,
+    ScanJob,
+    Signal,
+    SignalCluster,
+)
 from utils.storage import upload_text_to_gcs
 
 logger = logging.getLogger("raptorflow.radar_repository")
@@ -205,17 +212,23 @@ class RadarRepository:
                 {
                     "id": signal.id,
                     "tenant_id": signal.tenant_id,
-                    "category": signal.category.value
-                    if hasattr(signal.category, "value")
-                    else signal.category,
+                    "category": (
+                        signal.category.value
+                        if hasattr(signal.category, "value")
+                        else signal.category
+                    ),
                     "title": signal.title,
                     "content": signal.content,
-                    "strength": signal.strength.value
-                    if hasattr(signal.strength, "value")
-                    else signal.strength,
-                    "freshness": signal.freshness.value
-                    if hasattr(signal.freshness, "value")
-                    else signal.freshness,
+                    "strength": (
+                        signal.strength.value
+                        if hasattr(signal.strength, "value")
+                        else signal.strength
+                    ),
+                    "freshness": (
+                        signal.freshness.value
+                        if hasattr(signal.freshness, "value")
+                        else signal.freshness
+                    ),
                     "action_suggestion": signal.action_suggestion,
                     "source_competitor": signal.source_competitor,
                     "source_url": signal.source_url,
@@ -232,9 +245,11 @@ class RadarRepository:
                     {
                         "id": evidence.id,
                         "signal_id": signal.id,
-                        "type": evidence.type.value
-                        if hasattr(evidence.type, "value")
-                        else evidence.type,
+                        "type": (
+                            evidence.type.value
+                            if hasattr(evidence.type, "value")
+                            else evidence.type
+                        ),
                         "source": evidence.source,
                         "url": evidence.url,
                         "content": content,
@@ -282,14 +297,18 @@ class RadarRepository:
                 {
                     "id": cluster.id,
                     "tenant_id": cluster.tenant_id,
-                    "category": cluster.category.value
-                    if hasattr(cluster.category, "value")
-                    else cluster.category,
+                    "category": (
+                        cluster.category.value
+                        if hasattr(cluster.category, "value")
+                        else cluster.category
+                    ),
                     "theme": cluster.theme,
                     "signal_count": cluster.signal_count,
-                    "strength": cluster.strength.value
-                    if hasattr(cluster.strength, "value")
-                    else cluster.strength,
+                    "strength": (
+                        cluster.strength.value
+                        if hasattr(cluster.strength, "value")
+                        else cluster.strength
+                    ),
                     "created_at": cluster.created_at,
                     "updated_at": cluster.updated_at,
                 }
@@ -445,9 +464,7 @@ class RadarRepository:
         metadata = dict(evidence.metadata or {})
         if content and len(content) > self.evidence_content_limit:
             try:
-                uri = await upload_text_to_gcs(
-                    content, bucket_name=self.storage_bucket
-                )
+                uri = await upload_text_to_gcs(content, bucket_name=self.storage_bucket)
                 metadata["content_uri"] = uri
                 metadata["content_length"] = len(content)
                 content = content[: self.evidence_content_limit]
