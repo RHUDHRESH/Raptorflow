@@ -57,11 +57,11 @@
   - Build the variation comparison UI for fine-tuning outputs.
 - [ ] Task: Conductor - User Manual Verification 'Phase 6: Soundbite Studio' (Protocol in workflow.md)
 
-## Phase 6: Final Integration & Quality Gate
+## Phase 6: Final Integration & Quality Gate [checkpoint: 5755bfb]
 *Goal: End-to-end testing and styling polish.*
 
-- [ ] **Task 6.1: End-to-End Onboarding Validation**
+- [x] **Task 6.1: End-to-End Onboarding Validation** (e47646c)
   - Verify data flows correctly from Phase 3 through Phase 6 and updates the "Foundation" module.
-- [ ] **Task 6.2: Visual Polish & Accessibility Audit**
+- [x] **Task 6.2: Visual Polish & Accessibility Audit** (6d827f9)
   - Final pass on spacing, typography hierarchy, and motion easing.
 - [ ] Task: Conductor - User Manual Verification 'Final Integration' (Protocol in workflow.md)
