@@ -6,9 +6,7 @@ from langgraph.graph import END, START, StateGraph
 
 from agents.specialists.brand_kit import BrandKitAgent
 from agents.specialists.campaign_planner import CampaignPlannerAgent
-from agents.specialists.competitor_intelligence import (
-    CompetitorIntelligenceAgent,
-)
+from agents.specialists.competitor_intelligence import CompetitorIntelligenceAgent
 from agents.specialists.goal_aligner import GoalAlignerAgent
 from agents.specialists.icp_architect import ICPArchitectAgent
 from agents.specialists.move_generator import MoveGeneratorAgent
@@ -17,11 +15,7 @@ from core.config import get_settings
 from core.lifecycle import apply_lifecycle_transition
 from core.pivoting import PivotEngine
 from db import SupabaseSaver, get_pool
-from models.cognitive import (
-    AgentMessage,
-    CognitiveIntelligenceState,
-    CognitiveStatus,
-)
+from models.cognitive import AgentMessage, CognitiveIntelligenceState, CognitiveStatus
 
 logger = logging.getLogger("raptorflow.graphs.spine_v3")
 

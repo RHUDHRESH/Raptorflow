@@ -14,7 +14,9 @@ def get_cache_client() -> Redis:
     """
     settings = get_settings()
     if not settings.UPSTASH_REDIS_REST_URL or not settings.UPSTASH_REDIS_REST_TOKEN:
-        raise ValueError("Upstash Redis configuration missing. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.")
+        raise ValueError(
+            "Upstash Redis configuration missing. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN."
+        )
     return Redis(
         url=settings.UPSTASH_REDIS_REST_URL, token=settings.UPSTASH_REDIS_REST_TOKEN
     )

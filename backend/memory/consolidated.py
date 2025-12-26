@@ -139,9 +139,7 @@ class SwarmMemoryConsolidator:
         logger.info(f"SwarmMemoryConsolidator initialized for workspace {workspace_id}")
 
     async def consolidate_agent_memories(
-        self, 
-        agent_ids: Optional[List[str]] = None,
-        force_consolidation: bool = False
+        self, agent_ids: Optional[List[str]] = None, force_consolidation: bool = False
     ) -> ConsolidatedMemory:
         """
         Consolidates memories from all or specified agents.
@@ -149,47 +147,55 @@ class SwarmMemoryConsolidator:
         """
         async with self._consolidation_lock:
             if not force_consolidation:
-                time_since_last = datetime.now() - self.consolidated_memory.last_consolidation
+                time_since_last = (
+                    datetime.now() - self.consolidated_memory.last_consolidation
+                )
                 if time_since_last < self.consolidated_memory.consolidation_interval:
                     logger.debug("Skipping consolidation - interval not reached")
                     return self.consolidated_memory
 
-            logger.info(f"Starting memory consolidation for workspace {self.workspace_id}")
-            
+            logger.info(
+                f"Starting memory consolidation for workspace {self.workspace_id}"
+            )
+
             try:
                 # 1. Gather memory fragments from all sources
                 fragments = await self._gather_memory_fragments(agent_ids)
-                
+
                 # 2. Deduplicate and merge fragments
                 deduplicated_fragments = await self._deduplicate_fragments(fragments)
-                
+
                 # 3. Score and rank fragments by importance
                 scored_fragments = await self._score_fragments(deduplicated_fragments)
-                
+
                 # 4. Build cross-agent links
                 cross_links = await self._build_cross_agent_links(scored_fragments)
-                
+
                 # 5. Synthesize swarm knowledge
                 synthesized = await self._synthesize_swarm_knowledge(scored_fragments)
-                
+
                 # 6. Update consolidated memory
                 self.consolidated_memory.fragments = scored_fragments
                 self.consolidated_memory.cross_agent_links = cross_links
                 self.consolidated_memory.synthesized_knowledge = synthesized
                 self.consolidated_memory.last_consolidation = datetime.now()
-                
+
                 # 7. Update caches
                 await self._update_caches(scored_fragments)
-                
+
                 # 8. Store consolidated insights back to memory tiers
                 await self._store_consolidated_insights()
-                
-                logger.info(f"Consolidated {len(scored_fragments)} memory fragments from {len(set(f.agent_id for f in scored_fragments))} agents")
-                
+
+                logger.info(
+                    f"Consolidated {len(scored_fragments)} memory fragments from {len(set(f.agent_id for f in scored_fragments))} agents"
+                )
+
                 return self.consolidated_memory
-                
+
             except Exception as e:
-                logger.error(f"Consolidation failed for workspace {self.workspace_id}: {e}")
+                logger.error(
+                    f"Consolidation failed for workspace {self.workspace_id}: {e}"
+                )
                 # Return previous state on failure
                 return self.consolidated_memory
 
@@ -458,7 +464,7 @@ class SwarmMemoryConsolidator:
             similarity = dot_product / (magnitude1 * magnitude2)
             # Ensure similarity is between 0 and 1
             return max(0.0, min(1.0, similarity))
-            
+
         except Exception as e:
             logger.error(f"Error calculating fragment similarity: {e}")
             return 0.0
@@ -536,8 +542,11 @@ class SwarmMemoryConsolidator:
                 "theme": theme,
                 "insights": insights,
                 "contributing_agents": list(set(f.agent_id for f in fragments)),
-                "confidence": sum(f.importance_score for f in fragments)
-                / len(fragments) if fragments else 0.0,
+                "confidence": (
+                    sum(f.importance_score for f in fragments) / len(fragments)
+                    if fragments
+                    else 0.0
+                ),
                 "timestamp": datetime.now().isoformat(),
             }
 
@@ -618,20 +627,35 @@ class SwarmMemoryConsolidator:
             stats = {
                 "workspace_id": self.workspace_id,
                 "total_fragments": len(self.consolidated_memory.fragments),
-                "active_agents": list(set(f.agent_id for f in self.consolidated_memory.fragments)),
+                "active_agents": list(
+                    set(f.agent_id for f in self.consolidated_memory.fragments)
+                ),
                 "memory_tiers": {
-                    tier: len([f for f in self.consolidated_memory.fragments if f.memory_tier == tier])
+                    tier: len(
+                        [
+                            f
+                            for f in self.consolidated_memory.fragments
+                            if f.memory_tier == tier
+                        ]
+                    )
                     for tier in ["L1", "L2", "L3"]
                 },
-                "average_importance": sum(f.importance_score for f in self.consolidated_memory.fragments) / len(self.consolidated_memory.fragments) if self.consolidated_memory.fragments else 0,
+                "average_importance": (
+                    sum(f.importance_score for f in self.consolidated_memory.fragments)
+                    / len(self.consolidated_memory.fragments)
+                    if self.consolidated_memory.fragments
+                    else 0
+                ),
                 "cross_agent_links": len(self.consolidated_memory.cross_agent_links),
-                "synthesized_insights": len(self.consolidated_memory.synthesized_knowledge),
+                "synthesized_insights": len(
+                    self.consolidated_memory.synthesized_knowledge
+                ),
                 "last_consolidation": self.consolidated_memory.last_consolidation.isoformat(),
                 "cache_performance": {
                     "fragment_cache_size": len(self._fragment_cache),
                     "search_cache_size": len(self._search_cache),
-                    "last_cleanup": self._last_cache_cleanup.isoformat()
-                }
+                    "last_cleanup": self._last_cache_cleanup.isoformat(),
+                },
             }
             return stats
         except Exception as e:

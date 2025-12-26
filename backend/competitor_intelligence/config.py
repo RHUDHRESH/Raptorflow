@@ -3,32 +3,33 @@ Configuration and constants for competitor intelligence
 """
 
 from enum import Enum
-from typing import Dict, Any
+from typing import Any, Dict
+
 
 class CompetitorConfig:
     """Configuration settings for competitor intelligence."""
-    
+
     # Default monitoring frequencies (in hours)
     DEFAULT_MONITORING_FREQUENCY = 24
     MIN_MONITORING_FREQUENCY = 1
     MAX_MONITORING_FREQUENCY = 720  # 30 days
-    
+
     # Confidence thresholds
     MIN_CONFIDENCE_THRESHOLD = 0.3
     HIGH_CONFIDENCE_THRESHOLD = 0.8
-    
+
     # Alert settings
     MAX_ALERTS_PER_HOUR = 50
     ALERT_RETENTION_DAYS = 30
-    
+
     # Analysis settings
     MAX_COMPETITORS_PER_ANALYSIS = 20
     ANALYSIS_RETENTION_DAYS = 90
-    
+
     # Memory settings
     MAX_PROFILES_PER_THREAD = 100
     MAX_INSIGHTS_PER_THREAD = 1000
-    
+
     @classmethod
     def get_default_config(cls) -> Dict[str, Any]:
         """Get default configuration."""
@@ -38,28 +39,30 @@ class CompetitorConfig:
             "max_alerts_per_hour": cls.MAX_ALERTS_PER_HOUR,
             "max_competitors_per_analysis": cls.MAX_COMPETITORS_PER_ANALYSIS,
             "max_profiles_per_thread": cls.MAX_PROFILES_PER_THREAD,
-            "max_insights_per_thread": cls.MAX_INSIGHTS_PER_THREAD
+            "max_insights_per_thread": cls.MAX_INSIGHTS_PER_THREAD,
         }
-    
+
     @classmethod
     def validate_config(cls, config: Dict[str, Any]) -> Dict[str, Any]:
         """Validate and sanitize configuration."""
         validated = config.copy()
-        
+
         # Validate monitoring frequency
         freq = validated.get("monitoring_frequency", cls.DEFAULT_MONITORING_FREQUENCY)
-        validated["monitoring_frequency"] = max(cls.MIN_MONITORING_FREQUENCY, 
-                                             min(cls.MAX_MONITORING_FREQUENCY, freq))
-        
+        validated["monitoring_frequency"] = max(
+            cls.MIN_MONITORING_FREQUENCY, min(cls.MAX_MONITORING_FREQUENCY, freq)
+        )
+
         # Validate confidence threshold
         threshold = validated.get("confidence_threshold", cls.MIN_CONFIDENCE_THRESHOLD)
         validated["confidence_threshold"] = max(0.0, min(1.0, threshold))
-        
+
         return validated
 
 
 class CompetitorOperationType(str, Enum):
     """Types of competitor intelligence operations."""
+
     DISCOVER = "discover"
     ANALYZE = "analyze"
     MONITOR = "monitor"
@@ -71,6 +74,7 @@ class CompetitorOperationType(str, Enum):
 
 class CompetitorDataSource(str, Enum):
     """Sources of competitor intelligence."""
+
     WEB_SCRAPING = "web_scraping"
     SOCIAL_MEDIA = "social_media"
     NEWS_ARTICLES = "news_articles"
@@ -83,6 +87,7 @@ class CompetitorDataSource(str, Enum):
 
 class CompetitorAlertType(str, Enum):
     """Types of competitor alerts."""
+
     PRICE_CHANGE = "price_change"
     FEATURE_LAUNCH = "feature_launch"
     MARKETING_CAMPAIGN = "marketing_campaign"
@@ -109,5 +114,5 @@ DEFAULT_COMPETITOR_PROMPTS = {
         "You are a market intelligence monitor. Track competitor activities and "
         "identify significant changes, trends, and opportunities. Generate alerts "
         "for important developments."
-    )
+    ),
 }

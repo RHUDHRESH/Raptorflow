@@ -4,8 +4,8 @@ from uuid import uuid4
 from fastapi.testclient import TestClient
 
 from api.v1.blackbox_roi import get_blackbox_service
-from services.blackbox_service import AttributionModel
 from main import app
+from services.blackbox_service import AttributionModel
 
 client = TestClient(app)
 
@@ -126,9 +126,7 @@ def test_get_telemetry_by_move_endpoint():
         {"id": str(uuid4()), "agent_id": "test"}
     ]
     # Note: Using blackbox_telemetry provider here
-    from api.v1.blackbox_telemetry import (
-        get_blackbox_service as get_tele_service,
-    )
+    from api.v1.blackbox_telemetry import get_blackbox_service as get_tele_service
 
     app.dependency_overrides[get_tele_service] = lambda: mock_service
 
@@ -150,9 +148,7 @@ def test_get_learnings_by_move_endpoint():
     mock_service.get_learnings_by_move.return_value = [
         {"id": str(uuid4()), "content": "test learning"}
     ]
-    from api.v1.blackbox_learning import (
-        get_blackbox_service as get_learn_service,
-    )
+    from api.v1.blackbox_learning import get_blackbox_service as get_learn_service
 
     app.dependency_overrides[get_learn_service] = lambda: mock_service
 
@@ -170,9 +166,7 @@ def test_trigger_specialist_analysis_endpoint():
     mock_service.trigger_learning_cycle = AsyncMock(
         return_value={"status": "cycle_complete"}
     )
-    from api.v1.blackbox_learning import (
-        get_blackbox_service as get_learn_service,
-    )
+    from api.v1.blackbox_learning import get_blackbox_service as get_learn_service
 
     app.dependency_overrides[get_learn_service] = lambda: mock_service
 
@@ -194,9 +188,7 @@ def test_run_specialist_agent_endpoint():
     mock_service.get_telemetry_by_move.return_value = []
     mock_service.get_outcomes_by_move.return_value = []
 
-    from api.v1.blackbox_specialist import (
-        get_blackbox_service as get_spec_service,
-    )
+    from api.v1.blackbox_specialist import get_blackbox_service as get_spec_service
 
     app.dependency_overrides[get_spec_service] = lambda: mock_service
 

@@ -50,7 +50,9 @@ async def test_research_deep_advanced_graph_data_flow():
     scraped_docs = result["scraped_docs"]
     assert len(scraped_docs) == 1
     first_doc = scraped_docs[0]
-    first_doc_url = str(first_doc.url) if hasattr(first_doc, "url") else first_doc["url"]
+    first_doc_url = (
+        str(first_doc.url) if hasattr(first_doc, "url") else first_doc["url"]
+    )
     assert first_doc_url == urls[0]
 
     claims = result["claims"]

@@ -27,8 +27,8 @@ CREATE OR REPLACE FUNCTION is_workspace_member(workspace_uuid UUID, user_uuid UU
 RETURNS BOOLEAN AS $$
 BEGIN
     RETURN EXISTS (
-        SELECT 1 FROM workspace_members 
-        WHERE workspace_id = workspace_uuid 
+        SELECT 1 FROM workspace_members
+        WHERE workspace_id = workspace_uuid
         AND user_id = user_uuid
     );
 END;
@@ -39,8 +39,8 @@ CREATE OR REPLACE FUNCTION get_user_workspace_role(workspace_uuid UUID, user_uui
 RETURNS TEXT AS $$
 BEGIN
     RETURN (
-        SELECT role FROM workspace_members 
-        WHERE workspace_id = workspace_uuid 
+        SELECT role FROM workspace_members
+        WHERE workspace_id = workspace_uuid
         AND user_id = user_uuid
         LIMIT 1
     );
@@ -56,18 +56,18 @@ DECLARE
     progress NUMERIC;
 BEGIN
     SELECT COUNT(*) INTO total_moves
-    FROM moves 
+    FROM moves
     WHERE campaign_id = campaign_uuid;
-    
+
     SELECT COUNT(*) INTO completed_moves
-    FROM moves 
-    WHERE campaign_id = campaign_uuid 
+    FROM moves
+    WHERE campaign_id = campaign_uuid
     AND status = 'completed';
-    
+
     IF total_moves = 0 THEN
         RETURN 0;
     END IF;
-    
+
     progress := (completed_moves::NUMERIC / total_moves::NUMERIC) * 100;
     RETURN progress;
 END;
@@ -85,13 +85,13 @@ BEGIN
     checkin_due := now() + (duration_days || ' days')::INTERVAL;
     checkin_remind := checkin_due - INTERVAL '24 hours';
     checkin_expire := checkin_due + INTERVAL '7 days';
-    
+
     result := jsonb_build_object(
         'checkin_due_at', checkin_due,
         'checkin_remind_at', checkin_remind,
         'checkin_expire_at', checkin_expire
     );
-    
+
     RETURN result;
 END;
 $$ language 'plpgsql';
@@ -109,7 +109,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         bl.id,
         bl.content,
         1 - (bl.embedding <=> query_embedding) as similarity
@@ -131,7 +131,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         ma.id,
         ma.content,
         ma.asset_type,
@@ -155,7 +155,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         kc.id,
         kc.name,
         kc.description,
@@ -190,13 +190,13 @@ BEGIN
     INSERT INTO campaigns (workspace_id, title, description, objective, primary_kpi)
     VALUES (workspace_uuid, campaign_title, campaign_description, campaign_objective, primary_kpi_name)
     RETURNING id INTO campaign_id;
-    
+
     -- Create KPI if provided
     IF primary_kpi_name IS NOT NULL AND kpi_target_value IS NOT NULL THEN
         INSERT INTO campaign_kpis (campaign_id, metric_name, target_value)
         VALUES (campaign_id, primary_kpi_name, kpi_target_value);
     END IF;
-    
+
     RETURN campaign_id;
 END;
 $$ language 'plpgsql';
@@ -210,15 +210,15 @@ DECLARE
     checkin_dates JSONB;
 BEGIN
     -- Update experiment status and set checkin dates
-    UPDATE blackbox_experiments 
-    SET 
+    UPDATE blackbox_experiments
+    SET
         status = 'launched',
         launched_at = now(),
         checkin_due_at = (now() + (duration_days || ' days')::INTERVAL),
         checkin_remind_at = (now() + (duration_days || ' days')::INTERVAL - INTERVAL '24 hours'),
         checkin_expire_at = (now() + (duration_days || ' days')::INTERVAL + INTERVAL '7 days')
     WHERE id = experiment_uuid;
-    
+
     RETURN FOUND;
 END;
 $$ language 'plpgsql';
@@ -229,12 +229,12 @@ RETURNS INTEGER AS $$
 DECLARE
     archived_count INTEGER;
 BEGIN
-    UPDATE campaigns 
+    UPDATE campaigns
     SET status = 'archived'
     WHERE workspace_id = workspace_uuid
     AND status = 'wrapup'
     AND updated_at < now() - INTERVAL '30 days';
-    
+
     GET DIAGNOSTICS archived_count = ROW_COUNT;
     RETURN archived_count;
 END;
@@ -260,7 +260,7 @@ BEGIN
     SELECT COUNT(*) INTO total_experiments FROM blackbox_experiments WHERE workspace_id = workspace_uuid;
     SELECT COUNT(*) INTO active_experiments FROM blackbox_experiments WHERE workspace_id = workspace_uuid AND status = 'launched';
     SELECT COUNT(*) INTO total_assets FROM muse_assets WHERE workspace_id = workspace_uuid;
-    
+
     result := jsonb_build_object(
         'total_campaigns', total_campaigns,
         'active_campaigns', active_campaigns,
@@ -271,7 +271,7 @@ BEGIN
         'total_assets', total_assets,
         'calculated_at', now()
     );
-    
+
     RETURN result;
 END;
 $$ language 'plpgsql';
@@ -366,7 +366,7 @@ BEGIN
             RAISE EXCEPTION 'User is not a member of this workspace';
         END IF;
     END IF;
-    
+
     RETURN NEW;
 END;
 $$ language 'plpgsql';

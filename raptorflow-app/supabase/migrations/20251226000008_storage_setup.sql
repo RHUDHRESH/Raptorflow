@@ -107,7 +107,7 @@ CREATE POLICY "Brand Assets: Workspace members can view their workspace assets" 
     FOR SELECT USING (
         bucket_id = 'brand-assets' AND
         (storage.foldername(name))[1] IN (
-            SELECT workspace_id::text FROM workspace_members 
+            SELECT workspace_id::text FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -116,7 +116,7 @@ CREATE POLICY "Brand Assets: Workspace members can upload to their workspace" ON
     FOR INSERT WITH CHECK (
         bucket_id = 'brand-assets' AND
         (storage.foldername(name))[1] IN (
-            SELECT workspace_id::text FROM workspace_members 
+            SELECT workspace_id::text FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -125,7 +125,7 @@ CREATE POLICY "Brand Assets: Workspace members can update their workspace assets
     FOR UPDATE USING (
         bucket_id = 'brand-assets' AND
         (storage.foldername(name))[1] IN (
-            SELECT workspace_id::text FROM workspace_members 
+            SELECT workspace_id::text FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -134,7 +134,7 @@ CREATE POLICY "Brand Assets: Owners and admins can delete their workspace assets
     FOR DELETE USING (
         bucket_id = 'brand-assets' AND
         (storage.foldername(name))[1] IN (
-            SELECT workspace_id::text FROM workspace_members 
+            SELECT workspace_id::text FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
             AND workspace_members.role IN ('owner', 'admin')
         )
@@ -145,7 +145,7 @@ CREATE POLICY "Muse Assets: Workspace members can view their workspace assets" O
     FOR SELECT USING (
         bucket_id = 'muse-assets' AND
         (storage.foldername(name))[1] IN (
-            SELECT workspace_id::text FROM workspace_members 
+            SELECT workspace_id::text FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -154,7 +154,7 @@ CREATE POLICY "Muse Assets: Workspace members can upload to their workspace" ON 
     FOR INSERT WITH CHECK (
         bucket_id = 'muse-assets' AND
         (storage.foldername(name))[1] IN (
-            SELECT workspace_id::text FROM workspace_members 
+            SELECT workspace_id::text FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -163,7 +163,7 @@ CREATE POLICY "Muse Assets: Workspace members can update their workspace assets"
     FOR UPDATE USING (
         bucket_id = 'muse-assets' AND
         (storage.foldername(name))[1] IN (
-            SELECT workspace_id::text FROM workspace_members 
+            SELECT workspace_id::text FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -172,7 +172,7 @@ CREATE POLICY "Muse Assets: Owners and admins can delete their workspace assets"
     FOR DELETE USING (
         bucket_id = 'muse-assets' AND
         (storage.foldername(name))[1] IN (
-            SELECT workspace_id::text FROM workspace_members 
+            SELECT workspace_id::text FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
             AND workspace_members.role IN ('owner', 'admin')
         )
@@ -183,7 +183,7 @@ CREATE POLICY "Campaign Assets: Workspace members can view their workspace asset
     FOR SELECT USING (
         bucket_id = 'campaign-assets' AND
         (storage.foldername(name))[1] IN (
-            SELECT workspace_id::text FROM workspace_members 
+            SELECT workspace_id::text FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -192,7 +192,7 @@ CREATE POLICY "Campaign Assets: Workspace members can upload to their workspace"
     FOR INSERT WITH CHECK (
         bucket_id = 'campaign-assets' AND
         (storage.foldername(name))[1] IN (
-            SELECT workspace_id::text FROM workspace_members 
+            SELECT workspace_id::text FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -201,7 +201,7 @@ CREATE POLICY "Campaign Assets: Workspace members can update their workspace ass
     FOR UPDATE USING (
         bucket_id = 'campaign-assets' AND
         (storage.foldername(name))[1] IN (
-            SELECT workspace_id::text FROM workspace_members 
+            SELECT workspace_id::text FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -210,7 +210,7 @@ CREATE POLICY "Campaign Assets: Owners and admins can delete their workspace ass
     FOR DELETE USING (
         bucket_id = 'campaign-assets' AND
         (storage.foldername(name))[1] IN (
-            SELECT workspace_id::text FROM workspace_members 
+            SELECT workspace_id::text FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
             AND workspace_members.role IN ('owner', 'admin')
         )
@@ -288,35 +288,35 @@ BEGIN
     -- Extract workspace ID from path
     IF bucket_name IN ('brand-assets', 'muse-assets', 'campaign-assets') THEN
         workspace_id := (storage.foldername(object_name))[1]::UUID;
-        
+
         -- Check if user is workspace member
         SELECT EXISTS(
-            SELECT 1 FROM workspace_members 
-            WHERE workspace_id = workspace_id 
+            SELECT 1 FROM workspace_members
+            WHERE workspace_id = workspace_id
             AND user_id = auth.uid()
         ) INTO is_member;
-        
+
         IF NOT is_member THEN
             RETURN FALSE;
         END IF;
-        
+
         -- For delete operations, check if user is owner or admin
         IF operation = 'delete' THEN
             SELECT role INTO user_role
-            FROM workspace_members 
-            WHERE workspace_id = workspace_id 
+            FROM workspace_members
+            WHERE workspace_id = workspace_id
             AND user_id = auth.uid()
             LIMIT 1;
-            
+
             RETURN user_role IN ('owner', 'admin');
         END IF;
-        
+
         RETURN TRUE;
     ELSIF bucket_name = 'user-uploads' THEN
         -- For user uploads, check if user owns the folder
         RETURN (storage.foldername(object_name))[1] = auth.uid()::text;
     END IF;
-    
+
     RETURN FALSE;
 END;
 $$ language 'plpgsql';
@@ -332,33 +332,33 @@ DECLARE
     deleted_count INTEGER;
 BEGIN
     -- Delete brand assets for deleted workspaces
-    DELETE FROM storage.objects 
-    WHERE bucket_id = 'brand-assets' 
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'brand-assets'
     AND (storage.foldername(name))[1] NOT IN (
         SELECT id::text FROM workspaces
     );
-    
+
     -- Delete muse assets for deleted workspaces
-    DELETE FROM storage.objects 
-    WHERE bucket_id = 'muse-assets' 
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'muse-assets'
     AND (storage.foldername(name))[1] NOT IN (
         SELECT id::text FROM workspaces
     );
-    
+
     -- Delete campaign assets for deleted workspaces
-    DELETE FROM storage.objects 
-    WHERE bucket_id = 'campaign-assets' 
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'campaign-assets'
     AND (storage.foldername(name))[1] NOT IN (
         SELECT id::text FROM workspaces
     );
-    
+
     -- Delete user uploads for deleted users
-    DELETE FROM storage.objects 
-    WHERE bucket_id = 'user-uploads' 
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'user-uploads'
     AND (storage.foldername(name))[1] NOT IN (
         SELECT id::text FROM auth.users
     );
-    
+
     GET DIAGNOSTICS deleted_count = ROW_COUNT;
     RETURN deleted_count;
 END;
@@ -377,20 +377,20 @@ BEGIN
     IF workspace_uuid IS NOT NULL THEN
         -- Get usage for specific workspace
         SELECT COALESCE(SUM(size), 0) INTO brand_size
-        FROM storage.objects 
-        WHERE bucket_id = 'brand-assets' 
+        FROM storage.objects
+        WHERE bucket_id = 'brand-assets'
         AND (storage.foldername(name))[1] = workspace_uuid::text;
-        
+
         SELECT COALESCE(SUM(size), 0) INTO muse_size
-        FROM storage.objects 
-        WHERE bucket_id = 'muse-assets' 
+        FROM storage.objects
+        WHERE bucket_id = 'muse-assets'
         AND (storage.foldername(name))[1] = workspace_uuid::text;
-        
+
         SELECT COALESCE(SUM(size), 0) INTO campaign_size
-        FROM storage.objects 
-        WHERE bucket_id = 'campaign-assets' 
+        FROM storage.objects
+        WHERE bucket_id = 'campaign-assets'
         AND (storage.foldername(name))[1] = workspace_uuid::text;
-        
+
         result := jsonb_build_object(
             'workspace_id', workspace_uuid,
             'brand_assets_bytes', brand_size,
@@ -402,21 +402,21 @@ BEGIN
     ELSE
         -- Get global usage statistics
         SELECT COALESCE(SUM(size), 0) INTO brand_size
-        FROM storage.objects 
+        FROM storage.objects
         WHERE bucket_id = 'brand-assets';
-        
+
         SELECT COALESCE(SUM(size), 0) INTO muse_size
-        FROM storage.objects 
+        FROM storage.objects
         WHERE bucket_id = 'muse-assets';
-        
+
         SELECT COALESCE(SUM(size), 0) INTO campaign_size
-        FROM storage.objects 
+        FROM storage.objects
         WHERE bucket_id = 'campaign-assets';
-        
+
         SELECT COALESCE(SUM(size), 0) INTO user_size
-        FROM storage.objects 
+        FROM storage.objects
         WHERE bucket_id = 'user-uploads';
-        
+
         result := jsonb_build_object(
             'brand_assets_bytes', brand_size,
             'muse_assets_bytes', muse_size,
@@ -426,7 +426,7 @@ BEGIN
             'calculated_at', now()
         );
     END IF;
-    
+
     RETURN result;
 END;
 $$ language 'plpgsql';

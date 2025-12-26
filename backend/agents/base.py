@@ -177,11 +177,11 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
+from agents.tool_integration import get_agent_tools
 from inference import InferenceProvider
 from memory.swarm_coordinator import get_swarm_memory_coordinator
 from models.capabilities import CapabilityProfile
 from models.cognitive import AgentMessage, CognitiveIntelligenceState
-from agents.tool_integration import get_agent_tools
 
 logger = logging.getLogger("raptorflow.agents.base")
 
@@ -208,13 +208,13 @@ class BaseCognitiveAgent(ABC):
         self.system_prompt = system_prompt
         self.model_tier = model_tier
         self.capability_profile = capability_profile
-        
+
         # Auto-assign tools based on role if no tools provided
         if auto_assign_tools and not tools:
             self.tools = self._filter_tools(get_agent_tools(role))
         else:
             self.tools = self._filter_tools(tools or [])
-            
+
         self.output_schema = output_schema
 
         self.llm = InferenceProvider.get_model(model_tier=self.model_tier)

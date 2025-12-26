@@ -30,12 +30,7 @@ from agents.crewai_coordination import (
     CrewScalingManager,
     get_crew_coordinator,
 )
-from agents.crewai_tasks import (
-    CrewTaskManager,
-    EnhancedTask,
-    TaskPriority,
-    TaskStatus,
-)
+from agents.crewai_tasks import CrewTaskManager, EnhancedTask, TaskPriority, TaskStatus
 from agents.hybrid_integration import (
     AgentType,
     ExecutionMode,

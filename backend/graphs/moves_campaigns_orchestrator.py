@@ -13,11 +13,7 @@ from agents.moves import (
     SafetyValidator,
     SkillExecutor,
 )
-from agents.strategists import (
-    BrandVoiceAligner,
-    CampaignArcDesigner,
-    KPIDefiner,
-)
+from agents.strategists import BrandVoiceAligner, CampaignArcDesigner, KPIDefiner
 from core.config import get_settings
 from db import SupabaseSaver, get_pool, save_campaign
 from inference import InferenceProvider

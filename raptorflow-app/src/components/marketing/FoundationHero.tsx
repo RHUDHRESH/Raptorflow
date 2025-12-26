@@ -48,7 +48,7 @@ export function FoundationHero() {
     };
 
     return (
-        <div 
+        <div
             ref={containerRef}
             className="relative w-full max-w-[800px] text-center"
         >
@@ -94,7 +94,7 @@ export function FoundationHero() {
                     ref={subtitleRef}
                     className="text-[18px] text-gray-600 leading-relaxed mb-16 max-w-[440px] mx-auto"
                 >
-                    The Founder Marketing Operating System. Convert messy business context into clear positioning, 
+                    The Founder Marketing Operating System. Convert messy business context into clear positioning,
                     a 90-day marketing war plan, weekly execution moves, and tracked outcomes.
                 </p>
 

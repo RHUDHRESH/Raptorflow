@@ -2,8 +2,8 @@ import logging
 import os
 from typing import Optional
 
-from google.cloud import secretmanager
 from google.api_core.exceptions import NotFound
+from google.cloud import secretmanager
 
 logger = logging.getLogger("raptorflow.core.secrets")
 
@@ -43,5 +43,5 @@ def get_secret(name: str, project_id: Optional[str] = None) -> Optional[str]:
         logger.debug(f"Using environment variable for {name}.")
     else:
         logger.debug(f"Secret {name} not found in environment variables.")
-    
+
     return env_val

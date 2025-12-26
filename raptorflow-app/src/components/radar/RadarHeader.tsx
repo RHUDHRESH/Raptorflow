@@ -21,22 +21,22 @@ export function RadarHeader({ mode, setMode, selectedIcpId, setSelectedIcpId, on
 
     const handleScanClick = async () => {
         if (isScanning) return;
-        
+
         setIsScanning(true);
         try {
             toast.loading('Starting radar scan...', { id: 'header-scan' });
-            
+
             const signals = await scanRecon(selectedIcpId);
-            
-            toast.success('Scan completed!', { 
+
+            toast.success('Scan completed!', {
                 id: 'header-scan',
-                description: `Found ${signals.length} new signals` 
+                description: `Found ${signals.length} new signals`
             });
-            
+
             onScanClick();
-            
+
         } catch (error) {
-            toast.error('Scan failed', { 
+            toast.error('Scan failed', {
                 id: 'header-scan',
                 description: error instanceof Error ? error.message : 'Unknown error'
             });
@@ -48,16 +48,16 @@ export function RadarHeader({ mode, setMode, selectedIcpId, setSelectedIcpId, on
     const handleGenerateDossier = async () => {
         try {
             toast.loading('Generating dossier...', { id: 'header-dossier' });
-            
+
             const dossier = await generateDossier('campaign-123');
-            
-            toast.success('Dossier generated!', { 
+
+            toast.success('Dossier generated!', {
                 id: 'header-dossier',
-                description: `Created "${dossier[0]?.title}"` 
+                description: `Created "${dossier[0]?.title}"`
             });
-            
+
         } catch (error) {
-            toast.error('Dossier generation failed', { 
+            toast.error('Dossier generation failed', {
                 id: 'header-dossier',
                 description: error instanceof Error ? error.message : 'Unknown error'
             });

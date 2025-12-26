@@ -55,7 +55,9 @@ class FetchStage:
         try:
             async with session.get(url, timeout=policy.timeout) as response:
                 if response.status != 200:
-                    logger.warning("Failed to fetch %s: Status %s", url, response.status)
+                    logger.warning(
+                        "Failed to fetch %s: Status %s", url, response.status
+                    )
                     return None
                 return await response.text()
         except Exception as exc:
@@ -125,7 +127,9 @@ class ExtractStage:
                     return self._build_result(
                         url=url,
                         title=data.get("title", ""),
-                        content=normalize_stage.normalize_content(data["content"], policy),
+                        content=normalize_stage.normalize_content(
+                            data["content"], policy
+                        ),
                         source="jina",
                     )
             except Exception as exc:
@@ -146,9 +150,7 @@ class ExtractStage:
             )
 
     @staticmethod
-    def _build_result(
-        url: str, title: str, content: str, source: str
-    ) -> ScrapeResult:
+    def _build_result(url: str, title: str, content: str, source: str) -> ScrapeResult:
         return ScrapeResult(
             url=url,
             domain=urlparse(url).netloc,

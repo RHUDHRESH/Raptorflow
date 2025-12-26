@@ -44,7 +44,7 @@ export function ImageReveal({
           originY: direction === 'up' ? 1 : 0,
         }}
       />
-      
+
       {/* Image content */}
       <motion.div
         initial={{ ...directionOffset[direction], scale: 1.2 }}

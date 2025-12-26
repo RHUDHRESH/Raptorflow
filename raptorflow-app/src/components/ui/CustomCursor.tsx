@@ -35,7 +35,7 @@ export function CustomCursor({ className }: CustomCursorProps) {
     const handleMagnetic = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const magneticEl = target.closest('[data-magnetic]');
-      
+
       if (magneticEl) {
         setIsHovering(true);
         const text = magneticEl.getAttribute('data-cursor-text');

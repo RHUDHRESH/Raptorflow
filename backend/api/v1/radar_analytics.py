@@ -1,6 +1,7 @@
 """
 Radar Analytics API Endpoints
 """
+
 from typing import Any, Dict, List
 from uuid import UUID
 
@@ -60,7 +61,9 @@ async def get_market_intelligence(
     try:
         mock_signals = []
         mock_clusters = []
-        intelligence = await service.generate_market_intelligence(mock_signals, mock_clusters)
+        intelligence = await service.generate_market_intelligence(
+            mock_signals, mock_clusters
+        )
         return intelligence
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

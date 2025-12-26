@@ -1,5 +1,5 @@
-from typing import Any, Dict
 import logging
+from typing import Any, Dict
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
@@ -7,7 +7,7 @@ from core.auth import get_current_user
 from core.exceptions import RaptorFlowError
 from models.campaigns import GanttChart
 from models.requests import CampaignCreateRequest, CampaignUpdateRequest
-from models.responses import CampaignResponse, BaseResponseModel
+from models.responses import BaseResponseModel, CampaignResponse
 from services.campaign_service import CampaignService, get_campaign_service
 
 logger = logging.getLogger("raptorflow.api.campaigns")
@@ -29,7 +29,9 @@ async def get_campaign_gantt(
     except RaptorFlowError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
     except Exception as e:
-        logger.error(f"Unexpected error getting Gantt chart for campaign {campaign_id}: {e}")
+        logger.error(
+            f"Unexpected error getting Gantt chart for campaign {campaign_id}: {e}"
+        )
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -79,7 +81,9 @@ async def get_campaign_arc_status(
     except RaptorFlowError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
     except Exception as e:
-        logger.error(f"Unexpected error getting arc status for campaign {campaign_id}: {e}")
+        logger.error(
+            f"Unexpected error getting arc status for campaign {campaign_id}: {e}"
+        )
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -92,7 +96,9 @@ async def apply_campaign_pivot(
 ):
     """SOTA Endpoint: Applies a strategic pivot to a campaign's 90-day arc."""
     try:
-        result = await service.apply_pivot(campaign_id, pivot_data.dict(exclude_unset=True))
+        result = await service.apply_pivot(
+            campaign_id, pivot_data.dict(exclude_unset=True)
+        )
         if not result:
             raise HTTPException(status_code=404, detail="Campaign not found.")
         return result
@@ -113,9 +119,7 @@ async def create_campaign(
     try:
         result = await service.create_campaign(campaign_data.dict())
         return BaseResponseModel(
-            success=True,
-            message="Campaign created successfully",
-            data=result
+            success=True, message="Campaign created successfully", data=result
         )
     except RaptorFlowError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)

@@ -46,7 +46,7 @@ export function TestimonialCarousel() {
     <section className="py-32 lg:py-40 relative overflow-hidden border-y border-border">
       {/* Background */}
       <div className="absolute inset-0 bg-muted/20" />
-      
+
       <div className="mx-auto max-w-5xl px-6 lg:px-8 relative z-10">
         <motion.div
           className="text-center mb-12"

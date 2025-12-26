@@ -19,6 +19,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 # Hyperparameter optimization imports
 # Import ML dependencies with dependency management
 from core.dependencies import get_ml_dependencies
+
 ml_deps = get_ml_dependencies()
 
 # Optuna imports
@@ -27,6 +28,7 @@ if optuna:
     from optuna import Study, Trial, create_study
     from optuna.pruners import HyperbandPruner, MedianPruner
     from optuna.samplers import GridSampler, RandomSampler, TPESampler
+
     OPTUNA_AVAILABLE = True
 else:
     OPTUNA_AVAILABLE = False
@@ -38,6 +40,7 @@ if ray:
     from ray.tune import RunConfig, TuneConfig
     from ray.tune.schedulers import ASHAScheduler, PopulationBasedTraining
     from ray.tune.search.optuna import OptunaSearch
+
     RAY_AVAILABLE = True
 else:
     RAY_AVAILABLE = False
@@ -46,6 +49,7 @@ else:
 hyperopt = ml_deps.import_hyperopt()
 if hyperopt:
     from hyperopt import STATUS_OK, Trials, fmin, hp, tpe
+
     HYPEROPT_AVAILABLE = True
 else:
     HYPEROPT_AVAILABLE = False
@@ -54,6 +58,7 @@ else:
 mlflow = ml_deps.import_mlflow()
 if mlflow:
     import mlflow.pytorch
+
     MLFLOW_AVAILABLE = True
 else:
     MLFLOW_AVAILABLE = False
@@ -63,6 +68,7 @@ torch = ml_deps.import_torch()
 if torch:
     import torch.nn as nn
     import torch.optim as optim
+
     PYTORCH_AVAILABLE = True
 else:
     PYTORCH_AVAILABLE = False

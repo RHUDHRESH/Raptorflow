@@ -23,11 +23,7 @@ from core.unified_search_part1 import (
 from core.unified_search_part2 import SearchProvider, create_search_provider
 from core.unified_search_part4 import ResultConsolidator
 from core.unified_search_part5 import FaultTolerantExecutor
-from core.unified_search_part6 import (
-    DeepResearchAgent,
-    ResearchDepth,
-    ResearchPlan,
-)
+from core.unified_search_part6 import DeepResearchAgent, ResearchDepth, ResearchPlan
 
 logger = logging.getLogger("raptorflow.unified_search.interface")
 

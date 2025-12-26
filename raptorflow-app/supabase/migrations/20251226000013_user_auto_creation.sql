@@ -30,12 +30,12 @@ BEGIN
 
     -- 4. Create default strategy version
     INSERT INTO public.strategy_versions (
-        tenant_id, 
-        name, 
-        version, 
-        description, 
-        status, 
-        created_at, 
+        tenant_id,
+        name,
+        version,
+        description,
+        status,
+        created_at,
         updated_at
     )
     VALUES (
@@ -78,7 +78,7 @@ BEGIN
         created_at,
         updated_at
     )
-    SELECT 
+    SELECT
         workspace_id,
         setting_value,
         setting_value,
@@ -116,7 +116,7 @@ BEGIN
             'email', NEW.email
         )
     );
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -144,7 +144,7 @@ BEGIN
     WHERE user_id = user_uuid
     AND role = 'owner'
     LIMIT 1;
-    
+
     -- If no owner workspace found, get any workspace
     IF workspace_uuid IS NULL THEN
         SELECT tenant_id INTO workspace_uuid
@@ -152,7 +152,7 @@ BEGIN
         WHERE user_id = user_uuid
         LIMIT 1;
     END IF;
-    
+
     RETURN workspace_uuid;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -182,7 +182,7 @@ DECLARE
 BEGIN
     -- Get user's primary workspace
     workspace_uuid := get_user_workspace(user_uuid);
-    
+
     -- Build session data
     session_data := jsonb_build_object(
         'user_id', user_uuid,
@@ -190,7 +190,7 @@ BEGIN
         'has_workspace', workspace_uuid IS NOT NULL,
         'session_created_at', now()
     );
-    
+
     RETURN session_data;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -213,26 +213,26 @@ BEGIN
     -- Get user's workspace
     workspace_uuid := get_user_workspace(user_uuid);
     has_workspace := workspace_uuid IS NOT NULL;
-    
+
     -- Check foundation state
     SELECT EXISTS (
-        SELECT 1 FROM foundation_state 
+        SELECT 1 FROM foundation_state
         WHERE tenant_id = workspace_uuid
     ) INTO has_foundation;
-    
+
     -- Check strategy version
     SELECT EXISTS (
-        SELECT 1 FROM strategy_versions 
+        SELECT 1 FROM strategy_versions
         WHERE tenant_id = workspace_uuid
         AND status = 'active'
     ) INTO has_strategy;
-    
+
     -- Check user preferences
     SELECT EXISTS (
-        SELECT 1 FROM user_preferences 
+        SELECT 1 FROM user_preferences
         WHERE user_id = user_uuid
     ) INTO has_preferences;
-    
+
     result := jsonb_build_object(
         'user_id', user_uuid,
         'workspace_id', workspace_uuid,
@@ -243,7 +243,7 @@ BEGIN
         'has_preferences', has_preferences,
         'validated_at', now()
     );
-    
+
     RETURN result;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -258,13 +258,13 @@ RETURNS TRIGGER AS $$
 BEGIN
     -- Delete user's workspace memberships
     DELETE FROM workspace_members WHERE user_id = OLD.id;
-    
+
     -- Delete user preferences
     DELETE FROM user_preferences WHERE user_id = OLD.id;
-    
+
     -- Note: Workspaces and other data are preserved for audit purposes
     -- In a real application, you might want to handle workspace ownership transfer
-    
+
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

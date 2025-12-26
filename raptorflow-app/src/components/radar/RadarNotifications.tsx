@@ -5,17 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { 
-    processNotifications, 
-    getDailyDigest 
+import {
+    processNotifications,
+    getDailyDigest
 } from '@/lib/radar';
 import { toast } from 'sonner';
-import { 
-    Bell, 
-    BellOff, 
-    Mail, 
-    AlertTriangle, 
-    TrendingUp, 
+import {
+    Bell,
+    BellOff,
+    Mail,
+    AlertTriangle,
+    TrendingUp,
     DollarSign,
     Calendar,
     CheckCircle,
@@ -49,7 +49,7 @@ export function RadarNotifications({ className }: RadarNotificationsProps) {
                 getDailyDigest()
             ]);
             setDailyDigest(digestData);
-            
+
             // Mock notifications for now
             const mockNotifications = [
                 {
@@ -79,7 +79,7 @@ export function RadarNotifications({ className }: RadarNotificationsProps) {
                 }
             ];
             setNotifications(mockNotifications);
-            
+
         } catch (error) {
             toast.error('Failed to load notifications', {
                 description: error instanceof Error ? error.message : 'Unknown error'
@@ -92,18 +92,18 @@ export function RadarNotifications({ className }: RadarNotificationsProps) {
     const handleProcessNotifications = async (signalIds: string[]) => {
         try {
             toast.loading('Processing notifications...', { id: 'process-notifications' });
-            
+
             const processedNotifications = await processNotifications(signalIds, preferences);
-            
-            toast.success('Notifications processed!', { 
+
+            toast.success('Notifications processed!', {
                 id: 'process-notifications',
-                description: `Generated ${processedNotifications.length} notifications` 
+                description: `Generated ${processedNotifications.length} notifications`
             });
-            
+
             await loadNotificationData();
-            
+
         } catch (error) {
-            toast.error('Failed to process notifications', { 
+            toast.error('Failed to process notifications', {
                 id: 'process-notifications',
                 description: error instanceof Error ? error.message : 'Unknown error'
             });
@@ -168,7 +168,7 @@ export function RadarNotifications({ className }: RadarNotificationsProps) {
                             </div>
                             <Switch
                                 checked={preferences.highStrengthSignals}
-                                onCheckedChange={(checked) => 
+                                onCheckedChange={(checked) =>
                                     setPreferences(prev => ({ ...prev, highStrengthSignals: checked }))
                                 }
                             />
@@ -183,7 +183,7 @@ export function RadarNotifications({ className }: RadarNotificationsProps) {
                             </div>
                             <Switch
                                 checked={preferences.competitorActivitySpikes}
-                                onCheckedChange={(checked) => 
+                                onCheckedChange={(checked) =>
                                     setPreferences(prev => ({ ...prev, competitorActivitySpikes: checked }))
                                 }
                             />
@@ -198,7 +198,7 @@ export function RadarNotifications({ className }: RadarNotificationsProps) {
                             </div>
                             <Switch
                                 checked={preferences.pricingChanges}
-                                onCheckedChange={(checked) => 
+                                onCheckedChange={(checked) =>
                                     setPreferences(prev => ({ ...prev, pricingChanges: checked }))
                                 }
                             />
@@ -213,7 +213,7 @@ export function RadarNotifications({ className }: RadarNotificationsProps) {
                             </div>
                             <Switch
                                 checked={preferences.dailyDigest}
-                                onCheckedChange={(checked) => 
+                                onCheckedChange={(checked) =>
                                     setPreferences(prev => ({ ...prev, dailyDigest: checked }))
                                 }
                             />
@@ -337,8 +337,8 @@ export function RadarNotifications({ className }: RadarNotificationsProps) {
                         <p className="text-sm text-muted-foreground">
                             Test your notification preferences by processing recent signals.
                         </p>
-                        
-                        <Button 
+
+                        <Button
                             onClick={() => handleProcessNotifications(['signal-123', 'signal-456'])}
                             className="w-full"
                         >

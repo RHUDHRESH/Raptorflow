@@ -120,7 +120,7 @@ export function GSAPHero() {
                     key={i}
                     className="headline-word inline-block mr-4 mb-2"
                     style={{
-                      background: i === 0 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 
+                      background: i === 0 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' :
                                   i === 3 ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' : 'none',
                       WebkitBackgroundClip: i === 0 || i === 3 ? 'text' : 'none',
                       WebkitTextFillColor: i === 0 || i === 3 ? 'transparent' : 'inherit',

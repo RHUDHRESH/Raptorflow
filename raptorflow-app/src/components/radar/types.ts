@@ -330,4 +330,3 @@ export const MOCK_DOSSIERS: Dossier[] = [
         sources: [{ name: 'Gartner Report', type: 'news' }],
     },
 ];
-

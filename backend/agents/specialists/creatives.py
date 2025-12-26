@@ -4,12 +4,7 @@ from typing import Dict, List
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from inference import InferenceProvider
-from models.cognitive import (
-    AgentResponse,
-    CognitiveStep,
-    MarketingBrief,
-    ModelTier,
-)
+from models.cognitive import AgentResponse, CognitiveStep, MarketingBrief, ModelTier
 
 
 class EmailSpecialistAgent:

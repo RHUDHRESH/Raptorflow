@@ -1,13 +1,15 @@
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 
 class BaseResponseModel(BaseModel):
     """Base response model for all API responses."""
+
     success: bool = True
     message: Optional[str] = None
     data: Optional[Any] = None
-    
+
     class Config:
         json_encoders = {
             # Add any custom encoders if needed
@@ -16,6 +18,7 @@ class BaseResponseModel(BaseModel):
 
 class ErrorResponseModel(BaseModel):
     """Error response model."""
+
     success: bool = False
     error: str
     message: Optional[str] = None
@@ -24,6 +27,7 @@ class ErrorResponseModel(BaseModel):
 
 class PaginatedResponseModel(BaseModel):
     """Paginated response model."""
+
     success: bool = True
     data: List[Any]
     pagination: Dict[str, Any]

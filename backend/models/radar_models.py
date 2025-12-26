@@ -1,15 +1,18 @@
 """
 Radar Signal Models - Core data structures for competitive intelligence
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
 from uuid import uuid4
+
+from pydantic import BaseModel, Field
 
 
 class SignalCategory(str, Enum):
     """Signal categories for competitive intelligence"""
+
     OFFER = "offer"
     HOOK = "hook"
     PROOF = "proof"
@@ -20,6 +23,7 @@ class SignalCategory(str, Enum):
 
 class SignalStrength(str, Enum):
     """Signal strength levels"""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -27,13 +31,15 @@ class SignalStrength(str, Enum):
 
 class SignalFreshness(str, Enum):
     """Signal freshness based on age"""
+
     FRESH = "fresh"  # 0-7 days
-    WARM = "warm"    # 8-30 days
+    WARM = "warm"  # 8-30 days
     STALE = "stale"  # 31-90 days
 
 
 class ScanFrequency(str, Enum):
     """Scan frequency for scheduled radar scans"""
+
     HOURLY = "hourly"
     DAILY = "daily"
     WEEKLY = "weekly"
@@ -41,6 +47,7 @@ class ScanFrequency(str, Enum):
 
 class EvidenceType(str, Enum):
     """Types of evidence supporting signals"""
+
     URL = "url"
     SCREENSHOT = "screenshot"
     LINKEDIN = "linkedin"
@@ -51,6 +58,7 @@ class EvidenceType(str, Enum):
 
 class MoveObjective(str, Enum):
     """Campaign objectives for signal mapping"""
+
     ACQUIRE = "acquire"
     ACTIVATE = "activate"
     RETAIN = "retain"
@@ -59,6 +67,7 @@ class MoveObjective(str, Enum):
 
 class MoveStage(str, Enum):
     """Campaign stages for signal mapping"""
+
     ATTENTION = "attention"
     CONSIDERATION = "consideration"
     CONVERSION = "conversion"
@@ -66,6 +75,7 @@ class MoveStage(str, Enum):
 
 class Evidence(BaseModel):
     """Evidence supporting a signal"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     type: EvidenceType
     source: str
@@ -78,6 +88,7 @@ class Evidence(BaseModel):
 
 class Signal(BaseModel):
     """Core signal entity"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     tenant_id: str
     category: SignalCategory
@@ -95,13 +106,12 @@ class Signal(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
     class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class SignalCluster(BaseModel):
     """Cluster of similar signals"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     tenant_id: str
     category: SignalCategory
@@ -115,6 +125,7 @@ class SignalCluster(BaseModel):
 
 class SignalMoveMapping(BaseModel):
     """Mapping between signals and campaign moves"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     signal_id: str
     move_id: str
@@ -127,6 +138,7 @@ class SignalMoveMapping(BaseModel):
 
 class RadarSource(BaseModel):
     """Source configuration for Radar scanning"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     tenant_id: str
     name: str
@@ -144,6 +156,7 @@ class RadarSource(BaseModel):
 
 class Dossier(BaseModel):
     """Intelligence dossier for campaigns"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     tenant_id: str
     campaign_id: Optional[str] = None
@@ -161,6 +174,7 @@ class Dossier(BaseModel):
 
 class ScanJob(BaseModel):
     """Background scan job configuration"""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     tenant_id: str
     source_ids: List[str]
@@ -175,6 +189,7 @@ class ScanJob(BaseModel):
 
 class SignalCreateRequest(BaseModel):
     """Request model for creating signals"""
+
     category: SignalCategory
     title: str
     content: str
@@ -185,6 +200,7 @@ class SignalCreateRequest(BaseModel):
 
 class SignalUpdateRequest(BaseModel):
     """Request model for updating signals"""
+
     title: Optional[str] = None
     content: Optional[str] = None
     strength: Optional[SignalStrength] = None
@@ -194,6 +210,7 @@ class SignalUpdateRequest(BaseModel):
 
 class SignalResponse(BaseModel):
     """Response model for signal data"""
+
     id: str
     tenant_id: str
     category: SignalCategory
