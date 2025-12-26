@@ -29,6 +29,7 @@ class Config(BaseSettings):
 
     # Database Configuration
     DATABASE_URL: Optional[str] = None
+    REDIS_URL: Optional[str] = None
 
     # Supabase Configuration
     SUPABASE_URL: Optional[str] = None

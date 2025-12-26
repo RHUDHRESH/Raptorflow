@@ -8,14 +8,13 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 
 from core.auth import get_current_user, get_tenant_id
-from core.vault import Vault
 from services.radar_analytics_service import RadarAnalyticsService
+from services.radar_repository import RadarRepository
 
 router = APIRouter(prefix="/v1/radar/analytics", tags=["radar-analytics"])
 
 
 async def get_analytics_service():
-    vault = Vault()
     return RadarAnalyticsService()
 
 
@@ -28,9 +27,9 @@ async def get_signal_trends(
 ):
     """Get signal trends over time."""
     try:
-        # In real implementation, fetch signals from database
-        mock_signals = []
-        trends = await service.analyze_signal_trends(mock_signals, window_days)
+        repository = RadarRepository()
+        signals = await repository.fetch_signals(str(tenant_id), window_days=window_days)
+        trends = await service.analyze_signal_trends(signals, window_days)
         return trends
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -44,8 +43,9 @@ async def get_competitor_analysis(
 ):
     """Get competitor behavior analysis."""
     try:
-        mock_signals = []
-        analysis = await service.analyze_competitor_patterns(mock_signals)
+        repository = RadarRepository()
+        signals = await repository.fetch_signals(str(tenant_id), window_days=90)
+        analysis = await service.analyze_competitor_patterns(signals)
         return analysis
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -59,11 +59,10 @@ async def get_market_intelligence(
 ):
     """Get comprehensive market intelligence."""
     try:
-        mock_signals = []
-        mock_clusters = []
-        intelligence = await service.generate_market_intelligence(
-            mock_signals, mock_clusters
-        )
+        repository = RadarRepository()
+        signals = await repository.fetch_signals(str(tenant_id), window_days=90)
+        clusters = await repository.fetch_clusters(str(tenant_id))
+        intelligence = await service.generate_market_intelligence(signals, clusters)
         return intelligence
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -77,9 +76,10 @@ async def get_opportunities(
 ):
     """Get strategic opportunities."""
     try:
-        mock_signals = []
         objectives = ["acquire", "activate", "retain", "monetize"]
-        opportunities = await service.identify_opportunities(mock_signals, objectives)
+        repository = RadarRepository()
+        signals = await repository.fetch_signals(str(tenant_id), window_days=90)
+        opportunities = await service.identify_opportunities(signals, objectives)
         return opportunities
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
