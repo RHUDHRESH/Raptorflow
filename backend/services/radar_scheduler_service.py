@@ -9,6 +9,8 @@ from typing import Any, Dict, List, Optional
 
 from core.crawl_cache import content_hash
 from models.radar_models import RadarSource, ScanFrequency, ScanJob
+from services.radar_cache import RadarCache
+from services.radar_repository import RadarRepository
 from services.signal_extraction_service import SignalExtractionService
 from services.signal_processing_service import SignalProcessingService
 
@@ -24,8 +26,10 @@ class RadarSchedulerService:
     def __init__(self):
         self.extraction_service = SignalExtractionService()
         self.processing_service = SignalProcessingService()
+        self.repository = RadarRepository()
+        self.cache = RadarCache()
         self.active_schedulers: Dict[str, asyncio.Task] = {}
-        self.content_cache: Dict[str, str] = {}  # URL -> content hash
+        self.content_cache: Dict[str, str] = {}  # Fallback in-memory cache
 
         # Frequency intervals in seconds
         self.frequency_intervals = {
@@ -34,10 +38,15 @@ class RadarSchedulerService:
             ScanFrequency.WEEKLY: 604800,
         }
 
-    async def start_scheduler(self, tenant_id: str, sources: List[RadarSource]):
+    async def start_scheduler(
+        self, tenant_id: str, sources: Optional[List[RadarSource]] = None
+    ):
         """Start scheduler for a tenant with their sources."""
         if tenant_id in self.active_schedulers:
             await self.stop_scheduler(tenant_id)
+
+        if sources is None:
+            sources = await self.repository.fetch_sources(tenant_id)
 
         # Group sources by frequency
         by_frequency = {}
@@ -53,6 +62,15 @@ class RadarSchedulerService:
         logger.info(
             f"Started Radar scheduler for tenant {tenant_id} with {len(sources)} sources"
         )
+        await self.cache.set_scheduler_status(
+            tenant_id,
+            {
+                "tenant_id": tenant_id,
+                "is_active": True,
+                "source_count": len(sources),
+                "started_at": datetime.utcnow().isoformat(),
+            },
+        )
 
     async def stop_scheduler(self, tenant_id: str):
         """Stop scheduler for a tenant."""
@@ -61,6 +79,14 @@ class RadarSchedulerService:
             task.cancel()
             del self.active_schedulers[tenant_id]
             logger.info(f"Stopped Radar scheduler for tenant {tenant_id}")
+        await self.cache.set_scheduler_status(
+            tenant_id,
+            {
+                "tenant_id": tenant_id,
+                "is_active": False,
+                "stopped_at": datetime.utcnow().isoformat(),
+            },
+        )
 
     async def schedule_manual_scan(
         self, tenant_id: str, source_ids: List[str], scan_type: str = "recon"
@@ -71,8 +97,8 @@ class RadarSchedulerService:
             source_ids=source_ids,
             scan_type=scan_type,
             status="pending",
-            created_at=datetime.utcnow(),
         )
+        await self.repository.create_scan_job(job)
 
         # Execute scan asynchronously
         asyncio.create_task(self._execute_scan_job(job))
@@ -125,9 +151,10 @@ class RadarSchedulerService:
         try:
             job.status = "running"
             job.started_at = datetime.utcnow()
+            await self.repository.update_scan_job(job)
 
             # In real implementation, fetch sources from database
-            sources = []  # Would fetch from DB using job.source_ids
+            sources = await self.repository.fetch_sources(job.tenant_id, job.source_ids)
 
             all_signals = []
             errors = []
@@ -135,7 +162,9 @@ class RadarSchedulerService:
             for source in sources:
                 try:
                     # Get previous content for change detection
-                    previous_content = self.content_cache.get(source.url)
+                    previous_content = await self.cache.get_source_content(
+                        job.tenant_id, source.id
+                    )
 
                     # Extract signals
                     signals = await self.extraction_service.extract_signals_from_source(
@@ -143,9 +172,20 @@ class RadarSchedulerService:
                     )
 
                     # Cache content for next scan
-                    if signals:
-                        # In real implementation, would fetch current content
-                        self.content_cache[source.url] = "mock_content_hash"
+                    current_content = self.extraction_service.get_last_content(source.url)
+                    if current_content:
+                        await self.cache.set_source_content(
+                            job.tenant_id, source.id, current_content
+                        )
+                        self.content_cache[source.url] = content_hash(current_content)
+
+                    for signal in signals:
+                        if not signal.source_competitor:
+                            signal.source_competitor = source.name
+                        if not signal.source_url:
+                            signal.source_url = source.url
+                        signal.metadata["source_id"] = source.id
+                        signal.metadata["scan_job_id"] = job.id
 
                     all_signals.extend(signals)
 
@@ -153,6 +193,7 @@ class RadarSchedulerService:
                     source.health_score = min(100, source.health_score + 5)
                     source.last_checked = datetime.utcnow()
                     source.last_success = datetime.utcnow()
+                    await self.repository.update_source_health(source)
 
                 except Exception as e:
                     error_msg = f"Failed to scan {source.url}: {str(e)}"
@@ -162,6 +203,7 @@ class RadarSchedulerService:
                     # Decrease source health
                     source.health_score = max(0, source.health_score - 10)
                     source.last_checked = datetime.utcnow()
+                    await self.repository.update_source_health(source)
 
             # Process signals
             if all_signals:
@@ -171,8 +213,8 @@ class RadarSchedulerService:
                     )
                 )
                 job.signals_found = len(processed_signals)
-
-                # In real implementation, save to database
+                await self.repository.save_clusters(clusters)
+                await self.repository.save_signals(processed_signals)
                 logger.info(
                     f"Processed {len(processed_signals)} signals into {len(clusters)} clusters"
                 )
@@ -181,6 +223,7 @@ class RadarSchedulerService:
             job.status = "completed"
             job.completed_at = datetime.utcnow()
             job.errors = errors
+            await self.repository.update_scan_job(job)
 
             logger.info(
                 f"Scan job {job.id} completed: {job.signals_found} signals found"
@@ -190,10 +233,15 @@ class RadarSchedulerService:
             job.status = "failed"
             job.completed_at = datetime.utcnow()
             job.errors = [str(e)]
+            await self.repository.update_scan_job(job)
             logger.error(f"Scan job {job.id} failed: {e}")
 
-    async def get_source_health(self, sources: List[RadarSource]) -> Dict[str, Any]:
+    async def get_source_health(
+        self, sources: Optional[List[RadarSource]] = None, tenant_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Get health summary for all sources."""
+        if sources is None and tenant_id:
+            sources = await self.repository.fetch_sources(tenant_id)
         if not sources:
             return {"total_sources": 0, "healthy_sources": 0, "avg_health": 0}
 
@@ -230,10 +278,13 @@ class RadarSchedulerService:
     async def get_scheduler_status(self, tenant_id: str) -> Dict[str, Any]:
         """Get scheduler status for a tenant."""
         is_active = tenant_id in self.active_schedulers
-
-        return {
+        status = {
             "tenant_id": tenant_id,
             "is_active": is_active,
             "cache_size": len(self.content_cache),
             "active_tasks": len(self.active_schedulers),
         }
+        cached_status = await self.cache.get_scheduler_status(tenant_id)
+        if cached_status:
+            status["last_reported"] = cached_status
+        return status
