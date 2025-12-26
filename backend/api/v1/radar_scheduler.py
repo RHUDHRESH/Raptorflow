@@ -2,13 +2,13 @@
 Radar Scheduler API Endpoints
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from core.auth import get_current_user, get_tenant_id
-from core.vault import Vault
+from models.radar_models import RadarManualScanRequest
 from services.radar_scheduler_service import RadarSchedulerService
 
 router = APIRouter(prefix="/v1/radar/scheduler", tags=["radar-scheduler"])
@@ -26,9 +26,7 @@ async def start_scheduler(
 ):
     """Start automated scanning scheduler."""
     try:
-        # In real implementation, fetch sources from database
-        mock_sources = []
-        await service.start_scheduler(str(tenant_id), mock_sources)
+        await service.start_scheduler(str(tenant_id))
         return {"status": "started", "tenant_id": str(tenant_id)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -50,20 +48,21 @@ async def stop_scheduler(
 
 @router.post("/scan/manual", response_model=Dict[str, Any])
 async def schedule_manual_scan(
-    source_ids: List[str],
-    scan_type: str = "recon",
+    request: RadarManualScanRequest,
     tenant_id: UUID = Depends(get_tenant_id),
     _current_user: dict = Depends(get_current_user),
     service: RadarSchedulerService = Depends(get_scheduler_service),
 ):
     """Schedule a manual scan job."""
     try:
-        job = await service.schedule_manual_scan(str(tenant_id), source_ids, scan_type)
+        job = await service.schedule_manual_scan(
+            str(tenant_id), request.source_ids, request.scan_type
+        )
         return {
             "job_id": job.id,
             "status": job.status,
-            "source_count": len(source_ids),
-            "scan_type": scan_type,
+            "source_count": len(request.source_ids),
+            "scan_type": request.scan_type,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -77,9 +76,7 @@ async def get_source_health(
 ):
     """Get health status of all sources."""
     try:
-        # In real implementation, fetch sources from database
-        mock_sources = []
-        health = await service.get_source_health(mock_sources)
+        health = await service.get_source_health(tenant_id=str(tenant_id))
         return health
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

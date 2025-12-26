@@ -185,6 +185,7 @@ class ScanJob(BaseModel):
     signals_found: int = 0
     errors: List[str] = Field(default_factory=list)
     config: Dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class SignalCreateRequest(BaseModel):
@@ -224,3 +225,31 @@ class SignalResponse(BaseModel):
     cluster_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+
+
+class RadarReconRequest(BaseModel):
+    """Request model for radar recon scans."""
+
+    icp_id: str
+    source_urls: Optional[List[str]] = None
+
+
+class RadarDossierRequest(BaseModel):
+    """Request model for dossier generation."""
+
+    campaign_id: str
+    signal_ids: Optional[List[str]] = None
+
+
+class RadarManualScanRequest(BaseModel):
+    """Request model for manual scan scheduling."""
+
+    source_ids: List[str]
+    scan_type: str = "recon"
+
+
+class RadarNotificationRequest(BaseModel):
+    """Request model for notification processing."""
+
+    signal_ids: List[str]
+    tenant_preferences: Optional[Dict[str, Any]] = None
