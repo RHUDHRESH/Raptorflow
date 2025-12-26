@@ -172,7 +172,9 @@ class RadarSchedulerService:
                     )
 
                     # Cache content for next scan
-                    current_content = self.extraction_service.get_last_content(source.url)
+                    current_content = self.extraction_service.get_last_content(
+                        source.url
+                    )
                     if current_content:
                         await self.cache.set_source_content(
                             job.tenant_id, source.id, current_content
@@ -237,7 +239,9 @@ class RadarSchedulerService:
             logger.error(f"Scan job {job.id} failed: {e}")
 
     async def get_source_health(
-        self, sources: Optional[List[RadarSource]] = None, tenant_id: Optional[str] = None
+        self,
+        sources: Optional[List[RadarSource]] = None,
+        tenant_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Get health summary for all sources."""
         if sources is None and tenant_id:
@@ -267,8 +271,6 @@ class RadarSchedulerService:
 
     async def cleanup_old_cache(self, days_old: int = 30):
         """Clean up old content cache entries."""
-        cutoff_date = datetime.utcnow() - timedelta(days=days_old)
-
         # In real implementation, would use timestamps
         # For now, just clear cache if it's getting large
         if len(self.content_cache) > 10000:

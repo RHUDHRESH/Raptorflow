@@ -30,9 +30,9 @@ class QueueController(BaseModel):
     queue: List[QueuedTask] = Field(default_factory=list)
 
     def can_dispatch(self, agent_type: str) -> bool:
-        return self.inflight_by_agent.get(agent_type, 0) < self.capability_profile.limit_for(
-            agent_type
-        )
+        return self.inflight_by_agent.get(
+            agent_type, 0
+        ) < self.capability_profile.limit_for(agent_type)
 
     def enqueue(self, task: QueuedTask) -> bool:
         if self.can_dispatch(task.agent_type):
@@ -58,7 +58,9 @@ class QueueController(BaseModel):
         return dispatched
 
     def _increment_inflight(self, agent_type: str) -> None:
-        self.inflight_by_agent[agent_type] = self.inflight_by_agent.get(agent_type, 0) + 1
+        self.inflight_by_agent[agent_type] = (
+            self.inflight_by_agent.get(agent_type, 0) + 1
+        )
 
     def _decrement_inflight(self, agent_type: str) -> None:
         current = self.inflight_by_agent.get(agent_type, 0)

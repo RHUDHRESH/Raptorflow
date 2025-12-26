@@ -6,15 +6,14 @@ from typing import Iterable, Optional
 
 from bs4 import BeautifulSoup
 
-
 APP_SHELL_MARKERS: tuple[str, ...] = (
-    "id=\"root\"",
+    'id="root"',
     "id='root'",
-    "id=\"app\"",
+    'id="app"',
     "id='app'",
-    "id=\"__next\"",
+    'id="__next"',
     "id='__next'",
-    "id=\"__nuxt\"",
+    'id="__nuxt"',
     "id='__nuxt'",
     "data-reactroot",
     "ng-app",
@@ -32,7 +31,9 @@ def _text_density(html: str) -> float:
     return len(text) / html_length
 
 
-def _has_app_shell_marker(html: str, markers: Iterable[str] = APP_SHELL_MARKERS) -> bool:
+def _has_app_shell_marker(
+    html: str, markers: Iterable[str] = APP_SHELL_MARKERS
+) -> bool:
     if not html:
         return False
     lowered = html.lower()
@@ -61,7 +62,9 @@ class PlaywrightRenderer:
             browser = await playwright.chromium.launch(headless=True)
             context = await browser.new_context(user_agent=self.user_agent)
             page = await context.new_page()
-            await page.goto(url, wait_until="networkidle", timeout=self.timeout_s * 1000)
+            await page.goto(
+                url, wait_until="networkidle", timeout=self.timeout_s * 1000
+            )
             await page.wait_for_timeout(1000)
             html = await page.content()
             await context.close()
