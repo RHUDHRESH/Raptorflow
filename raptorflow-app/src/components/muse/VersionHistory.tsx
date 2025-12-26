@@ -60,6 +60,14 @@ function formatTimeAgo(date: Date): string {
     return `${days}d ago`;
 }
 
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Separator } from "@/components/ui/separator";
+
+// ... existing interfaces ...
+
 export function VersionHistory({
     versions,
     currentContent,
@@ -88,9 +96,9 @@ export function VersionHistory({
             </div>
 
             {/* Version list */}
-            <div className="flex-1 overflow-auto">
+            <ScrollArea className="flex-1">
                 {versions.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                    <div className="flex flex-col items-center justify-center h-48 text-center p-4">
                         <Clock className="h-8 w-8 text-muted-foreground/30 mb-2" />
                         <p className="text-sm text-muted-foreground">No versions yet</p>
                         <p className="text-xs text-muted-foreground/60">
@@ -106,94 +114,96 @@ export function VersionHistory({
                                     selectedVersion?.id === version.id ? null : version
                                 )}
                                 className={cn(
-                                    'w-full flex items-center gap-3 p-4 text-left',
+                                    'w-full flex items-center gap-3 p-4 text-left group',
                                     'hover:bg-muted/30 transition-colors',
                                     selectedVersion?.id === version.id && 'bg-muted/50'
                                 )}
                             >
                                 {/* Timeline dot */}
-                                <div className="relative flex flex-col items-center">
+                                <div className="relative flex flex-col items-center self-stretch">
                                     <div className={cn(
-                                        'w-2.5 h-2.5 rounded-full',
-                                        index === 0 ? 'bg-foreground' : 'bg-muted-foreground/40'
+                                        'w-2.5 h-2.5 rounded-full z-10',
+                                        index === 0 ? 'bg-primary' : 'bg-muted-foreground/40'
                                     )} />
                                     {index < versions.length - 1 && (
-                                        <div className="w-px h-8 bg-border/60 absolute top-3" />
+                                        <div className="w-px h-full bg-border/60 absolute top-2.5" />
                                     )}
                                 </div>
 
                                 {/* Content */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm font-medium">
-                                            {version.label || `Version ${versions.length - index}`}
-                                        </span>
-                                        {index === 0 && (
-                                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-foreground/10 text-foreground">
-                                                Latest
+                                <div className="flex-1 min-w-0 space-y-1">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-medium">
+                                                {version.label || `Version ${versions.length - index}`}
                                             </span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                        <span className="text-xs text-muted-foreground">
+                                            {index === 0 && (
+                                                <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
+                                                    Latest
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        <span className="text-xs text-muted-foreground tabular-nums">
                                             {formatTimeAgo(version.timestamp)}
                                         </span>
-                                        {version.author && (
-                                            <>
-                                                <span className="text-muted-foreground/40">·</span>
-                                                <span className="text-xs text-muted-foreground">
-                                                    {version.author}
-                                                </span>
-                                            </>
-                                        )}
                                     </div>
+
+                                    {version.author && (
+                                        <div className="flex items-center gap-1.5">
+                                            <Avatar className="h-4 w-4">
+                                                <AvatarImage src={`https://avatar.vercel.sh/${version.author}`} />
+                                                <AvatarFallback className="text-[9px]">{version.author[0]}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="text-xs text-muted-foreground">
+                                                {version.author}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <ChevronRight className={cn(
-                                    'h-4 w-4 text-muted-foreground transition-transform',
+                                    'h-4 w-4 text-muted-foreground/50 transition-transform group-hover:text-muted-foreground',
                                     selectedVersion?.id === version.id && 'rotate-90'
                                 )} />
                             </button>
                         ))}
                     </div>
                 )}
-            </div>
+            </ScrollArea>
 
             {/* Selected version details */}
             {selectedVersion && (
                 <div className="border-t border-border/40 bg-muted/10">
                     {/* Actions */}
-                    <div className="flex items-center gap-2 p-3 border-b border-border/40">
-                        <button
-                            onClick={() => setShowDiff(!showDiff)}
-                            className={cn(
-                                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg',
-                                'text-xs font-medium transition-colors',
-                                showDiff
-                                    ? 'bg-foreground text-background'
-                                    : 'border border-border/60 hover:bg-muted/30'
-                            )}
-                        >
-                            <Diff className="h-3 w-3" />
-                            View Diff
-                        </button>
-                        <button
-                            onClick={() => onPreview?.(selectedVersion)}
-                            className={cn(
-                                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg',
-                                'border border-border/60 text-xs',
-                                'hover:bg-muted/30 transition-colors'
-                            )}
-                        >
-                            <Eye className="h-3 w-3" />
-                            Preview
-                        </button>
+                    <div className="flex items-center justify-between p-3 border-b border-border/40">
+                        <div className="flex items-center gap-2">
+                            <ButtonGroup>
+                                <button
+                                    onClick={() => setShowDiff(!showDiff)}
+                                    className={cn(
+                                        'px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1.5',
+                                        showDiff ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                                    )}
+                                >
+                                    <Diff className="h-3 w-3" />
+                                    {showDiff ? 'Hide Diff' : 'Show Diff'}
+                                </button>
+                                <button
+                                    onClick={() => onPreview?.(selectedVersion)}
+                                    className="px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors flex items-center gap-1.5"
+                                >
+                                    <Eye className="h-3 w-3" />
+                                    Preview
+                                </button>
+                            </ButtonGroup>
+                        </div>
+
                         <button
                             onClick={() => onRestore?.(selectedVersion)}
                             className={cn(
-                                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg',
-                                'border border-amber-500/50 text-amber-600 text-xs',
-                                'hover:bg-amber-500/10 transition-colors'
+                                'flex items-center gap-1.5 px-3 py-1.5 rounded-md',
+                                'bg-amber-500/10 text-amber-600 text-xs font-medium',
+                                'hover:bg-amber-500/20 transition-colors border border-amber-500/20'
                             )}
                         >
                             <RotateCcw className="h-3 w-3" />
@@ -203,26 +213,27 @@ export function VersionHistory({
 
                     {/* Diff view */}
                     {showDiff && (
-                        <div className="max-h-48 overflow-auto p-3 font-mono text-xs">
-                            {diff.map((line, i) => (
-                                <div
-                                    key={i}
-                                    className={cn(
-                                        'py-0.5 px-2 -mx-2',
-                                        line.type === 'added' && 'bg-green-500/10 text-green-600',
-                                        line.type === 'removed' && 'bg-red-500/10 text-red-600 line-through',
-                                        line.type === 'unchanged' && 'text-muted-foreground'
-                                    )}
-                                >
-                                    <span className="opacity-50 mr-2">
-                                        {line.type === 'added' && '+'}
-                                        {line.type === 'removed' && '-'}
-                                        {line.type === 'unchanged' && ' '}
-                                    </span>
-                                    {line.text || '(empty line)'}
-                                </div>
-                            ))}
-                        </div>
+                        <ScrollArea className="h-48 w-full border-b">
+                            <div className="p-3 font-mono text-xs">
+                                {diff.map((line, i) => (
+                                    <div
+                                        key={i}
+                                        className={cn(
+                                            'py-0.5 px-2 -mx-2 flex',
+                                            line.type === 'added' && 'bg-green-500/10 text-green-700 dark:text-green-400',
+                                            line.type === 'removed' && 'bg-red-500/10 text-red-700 dark:text-red-400 line-through decoration-red-900/30',
+                                            line.type === 'unchanged' && 'text-muted-foreground'
+                                        )}
+                                    >
+                                        <span className="opacity-50 w-4 inline-block select-none shrink-0">
+                                            {line.type === 'added' && '+'}
+                                            {line.type === 'removed' && '-'}
+                                        </span>
+                                        <span className="whitespace-pre-wrap break-all">{line.text || ' '}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </ScrollArea>
                     )}
                 </div>
             )}

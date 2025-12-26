@@ -308,8 +308,8 @@ export function ProofVault({ items, onAddItem, onUpdateItem, onDeleteItem, curre
 
   const filteredItems = items.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+      item.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesType = filterType === 'all' || item.type === filterType;
 
@@ -321,8 +321,10 @@ export function ProofVault({ items, onAddItem, onUpdateItem, onDeleteItem, curre
   };
 
   const handleUpdate = (updatedItem: ProofItem) => {
-    onUpdateItem(item.id, updatedItem);
-    setEditingItem(null);
+    if (editingItem) {
+      onUpdateItem(editingItem.id, updatedItem);
+      setEditingItem(null);
+    }
   };
 
   return (
@@ -449,7 +451,7 @@ export function ProofVault({ items, onAddItem, onUpdateItem, onDeleteItem, curre
                 <label className="text-sm font-medium">Title</label>
                 <Input
                   value={editingItem.title}
-                  onChange={(e) => setEditingItem(prev => prev ? {...prev, title: e.target.value} : null)}
+                  onChange={(e) => setEditingItem(prev => prev ? { ...prev, title: e.target.value } : null)}
                 />
               </div>
 
@@ -457,7 +459,7 @@ export function ProofVault({ items, onAddItem, onUpdateItem, onDeleteItem, curre
                 <label className="text-sm font-medium">Content</label>
                 <Textarea
                   value={editingItem.content}
-                  onChange={(e) => setEditingItem(prev => prev ? {...prev, content: e.target.value} : null)}
+                  onChange={(e) => setEditingItem(prev => prev ? { ...prev, content: e.target.value } : null)}
                   rows={4}
                 />
               </div>

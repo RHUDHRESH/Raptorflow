@@ -73,9 +73,9 @@ const createMockMoves = (): Move[] => [
         description: 'Position as thought leader through expert content',
         duration: 14,
         status: 'completed',
-        goal: 'awareness',
+        goal: 'distribution',
         channel: 'linkedin',
-        dailyEffort: 45,
+        dailyEffort: 60,
         startedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
         checklist: [
             { id: 't3-1', label: 'Write framework post', completed: true, group: 'create' },
@@ -263,8 +263,8 @@ export default function MovesPage() {
                                             {/* Status Badge */}
                                             <div className="absolute top-6 right-6">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${move.status === 'active'
-                                                        ? 'bg-[#22C55E]/10 text-[#16A34A]'
-                                                        : 'bg-[#9D9F9F]/10 text-[#5B5F61]'
+                                                    ? 'bg-[#22C55E]/10 text-[#16A34A]'
+                                                    : 'bg-[#9D9F9F]/10 text-[#5B5F61]'
                                                     }`}>
                                                     <span className={`w-1.5 h-1.5 rounded-full ${move.status === 'active' ? 'bg-[#22C55E]' : 'bg-[#9D9F9F]'}`} />
                                                     {move.status}
@@ -311,8 +311,8 @@ export default function MovesPage() {
                                                 <div className="h-1.5 bg-[#E5E6E3] rounded-full overflow-hidden">
                                                     <div
                                                         className={`h-full rounded-full transition-all duration-500 ${move.status === 'completed'
-                                                                ? 'bg-[#22C55E]'
-                                                                : 'bg-[#2D3538]'
+                                                            ? 'bg-[#22C55E]'
+                                                            : 'bg-[#2D3538]'
                                                             }`}
                                                         style={{ width: `${progress}%` }}
                                                     />

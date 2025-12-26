@@ -722,10 +722,19 @@ export type AwarenessStage = 'unaware' | 'problem' | 'solution' | 'product' | 'm
 
 // Soundbite Types (Precision 3.0 - 7 types)
 export type SoundbiteType =
-  | 'problem_revelation'
-  | 'agitation'
+  | 'value_prop'
+  | 'problem_agitate'
+  | 'differentiator'
+  | 'social_proof'
+  | 'feature_benefit'
+  | 'objection_handle'
+  | 'problem-reveal'
+  | 'agitate'
+  | 'jtbd-progress'
   | 'mechanism'
-  | 'objection_handling'
+  | 'proof-punch'
+  | 'objection-kill'
+  | 'action'
   | 'transformation'
   | 'positioning'
   | 'urgency';

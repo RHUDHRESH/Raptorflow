@@ -33,6 +33,15 @@ import { SmartCropPresets } from '../BrandKitOverlay';
 import { CaptionSuggestions } from '../CaptionSuggestions';
 import { AnimationPresets } from '../AnimationPresets';
 import { copyToClipboard, shareContent } from '../utils/exports';
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { TypographyH3, TypographySmall, TypographyMuted } from "@/components/ui/typography";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Kbd } from "@/components/ui/kbd";
+import { ButtonGroup } from "@/components/ui/button-group";
 
 interface MuseCanvasProps {
     initialData?: CanvasData;
@@ -203,62 +212,84 @@ export function MuseCanvas({
                             <X className="h-4 w-4" />
                         </button>
                     )}
-                    <h1 className="text-lg font-semibold">Muse Canvas</h1>
+                    <TypographyH3 className="text-lg">Muse Canvas</TypographyH3>
                 </div>
 
                 <div className="flex items-center gap-4">
-                    {/* Zoom controls */}
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-lg border border-border/60">
+                    {/* Zoom controls using ButtonGroup */}
+                    <ButtonGroup className="h-9">
                         <button
                             onClick={() => setZoom(z => Math.max(0.25, z - 0.25))}
-                            className="p-1 hover:bg-muted rounded"
+                            className="px-2 hover:bg-muted transition-colors flex items-center justify-center border-r border-input last:border-r-0"
+                            title="Zoom Out"
                         >
-                            <ZoomOut className="h-4 w-4" />
+                            <ZoomOut className="h-3.5 w-3.5" />
                         </button>
-                        <span className="text-xs font-mono w-12 text-center">{Math.round(zoom * 100)}%</span>
+                        <div className="px-2 min-w-[3rem] flex items-center justify-center text-xs font-mono font-medium border-r border-input bg-muted/20">
+                            {Math.round(zoom * 100)}%
+                        </div>
                         <button
                             onClick={() => setZoom(z => Math.min(2, z + 0.25))}
-                            className="p-1 hover:bg-muted rounded"
+                            className="px-2 hover:bg-muted transition-colors flex items-center justify-center border-r border-input last:border-r-0"
+                            title="Zoom In"
                         >
-                            <ZoomIn className="h-4 w-4" />
+                            <ZoomIn className="h-3.5 w-3.5" />
                         </button>
+                    </ButtonGroup>
+
+                    {/* Actions with Popover for Share */}
+                    <div className="flex items-center gap-2">
                         <button
-                            onClick={() => setZoom(1)}
-                            className="p-1 hover:bg-muted rounded"
-                            title="Reset zoom"
+                            onClick={handleCopyCanvas}
+                            title="Copy"
+                            className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-muted transition-colors"
                         >
-                            <RotateCcw className="h-3.5 w-3.5" />
+                            {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                        </button>
+
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <button className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-muted transition-colors">
+                                    <Share2 className="h-4 w-4" />
+                                </button>
+                            </PopoverTrigger>
+                            <PopoverContent>
+                                <div className="grid gap-4">
+                                    <div className="space-y-2">
+                                        <h4 className="font-medium leading-none">Share Canvas</h4>
+                                        <p className="text-sm text-muted-foreground">
+                                            Export or share your current design.
+                                        </p>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <div className="grid grid-cols-3 items-center gap-4">
+                                            <button onClick={handleShareCanvas} className="w-full text-left text-sm hover:underline flex items-center justify-between col-span-3">
+                                                <span>Share Link</span>
+                                                <Kbd>⌘S</Kbd>
+                                            </button>
+                                        </div>
+                                        <Separator />
+                                        <div className="grid grid-cols-3 items-center gap-4">
+                                            <button onClick={handleDownloadCanvas} className="w-full text-left text-sm hover:underline flex items-center justify-between col-span-3">
+                                                <span>Download JSON</span>
+                                                <Kbd>⌘D</Kbd>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+
+                        <button
+                            onClick={handleDownloadCanvas}
+                            title="Download"
+                            className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-muted transition-colors"
+                        >
+                            <Download className="h-4 w-4" />
                         </button>
                     </div>
 
-                    {/* Copy button */}
-                    <button
-                        onClick={handleCopyCanvas}
-                        title="Copy canvas data"
-                        className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                    >
-                        {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                    </button>
-
-                    {/* Share button */}
-                    <button
-                        onClick={handleShareCanvas}
-                        title="Share"
-                        className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                    >
-                        <Share2 className="h-4 w-4" />
-                    </button>
-
-                    {/* Download button */}
-                    <button
-                        onClick={handleDownloadCanvas}
-                        title="Download"
-                        className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                    >
-                        <Download className="h-4 w-4" />
-                    </button>
-
-                    <div className="w-px h-6 bg-border/40" />
+                    <Separator orientation="vertical" className="h-6" />
 
                     <button
                         onClick={() => onSave?.(canvasData)}
@@ -274,214 +305,176 @@ export function MuseCanvas({
                 </div>
             </div>
 
-            <div className="flex-1 flex overflow-hidden">
-                {/* Intelligence Side-Rail (Left) */}
-                <div className="w-14 border-r border-border/40 flex flex-col items-center py-4 gap-4 bg-muted/5">
-                    <RailButton
-                        icon={Type}
-                        active={tool === 'text'}
-                        onClick={() => { setTool('text'); addElement('text'); }}
-                        label="Text"
-                    />
-                    <RailButton
-                        icon={Square}
-                        active={tool === 'rectangle'}
-                        onClick={() => { setTool('rectangle'); addElement('shape', 'rectangle'); }}
-                        label="Box"
-                    />
-                    <RailButton
-                        icon={Circle}
-                        active={tool === 'circle'}
-                        onClick={() => { setTool('circle'); addElement('shape', 'circle'); }}
-                        label="Circle"
-                    />
-                    <RailButton
-                        icon={ImageIcon}
-                        active={tool === 'image'}
-                        onClick={() => setTool('image')}
-                        label="Image"
-                    />
+            <ResizablePanelGroup direction="horizontal">
+                {/* Left Toolbar */}
+                <ResizablePanel defaultSize={4} minSize={4} maxSize={4} className="min-w-[50px] border-r border-border/40 bg-muted/5 flex flex-col items-center py-4 gap-4">
+                    <ToggleGroup type="single" value={tool} onValueChange={(val) => { if (val) { setTool(val as any); if (val !== 'select' && val !== 'image') addElement(val === 'rectangle' || val === 'circle' ? 'shape' : val as any, val === 'rectangle' || val === 'circle' ? val : undefined) } }} orientation="vertical" className="flex flex-col gap-2">
+                        <ToggleGroupItem value="text" aria-label="Text" title="Text (T)">
+                            <div className="flex flex-col items-center gap-0.5">
+                                <Type className="h-4 w-4" />
+                            </div>
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="rectangle" aria-label="Rectangle" title="Rectangle (R)">
+                            <div className="flex flex-col items-center gap-0.5">
+                                <Square className="h-4 w-4" />
+                            </div>
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="circle" aria-label="Circle" title="Circle (C)">
+                            <div className="flex flex-col items-center gap-0.5">
+                                <Circle className="h-4 w-4" />
+                            </div>
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="image" aria-label="Image" title="Image (I)">
+                            <div className="flex flex-col items-center gap-0.5">
+                                <ImageIcon className="h-4 w-4" />
+                            </div>
+                        </ToggleGroupItem>
+                    </ToggleGroup>
                     <div className="flex-1" />
-                    <RailButton
-                        icon={Clock}
-                        active={activePanel === 'layers'}
+                    <button
                         onClick={() => setActivePanel(activePanel === 'layers' ? null : 'layers')}
-                        label="Layers"
-                    />
-                </div>
-
-                {/* Canvas Area */}
-                <div className="flex-1 overflow-auto bg-muted/30 p-8">
-                    <div
-                        ref={canvasRef}
-                        className="relative mx-auto shadow-lg rounded-lg overflow-hidden"
-                        style={{
-                            width: canvasData.width * zoom,
-                            height: canvasData.height * zoom,
-                            backgroundColor: canvasData.background,
-                            transform: `scale(${zoom})`,
-                            transformOrigin: 'top left',
-                        }}
-                        onClick={(e) => {
-                            if (e.target === canvasRef.current) {
-                                setSelectedId(null);
-                            }
-                        }}
+                        className={cn("p-2 rounded-md transition-colors", activePanel === 'layers' ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50")}
+                        title="Layers (L)"
                     >
-                        {canvasData.elements.map(element => (
-                            <CanvasElementComponent
-                                key={element.id}
-                                element={element}
-                                isSelected={selectedId === element.id}
-                                onSelect={() => !element.locked && setSelectedId(element.id)}
-                                zoom={zoom}
-                            />
-                        ))}
+                        <Clock className="h-5 w-5" />
+                    </button>
+                </ResizablePanel>
+
+                <ResizableHandle />
+
+                {/* Main Canvas */}
+                <ResizablePanel defaultSize={80}>
+                    <div className="flex-1 overflow-auto bg-muted/30 p-8 h-full flex items-center justify-center">
+                        <div
+                            ref={canvasRef}
+                            className="relative shadow-lg rounded-lg overflow-hidden transition-all duration-200"
+                            style={{
+                                width: canvasData.width * zoom,
+                                height: canvasData.height * zoom,
+                                backgroundColor: canvasData.background,
+                                transform: `scale(${zoom})`, // Still stick with scale for zoom but container handles overflow
+                                transformOrigin: 'center center',
+                            }}
+                            onClick={(e) => {
+                                if (e.target === canvasRef.current) {
+                                    setSelectedId(null);
+                                }
+                            }}
+                        >
+                            {canvasData.elements.map(element => (
+                                <CanvasElementComponent
+                                    key={element.id}
+                                    element={element}
+                                    isSelected={selectedId === element.id}
+                                    onSelect={() => !element.locked && setSelectedId(element.id)}
+                                    zoom={zoom}
+                                />
+                            ))}
+                        </div>
                     </div>
-                </div>
+                </ResizablePanel>
 
-                {/* Side-Rail (Right) for Intelligence & Presets */}
-                <div className="w-14 border-l border-border/40 flex flex-col items-center py-4 gap-4 bg-muted/5">
-                    <RailButton
-                        icon={Maximize2} // Using Maximize2 as a resize/crop icon
-                        active={activePanel === 'smart-crop'}
-                        onClick={() => setActivePanel(activePanel === 'smart-crop' ? null : 'smart-crop')}
-                        label="Resize"
-                    />
-                    <RailButton
-                        icon={MessageCircle}
-                        active={activePanel === 'captions'}
-                        onClick={() => setActivePanel(activePanel === 'captions' ? null : 'captions')}
-                        label="Captions"
-                    />
-                    <RailButton
-                        icon={Sparkles}
-                        active={activePanel === 'animate'}
-                        onClick={() => setActivePanel(activePanel === 'animate' ? null : 'animate')}
-                        label="Animate"
-                    />
-                </div>
+                {/* Right Panels (Intelligence & Context) */}
+                <ResizableHandle />
 
-                {/* Contextual Panel (Right) */}
-                <div
-                    className={cn(
-                        'border-l border-border/40 bg-card transition-all duration-300 ease-in-out overflow-hidden',
-                        activePanel ? 'w-80' : 'w-0 border-0'
-                    )}
-                >
-                    <div className="w-80 h-full flex flex-col">
-                        <div className="p-4 border-b border-border/40 flex items-center justify-between bg-muted/5">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                {activePanel === 'layers' && 'Layers'}
-                                {activePanel === 'smart-crop' && 'Canvas Resize'}
-                                {activePanel === 'captions' && 'AI Captions'}
-                                {activePanel === 'animate' && 'Motion Presets'}
-                            </span>
-                            <button
-                                onClick={() => setActivePanel(null)}
-                                className="h-6 w-6 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
-                            >
-                                <X className="h-3 w-3" />
-                            </button>
+                <ResizablePanel defaultSize={20} minSize={15} maxSize={30} collapsible={true} collapsedSize={4}>
+                    <div className="h-full flex flex-row">
+                        {/* Right Toolbar Strip */}
+                        <div className="w-12 border-l border-r border-border/40 flex flex-col items-center py-4 gap-4 bg-muted/5 z-10">
+                            <ToggleGroup type="single" value={activePanel || ""} onValueChange={(val) => setActivePanel(val as any)} orientation="vertical" className="flex flex-col gap-2">
+                                <ToggleGroupItem value="smart-crop"><Maximize2 className="h-4 w-4" /></ToggleGroupItem>
+                                <ToggleGroupItem value="captions"><MessageCircle className="h-4 w-4" /></ToggleGroupItem>
+                                <ToggleGroupItem value="animate"><Sparkles className="h-4 w-4" /></ToggleGroupItem>
+                            </ToggleGroup>
                         </div>
 
-                        <div className="flex-1 overflow-auto p-4 scroll-smooth">
-                            {activePanel === 'layers' && (
-                                <div className="space-y-1">
-                                    {[...canvasData.elements].reverse().map(element => (
-                                        <LayerItem
-                                            key={element.id}
-                                            element={element}
-                                            isSelected={selectedId === element.id}
-                                            onSelect={() => setSelectedId(element.id)}
-                                            onToggleVisibility={() => toggleVisibility(element.id)}
-                                            onToggleLock={() => toggleLock(element.id)}
-                                            onMoveUp={() => moveElement(element.id, 'up')}
-                                            onMoveDown={() => moveElement(element.id, 'down')}
-                                            onDuplicate={() => duplicateElement(element.id)}
-                                            onDelete={() => deleteElement(element.id)}
-                                        />
-                                    ))}
-
-                                    {canvasData.elements.length === 0 && (
-                                        <div className="text-center py-12 px-6">
-                                            <div className="w-12 h-12 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                                                <Plus className="h-6 w-6 text-muted-foreground/50" />
-                                            </div>
-                                            <p className="text-sm font-medium mb-1">Canvas is empty</p>
-                                            <p className="text-xs text-muted-foreground">Use the left toolbar to add elements.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {activePanel === 'smart-crop' && (
-                                <SmartCropPresets
-                                    onSelect={(preset) => {
-                                        const { width, height } = preset;
-                                        if (width && height) {
-                                            setCanvasData(prev => ({ ...prev, width, height }));
-                                        }
-                                    }}
-                                />
-                            )}
-
-                            {activePanel === 'captions' && (
-                                <CaptionSuggestions
-                                    onSelect={(text) => {
-                                        const newElement: CanvasElement = {
-                                            id: `elem-${Date.now()}`,
-                                            type: 'text',
-                                            x: 50,
-                                            y: canvasData.height - 100,
-                                            width: canvasData.width - 100,
-                                            height: 60,
-                                            rotation: 0,
-                                            content: text,
-                                            style: {
-                                                fontSize: 24,
-                                                fontWeight: 'bold',
-                                                color: '#000000',
-                                                textAlign: 'center',
-                                                backgroundColor: '#ffffff',
-                                                padding: '10px',
-                                            },
-                                            locked: false,
-                                            visible: true,
-                                        };
-                                        setCanvasData(prev => ({
-                                            ...prev,
-                                            elements: [...prev.elements, newElement],
-                                        }));
-                                        setSelectedId(newElement.id);
-                                    }}
-                                />
-                            )}
-
-                            {activePanel === 'animate' && (
-                                selectedId ? (
-                                    <AnimationPresets
-                                        selectedAnimation={selectedElement?.animation}
-                                        onSelect={(anim) => {
-                                            setCanvasData(prev => ({
-                                                ...prev,
-                                                elements: prev.elements.map(e =>
-                                                    e.id === selectedId ? { ...e, animation: anim } : e
-                                                )
-                                            }));
-                                        }}
-                                    />
-                                ) : (
-                                    <div className="text-center py-12 text-muted-foreground">
-                                        <Sparkles className="h-8 w-8 mx-auto mb-3 opacity-30" />
-                                        <p className="text-sm">Select an element to animate</p>
+                        {/* Panel Content */}
+                        <div className="flex-1 bg-card overflow-hidden flex flex-col">
+                            {activePanel && (
+                                <>
+                                    <div className="p-4 border-b border-border/40 flex items-center justify-between bg-muted/5">
+                                        <TypographySmall className="uppercase tracking-wider text-muted-foreground">
+                                            {activePanel === 'layers' && 'Layers'}
+                                            {activePanel === 'smart-crop' && 'Canvas Resize'}
+                                            {activePanel === 'captions' && 'AI Captions'}
+                                            {activePanel === 'animate' && 'Motion Presets'}
+                                        </TypographySmall>
+                                        <button onClick={() => setActivePanel(null)}>
+                                            <X className="h-3 w-3" />
+                                        </button>
                                     </div>
-                                )
+                                    <div className="flex-1 overflow-auto p-4">
+                                        {activePanel === 'layers' && (
+                                            <div className="space-y-1">
+                                                {[...canvasData.elements].reverse().map(element => (
+                                                    <LayerItem
+                                                        key={element.id}
+                                                        element={element}
+                                                        isSelected={selectedId === element.id}
+                                                        onSelect={() => setSelectedId(element.id)}
+                                                        onToggleVisibility={() => toggleVisibility(element.id)}
+                                                        onToggleLock={() => toggleLock(element.id)}
+                                                        onMoveUp={() => moveElement(element.id, 'up')}
+                                                        onMoveDown={() => moveElement(element.id, 'down')}
+                                                        onDuplicate={() => duplicateElement(element.id)}
+                                                        onDelete={() => deleteElement(element.id)}
+                                                    />
+                                                ))}
+                                                {canvasData.elements.length === 0 && (
+                                                    <Alert variant="default" className="mt-4 bg-muted/30">
+                                                        <AlertTitle>Canvas is empty</AlertTitle>
+                                                        <AlertDescription>
+                                                            Use the toolbar to add elements.
+                                                        </AlertDescription>
+                                                    </Alert>
+                                                )}
+                                            </div>
+                                        )}
+                                        {activePanel === 'smart-crop' && (
+                                            <SmartCropPresets
+                                                onSelect={(preset) => {
+                                                    const { width, height } = preset;
+                                                    if (width && height) {
+                                                        setCanvasData(prev => ({ ...prev, width, height }));
+                                                    }
+                                                }}
+                                            />
+                                        )}
+                                        {activePanel === 'captions' && (
+                                            <CaptionSuggestions
+                                                onSelect={(text) => {
+                                                    addElement('text');
+                                                    // Note: Ideally we'd pass text to addElement or update the last added element
+                                                }}
+                                            />
+                                        )}
+                                        {activePanel === 'animate' && (
+                                            selectedId ? (
+                                                <AnimationPresets
+                                                    selectedAnimation={selectedElement?.animation}
+                                                    onSelect={(anim) => {
+                                                        setCanvasData(prev => ({
+                                                            ...prev,
+                                                            elements: prev.elements.map(e =>
+                                                                e.id === selectedId ? { ...e, animation: anim } : e
+                                                            )
+                                                        }));
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="text-center py-12 text-muted-foreground">
+                                                    <Sparkles className="h-8 w-8 mx-auto mb-3 opacity-30" />
+                                                    <TypographyMuted>Select an element to animate</TypographyMuted>
+                                                </div>
+                                            )
+                                        )}
+                                    </div>
+                                </>
                             )}
                         </div>
                     </div>
-                </div>
-            </div>
+                </ResizablePanel>
+            </ResizablePanelGroup>
         </div>
     );
 }

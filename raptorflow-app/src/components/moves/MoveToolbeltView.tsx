@@ -40,27 +40,7 @@ export function MoveToolbeltView({ tools, className }: MoveToolbeltViewProps) {
       <div className="flex flex-wrap gap-2">
         {tools.map((tool) => {
           const Icon = TOOL_ICONS[tool] || Database;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-          const isVerified = ['Search', 'Copy', 'ImageGen'].includes(tool); // Mock verification
-=======
           const isVerified = ['Search', 'Copy', 'ImageGen', 'Analytics', 'CRM', 'Scheduler', 'Email', 'Social', 'SEO', 'Export', 'Notifications', 'Perplexity', 'Tavily'].includes(tool); // Mock verification
->>>>>>> Stashed changes
-=======
-          const isVerified = ['Search', 'Copy', 'ImageGen', 'Analytics', 'CRM', 'Scheduler', 'Email', 'Social', 'SEO', 'Export', 'Notifications', 'Perplexity', 'Tavily'].includes(tool); // Mock verification
->>>>>>> Stashed changes
-=======
-          const isVerified = ['Search', 'Copy', 'ImageGen', 'Analytics', 'CRM', 'Scheduler', 'Email', 'Social', 'SEO', 'Export', 'Notifications', 'Perplexity', 'Tavily'].includes(tool); // Mock verification
->>>>>>> Stashed changes
-=======
-          const isVerified = ['Search', 'Copy', 'ImageGen', 'Analytics', 'CRM', 'Scheduler', 'Email', 'Social', 'SEO', 'Export', 'Notifications', 'Perplexity', 'Tavily'].includes(tool); // Mock verification
->>>>>>> Stashed changes
-=======
-          const isVerified = ['Search', 'Copy', 'ImageGen', 'Analytics', 'CRM', 'Scheduler', 'Email', 'Social', 'SEO', 'Export', 'Notifications', 'Perplexity', 'Tavily'].includes(tool); // Mock verification
->>>>>>> Stashed changes
 
           return (
             <div
