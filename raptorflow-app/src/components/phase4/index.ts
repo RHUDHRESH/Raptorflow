@@ -1,4 +1,5 @@
 // Phase 4 Component Barrel Export
+export { ResearchWhiteboard } from './ResearchWhiteboard';
 export { CategoryPicker } from './CategoryPicker';
 export { SegmentScoreboard } from './SegmentScoreboard';
 export { MapsAndLadders } from './MapsAndLadders';

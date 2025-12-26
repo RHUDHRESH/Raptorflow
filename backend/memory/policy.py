@@ -26,13 +26,25 @@ class RetentionRule:
 
 IMPORTANCE_RULES: Dict[str, RetentionRule] = {
     "low": RetentionRule(
-        max_items=10, max_tokens=2000, ttl_seconds=1800, retention_days=30, recall_limit=3
+        max_items=10,
+        max_tokens=2000,
+        ttl_seconds=1800,
+        retention_days=30,
+        recall_limit=3,
     ),
     "standard": RetentionRule(
-        max_items=20, max_tokens=4000, ttl_seconds=3600, retention_days=90, recall_limit=5
+        max_items=20,
+        max_tokens=4000,
+        ttl_seconds=3600,
+        retention_days=90,
+        recall_limit=5,
     ),
     "high": RetentionRule(
-        max_items=40, max_tokens=8000, ttl_seconds=7200, retention_days=180, recall_limit=8
+        max_items=40,
+        max_tokens=8000,
+        ttl_seconds=7200,
+        retention_days=180,
+        recall_limit=8,
     ),
     "critical": RetentionRule(
         max_items=60,

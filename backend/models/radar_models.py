@@ -197,6 +197,8 @@ class SignalCreateRequest(BaseModel):
     source_competitor: Optional[str] = None
     source_url: Optional[str] = None
     evidence: List[Evidence] = Field(default_factory=list)
+    created_at: datetime
+    updated_at: datetime
 
 
 class SignalUpdateRequest(BaseModel):
@@ -232,6 +234,12 @@ class RadarReconRequest(BaseModel):
 
     icp_id: str
     source_urls: Optional[List[str]] = None
+    name: str
+    type: str
+    url: str
+    scan_frequency: str = "daily"
+    is_active: bool = True
+    config: Dict[str, Any] = Field(default_factory=dict)
 
 
 class RadarDossierRequest(BaseModel):
@@ -253,3 +261,14 @@ class RadarNotificationRequest(BaseModel):
 
     signal_ids: List[str]
     tenant_preferences: Optional[Dict[str, Any]] = None
+
+
+class RadarSourceRequest(BaseModel):
+    """Request model for radar source management."""
+
+    name: str
+    type: str
+    url: str
+    scan_frequency: str = "daily"
+    is_active: bool = True
+    config: Dict[str, Any] = Field(default_factory=dict)
