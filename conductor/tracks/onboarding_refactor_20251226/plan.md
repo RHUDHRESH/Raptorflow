@@ -6,10 +6,10 @@
 - [x] **Task 1.1: Define Data Schemas (Supabase)** (2155a81)
   - Create/Update tables for `framework_foundation` (JTBD, Hierarchy), `proof_vault`, and `precision_soundbites`.
   - Ensure relational integrity between users and their framework data.
-- [~] **Task 1.2: Implement State Sync Logic**
+- [x] **Task 1.2: Implement State Sync Logic** (54e918a)
   - Update the "Foundation" module state to support real-time syncing of onboarding progress.
   - Implement a `useOnboarding` hook to manage phase-to-phase transitions and data persistence.
-- [ ] **Task 1.3: Backend Logic for AI Synthesis**
+- [x] **Task 1.3: Backend Logic for AI Synthesis** (474420f)
   - Implement Gemini-powered prompts in the backend to transform Phase 3-5 inputs into draft soundbites.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation & Backend' (Protocol in workflow.md)
 
