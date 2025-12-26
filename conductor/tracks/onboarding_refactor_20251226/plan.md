@@ -49,11 +49,11 @@
 ## Phase 5: Phase 6 Implementation (Precision Soundbite Studio)
 *Goal: The final engine at `foundation/phase6` that generates and validates the 7 soundbites.*
 
-- [ ] **Task 5.1: Hybrid Draft & Refine Studio**
+- [x] **Task 5.1: Hybrid Draft & Refine Studio** (3ce1536)
   - Implement the AI-drafting engine that pulls from previous phases.
-- [ ] **Task 5.2: Sequential Soundbite Finalization**
+- [x] **Task 5.2: Sequential Soundbite Finalization** (ed4a21d)
   - Create the "Sequential Builder" flow with mandatory Clarity & Proof Audits.
-- [ ] **Task 5.3: Comparison Playground**
+- [x] **Task 5.3: Comparison Playground** (ed4a21d)
   - Build the variation comparison UI for fine-tuning outputs.
 - [ ] Task: Conductor - User Manual Verification 'Phase 6: Soundbite Studio' (Protocol in workflow.md)
 
