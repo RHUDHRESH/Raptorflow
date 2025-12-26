@@ -23,11 +23,6 @@ import styles from './QuestionFlow.module.css';
 import { ReviewScreen } from './ReviewScreen';
 import { QuestionInput } from './QuestionInput';
 import { WelcomeScreen } from './WelcomeScreen';
-import { ICPRevealScreen } from './ICPRevealScreen';
-import { PositioningRevealScreen } from './PositioningRevealScreen';
-import { CompetitorsRevealScreen } from './CompetitorsRevealScreen';
-import { MessagingRevealScreen } from './MessagingRevealScreen';
-import { MarketRevealScreen } from './MarketRevealScreen';
 import { ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ClarityScore } from './ClarityScore';
@@ -67,7 +62,6 @@ export function QuestionFlowWizard() {
     const [isShaking, setIsShaking] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [processingStatus, setProcessingStatus] = useState<string>('Initializing Synthesis...');
-    const [revealStage, setRevealStage] = useState<'none' | 'icps' | 'positioning' | 'competitors' | 'messaging' | 'market'>('none');
     const [derivedData, setDerivedData] = useState<DerivedData | null>(null);
 
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -306,9 +300,9 @@ export function QuestionFlowWizard() {
             };
             await saveFoundation(completedData);
 
-            // Show reveal screens instead of redirecting
+            // Directly redirect to Phase 3
             setIsProcessing(false);
-            setRevealStage('icps');
+            router.push('/foundation/phase3');
 
         } catch (error) {
             console.error('Derivation error:', error);
@@ -367,24 +361,6 @@ export function QuestionFlowWizard() {
         const prevIndex = getNextValidIndex(currentIndex, 'backward');
         if (prevIndex >= 0) setCurrentIndex(prevIndex);
     }, [currentIndex, showReview, data]);
-
-
-    // Reveal stage handlers
-    const handleRevealContinue = () => {
-        switch (revealStage) {
-            case 'icps': setRevealStage('positioning'); break;
-            case 'positioning': setRevealStage('competitors'); break;
-            case 'competitors': setRevealStage('messaging'); break;
-            case 'messaging': setRevealStage('market'); break;
-            case 'market':
-                toast.success('Phase 1 Complete!', {
-                    description: 'Now let\'s build your differentiation blueprint.'
-                });
-                router.push('/foundation/phase3');
-                break;
-        }
-    };
-
 
 
     // Welcome Screen - Premium Cinematic Experience
@@ -478,37 +454,6 @@ export function QuestionFlowWizard() {
                 </div>
             </div>
         );
-    }
-
-    // Reveal Screens (Sequential: ICPs → Positioning → Competitors → Messaging → Market)
-    if (revealStage !== 'none' && derivedData) {
-        switch (revealStage) {
-            case 'icps':
-                if (derivedData.icps) {
-                    return <ICPRevealScreen icps={derivedData.icps} onContinue={handleRevealContinue} />;
-                }
-                break;
-            case 'positioning':
-                if (derivedData.positioning) {
-                    return <PositioningRevealScreen positioning={derivedData.positioning} onContinue={handleRevealContinue} />;
-                }
-                break;
-            case 'competitors':
-                if (derivedData.competitive) {
-                    return <CompetitorsRevealScreen competitive={derivedData.competitive} onContinue={handleRevealContinue} />;
-                }
-                break;
-            case 'messaging':
-                if (derivedData.soundbites) {
-                    return <MessagingRevealScreen soundbites={derivedData.soundbites} onContinue={handleRevealContinue} />;
-                }
-                break;
-            case 'market':
-                if (derivedData.market) {
-                    return <MarketRevealScreen market={derivedData.market} onComplete={handleRevealContinue} />;
-                }
-                break;
-        }
     }
 
     return (
