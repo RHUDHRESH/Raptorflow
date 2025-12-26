@@ -5,9 +5,14 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from core.auth import get_current_user, get_tenant_id
 from core.vault import Vault
-from models.radar_models import RadarDossierRequest, RadarReconRequest, RadarSource, RadarSourceRequest
-from services.radar_service import RadarService
+from models.radar_models import (
+    RadarDossierRequest,
+    RadarReconRequest,
+    RadarSource,
+    RadarSourceRequest,
+)
 from services.radar_repository import RadarRepository
+from services.radar_service import RadarService
 
 router = APIRouter(prefix="/v1/radar", tags=["radar"])
 
@@ -57,21 +62,29 @@ async def list_signals(
     """List recent radar signals for a tenant."""
     try:
         repository = RadarRepository()
-        signals = await repository.fetch_signals(str(tenant_id), window_days=90, limit=200)
+        signals = await repository.fetch_signals(
+            str(tenant_id), window_days=90, limit=200
+        )
         return [
             {
                 "id": signal.id,
-                "category": signal.category.value
-                if hasattr(signal.category, "value")
-                else signal.category,
+                "category": (
+                    signal.category.value
+                    if hasattr(signal.category, "value")
+                    else signal.category
+                ),
                 "title": signal.title,
                 "content": signal.content,
-                "strength": signal.strength.value
-                if hasattr(signal.strength, "value")
-                else signal.strength,
-                "freshness": signal.freshness.value
-                if hasattr(signal.freshness, "value")
-                else signal.freshness,
+                "strength": (
+                    signal.strength.value
+                    if hasattr(signal.strength, "value")
+                    else signal.strength
+                ),
+                "freshness": (
+                    signal.freshness.value
+                    if hasattr(signal.freshness, "value")
+                    else signal.freshness
+                ),
                 "action_suggestion": signal.action_suggestion,
                 "source_competitor": signal.source_competitor,
                 "source_url": signal.source_url,
@@ -165,5 +178,5 @@ async def delete_source(
         repository = RadarRepository()
         await repository.delete_source(str(tenant_id), source_id)
         return {"status": "deleted", "source_id": source_id}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=404, detail="Source not found")
