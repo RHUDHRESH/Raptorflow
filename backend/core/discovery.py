@@ -1,8 +1,8 @@
 import logging
-from typing import Iterable, List, Tuple
-from urllib import robotparser, request
-from urllib.parse import urlparse
 import xml.etree.ElementTree as ElementTree
+from typing import Iterable, List, Tuple
+from urllib import request, robotparser
+from urllib.parse import urlparse
 
 logger = logging.getLogger("raptorflow.discovery")
 
