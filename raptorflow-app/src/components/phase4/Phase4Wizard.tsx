@@ -49,7 +49,7 @@ export function Phase4Wizard() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [activeTab, setActiveTab] = useState<'statement' | 'pitch'>('statement');
     const [showProofVault, setShowProofVault] = useState(false);
-    
+
     const proofVault = useProofVault(foundation?.proofVault || []);
 
     useEffect(() => {
@@ -346,7 +346,7 @@ export function Phase4Wizard() {
                     </Button>
                 </div>
             )}
-            
+
             {/* Proof Vault Sidebar */}
             <div className="fixed right-0 top-0 h-full w-96 bg-white border-l border-gray-200 transform transition-transform duration-300 z-50 overflow-y-auto">
                 <div className="p-4 border-b border-gray-200">
@@ -361,7 +361,7 @@ export function Phase4Wizard() {
                         </Button>
                     </div>
                 </div>
-                
+
                 {showProofVault && (
                     <div className="p-4">
                         <ProofVault

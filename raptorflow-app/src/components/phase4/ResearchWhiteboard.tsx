@@ -71,13 +71,13 @@ export function ResearchWhiteboard({ pains, onChange }: ResearchWhiteboardProps)
             {/* Modal for adding pain */}
             <AnimatePresence>
                 {isAdding && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-[#0E1112]/40 backdrop-blur-sm z-[100] flex items-center justify-center p-8"
                     >
-                        <motion.div 
+                        <motion.div
                             initial={{ scale: 0.95, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl border border-[#C0C1BE]"
@@ -99,8 +99,8 @@ export function ResearchWhiteboard({ pains, onChange }: ResearchWhiteboardProps)
                                                 onClick={() => setNewPain({ ...newPain, category: c.id as any })}
                                                 className={cn(
                                                     "px-4 py-2 rounded-lg text-xs font-medium transition-all border",
-                                                    newPain.category === c.id 
-                                                        ? "bg-[#2D3538] text-white border-[#2D3538]" 
+                                                    newPain.category === c.id
+                                                        ? "bg-[#2D3538] text-white border-[#2D3538]"
                                                         : "bg-[#F3F4EE] border-[#C0C1BE] text-[#5B5F61] hover:border-[#2D3538]"
                                                 )}
                                             >
@@ -143,7 +143,7 @@ export function ResearchWhiteboard({ pains, onChange }: ResearchWhiteboardProps)
                                 {cat.label}
                             </span>
                         </div>
-                        
+
                         <div className="space-y-4">
                             <AnimatePresence mode="popLayout">
                                 {pains.filter(p => p.category === cat.id).map(pain => (
@@ -170,7 +170,7 @@ export function ResearchWhiteboard({ pains, onChange }: ResearchWhiteboardProps)
                                     </motion.div>
                                 ))}
                             </AnimatePresence>
-                            
+
                             {pains.filter(p => p.category === cat.id).length === 0 && (
                                 <div className="py-12 text-center border-2 border-dashed border-[#C0C1BE] rounded-xl opacity-20 flex flex-col items-center gap-2">
                                     <Plus className="w-4 h-4" />
