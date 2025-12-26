@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
+from graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
 
 @pytest.fixture
@@ -58,7 +58,7 @@ async def test_campaign_auditor_node_integration(mock_auditor_agents):
 
 @pytest.mark.asyncio
 async def test_campaign_auditor_node_direct():
-    from backend.graphs.moves_campaigns_orchestrator import campaign_auditor
+    from graphs.moves_campaigns_orchestrator import campaign_auditor
 
     mock_llm = MagicMock()
 
@@ -82,7 +82,7 @@ async def test_campaign_auditor_node_direct():
 
 @pytest.mark.asyncio
 async def test_handle_error_node():
-    from backend.graphs.moves_campaigns_orchestrator import handle_error
+    from graphs.moves_campaigns_orchestrator import handle_error
 
     state = {"error": "Test Error", "messages": []}
     result = await handle_error(state)
@@ -94,7 +94,7 @@ async def test_handle_error_node():
 def test_get_checkpointer_dev():
     from langgraph.checkpoint.memory import MemorySaver
 
-    from backend.graphs.moves_campaigns_orchestrator import get_checkpointer
+    from graphs.moves_campaigns_orchestrator import get_checkpointer
 
     with patch("os.getenv", return_value=None):
         cp = get_checkpointer()
@@ -102,7 +102,7 @@ def test_get_checkpointer_dev():
 
 
 def test_router_logic():
-    from backend.graphs.moves_campaigns_orchestrator import END, router
+    from graphs.moves_campaigns_orchestrator import END, router
 
     assert router({"status": "planning"}) == "campaign"
     assert router({"status": "monitoring"}) == "moves"

@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.agents.strategists import CampaignArc, CampaignArcDesigner, MonthPlan
+from agents.strategists import CampaignArc, CampaignArcDesigner, MonthPlan
 
 
 @pytest.mark.asyncio

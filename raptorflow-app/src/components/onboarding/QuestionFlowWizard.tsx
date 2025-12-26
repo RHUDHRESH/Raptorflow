@@ -22,6 +22,7 @@ import { DerivedData } from '@/lib/foundation';
 import styles from './QuestionFlow.module.css';
 import { ReviewScreen } from './ReviewScreen';
 import { QuestionInput } from './QuestionInput';
+import { WelcomeScreen } from './WelcomeScreen';
 import { ICPRevealScreen } from './ICPRevealScreen';
 import { PositioningRevealScreen } from './PositioningRevealScreen';
 import { CompetitorsRevealScreen } from './CompetitorsRevealScreen';
@@ -33,6 +34,7 @@ import { ClarityScore } from './ClarityScore';
 import { useIcpStore } from '@/lib/icp-store';
 import { Icp } from '@/types/icp-types';
 import { toast } from 'sonner';
+import gsap from 'gsap';
 
 // =====================================
 // Types
@@ -69,6 +71,35 @@ export function QuestionFlowWizard() {
     const [derivedData, setDerivedData] = useState<DerivedData | null>(null);
 
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const questionWrapperRef = useRef<HTMLDivElement>(null);
+    const questionNumberRef = useRef<HTMLSpanElement>(null);
+    const questionTitleRef = useRef<HTMLHeadingElement>(null);
+    const questionHintRef = useRef<HTMLParagraphElement>(null);
+    const inputAreaRef = useRef<HTMLDivElement>(null);
+    const actionAreaRef = useRef<HTMLDivElement>(null);
+
+    // GSAP Animation for question transitions
+    useEffect(() => {
+        if (!isLoaded || showWelcome || showCelebration || showReview || isProcessing) return;
+        if (!questionWrapperRef.current) return;
+
+        const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+
+        // Set initial states
+        gsap.set([questionNumberRef.current, questionTitleRef.current, questionHintRef.current, inputAreaRef.current, actionAreaRef.current], {
+            opacity: 0,
+            y: 30,
+        });
+
+        // Stagger reveal
+        tl.to(questionNumberRef.current, { opacity: 1, y: 0, duration: 0.4 }, 0)
+            .to(questionTitleRef.current, { opacity: 1, y: 0, duration: 0.5 }, 0.1)
+            .to(questionHintRef.current, { opacity: 1, y: 0, duration: 0.4 }, 0.2)
+            .to(inputAreaRef.current, { opacity: 1, y: 0, duration: 0.5 }, 0.3)
+            .to(actionAreaRef.current, { opacity: 1, y: 0, duration: 0.4 }, 0.5);
+
+        return () => { tl.kill(); };
+    }, [currentIndex, isLoaded, showWelcome, showCelebration, showReview, isProcessing]);
 
     // Load saved data on mount
     useEffect(() => {
@@ -79,7 +110,9 @@ export function QuestionFlowWizard() {
 
             const isCompleted = Boolean(saved.completedAt);
             if (isCompleted) {
-                setShowReview(true);
+                // Foundation already completed - redirect to Phase 3
+                router.push('/foundation/phase3');
+                return;
             }
 
             const stepToQuestionMap: Record<number, number> = {
@@ -178,60 +211,26 @@ export function QuestionFlowWizard() {
     // Navigation Helper: Find next valid question index
     const getNextValidIndex = (startIndex: number, direction: 'forward' | 'backward'): number => {
         let index = startIndex;
-        const limit = direction === 'forward' ? QUESTIONS.length : -1;
         const step = direction === 'forward' ? 1 : -1;
 
         index += step;
 
-        while (index !== limit) {
+        while (index >= 0 && index < QUESTIONS.length) {
             const question = QUESTIONS[index];
             if (!question.condition || question.condition(data)) {
                 return index;
             }
             index += step;
         }
-        return limit; // Indicates end of flow or start
-    };
 
-    // Navigation
-    const goNext = useCallback(() => {
-        const nextIndex = getNextValidIndex(currentIndex, 'forward');
-
-        if (nextIndex < QUESTIONS.length) {
-            // Check for section transition
-            // We use the raw next index to detect section boundaries
-            if (isFirstQuestionOfSection(nextIndex)) {
-                const nextSection = getSectionForQuestionIndex(nextIndex);
-                if (nextSection && nextSection.id !== 'review') {
-                    setSectionTransition({ isActive: true, isExiting: false, section: nextSection });
-                    setTimeout(() => {
-                        setSectionTransition(prev => ({ ...prev, isExiting: true }));
-                        setTimeout(() => {
-                            setSectionTransition({ isActive: false, isExiting: false, section: null });
-                            setCurrentIndex(nextIndex);
-                        }, 500);
-                    }, 2000);
-                    return;
-                }
-            }
-            setCurrentIndex(nextIndex);
-        } else {
-            // Blocked?
-            const question = QUESTIONS[currentIndex];
-            if (question.required && !hasValue) {
-                setIsShaking(true);
-                setTimeout(() => setIsShaking(false), 500);
-                return;
-            }
-            setShowReview(true);
+        // If going forward and no more valid questions, return QUESTIONS.length to trigger completion
+        if (direction === 'forward') {
+            return QUESTIONS.length;
         }
-    }, [currentIndex, data, hasValue]); // Add data dependency for condition checking
 
-    const goBack = useCallback(() => {
-        if (showReview) { setShowReview(false); return; }
-        const prevIndex = getNextValidIndex(currentIndex, 'backward');
-        if (prevIndex >= 0) setCurrentIndex(prevIndex);
-    }, [currentIndex, showReview, data]);
+        // If going backward and no valid question, stay at current
+        return startIndex;
+    };
 
     const generateFromFoundation = useIcpStore(state => state.generateFromFoundation);
 
@@ -324,9 +323,51 @@ export function QuestionFlowWizard() {
             const completedData = { ...data, completedAt: new Date().toISOString(), currentStep: SECTIONS.length - 1 };
             await saveFoundation(completedData);
             setIsProcessing(false);
-            router.push('/dashboard');
+            router.push('/foundation/phase3');
         }
     }, [data, router, generateFromFoundation]);
+
+    // Navigation
+    const goNext = useCallback(() => {
+        const nextIndex = getNextValidIndex(currentIndex, 'forward');
+
+        if (nextIndex < QUESTIONS.length) {
+            // Check for section transition
+            // We use the raw next index to detect section boundaries
+            if (isFirstQuestionOfSection(nextIndex)) {
+                const nextSection = getSectionForQuestionIndex(nextIndex);
+                if (nextSection && nextSection.id !== 'review') {
+                    setSectionTransition({ isActive: true, isExiting: false, section: nextSection });
+                    setTimeout(() => {
+                        setSectionTransition(prev => ({ ...prev, isExiting: true }));
+                        setTimeout(() => {
+                            setSectionTransition({ isActive: false, isExiting: false, section: null });
+                            setCurrentIndex(nextIndex);
+                        }, 500);
+                    }, 2000);
+                    return;
+                }
+            }
+            setCurrentIndex(nextIndex);
+        } else {
+            // End of questions - go directly to Phase 3 (skip Review screen)
+            const question = QUESTIONS[currentIndex];
+            if (question.required && !hasValue) {
+                setIsShaking(true);
+                setTimeout(() => setIsShaking(false), 500);
+                return;
+            }
+            // Skip review, directly complete and process
+            handleComplete();
+        }
+    }, [currentIndex, data, hasValue, handleComplete]); // Add handleComplete dependency
+
+    const goBack = useCallback(() => {
+        if (showReview) { setShowReview(false); return; }
+        const prevIndex = getNextValidIndex(currentIndex, 'backward');
+        if (prevIndex >= 0) setCurrentIndex(prevIndex);
+    }, [currentIndex, showReview, data]);
+
 
     // Reveal stage handlers
     const handleRevealContinue = () => {
@@ -336,100 +377,75 @@ export function QuestionFlowWizard() {
             case 'competitors': setRevealStage('messaging'); break;
             case 'messaging': setRevealStage('market'); break;
             case 'market':
-                toast.success('Foundation Complete!', {
-                    description: 'Your marketing system is ready.'
+                toast.success('Phase 1 Complete!', {
+                    description: 'Now let\'s build your differentiation blueprint.'
                 });
-                router.push('/dashboard');
+                router.push('/foundation/phase3');
                 break;
         }
     };
 
 
 
-    // Welcome Screen
+    // Welcome Screen - Premium Cinematic Experience
     if (showWelcome) {
-        return (
-            <div className={styles.welcomeContainer}>
-                <div className="text-center max-w-[460px]">
-                    <div className="text-6xl mb-6">🧱</div>
-                    <h1 className="font-serif text-5xl mb-4 text-foreground">Build Your Foundation</h1>
-                    <p className="font-sans text-lg text-muted-foreground leading-relaxed mb-10">
-                        We're about to build the core operating system for your marketing.
-                        Invest 10 minutes now to save 100 hours later.
-                    </p>
-                    <Button
-                        size="lg"
-                        className={`${styles.continueBtn} w-full justify-center`}
-                        onClick={() => setShowWelcome(false)}
-                    >
-                        Start Building <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
-        );
+        return <WelcomeScreen onStart={() => setShowWelcome(false)} />;
     }
 
-    // Celebration Screen
+    // Celebration Screen - Understated Elegance
     if (showCelebration) {
-        // Robust fallback for business name
         const rawName = data.business?.name;
         const businessName = (rawName && rawName.trim().length > 0) ? rawName : 'Your Business';
 
         return (
-            <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#0f1419] to-[#0a0a0f] flex items-center justify-center relative overflow-hidden">
-                {/* Animated stars background */}
-                <div className="absolute inset-0">
-                    {Array.from({ length: 80 }).map((_, i) => (
-                        <div
-                            key={i}
-                            className="absolute rounded-full bg-white animate-pulse"
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                top: `${Math.random() * 100}%`,
-                                width: `${1 + Math.random() * 2}px`,
-                                height: `${1 + Math.random() * 2}px`,
-                                opacity: Math.random() * 0.8,
-                                animationDuration: `${2 + Math.random() * 4}s`,
-                                animationDelay: `${Math.random() * 2}s`
-                            }}
-                        />
-                    ))}
+            <div className="fixed inset-0 bg-[#0E1112] z-50 flex items-center justify-center overflow-hidden">
+                {/* Subtle ambient glow */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-[800px] h-[800px] bg-white/[0.015] rounded-full blur-[120px]" />
                 </div>
 
-                {/* Glow effect */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-                </div>
+                {/* Content */}
+                <div className="relative z-10 max-w-[600px] text-center px-8">
+                    {/* Minimal success indicator */}
+                    <div className="inline-flex items-center gap-2 mb-12 opacity-50">
+                        <div className="w-2 h-2 bg-white rounded-full" />
+                        <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-white/60">
+                            Foundation Complete
+                        </span>
+                    </div>
 
-                {/* Content card */}
-                <div className="relative z-10 max-w-md mx-auto text-center">
-                    {/* Rocket icon with glow */}
-                    <div className="relative inline-block mb-8">
-                        <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl scale-150" />
-                        <div className="relative text-7xl animate-bounce">
-                            🚀
+                    {/* Typography-focused headline */}
+                    <h1 className="font-serif text-[56px] leading-[1.1] text-white tracking-[-0.03em] mb-6">
+                        {businessName}
+                        <span className="block text-white/40 mt-2">is ready.</span>
+                    </h1>
+
+                    {/* Subtle description */}
+                    <p className="text-[18px] text-white/40 leading-relaxed mb-16 max-w-[400px] mx-auto">
+                        Your marketing foundation will now power everything — positioning, ICPs, messaging, and campaigns.
+                    </p>
+
+                    {/* Stats row */}
+                    <div className="flex items-center justify-center gap-12 mb-16 text-white/30">
+                        <div className="text-center">
+                            <span className="block font-serif text-[28px] text-white/70">{data.business?.industry || '—'}</span>
+                            <span className="text-[11px] font-mono uppercase tracking-wider">Industry</span>
+                        </div>
+                        <div className="w-px h-10 bg-white/10" />
+                        <div className="text-center">
+                            <span className="block font-serif text-[28px] text-white/70">{data.business?.stage || '—'}</span>
+                            <span className="text-[11px] font-mono uppercase tracking-wider">Stage</span>
                         </div>
                     </div>
 
-                    <h1 className="font-serif text-5xl font-medium text-white mb-4 tracking-tight">
-                        Ready for Liftoff
-                    </h1>
-
-                    <p className="text-lg text-gray-300 leading-relaxed mb-8 max-w-sm mx-auto">
-                        <span className="text-white font-semibold">{businessName}</span> is equipped with a solid marketing foundation.
-                    </p>
-
-                    <p className="text-sm text-gray-500 mb-8">
-                        Welcome to RaptorFlow.
-                    </p>
-
-                    <Button
-                        size="lg"
-                        onClick={() => router.push('/')}
-                        className="bg-white text-black hover:bg-gray-100 font-medium px-8 py-6 text-base rounded-xl shadow-2xl shadow-white/10 transition-all hover:scale-105"
+                    {/* Premium CTA */}
+                    <button
+                        onClick={() => router.push('/foundation/phase3')}
+                        className="group inline-flex items-center gap-4 bg-white text-[#0E1112] px-12 py-5 rounded-2xl font-medium text-[16px] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_60px_rgba(255,255,255,0.15)]"
                     >
-                        Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
+                        <span>Continue to Phase 3</span>
+                        <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                    </button>
                 </div>
             </div>
         );
@@ -568,16 +584,17 @@ export function QuestionFlowWizard() {
                         />
                     ) : (
                         <div
+                            ref={questionWrapperRef}
                             className={`${styles.questionWrapper} ${isShaking ? 'animate-shake' : ''}`}
                             key={currentQuestion.id}
                         >
                             <div className={styles.questionHeader}>
-                                <span className={styles.qNumber}>Question {currentIndex + 1} of {getTotalQuestions()}</span>
-                                <h2 className={styles.qText}>{currentQuestion.question}</h2>
-                                {currentQuestion.hint && <p className={styles.qHint}>{currentQuestion.hint}</p>}
+                                <span ref={questionNumberRef} className={styles.qNumber}>Question {currentIndex + 1} of {getTotalQuestions()}</span>
+                                <h2 ref={questionTitleRef} className={styles.qText}>{currentQuestion.question}</h2>
+                                {currentQuestion.hint && <p ref={questionHintRef} className={styles.qHint}>{currentQuestion.hint}</p>}
                             </div>
 
-                            <div className={styles.inputArea}>
+                            <div ref={inputAreaRef} className={styles.inputArea}>
                                 <QuestionInput
                                     question={currentQuestion}
                                     value={currentValue}
@@ -586,7 +603,7 @@ export function QuestionFlowWizard() {
                                 />
                             </div>
 
-                            <div className={styles.actionArea}>
+                            <div ref={actionAreaRef} className={styles.actionArea}>
                                 <div className={styles.keyboardHint}>
                                     {currentIndex > 0 && (
                                         <Button variant="ghost" onClick={goBack} className="mr-4 px-0 hover:bg-transparent hover:text-foreground">

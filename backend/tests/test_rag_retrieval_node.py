@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.rag_retrieval import RAGRetrievalNode
+from agents.rag_retrieval import RAGRetrievalNode
 
 
 @pytest.mark.asyncio

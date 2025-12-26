@@ -2,8 +2,8 @@ from typing import List, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from backend.db import get_db_connection
-from backend.inference import InferenceProvider
+from db import get_db_connection
+from inference import InferenceProvider
 
 
 class IngestState(TypedDict):

@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from backend.inference import InferenceProvider
+from inference import InferenceProvider
 
 
 class SkillExecutor:

@@ -4,9 +4,9 @@ from typing import List, TypedDict
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
-from backend.core.prompts import CampaignPrompts
-from backend.db import save_entity
-from backend.models.cognitive import hydrate_shared_learnings
+from core.prompts import CampaignPrompts
+from db import save_entity
+from models.cognitive import hydrate_shared_learnings
 
 logger = logging.getLogger("raptorflow.strategists.icp")
 

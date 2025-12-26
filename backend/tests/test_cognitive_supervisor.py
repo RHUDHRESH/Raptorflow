@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 
-from backend.agents.cognitive_supervisor import CognitiveSupervisor, SupervisorDecision
-from backend.models.cognitive import AgentMessage, CognitiveStatus
+from agents.cognitive_supervisor import CognitiveSupervisor, SupervisorDecision
+from models.cognitive import AgentMessage, CognitiveStatus
 
 
 @pytest.mark.asyncio

@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from backend.core.crawler_advanced import AdvancedCrawler
+from core.crawler_advanced import AdvancedCrawler
 
 
 @pytest.mark.asyncio

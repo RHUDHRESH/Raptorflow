@@ -1,7 +1,7 @@
 import logging
 from typing import List
 
-from backend.memory.short_term import L1ShortTermMemory
+from memory.short_term import L1ShortTermMemory
 
 logger = logging.getLogger("raptorflow.services.latency_monitor")
 

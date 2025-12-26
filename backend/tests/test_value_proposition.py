@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.value_proposition import (
+from agents.specialists.value_proposition import (
     FeatureBenefitMap,
     ValuePropositionAgent,
     ValuePropOutput,
 )
-from backend.models.cognitive import AgentMessage
+from models.cognitive import AgentMessage
 
 
 @pytest.mark.asyncio

@@ -3,8 +3,8 @@ from typing import Any, Dict
 
 from pydantic import BaseModel
 
-from backend.agents.base import BaseCognitiveAgent
-from backend.models.cognitive import CognitiveIntelligenceState
+from agents.base import BaseCognitiveAgent
+from models.cognitive import CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.agents.copywriter")
 
@@ -26,7 +26,7 @@ class CopywriterAgent(BaseCognitiveAgent):
     """
 
     def __init__(self, asset_type: str = "social"):
-        from backend.core.prompts import AssetSpecializations
+        from core.prompts import AssetSpecializations
 
         prompts_map = {
             "social": AssetSpecializations.LINKEDIN_THOUGHT_LEADER,
@@ -44,6 +44,7 @@ class CopywriterAgent(BaseCognitiveAgent):
             system_prompt=system_prompt,
             model_tier="driver",
             output_schema=CopyOutput,
+            auto_assign_tools=True,  # Automatically assign creator tools
         )
 
     async def __call__(self, state: CognitiveIntelligenceState) -> Dict[str, Any]:

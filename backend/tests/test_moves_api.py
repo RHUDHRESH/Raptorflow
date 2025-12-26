@@ -2,14 +2,14 @@ from unittest.mock import AsyncMock, MagicMock
 
 from fastapi.testclient import TestClient
 
-from backend.main import app
+from main import app
 
 client = TestClient(app)
 
 
 def test_generate_moves_endpoint_success():
     """Verify that the generate-moves endpoint triggers inference and returns 200."""
-    from backend.api.v1.moves import get_move_service
+    from api.v1.moves import get_move_service
 
     mock_service = MagicMock()
     mock_service.get_campaign = AsyncMock(return_value=MagicMock())
@@ -29,7 +29,7 @@ def test_generate_moves_endpoint_success():
 
 def test_get_moves_status_endpoint():
     """Verify that the moves status endpoint returns correctly."""
-    from backend.api.v1.moves import get_move_service
+    from api.v1.moves import get_move_service
 
     mock_service = MagicMock()
     mock_service.get_moves_generation_status = AsyncMock(
@@ -48,7 +48,7 @@ def test_get_moves_status_endpoint():
 
 def test_update_move_status_endpoint():
     """Verify that the move status PATCH endpoint returns 200."""
-    from backend.api.v1.moves import get_move_service
+    from api.v1.moves import get_move_service
 
     mock_service = MagicMock()
     mock_service.update_move_status = AsyncMock()

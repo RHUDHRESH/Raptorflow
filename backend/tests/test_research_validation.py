@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.core.validation import ResearchValidator, ValidationResult
+from core.validation import ResearchValidator, ValidationResult
 
 
 @pytest.mark.asyncio

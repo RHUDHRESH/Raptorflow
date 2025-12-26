@@ -1,7 +1,8 @@
 import logging
 import time
+from typing import Optional
 
-from backend.core.cache import get_cache_manager
+from core.cache import get_cache_manager
 
 logger = logging.getLogger("raptorflow.services.rate_limiter")
 
@@ -22,7 +23,9 @@ class GlobalRateLimiter:
     async def is_allowed(self, resource_id: str) -> bool:
         """Checks if the request for resource_id is within rate limits."""
         if not self.client:
-            return True  # Fail-open if no cache
+            # Fail-closed for security - block requests if rate limiter unavailable
+            logger.error("Rate limiter client not available. Blocking requests for security.")
+            return False
 
         # Simple sliding window using Redis list or sorted set
         # For SOTA speed, we use a surgical key pattern: ratelimit:resource:timestamp
@@ -44,5 +47,36 @@ class GlobalRateLimiter:
 
             return True
         except Exception as e:
-            logger.error(f"Rate limiter failure: {e}. Defaulting to ALLOW.")
-            return True  # Fail-open for agentic stability
+            logger.error(f"Rate limiter failure: {e}. Blocking requests for security.")
+            return False  # Fail-closed for security
+
+    async def get_remaining_requests(self, resource_id: str) -> Optional[int]:
+        """Get remaining requests for the current window."""
+        if not self.client:
+            return None
+        
+        try:
+            now = int(time.time())
+            key = f"ratelimit:{resource_id}:{now // self.window}"
+            current = self.client.get(key)
+            if current is None:
+                return self.limit
+            return max(0, self.limit - int(current))
+        except Exception as e:
+            logger.error(f"Failed to get remaining requests: {e}")
+            return None
+
+    async def reset_limit(self, resource_id: str) -> bool:
+        """Reset rate limit for a specific resource (admin use)."""
+        if not self.client:
+            return False
+        
+        try:
+            now = int(time.time())
+            key = f"ratelimit:{resource_id}:{now // self.window}"
+            self.client.delete(key)
+            logger.info(f"Rate limit reset for {resource_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to reset rate limit: {e}")
+            return False

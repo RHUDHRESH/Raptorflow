@@ -5,7 +5,7 @@ from google.cloud import bigquery
 from supabase import Client, create_client
 from upstash_redis.asyncio import Redis
 
-from backend.core.config import Config
+from core.config import Config
 
 
 def main():

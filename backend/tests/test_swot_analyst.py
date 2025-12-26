@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.swot_analyst import SWOTAnalystAgent, SWOTOutput
-from backend.models.cognitive import AgentMessage
+from agents.specialists.swot_analyst import SWOTAnalystAgent, SWOTOutput
+from models.cognitive import AgentMessage
 
 
 @pytest.mark.asyncio

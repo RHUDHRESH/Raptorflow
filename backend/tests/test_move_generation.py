@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.agents.moves import ExecutionMove, MoveGenerator, MoveSequence
+from agents.moves import ExecutionMove, MoveGenerator, MoveSequence
 
 
 @pytest.fixture

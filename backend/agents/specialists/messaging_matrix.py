@@ -3,8 +3,8 @@ from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
 
-from backend.agents.base import BaseCognitiveAgent
-from backend.models.cognitive import CognitiveIntelligenceState
+from agents.base import BaseCognitiveAgent
+from models.cognitive import CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.agents.messaging_matrix")
 
@@ -35,7 +35,7 @@ class MessagingMatrixAgent(BaseCognitiveAgent):
     """
 
     def __init__(self):
-        from backend.core.prompts import StrategyPrompts
+        from core.prompts import StrategyPrompts
 
         super().__init__(
             name="MessagingArchitect",

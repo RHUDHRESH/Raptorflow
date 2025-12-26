@@ -1,8 +1,8 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from backend.db import save_memory, vector_search
-from backend.inference import InferenceProvider
+from db import save_memory, vector_search
+from inference import InferenceProvider
 
 logger = logging.getLogger("raptorflow.memory.procedural")
 

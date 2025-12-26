@@ -3,8 +3,8 @@ from typing import Any, Dict, List
 
 from pydantic import BaseModel
 
-from backend.agents.base import BaseCognitiveAgent
-from backend.models.cognitive import CognitiveIntelligenceState
+from agents.base import BaseCognitiveAgent
+from models.cognitive import CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.agents.content_repurposer")
 
@@ -33,7 +33,7 @@ class ContentRepurposerAgent(BaseCognitiveAgent):
     """
 
     def __init__(self):
-        from backend.core.prompts import MusePrompts
+        from core.prompts import MusePrompts
 
         super().__init__(
             name="ContentRepurposer",

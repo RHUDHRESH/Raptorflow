@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from backend.services.telemetry import Telemetry
+from services.telemetry import Telemetry
 
 
 def test_telemetry_captures_agent_metrics():

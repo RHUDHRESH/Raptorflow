@@ -3,9 +3,9 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
-from backend.api.v1.blackbox_roi import get_blackbox_service
-from backend.main import app
-from backend.services.blackbox_service import AttributionModel
+from api.v1.blackbox_roi import get_blackbox_service
+from main import app
+from services.blackbox_service import AttributionModel
 
 client = TestClient(app)
 

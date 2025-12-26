@@ -1,6 +1,6 @@
 import pytest
 
-from backend.memory.pruning import prune_context
+from memory.pruning import prune_context
 
 
 def test_context_pruning_basic():

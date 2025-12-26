@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from backend.memory.short_term import L1ShortTermMemory
+from memory.short_term import L1ShortTermMemory
 
 
 @pytest.mark.asyncio

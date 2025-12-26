@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.services.latency_monitor import LatencyMonitor
+from services.latency_monitor import LatencyMonitor
 
 
 @pytest.mark.asyncio

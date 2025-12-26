@@ -1,7 +1,7 @@
 from google.cloud import bigquery
 
-from backend.core.config import get_settings
-from backend.utils.logger import log_ml_event, logger
+from core.config import get_settings
+from utils.logger import log_ml_event, logger
 
 
 class Analytics:

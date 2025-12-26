@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Search, PenTool, Image, BarChart3, Database, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, PenTool, Image, BarChart3, Database, CheckCircle2, AlertCircle, Users, Calendar, Mail, Share2, SearchCode, Download, Bell, Brain, GitBranch } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MoveToolbeltViewProps {
@@ -14,6 +14,15 @@ const TOOL_ICONS: Record<string, any> = {
   'Copy': PenTool,
   'ImageGen': Image,
   'Analytics': BarChart3,
+  'CRM': Users,
+  'Scheduler': Calendar,
+  'Email': Mail,
+  'Social': Share2,
+  'SEO': SearchCode,
+  'Export': Download,
+  'Notifications': Bell,
+  'Perplexity': Brain,
+  'Tavily': GitBranch,
   'SocialAPI': Database,
 };
 
@@ -31,7 +40,27 @@ export function MoveToolbeltView({ tools, className }: MoveToolbeltViewProps) {
       <div className="flex flex-wrap gap-2">
         {tools.map((tool) => {
           const Icon = TOOL_ICONS[tool] || Database;
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
           const isVerified = ['Search', 'Copy', 'ImageGen'].includes(tool); // Mock verification
+=======
+          const isVerified = ['Search', 'Copy', 'ImageGen', 'Analytics', 'CRM', 'Scheduler', 'Email', 'Social', 'SEO', 'Export', 'Notifications', 'Perplexity', 'Tavily'].includes(tool); // Mock verification
+>>>>>>> Stashed changes
+=======
+          const isVerified = ['Search', 'Copy', 'ImageGen', 'Analytics', 'CRM', 'Scheduler', 'Email', 'Social', 'SEO', 'Export', 'Notifications', 'Perplexity', 'Tavily'].includes(tool); // Mock verification
+>>>>>>> Stashed changes
+=======
+          const isVerified = ['Search', 'Copy', 'ImageGen', 'Analytics', 'CRM', 'Scheduler', 'Email', 'Social', 'SEO', 'Export', 'Notifications', 'Perplexity', 'Tavily'].includes(tool); // Mock verification
+>>>>>>> Stashed changes
+=======
+          const isVerified = ['Search', 'Copy', 'ImageGen', 'Analytics', 'CRM', 'Scheduler', 'Email', 'Social', 'SEO', 'Export', 'Notifications', 'Perplexity', 'Tavily'].includes(tool); // Mock verification
+>>>>>>> Stashed changes
+=======
+          const isVerified = ['Search', 'Copy', 'ImageGen', 'Analytics', 'CRM', 'Scheduler', 'Email', 'Social', 'SEO', 'Export', 'Notifications', 'Perplexity', 'Tavily'].includes(tool); // Mock verification
+>>>>>>> Stashed changes
 
           return (
             <div

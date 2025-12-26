@@ -1,6 +1,7 @@
 @import '../styles/tokens.css';
 @import '../styles/animations.css';
 @import '../components/ui/global-typing.css';
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -350,6 +351,28 @@
    ================================================ */
 .mono {
   font-family: var(--font-mono);
+}
+
+/* ================================================
+   ONBOARDING TYPOGRAPHY UTILITIES
+   ================================================ */
+.font-playfair {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
+/* ================================================
+   FOUNDATION LAYOUT UTILITIES
+   ================================================ */
+.font-serif {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-sans {
+  font-family: 'Inter', sans-serif;
 }
 
 @layer base {

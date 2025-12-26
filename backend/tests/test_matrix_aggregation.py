@@ -1,6 +1,6 @@
 import pytest
 
-from backend.graphs.swarm_orchestrator import SwarmController
+from graphs.swarm_orchestrator import SwarmController
 
 
 def test_aggregate_findings_logic():

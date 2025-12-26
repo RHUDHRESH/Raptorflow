@@ -3,9 +3,9 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
 
-from backend.core.auth import get_current_user, get_tenant_id
-from backend.core.config import get_settings
-from backend.services.storage_service import BrandAssetManager
+from core.auth import get_current_user, get_tenant_id
+from core.config import get_settings
+from services.storage_service import BrandAssetManager
 
 router = APIRouter(prefix="/v1/assets", tags=["assets"])
 

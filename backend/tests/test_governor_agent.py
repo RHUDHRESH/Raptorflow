@@ -1,6 +1,6 @@
 import pytest
 
-from backend.agents.specialists.governor import GovernorAgent
+from agents.specialists.governor import GovernorAgent
 
 
 @pytest.mark.asyncio

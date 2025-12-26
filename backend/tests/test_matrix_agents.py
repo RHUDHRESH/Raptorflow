@@ -2,9 +2,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.agents.matrix_agents import SkillSelectorAgent
-from backend.core.tool_registry import MatrixSkill
-from backend.skills.matrix_skills import SkillRegistry
+from agents.matrix_agents import SkillSelectorAgent
+from core.tool_registry import MatrixSkill
+from skills.matrix_skills import SkillRegistry
 
 
 class MockSkill(MatrixSkill):
@@ -49,7 +49,7 @@ def registry():
 @pytest.mark.asyncio
 async def test_skill_selector_pick_best_tool(mock_llm, registry):
     """Test that SkillSelectorAgent uses LLM to pick the right skill."""
-    from backend.agents.matrix_agents import SkillSelection
+    from agents.matrix_agents import SkillSelection
 
     # Mock LLM output
     val = SkillSelection(
@@ -73,7 +73,7 @@ async def test_skill_selector_pick_best_tool(mock_llm, registry):
 @pytest.mark.asyncio
 async def test_skill_selector_pick_best_tool_scaling(mock_llm, registry):
     """Test picking a different skill."""
-    from backend.agents.matrix_agents import SkillSelection
+    from agents.matrix_agents import SkillSelection
 
     val = SkillSelection(
         skill_name="resource_scaling", reasoning="The user wants to increase capacity."
@@ -91,7 +91,7 @@ async def test_skill_selector_pick_best_tool_scaling(mock_llm, registry):
 @pytest.mark.asyncio
 async def test_skill_selector_unsupported_intent(mock_llm, registry):
     """Test when no skill matches the intent."""
-    from backend.agents.matrix_agents import SkillSelection
+    from agents.matrix_agents import SkillSelection
 
     val = SkillSelection(skill_name="none", reasoning="No relevant skill found.")
     mock_llm.with_structured_output.return_value.ainvoke.return_value = val

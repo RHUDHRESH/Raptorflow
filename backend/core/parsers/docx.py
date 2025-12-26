@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from docx import Document
 
-from backend.core.parsers.types import ParsedAsset
+from core.parsers.types import ParsedAsset
 
 
 def parse_docx(content: bytes) -> ParsedAsset:

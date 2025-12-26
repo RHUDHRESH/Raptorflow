@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from backend.agents.blackbox_specialist import BlackboxSpecialist
+from agents.blackbox_specialist import BlackboxSpecialist
 
 
 class ROIAnalystAgent(BlackboxSpecialist):

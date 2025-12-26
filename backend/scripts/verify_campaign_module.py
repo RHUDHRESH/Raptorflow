@@ -1,7 +1,7 @@
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from backend.agents.strategists import (
+from agents.strategists import (
     BrandVoiceAligner,
     CampaignArcDesigner,
     KPIDefiner,

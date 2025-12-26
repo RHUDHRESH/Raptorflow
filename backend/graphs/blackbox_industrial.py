@@ -1,7 +1,7 @@
 import operator
 from typing import Annotated, Dict, List, TypedDict
 
-from backend.services.budget_governor import BudgetGovernor
+from services.budget_governor import BudgetGovernor
 
 
 class AnalysisState(TypedDict):
@@ -43,8 +43,8 @@ def ingest_telemetry_node(state: AnalysisState) -> Dict:
     """
     Node: Ingests all telemetry associated with the move_id.
     """
-    from backend.core.vault import Vault
-    from backend.services.blackbox_service import BlackboxService
+    from core.vault import Vault
+    from services.blackbox_service import BlackboxService
 
     service = BlackboxService(Vault())
     session = service.vault.get_session()
@@ -63,7 +63,7 @@ async def extract_insights_node(state: AnalysisState) -> Dict:
     """
     Node: Analyzes telemetry via LLM to extract strategic findings.
     """
-    from backend.inference import InferenceProvider
+    from inference import InferenceProvider
 
     llm = InferenceProvider.get_model(model_tier="reasoning")
 
@@ -86,7 +86,7 @@ def attribute_outcomes_node(state: AnalysisState) -> Dict:
     """
     Node: Attributes business outcomes to the current move.
     """
-    from backend.core.vault import Vault
+    from core.vault import Vault
 
     session = Vault().get_session()
 
@@ -106,9 +106,9 @@ async def supervisor_node(state: AnalysisState) -> Dict:
     Node: Orchestrates specialized agents (ROI, Drift, Competitor)
     to provide a multi-faceted analysis.
     """
-    from backend.agents.competitor_intel import CompetitorIntelligenceAgent
-    from backend.agents.drift_detector import StrategicDriftAgent
-    from backend.agents.roi_analyst import ROIAnalystAgent
+    from agents.competitor_intel import CompetitorIntelligenceAgent
+    from agents.drift_detector import StrategicDriftAgent
+    from agents.roi_analyst import ROIAnalystAgent
 
     move_id = state["move_id"]
 
@@ -154,7 +154,7 @@ async def reflect_and_validate_node(state: AnalysisState) -> Dict:
     Node: Critiques the findings and outcomes, assigning confidence.
     Implements the 'Critique' loop logic.
     """
-    from backend.inference import InferenceProvider
+    from inference import InferenceProvider
 
     llm = InferenceProvider.get_model(model_tier="ultra")
 
@@ -201,7 +201,7 @@ def should_continue(state: AnalysisState) -> str:
 
 def evaluate_run(state: AnalysisState) -> Dict:
     """Evaluates telemetry and findings at the end of the run."""
-    from backend.services.evaluation import EvaluationService
+    from services.evaluation import EvaluationService
 
     evaluator = EvaluationService()
     evaluation = evaluator.evaluate_run(

@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from backend.services.storage_service import GCSLifecycleManager
+from services.storage_service import GCSLifecycleManager
 
 
 @pytest.fixture

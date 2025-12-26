@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.strategist import PositioningOutput, StrategistAgent
-from backend.models.cognitive import CognitiveStatus
+from agents.specialists.strategist import PositioningOutput, StrategistAgent
+from models.cognitive import CognitiveStatus
 
 
 @pytest.mark.asyncio

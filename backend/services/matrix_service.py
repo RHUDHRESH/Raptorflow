@@ -1,21 +1,21 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.core.cache import get_cache_client, get_cache_manager
-from backend.db import SupabaseSaver, get_db_connection, get_pool
-from backend.models.capabilities import CapabilityProfile
-from backend.models.telemetry import (
+from core.cache import get_cache_client, get_cache_manager
+from db import SupabaseSaver, get_db_connection, get_pool
+from models.capabilities import CapabilityProfile
+from models.telemetry import (
     AgentHealthStatus,
     AgentState,
     SystemState,
     TelemetryEvent,
 )
-from backend.services.cost_governor import CostGovernor
-from backend.services.latency_monitor import LatencyMonitor
-from backend.services.sanity_check import SystemSanityCheck
-from backend.services.storage_service import GCSLifecycleManager
-from backend.services.swarm_health import SwarmHealthService
-from backend.skills.matrix_skills import (
+from services.cost_governor import CostGovernor
+from services.latency_monitor import LatencyMonitor
+from services.sanity_check import SystemSanityCheck
+from services.storage_service import GCSLifecycleManager
+from services.swarm_health import SwarmHealthService
+from skills.matrix_skills import (
     ArchiveLogsSkill,
     CachePurgeSkill,
     EmergencyHaltSkill,

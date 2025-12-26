@@ -1,7 +1,7 @@
 from typing import Optional
 
-from backend.db import get_db_connection
-from backend.models.campaigns import Campaign
+from db import get_db_connection
+from models.campaigns import Campaign
 
 
 class MoveService:
@@ -34,7 +34,7 @@ class MoveService:
         if not campaign:
             return None
 
-        from backend.graphs.moves_campaigns_orchestrator import (
+        from graphs.moves_campaigns_orchestrator import (
             moves_campaigns_orchestrator,
         )
 
@@ -62,7 +62,7 @@ class MoveService:
 
     async def get_moves_generation_status(self, campaign_id: str) -> Optional[dict]:
         """Retrieves the current status of move generation."""
-        from backend.graphs.moves_campaigns_orchestrator import (
+        from graphs.moves_campaigns_orchestrator import (
             moves_campaigns_orchestrator,
         )
 
@@ -82,7 +82,7 @@ class MoveService:
         self, move_id: str, status: str, result: Optional[dict] = None
     ):
         """Directly updates move status in the DB."""
-        from backend.db import update_move_status
+        from db import update_move_status
 
         await update_move_status(move_id, status, result)
 

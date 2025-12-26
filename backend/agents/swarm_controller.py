@@ -1,9 +1,9 @@
 import logging
 from typing import Any, Dict, List
 
-from backend.agents.supervisor import HierarchicalSupervisor
-from backend.agents.swarm_decomposer import SwarmTaskDecomposer
-from backend.models.swarm import SwarmState
+from agents.supervisor import HierarchicalSupervisor
+from agents.swarm_decomposer import SwarmTaskDecomposer
+from models.swarm import SwarmState
 
 logger = logging.getLogger("raptorflow.agents.swarm_controller")
 

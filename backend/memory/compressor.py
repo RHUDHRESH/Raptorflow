@@ -1,9 +1,9 @@
 import logging
 from typing import List
 
-from backend.db import summarize_recursively
-from backend.inference import InferenceProvider
-from backend.memory.pruning import count_tokens_heuristic
+from db import summarize_recursively
+from inference import InferenceProvider
+from memory.pruning import count_tokens_heuristic
 
 logger = logging.getLogger("raptorflow.memory.compressor")
 
@@ -41,7 +41,7 @@ class ContextWindowCompressor:
     async def compress_list(self, items: List[str]) -> List[str]:
         """Compresses a list of context snippets by pruning and potentially summarizing."""
         # For now, we use simple pruning as defined in pruning.py but could be more advanced
-        from backend.memory.pruning import MemoryDecayPolicy
+        from memory.pruning import MemoryDecayPolicy
 
         policy = MemoryDecayPolicy(max_tokens=self.max_tokens)
         return policy.prune_by_tokens(items)

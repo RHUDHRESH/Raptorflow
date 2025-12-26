@@ -4,9 +4,9 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.core.auth import get_current_user, get_tenant_id
-from backend.graphs.muse_create import build_muse_spine
-from backend.models.cognitive import CognitiveStatus, LifecycleState
+from core.auth import get_current_user, get_tenant_id
+from graphs.muse_create import build_muse_spine
+from models.cognitive import CognitiveStatus, LifecycleState
 
 router = APIRouter(prefix="/v1/muse", tags=["muse"])
 

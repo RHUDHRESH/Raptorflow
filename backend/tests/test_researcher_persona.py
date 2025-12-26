@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.researcher import (
+from agents.specialists.researcher import (
     MarketTrendSignal,
     ResearcherAgent,
     ResearchOutput,
 )
-from backend.models.cognitive import CognitiveStatus
+from models.cognitive import CognitiveStatus
 
 
 @pytest.mark.asyncio

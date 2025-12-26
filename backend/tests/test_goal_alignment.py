@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.goal_aligner import (
+from agents.specialists.goal_aligner import (
     GoalAlignerAgent,
     GoalAlignmentOutput,
     InputMetric,
 )
-from backend.models.cognitive import AgentMessage
+from models.cognitive import AgentMessage
 
 
 @pytest.mark.asyncio

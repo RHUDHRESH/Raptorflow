@@ -2,8 +2,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from backend.models.cognitive import CognitiveStatus, LifecycleState
-from backend.services.telemetry import get_telemetry
+from models.cognitive import CognitiveStatus, LifecycleState
+from services.telemetry import get_telemetry
 
 
 def _normalize_state(value: Any) -> str:

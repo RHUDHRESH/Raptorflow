@@ -4,8 +4,8 @@ from typing import Dict, List, TypedDict
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
-from backend.db import get_memory, save_entity, summarize_recursively
-from backend.models.cognitive import hydrate_shared_learnings
+from db import get_memory, save_entity, summarize_recursively
+from models.cognitive import hydrate_shared_learnings
 
 logger = logging.getLogger("raptorflow.researchers.reddit")
 

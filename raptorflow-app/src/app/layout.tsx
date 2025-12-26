@@ -4,6 +4,7 @@ import "./globals.css";
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { Toaster } from "@/components/ui/sonner";
 import { TypingExperienceProvider } from '@/components/ui/typing/TypingExperienceProvider';
+import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -36,11 +37,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${playfair.variable} ${jetbrainsMono.variable} antialiased`} suppressHydrationWarning>
-        <TypingExperienceProvider>
-          {children}
-          <CommandPalette />
-          <Toaster position="bottom-right" />
-        </TypingExperienceProvider>
+        <SmoothScrollProvider>
+          <TypingExperienceProvider>
+            {children}
+            <CommandPalette />
+            <Toaster position="bottom-right" />
+          </TypingExperienceProvider>
+        </SmoothScrollProvider>
       </body>
     </html>
   );

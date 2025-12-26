@@ -3,8 +3,8 @@ import glob
 import pandas as pd
 from google.cloud import bigquery, storage
 
-from backend.agents.vacuum_node import VacuumNode
-from backend.core.config import Config
+from agents.vacuum_node import VacuumNode
+from core.config import Config
 
 
 def raw_to_gold_etl():

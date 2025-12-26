@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.tools.exporter import ResearchPDFExporterTool, StrategyRoadmapExporterTool
-from backend.tools.scraper import FirecrawlScraperTool
+from tools.exporter import ResearchPDFExporterTool, StrategyRoadmapExporterTool
+from tools.scraper import FirecrawlScraperTool
 
 
 @pytest.mark.asyncio

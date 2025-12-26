@@ -1,8 +1,8 @@
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-from backend.models.blackbox import BlackboxOutcome
-from backend.services.outcome_ingestion_service import OutcomeIngestionService
+from models.blackbox import BlackboxOutcome
+from services.outcome_ingestion_service import OutcomeIngestionService
 
 
 def test_outcome_ingestion_service_webhook():

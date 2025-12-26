@@ -3,7 +3,7 @@ import time
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from backend.core.tool_registry import MatrixSkill
+from core.tool_registry import MatrixSkill
 
 logger = logging.getLogger("raptorflow.skills.matrix")
 

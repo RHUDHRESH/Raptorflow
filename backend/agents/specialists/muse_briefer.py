@@ -3,8 +3,8 @@ from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
 
-from backend.agents.base import BaseCognitiveAgent
-from backend.models.cognitive import CognitiveIntelligenceState
+from agents.base import BaseCognitiveAgent
+from models.cognitive import CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.agents.muse_briefer")
 
@@ -29,7 +29,7 @@ class MuseBriefingAgent(BaseCognitiveAgent):
     """
 
     def __init__(self):
-        from backend.core.prompts import MusePrompts
+        from core.prompts import MusePrompts
 
         super().__init__(
             name="MuseBriefer",

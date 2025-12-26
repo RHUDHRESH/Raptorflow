@@ -3,8 +3,8 @@ from typing import List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from backend.inference import InferenceProvider
-from backend.models.research_schemas import FactClaim, WebDocument
+from inference import InferenceProvider
+from models.research_schemas import FactClaim, WebDocument
 
 
 class LibrarianAgent:

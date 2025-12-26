@@ -2,11 +2,11 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from backend.agents.shared.research_specialists import LibrarianAgent, SynthesisAgent
-from backend.core.crawler_advanced import AdvancedCrawler
-from backend.core.research_engine import SearchProvider
-from backend.graphs.research_deep_advanced import build_sota_research_spine
-from backend.models.research_schemas import ResearchDeepState
+from agents.shared.research_specialists import LibrarianAgent, SynthesisAgent
+from core.crawler_advanced import AdvancedCrawler
+from core.research_engine import SearchProvider
+from graphs.research_deep_advanced import build_sota_research_spine
+from models.research_schemas import ResearchDeepState
 
 
 @pytest.mark.asyncio

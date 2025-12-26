@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from backend.main import app
+from main import app
 
 client = TestClient(app)
 
@@ -20,7 +20,7 @@ def test_correlation_id_middleware():
 
 def test_exception_handler():
     """Test custom exception handling."""
-    from backend.core.exceptions import RaptorFlowError
+    from core.exceptions import RaptorFlowError
 
     @app.get("/trigger-error")
     async def trigger_error():

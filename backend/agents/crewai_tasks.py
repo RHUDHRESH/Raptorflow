@@ -14,7 +14,7 @@ from typing import Any, Callable, Dict, List, Optional, Set
 from crewai import Task
 from pydantic import BaseModel
 
-from backend.models.cognitive import CognitiveIntelligenceState
+from models.cognitive import CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.crewai.tasks")
 

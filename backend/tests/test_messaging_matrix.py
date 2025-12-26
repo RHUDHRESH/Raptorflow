@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.messaging_matrix import (
+from agents.specialists.messaging_matrix import (
     MessagingMatrixAgent,
     MessagingMatrixOutput,
     MessagingPillar,
 )
-from backend.models.cognitive import AgentMessage
+from models.cognitive import AgentMessage
 
 
 @pytest.mark.asyncio

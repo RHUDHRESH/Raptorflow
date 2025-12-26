@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.services.ingestion_service import IngestionService
+from services.ingestion_service import IngestionService
 
 
 @pytest.mark.asyncio

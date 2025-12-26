@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.memory.cognitive.engine import CognitiveMemoryEngine
+from memory.cognitive.engine import CognitiveMemoryEngine
 
 
 @pytest.mark.asyncio

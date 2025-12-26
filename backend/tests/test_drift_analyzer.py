@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.agents.specialists.drift_analyzer import DriftAnalyzerAgent
+from agents.specialists.drift_analyzer import DriftAnalyzerAgent
 
 
 @pytest.mark.asyncio

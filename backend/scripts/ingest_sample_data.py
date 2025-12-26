@@ -3,7 +3,7 @@ import os
 
 from google.cloud import storage
 
-from backend.core.config import get_settings
+from core.config import get_settings
 
 
 def ingest_sample_data():

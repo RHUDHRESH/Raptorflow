@@ -4,7 +4,7 @@ from typing import List, TypedDict
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
-from backend.models.fortress import FortressTask
+from models.fortress import FortressTask
 
 logger = logging.getLogger("raptorflow.planner")
 

@@ -3,7 +3,7 @@ import logging
 
 from dotenv import load_dotenv
 
-from backend.graphs.spine_v3 import build_ultimate_spine
+from graphs.spine_v3 import build_ultimate_spine
 
 # 1. Load Environment (Supabase, Vertex, Upstash)
 load_dotenv()

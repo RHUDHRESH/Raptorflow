@@ -2,8 +2,8 @@ import json
 import logging
 from typing import Any, Optional
 
-from backend.core.cache import get_cache_manager
-from backend.memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
+from core.cache import get_cache_manager
+from memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
 
 logger = logging.getLogger("raptorflow.memory.short_term")
 

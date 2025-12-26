@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.core.config import get_settings
-from backend.services.lineage_tracker import ModelLineageTracker
+from core.config import get_settings
+from services.lineage_tracker import ModelLineageTracker
 
 
 @pytest.mark.asyncio

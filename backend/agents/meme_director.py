@@ -3,7 +3,7 @@ from typing import List
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
-from backend.inference import InferenceProvider
+from inference import InferenceProvider
 
 
 class CanvasElement(BaseModel):

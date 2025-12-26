@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from backend.core.cache import get_cache_client, get_cache_manager
+from core.cache import get_cache_client, get_cache_manager
 
 
 def test_cache_client_initialization():

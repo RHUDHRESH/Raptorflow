@@ -3,9 +3,9 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
-from backend.api.v1.blackbox_roi import get_blackbox_service
-from backend.services.blackbox_service import AttributionModel
-from backend.main import app
+from api.v1.blackbox_roi import get_blackbox_service
+from services.blackbox_service import AttributionModel
+from main import app
 
 client = TestClient(app)
 
@@ -126,7 +126,7 @@ def test_get_telemetry_by_move_endpoint():
         {"id": str(uuid4()), "agent_id": "test"}
     ]
     # Note: Using blackbox_telemetry provider here
-    from backend.api.v1.blackbox_telemetry import (
+    from api.v1.blackbox_telemetry import (
         get_blackbox_service as get_tele_service,
     )
 
@@ -150,7 +150,7 @@ def test_get_learnings_by_move_endpoint():
     mock_service.get_learnings_by_move.return_value = [
         {"id": str(uuid4()), "content": "test learning"}
     ]
-    from backend.api.v1.blackbox_learning import (
+    from api.v1.blackbox_learning import (
         get_blackbox_service as get_learn_service,
     )
 
@@ -170,7 +170,7 @@ def test_trigger_specialist_analysis_endpoint():
     mock_service.trigger_learning_cycle = AsyncMock(
         return_value={"status": "cycle_complete"}
     )
-    from backend.api.v1.blackbox_learning import (
+    from api.v1.blackbox_learning import (
         get_blackbox_service as get_learn_service,
     )
 
@@ -194,7 +194,7 @@ def test_run_specialist_agent_endpoint():
     mock_service.get_telemetry_by_move.return_value = []
     mock_service.get_outcomes_by_move.return_value = []
 
-    from backend.api.v1.blackbox_specialist import (
+    from api.v1.blackbox_specialist import (
         get_blackbox_service as get_spec_service,
     )
 

@@ -1,6 +1,6 @@
 import pytest
 
-from backend.memory.pruning import MemoryDecayPolicy
+from memory.pruning import MemoryDecayPolicy
 
 
 def test_decay_policy_simple_pruning():

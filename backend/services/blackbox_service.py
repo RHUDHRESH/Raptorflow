@@ -8,10 +8,10 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 
-from backend.core.vault import Vault
-from backend.inference import InferenceProvider
-from backend.models.blackbox import BlackboxOutcome, BlackboxTelemetry
-from backend.utils.pii_masking import mask_pii
+from core.vault import Vault
+from inference import InferenceProvider
+from models.blackbox import BlackboxOutcome, BlackboxTelemetry
+from utils.pii_masking import mask_pii
 
 
 class AttributionModel(str, Enum):
@@ -439,9 +439,9 @@ class BlackboxService:
         Triggers the multi-agentic learning cycle via LangGraph.
         Summarizes outcomes and telemetry into strategic learnings.
         """
-        from backend.graphs.blackbox_analysis import create_blackbox_graph
-        from backend.memory.swarm_learning import record_learning
-        from backend.services.evaluation import OutputEvaluator
+        from graphs.blackbox_analysis import create_blackbox_graph
+        from memory.swarm_learning import record_learning
+        from services.evaluation import OutputEvaluator
 
         graph = create_blackbox_graph()
         initial_state = {
@@ -499,7 +499,7 @@ class BlackboxService:
         Uses the LearningAgent to generate a high-level strategic pivot
         recommendation for a specific move.
         """
-        from backend.agents.blackbox_specialist import LearningAgent
+        from agents.blackbox_specialist import LearningAgent
 
         # 1. Gather context
         traces = self.get_telemetry_by_move(move_id, tenant_id)
@@ -537,7 +537,7 @@ class BlackboxService:
         """
         Updates foundation modules (BrandKit/Positioning) based on a strategic learning.
         """
-        from backend.services.foundation_service import FoundationService
+        from services.foundation_service import FoundationService
 
         # 1. Retrieve data
         session = self.vault.get_session()

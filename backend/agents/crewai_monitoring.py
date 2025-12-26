@@ -15,10 +15,10 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from backend.agents.crewai_adapter import CrewAIAgentAdapter
-from backend.agents.crewai_coordination import AdvancedCrewCoordinator
-from backend.agents.crewai_tasks import CrewTaskManager, TaskStatus
-from backend.agents.hybrid_integration import HybridWorkflowManager
+from agents.crewai_adapter import CrewAIAgentAdapter
+from agents.crewai_coordination import AdvancedCrewCoordinator
+from agents.crewai_tasks import CrewTaskManager, TaskStatus
+from agents.hybrid_integration import HybridWorkflowManager
 
 logger = logging.getLogger("raptorflow.monitoring")
 

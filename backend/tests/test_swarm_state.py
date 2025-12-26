@@ -1,4 +1,4 @@
-from backend.models.swarm import SwarmState
+from models.swarm import SwarmState
 
 
 def test_swarm_state_schema():

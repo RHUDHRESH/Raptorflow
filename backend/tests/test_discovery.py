@@ -1,4 +1,4 @@
-from backend.core.discovery import parse_sitemap, score_url
+from core.discovery import parse_sitemap, score_url
 
 
 def test_parse_sitemap_index():

@@ -1,7 +1,7 @@
 import pytest
 
-from backend.graphs.spine_v3 import cognitive_spine_v3
-from backend.models.cognitive import CognitiveStatus
+from graphs.spine_v3 import cognitive_spine_v3
+from models.cognitive import CognitiveStatus
 
 
 @pytest.mark.asyncio

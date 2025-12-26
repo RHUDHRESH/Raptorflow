@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.specialists.image_generator import ImageGenAgent, ImageOutput
+from agents.specialists.image_generator import ImageGenAgent, ImageOutput
 
 
 @pytest.mark.asyncio

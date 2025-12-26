@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from backend.services.payment_service import PhonePeCallbackError
+from services.payment_service import PhonePeCallbackError
 
 os.environ.setdefault("PHONEPE_CLIENT_ID", "client-id")
 os.environ.setdefault("PHONEPE_CLIENT_SECRET", "client-secret")
@@ -12,7 +12,7 @@ os.environ.setdefault("PHONEPE_ENV", "SANDBOX")
 os.environ.setdefault("PHONEPE_WEBHOOK_USERNAME", "webhook-user")
 os.environ.setdefault("PHONEPE_WEBHOOK_PASSWORD", "webhook-pass")
 
-from backend.main import app  # noqa: E402
+from main import app  # noqa: E402
 
 client = TestClient(app)
 

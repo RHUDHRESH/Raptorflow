@@ -4,8 +4,8 @@ from typing import Any, List, TypedDict
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
-from backend.inference import InferenceProvider
-from backend.models.swarm import SwarmSubtaskSpec, SwarmTask
+from inference import InferenceProvider
+from models.swarm import SwarmSubtaskSpec, SwarmTask
 
 logger = logging.getLogger("raptorflow.agents.swarm_decomposer")
 
