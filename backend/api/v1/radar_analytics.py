@@ -28,7 +28,9 @@ async def get_signal_trends(
     """Get signal trends over time."""
     try:
         repository = RadarRepository()
-        signals = await repository.fetch_signals(str(tenant_id), window_days=window_days)
+        signals = await repository.fetch_signals(
+            str(tenant_id), window_days=window_days
+        )
         trends = await service.analyze_signal_trends(signals, window_days)
         return trends
     except Exception as e:
