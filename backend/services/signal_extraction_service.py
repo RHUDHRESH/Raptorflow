@@ -33,6 +33,7 @@ class SignalExtractionService:
     def __init__(self):
         self.crawler = AdvancedCrawler()
         self.llm = InferenceProvider.get_model(model_tier="reasoning")
+        self._last_content_by_url: Dict[str, str] = {}
 
         # Enhanced signal pattern matching with more sophisticated regex
         self.signal_patterns = {
@@ -125,6 +126,7 @@ class SignalExtractionService:
 
             current_content = scrape_result.get("content", "")
             current_title = scrape_result.get("title", "")
+            self._last_content_by_url[source_url] = current_content
 
             # Generate evidence
             evidence = Evidence(
@@ -158,6 +160,10 @@ class SignalExtractionService:
         except Exception as e:
             logger.error(f"Error extracting signals from {source_url}: {e}")
             return []
+
+    def get_last_content(self, source_url: str) -> Optional[str]:
+        """Return the most recently scraped content for a URL."""
+        return self._last_content_by_url.get(source_url)
 
     async def _extract_change_signals(
         self,
