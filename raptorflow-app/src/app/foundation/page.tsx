@@ -1,8 +1,5 @@
-import { QuestionFlowWizard } from '@/components/onboarding/QuestionFlowWizard';
-import { AppLayout } from '@/components/layout/AppLayout';
+import { redirect } from 'next/navigation';
 
 export default function FoundationPage() {
-    return (
-        <QuestionFlowWizard />
-    );
+    redirect('/foundation/phase1');
 }

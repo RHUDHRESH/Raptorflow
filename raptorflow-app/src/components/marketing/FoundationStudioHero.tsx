@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import gsap from 'gsap';
 import { motion } from 'motion/react';
@@ -11,6 +11,11 @@ export function FoundationStudioHero() {
     const subtitleRef = useRef<HTMLParagraphElement>(null);
     const ctaContainerRef = useRef<HTMLDivElement>(null);
     const particlesRef = useRef<HTMLDivElement>(null);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -30,6 +35,27 @@ export function FoundationStudioHero() {
         return () => { tl.kill(); };
     }, []);
 
+    // Generate deterministic particles
+    const particles = Array.from({ length: 25 }).map((_, i) => {
+        const seed = i * 1000; // Use index as seed for deterministic values
+        const left = ((seed * 9301 + 49297) % 233280) / 233280 * 100;
+        const top = ((seed * 9301 + 49297 + 1000) % 233280) / 233280 * 100;
+        const width = 2 + ((seed * 9301 + 49297 + 2000) % 233280) / 233280 * 3;
+        const height = 2 + ((seed * 9301 + 49297 + 3000) % 233280) / 233280 * 3;
+        const duration = 10 + ((seed * 9301 + 49297 + 4000) % 233280) / 233280 * 15;
+        const delay = ((seed * 9301 + 49297 + 5000) % 233280) / 233280 * 8;
+
+        return {
+            key: i,
+            left: `${left}%`,
+            top: `${top}%`,
+            width: `${width}px`,
+            height: `${height}px`,
+            animation: `subtleFloat ${duration}s ease-in-out infinite`,
+            animationDelay: `${delay}s`,
+        };
+    });
+
     return (
         <div
             ref={containerRef}
@@ -41,22 +67,24 @@ export function FoundationStudioHero() {
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50/50" />
 
                 {/* Floating particles */}
-                <div ref={particlesRef} className="absolute inset-0">
-                    {Array.from({ length: 25 }).map((_, i) => (
-                        <div
-                            key={i}
-                            className="absolute rounded-full bg-gray-200/30"
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                top: `${Math.random() * 100}%`,
-                                width: `${2 + Math.random() * 3}px`,
-                                height: `${2 + Math.random() * 3}px`,
-                                animation: `subtleFloat ${10 + Math.random() * 15}s ease-in-out infinite`,
-                                animationDelay: `${Math.random() * 8}s`,
-                            }}
-                        />
-                    ))}
-                </div>
+                {isClient && (
+                    <div ref={particlesRef} className="absolute inset-0">
+                        {particles.map((particle) => (
+                            <div
+                                key={particle.key}
+                                className="absolute rounded-full bg-gray-200/30"
+                                style={{
+                                    left: particle.left,
+                                    top: particle.top,
+                                    width: particle.width,
+                                    height: particle.height,
+                                    animation: particle.animation,
+                                    animationDelay: particle.animationDelay,
+                                }}
+                            />
+                        ))}
+                    </div>
+                )}
 
                 {/* Background accent circles */}
                 <div className="absolute top-20 right-20 w-96 h-96 bg-gray-100/20 rounded-full blur-3xl" />

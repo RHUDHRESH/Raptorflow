@@ -1,7 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import { MarketingLayout } from '@/components/marketing/MarketingLayout';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
 
 const faqCategories = [
     {
@@ -91,11 +96,6 @@ const faqCategories = [
 ];
 
 export default function FAQPage() {
-    const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
-
-    const toggleItem = (key: string) => {
-        setOpenItems((prev) => ({ ...prev, [key]: !prev[key] }));
-    };
 
     return (
         <MarketingLayout>
@@ -123,39 +123,21 @@ export default function FAQPage() {
                         {faqCategories.map((category) => (
                             <div key={category.name} className="mb-12">
                                 <h2 className="font-display text-2xl font-medium mb-6">{category.name}</h2>
-                                <div className="space-y-4">
+                                <Accordion type="single" collapsible className="w-full space-y-4">
                                     {category.questions.map((item, index) => {
                                         const key = `${category.name}-${index}`;
-                                        const isOpen = openItems[key];
                                         return (
-                                            <div
-                                                key={key}
-                                                className="rounded-xl border border-border bg-card overflow-hidden"
-                                            >
-                                                <button
-                                                    onClick={() => toggleItem(key)}
-                                                    className="w-full flex items-center justify-between p-6 text-left"
-                                                >
-                                                    <span className="font-medium pr-4">{item.question}</span>
-                                                    <svg
-                                                        className={`h-5 w-5 flex-shrink-0 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''
-                                                            }`}
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                    >
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                    </svg>
-                                                </button>
-                                                {isOpen && (
-                                                    <div className="px-6 pb-6">
-                                                        <p className="text-muted-foreground leading-relaxed">{item.answer}</p>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            <AccordionItem key={key} value={key} className="rounded-xl border border-border bg-card px-6">
+                                                <AccordionTrigger className="text-left font-medium hover:no-underline">
+                                                    {item.question}
+                                                </AccordionTrigger>
+                                                <AccordionContent className="text-muted-foreground leading-relaxed pb-6">
+                                                    {item.answer}
+                                                </AccordionContent>
+                                            </AccordionItem>
                                         );
                                     })}
-                                </div>
+                                </Accordion>
                             </div>
                         ))}
                     </div>

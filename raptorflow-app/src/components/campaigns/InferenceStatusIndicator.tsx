@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Spinner } from '@/components/ui/spinner';
 
 interface InferenceStatusIndicatorProps {
   status: 'idle' | 'generating' | 'complete' | 'error';
@@ -25,7 +26,7 @@ export function InferenceStatusIndicator({ status, className }: InferenceStatusI
     )}>
       {status === 'generating' ? (
         <>
-          <Loader2 className="w-3 h-3 animate-spin" />
+          <Spinner className="w-3 h-3" />
           <span>Agent thinking...</span>
         </>
       ) : status === 'complete' ? (
