@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Optional
@@ -6,7 +7,9 @@ import psycopg
 from langgraph.checkpoint.postgres import PostgresSaver
 from psycopg_pool import AsyncConnectionPool
 
-from backend.core.config import get_settings
+from core.config import get_settings
+
+logger = logging.getLogger("raptorflow.db")
 
 # Initialize settings
 settings = get_settings()
@@ -23,11 +26,52 @@ _pool: Optional[AsyncConnectionPool] = None
 def get_pool() -> AsyncConnectionPool:
     global _pool
     if _pool is None:
-        _pool = AsyncConnectionPool(DB_URI, open=False)
+        if not DB_URI:
+            raise ValueError("DATABASE_URL is not configured")
+        try:
+            # Optimized connection pool configuration
+            _pool = AsyncConnectionPool(
+                DB_URI, 
+                min_size=5,           # Increased minimum connections
+                max_size=50,          # Increased maximum for production
+                open=False,
+                timeout=30,           # Connection timeout
+                max_lifetime=3600,    # 1 hour lifetime (increased)
+                max_idle=600,         # 10 minutes idle timeout
+                check=AsyncConnectionPool.ConnectionCheck(
+                    # Health check configuration
+                    timeout=5,
+                    command="SELECT 1"
+                ),
+                kwargs={
+                    # Connection parameters optimization
+                    "prepare_threshold": 5,
+                    "cursor_factory": psycopg.ServerCursor,
+                    "application_name": "raptorflow_backend",
+                    "connect_timeout": 10,
+                    "command_timeout": 30,
+                    "options": "-c default_transaction_isolation=read_committed"
+                }
+            )
+            logger.info(f"Created optimized database pool: min_size=5, max_size=50")
+        except Exception as e:
+            logger.error(f"Failed to create database pool: {e}")
+            raise
     return _pool
 
 
-@asynccontextmanager
+async def close_pool():
+    """Close the global connection pool."""
+    global _pool
+    if _pool is not None:
+        try:
+            await _pool.close()
+        except Exception as e:
+            logger.warning(f"Error closing database pool: {e}")
+        finally:
+            _pool = None
+
+
 async def get_db_connection():
     """Async context manager for psycopg connection from the pool."""
     pool = get_pool()
@@ -35,11 +79,30 @@ async def get_db_connection():
     if not hasattr(pool, "_opened") or not pool._opened:
         try:
             await pool.open()
-        except Exception:
-            pass  # Ignore if already opening/opened in some versions
+        except psycopg.OperationalError as e:
+            raise RuntimeError(f"Failed to open database pool: {e}")
+        except Exception as e:
+            logger.warning(f"Pool opening warning: {e}")
 
     async with pool.connection() as conn:
         yield conn
+
+
+@asynccontextmanager
+async def get_db_transaction():
+    """Async context manager for database transactions with proper rollback."""
+    async with get_db_connection() as conn:
+        transaction = conn.transaction()
+        try:
+            await transaction.start()
+            yield conn
+            await transaction.commit()
+        except Exception as e:
+            await transaction.rollback()
+            logger.error(f"Database transaction rolled back: {e}")
+            raise
+        finally:
+            await transaction.__aexit__(None, None, None)
 
 
 class SupabaseSaver(PostgresSaver):
@@ -56,11 +119,19 @@ async def init_checkpointer():
     """Initializes the LangGraph Postgres checkpointer using the global pool."""
     pool = get_pool()
     if not hasattr(pool, "_opened") or not pool._opened:
-        await pool.open()
+        try:
+            await pool.open()
+        except Exception as e:
+            logger.error(f"Failed to open database pool for checkpointer: {e}")
+            raise
 
-    # In LangGraph 0.2.x, PostgresSaver.from_conn_string or constructor with pool
-    checkpointer = SupabaseSaver(pool)
-    return checkpointer
+    try:
+        # In LangGraph 0.2.x, PostgresSaver.from_conn_string or constructor with pool
+        checkpointer = SupabaseSaver(pool)
+        return checkpointer
+    except Exception as e:
+        logger.error(f"Failed to initialize checkpointer: {e}")
+        raise
 
 
 async def vector_search(
@@ -74,6 +145,23 @@ async def vector_search(
     Performs a pgvector similarity search, STRICTLY scoped to workspace_id.
     Supports optional metadata filtering and handles different table schemas.
     """
+    # Input validation
+    if not workspace_id or not isinstance(workspace_id, str):
+        raise ValueError("workspace_id must be a non-empty string")
+    
+    if not embedding or not isinstance(embedding, list) or len(embedding) == 0:
+        raise ValueError("embedding must be a non-empty list of floats")
+    
+    if not all(isinstance(x, (int, float)) for x in embedding):
+        raise ValueError("embedding must contain only numeric values")
+    
+    if limit <= 0 or limit > 100:
+        raise ValueError("limit must be between 1 and 100")
+    
+    # Validate table name against allowed tables
+    allowed_tables = ["muse_assets", "agent_memory_semantic", "agent_memory_episodic", "entity_embeddings"]
+    if table not in allowed_tables:
+        raise ValueError(f"table must be one of: {allowed_tables}")
     # Map table to its specific column names
     SCHEMA_MAP = {
         "muse_assets": {"content": "content", "workspace": "metadata->>'workspace_id'"},
@@ -90,7 +178,7 @@ async def vector_search(
 
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
-            # Base query
+            # Base query - use parameterized queries
             query = f"""
                 SELECT id, {content_col}, metadata, 1 - (embedding <=> %s::vector) as similarity
                 FROM {table}
@@ -111,9 +199,16 @@ async def vector_search(
             """
             params.extend([embedding, embedding, limit])
 
-            await cur.execute(query, tuple(params))
-            results = await cur.fetchall()
-            return results
+            try:
+                await cur.execute(query, tuple(params))
+                results = await cur.fetchall()
+                return results
+            except psycopg.Error as e:
+                logger.error(f"Vector search query failed: {e}")
+                raise
+            except Exception as e:
+                logger.error(f"Unexpected error in vector search: {e}")
+                raise
 
 
 async def get_memory(
@@ -206,26 +301,30 @@ async def save_asset_db(workspace_id: str, asset_data: dict):
     """Saves a final asset with production-grade validation."""
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
-            query = """
-                INSERT INTO muse_assets (content, metadata, embedding)
-                VALUES (%s, %s, %s)
-                RETURNING id;
-            """
-            # Ensure workspace_id is in metadata
-            metadata = asset_data.get("metadata", {})
-            metadata["workspace_id"] = workspace_id
+            try:
+                query = """
+                    INSERT INTO muse_assets (content, metadata, embedding)
+                    VALUES (%s, %s, %s)
+                    RETURNING id;
+                """
+                # Ensure workspace_id is in metadata
+                metadata = asset_data.get("metadata", {})
+                metadata["workspace_id"] = workspace_id
 
-            await cur.execute(
-                query,
-                (
-                    asset_data["content"],
-                    psycopg.types.json.Jsonb(metadata),
-                    asset_data.get("embedding"),
-                ),
-            )
-            result = await cur.fetchone()
-            await conn.commit()
-            return str(result[0])
+                await cur.execute(
+                    query,
+                    (
+                        asset_data["content"],
+                        psycopg.types.json.Jsonb(metadata),
+                        asset_data.get("embedding"),
+                    ),
+                )
+                result = await cur.fetchone()
+                await conn.commit()
+                return str(result[0])
+            except Exception:
+                await conn.rollback()
+                raise
 
 
 async def save_asset_vault(

@@ -1,6 +1,6 @@
 import logging
 
-from backend.agents.specialists.campaign_planner import CampaignArcOutput
+from agents.specialists.campaign_planner import CampaignArcOutput
 
 logger = logging.getLogger("raptorflow.core.briefing")
 

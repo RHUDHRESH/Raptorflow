@@ -1,6 +1,6 @@
 import pytest
 
-from backend.core.search_native import NativeSearch
+from core.search_native import NativeSearch
 
 
 @pytest.mark.asyncio

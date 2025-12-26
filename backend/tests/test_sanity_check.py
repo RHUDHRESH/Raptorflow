@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.services.sanity_check import SystemSanityCheck
+from services.sanity_check import SystemSanityCheck
 
 
 @pytest.mark.asyncio

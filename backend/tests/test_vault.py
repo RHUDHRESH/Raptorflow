@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from backend.core.vault import Vault
+from core.vault import Vault
 
 
 def test_vault_get_secret_fallback_to_env():
@@ -36,7 +36,7 @@ def test_vault_get_secret_success():
 
         vault = Vault()
         # Clear cache for test
-        from backend.core.vault import get_vault
+        from core.vault import get_vault
 
         secret = vault.get_secret("REAL_SECRET")
 

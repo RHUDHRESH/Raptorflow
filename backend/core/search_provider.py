@@ -5,8 +5,8 @@ from urllib.parse import parse_qsl, urlsplit, urlunsplit
 
 import httpx
 
-from backend.core.config import get_settings
-from backend.core.search_native import NativeSearch
+from core.config import get_settings
+from core.search_native import NativeSearch
 
 logger = logging.getLogger("raptorflow.search_provider")
 

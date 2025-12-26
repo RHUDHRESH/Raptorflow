@@ -3,8 +3,8 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
-from backend.api.v1.blackbox_memory import get_blackbox_service
-from backend.main import app
+from api.v1.blackbox_memory import get_blackbox_service
+from main import app
 
 client = TestClient(app)
 

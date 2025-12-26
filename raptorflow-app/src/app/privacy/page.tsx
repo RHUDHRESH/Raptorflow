@@ -2,163 +2,139 @@
 
 import Link from 'next/link';
 import { MarketingLayout } from '@/components/marketing/MarketingLayout';
-import { Button } from '@/components/ui/button';
 
 export default function PrivacyPage() {
     return (
         <MarketingLayout>
-            {/* Hero */}
             <section className="py-24 lg:py-32">
-                <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                    <div className="mx-auto max-w-3xl">
-                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+                <div className="mx-auto max-w-4xl px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h1 className="font-serif text-5xl lg:text-6xl font-medium text-gray-900 mb-6 leading-tight">
                             Privacy Policy
-                        </p>
-                        <h1 className="font-display text-5xl lg:text-6xl font-medium tracking-tight mb-6">
-                            Your privacy matters.
                         </h1>
-                        <p className="text-lg text-muted-foreground leading-relaxed">
-                            Last updated: December 20, 2024
+                        <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
+                            Last updated: December 26, 2024
                         </p>
                     </div>
-                </div>
-            </section>
 
-            {/* Content */}
-            <section className="pb-24 lg:pb-32">
-                <div className="mx-auto max-w-4xl px-6 lg:px-8">
-                    <div className="prose prose-lg max-w-none">
-                        <div className="space-y-8">
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Introduction</h2>
-                                <p className="text-muted-foreground">
-                                    RaptorFlow ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and protect your information when you use our marketing operating system.
+                    <div className="prose prose-lg max-w-none space-y-8">
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Introduction</h2>
+                            <p>
+                                RaptorFlow ("we," "us," or "our") is committed to protecting your personal information and respecting your privacy. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our marketing platform and related services.
+                            </p>
+                            <p>
+                                This policy is written in compliance with the Digital Personal Data Protection Act, 2023 (DPDPA) of India and applies to all users within India and Indian residents using our services globally.
+                            </p>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Personal Data We Collect</h2>
+                            <p>
+                                We collect the following categories of personal data:
+                            </p>
+                            <ul className="list-disc pl-6 space-y-2">
+                                <li><strong>Account Information:</strong> Name, email address, phone number, company details, and billing information.</li>
+                                <li><strong>Usage Data:</strong> How you interact with our platform, features used, time spent, and navigation patterns.</li>
+                                <li><strong>Technical Data:</strong> IP address, device information, browser type, operating system, and cookies.</li>
+                                <li><strong>Marketing Data:</strong> Campaign data, analytics, performance metrics, and creative assets you create.</li>
+                            </ul>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">How We Use Your Personal Data</h2>
+                            <p>
+                                We use your personal data for the following purposes:
+                            </p>
+                            <ul className="list-disc pl-6 space-y-2">
+                                <li>To provide, maintain, and improve our marketing platform and services.</li>
+                                <li>To analyze usage patterns and improve our platform functionality and user experience.</li>
+                                <li>To send you important updates, security alerts, and customer support communications.</li>
+                                <li>To comply with applicable laws, regulations, and legal processes.</li>
+                            </ul>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Your Rights Under DPDPA 2023</h2>
+                            <p>
+                                Under the Digital Personal Data Protection Act, 2023, you have the following rights:
+                            </p>
+                            <ul className="list-disc pl-6 space-y-2">
+                                <li><strong>Right to Access:</strong> You can request a copy of the personal data we hold about you.</li>
+                                <li><strong>Right to Correction:</strong> You can request correction of inaccurate or incomplete personal data.</li>
+                                <li><strong>Right to Erasure:</strong> You can request deletion of your personal data in certain circumstances.</li>
+                                <li><strong>Right to Withdraw Consent:</strong> You can withdraw your consent at any time, subject to legal and contractual restrictions.</li>
+                            </ul>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Data Security</h2>
+                            <p>
+                                We implement appropriate technical and organizational security measures to protect your personal data against unauthorized access, alteration, disclosure, or destruction. These include encryption, secure servers, access controls, and regular security audits.
+                            </p>
+                            <p>
+                                However, no method of transmission over the internet or method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your personal data, we cannot guarantee its absolute security.
+                            </p>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">International Data Transfers</h2>
+                            <p>
+                                Your personal data may be transferred to and processed in countries other than India. We ensure adequate protection for your personal data in accordance with DPDPA 2023 requirements through appropriate safeguards including standard contractual clauses and compliance with applicable data protection laws.
+                            </p>
+                        </div>
+
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">How to Exercise Your Rights</h2>
+                            <p>
+                                To exercise your rights under this Privacy Policy or if you have any questions about our data practices, please contact us:
+                            </p>
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                                <p className="text-gray-700 mb-2">
+                                    <strong>Email:</strong> privacy@raptorflow.com
+                                </p>
+                                <p className="text-gray-700 mb-2">
+                                    <strong>Response Time:</strong> We will respond to your request within 30 days as required by DPDPA 2023.
+                                </p>
+                                <p className="text-gray-700">
+                                    <strong>Verification:</strong> We may need to verify your identity before processing request to protect your personal data.
                                 </p>
                             </div>
+                        </div>
 
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Information We Collect</h2>
-                                <div className="space-y-4">
-                                    <div>
-                                        <h3 className="text-lg font-medium mb-2">Account Information</h3>
-                                        <p className="text-muted-foreground">
-                                            When you create an account, we collect your name, email address, and other information you provide during registration.
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-medium mb-2">Usage Data</h3>
-                                        <p className="text-muted-foreground">
-                                            We collect information about how you use RaptorFlow, including features accessed, time spent, and interactions with our platform.
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-medium mb-2">Marketing Content</h3>
-                                        <p className="text-muted-foreground">
-                                            Your campaigns, strategies, assets, and marketing materials stored in our platform. This is your data, not ours.
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-medium mb-2">Technical Data</h3>
-                                        <p className="text-muted-foreground">
-                                            IP address, browser type, device information, and other technical details needed to provide our service.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Complaints to Data Protection Board of India</h2>
+                            <p>
+                                If you are not satisfied with our response to your privacy concerns, you have the right to file a complaint with the Data Protection Board of India. The Board is the national authority responsible for overseeing data protection compliance in India. You can contact them through their official website or by following the procedures outlined in the DPDPA 2023.
+                            </p>
+                        </div>
 
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">How We Use Your Information</h2>
-                                <ul className="space-y-2 text-muted-foreground">
-                                    <li>• To provide and maintain RaptorFlow services</li>
-                                    <li>• To process your requests and transactions</li>
-                                    <li>• To improve our products and user experience</li>
-                                    <li>• To communicate with you about your account</li>
-                                    <li>• To ensure security and prevent fraud</li>
-                                    <li>• To comply with legal obligations</li>
-                                </ul>
-                            </div>
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Changes to This Privacy Policy</h2>
+                            <p>
+                                We may update this Privacy Policy from time to time to reflect changes in our practices, legal requirements, or business operations. We will notify you of any material changes by posting the updated policy on our website and updating the "Last updated" date at the top of this policy.
+                            </p>
+                        </div>
 
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Data Security</h2>
-                                <p className="text-muted-foreground">
-                                    We implement industry-standard security measures including encryption, secure servers, and regular security audits. Your data is encrypted both in transit and at rest.
+                        <div className="text-gray-700 leading-relaxed space-y-6">
+                            <h2 className="font-serif text-2xl font-medium text-gray-900">Contact Information</h2>
+                            <div className="space-y-2">
+                                <p>
+                                    <strong>RaptorFlow</strong><br />
+                                    Email: privacy@raptorflow.com<br />
+                                    Website: www.raptorflow.com
                                 </p>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Data Retention</h2>
-                                <p className="text-muted-foreground">
-                                    We retain your information only as long as necessary to provide our services and comply with legal obligations. You can request deletion of your account and data at any time.
+                                <p className="text-sm">
+                                    This Privacy Policy is effective as of December 26, 2024 and complies with the Digital Personal Data Protection Act, 2023 (India).
                                 </p>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Third-Party Services</h2>
-                                <p className="text-muted-foreground">
-                                    We use trusted third-party services for payment processing, analytics, and customer support. These services have their own privacy policies and are contractually bound to protect your data.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Your Rights</h2>
-                                <ul className="space-y-2 text-muted-foreground">
-                                    <li>• Access to your personal information</li>
-                                    <li>• Correction of inaccurate data</li>
-                                    <li>• Deletion of your account and data</li>
-                                    <li>• Portability of your data</li>
-                                    <li>• Opt-out of marketing communications</li>
-                                </ul>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">International Data Transfers</h2>
-                                <p className="text-muted-foreground">
-                                    Your data may be processed in countries where we or our service providers operate. We ensure appropriate safeguards are in place for international data transfers.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Children's Privacy</h2>
-                                <p className="text-muted-foreground">
-                                    RaptorFlow is not intended for children under 13. We do not knowingly collect information from children under 13.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Changes to This Policy</h2>
-                                <p className="text-muted-foreground">
-                                    We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">Contact Us</h2>
-                                <p className="text-muted-foreground mb-4">
-                                    If you have questions about this Privacy Policy or want to exercise your rights, please contact us:
-                                </p>
-                                <div className="space-y-2 text-muted-foreground">
-                                    <p>Email: privacy@raptorflow.com</p>
-                                    <p>Address: Remote (Global)</p>
-                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            {/* CTA */}
-            <section className="border-t border-border bg-foreground text-background py-24">
-                <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                    <div className="mx-auto max-w-2xl text-center">
-                        <h2 className="font-display text-4xl font-medium mb-6">
-                            Questions about your privacy?
-                        </h2>
-                        <p className="text-lg text-background/70 mb-10">
-                            We are here to answer any questions about how we protect your data.
-                        </p>
-                        <Button asChild size="lg" variant="secondary" className="h-14 px-8 text-base rounded-xl">
-                            <Link href="mailto:privacy@raptorflow.com">Contact Privacy Team</Link>
-                        </Button>
+                    <div className="text-center mt-16">
+                        <Link href="/" className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-6 py-3 text-white font-medium hover:bg-gray-800 transition-colors">
+                            Back to Home
+                        </Link>
                     </div>
                 </div>
             </section>

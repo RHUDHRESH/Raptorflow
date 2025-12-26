@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Protocol
 from uuid import uuid4
 
-from backend.core.config import get_settings
+from core.config import get_settings
 
 BRIDGE_PATH = Path(__file__).resolve().parents[1] / "phonepe" / "phonepeBridge.js"
 FINAL_ORDER_STATES = {"COMPLETED", "SUCCESS"}

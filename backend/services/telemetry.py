@@ -1,7 +1,7 @@
 import time
 from typing import Any, Dict, Optional
 
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class Telemetry:

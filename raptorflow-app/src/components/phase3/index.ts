@@ -1,0 +1,10 @@
+// Phase 3 Component Barrel Export
+export { ContextConfirm } from './ContextConfirm';
+export { JTBDForcesScreen } from './JTBDForcesScreen';
+export { VPCanvas } from './VPCanvas';
+export { DifferentiationInventory } from './DifferentiationInventory';
+export { StrategyCanvasScreen } from './StrategyCanvasScreen';
+export { ERRCGridScreen } from './ERRCGridScreen';
+export { ClaimFoundry } from './ClaimFoundry';
+export { Phase3Summary } from './Phase3Summary';
+export { Phase3Wizard } from './Phase3Wizard';

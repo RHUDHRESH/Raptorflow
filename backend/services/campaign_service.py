@@ -1,7 +1,7 @@
 from typing import Optional
 
-from backend.db import get_db_connection
-from backend.models.campaigns import Campaign, GanttChart
+from db import get_db_connection
+from models.campaigns import Campaign, GanttChart
 
 
 class CampaignService:
@@ -70,7 +70,7 @@ class CampaignService:
         if not campaign:
             return None
 
-        from backend.graphs.moves_campaigns_orchestrator import (
+        from graphs.moves_campaigns_orchestrator import (
             moves_campaigns_orchestrator,
         )
 
@@ -99,7 +99,7 @@ class CampaignService:
 
     async def get_arc_generation_status(self, campaign_id: str) -> Optional[dict]:
         """Retrieves the current status of the agentic orchestrator for a campaign."""
-        from backend.graphs.moves_campaigns_orchestrator import (
+        from graphs.moves_campaigns_orchestrator import (
             moves_campaigns_orchestrator,
         )
 
@@ -126,7 +126,7 @@ class CampaignService:
         # 1. Store the pivot instruction in the state
         # 2. Re-trigger the planning phase
 
-        from backend.graphs.moves_campaigns_orchestrator import (
+        from graphs.moves_campaigns_orchestrator import (
             moves_campaigns_orchestrator,
         )
 

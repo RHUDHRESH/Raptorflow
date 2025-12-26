@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.core.fallback import FallbackManager
+from core.fallback import FallbackManager
 
 
 @pytest.mark.asyncio

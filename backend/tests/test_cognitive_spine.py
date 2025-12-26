@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.graphs.cognitive_spine import cognitive_spine
-from backend.models.cognitive import CognitiveStatus
+from graphs.cognitive_spine import cognitive_spine
+from models.cognitive import CognitiveStatus
 
 
 @pytest.fixture

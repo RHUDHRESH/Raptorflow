@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from backend.memory.episodic_l2 import L2EpisodicMemory
+from memory.episodic_l2 import L2EpisodicMemory
 
 
 @pytest.mark.asyncio

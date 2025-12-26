@@ -4,8 +4,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from backend.core.auth import get_current_user, get_tenant_id
-from backend.memory.swarm_learning import SwarmLearningMemory
+from core.auth import get_current_user, get_tenant_id
+from memory.swarm_learning import SwarmLearningMemory
 
 router = APIRouter(prefix="/v1/feedback", tags=["feedback"])
 

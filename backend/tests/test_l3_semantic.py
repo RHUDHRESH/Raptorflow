@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from backend.memory.semantic_l3 import L3SemanticMemory
+from memory.semantic_l3 import L3SemanticMemory
 
 
 @pytest.mark.asyncio

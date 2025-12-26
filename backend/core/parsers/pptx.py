@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from pptx import Presentation
 
-from backend.core.parsers.types import ParsedAsset
+from core.parsers.types import ParsedAsset
 
 
 def _slide_title(slide) -> str:

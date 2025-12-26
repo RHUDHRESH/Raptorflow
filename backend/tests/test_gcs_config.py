@@ -1,7 +1,7 @@
 import pytest
 from google.cloud import storage
 
-from backend.core.config import get_settings
+from core.config import get_settings
 
 
 def test_gcs_gold_bucket_config():

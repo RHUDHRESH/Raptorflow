@@ -1,7 +1,7 @@
 import os
 from unittest.mock import Mock
 
-from backend.services.payment_service import PaymentService
+from services.payment_service import PaymentService
 
 
 def _set_phonepe_env() -> None:

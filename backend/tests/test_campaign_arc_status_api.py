@@ -2,14 +2,14 @@ from unittest.mock import AsyncMock, MagicMock
 
 from fastapi.testclient import TestClient
 
-from backend.main import app
+from main import app
 
 client = TestClient(app)
 
 
 def test_generate_arc_status_endpoint():
     """Verify that the status endpoint returns the current orchestrator state."""
-    from backend.api.v1.campaigns import get_campaign_service
+    from api.v1.campaigns import get_campaign_service
 
     mock_status = {
         "status": "planning",
@@ -33,7 +33,7 @@ def test_generate_arc_status_endpoint():
 
 def test_generate_arc_status_not_found():
     """Verify that the status endpoint handles missing campaigns."""
-    from backend.api.v1.campaigns import get_campaign_service
+    from api.v1.campaigns import get_campaign_service
 
     mock_service = MagicMock()
     mock_service.get_arc_generation_status = AsyncMock(return_value=None)

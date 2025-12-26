@@ -3,8 +3,8 @@ from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
 
-from backend.agents.base import BaseCognitiveAgent
-from backend.models.cognitive import CognitiveIntelligenceState
+from agents.base import BaseCognitiveAgent
+from models.cognitive import CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.agents.move_generator")
 
@@ -45,7 +45,7 @@ class MoveGeneratorAgent(BaseCognitiveAgent):
     """
 
     def __init__(self):
-        from backend.core.prompts import MovePrompts
+        from core.prompts import MovePrompts
 
         super().__init__(
             name="MoveGenerator",

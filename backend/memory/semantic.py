@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 
-from backend.db import save_memory, vector_search
-from backend.inference import InferenceProvider
+from db import save_memory, vector_search
+from inference import InferenceProvider
 
 
 class SemanticMemory:

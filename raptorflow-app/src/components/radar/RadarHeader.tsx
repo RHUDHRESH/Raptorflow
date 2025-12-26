@@ -5,6 +5,8 @@ import { RadarMode } from './types';
 import { cn } from '@/lib/utils';
 import { ChevronDownIcon, FilterIcon, ZapIcon } from '@/components/ui/Icons';
 import { Button } from '@/components/ui/button';
+import { scanRecon, generateDossier } from '@/lib/radar';
+import { toast } from 'sonner';
 
 interface RadarHeaderProps {
     mode: RadarMode;
@@ -15,6 +17,52 @@ interface RadarHeaderProps {
 }
 
 export function RadarHeader({ mode, setMode, selectedIcpId, setSelectedIcpId, onScanClick }: RadarHeaderProps) {
+    const [isScanning, setIsScanning] = React.useState(false);
+
+    const handleScanClick = async () => {
+        if (isScanning) return;
+        
+        setIsScanning(true);
+        try {
+            toast.loading('Starting radar scan...', { id: 'header-scan' });
+            
+            const signals = await scanRecon(selectedIcpId);
+            
+            toast.success('Scan completed!', { 
+                id: 'header-scan',
+                description: `Found ${signals.length} new signals` 
+            });
+            
+            onScanClick();
+            
+        } catch (error) {
+            toast.error('Scan failed', { 
+                id: 'header-scan',
+                description: error instanceof Error ? error.message : 'Unknown error'
+            });
+        } finally {
+            setIsScanning(false);
+        }
+    };
+
+    const handleGenerateDossier = async () => {
+        try {
+            toast.loading('Generating dossier...', { id: 'header-dossier' });
+            
+            const dossier = await generateDossier('campaign-123');
+            
+            toast.success('Dossier generated!', { 
+                id: 'header-dossier',
+                description: `Created "${dossier[0]?.title}"` 
+            });
+            
+        } catch (error) {
+            toast.error('Dossier generation failed', { 
+                id: 'header-dossier',
+                description: error instanceof Error ? error.message : 'Unknown error'
+            });
+        }
+    };
     return (
         <div className="flex flex-col gap-8">
             {/* Title Row */}
@@ -38,10 +86,13 @@ export function RadarHeader({ mode, setMode, selectedIcpId, setSelectedIcpId, on
                         Last 7d <ChevronDownIcon size={12} className="opacity-50" />
                     </Button>
 
-                    {/* Primary Action */}
-                    <Button onClick={onScanClick} size="sm" className="ml-2 h-9 px-4 gap-2 text-sm font-medium shadow-sm">
+                    {/* Primary Actions */}
+                    <Button onClick={handleScanClick} disabled={isScanning} size="sm" className="ml-2 h-9 px-4 gap-2 text-sm font-medium shadow-sm">
                         <ZapIcon size={14} />
-                        New Scan
+                        {isScanning ? 'Scanning...' : 'New Scan'}
+                    </Button>
+                    <Button onClick={handleGenerateDossier} variant="outline" size="sm" className="ml-2 h-9 px-4 gap-2 text-sm font-medium">
+                        Generate Dossier
                     </Button>
                 </div>
             </div>

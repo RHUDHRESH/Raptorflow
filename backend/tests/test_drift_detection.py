@@ -1,6 +1,6 @@
 import pytest
 
-from backend.services.drift_detection import DriftDetectionService
+from services.drift_detection import DriftDetectionService
 
 
 def test_drift_detection_no_drift():

@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
-from backend.inference import InferenceProvider
+from inference import InferenceProvider
 
 logger = logging.getLogger("raptorflow.core.validation")
 

@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from backend.core.config import get_settings
+from core.config import get_settings
 
 
 def deploy_to_cloud_run():

@@ -1,6 +1,6 @@
 import pytest
 
-from backend.core.constraints import ConstraintChecker, ResourceLimits
+from core.constraints import ConstraintChecker, ResourceLimits
 
 
 def test_constraint_checker_logic():

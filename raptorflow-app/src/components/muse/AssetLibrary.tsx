@@ -62,41 +62,41 @@ export function AssetLibrary({
     });
 
     return (
-        <div className={cn('space-y-6', className)}>
-            {/* Header */}
-            <div className="flex items-center justify-between gap-4">
+        <div className={cn('space-y-12', className)}>
+            {/* Editorial Header */}
+            <div className="flex items-end justify-between gap-4 border-b border-[#E5E6E3] pb-10">
                 <div className="flex-1">
-                    <h2 className="text-xl font-semibold">Asset Library</h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        {assets.length} assets created
+                    <h2 className="font-serif text-[36px] text-[#2D3538] leading-none tracking-tight">Archive Library</h2>
+                    <p className="font-sans text-[15px] text-[#5B5F61] mt-4">
+                        {assets.length} distilled brand artifacts
                     </p>
                 </div>
 
                 {/* Search + View toggle */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-6">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9D9F9F]" />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search assets..."
+                            placeholder="Search archives..."
                             className={cn(
-                                'h-9 w-48 pl-9 pr-3 rounded-lg',
-                                'border border-border/60 bg-card',
-                                'text-sm placeholder:text-muted-foreground/50',
-                                'focus:outline-none focus:border-foreground/20',
-                                'transition-colors duration-200'
+                                'h-11 w-64 pl-10 pr-4 rounded-xl',
+                                'border border-[#E5E6E3] bg-white',
+                                'text-[14px] text-[#2D3538] placeholder:text-[#9D9F9F]',
+                                'focus:outline-none focus:border-[#2D3538]',
+                                'transition-all duration-200'
                             )}
                         />
                     </div>
 
-                    <div className="flex items-center border border-border/60 rounded-lg p-0.5">
+                    <div className="flex items-center gap-1 p-1 bg-[#F8F9F7] border border-[#E5E6E3] rounded-xl">
                         <button
                             onClick={() => setViewMode('grid')}
                             className={cn(
-                                'p-1.5 rounded-md transition-colors',
-                                viewMode === 'grid' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
+                                'p-2 rounded-lg transition-all',
+                                viewMode === 'grid' ? 'bg-white text-[#2D3538] shadow-sm' : 'text-[#9D9F9F] hover:text-[#5B5F61]'
                             )}
                         >
                             <Grid className="h-4 w-4" />
@@ -104,8 +104,8 @@ export function AssetLibrary({
                         <button
                             onClick={() => setViewMode('list')}
                             className={cn(
-                                'p-1.5 rounded-md transition-colors',
-                                viewMode === 'list' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
+                                'p-2 rounded-lg transition-all',
+                                viewMode === 'list' ? 'bg-white text-[#2D3538] shadow-sm' : 'text-[#9D9F9F] hover:text-[#5B5F61]'
                             )}
                         >
                             <List className="h-4 w-4" />
@@ -123,8 +123,8 @@ export function AssetLibrary({
                             'flex items-center gap-1.5 px-3 py-1.5 rounded-full shrink-0',
                             'border text-xs font-medium transition-all duration-200',
                             selectedFolder === null
-                                ? 'border-foreground bg-foreground text-background'
-                                : 'border-border/60 text-muted-foreground hover:border-foreground/20'
+                                ? 'border-[#2D3538] bg-[#2D3538] text-white'
+                                : 'border-[#E5E6E3] text-[#9D9F9F] hover:border-[#5B5F61]'
                         )}
                     >
                         All
@@ -137,8 +137,8 @@ export function AssetLibrary({
                                 'flex items-center gap-1.5 px-3 py-1.5 rounded-full shrink-0',
                                 'border text-xs font-medium transition-all duration-200',
                                 selectedFolder === folder
-                                    ? 'border-foreground bg-foreground text-background'
-                                    : 'border-border/60 text-muted-foreground hover:border-foreground/20'
+                                    ? 'border-[#2D3538] bg-[#2D3538] text-white'
+                                    : 'border-[#E5E6E3] text-[#9D9F9F] hover:border-[#5B5F61]'
                             )}
                         >
                             <Folder className="h-3 w-3" />
@@ -198,33 +198,32 @@ function AssetCard({
     return (
         <div
             className={cn(
-                'group relative rounded-xl border border-border/60 bg-card overflow-hidden',
-                'transition-all duration-200',
-                'hover:border-foreground/20 hover:shadow-lg hover:-translate-y-0.5',
+                'group relative rounded-2xl border border-[#E5E6E3] bg-white overflow-hidden',
+                'transition-all duration-300',
+                'hover:border-[#C0C1BE] hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]',
                 'cursor-pointer'
             )}
             onClick={onClick}
         >
             {/* Preview area */}
             <div className={cn(
-                'aspect-[4/3] flex items-center justify-center',
-                isVisual ? 'bg-muted/30' : 'bg-gradient-to-br from-muted/20 to-muted/40'
+                'aspect-[4/3] flex items-center justify-center bg-[#F8F9F7]',
             )}>
                 {isVisual ? (
-                    <div className="text-muted-foreground/30">
+                    <div className="text-[#9D9F9F]/30">
                         <LucideIcons.Image className="h-12 w-12" />
                     </div>
                 ) : (
-                    <Icon className="h-8 w-8 text-muted-foreground/50" />
+                    <Icon className="h-8 w-8 text-[#9D9F9F]" />
                 )}
             </div>
 
             {/* Info */}
-            <div className="p-3 space-y-1">
-                <p className="text-sm font-medium truncate">{asset.title}</p>
+            <div className="p-4 space-y-2">
+                <p className="text-[15px] font-medium text-[#2D3538] tracking-tight truncate">{asset.title}</p>
                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{config?.label}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-[#9D9F9F]">{config?.label}</span>
+                    <span className="text-[11px] font-mono text-[#C0C1BE]">
                         {formatDate(asset.createdAt)}
                     </span>
                 </div>
@@ -299,13 +298,13 @@ function AssetListItem({
             )}
             onClick={onClick}
         >
-            <div className="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
-                <Icon className="h-5 w-5 text-muted-foreground" />
+            <div className="h-10 w-10 rounded-lg bg-[#F8F9F7] border border-[#E5E6E3] flex items-center justify-center shrink-0">
+                <Icon className="h-5 w-5 text-[#5B5F61]" />
             </div>
 
             <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{asset.title}</p>
-                <p className="text-sm text-muted-foreground truncate">
+                <p className="font-medium text-[#2D3538] truncate">{asset.title}</p>
+                <p className="text-sm text-[#9D9F9F] truncate">
                     {config?.label} • {formatDate(asset.createdAt)}
                 </p>
             </div>
@@ -350,13 +349,13 @@ function AssetListItem({
 
 function EmptyLibrary() {
     return (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
-                <LucideIcons.Sparkles className="h-8 w-8 text-muted-foreground/50" />
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="h-16 w-16 rounded-2xl bg-[#F8F9F7] border border-[#E5E6E3] flex items-center justify-center mb-6">
+                <LucideIcons.Sparkles className="h-8 w-8 text-[#9D9F9F]" />
             </div>
-            <h3 className="text-lg font-medium">No assets yet</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-                Create your first asset by describing what you need above.
+            <h3 className="font-serif text-[24px] text-[#2D3538] mb-2">No assets yet</h3>
+            <p className="text-[14px] text-[#5B5F61] max-w-xs">
+                Create your first asset by describing what you need.
             </p>
         </div>
     );

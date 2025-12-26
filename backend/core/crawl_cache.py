@@ -5,9 +5,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Tuple
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
-from backend.core.cache import get_cache_client
-from backend.core.config import get_settings
-from backend.core.vault import get_vault
+from core.cache import get_cache_client
+from core.config import get_settings
+from core.vault import get_vault
 
 
 DEFAULT_MAX_AGE_SECONDS = 900

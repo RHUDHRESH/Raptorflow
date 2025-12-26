@@ -1,9 +1,9 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from backend.db import save_memory, vector_search
-from backend.inference import InferenceProvider
-from backend.memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
+from db import save_memory, vector_search
+from inference import InferenceProvider
+from memory.policy import DEFAULT_IMPORTANCE, get_memory_policy
 
 logger = logging.getLogger("raptorflow.memory.semantic_l3")
 

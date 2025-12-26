@@ -2,11 +2,11 @@ import asyncio
 import os
 from unittest.mock import MagicMock
 
-from backend.agents.context_assembler import create_rag_node
-from backend.agents.quality import create_memory_governor
-from backend.agents.researchers import create_competitor_tracker
-from backend.agents.strategists import create_founder_profiler
-from backend.services.telemetry import CostEvaluator, RaptorEvaluator
+from agents.context_assembler import create_rag_node
+from agents.quality import create_memory_governor
+from agents.researchers import create_competitor_tracker
+from agents.strategists import create_founder_profiler
+from services.telemetry import CostEvaluator, RaptorEvaluator
 
 
 async def verify_milestone_10():

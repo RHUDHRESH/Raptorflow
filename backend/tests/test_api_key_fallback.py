@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 # Prevent crashes from real imports
 sys.modules["langchain_google_vertexai"] = MagicMock()
 
-from backend.core.config import Config  # noqa: E402
-from backend.inference import get_vertex_api_key  # noqa: E402
+from core.config import Config  # noqa: E402
+from inference import get_vertex_api_key  # noqa: E402
 
 
 def test_get_vertex_api_key_primary():

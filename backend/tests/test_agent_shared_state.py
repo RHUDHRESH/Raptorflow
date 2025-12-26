@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.memory.short_term import L1ShortTermMemory
-from backend.models.cognitive import AgentSharedState
+from memory.short_term import L1ShortTermMemory
+from models.cognitive import AgentSharedState
 
 
 @pytest.mark.asyncio

@@ -3,7 +3,7 @@ from typing import get_type_hints
 import pytest
 from langchain_core.messages import BaseMessage
 
-from backend.agents.supervisor import MatrixState
+from agents.supervisor import MatrixState
 
 
 def test_matrix_state_structure():

@@ -17,14 +17,14 @@ import pandas as pd
 import pytest
 
 # Import serverless modules
-from backend.mlops.serverless_architecture import (
+from mlops.serverless_architecture import (
     CloudProvider,
     FunctionType,
     ServerlessMLArchitecture,
     ServerlessTemplates,
     TriggerType,
 )
-from backend.mlops.serverless_data_processing import (
+from mlops.serverless_data_processing import (
     DataFormat,
     DataProcessingConfig比方,
     ProcessingResult,
@@ -32,7 +32,7 @@ from backend.mlops.serverless_data_processing import (
     ServerlessDataProcessor,
     StorageType,
 )
-from backend.mlops.serverless_error_handling import (
+from mlops.serverless_error_handling import (
     CircuitBreakerConfig,
     ErrorContext,
     ErrorSeverity,
@@ -41,7 +41,7 @@ from backend.mlops.serverless_error_handling import (
     RetryStrategy,
     ServerlessErrorHandler,
 )
-from backend.mlops.serverless_inference import (
+from mlops.serverless_inference import (
     InferenceEngine,
     InferenceRequest,
     InferenceResponse,
@@ -50,7 +50,7 @@ from backend.mlops.serverless_inference import (
     ModelLoader,
     ServerlessModelServer,
 )
-from backend.mlops.serverless_monitoring import (
+from mlops.serverless_monitoring import (
     AlertManager,
     LogLevel,
     MetricsCollector,
@@ -315,7 +315,7 @@ class TestServerlessDataProcessing:
     @pytest.mark.asyncio
     async def test_data_validation(self, data_processor, sample_data):
         """Test data validation."""
-        from backend.mlops.serverless_data_processing import DataValidator
+        from mlops.serverless_data_processing import DataValidator
 
         validator = DataValidator()
 
@@ -331,7 +331,7 @@ class TestServerlessDataProcessing:
     @pytest.mark.asyncio
     async def test_data_transformation(self, data_processor, sample_data):
         """Test data transformation."""
-        from backend.mlops.serverless_data_processing import DataTransformer
+        from mlops.serverless_data_processing import DataTransformer
 
         transformer = DataTransformer()
 

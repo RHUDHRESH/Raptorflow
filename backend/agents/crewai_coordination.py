@@ -15,8 +15,8 @@ from typing import Any, Callable, Dict, List, Optional, Set, Union
 from crewai import Agent, Crew, Task
 from pydantic import BaseModel
 
-from backend.agents.crewai_tasks import CrewTaskManager, TaskPriority, TaskStatus
-from backend.models.cognitive import CognitiveIntelligenceState
+from agents.crewai_tasks import CrewTaskManager, TaskPriority, TaskStatus
+from models.cognitive import CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.crewai.coordination")
 

@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.operators import (
+from agents.operators import (
     AuditResult,
     create_cdn_uploader,
     create_notion_operator,

@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from backend.services.matrix_service import MatrixService
+from services.matrix_service import MatrixService
 
 logger = logging.getLogger("raptorflow.services.circuit_breaker")
 

@@ -1,6 +1,6 @@
 import pytest
 
-from backend.core.prompts import CampaignPrompts
+from core.prompts import CampaignPrompts
 
 
 def test_campaign_planner_persona_structure():

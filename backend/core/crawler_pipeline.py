@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 import aiohttp
 from bs4 import BeautifulSoup
 
-from backend.tools.scraper import FirecrawlScraperTool, JinaReaderTool
+from tools.scraper import FirecrawlScraperTool, JinaReaderTool
 
 logger = logging.getLogger("raptorflow.crawler_pipeline")
 

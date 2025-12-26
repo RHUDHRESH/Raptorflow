@@ -1,11 +1,11 @@
 import pytest
 
-from backend.agents.specialists.campaign_planner import (
+from agents.specialists.campaign_planner import (
     CampaignArcOutput,
     MonthlyArc,
     StrategicMilestone,
 )
-from backend.core.briefing import BriefGenerator
+from core.briefing import BriefGenerator
 
 
 def test_brief_generation_logic():

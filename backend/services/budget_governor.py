@@ -1,9 +1,9 @@
 import logging
 from typing import Any, Dict, Optional
 
-from backend.core.cache import get_cache_client
-from backend.services.cost_governor import CostGovernor
-from backend.skills.matrix_skills import InferenceThrottlingSkill
+from core.cache import get_cache_client
+from services.cost_governor import CostGovernor
+from skills.matrix_skills import InferenceThrottlingSkill
 
 logger = logging.getLogger("raptorflow.services.budget_governor")
 

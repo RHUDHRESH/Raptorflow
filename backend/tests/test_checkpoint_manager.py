@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.memory.checkpoint import StateCheckpointManager
+from memory.checkpoint import StateCheckpointManager
 
 
 @pytest.fixture(autouse=True)

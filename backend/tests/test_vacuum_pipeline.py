@@ -1,6 +1,6 @@
 import pytest
 
-from backend.agents.vacuum_node import VacuumNode
+from agents.vacuum_node import VacuumNode
 
 
 def test_vacuum_valid_failure():

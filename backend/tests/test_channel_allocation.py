@@ -1,6 +1,6 @@
 import pytest
 
-from backend.core.channels import ChannelAllocator
+from core.channels import ChannelAllocator
 
 
 def test_channel_allocation_logic():

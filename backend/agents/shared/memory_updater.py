@@ -3,7 +3,7 @@ from typing import Optional
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
-from backend.inference import InferenceProvider
+from inference import InferenceProvider
 
 
 class StyleRule(BaseModel):

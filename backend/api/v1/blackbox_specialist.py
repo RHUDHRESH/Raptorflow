@@ -3,9 +3,9 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from backend.core.auth import get_current_user, get_tenant_id
-from backend.core.vault import Vault
-from backend.services.blackbox_service import BlackboxService
+from core.auth import get_current_user, get_tenant_id
+from core.vault import Vault
+from services.blackbox_service import BlackboxService
 
 router = APIRouter(prefix="/v1/blackbox/specialist", tags=["blackbox"])
 
@@ -30,7 +30,7 @@ async def run_specialist_agent(
     Useful for 'Verify' or 'Run Analysis' buttons in the UI.
     """
     # Map agent_id to specialist class
-    from backend.agents.blackbox_specialist import (
+    from agents.blackbox_specialist import (
         BlackboxCritiqueAgent,
         CompetitorIntelligenceAgent,
         LearningAgent,

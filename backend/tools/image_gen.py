@@ -1,8 +1,8 @@
 import logging
 from typing import Any, Dict
 
-from backend.core.config import get_settings
-from backend.core.tool_registry import RaptorRateLimiter
+from core.config import get_settings
+from core.tool_registry import RaptorRateLimiter
 
 logger = logging.getLogger("raptorflow.tools.image_gen")
 
@@ -57,8 +57,8 @@ class NanoBananaImageTool:
     """
 
     def __init__(self, model_tier: str = "nano"):
-        from backend.core.usage_tracker import usage_tracker
-        from backend.inference import InferenceProvider
+        from core.usage_tracker import usage_tracker
+        from inference import InferenceProvider
 
         self.model = InferenceProvider.get_image_model(model_tier=model_tier)
         self.usage_tracker = usage_tracker
@@ -67,13 +67,17 @@ class NanoBananaImageTool:
     def name(self) -> str:
         return "nano_banana_gen"
 
+    @property
+    def description(self) -> str:
+        return "Generates high-quality marketing images using Gemini Nano Banana model"
+
     async def run(
         self, tenant_id: str, prompt: str, aspect_ratio: str = "16:9"
     ) -> Dict[str, Any]:
         """Executes Nano Banana generation and GCS upload."""
         from google.genai import types
 
-        from backend.utils.storage import pil_to_bytes, upload_image_to_gcs
+        from utils.storage import pil_to_bytes, upload_image_to_gcs
 
         # Check Quota
         if not await self.usage_tracker.check_quota(tenant_id, "image"):

@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.services.accuracy_monitor import ModelAccuracyMonitor
+from services.accuracy_monitor import ModelAccuracyMonitor
 
 
 @pytest.mark.asyncio

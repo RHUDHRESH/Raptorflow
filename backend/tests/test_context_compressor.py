@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.memory.compressor import ContextWindowCompressor
+from memory.compressor import ContextWindowCompressor
 
 
 @pytest.mark.asyncio

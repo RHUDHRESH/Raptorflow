@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 
 import psycopg
 
-from backend.db import get_db_connection
+from db import get_db_connection
 
 logger = logging.getLogger("raptorflow.memory.knowledge_graph")
 

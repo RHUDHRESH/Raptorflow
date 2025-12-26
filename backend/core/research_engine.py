@@ -6,9 +6,9 @@ from urllib.parse import urlparse
 import aiohttp
 from bs4 import BeautifulSoup
 
-from backend.core.config import get_settings
-from backend.core.renderers.playwright import PlaywrightRenderer, should_render
-from backend.core.search_native import NativeSearch
+from core.config import get_settings
+from core.renderers.playwright import PlaywrightRenderer, should_render
+from core.search_native import NativeSearch
 
 logger = logging.getLogger("raptorflow.research_engine")
 

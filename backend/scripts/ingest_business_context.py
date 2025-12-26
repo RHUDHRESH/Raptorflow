@@ -3,7 +3,7 @@ import os
 
 from google.cloud import bigquery
 
-from backend.core.config import Config
+from core.config import Config
 
 
 def ingest_context():

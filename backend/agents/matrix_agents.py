@@ -4,8 +4,8 @@ from typing import Any, Dict, Optional
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
-from backend.models.capabilities import CapabilityProfile
-from backend.skills.matrix_skills import SkillPrivilegeMatrix, SkillRegistry
+from models.capabilities import CapabilityProfile
+from skills.matrix_skills import SkillPrivilegeMatrix, SkillRegistry
 
 logger = logging.getLogger("raptorflow.matrix.agents")
 

@@ -1,6 +1,6 @@
 import pytest
 
-from backend.agents.specialists.security_auditor import SecurityAuditorAgent
+from agents.specialists.security_auditor import SecurityAuditorAgent
 
 
 @pytest.mark.asyncio

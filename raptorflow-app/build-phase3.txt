@@ -1,0 +1,88 @@
+﻿
+> raptorflow-app@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.0 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 18.7s
+  Running TypeScript ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/44) ...
+node.exe : (node:13816) Warning: 
+`--localstorage-file` was provided without a 
+valid path
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: 
+((node:1    3816) Wa...ut a valid path:String) 
+[], RemoteExc    eption
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-warnings ...` to show where 
+the warning was created)
+  Generating static pages using 11 workers (11/44) 
+(node:19508) Warning: `--localstorage-file` was 
+provided without a valid path
+(Use `node --trace-warnings ...` to show where 
+the warning was created)
+  Generating static pages using 11 workers (22/44) 
+  Generating static pages using 11 workers (33/44) 
+Γ£ô Generating static pages using 11 workers (44/44) in 1067.4ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ Γùï /about
+Γö£ Γùï /about/blackbox
+Γö£ Γùï /about/matrix
+Γö£ Γùï /about/muse
+Γö£ ╞Æ /api/muse/chat
+Γö£ ╞Æ /api/onboarding/process
+Γö£ ╞Æ /auth/callback
+Γö£ Γùï /blackbox
+Γö£ Γùï /blog
+Γö£ Γùï /campaigns
+Γö£ Γùï /careers
+Γö£ Γùï /changelog
+Γö£ Γùï /cohorts
+Γö£ Γùï /community
+Γö£ Γùï /contact
+Γö£ Γùï /cookies
+Γö£ Γùï /dashboard
+Γö£ Γùï /docs
+Γö£ Γùï /faq
+Γö£ ╞Æ /features/[feature]
+Γö£ Γùï /foundation
+Γö£ Γùï /foundation/phase3
+Γö£ Γùï /gdpr
+Γö£ Γùï /help
+Γö£ Γùï /icp/new
+Γö£ Γùï /integrations
+Γö£ Γùï /login
+Γö£ Γùï /matrix
+Γö£ Γùï /moves
+Γö£ Γùï /muse
+Γö£ Γùï /muse/library
+Γö£ Γùï /press
+Γö£ Γùï /pricing
+Γö£ Γùï /privacy
+Γö£ Γùï /radar
+Γö£ Γùï /reveal-test
+Γö£ Γùï /roadmap
+Γö£ Γùï /settings
+Γö£ Γùï /target
+Γö£ Γùï /terms
+Γöö Γùï /typing-test
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+

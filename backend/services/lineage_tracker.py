@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict, Optional
 
-from backend.db import get_db_connection
+from db import get_db_connection
 
 logger = logging.getLogger("raptorflow.services.lineage_tracker")
 

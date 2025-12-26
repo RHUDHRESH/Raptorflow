@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from backend.tools.blackbox_tools import fetch_historical_performance_tool
+from tools.blackbox_tools import fetch_historical_performance_tool
 
 
 def test_fetch_historical_performance_tool():
@@ -41,7 +41,7 @@ def test_fetch_brand_kit_alignment_tool():
 
         # This will fail until implemented
         try:
-            from backend.tools.blackbox_tools import fetch_brand_kit_alignment_tool
+            from tools.blackbox_tools import fetch_brand_kit_alignment_tool
 
             res = fetch_brand_kit_alignment_tool("bk-123")
             assert res["brand_kit"]["name"] == "Serious Brand"

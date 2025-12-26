@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 
 import httpx
 
-from backend.core.config import get_settings
+from core.config import get_settings
 
 logger = logging.getLogger("raptorflow.core.search")
 

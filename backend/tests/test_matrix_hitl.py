@@ -1,6 +1,6 @@
 import pytest
 
-from backend.agents.supervisor import HumanInTheLoopNode
+from agents.supervisor import HumanInTheLoopNode
 
 
 @pytest.mark.asyncio

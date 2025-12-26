@@ -2,11 +2,11 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from backend.inference import InferenceProvider
-from backend.memory.episodic_l2 import L2EpisodicMemory
-from backend.memory.semantic_l3 import L3SemanticMemory
-from backend.memory.short_term import L1ShortTermMemory
-from backend.memory.swarm_learning import SwarmLearningMemory
+from inference import InferenceProvider
+from memory.episodic_l2 import L2EpisodicMemory
+from memory.semantic_l3 import L3SemanticMemory
+from memory.short_term import L1ShortTermMemory
+from memory.swarm_learning import SwarmLearningMemory
 
 logger = logging.getLogger("raptorflow.memory.manager")
 

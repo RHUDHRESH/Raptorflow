@@ -3,9 +3,9 @@ from typing import List, Optional
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
-from backend.core.config import get_settings
-from backend.inference import InferenceProvider
-from backend.memory.swarm_learning import SwarmLearningMemory
+from core.config import get_settings
+from inference import InferenceProvider
+from memory.swarm_learning import SwarmLearningMemory
 
 
 class RouterOutput(BaseModel):

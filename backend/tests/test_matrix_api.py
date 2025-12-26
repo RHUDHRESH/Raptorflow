@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.api.v1.matrix import get_matrix_service
-from backend.main import app
+from api.v1.matrix import get_matrix_service
+from main import app
 
 # Mock the service
 mock_service = MagicMock()

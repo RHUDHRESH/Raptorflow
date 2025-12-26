@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Any, Dict
 
-from backend.core.toolbelt import BaseRaptorTool
+from core.toolbelt import BaseRaptorTool
 
 logger = logging.getLogger("raptorflow.tools.exporter")
 
@@ -94,8 +94,16 @@ class ParquetExporter:
             logger.warning("Empty batch provided to ParquetExporter.")
             return True
 
+        # Import pyarrow with dependency management
+        from core.dependencies import get_data_dependencies
+        data_deps = get_data_dependencies()
+        pa = data_deps.import_pyarrow()
+        
+        if pa is None:
+            logger.error("pyarrow not installed. Parquet export failed.")
+            return False
+        
         try:
-            import pyarrow as pa
             import pyarrow.parquet as pq
 
             data = []
@@ -113,9 +121,6 @@ class ParquetExporter:
 
             pq.write_table(table, file_path)
             return True
-        except ImportError:
-            logger.error("pyarrow not installed. Parquet export failed.")
-            return False
         except Exception as e:
             logger.error(f"Failed to export Parquet: {e}")
             return False

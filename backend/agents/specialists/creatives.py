@@ -3,8 +3,8 @@ from typing import Dict, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from backend.inference import InferenceProvider
-from backend.models.cognitive import (
+from inference import InferenceProvider
+from models.cognitive import (
     AgentResponse,
     CognitiveStep,
     MarketingBrief,

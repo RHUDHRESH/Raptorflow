@@ -2,7 +2,7 @@ import glob
 
 import pandas as pd
 
-from backend.agents.vacuum_node import VacuumNode
+from agents.vacuum_node import VacuumNode
 
 
 def verify_quality_scores():

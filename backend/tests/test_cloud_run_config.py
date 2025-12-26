@@ -1,6 +1,6 @@
 import pytest
 
-from backend.scripts.deploy_cloud_run import deploy_to_cloud_run
+from scripts.deploy_cloud_run import deploy_to_cloud_run
 
 
 def test_deploy_command_contains_required_vars():

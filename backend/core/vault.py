@@ -3,7 +3,7 @@ from functools import lru_cache
 from google.cloud import secretmanager
 from supabase import Client, create_client
 
-from backend.core.config import get_settings
+from core.config import get_settings
 
 
 class Vault:

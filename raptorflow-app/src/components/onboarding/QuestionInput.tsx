@@ -1,12 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Question } from '@/lib/questionFlowData';
+import { Question, MicroPrompt } from '@/lib/questionFlowData';
 import styles from './QuestionFlow.module.css';
 import { Check, FileText, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { Reorder, useDragControls } from "framer-motion";
+import { Reorder } from "framer-motion";
 import { GripVertical } from 'lucide-react';
+
+// Import new input components
+import {
+    StepBuilder,
+    ArtifactSelector,
+    TriedBeforeList,
+    ProofPanel,
+    BulletText,
+    PricingBuilder,
+    RegionGeo,
+} from './inputs';
 
 interface QuestionInputProps {
     question: Question;
@@ -18,10 +29,9 @@ interface QuestionInputProps {
 export function QuestionInput({ question, value, onChange, onEnter }: QuestionInputProps) {
     const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
     const [focusedCardIndex, setFocusedCardIndex] = useState(-1);
-    const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
-        setFocusedCardIndex(-1); // Reset
+        setFocusedCardIndex(-1);
         setTimeout(() => inputRef.current?.focus(), 150);
     }, [question.id]);
 
@@ -29,7 +39,6 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
         if (!options) return;
         let nextIndex = focusedCardIndex;
 
-        // Simple linear navigation for now
         if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
             nextIndex = nextIndex < options.length - 1 ? nextIndex + 1 : 0;
             e.preventDefault();
@@ -41,7 +50,7 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                 e.preventDefault();
                 const option = options[focusedCardIndex];
                 if (option) {
-                    if (question.type === 'multi-select') {
+                    if (question.type === 'multi-select' || question.type === 'multi-select-with-custom') {
                         const vals = Array.isArray(value) ? value : [];
                         const isSel = vals.includes(option.value);
                         const newVals = isSel ? vals.filter((v: string) => v !== option.value) : [...vals, option.value];
@@ -57,7 +66,7 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey && question.type !== 'textarea') {
+        if (e.key === 'Enter' && !e.shiftKey && question.type !== 'textarea' && question.type !== 'textarea-prompted') {
             e.preventDefault();
             onEnter();
         }
@@ -69,12 +78,14 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                 <Input
                     ref={inputRef as any}
                     className="h-14 text-lg bg-background border-2 focus-visible:ring-0 focus-visible:border-primary shadow-sm"
-                    value={value}
+                    value={value || ''}
                     onChange={e => onChange(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={question.placeholder}
+                    autoComplete={question.autoComplete}
                 />
             );
+
         case 'url':
             return (
                 <div className="relative">
@@ -95,24 +106,59 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                     </div>
                 </div>
             );
+
+        case 'company-url':
+            // Combined company name + optional website
+            const companyValue = typeof value === 'object' ? value : { company: value || '', website: '' };
+            return (
+                <div className="space-y-4">
+                    <Input
+                        ref={inputRef as any}
+                        className="h-14 text-lg bg-background border-2 focus-visible:ring-0 focus-visible:border-primary shadow-sm"
+                        value={companyValue.company || ''}
+                        onChange={e => onChange({ ...companyValue, company: e.target.value })}
+                        onKeyDown={handleKeyDown}
+                        placeholder={question.placeholder || 'Company name'}
+                        autoComplete="organization"
+                    />
+                    <div className="relative">
+                        <Input
+                            type="url"
+                            className="h-12 text-base bg-background border focus-visible:ring-0 focus-visible:border-primary shadow-sm pl-12 text-muted-foreground"
+                            value={companyValue.website || ''}
+                            onChange={e => onChange({ ...companyValue, website: e.target.value })}
+                            onKeyDown={handleKeyDown}
+                            placeholder="https://... (optional)"
+                        />
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            );
+
         case 'text-large':
             return (
                 <Input
                     ref={inputRef as any}
                     className="h-20 text-2xl font-serif bg-background border-2 focus-visible:ring-2 focus-visible:border-primary px-8 shadow-sm"
-                    value={value}
+                    value={value || ''}
                     onChange={e => onChange(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={question.placeholder}
                 />
             );
+
         case 'textarea':
             return (
                 <div className="relative">
                     <Textarea
                         ref={inputRef as any}
                         className="min-h-[180px] text-lg p-6 resize-none bg-background border-2 focus-visible:ring-0 focus-visible:border-primary shadow-sm"
-                        value={value}
+                        value={value || ''}
                         onChange={e => onChange(e.target.value)}
                         placeholder={question.placeholder}
                     />
@@ -121,6 +167,35 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                     </span>
                 </div>
             );
+
+        case 'textarea-prompted':
+            return (
+                <div className="space-y-4">
+                    <div className="relative">
+                        <Textarea
+                            ref={inputRef as any}
+                            className="min-h-[200px] text-lg p-6 resize-none bg-background border-2 focus-visible:ring-0 focus-visible:border-primary shadow-sm"
+                            value={value || ''}
+                            onChange={e => onChange(e.target.value)}
+                            placeholder={question.placeholder}
+                        />
+                        <span className="absolute bottom-4 right-4 text-xs text-muted-foreground">
+                            {(value || '').length} chars
+                        </span>
+                    </div>
+                    {question.microPrompts && question.microPrompts.length > 0 && (
+                        <div className="bg-muted/30 rounded-xl p-4 space-y-2">
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Consider:</p>
+                            {question.microPrompts.map((prompt, i) => (
+                                <p key={i} className="text-sm text-muted-foreground italic">
+                                    • {prompt.text}
+                                </p>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+
         case 'file-upload':
             return (
                 <div
@@ -140,7 +215,6 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                         if (files.length > 0) {
                             const newFileNames = files.map(f => f.name);
                             const current = Array.isArray(value) ? value : [];
-                            // Filter duplicates
                             const unique = newFileNames.filter(n => !current.includes(n));
                             onChange([...current, ...unique]);
                         }
@@ -158,7 +232,7 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                                 const current = Array.isArray(value) ? value : [];
                                 const unique = newFileNames.filter(n => !current.includes(n));
                                 onChange([...current, ...unique]);
-                                e.target.value = ''; // Reset
+                                e.target.value = '';
                             }
                         }}
                     />
@@ -202,18 +276,20 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                     )}
                 </div>
             );
+
         case 'radio-cards':
             const optionCount = question.options?.length || 0;
             let gridClass = styles.radioCardsGrid;
             if (optionCount === 4) gridClass = styles.gridFour;
-            if (optionCount >= 5) gridClass = styles.gridFive;
+            if (optionCount === 5 || optionCount === 6) gridClass = styles.gridFive;
+            if (optionCount === 7) gridClass = styles.gridSeven;
 
             return (
                 <div
                     className={gridClass}
                     tabIndex={0}
                     onKeyDown={(e) => handleGridKeyDown(e, question.options || [])}
-                    style={{ outline: 'none' }} // Custom focus handling
+                    style={{ outline: 'none' }}
                 >
                     {question.options?.map((opt, idx) => (
                         <div
@@ -233,6 +309,7 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                     ))}
                 </div>
             );
+
         case 'choice-cards':
             const cOptionCount = question.options?.length || 0;
             let cGridClass = styles.choiceCardsGrid;
@@ -264,7 +341,9 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                     ))}
                 </div>
             );
+
         case 'multi-select':
+        case 'multi-select-with-custom':
             const vals = Array.isArray(value) ? value : [];
             const msOptionCount = question.options?.length || 0;
             let msGridClass = styles.multiSelectGrid;
@@ -302,6 +381,7 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                     })}
                 </div>
             );
+
         case 'text-list':
             const listCount = question.listCount || 3;
             const currentList = Array.isArray(value) ? value : Array(listCount).fill('');
@@ -321,7 +401,6 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !e.shiftKey) {
                                         e.preventDefault();
-                                        // Focus next input or submit if last
                                         if (i < listCount - 1) {
                                             const nextInput = document.querySelector(`input[name="text-list-${question.id}-${i + 1}"]`) as HTMLInputElement;
                                             nextInput?.focus();
@@ -342,7 +421,6 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
             );
 
         case 'drag-ranker':
-            // Initialize with all options if value is empty/different length
             const allOptions = question.options || [];
             const currentRank = (Array.isArray(value) && value.length === allOptions.length)
                 ? value
@@ -389,6 +467,56 @@ export function QuestionInput({ question, value, onChange, onEnter }: QuestionIn
                 </div>
             );
 
-        default: return null;
+        // ===== NEW QUESTION TYPES =====
+
+        case 'step-builder':
+            return <StepBuilder value={value || []} onChange={onChange} />;
+
+        case 'artifact-selector':
+            return (
+                <ArtifactSelector
+                    value={value || []}
+                    onChange={onChange}
+                    options={question.options as any || []}
+                />
+            );
+
+        case 'tried-before':
+            return <TriedBeforeList value={value || []} onChange={onChange} />;
+
+        case 'proof-panel':
+            return <ProofPanel value={value} onChange={onChange} />;
+
+        case 'bullet-text':
+            return (
+                <BulletText
+                    value={value}
+                    onChange={onChange}
+                    mainPlaceholder={question.placeholder}
+                    bulletCount={question.bulletCount}
+                    bulletLabels={question.bulletLabels}
+                />
+            );
+
+        case 'pricing-builder':
+            return (
+                <PricingBuilder
+                    value={value}
+                    onChange={onChange}
+                    options={question.options || []}
+                />
+            );
+
+        case 'region-geo':
+            return (
+                <RegionGeo
+                    value={value}
+                    onChange={onChange}
+                    options={question.options || []}
+                />
+            );
+
+        default:
+            return null;
     }
 }

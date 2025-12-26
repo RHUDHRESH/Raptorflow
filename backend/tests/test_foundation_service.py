@@ -3,8 +3,8 @@ from uuid import uuid4
 
 import pytest
 
-from backend.models.foundation import BrandKit
-from backend.services.foundation_service import FoundationService
+from models.foundation import BrandKit
+from services.foundation_service import FoundationService
 
 
 @pytest.fixture

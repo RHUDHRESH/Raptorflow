@@ -3,9 +3,9 @@ from typing import Any, Dict
 
 from pydantic import BaseModel, Field
 
-from backend.agents.base import BaseCognitiveAgent
-from backend.core.prompts import CreativePrompts
-from backend.models.cognitive import CognitiveIntelligenceState
+from agents.base import BaseCognitiveAgent
+from core.prompts import CreativePrompts
+from models.cognitive import CognitiveIntelligenceState
 
 logger = logging.getLogger("raptorflow.agents.image_generator")
 
@@ -26,7 +26,7 @@ class ImageGenAgent(BaseCognitiveAgent):
     """
 
     def __init__(self):
-        from backend.tools.registry import UnifiedToolRegistry
+        from tools.registry import UnifiedToolRegistry
 
         registry = UnifiedToolRegistry.default()
         profiles = registry.get_capability_profiles(["image_gen_dalle"])

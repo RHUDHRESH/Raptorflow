@@ -3,10 +3,10 @@ import logging
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from backend.core.config import get_settings
-from backend.core.lifecycle import apply_lifecycle_transition
-from backend.db import SupabaseSaver, get_pool
-from backend.models.cognitive import CognitiveIntelligenceState, CognitiveStatus
+from core.config import get_settings
+from core.lifecycle import apply_lifecycle_transition
+from db import SupabaseSaver, get_pool
+from models.cognitive import CognitiveIntelligenceState, CognitiveStatus
 
 logger = logging.getLogger("raptorflow.cognitive.spine")
 
@@ -45,7 +45,7 @@ async def evaluate_run(state: CognitiveIntelligenceState):
     """
     Evaluates telemetry and feedback, persisting learnings post-run.
     """
-    from backend.services.evaluation import EvaluationService
+    from services.evaluation import EvaluationService
 
     evaluator = EvaluationService()
     evaluation = evaluator.evaluate_run(

@@ -5,9 +5,9 @@ import httpx
 from bs4 import BeautifulSoup
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from backend.core.crawl_cache import CrawlCache
-from backend.db import get_db_connection
-from backend.inference import InferenceProvider
+from core.crawl_cache import CrawlCache
+from db import get_db_connection
+from inference import InferenceProvider
 
 
 class IngestionService:

@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.agents.strategists import StrategyReplanner
+from agents.strategists import StrategyReplanner
 
 
 @pytest.mark.asyncio

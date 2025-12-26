@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from backend.db import get_db_connection
+from db import get_db_connection
 
 
 class MemoryReaderAgent:

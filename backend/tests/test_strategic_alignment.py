@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from backend.agents.strategists import BrandVoiceAligner
+from agents.strategists import BrandVoiceAligner
 
 
 @pytest.mark.asyncio

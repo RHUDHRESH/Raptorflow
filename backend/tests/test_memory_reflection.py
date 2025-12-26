@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agents.memory_reflection import MemoryReflectionAgent
+from agents.memory_reflection import MemoryReflectionAgent
 
 
 @pytest.mark.asyncio

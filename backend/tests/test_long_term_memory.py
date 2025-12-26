@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.memory.long_term import LongTermMemory
+from memory.long_term import LongTermMemory
 
 
 @pytest.mark.asyncio

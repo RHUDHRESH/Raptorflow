@@ -2,7 +2,7 @@ import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
-from backend.core.middleware import TraceIDMiddleware, get_current_trace_id
+from core.middleware import TraceIDMiddleware, get_current_trace_id
 
 
 def test_trace_id_middleware_propagation():

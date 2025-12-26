@@ -1,0 +1,790 @@
+/* ================================================
+   Move Wizard — Onboarding Split-Panel Style
+   Matching QuestionFlow "Quiet Luxury" Design
+   ================================================ */
+
+/* ===== Dialog Override ===== */
+.wizardDialog {
+    position: fixed !important;
+    inset: 0 !important;
+    left: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    transform: none !important;
+    max-width: 100vw !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #FFFFFF !important;
+    z-index: 100 !important;
+}
+
+/* Hide the default Radix close button since we have custom exit */
+.wizardDialog>button[class*="absolute"] {
+    display: none !important;
+}
+
+/* ===== Main Container ===== */
+.wizardContainer {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+    background: #FFFFFF;
+    overflow: hidden;
+}
+
+/* ===== Left Panel (Context/Nav) ===== */
+.leftPanel {
+    width: 400px;
+    background: #1A1D1E;
+    color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    padding: 48px;
+    position: relative;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+.leftPanel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 0% 100%, rgba(255, 255, 255, 0.03) 0%, transparent 40%);
+    opacity: 1;
+    pointer-events: none;
+}
+
+.logoArea {
+    margin-bottom: 64px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.logoBox {
+    width: 24px;
+    height: 24px;
+    background: #FFFFFF;
+    border-radius: 4px;
+}
+
+.logoText {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+}
+
+.stepInfo {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.stepLabel {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 12px;
+    display: block;
+}
+
+.stepTitle {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 40px;
+    font-weight: 400;
+    color: #FFFFFF;
+    line-height: 1.1;
+    margin-bottom: 16px;
+}
+
+.stepDescription {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 280px;
+}
+
+/* Progress Steps */
+.progressSteps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 48px;
+    position: relative;
+    z-index: 1;
+}
+
+.progressStep {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0.4;
+    transition: all 300ms ease;
+    cursor: pointer;
+}
+
+.progressStep:hover {
+    opacity: 0.6;
+}
+
+.progressStep.active {
+    opacity: 1;
+}
+
+.progressStep.completed {
+    opacity: 0.7;
+}
+
+.stepDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    transition: all 300ms ease;
+}
+
+.progressStep.active .stepDot {
+    width: 8px;
+    height: 8px;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+}
+
+.stepName {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.footerMeta {
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+.exitButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 200ms ease;
+}
+
+.exitButton:hover {
+    color: #FFFFFF;
+}
+
+/* ===== Right Panel (Canvas) ===== */
+.rightPanel {
+    flex: 1;
+    background: #F8F9F7;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-y: auto;
+}
+
+.panelContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 64px 120px;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ===== Question Area ===== */
+.questionWrapper {
+    width: 100%;
+    max-width: 600px;
+    animation: slideIn 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.questionHeader {
+    margin-bottom: 40px;
+    text-align: left;
+}
+
+.qNumber {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.qText {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 32px;
+    font-weight: 500;
+    color: #2D3538;
+    line-height: 1.25;
+    margin-bottom: 12px;
+}
+
+.qHint {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: #5B5F61;
+    line-height: 1.6;
+}
+
+/* ===== Input Area ===== */
+.inputArea {
+    width: 100%;
+    margin-bottom: 48px;
+}
+
+/* Text Input */
+.textInput {
+    width: 100%;
+    height: 64px;
+    padding: 0 24px;
+    background: #FFFFFF;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    color: #2D3538;
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    transition: all 250ms ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03), 0 0 0 1px #E5E6E3;
+}
+
+.textInput:focus {
+    border-color: #2D3538;
+    box-shadow: 0 12px 32px rgba(45, 53, 56, 0.12);
+    transform: translateY(-2px);
+    outline: none;
+}
+
+.textInput::placeholder {
+    color: #9D9F9F;
+}
+
+/* ===== Option Cards Grid ===== */
+.optionsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.optionsGrid.triple {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.optionCard {
+    background: #FFFFFF;
+    border: 1px solid #E5E6E3;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 250ms ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.optionCard:hover {
+    border-color: #C0C1BE;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.04);
+}
+
+.optionCard.selected {
+    background: #1A1D1E;
+    border-color: #1A1D1E;
+    color: #FFFFFF;
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(26, 29, 30, 0.2);
+}
+
+.optionIcon {
+    font-size: 24px;
+    margin-bottom: 12px;
+}
+
+.optionTitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #2D3538;
+}
+
+.optionCard.selected .optionTitle {
+    color: #FFFFFF;
+}
+
+.optionDesc {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #5B5F61;
+}
+
+.optionCard.selected .optionDesc {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.checkmark {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.optionCard.selected .checkmark {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ===== Segmented Control ===== */
+.segmentedControl {
+    display: flex;
+    gap: 8px;
+    background: #FFFFFF;
+    padding: 6px;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px #E5E6E3;
+}
+
+.segment {
+    flex: 1;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #5B5F61;
+    cursor: pointer;
+    transition: all 200ms ease;
+}
+
+.segment:hover {
+    background: #F8F9F7;
+}
+
+.segment.active {
+    background: #1A1D1E;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(26, 29, 30, 0.15);
+}
+
+/* ===== Template Cards ===== */
+.templateGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.templateCard {
+    background: #FFFFFF;
+    border: 1px solid #E5E6E3;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 250ms ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.templateCard:hover {
+    border-color: #C0C1BE;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+}
+
+.templateCard.selected {
+    background: #1A1D1E;
+    border-color: #1A1D1E;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(26, 29, 30, 0.2);
+}
+
+.templateCard.selected .templateName {
+    color: #FFFFFF;
+}
+
+.templateCard.selected .templateDesc {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.templateCard.selected .templateTag {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.templateCard .checkmark {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.templateCard.selected .checkmark {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.templateName {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2D3538;
+    margin-bottom: 8px;
+    transition: color 200ms ease;
+}
+
+.templateDesc {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: #5B5F61;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    transition: color 200ms ease;
+}
+
+.templateMeta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.templateTag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: #2D3538;
+    background: #F0F1EF;
+    padding: 5px 10px;
+    border-radius: 6px;
+    transition: all 200ms ease;
+}
+
+/* ===== Live Preview Panel ===== */
+.previewPanel {
+    position: fixed;
+    top: 80px;
+    right: 64px;
+    width: 280px;
+    background: #FFFFFF;
+    border: 1px solid #E5E6E3;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+.previewTitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #9D9F9F;
+    margin-bottom: 16px;
+}
+
+.previewRow {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #F8F9F7;
+}
+
+.previewRow:last-child {
+    border-bottom: none;
+}
+
+.previewLabel {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #9D9F9F;
+}
+
+.previewValue {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #2D3538;
+}
+
+/* ===== Action Area ===== */
+.actionArea {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.keyboardHint {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #9CA3AF;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.key {
+    background: #FFFFFF;
+    border: 1px solid #E5E6E3;
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #5B5F61;
+}
+
+.backButton {
+    background: transparent;
+    border: none;
+    color: #9CA3AF;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 12px 16px;
+    border-radius: 8px;
+    transition: all 150ms ease;
+}
+
+.backButton:hover {
+    color: #2D3538;
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.continueBtn {
+    height: 56px;
+    padding: 0 40px;
+    background: #1A1D1E;
+    color: #FFFFFF;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 250ms ease;
+}
+
+.continueBtn:hover {
+    background: #000000;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.continueBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ===== Move Brief (Review Screen) ===== */
+.moveBrief {
+    background: #FFFFFF;
+    border: 1px solid #E5E6E3;
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+}
+
+.briefTitle {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 24px;
+    font-weight: 500;
+    color: #2D3538;
+    margin-bottom: 24px;
+}
+
+.briefSection {
+    margin-bottom: 20px;
+}
+
+.briefLabel {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #9D9F9F;
+    margin-bottom: 6px;
+}
+
+.briefValue {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: #2D3538;
+    line-height: 1.5;
+}
+
+/* ===== Success Screen ===== */
+.successContainer {
+    text-align: center;
+    padding: 40px;
+}
+
+.successIcon {
+    font-size: 64px;
+    margin-bottom: 24px;
+}
+
+.successTitle {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 48px;
+    font-weight: 500;
+    color: #2D3538;
+    margin-bottom: 12px;
+}
+
+.successText {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    color: #5B5F61;
+    margin-bottom: 40px;
+}
+
+.startDayCard {
+    background: #1A1D1E;
+    border-radius: 20px;
+    padding: 32px;
+    text-align: left;
+    color: #FFFFFF;
+    margin-bottom: 24px;
+}
+
+.startDayTitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 16px;
+}
+
+.startDayTask {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.startDayTime {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.successActions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1024px) {
+    .wizardContainer {
+        flex-direction: column;
+    }
+
+    .leftPanel {
+        width: 100%;
+        padding: 24px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .stepInfo,
+    .progressSteps,
+    .footerMeta {
+        display: none;
+    }
+
+    .panelContent {
+        padding: 40px 24px;
+    }
+
+    .previewPanel {
+        display: none;
+    }
+
+    .optionsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .templateGrid {
+        grid-template-columns: 1fr;
+    }
+}
