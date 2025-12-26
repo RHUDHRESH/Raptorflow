@@ -207,8 +207,8 @@ DROP POLICY IF EXISTS "Workspaces: Owners can delete" ON workspaces;
 CREATE POLICY "Workspaces: Owners and admins can view all" ON workspaces
     FOR SELECT USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.tenant_id = workspaces.id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.tenant_id = workspaces.id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -216,7 +216,7 @@ CREATE POLICY "Workspaces: Owners and admins can view all" ON workspaces
 CREATE POLICY "Workspaces: Members can view their workspaces" ON workspaces
     FOR SELECT USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
+            SELECT user_id FROM workspace_members
             WHERE workspace_members.tenant_id = workspaces.id
         )
     );
@@ -224,8 +224,8 @@ CREATE POLICY "Workspaces: Members can view their workspaces" ON workspaces
 CREATE POLICY "Workspaces: Owners and admins can update" ON workspaces
     FOR UPDATE USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.tenant_id = workspaces.id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.tenant_id = workspaces.id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -236,8 +236,8 @@ CREATE POLICY "Workspaces: Owners can insert" ON workspaces
 CREATE POLICY "Workspaces: Owners can delete" ON workspaces
     FOR DELETE USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.tenant_id = workspaces.id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.tenant_id = workspaces.id
             AND workspace_members.role = 'owner'
         )
     );
@@ -253,7 +253,7 @@ DROP POLICY IF EXISTS "Workspace Members: Users can delete their own membership"
 CREATE POLICY "Workspace Members: Members can view their workspace members" ON workspace_members
     FOR SELECT USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
+            SELECT user_id FROM workspace_members
             WHERE workspace_members.tenant_id = workspace_members.tenant_id
         )
     );
@@ -261,8 +261,8 @@ CREATE POLICY "Workspace Members: Members can view their workspace members" ON w
 CREATE POLICY "Workspace Members: Owners and admins can insert" ON workspace_members
     FOR INSERT WITH CHECK (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.tenant_id = workspace_members.tenant_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.tenant_id = workspace_members.tenant_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -270,8 +270,8 @@ CREATE POLICY "Workspace Members: Owners and admins can insert" ON workspace_mem
 CREATE POLICY "Workspace Members: Owners and admins can update" ON workspace_members
     FOR UPDATE USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.tenant_id = workspace_members.tenant_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.tenant_id = workspace_members.tenant_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -282,8 +282,8 @@ CREATE POLICY "Workspace Members: Users can update their own membership" ON work
 CREATE POLICY "Workspace Members: Owners and admins can delete" ON workspace_members
     FOR DELETE USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.tenant_id = workspace_members.tenant_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.tenant_id = workspace_members.tenant_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -304,8 +304,8 @@ CREATE OR REPLACE FUNCTION is_workspace_member(tenant_uuid UUID, user_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
     RETURN EXISTS (
-        SELECT 1 FROM workspace_members 
-        WHERE tenant_id = tenant_uuid 
+        SELECT 1 FROM workspace_members
+        WHERE tenant_id = tenant_uuid
         AND user_id = user_uuid
     );
 END;
@@ -316,8 +316,8 @@ CREATE OR REPLACE FUNCTION get_user_workspace_role(tenant_uuid UUID, user_uuid U
 RETURNS TEXT AS $$
 BEGIN
     RETURN (
-        SELECT role FROM workspace_members 
-        WHERE tenant_id = tenant_uuid 
+        SELECT role FROM workspace_members
+        WHERE tenant_id = tenant_uuid
         AND user_id = user_uuid
         LIMIT 1
     );
@@ -345,7 +345,7 @@ BEGIN
     SELECT COUNT(*) INTO total_experiments FROM blackbox_experiments WHERE tenant_id = tenant_uuid;
     SELECT COUNT(*) INTO active_experiments FROM blackbox_experiments WHERE tenant_id = tenant_uuid AND status = 'launched';
     SELECT COUNT(*) INTO total_assets FROM muse_assets WHERE tenant_id = tenant_uuid;
-    
+
     result := jsonb_build_object(
         'total_campaigns', total_campaigns,
         'active_campaigns', active_campaigns,
@@ -356,7 +356,7 @@ BEGIN
         'total_assets', total_assets,
         'calculated_at', now()
     );
-    
+
     RETURN result;
 END;
 $$ language 'plpgsql';
@@ -374,19 +374,19 @@ DECLARE
 BEGIN
     -- Check for any remaining workspace_id columns
     SELECT array_agg(table_name) INTO inconsistent_tables
-    FROM information_schema.columns 
-    WHERE column_name = 'workspace_id' 
+    FROM information_schema.columns
+    WHERE column_name = 'workspace_id'
     AND table_schema = 'public';
-    
+
     result := jsonb_build_object(
         'validation_timestamp', now(),
         'inconsistent_tables', inconsistent_tables,
-        'status', CASE 
+        'status', CASE
             WHEN inconsistent_tables IS NULL THEN 'consistent'
             ELSE 'inconsistent'
         END
     );
-    
+
     RETURN result;
 END;
 $$ language 'plpgsql';

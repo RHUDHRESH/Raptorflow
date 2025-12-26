@@ -26,7 +26,11 @@ def parse_pdf(content: bytes) -> ParsedAsset:
                 text_parts.append(f"[Page {index}]\n{page_text}")
             page_title = page_text.splitlines()[0].strip() if page_text else ""
             page_entries.append(
-                {"page_number": index, "title": page_title, "char_count": len(page_text)}
+                {
+                    "page_number": index,
+                    "title": page_title,
+                    "char_count": len(page_text),
+                }
             )
 
     with fitz.open(stream=content, filetype="pdf") as doc:

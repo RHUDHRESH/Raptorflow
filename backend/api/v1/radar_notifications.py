@@ -1,6 +1,7 @@
 """
 Radar Notifications API Endpoints
 """
+
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -28,7 +29,9 @@ async def process_notifications(
     try:
         # In real implementation, fetch signals from database
         mock_signals = []
-        notifications = await service.process_signal_notifications(mock_signals, tenant_preferences)
+        notifications = await service.process_signal_notifications(
+            mock_signals, tenant_preferences
+        )
         return notifications
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

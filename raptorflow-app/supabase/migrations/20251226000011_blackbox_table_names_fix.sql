@@ -41,7 +41,7 @@ DROP POLICY IF EXISTS "Blackbox Telemetry: Owners and admins can manage" ON blac
 CREATE POLICY "Blackbox Telemetry: Workspace members can view" ON blackbox_telemetry_industrial
     FOR SELECT USING (
         tenant_id IN (
-            SELECT tenant_id FROM workspace_members 
+            SELECT tenant_id FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -49,8 +49,8 @@ CREATE POLICY "Blackbox Telemetry: Workspace members can view" ON blackbox_telem
 CREATE POLICY "Blackbox Telemetry: Owners and admins can manage" ON blackbox_telemetry_industrial
     FOR ALL USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.tenant_id = blackbox_telemetry_industrial.tenant_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.tenant_id = blackbox_telemetry_industrial.tenant_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -61,7 +61,7 @@ DROP POLICY IF EXISTS "Blackbox Outcomes: Owners and admins can manage" ON black
 CREATE POLICY "Blackbox Outcomes: Workspace members can view" ON blackbox_outcomes_industrial
     FOR SELECT USING (
         tenant_id IN (
-            SELECT tenant_id FROM workspace_members 
+            SELECT tenant_id FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -69,8 +69,8 @@ CREATE POLICY "Blackbox Outcomes: Workspace members can view" ON blackbox_outcom
 CREATE POLICY "Blackbox Outcomes: Owners and admins can manage" ON blackbox_outcomes_industrial
     FOR ALL USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.tenant_id = blackbox_outcomes_industrial.tenant_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.tenant_id = blackbox_outcomes_industrial.tenant_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -81,7 +81,7 @@ DROP POLICY IF EXISTS "Blackbox Learnings: Owners and admins can manage" ON blac
 CREATE POLICY "Blackbox Learnings: Workspace members can view" ON blackbox_learnings_industrial
     FOR SELECT USING (
         tenant_id IN (
-            SELECT tenant_id FROM workspace_members 
+            SELECT tenant_id FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -89,8 +89,8 @@ CREATE POLICY "Blackbox Learnings: Workspace members can view" ON blackbox_learn
 CREATE POLICY "Blackbox Learnings: Owners and admins can manage" ON blackbox_learnings_industrial
     FOR ALL USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.tenant_id = blackbox_learnings_industrial.tenant_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.tenant_id = blackbox_learnings_industrial.tenant_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -105,7 +105,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         bli.id,
         bli.content,
         1 - (bli.embedding <=> query_embedding) as similarity
@@ -146,34 +146,34 @@ DECLARE
 BEGIN
     -- Check if industrial tables exist
     SELECT EXISTS (
-        SELECT 1 FROM information_schema.tables 
-        WHERE table_name = 'blackbox_telemetry_industrial' 
+        SELECT 1 FROM information_schema.tables
+        WHERE table_name = 'blackbox_telemetry_industrial'
         AND table_schema = 'public'
     ) INTO telemetry_exists;
-    
+
     SELECT EXISTS (
-        SELECT 1 FROM information_schema.tables 
-        WHERE table_name = 'blackbox_outcomes_industrial' 
+        SELECT 1 FROM information_schema.tables
+        WHERE table_name = 'blackbox_outcomes_industrial'
         AND table_schema = 'public'
     ) INTO outcomes_exists;
-    
+
     SELECT EXISTS (
-        SELECT 1 FROM information_schema.tables 
-        WHERE table_name = 'blackbox_learnings_industrial' 
+        SELECT 1 FROM information_schema.tables
+        WHERE table_name = 'blackbox_learnings_industrial'
         AND table_schema = 'public'
     ) INTO learnings_exists;
-    
+
     result := jsonb_build_object(
         'validation_timestamp', now(),
         'blackbox_telemetry_industrial_exists', telemetry_exists,
         'blackbox_outcomes_industrial_exists', outcomes_exists,
         'blackbox_learnings_industrial_exists', learnings_exists,
-        'status', CASE 
+        'status', CASE
             WHEN telemetry_exists AND outcomes_exists AND learnings_exists THEN 'consistent'
             ELSE 'inconsistent'
         END
     );
-    
+
     RETURN result;
 END;
 $$ language 'plpgsql';

@@ -19,7 +19,9 @@ def apply_lifecycle_transition(
     updates: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     updates = updates or {}
-    previous = state.get("lifecycle_state") or state.get("status") or CognitiveStatus.IDLE
+    previous = (
+        state.get("lifecycle_state") or state.get("status") or CognitiveStatus.IDLE
+    )
     previous_value = _normalize_state(previous)
     status = (
         next_status

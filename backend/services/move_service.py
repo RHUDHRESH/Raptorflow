@@ -34,9 +34,7 @@ class MoveService:
         if not campaign:
             return None
 
-        from graphs.moves_campaigns_orchestrator import (
-            moves_campaigns_orchestrator,
-        )
+        from graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
         # To trigger move generation, we set status to 'monitoring' (see router logic)
         initial_state = {
@@ -62,9 +60,7 @@ class MoveService:
 
     async def get_moves_generation_status(self, campaign_id: str) -> Optional[dict]:
         """Retrieves the current status of move generation."""
-        from graphs.moves_campaigns_orchestrator import (
-            moves_campaigns_orchestrator,
-        )
+        from graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
         config = {"configurable": {"thread_id": campaign_id}}
         state = await moves_campaigns_orchestrator.aget_state(config)

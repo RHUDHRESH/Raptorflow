@@ -2,10 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from agents.specialists.muse_briefer import (
-    CreativeBriefOutput,
-    MuseBriefingAgent,
-)
+from agents.specialists.muse_briefer import CreativeBriefOutput, MuseBriefingAgent
 from models.cognitive import AgentMessage
 
 

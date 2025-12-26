@@ -1,11 +1,11 @@
-import os
 import logging
+import os
 from typing import Any, Optional
 from uuid import UUID
 
 import httpx
 from fastapi import Header, HTTPException, status
-from jose import JWTError, ExpiredSignatureError, jwk, jwt
+from jose import ExpiredSignatureError, JWTError, jwk, jwt
 
 from core.config import get_settings
 
@@ -22,7 +22,10 @@ async def get_tenant_id(x_tenant_id: Optional[str] = Header(None)) -> UUID:
     if not x_tenant_id:
         settings = get_settings()
         # Only allow fallback in development environments
-        if settings.ALLOW_DEFAULT_TENANT_ID_FALLBACK and os.getenv("ENVIRONMENT") == "development":
+        if (
+            settings.ALLOW_DEFAULT_TENANT_ID_FALLBACK
+            and os.getenv("ENVIRONMENT") == "development"
+        ):
             logger.warning("Using default tenant ID fallback - development mode only")
             return UUID(settings.DEFAULT_TENANT_ID)
         logger.warning("Missing X-Tenant-ID header")
@@ -54,13 +57,13 @@ async def _fetch_jwks(jwks_url: str) -> dict[str, Any]:
         logger.error(f"Failed to fetch JWKS from {jwks_url}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to fetch authentication keys."
+            detail="Failed to fetch authentication keys.",
         )
     except Exception as e:
         logger.error(f"Unexpected error fetching JWKS: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Authentication service unavailable."
+            detail="Authentication service unavailable.",
         )
 
 
@@ -114,7 +117,9 @@ async def _decode_with_jwks(
     )
 
 
-async def get_current_user(authorization: Optional[str] = Header(None)) -> dict[str, Any]:
+async def get_current_user(
+    authorization: Optional[str] = Header(None),
+) -> dict[str, Any]:
     """
     Verifies the JWT and returns the user object.
     Supports Supabase/Auth0 via JWKS or shared secret.
@@ -129,9 +134,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict[
     )
     audience = settings.AUTH_AUDIENCE or "authenticated"
     algorithms = [
-        alg.strip()
-        for alg in settings.AUTH_JWT_ALGORITHMS.split(",")
-        if alg.strip()
+        alg.strip() for alg in settings.AUTH_JWT_ALGORITHMS.split(",") if alg.strip()
     ]
 
     try:

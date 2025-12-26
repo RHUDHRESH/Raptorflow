@@ -141,7 +141,9 @@ async def test_hierarchical_supervisor_delegation():
 
     # We mock the initialization of HierarchicalSupervisor to inject our mock_chain
     supervisor = SwarmController(
-        supervisor_llm=mock_llm, team_members=["research"], system_prompt="System prompt"
+        supervisor_llm=mock_llm,
+        team_members=["research"],
+        system_prompt="System prompt",
     )
     with patch.object(
         SwarmController, "supervisor_chain", new_callable=PropertyMock

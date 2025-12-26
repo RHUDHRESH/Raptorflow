@@ -1,6 +1,7 @@
 """
 Radar Scheduler API Endpoints
 """
+
 from typing import Any, Dict, List
 from uuid import UUID
 
@@ -62,7 +63,7 @@ async def schedule_manual_scan(
             "job_id": job.id,
             "status": job.status,
             "source_count": len(source_ids),
-            "scan_type": scan_type
+            "scan_type": scan_type,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

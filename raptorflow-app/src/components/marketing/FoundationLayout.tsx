@@ -29,12 +29,12 @@ export function FoundationLayout({ children }: FoundationLayoutProps) {
     }, []);
 
     return (
-        <div 
+        <div
             ref={containerRef}
             className="min-h-screen bg-[#0E1112] flex overflow-hidden"
         >
             {/* Left Panel - Context/Navigation */}
-            <div 
+            <div
                 ref={leftPanelRef}
                 className="w-[400px] bg-[#1A1D1E] flex flex-col p-12 relative z-10 flex-shrink-0"
             >
@@ -80,7 +80,7 @@ export function FoundationLayout({ children }: FoundationLayoutProps) {
             </div>
 
             {/* Right Panel - Content Canvas */}
-            <div 
+            <div
                 ref={rightPanelRef}
                 className="flex-1 bg-[#F8F9F7] relative overflow-y-auto"
             >

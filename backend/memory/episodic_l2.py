@@ -32,7 +32,9 @@ class L2EpisodicMemory:
             metadata = {}
         metadata["type"] = self.memory_type
         policy = get_memory_policy()
-        metadata.update(policy.retention_metadata(workspace_importance, agent_importance))
+        metadata.update(
+            policy.retention_metadata(workspace_importance, agent_importance)
+        )
 
         try:
             episode_id = await save_memory(

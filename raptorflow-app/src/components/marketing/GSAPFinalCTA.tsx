@@ -108,7 +108,7 @@ export function GSAPFinalCTA() {
                 Ready to Transform?
               </p>
             </div>
-            
+
             <div className="cta-text">
               <h2 className="font-display text-5xl lg:text-7xl font-bold mb-6 leading-tight">
                 Start shipping

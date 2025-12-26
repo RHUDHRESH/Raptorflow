@@ -68,8 +68,8 @@ ALTER TABLE workspace_settings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Workspaces: Owners and admins can view all" ON workspaces
     FOR SELECT USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.workspace_id = workspaces.id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.workspace_id = workspaces.id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -77,7 +77,7 @@ CREATE POLICY "Workspaces: Owners and admins can view all" ON workspaces
 CREATE POLICY "Workspaces: Members can view their workspaces" ON workspaces
     FOR SELECT USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
+            SELECT user_id FROM workspace_members
             WHERE workspace_members.workspace_id = workspaces.id
         )
     );
@@ -85,8 +85,8 @@ CREATE POLICY "Workspaces: Members can view their workspaces" ON workspaces
 CREATE POLICY "Workspaces: Owners and admins can update" ON workspaces
     FOR UPDATE USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.workspace_id = workspaces.id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.workspace_id = workspaces.id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -97,8 +97,8 @@ CREATE POLICY "Workspaces: Owners can insert" ON workspaces
 CREATE POLICY "Workspaces: Owners can delete" ON workspaces
     FOR DELETE USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.workspace_id = workspaces.id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.workspace_id = workspaces.id
             AND workspace_members.role = 'owner'
         )
     );
@@ -107,7 +107,7 @@ CREATE POLICY "Workspaces: Owners can delete" ON workspaces
 CREATE POLICY "Workspace Members: Members can view their workspace members" ON workspace_members
     FOR SELECT USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
+            SELECT user_id FROM workspace_members
             WHERE workspace_members.workspace_id = workspace_members.workspace_id
         )
     );
@@ -115,8 +115,8 @@ CREATE POLICY "Workspace Members: Members can view their workspace members" ON w
 CREATE POLICY "Workspace Members: Owners and admins can insert" ON workspace_members
     FOR INSERT WITH CHECK (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.workspace_id = workspace_members.workspace_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.workspace_id = workspace_members.workspace_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -124,8 +124,8 @@ CREATE POLICY "Workspace Members: Owners and admins can insert" ON workspace_mem
 CREATE POLICY "Workspace Members: Owners and admins can update" ON workspace_members
     FOR UPDATE USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.workspace_id = workspace_members.workspace_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.workspace_id = workspace_members.workspace_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -136,8 +136,8 @@ CREATE POLICY "Workspace Members: Users can update their own membership" ON work
 CREATE POLICY "Workspace Members: Owners and admins can delete" ON workspace_members
     FOR DELETE USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.workspace_id = workspace_members.workspace_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.workspace_id = workspace_members.workspace_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -153,7 +153,7 @@ CREATE POLICY "Workspace Members: Users can delete their own membership" ON work
 CREATE POLICY "Foundation Brand Kits: Workspace members can view" ON foundation_brand_kits
     FOR SELECT USING (
         workspace_id IN (
-            SELECT workspace_id FROM workspace_members 
+            SELECT workspace_id FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -161,8 +161,8 @@ CREATE POLICY "Foundation Brand Kits: Workspace members can view" ON foundation_
 CREATE POLICY "Foundation Brand Kits: Owners and admins can manage" ON foundation_brand_kits
     FOR ALL USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.workspace_id = foundation_brand_kits.workspace_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.workspace_id = foundation_brand_kits.workspace_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -171,9 +171,9 @@ CREATE POLICY "Foundation Brand Kits: Owners and admins can manage" ON foundatio
 CREATE POLICY "Foundation Positioning: Workspace members can view" ON foundation_positioning
     FOR SELECT USING (
         brand_kit_id IN (
-            SELECT id FROM foundation_brand_kits 
+            SELECT id FROM foundation_brand_kits
             WHERE workspace_id IN (
-                SELECT workspace_id FROM workspace_members 
+                SELECT workspace_id FROM workspace_members
                 WHERE workspace_members.user_id = auth.uid()
             )
         )
@@ -182,11 +182,11 @@ CREATE POLICY "Foundation Positioning: Workspace members can view" ON foundation
 CREATE POLICY "Foundation Positioning: Owners and admins can manage" ON foundation_positioning
     FOR ALL USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
+            SELECT user_id FROM workspace_members
             WHERE workspace_members.workspace_id = (
-                SELECT workspace_id FROM foundation_brand_kits 
+                SELECT workspace_id FROM foundation_brand_kits
                 WHERE foundation_brand_kits.id = foundation_positioning.brand_kit_id
-            ) 
+            )
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -195,9 +195,9 @@ CREATE POLICY "Foundation Positioning: Owners and admins can manage" ON foundati
 CREATE POLICY "Foundation Voice Tones: Workspace members can view" ON foundation_voice_tones
     FOR SELECT USING (
         brand_kit_id IN (
-            SELECT id FROM foundation_brand_kits 
+            SELECT id FROM foundation_brand_kits
             WHERE workspace_id IN (
-                SELECT workspace_id FROM workspace_members 
+                SELECT workspace_id FROM workspace_members
                 WHERE workspace_members.user_id = auth.uid()
             )
         )
@@ -206,11 +206,11 @@ CREATE POLICY "Foundation Voice Tones: Workspace members can view" ON foundation
 CREATE POLICY "Foundation Voice Tones: Owners and admins can manage" ON foundation_voice_tones
     FOR ALL USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
+            SELECT user_id FROM workspace_members
             WHERE workspace_members.workspace_id = (
-                SELECT workspace_id FROM foundation_brand_kits 
+                SELECT workspace_id FROM foundation_brand_kits
                 WHERE foundation_brand_kits.id = foundation_voice_tones.brand_kit_id
-            ) 
+            )
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -219,7 +219,7 @@ CREATE POLICY "Foundation Voice Tones: Owners and admins can manage" ON foundati
 CREATE POLICY "Foundation State: Workspace members can view" ON foundation_state
     FOR SELECT USING (
         workspace_id IN (
-            SELECT workspace_id FROM workspace_members 
+            SELECT workspace_id FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -227,8 +227,8 @@ CREATE POLICY "Foundation State: Workspace members can view" ON foundation_state
 CREATE POLICY "Foundation State: Owners and admins can manage" ON foundation_state
     FOR ALL USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.workspace_id = foundation_state.workspace_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.workspace_id = foundation_state.workspace_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -241,7 +241,7 @@ CREATE POLICY "Foundation State: Owners and admins can manage" ON foundation_sta
 CREATE POLICY "Campaigns: Workspace members can view" ON campaigns
     FOR SELECT USING (
         workspace_id IN (
-            SELECT workspace_id FROM workspace_members 
+            SELECT workspace_id FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -249,8 +249,8 @@ CREATE POLICY "Campaigns: Workspace members can view" ON campaigns
 CREATE POLICY "Campaigns: Owners and admins can manage" ON campaigns
     FOR ALL USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.workspace_id = campaigns.workspace_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.workspace_id = campaigns.workspace_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -259,7 +259,7 @@ CREATE POLICY "Campaigns: Owners and admins can manage" ON campaigns
 CREATE POLICY "Moves: Workspace members can view" ON moves
     FOR SELECT USING (
         workspace_id IN (
-            SELECT workspace_id FROM workspace_members 
+            SELECT workspace_id FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -267,8 +267,8 @@ CREATE POLICY "Moves: Workspace members can view" ON moves
 CREATE POLICY "Moves: Owners and admins can manage" ON moves
     FOR ALL USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.workspace_id = moves.workspace_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.workspace_id = moves.workspace_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -277,9 +277,9 @@ CREATE POLICY "Moves: Owners and admins can manage" ON moves
 CREATE POLICY "Campaign KPIs: Workspace members can view" ON campaign_kpis
     FOR SELECT USING (
         campaign_id IN (
-            SELECT id FROM campaigns 
+            SELECT id FROM campaigns
             WHERE workspace_id IN (
-                SELECT workspace_id FROM workspace_members 
+                SELECT workspace_id FROM workspace_members
                 WHERE workspace_members.user_id = auth.uid()
             )
         )
@@ -288,11 +288,11 @@ CREATE POLICY "Campaign KPIs: Workspace members can view" ON campaign_kpis
 CREATE POLICY "Campaign KPIs: Owners and admins can manage" ON campaign_kpis
     FOR ALL USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
+            SELECT user_id FROM workspace_members
             WHERE workspace_members.workspace_id = (
-                SELECT workspace_id FROM campaigns 
+                SELECT workspace_id FROM campaigns
                 WHERE campaigns.id = campaign_kpis.campaign_id
-            ) 
+            )
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -301,9 +301,9 @@ CREATE POLICY "Campaign KPIs: Owners and admins can manage" ON campaign_kpis
 CREATE POLICY "Move Approvals: Workspace members can view" ON move_approvals
     FOR SELECT USING (
         move_id IN (
-            SELECT id FROM moves 
+            SELECT id FROM moves
             WHERE workspace_id IN (
-                SELECT workspace_id FROM workspace_members 
+                SELECT workspace_id FROM workspace_members
                 WHERE workspace_members.user_id = auth.uid()
             )
         )
@@ -315,11 +315,11 @@ CREATE POLICY "Move Approvals: Users can manage their own approvals" ON move_app
 CREATE POLICY "Move Approvals: Owners and admins can manage all" ON move_approvals
     FOR ALL USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
+            SELECT user_id FROM workspace_members
             WHERE workspace_members.workspace_id = (
-                SELECT workspace_id FROM moves 
+                SELECT workspace_id FROM moves
                 WHERE moves.id = move_approvals.move_id
-            ) 
+            )
             AND workspace_members.role IN ('owner', 'admin')
         )
     );

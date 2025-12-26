@@ -4,12 +4,7 @@ from typing import Any, Dict, List, Optional
 from core.cache import get_cache_client, get_cache_manager
 from db import SupabaseSaver, get_db_connection, get_pool
 from models.capabilities import CapabilityProfile
-from models.telemetry import (
-    AgentHealthStatus,
-    AgentState,
-    SystemState,
-    TelemetryEvent,
-)
+from models.telemetry import AgentHealthStatus, AgentState, SystemState, TelemetryEvent
 from services.cost_governor import CostGovernor
 from services.latency_monitor import LatencyMonitor
 from services.sanity_check import SystemSanityCheck

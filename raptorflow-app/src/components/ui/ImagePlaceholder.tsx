@@ -44,7 +44,7 @@ export function ImagePlaceholder({
     >
       {/* Gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-foreground/5 to-transparent" />
-      
+
       {/* Grid pattern */}
       <div className="absolute inset-0 opacity-10">
         <svg className="w-full h-full">

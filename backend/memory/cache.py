@@ -46,7 +46,7 @@ class SwarmMemoryCache:
     def __init__(self, max_memory_mb: int = 100, max_entries: int = 10000):
         if max_memory_mb <= 0 or max_entries <= 0:
             raise ValueError("max_memory_mb and max_entries must be positive")
-        
+
         self.max_memory_bytes = max_memory_mb * 1024 * 1024
         self.max_entries = max_entries
 
@@ -80,14 +80,22 @@ class SwarmMemoryCache:
         self.l2_cold = self._l2_cold_cache
         self.stats = self._stats
 
-        logger.info(f"SwarmMemoryCache initialized: {max_memory_mb}MB, {max_entries} entries")
+        logger.info(
+            f"SwarmMemoryCache initialized: {max_memory_mb}MB, {max_entries} entries"
+        )
 
     async def get(self, key: str) -> Optional[Any]:
         """Get value from cache with tier promotion."""
         async with self._cache_lock:
             return await self._get_internal(key)
 
-    async def set(self, key: str, value: Any, ttl_seconds: int = 300, tags: Optional[Set[str]] = None) -> bool:
+    async def set(
+        self,
+        key: str,
+        value: Any,
+        ttl_seconds: int = 300,
+        tags: Optional[Set[str]] = None,
+    ) -> bool:
         """Set value in cache with automatic tier placement."""
         async with self._cache_lock:
             return await self._set_internal(key, value, ttl_seconds, tags or set())
@@ -114,11 +122,11 @@ class SwarmMemoryCache:
                 entry.access_count += 1
                 self._stats["hits"] += 1
                 self._stats["total_accesses"] += 1
-                
+
                 # Promote to L0 if frequently accessed
                 if entry.access_count >= 5:
                     await self._promote_to_l0(key, entry)
-                
+
                 return entry.value
             else:
                 del self._l1_warm_cache[key]
@@ -131,10 +139,10 @@ class SwarmMemoryCache:
                 entry.access_count += 1
                 self._stats["hits"] += 1
                 self._stats["total_accesses"] += 1
-                
+
                 # Promote to L1 if accessed
                 await self._promote_to_l1(key, entry)
-                
+
                 return entry.value
             else:
                 del self._l2_cold_cache[key]
@@ -163,7 +171,6 @@ class SwarmMemoryCache:
         """Starts the background cleanup task."""
         self._cleanup_task = asyncio.create_task(self._periodic_cleanup())
 
-    
     async def set(
         self,
         key: str,
@@ -339,7 +346,11 @@ class SwarmMemoryCache:
     async def _ensure_capacity(self, required_bytes: int):
         """Ensures cache has enough capacity for new entry."""
         current_memory = self._get_current_memory_usage()
-        current_entries = len(self._l0_hot_cache) + len(self._l1_warm_cache) + len(self._l2_cold_cache)
+        current_entries = (
+            len(self._l0_hot_cache)
+            + len(self._l1_warm_cache)
+            + len(self._l2_cold_cache)
+        )
 
         # Check if we need to evict entries
         while (
@@ -367,7 +378,11 @@ class SwarmMemoryCache:
                 break
 
             current_memory = self._get_current_memory_usage()
-            current_entries = len(self._l0_hot_cache) + len(self._l1_warm_cache) + len(self._l2_cold_cache)
+            current_entries = (
+                len(self._l0_hot_cache)
+                + len(self._l1_warm_cache)
+                + len(self._l2_cold_cache)
+            )
 
     def _get_lru_key(self, tier_dict: Dict[str, CacheEntry]) -> Optional[str]:
         """Gets the least recently used key from a tier."""

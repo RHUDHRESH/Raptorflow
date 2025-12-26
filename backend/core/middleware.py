@@ -14,6 +14,7 @@ _trace_id_ctx_var: contextvars.ContextVar[str] = contextvars.ContextVar(
     "trace_id", default=""
 )
 
+
 def get_current_trace_id() -> str:
     """Returns the current trace ID from the context."""
     return _trace_id_ctx_var.get()

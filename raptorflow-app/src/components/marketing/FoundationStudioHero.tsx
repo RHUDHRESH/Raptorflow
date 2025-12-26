@@ -31,7 +31,7 @@ export function FoundationStudioHero() {
     }, []);
 
     return (
-        <div 
+        <div
             ref={containerRef}
             className="relative h-full flex items-center justify-center"
         >
@@ -39,7 +39,7 @@ export function FoundationStudioHero() {
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {/* Subtle gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50/50" />
-                
+
                 {/* Floating particles */}
                 <div ref={particlesRef} className="absolute inset-0">
                     {Array.from({ length: 25 }).map((_, i) => (
@@ -66,7 +66,7 @@ export function FoundationStudioHero() {
             {/* Main Content */}
             <div className="relative z-10 max-w-4xl mx-auto px-8 text-center">
                 {/* Logo/Brand Area */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
@@ -94,7 +94,7 @@ export function FoundationStudioHero() {
                     ref={subtitleRef}
                     className="text-xl text-gray-600 leading-relaxed mb-16 max-w-2xl mx-auto font-light"
                 >
-                    The Founder Marketing Operating System that converts business chaos into strategic clarity, 
+                    The Founder Marketing Operating System that converts business chaos into strategic clarity,
                     systematic execution, and measurable growth.
                 </p>
 
@@ -127,7 +127,7 @@ export function FoundationStudioHero() {
                 </div>
 
                 {/* Trust Indicators */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.0, delay: 1.2 }}

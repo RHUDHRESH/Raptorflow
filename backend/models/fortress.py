@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from models.queue_controller import CapabilityProfile, QueueController
 
+
 class FortressTask(BaseModel):
     """SOTA structured task representation."""
 

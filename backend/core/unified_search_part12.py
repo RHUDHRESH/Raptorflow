@@ -24,10 +24,7 @@ from pydantic import BaseModel, Field, validator
 
 from core.unified_search_part1 import ContentType, SearchMode
 from core.unified_search_part7 import SimpleResearchRequest, SimpleSearchRequest
-from core.unified_search_part10 import (
-    get_search_interface,
-    unified_search_engine,
-)
+from core.unified_search_part10 import get_search_interface, unified_search_engine
 
 logger = logging.getLogger("raptorflow.unified_search.api")
 

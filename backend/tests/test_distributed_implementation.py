@@ -43,9 +43,7 @@ from mlops.distributed_model_versioning import (
     ModelMetadata,
     ModelStatus,
 )
-from mlops.distributed_model_versioning import (
-    StorageBackend as ModelStorageBackend,
-)
+from mlops.distributed_model_versioning import StorageBackend as ModelStorageBackend
 from mlops.distributed_pytorch_ddp import (
     CheckpointConfig,
     DDPConfig,

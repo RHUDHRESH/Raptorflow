@@ -3,12 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from models.telemetry import (
-    AgentHealthStatus,
-    AgentState,
-    SystemState,
-    TelemetryEvent,
-)
+from models.telemetry import AgentHealthStatus, AgentState, SystemState, TelemetryEvent
 from services.matrix_service import MatrixService
 
 

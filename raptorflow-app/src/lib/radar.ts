@@ -64,7 +64,7 @@ export async function scanRecon(icpId: string, sourceUrls?: string[]): Promise<S
     const tenantId = user?.id || '00000000-0000-0000-0000-000000000000';
 
     const requestBody = sourceUrls ? { source_urls: sourceUrls } : {};
-    
+
     const response = await fetch(`${API_URL}/v1/radar/scan/recon`, {
         method: 'POST',
         headers: {
@@ -85,7 +85,7 @@ export async function generateDossier(campaignId: string, signalIds?: string[]):
     const tenantId = user?.id || '00000000-0000-0000-0000-000000000000';
 
     const requestBody = signalIds ? { signal_ids: signalIds } : {};
-    
+
     const response = await fetch(`${API_URL}/v1/radar/scan/dossier`, {
         method: 'POST',
         headers: {

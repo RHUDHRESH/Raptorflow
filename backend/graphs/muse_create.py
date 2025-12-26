@@ -7,11 +7,7 @@ from agents.base import BaseCognitiveAgent
 from agents.shared.agents import IntentRouter, QualityGate
 from agents.shared.context_assembler import ContextAssemblerAgent
 from core.lifecycle import apply_lifecycle_transition
-from models.cognitive import (
-    AgentMessage,
-    CognitiveIntelligenceState,
-    CognitiveStatus,
-)
+from models.cognitive import AgentMessage, CognitiveIntelligenceState, CognitiveStatus
 from services.budget_governor import BudgetGovernor
 
 logger = logging.getLogger("raptorflow.graphs.muse_create")

@@ -35,7 +35,7 @@ DROP POLICY IF EXISTS "Blackbox Experiments: Owners and admins can manage" ON bl
 CREATE POLICY "Experiments: Workspace members can view" ON experiments
     FOR SELECT USING (
         tenant_id IN (
-            SELECT tenant_id FROM workspace_members 
+            SELECT tenant_id FROM workspace_members
             WHERE workspace_members.user_id = auth.uid()
         )
     );
@@ -43,8 +43,8 @@ CREATE POLICY "Experiments: Workspace members can view" ON experiments
 CREATE POLICY "Experiments: Owners and admins can manage" ON experiments
     FOR ALL USING (
         auth.uid() IN (
-            SELECT user_id FROM workspace_members 
-            WHERE workspace_members.tenant_id = experiments.tenant_id 
+            SELECT user_id FROM workspace_members
+            WHERE workspace_members.tenant_id = experiments.tenant_id
             AND workspace_members.role IN ('owner', 'admin')
         )
     );
@@ -61,15 +61,15 @@ CREATE OR REPLACE FUNCTION launch_experiment(experiment_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
     -- Update experiment status and set checkin dates
-    UPDATE experiments 
-    SET 
+    UPDATE experiments
+    SET
         status = 'launched',
         launched_at = now(),
         checkin_due_at = (now() + (duration_days || ' days')::INTERVAL),
         checkin_remind_at = (now() + (duration_days || ' days')::INTERVAL - INTERVAL '24 hours'),
         checkin_expire_at = (now() + (duration_days || ' days')::INTERVAL + INTERVAL '7 days')
     WHERE id = experiment_uuid;
-    
+
     RETURN FOUND;
 END;
 $$ language 'plpgsql';
@@ -81,12 +81,12 @@ RETURNS INTEGER AS $$
 DECLARE
     archived_count INTEGER;
 BEGIN
-    UPDATE campaigns 
+    UPDATE campaigns
     SET status = 'archived'
     WHERE tenant_id = tenant_uuid
     AND status = 'wrapup'
     AND updated_at < now() - INTERVAL '30 days';
-    
+
     GET DIAGNOSTICS archived_count = ROW_COUNT;
     RETURN archived_count;
 END;
@@ -106,28 +106,28 @@ DECLARE
 BEGIN
     -- Check if experiments table exists
     SELECT EXISTS (
-        SELECT 1 FROM information_schema.tables 
-        WHERE table_name = 'experiments' 
+        SELECT 1 FROM information_schema.tables
+        WHERE table_name = 'experiments'
         AND table_schema = 'public'
     ) INTO experiments_exists;
-    
+
     -- Check if blackbox_experiments table still exists (should not)
     SELECT EXISTS (
-        SELECT 1 FROM information_schema.tables 
-        WHERE table_name = 'blackbox_experiments' 
+        SELECT 1 FROM information_schema.tables
+        WHERE table_name = 'blackbox_experiments'
         AND table_schema = 'public'
     ) INTO blackbox_experiments_exists;
-    
+
     result := jsonb_build_object(
         'validation_timestamp', now(),
         'experiments_table_exists', experiments_exists,
         'blackbox_experiments_table_exists', blackbox_experiments_exists,
-        'status', CASE 
+        'status', CASE
             WHEN experiments_exists AND NOT blackbox_experiments_exists THEN 'consistent'
             ELSE 'inconsistent'
         END
     );
-    
+
     RETURN result;
 END;
 $$ language 'plpgsql';

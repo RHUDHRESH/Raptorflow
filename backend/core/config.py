@@ -29,12 +29,12 @@ class Config(BaseSettings):
 
     # Database Configuration
     DATABASE_URL: Optional[str] = None
-    
+
     # Supabase Configuration
     SUPABASE_URL: Optional[str] = None
     SUPABASE_SERVICE_ROLE_KEY: Optional[str] = None
     SUPABASE_JWT_SECRET: Optional[str] = None
-    
+
     # Database Pool Configuration
     DB_POOL_MIN_SIZE: int = 5
     DB_POOL_MAX_SIZE: int = 20
@@ -157,9 +157,7 @@ class Config(BaseSettings):
 
         # Validate PhonePe configuration if payments are enabled
         if not self.PHONEPE_CLIENT_ID or not self.PHONEPE_CLIENT_SECRET:
-            logger.warning(
-                "PhonePe configuration missing. Payment features will fail."
-            )
+            logger.warning("PhonePe configuration missing. Payment features will fail.")
 
         # Validate image generation settings
         if self.IMAGE_GEN_ENABLED and not self.VERTEX_AI_API_KEY:

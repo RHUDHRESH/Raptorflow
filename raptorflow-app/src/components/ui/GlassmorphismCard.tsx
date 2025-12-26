@@ -39,7 +39,7 @@ export function GlassmorphismCard({
     >
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-foreground/5 via-transparent to-transparent pointer-events-none" />
-      
+
       {/* Shine effect */}
       <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-500">
         <div

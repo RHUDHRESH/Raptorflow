@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS behavioral_principles (
     name TEXT UNIQUE NOT NULL,
     description TEXT,
     example_usage TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS default_workspace_settings (
     setting_key TEXT UNIQUE NOT NULL,
     setting_value JSONB,
     description TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -239,7 +239,7 @@ CREATE TABLE IF NOT EXISTS system_config (
     config_key TEXT UNIQUE NOT NULL,
     config_value JSONB,
     description TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -292,10 +292,10 @@ CREATE TABLE IF NOT EXISTS campaign_templates (
     description TEXT,
     objective TEXT,
     duration_days INTEGER DEFAULT 30,
-    
+
     template_data JSONB DEFAULT '{}',
     is_active BOOLEAN DEFAULT true,
-    
+
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -358,10 +358,10 @@ CREATE TABLE IF NOT EXISTS move_templates (
     goal TEXT,
     channel TEXT,
     duration_days INTEGER DEFAULT 7,
-    
+
     template_data JSONB DEFAULT '{}',
     is_active BOOLEAN DEFAULT true,
-    
+
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -436,27 +436,27 @@ DECLARE
 BEGIN
     -- Count database objects
     SELECT COUNT(*) INTO table_count
-    FROM information_schema.tables 
-    WHERE table_schema = 'public' 
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
     AND table_type = 'BASE TABLE';
-    
+
     SELECT COUNT(*) INTO index_count
-    FROM pg_indexes 
+    FROM pg_indexes
     WHERE schemaname = 'public';
-    
+
     SELECT COUNT(*) INTO policy_count
-    FROM pg_policies 
+    FROM pg_policies
     WHERE schemaname = 'public';
-    
+
     SELECT COUNT(*) INTO function_count
-    FROM information_schema.routines 
-    WHERE routine_schema = 'public' 
+    FROM information_schema.routines
+    WHERE routine_schema = 'public'
     AND routine_type = 'FUNCTION';
-    
+
     SELECT COUNT(*) INTO trigger_count
-    FROM information_schema.triggers 
+    FROM information_schema.triggers
     WHERE trigger_schema = 'public';
-    
+
     result := jsonb_build_object(
         'validation_timestamp', now(),
         'tables_count', table_count,
@@ -467,7 +467,7 @@ BEGIN
         'status', 'completed',
         'version', '2.0.0'
     );
-    
+
     RETURN result;
 END;
 $$ language 'plpgsql';

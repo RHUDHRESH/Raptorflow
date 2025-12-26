@@ -5,21 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { 
-    startScheduler, 
-    stopScheduler, 
-    getSchedulerStatus, 
+import {
+    startScheduler,
+    stopScheduler,
+    getSchedulerStatus,
     getSourceHealth,
     scheduleManualScan
 } from '@/lib/radar';
 import { toast } from 'sonner';
-import { 
-    Play, 
-    Pause, 
-    Clock, 
-    Activity, 
-    CheckCircle, 
-    AlertTriangle, 
+import {
+    Play,
+    Pause,
+    Clock,
+    Activity,
+    CheckCircle,
+    AlertTriangle,
     XCircle,
     RefreshCw
 } from 'lucide-react';
@@ -75,22 +75,22 @@ export function RadarScheduler({ className }: RadarSchedulerProps) {
 
     const handleManualScan = async (sourceIds: string[]) => {
         if (isScanning) return;
-        
+
         setIsScanning(true);
         try {
             toast.loading('Starting manual scan...', { id: 'manual-scan' });
-            
+
             await scheduleManualScan(sourceIds, 'recon');
-            
-            toast.success('Manual scan scheduled!', { 
+
+            toast.success('Manual scan scheduled!', {
                 id: 'manual-scan',
-                description: `Scanning ${sourceIds.length} sources` 
+                description: `Scanning ${sourceIds.length} sources`
             });
-            
+
             await loadSchedulerData();
-            
+
         } catch (error) {
-            toast.error('Manual scan failed', { 
+            toast.error('Manual scan failed', {
                 id: 'manual-scan',
                 description: error instanceof Error ? error.message : 'Unknown error'
             });
@@ -142,13 +142,13 @@ export function RadarScheduler({ className }: RadarSchedulerProps) {
                                 </Badge>
                             </div>
                             <div className="text-sm text-muted-foreground">
-                                {schedulerStatus?.is_active 
+                                {schedulerStatus?.is_active
                                     ? `${schedulerStatus?.active_tasks || 0} active tasks`
                                     : 'Scheduler is not running'
                                 }
                             </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                             <Switch
                                 checked={schedulerStatus?.is_active || false}
@@ -221,7 +221,7 @@ export function RadarScheduler({ className }: RadarSchedulerProps) {
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex items-center gap-3">
                                     <div className="text-right">
                                         <div className={`font-medium ${getHealthColor(source.health)}`}>
@@ -231,7 +231,7 @@ export function RadarScheduler({ className }: RadarSchedulerProps) {
                                             {source.status}
                                         </div>
                                     </div>
-                                    
+
                                     <Button
                                         size="sm"
                                         variant="outline"

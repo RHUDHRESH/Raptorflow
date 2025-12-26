@@ -50,30 +50,30 @@ export default function RadarPage() {
 
     const handleRunScan = async () => {
         if (isScanning) return;
-        
+
         setIsScanning(true);
         try {
             toast.loading('Starting radar scan...', { id: 'scan' });
-            
+
             // Get sources from active watchlists
             const sourceUrls = [
                 'https://competitor-a.com/pricing',
                 'https://competitor-b.com',
                 'https://linkedin.com/company/competitor-c'
             ];
-            
+
             const signals = await scanRecon('default-icp', sourceUrls);
-            
-            toast.success('Scan completed!', { 
+
+            toast.success('Scan completed!', {
                 id: 'scan',
-                description: `Found ${signals.length} new signals` 
+                description: `Found ${signals.length} new signals`
             });
-            
+
             // Could update alerts state with new signals
             console.log('New signals:', signals);
-            
+
         } catch (error) {
-            toast.error('Scan failed', { 
+            toast.error('Scan failed', {
                 id: 'scan',
                 description: error instanceof Error ? error.message : 'Unknown error'
             });
@@ -85,18 +85,18 @@ export default function RadarPage() {
     const handleGenerateDossier = async () => {
         try {
             toast.loading('Generating dossier...', { id: 'dossier' });
-            
+
             const dossier = await generateDossier('campaign-123');
-            
-            toast.success('Dossier generated!', { 
+
+            toast.success('Dossier generated!', {
                 id: 'dossier',
-                description: `Created "${dossier[0]?.title}"` 
+                description: `Created "${dossier[0]?.title}"`
             });
-            
+
             console.log('Generated dossier:', dossier);
-            
+
         } catch (error) {
-            toast.error('Dossier generation failed', { 
+            toast.error('Dossier generation failed', {
                 id: 'dossier',
                 description: error instanceof Error ? error.message : 'Unknown error'
             });
@@ -196,8 +196,8 @@ export default function RadarPage() {
                                 onClick={handleRunScan}
                                 disabled={isScanning}
                                 className={`h-11 px-5 rounded-xl text-[14px] font-medium transition-all ${
-                                    isScanning 
-                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                                    isScanning
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                         : 'border border-[#C0C1BE] text-[#2D3538] hover:bg-white'
                                 }`}
                             >

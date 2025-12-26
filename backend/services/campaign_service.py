@@ -70,9 +70,7 @@ class CampaignService:
         if not campaign:
             return None
 
-        from graphs.moves_campaigns_orchestrator import (
-            moves_campaigns_orchestrator,
-        )
+        from graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
         initial_state = {
             "tenant_id": str(campaign.tenant_id),
@@ -99,9 +97,7 @@ class CampaignService:
 
     async def get_arc_generation_status(self, campaign_id: str) -> Optional[dict]:
         """Retrieves the current status of the agentic orchestrator for a campaign."""
-        from graphs.moves_campaigns_orchestrator import (
-            moves_campaigns_orchestrator,
-        )
+        from graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
         config = {"configurable": {"thread_id": campaign_id}}
         state = await moves_campaigns_orchestrator.aget_state(config)
@@ -126,9 +122,7 @@ class CampaignService:
         # 1. Store the pivot instruction in the state
         # 2. Re-trigger the planning phase
 
-        from graphs.moves_campaigns_orchestrator import (
-            moves_campaigns_orchestrator,
-        )
+        from graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
         initial_state = {
             "tenant_id": str(campaign.tenant_id),

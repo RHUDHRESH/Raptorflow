@@ -46,55 +46,53 @@ class CompetitorThreatLevel(str, Enum):
 
 class CompetitorProfile(BaseModel):
     """Enhanced competitor profile for swarm intelligence."""
-    
+
     id: str
     name: str
     competitor_type: CompetitorType
     threat_level: CompetitorThreatLevel
     website: Optional[str] = None
     description: Optional[str] = None
-    
+
     # Market positioning
     market_share: Optional[float] = None
     target_audience: List[str] = Field(default_factory=list)
     value_proposition: Optional[str] = None
-    
+
     # Product/service analysis
     key_features: List[str] = Field(default_factory=list)
     pricing_model: Optional[str] = None
     pricing_tiers: List[Dict[str, Any]] = Field(default_factory=list)
-    
+
     # Marketing intelligence
     messaging_strategy: Optional[str] = None
     marketing_channels: List[str] = Field(default_factory=list)
     content_themes: List[str] = Field(default_factory=list)
     brand_voice: Optional[str] = None
-    
+
     # Technical intelligence
     tech_stack: List[str] = Field(default_factory=list)
     apis_offered: List[str] = Field(default_factory=list)
     integrations: List[str] = Field(default_factory=list)
-    
+
     # Competitive advantages
     strengths: List[str] = Field(default_factory=list)
     weaknesses: List[str] = Field(default_factory=list)
     opportunities: List[str] = Field(default_factory=list)
     threats: List[str] = Field(default_factory=list)
-    
+
     # Tracking metadata
     last_updated: datetime = Field(default_factory=datetime.now)
     confidence_score: float = Field(default=0.0, ge=0.0, le=1.0)
     data_sources: List[str] = Field(default_factory=list)
-    
+
     class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class CompetitorGroup(BaseModel):
     """Represents a group of similar competitors for analysis."""
-    
+
     id: str
     name: str
     description: str
@@ -103,16 +101,14 @@ class CompetitorGroup(BaseModel):
     market_segment: Optional[str] = None
     analysis_summary: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)
-    
+
     class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class CompetitorInsight(BaseModel):
     """Individual insight about a competitor."""
-    
+
     id: str
     competitor_id: str
     insight_type: str  # "pricing_change", "feature_launch", "marketing_campaign", etc.
@@ -123,16 +119,14 @@ class CompetitorInsight(BaseModel):
     source: str
     discovered_at: datetime = Field(default_factory=datetime.now)
     tags: List[str] = Field(default_factory=list)
-    
+
     class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class CompetitorAnalysis(BaseModel):
     """Comprehensive competitor analysis result."""
-    
+
     id: str
     analysis_type: str  # "swot", "pricing", "feature_comparison", etc.
     competitor_ids: List[str] = Field(default_factory=list)
@@ -144,11 +138,9 @@ class CompetitorAnalysis(BaseModel):
     threat_level: CompetitorThreatLevel
     confidence_score: float = Field(default=0.0, ge=0.0, le=1.0)
     analyzed_at: datetime = Field(default_factory=datetime.now)
-    
+
     class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class SwarmSubtaskSpec(BaseModel):
@@ -172,7 +164,9 @@ class SwarmTask(BaseModel):
     status: SwarmTaskStatus = SwarmTaskStatus.PENDING
     result: Optional[str] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
-    competitor_targets: List[str] = Field(default_factory=list)  # Competitor IDs targeted
+    competitor_targets: List[str] = Field(
+        default_factory=list
+    )  # Competitor IDs targeted
 
 
 class SwarmState(CognitiveIntelligenceState, total=False):
@@ -195,18 +189,18 @@ class SwarmState(CognitiveIntelligenceState, total=False):
     # Concurrency management
     capability_profile: CapabilityProfile
     queue_controller: QueueController
-    
+
     # Competitor intelligence tracking
     competitor_profiles: Annotated[Dict[str, CompetitorProfile], dict]
     competitor_groups: Annotated[Dict[str, CompetitorGroup], dict]
     competitor_insights: Annotated[List[CompetitorInsight], operator.add]
     competitor_analyses: Annotated[List[CompetitorAnalysis], operator.add]
-    
+
     # Competitor monitoring configuration
     active_competitor_watchlist: Annotated[List[str], operator.add]
     competitor_monitoring_frequency: int = Field(default=24)  # hours
     last_competitor_scan: Optional[datetime] = None
-    
+
     # Competitive intelligence context
     competitive_landscape_summary: Optional[str] = None
     market_positioning_analysis: Optional[str] = None
