@@ -3,7 +3,7 @@
 ## Phase 1: Foundation, State Management & Backend Setup
 *Goal: Ensure the data structure can support the 7-soundbite framework and the multi-phase onboarding state.*
 
-- [ ] **Task 1.1: Define Data Schemas (Supabase)**
+- [x] **Task 1.1: Define Data Schemas (Supabase)** (2155a81)
   - Create/Update tables for `framework_foundation` (JTBD, Hierarchy), `proof_vault`, and `precision_soundbites`.
   - Ensure relational integrity between users and their framework data.
 - [ ] **Task 1.2: Implement State Sync Logic**
