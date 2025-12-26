@@ -16,7 +16,7 @@ RaptorFlow is the **Founder Marketing Operating System**. It is designed to repl
 3.  **Consolidation:** Eliminate tool sprawl by centralizing strategy, asset generation, and performance tracking into one "Blackbox" industrial intelligence engine.
 
 ## Core Modules (Cognitive Intelligence Engine Complete)
-- **Foundation:** The source of truth for Brand Kit and positioning. (Universal State Sync Implemented)
+- **Foundation:** The source of truth for Brand Kit and positioning. Implements the **Precision Soundbite Framework 3.0** across four strategic phases: JTBD & Jobs, Brand Hierarchy, Mechanism Audit, and Soundbite Studio. (Universal State Sync Implemented)
 - **Cohorts:** ICP and segmentation intelligence. (Implemented)
 - **Moves:** Weekly execution packets that drive momentum. (End-to-End Production Engine Implemented)
 - **Campaigns:** 90-day strategic arcs with transparent, step-by-step planning and human-in-the-loop approvals. (SOTA Proactive Engine Implemented)

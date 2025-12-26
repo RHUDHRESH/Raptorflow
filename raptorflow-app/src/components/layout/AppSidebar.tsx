@@ -4,18 +4,19 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-    Home,
-    Layers,
-    Users,
-    Zap,
-    Megaphone,
-    Sparkles,
-    LayoutGrid,
-    Box,
-    Settings,
-    ChevronDown,
-    Plus
-} from 'lucide-react';
+    Home01Icon,
+    Layers01Icon,
+    UserGroupIcon,
+    FlashIcon,
+    Megaphone01Icon,
+    DashboardSquare01Icon,
+    SparklesIcon,
+    PackageIcon,
+    Settings01Icon,
+    ArrowDown01Icon,
+    PlusSignIcon
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -42,14 +43,14 @@ import {
 
 // Navigation as per UI.md + Foundation Vibe
 const navItems = [
-    { title: 'Home', url: '/dashboard', icon: Home },
-    { title: 'Foundation', url: '/foundation', icon: Layers },
-    { title: 'Cohorts', url: '/cohorts', icon: Users },
-    { title: 'Moves', url: '/moves', icon: Zap },
-    { title: 'Campaigns', url: '/campaigns', icon: Megaphone },
-    { title: 'Radar', url: '/radar', icon: LayoutGrid },
-    { title: 'Muse', url: '/muse', icon: Sparkles },
-    { title: 'Blackbox', url: '/blackbox', icon: Box },
+    { title: 'Home', url: '/dashboard', icon: Home01Icon },
+    { title: 'Foundation', url: '/foundation', icon: Layers01Icon },
+    { title: 'Cohorts', url: '/cohorts', icon: UserGroupIcon },
+    { title: 'Moves', url: '/moves', icon: FlashIcon },
+    { title: 'Campaigns', url: '/campaigns', icon: Megaphone01Icon },
+    { title: 'Radar', url: '/radar', icon: DashboardSquare01Icon },
+    { title: 'Muse', url: '/muse', icon: SparklesIcon },
+    { title: 'Blackbox', url: '/blackbox', icon: PackageIcon },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -94,10 +95,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                             )}
                                         >
                                             <Link href={item.url} className="flex items-center gap-3 w-full">
-                                                <item.icon className={cn(
-                                                    "h-[18px] w-[18px] transition-all duration-200",
-                                                    isActive ? 'opacity-100' : 'opacity-70 group-hover/item:opacity-100'
-                                                )} />
+                                                <HugeiconsIcon icon={item.icon}
+                                                    className={cn(
+                                                        "h-[18px] w-[18px] transition-all duration-200",
+                                                        isActive ? 'opacity-100' : 'opacity-70 group-hover/item:opacity-100'
+                                                    )}
+                                                />
                                                 <span className="text-sm tracking-tight truncate">
                                                     {item.title}
                                                 </span>
@@ -136,7 +139,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                         <span className="truncate font-medium text-sidebar-foreground">Founder</span>
                                         <span className="truncate text-xs text-muted-foreground">you@startup.com</span>
                                     </div>
-                                    <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground/50 transition-transform group-data-[state=open]/user:rotate-180 group-data-[collapsible=icon]:hidden" />
+                                    <HugeiconsIcon icon={ArrowDown01Icon} className="ml-auto h-4 w-4 text-muted-foreground/50 transition-transform group-data-[state=open]/user:rotate-180 group-data-[collapsible=icon]:hidden" />
                                 </SidebarMenuButton>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
@@ -146,13 +149,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                 sideOffset={8}
                             >
                                 <DropdownMenuItem className="cursor-pointer rounded-md focus:bg-sidebar-accent focus:text-sidebar-accent-foreground">
-                                    <Plus className="mr-2 h-4 w-4 opacity-70" />
+                                    <HugeiconsIcon icon={PlusSignIcon} className="mr-2 h-4 w-4 opacity-70" />
                                     <span>New Workspace</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator className="bg-sidebar-border/50" />
                                 <DropdownMenuItem asChild className="cursor-pointer rounded-md focus:bg-sidebar-accent focus:text-sidebar-accent-foreground">
                                     <Link href="/settings">
-                                        <Settings className="mr-2 h-4 w-4 opacity-70" />
+                                        <HugeiconsIcon icon={Settings01Icon} className="mr-2 h-4 w-4 opacity-70" />
                                         <span>Settings</span>
                                     </Link>
                                 </DropdownMenuItem>
