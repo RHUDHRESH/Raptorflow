@@ -38,7 +38,7 @@
 ## Phase 4: Phase 4 & 5 Implementation (Agitation, Mechanism & Proof Vault)
 *Goal: Build the research and differentiation tools at `foundation/phase4` and `foundation/phase5`.*
 
-- [ ] **Task 4.1: Research Boards & Agitation Logic (Phase 4)**
+- [~] **Task 4.1: Research Boards & Agitation Logic (Phase 4)**
   - Create the "Digital Whiteboard" for pain-point aggregation.
 - [ ] **Task 4.2: Technical Differentiation Auditor (Phase 5)**
   - Build the side-by-side mechanism auditor.
