@@ -1,5 +1,6 @@
 import logging
 from abc import ABC
+from datetime import datetime
 from typing import Any, AsyncIterator, Dict, List, Optional, Type
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
@@ -7,6 +8,7 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from backend.inference import InferenceProvider
+from backend.memory.swarm_coordinator import get_swarm_memory_coordinator
 from backend.models.capabilities import CapabilityProfile
 from backend.models.cognitive import AgentMessage, CognitiveIntelligenceState
 
@@ -38,6 +40,7 @@ class BaseCognitiveAgent(ABC):
         self.output_schema = output_schema
 
         self.llm = InferenceProvider.get_model(model_tier=self.model_tier)
+        self.memory_coordinator = None  # Will be initialized during execution
 
         if self.tools:
             self.llm_with_tools = self.llm.bind_tools(self.tools)
@@ -114,9 +117,20 @@ class BaseCognitiveAgent(ABC):
 
     async def __call__(self, state: CognitiveIntelligenceState) -> Dict[str, Any]:
         """
-        Node execution logic with token tracking.
+        Node execution logic with token tracking and memory integration.
         """
         logger.info(f"Agent {self.name} ({self.role}) executing...")
+
+        # Initialize memory coordinator if needed
+        workspace_id = state.get("workspace_id")
+        if workspace_id and not self.memory_coordinator:
+            self.memory_coordinator = get_swarm_memory_coordinator(workspace_id)
+            
+            # Register agent with memory system
+            await self.memory_coordinator.initialize_agent_memory(
+                agent_id=self.name,
+                agent_type=self.role
+            )
 
         messages = self._format_messages(state.get("messages", []))
 
@@ -145,6 +159,24 @@ class BaseCognitiveAgent(ABC):
         output_tokens = token_usage.get("candidates_token_count", 0)
 
         logger.info(f"Agent {self.name} tokens: {input_tokens} in, {output_tokens} out")
+
+        # Record agent execution in memory system
+        if self.memory_coordinator:
+            await self.memory_coordinator.record_agent_memory(
+                agent_id=self.name,
+                content={
+                    "task": state.get("instructions", ""),
+                    "result": content,
+                    "tokens_used": {"input": input_tokens, "output": output_tokens},
+                    "model_tier": self.model_tier
+                },
+                importance=0.6,  # Medium importance for agent outputs
+                metadata={
+                    "agent_type": self.role,
+                    "workspace_id": workspace_id,
+                    "execution_timestamp": str(datetime.now())
+                }
+            )
 
         return {
             "messages": [AgentMessage(role=self.role, content=content)],

@@ -89,7 +89,8 @@ class UnifiedToolRegistry:
         return cls._default_instance
 
     def _register_default_tools(self) -> None:
-        from backend.tools.image_gen import DalleTool
+        from backend.tools.analytics import AnalyticsEngineTool
+        from backend.tools.image_gen import NanoBananaImageTool
         from backend.tools.search import (
             PerplexitySearchTool,
             RaptorSearchTool,
@@ -124,11 +125,20 @@ class UnifiedToolRegistry:
             ),
         )
         self.register_tool(
-            DalleTool(),
+            NanoBananaImageTool(),
             CapabilityDescriptor(
                 cost="high",
                 latency_ms=2500,
                 reliability=0.92,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            AnalyticsEngineTool(),
+            CapabilityDescriptor(
+                cost="medium",
+                latency_ms=1500,
+                reliability=0.94,
                 permissions=self._all_role_permissions(),
             ),
         )

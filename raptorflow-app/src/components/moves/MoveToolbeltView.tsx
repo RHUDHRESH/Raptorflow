@@ -31,7 +31,7 @@ export function MoveToolbeltView({ tools, className }: MoveToolbeltViewProps) {
       <div className="flex flex-wrap gap-2">
         {tools.map((tool) => {
           const Icon = TOOL_ICONS[tool] || Database;
-          const isVerified = ['Search', 'Copy', 'ImageGen'].includes(tool); // Mock verification
+          const isVerified = ['Search', 'Copy', 'ImageGen', 'Analytics'].includes(tool); // Mock verification
 
           return (
             <div

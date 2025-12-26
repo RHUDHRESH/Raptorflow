@@ -8,8 +8,14 @@ from pydantic import BaseModel, Field
 
 from backend.agents.router import IntentRouterAgent
 from backend.inference import InferenceProvider
+from backend.memory.swarm_coordinator import (
+    get_swarm_memory_coordinator,
+    hydrate_state_with_swarm_memory,
+    record_agent_execution
+)
 from backend.models.cognitive import (
     AgentMessage,
+    CognitiveIntelligenceState,
     ResourceBudget,
     RoutingMetadata,
     SharedMemoryHandles,
@@ -226,6 +232,9 @@ class SwarmOrchestrator:
         logger.info("Swarm Controller evaluating state...")
         state = self._ensure_metadata(state)
 
+        # Hydrate state with swarm memory context
+        state = await hydrate_state_with_swarm_memory(state)
+
         state_for_chain = state.copy()
         state_for_chain["messages"] = self._format_messages(
             state_for_chain.get("messages", [])
@@ -298,6 +307,9 @@ class SwarmOrchestrator:
                 result = await self.delegate_to_specialist(
                     next_node, current_state, specialist_node
                 )
+
+                # Record agent execution in swarm memory
+                await record_agent_execution(current_state, result)
 
                 summary = result.get("analysis_summary", "Task completed.")
                 current_state["messages"].append(
