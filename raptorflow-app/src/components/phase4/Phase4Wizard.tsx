@@ -6,8 +6,10 @@ import { Phase4Data, emptyPhase4, loadFoundationDB, saveFoundation, FoundationDa
 import { compilePhase4 } from '@/lib/phase4-compiler';
 import { PhaseScreen, PhaseStep } from '@/components/phase-shared';
 import { Button } from '@/components/ui/button';
-import { Check, ArrowRight, Target, AlertCircle, Copy } from 'lucide-react';
+import { Check, ArrowRight, Target, AlertCircle, Copy, Shield } from 'lucide-react';
 import { toast } from 'sonner';
+import { ProofVault } from '@/components/shared/ProofVault';
+import { useProofVault } from '@/hooks/useProofVault';
 
 type Phase4Screen = 'segments' | 'positioning' | 'complete';
 
@@ -46,6 +48,9 @@ export function Phase4Wizard() {
     const [isLoading, setIsLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
     const [activeTab, setActiveTab] = useState<'statement' | 'pitch'>('statement');
+    const [showProofVault, setShowProofVault] = useState(false);
+    
+    const proofVault = useProofVault(foundation?.proofVault || []);
 
     useEffect(() => {
         const loadData = async () => {
@@ -341,6 +346,34 @@ export function Phase4Wizard() {
                     </Button>
                 </div>
             )}
+            
+            {/* Proof Vault Sidebar */}
+            <div className="fixed right-0 top-0 h-full w-96 bg-white border-l border-gray-200 transform transition-transform duration-300 z-50 overflow-y-auto">
+                <div className="p-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Evidence Vault</h3>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowProofVault(!showProofVault)}
+                        >
+                            <Shield className="w-4 h-4" />
+                        </Button>
+                    </div>
+                </div>
+                
+                {showProofVault && (
+                    <div className="p-4">
+                        <ProofVault
+                            items={proofVault.items}
+                            onAddItem={proofVault.addItem}
+                            onUpdateItem={proofVault.updateItem}
+                            onDeleteItem={proofVault.deleteItem}
+                            currentPhase={4}
+                        />
+                    </div>
+                )}
+            </div>
         </PhaseScreen>
     );
 }
