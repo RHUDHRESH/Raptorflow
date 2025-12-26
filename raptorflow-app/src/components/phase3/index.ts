@@ -3,6 +3,7 @@ export { ContextConfirm } from './ContextConfirm';
 export { JTBDForcesScreen } from './JTBDForcesScreen';
 export { JTBDCanvas } from './JTBDCanvas';
 export { MessageHierarchyPyramid } from './MessageHierarchyPyramid';
+export { AwarenessMatrix } from './AwarenessMatrix';
 export { VPCanvas } from './VPCanvas';
 export { DifferentiationInventory } from './DifferentiationInventory';
 export { StrategyCanvasScreen } from './StrategyCanvasScreen';

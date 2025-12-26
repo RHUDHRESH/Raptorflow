@@ -1,7 +1,7 @@
 'use client';
 
 import { OnboardingScaffold } from '@/components/onboarding/OnboardingScaffold';
-import { JTBDCanvas, MessageHierarchyPyramid } from '@/components/phase3';
+import { JTBDCanvas, MessageHierarchyPyramid, AwarenessMatrix } from '@/components/phase3';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -32,6 +32,19 @@ export default function Phase3Page() {
                 ...prev.phase3!,
                 hierarchy: {
                     ...prev.phase3!.hierarchy!,
+                    [field]: value
+                }
+            }
+        }));
+    };
+
+    const handleAwarenessChange = (field: string, value: string) => {
+        updateData(prev => ({
+            ...prev,
+            phase3: {
+                ...prev.phase3!,
+                awarenessMatrix: {
+                    ...prev.phase3!.awarenessMatrix!,
                     [field]: value
                 }
             }
@@ -94,9 +107,10 @@ export default function Phase3Page() {
                 />
             )}
             {step === 'awareness' && (
-                <div className="p-8 border-2 border-dashed border-[#C0C1BE] rounded-xl text-center text-[#9D9F9F]">
-                    Customer Awareness Matrix Component (Task 3.3)
-                </div>
+                <AwarenessMatrix
+                    matrix={data.phase3?.awarenessMatrix || { unaware: '', problem: '', solution: '', product: '', most: '' }}
+                    onChange={handleAwarenessChange}
+                />
             )}
         </OnboardingScaffold>
     );
