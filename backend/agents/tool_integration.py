@@ -107,6 +107,11 @@ class AgentToolIntegration:
                 "raptor_search",
                 "perplexity_search",
             ],
+            "brand_philosopher": [
+                "style_guide_enforcer",
+                "raptor_search",
+                "perplexity_search",
+            ],
         }
 
         allowed_tools = role_tool_mapping.get(agent_role, [])
