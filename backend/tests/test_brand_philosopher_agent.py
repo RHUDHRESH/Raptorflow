@@ -16,6 +16,7 @@ async def test_brand_philosopher_agent_initialization():
         assert agent.name == "BrandPhilosopherAgent"
         assert "Brand Philosopher" in agent.system_prompt
         assert any(tool.name == "style_guide_enforcer" for tool in agent.tools)
+        assert any(tool.name == "foundation_brandkit" for tool in agent.tools)
 
 
 @pytest.mark.asyncio
