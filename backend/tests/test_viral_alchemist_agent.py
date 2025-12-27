@@ -16,6 +16,7 @@ async def test_viral_alchemist_agent_initialization():
         assert agent.name == "ViralAlchemistAgent"
         assert "Viral Alchemist" in agent.system_prompt
         assert any(tool.name == "radar_trend_analyzer" for tool in agent.tools)
+        assert any(tool.name == "raptor_search" for tool in agent.tools)
 
 
 @pytest.mark.asyncio
