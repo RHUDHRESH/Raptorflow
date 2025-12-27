@@ -169,21 +169,9 @@ class BaseCognitiveAgent(ABC):
         heuristics_prompt = await self._get_heuristics_prompt(workspace_id)
         exploits_prompt = await self._get_exploits_prompt(workspace_id)
 
-        messages = self._format_messages(state.get("messages", []))
-
-        # Inject context into system message if found
-        if messages:
-            if isinstance(messages[0], SystemMessage):
-                if heuristics_prompt:
-                    messages[
-                        0
-                    ].content += f"\n\n# ADDITIONAL HEURISTICS:\n{heuristics_prompt}"
-                if exploits_prompt:
-                    messages[
-                        0
-                    ].content += (
-                        f"\n\n# RELEVANT PAST EXPLOITS (WINS):\n{exploits_prompt}"
-                    )
+        msg_dicts = [
+            {"role": m.role, "content": m.content} for m in state.get("messages", [])
+        ]
 
         # 1. Check Token Budget
         governor = get_token_governor()
@@ -193,10 +181,6 @@ class BaseCognitiveAgent(ABC):
 
         # 2. Check Thought Cache
         cache = get_thought_cache()
-        # Convert AgentMessage objects to dicts for caching key generation
-        msg_dicts = [
-            {"role": m.role, "content": m.content} for m in state.get("messages", [])
-        ]
         cached_res = await cache.get(self.role, msg_dicts)
         if cached_res:
             return cached_res
@@ -274,4 +258,4 @@ class BaseCognitiveAgent(ABC):
                 },
             )
 
-        return {"messages": [AgentMessage(role=self.role, content=content)]}
+        return final_res
