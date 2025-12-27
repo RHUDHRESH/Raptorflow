@@ -66,7 +66,8 @@
     --chart-5: 0 0% 13%;
     /* Surface */
 
-    --sidebar-background: 0 0% 100%;
+    --sidebar-background: 247 9% 94%;
+    /* #F3F4EE (Matches App Background) */
     --sidebar-foreground: 200 3% 37%;
     --sidebar-primary: 196 11% 20%;
     --sidebar-primary-foreground: 60 7% 96%;
@@ -124,6 +125,7 @@
     /* Surface */
 
     --sidebar-background: 200 13% 6%;
+    /* #0E1112 (Matches App Background) */
     --sidebar-foreground: 110 3% 73%;
     --sidebar-primary: 38 31% 76%;
     --sidebar-primary-foreground: 200 13% 6%;

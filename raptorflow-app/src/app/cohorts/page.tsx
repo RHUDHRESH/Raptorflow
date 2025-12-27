@@ -2,30 +2,34 @@
 
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useState, useEffect } from 'react';
-import { useIcpStore } from '@/lib/icp-store';
-import { Icp } from '@/types/icp-types';
-import { Users, ArrowRight, CheckCircle, AlertCircle, TrendingUp } from 'lucide-react';
+import { Users, ArrowRight, CheckCircle, AlertCircle, TrendingUp, Target, Brain, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useFoundation } from '@/context/FoundationProvider';
+import { IcpProfile } from '@/lib/foundation-types';
+import { cn } from '@/lib/utils';
 
 export default function CohortsPage() {
-    const icps = useIcpStore((state) => state.icps);
-    const activeIcpId = useIcpStore((state) => state.activeIcpId);
-    const setActiveIcp = useIcpStore((state) => state.setActiveIcp);
-    const [selectedIcp, setSelectedIcp] = useState<Icp | null>(null);
+    const { getIcps, isLoading } = useFoundation();
+    const icps = getIcps();
+    const [selectedIcp, setSelectedIcp] = useState<IcpProfile | null>(null);
 
+    // Select first ICP by default when loaded
     useEffect(() => {
-        // Select the first ICP if none selected
         if (icps.length > 0 && !selectedIcp) {
-            const active = icps.find(i => i.id === activeIcpId) || icps[0];
-            setSelectedIcp(active);
+            setSelectedIcp(icps[0]);
         }
-    }, [icps, activeIcpId, selectedIcp]);
+    }, [icps, selectedIcp]);
 
-    const handleSelectIcp = (icp: Icp) => {
-        setSelectedIcp(icp);
-        setActiveIcp(icp.id);
-    };
+    if (isLoading) {
+        return (
+            <AppLayout>
+                <div className="flex items-center justify-center min-h-[60vh]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+            </AppLayout>
+        );
+    }
 
     if (icps.length === 0) {
         return (
@@ -66,74 +70,176 @@ export default function CohortsPage() {
                     </p>
                 </section>
 
-                {/* ICP Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {icps.map((icp) => (
-                        <button
-                            key={icp.id}
-                            onClick={() => handleSelectIcp(icp)}
-                            className={`text-left p-6 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${selectedIcp?.id === icp.id
-                                    ? 'border-primary bg-primary/5 shadow-md'
-                                    : 'border-border bg-card hover:border-border/80'
-                                }`}
-                        >
-                            <div className="flex items-start justify-between mb-4">
-                                <span className={`text-xs font-mono px-2.5 py-1 rounded-full ${icp.priority === 'primary'
-                                        ? 'bg-emerald-100 text-emerald-700'
-                                        : 'bg-blue-100 text-blue-700'
-                                    }`}>
-                                    {icp.priority}
-                                </span>
-                                <span className="text-xs font-mono text-muted-foreground">
-                                    {Math.round(icp.confidenceScore * 100)}% confidence
-                                </span>
-                            </div>
-                            <h3 className="font-display text-xl font-medium mb-2">{icp.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                                Status: {icp.status} • Created: {new Date(icp.createdAt).toLocaleDateString()}
-                            </p>
-                        </button>
-                    ))}
-                </div>
-
-                {/* Selected ICP Detail */}
-                {selectedIcp && (
-                    <div className="border border-border rounded-2xl bg-card overflow-hidden">
-                        {/* ICP Header */}
-                        <div className="p-8 border-b border-border bg-muted/30">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                                    <Users className="w-6 h-6 text-primary" />
+                <div className="grid grid-cols-12 gap-8">
+                    {/* Left Sidebar: ICP List */}
+                    <div className="col-span-12 lg:col-span-4 space-y-4">
+                        <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">Active Cohorts</h3>
+                        {icps.map((icp) => (
+                            <button
+                                key={icp.icp_id}
+                                onClick={() => setSelectedIcp(icp)}
+                                className={cn(
+                                    "w-full text-left p-5 rounded-xl border transition-all duration-200 group",
+                                    selectedIcp?.icp_id === icp.icp_id
+                                        ? "border-primary bg-primary/5 shadow-sm"
+                                        : "border-border bg-card hover:border-primary/50"
+                                )}
+                            >
+                                <div className="flex items-start justify-between mb-2">
+                                    <span className={cn(
+                                        "text-[10px] font-mono px-2 py-0.5 rounded-full uppercase",
+                                        "bg-blue-100 text-blue-700"
+                                    )}>
+                                        {icp.b2b_or_b2c}
+                                    </span>
                                 </div>
-                                <div>
-                                    <h2 className="font-display text-2xl font-medium">{selectedIcp.name}</h2>
-                                    <p className="text-sm text-muted-foreground">
-                                        Priority: {selectedIcp.priority} • Status: {selectedIcp.status}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* ICP Details Grid */}
-                        <div className="p-6">
-                            <h3 className="font-semibold mb-4">ICP Details</h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <span className="text-xs text-muted-foreground">Confidence Score</span>
-                                    <p className="font-medium">{Math.round(selectedIcp.confidenceScore * 100)}%</p>
-                                </div>
-                                <div>
-                                    <span className="text-xs text-muted-foreground">Created</span>
-                                    <p className="font-medium">{new Date(selectedIcp.createdAt).toLocaleDateString()}</p>
-                                </div>
-                                <div>
-                                    <span className="text-xs text-muted-foreground">Last Updated</span>
-                                    <p className="font-medium">{new Date(selectedIcp.updatedAt).toLocaleDateString()}</p>
-                                </div>
-                            </div>
-                        </div>
+                                <h3 className="font-display text-lg font-medium mb-1 group-hover:text-primary transition-colors">
+                                    {icp.name}
+                                </h3>
+                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                    {icp.firmographics.industry.join(', ')} • {icp.firmographics.employee_range}
+                                </p>
+                            </button>
+                        ))}
                     </div>
-                )}
+
+                    {/* Right Panel: Detailed View */}
+                    <div className="col-span-12 lg:col-span-8">
+                        {selectedIcp && (
+                            <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+                                {/* Detail Header */}
+                                <div className="p-8 border-b border-border bg-muted/20">
+                                    <div className="flex items-start gap-5">
+                                        <div className="w-16 h-16 rounded-2xl bg-white border border-border shadow-sm flex items-center justify-center shrink-0">
+                                            <Users className="w-8 h-8 text-primary/80" />
+                                        </div>
+                                        <div>
+                                            <h2 className="font-serif text-3xl mb-2">{selectedIcp.name}</h2>
+                                            <div className="flex flex-wrap gap-3">
+                                                {selectedIcp.roles.buyer.map(role => (
+                                                    <span key={role} className="text-xs font-medium px-2.5 py-1 rounded-md bg-white border border-border text-foreground/80">
+                                                        🎯 {role}
+                                                    </span>
+                                                ))}
+                                                <span className="text-xs font-medium px-2.5 py-1 rounded-md bg-white border border-border text-foreground/80">
+                                                    🏢 {selectedIcp.firmographics.revenue_range}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-8 space-y-10">
+                                    {/* Pains & Triggers */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-4 text-primary">
+                                                <AlertCircle className="w-5 h-5" />
+                                                <h3 className="font-semibold">Pain Points</h3>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <div className="p-4 bg-red-50/50 border border-red-100 rounded-lg">
+                                                    <span className="text-xs font-bold text-red-600 uppercase mb-1 block">Primary Pain</span>
+                                                    <p className="text-sm font-medium text-red-900">{selectedIcp.pains.primary}</p>
+                                                </div>
+                                                <ul className="space-y-2">
+                                                    {selectedIcp.pains.secondary.map((pain, i) => (
+                                                        <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                                                            <span className="text-red-400 mt-1">•</span>
+                                                            {pain}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-4 text-primary">
+                                                <TrendingUp className="w-5 h-5" />
+                                                <h3 className="font-semibold">Buying Triggers</h3>
+                                            </div>
+                                            <div className="space-y-3">
+                                                {selectedIcp.triggers.map((trigger, i) => (
+                                                    <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-transparent hover:border-border transition-colors">
+                                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">
+                                                            {i + 1}
+                                                        </span>
+                                                        <p className="text-sm">{trigger}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-px bg-border/50" />
+
+                                    {/* Psychographics & Messaging */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-4 text-primary">
+                                                <Brain className="w-5 h-5" />
+                                                <h3 className="font-semibold">Psychographics</h3>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Primary Fear</h4>
+                                                    <p className="text-sm italic pl-3 border-l-2 border-primary/20">
+                                                        "{selectedIcp.psychographics.fears[0]}"
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Core Values</h4>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {selectedIcp.psychographics.values.map(val => (
+                                                            <span key={val} className="text-xs px-2 py-1 bg-muted rounded-md border border-border/50">
+                                                                {val}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-4 text-primary">
+                                                <Target className="w-5 h-5" />
+                                                <h3 className="font-semibold">Messaging Angles</h3>
+                                            </div>
+                                            <div className="space-y-3">
+                                                {selectedIcp.message_angles.hooks.map((hook, i) => (
+                                                    <div key={i} className="text-sm p-3 bg-emerald-50/50 border border-emerald-100 rounded-lg text-emerald-900">
+                                                        <span className="font-semibold mr-1">Hook:</span> {hook}
+                                                    </div>
+                                                ))}
+                                                <div className="mt-4">
+                                                    <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Winning Promise</h4>
+                                                    <p className="text-sm font-medium">{selectedIcp.message_angles.promises[0]}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-px bg-border/50" />
+
+                                    {/* Objections */}
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-4 text-primary">
+                                            <MessageSquare className="w-5 h-5" />
+                                            <h3 className="font-semibold">Key Objections</h3>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {selectedIcp.objections.map((obj, i) => (
+                                                <div key={i} className="p-3 bg-muted/20 border border-border/50 rounded-lg text-sm">
+                                                    "{obj}"
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
         </AppLayout>
     );

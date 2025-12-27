@@ -23,12 +23,13 @@ import { useMuseAssets } from '@/lib/muse/assets-store';
 import { motion, AnimatePresence } from 'motion/react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useFoundationMentions } from '@/context/FoundationProvider';
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
 
-// Mock data for demo
-const MOCK_ASSETS: Asset[] = [
+// Initial demo assets (will be replaced by user-generated content)
+const INITIAL_ASSETS: Asset[] = [
     {
         id: '1',
         type: 'email',
@@ -61,26 +62,6 @@ const MOCK_ASSETS: Asset[] = [
         folder: 'Social',
         status: 'complete',
     },
-];
-
-// Mock cohorts
-const MOCK_COHORTS = [
-    { id: 'cohort-1', name: 'Early-stage founders' },
-    { id: 'cohort-2', name: 'Marketing managers' },
-    { id: 'cohort-3', name: 'Agency owners' },
-];
-
-// Mock competitors
-const MOCK_COMPETITORS = [
-    { name: 'Jasper AI' },
-    { name: 'Copy.ai' },
-    { name: 'HubSpot' },
-];
-
-// Mock campaigns
-const MOCK_CAMPAIGNS = [
-    { id: 'camp-1', name: 'Product Launch Q1' },
-    { id: 'camp-2', name: 'Founder Story Series' },
 ];
 
 
@@ -125,7 +106,10 @@ function MusePageContent() {
     const pageRef = useRef<HTMLDivElement>(null);
     const libraryButtonRef = useRef<HTMLAnchorElement>(null);
 
-    const { assets, setAssets } = useMuseAssets(MOCK_ASSETS);
+    // Get cohorts, competitors, campaigns from Foundation
+    const { cohorts, competitors, campaigns, isLoading: foundationLoading } = useFoundationMentions();
+
+    const { assets, setAssets } = useMuseAssets(INITIAL_ASSETS);
     const [jobs, setJobs] = useState<GenerationJob[]>([]);
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     const [editorOpen, setEditorOpen] = useState(false);
@@ -298,9 +282,9 @@ function MusePageContent() {
                     <MuseChat
                         initialPrompt={initialPrompt}
                         onAssetCreate={handleCreate}
-                        cohorts={MOCK_COHORTS}
-                        competitors={MOCK_COMPETITORS}
-                        campaigns={MOCK_CAMPAIGNS}
+                        cohorts={cohorts}
+                        competitors={competitors}
+                        campaigns={campaigns}
                         className="flex-1 min-h-[600px]"
                     />
                 </div>

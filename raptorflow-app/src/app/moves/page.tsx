@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { InferenceErrorBoundary } from '@/components/layout/InferenceErrorBoundary';
-import { initialMoves } from '@/lib/initial-data';
 import { Move, ChecklistItem } from '@/lib/campaigns-types';
 import {
     Plus, Search, Filter, Calendar, BarChart2, MoreHorizontal,
@@ -13,24 +12,104 @@ import {
 import { toast } from 'sonner';
 import { MoveCalendarView } from '@/components/moves/MoveCalendarView';
 import Link from 'next/link';
+import { useFoundation } from '@/context/FoundationProvider';
 
-// Mock Channel Icons (temporary)
-const ChannelIcon = ({ channel }: { channel: string }) => {
-    switch (channel) {
-        case 'linkedin': return <span className="text-xl">💼</span>;
-        case 'twitter': return <span className="text-xl">🐦</span>;
-        case 'email': return <span className="text-xl">✉️</span>;
-        case 'blog': return <span className="text-xl">📝</span>;
-        default: return <span className="text-xl">📢</span>;
+// Helper to generate moves from Foundation
+function generateMovesFromFoundation(ops: any, messaging: any): Move[] {
+    const moves: Move[] = [];
+
+    // 1. GTM Channel Moves
+    if (ops?.go_to_market?.channels_top3) {
+        ops.go_to_market.channels_top3.forEach((channel: string, idx: number) => {
+            moves.push({
+                id: `move-channel-${idx}`,
+                name: `Launch ${channel} Campaign`,
+                goal: 'leads',
+                channel: channel.toLowerCase(),
+                duration: 14,
+                dailyEffort: idx === 0 ? 60 : 30,
+                description: `Establish dominance in ${channel} using new messaging foundation.`,
+                outcomeTarget: '50 qualified leads',
+                checklist: [
+                    { id: `t-${idx}-1`, label: `Audit existing ${channel} presence`, completed: true, group: 'setup' },
+                    { id: `t-${idx}-2`, label: 'Draft content calendar', completed: false, group: 'create' },
+                    { id: `t-${idx}-3`, label: 'Setup tracking pixels', completed: false, group: 'setup' },
+                    { id: `t-${idx}-4`, label: 'Launch initial creative test', completed: false, group: 'publish' },
+                ],
+                assetIds: [],
+                status: idx === 0 ? 'active' : 'draft',
+                createdAt: new Date().toISOString(),
+                startedAt: idx === 0 ? new Date().toISOString() : undefined,
+                dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+                campaignId: 'foundation-launch',
+                hypothesis: `If we focus on ${channel}, our ICP is most active there.`,
+                control: 'Organic only',
+                variant: 'Paid + Organic mix',
+                success_metric: 'CPA < $50',
+                sample_size: '10k impressions',
+                action_steps: ['Audit', 'Plan', 'Execute', 'Optimize']
+            });
+        });
     }
-};
+
+    // 2. Messaging Testing Move
+    if (messaging?.message_house?.controlling_idea) {
+        moves.push({
+            id: 'move-messaging-test',
+            name: 'Validate Controlling Idea',
+            goal: 'market_research',
+            channel: 'email',
+            duration: 7,
+            dailyEffort: 45,
+            description: `Test the resonance of: "${messaging.message_house.controlling_idea}"`,
+            outcomeTarget: '30% reply rate on outreach',
+            checklist: [
+                { id: 'msg-1', label: 'Create 3 variant subject lines', completed: false, group: 'create' },
+                { id: 'msg-2', label: 'Build list of 100 ICP prospects', completed: false, group: 'setup' },
+                { id: 'msg-3', label: 'Send cold email sequence', completed: false, group: 'publish' },
+            ],
+            assetIds: [],
+            status: 'active',
+            createdAt: new Date().toISOString(),
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            campaignId: 'foundation-launch',
+            hypothesis: 'The new controlling idea will outperform generic messaging.',
+            control: 'Feature-based messaging',
+            variant: 'Narrative-led messaging',
+            success_metric: 'Reply Rate',
+            sample_size: '100 prospects',
+            action_steps: ['Draft', 'List Build', 'Send', 'Analyze']
+        });
+    }
+
+    return moves;
+}
 
 type StatusFilter = 'active' | 'completed' | 'all';
 
 export default function MovesPage() {
-    const [moves, setMoves] = useState<Move[]>(initialMoves);
+    const { getBusiness, getMessaging, isLoading } = useFoundation();
+    // In a real app we'd get Ops data too, accessing via business for now or assuming structure
+    // Since OpsData is on root foundation, let's use the full object access if needed or modify provider
+    // The provider generic `foundation` object has everything.
+    const { foundation } = useFoundation();
+
+    // Generate moves from Foundation
+    const foundationMoves = useMemo(() => {
+        if (!foundation) return [];
+        return generateMovesFromFoundation(foundation.ops, foundation.messaging);
+    }, [foundation]);
+
+    const [moves, setMoves] = useState<Move[]>([]);
     const [selectedMove, setSelectedMove] = useState<Move | null>(null);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
+
+    // Initialize moves when foundation loads
+    useEffect(() => {
+        if (foundationMoves.length > 0 && moves.length === 0) {
+            setMoves(foundationMoves);
+        }
+    }, [foundationMoves, moves.length]);
 
     // Filter moves
     const filteredMoves = moves.filter(move => {
@@ -87,10 +166,42 @@ export default function MovesPage() {
         }));
     }, []);
 
+    if (isLoading) {
+        return (
+            <AppLayout>
+                <div className="flex items-center justify-center min-h-[60vh]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+            </AppLayout>
+        );
+    }
+
+    if (!moves.length && !isLoading && foundationMoves.length === 0) {
+        return (
+            <AppLayout>
+                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-8">
+                    <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-6">
+                        <Zap className="w-10 h-10 text-muted-foreground" />
+                    </div>
+                    <h1 className="font-serif text-4xl mb-4">No Moves Generated Yet</h1>
+                    <p className="text-muted-foreground max-w-md mb-8">
+                        Fill out your Foundation (specifically Ops &rarr; GTM Channels) to generate your first strategic moves.
+                    </p>
+                    <Link
+                        href="/foundation"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
+                    >
+                        Go to Foundation <ArrowRight className="w-4 h-4" />
+                    </Link>
+                </div>
+            </AppLayout>
+        )
+    }
+
     return (
         <AppLayout>
             <InferenceErrorBoundary>
-                <div className="min-h-screen bg-[#F8F9F7] px-6 lg:px-12 py-8">
+                <div className="min-h-screen px-6 lg:px-12 py-8">
                     <div className="max-w-5xl mx-auto">
 
                         {/* Header */}
@@ -104,7 +215,7 @@ export default function MovesPage() {
                         <div className="grid grid-cols-12 gap-8">
 
                             {/* MAIN CONTENT (7 cols) */}
-                            <main className="col-span-7">
+                            <main className="col-span-12 lg:col-span-7">
                                 {/* Today's Focus Card */}
                                 <div className="bg-white rounded-2xl border border-[#C0C1BE]/50 p-6 mb-8 hover:border-[#2D3538]/30 transition-colors shadow-sm">
                                     <div className="flex items-center justify-between mb-6">
@@ -179,7 +290,7 @@ export default function MovesPage() {
                             </main>
 
                             {/* SIDEBAR (5 cols) */}
-                            <aside className="col-span-5">
+                            <aside className="col-span-12 lg:col-span-5">
                                 <div className="sticky top-8">
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className="text-[12px] font-semibold uppercase tracking-wider text-[#9D9F9F]">Your Moves</h3>
