@@ -399,3 +399,79 @@ async def radar_continuous_scan_node(state: CouncilBlackboardState) -> Dict[str,
     except Exception as e:
         logger.error(f"Radar scan failed: {e}")
         return {"last_agent": "Radar_Watcher"}
+
+
+async def event_opportunity_evaluator_node(
+    state: CouncilBlackboardState,
+) -> Dict[str, Any]:
+    """
+    Event Opportunity Evaluator Node: Agents score events vs. Brand Goals.
+    Ensures only high-leverage opportunities reach the user.
+    """
+    logger.info("Council Chamber: Evaluating discovered opportunities...")
+
+    agents = get_council_agents()
+    # Use first 3 experts for evaluation to balance speed/rigor
+    evaluators = agents[:3]
+    signals = state.get("radar_signals", [])
+    brief = state.get("brief", {})
+
+    if not signals:
+        logger.info("No signals to evaluate.")
+        return {"last_agent": "Event_Evaluator"}
+
+    new_signals = []
+    for signal in signals:
+        if signal.get("status") != "new":
+            new_signals.append(signal)
+            continue
+
+        # Evaluate the signal with agents
+        eval_prompt = (
+            "You are a Council Expert. Evaluate the following opportunity against our Brand Goals.\n\n"
+            f"Brand Goals: {brief.get('goals')}\n"
+            f"Opportunity: {signal.get('content')}\n\n"
+            "Output a JSON object with:\n"
+            "- score (0.0 to 1.0): Relevance and potential ROI.\n"
+            "- rationale (string): Why you gave this score.\n"
+        )
+
+        eval_tasks = []
+        for agent in evaluators:
+            eval_state = state.copy()
+            eval_state["messages"] = list(state.get("messages", [])) + [
+                {"role": "human", "content": eval_prompt}
+            ]
+            eval_tasks.append(agent(eval_state))
+
+        results = await asyncio.gather(*eval_tasks)
+
+        # Average scores
+        total_score = 0.0
+        rationales = []
+        for res in results:
+            content = (
+                res["messages"][-1].content if res.get("messages") else "{'score': 0.5}"
+            )
+            # Simple extraction
+            try:
+                json_match = re.search(r"\{{.*\}}", content, re.DOTALL)
+                if json_match:
+                    eval_data = json.loads(json_match.group())
+                    total_score += eval_data.get("score", 0.5)
+                    rationales.append(eval_data.get("rationale", "No rationale."))
+            except Exception:
+                total_score += 0.5
+
+        avg_score = total_score / len(evaluators)
+
+        # Update signal
+        updated_signal = signal.copy()
+        updated_signal["status"] = "evaluated"
+        updated_signal["metadata"] = updated_signal.get("metadata", {})
+        updated_signal["metadata"].update(
+            {"score": avg_score, "rationales": rationales}
+        )
+        new_signals.append(updated_signal)
+
+    return {"radar_signals": new_signals, "last_agent": "Event_Evaluator"}
