@@ -41,7 +41,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 - [x] **Task 21: Grant access to `Radar_Keywords` to find low-competition, high-intent gaps.** (466408c)
 
 ### 8. The PR & Media Specialist (Outreach)
-- [ ] **Task 22: Implement `PRSpecialistAgent` with `journalist_pitch_architect` tool.**
+- [x] **Task 22: Implement `PRSpecialistAgent` with `journalist_pitch_architect` tool.** (8f08f3a)
 - [ ] **Task 23: Equip with "Narrative Hook" outreach frameworks.**
 - [ ] **Task 24: Grant access to `Radar_Events` to find relevant podcasts/conferences.**
 
