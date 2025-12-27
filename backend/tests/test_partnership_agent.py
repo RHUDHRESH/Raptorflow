@@ -17,6 +17,8 @@ async def test_partnership_agent_initialization():
         assert agent.name == "PartnershipAgent"
         assert "Partnership & Affiliate Hunter" in agent.system_prompt
         assert any(tool.name == "audience_overlap_detector" for tool in agent.tools)
+        assert any(tool.name == "radar_competitors" for tool in agent.tools)
+        assert any(tool.name == "win_win_incentive_modeling" for tool in agent.tools)
 
 
 @pytest.mark.asyncio
