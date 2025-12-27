@@ -44,7 +44,7 @@ def get_pool() -> AsyncConnectionPool:
                     "cursor_factory": psycopg.ServerCursor,
                     "application_name": "raptorflow_backend",
                     "connect_timeout": 10,
-                    "options": "-c default_transaction_isolation=read_committed -c statement_timeout=30000",
+                    "options": "-c statement_timeout=30000",
                 },
             )
             logger.info("Created optimized database pool: min_size=5, max_size=50")
