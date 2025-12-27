@@ -51,7 +51,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 - [x] **Task 27: Grant access to `Cohorts_Intelligence` to map triggers to specific ICPs.** (2a5d648)
 
 ### 10. The Product Marketing Lead (GTM/Value)
-- [ ] **Task 28: Implement `ProductLeadAgent` with `benefit_to_feature_mapper` tool.**
+- [x] **Task 28: Implement `ProductLeadAgent` with `benefit_to_feature_mapper` tool.** (ffcd5f0)
 - [ ] **Task 29: Equip with "Positioning Canvas" logic.**
 - [ ] **Task 30: Grant access to `Muse_Asset_Archive` to repurpose product demos.**
 
