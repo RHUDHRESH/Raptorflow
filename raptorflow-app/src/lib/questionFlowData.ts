@@ -280,6 +280,7 @@ export const QUESTIONS: Question[] = [
             { value: 'creator', label: 'Creator / Content' },
             { value: 'coach', label: 'Coach / Consultant' },
             { value: 'developer', label: 'Developer' },
+            { value: 'other', label: 'Other', description: 'Someone else' },
         ],
     },
 

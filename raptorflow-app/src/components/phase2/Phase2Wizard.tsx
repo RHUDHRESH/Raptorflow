@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
     FoundationData,
     emptyFoundation,
@@ -255,16 +256,15 @@ export function Phase2Wizard() {
         return (
             <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 text-center">
                 <div className="relative mb-12">
-                    <div className="w-32 h-32 border-4 border-emerald-500/20 rounded-full animate-spin border-t-emerald-500" />
-                    <div className="absolute inset-0 flex items-center justify-center text-4xl">
-                        {processingStatus.includes('Architect') ? '📐' : processingStatus.includes('Prophet') ? '🔮' : '⚔️'}
-                    </div>
+                    {/* Professional, minimal dual-ring spinner */}
+                    <div className="absolute inset-0 border-4 border-zinc-800 rounded-full"></div>
+                    <div className="w-24 h-24 border-4 border-emerald-500 rounded-full animate-spin border-t-transparent border-l-transparent" />
                 </div>
-                <h2 className="font-display text-4xl text-white mb-4 animate-pulse">
+                <h2 className="font-display text-3xl text-white mb-4 tracking-tight animate-pulse">
                     {processingStatus}
                 </h2>
-                <p className="text-zinc-500 font-mono text-sm tracking-widest uppercase">
-                    RaptorFlow Synthesis Engine v2.0
+                <p className="text-zinc-500 font-mono text-xs tracking-[0.2em] uppercase opacity-80">
+                    RaptorFlow Synthesis Engine
                 </p>
             </div>
         );
@@ -276,8 +276,14 @@ export function Phase2Wizard() {
             <div className={styles.leftPanel}>
                 <div className="w-full h-full flex flex-col">
                     <div className={styles.logoArea}>
-                        <div className="w-6 h-6 bg-white rounded flex-shrink-0" />
-                        <span className={styles.logoText}>RAPTORFLOW</span>
+                        <div className="relative w-8 h-8 rounded overflow-hidden">
+                            <Image
+                                src="/logo_primary.png"
+                                alt="RaptorFlow"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
                     </div>
 
                     <div className={styles.sectionInfo}>

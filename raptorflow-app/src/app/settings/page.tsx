@@ -20,12 +20,16 @@ import {
 } from '@/components/ui/Icons';
 import { Switch } from '@/components/ui/switch';
 
+import { UsageChart } from '@/components/settings/UsageChart';
+import { BarChart3 } from 'lucide-react';
+
 type SettingsSection =
     | 'profile'
     | 'workspace'
     | 'targeting'
     | 'appearance'
-    | 'notifications';
+    | 'notifications'
+    | 'usage';
 
 const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] = [
     { id: 'profile', label: 'Profile', icon: <UserIcon /> },
@@ -33,6 +37,7 @@ const SECTIONS: { id: SettingsSection; label: string; icon: React.ReactNode }[] 
     { id: 'targeting', label: 'Targeting', icon: <TargetIcon /> },
     { id: 'appearance', label: 'Appearance', icon: <AppearanceIcon /> },
     { id: 'notifications', label: 'Notifications', icon: <BellIcon /> },
+    { id: 'usage', label: 'Usage', icon: <BarChart3 className="w-5 h-5" /> },
 ];
 
 export default function SettingsPage() {
@@ -57,6 +62,8 @@ export default function SettingsPage() {
                 return <AppearanceSection theme={theme} setTheme={setTheme} />;
             case 'notifications':
                 return <NotificationsSection notifications={notifications} setNotifications={setNotifications} />;
+            case 'usage':
+                return <UsageSection />;
             default:
                 return null;
         }
@@ -89,6 +96,32 @@ export default function SettingsPage() {
                 </div>
             </div>
         </AppLayout>
+    );
+}
+
+function UsageSection() {
+    return (
+        <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Usage & Billing</h2>
+                <p className={styles.sectionDescription}>Track your token consumption and plan limits.</p>
+            </div>
+
+            <div className="space-y-6">
+                <UsageChart />
+
+                <div className={styles.card}>
+                    <h3 className={styles.cardTitle}>Plan Details</h3>
+                    <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border/50">
+                        <div>
+                            <p className="font-medium">Pro Plan</p>
+                            <p className="text-sm text-muted-foreground">$29/month • Billed monthly</p>
+                        </div>
+                        <Button variant="outline" size="sm">Manage Subscription</Button>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }
 

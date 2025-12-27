@@ -28,7 +28,7 @@ interface SoundbiteCardsProps {
     onContinue: () => void;
 }
 
-const TYPE_LABELS: Record<SoundbiteType, { label: string; color: string }> = {
+const TYPE_LABELS: Partial<Record<SoundbiteType, { label: string; color: string }>> = {
     'problem-reveal': { label: 'Problem Reveal', color: 'text-red-600 bg-red-100 dark:bg-red-900/30' },
     'agitate': { label: 'Agitate', color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30' },
     'jtbd-progress': { label: 'JTBD Progress', color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30' },
@@ -70,7 +70,7 @@ function SoundbiteCard({
     onToggleLock: () => void;
     onRegenerate: () => void;
 }) {
-    const { label, color } = TYPE_LABELS[soundbite.type];
+    const { label, color } = TYPE_LABELS[soundbite.type] || { label: soundbite.type, color: 'text-gray-500' };
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(soundbite.text);
@@ -214,18 +214,96 @@ export function SoundbiteCards({ soundbites, onChange, onRegenerate, onContinue 
                     className="w-full"
                 >
                     <CarouselContent>
-                        {soundbites.map(soundbite => (
-                            <CarouselItem key={soundbite.id} className="md:basis-1/2 lg:basis-1/2 pl-6">
-                                <div className="p-1 h-full">
-                                    <SoundbiteCard
-                                        soundbite={soundbite}
-                                        onTextChange={(text) => handleTextChange(soundbite.id, text)}
-                                        onToggleLock={() => handleToggleLock(soundbite.id)}
-                                        onRegenerate={() => onRegenerate(soundbite.id)}
-                                    />
-                                </div>
-                            </CarouselItem>
-                        ))}
+                        {soundbites.map((sb, idx) => {
+                            const typeInfo = TYPE_LABELS[sb.type] || { label: sb.type, color: 'bg-gray-100 text-gray-800' };
+                            return (
+                                <CarouselItem key={sb.id} className="md:basis-1/2 lg:basis-1/3 pl-4">
+                                    <ContextMenu>
+                                        <ContextMenuTrigger>
+                                            <div className={cn(
+                                                "p-5 rounded-xl border-2 transition-all h-full bg-card",
+                                                sb.isLocked
+                                                    ? "border-green-500 bg-green-50/30 dark:bg-green-950/20"
+                                                    : "border-border shadow-sm"
+                                            )}>
+                                                {/* Header */}
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={cn("text-xs px-2 py-1 rounded-full font-medium border border-current opacity-80", typeInfo.color)}>
+                                                            {typeInfo.label}
+                                                        </span>
+                                                        {sb.scores.passing ? (
+                                                            <Check className="h-4 w-4 text-green-500" />
+                                                        ) : (
+                                                            <AlertTriangle className="h-4 w-4 text-amber-500" />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <span className={cn(
+                                                            "text-lg font-bold",
+                                                            sb.scores.total >= 80 ? "text-green-600" :
+                                                                sb.scores.total >= 60 ? "text-amber-600" : "text-red-600"
+                                                        )}>
+                                                            {sb.scores.total}%
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Text */}
+                                                <Textarea
+                                                    value={sb.text}
+                                                    onChange={(e) => handleTextChange(sb.id, e.target.value)}
+                                                    disabled={sb.isLocked}
+                                                    className="min-h-[100px] text-base mb-4 resize-none bg-background/50 font-serif leading-relaxed"
+                                                />
+
+                                                {/* Tags */}
+                                                <div className="flex flex-wrap gap-2 mb-4">
+                                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground border px-2 py-0.5 rounded-full">
+                                                        {sb.awarenessStage}
+                                                    </span>
+                                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground border px-2 py-0.5 rounded-full">
+                                                        {sb.buyingJob}
+                                                    </span>
+                                                </div>
+
+                                                {/* Rigor Gates */}
+                                                <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-6 p-3 bg-muted/20 rounded-lg">
+                                                    <ScoreGate label="Specific" value={sb.scores.specificity} passing={sb.scores.specificity >= 3} />
+                                                    <ScoreGate label="Proof" value={sb.scores.proof} passing={sb.scores.proof >= 3} />
+                                                    <ScoreGate label="Diff" value={sb.scores.differentiation} passing={sb.scores.differentiation >= 3} />
+                                                    <ScoreGate label="Fit" value={sb.scores.awarenessFit} passing={sb.scores.awarenessFit >= 3} />
+                                                    <ScoreGate label="Load" value={sb.scores.cognitiveLoad} passing={sb.scores.cognitiveLoad >= 3} />
+                                                </div>
+
+                                                {/* Actions */}
+                                                <div className="flex gap-2">
+                                                    <Button size="sm" variant="outline" onClick={() => onRegenerate(sb.id)} disabled={sb.isLocked} className="flex-1">
+                                                        <RefreshCw className="h-3 w-3 mr-2" /> Regenerate
+                                                    </Button>
+                                                    <Button size="sm" variant={sb.isLocked ? "default" : "secondary"} onClick={() => handleToggleLock(sb.id)} className="flex-1">
+                                                        {sb.isLocked ? <Unlock className="h-3 w-3 mr-2" /> : <Lock className="h-3 w-3 mr-2" />}
+                                                        {sb.isLocked ? 'Unlock' : 'Lock'}
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </ContextMenuTrigger>
+                                        <ContextMenuContent>
+                                            <ContextMenuItem onClick={() => { navigator.clipboard.writeText(sb.text); toast.success('Soundbite copied to clipboard'); }}>
+                                                <Copy className="mr-2 h-4 w-4" /> Copy Text
+                                            </ContextMenuItem>
+                                            <ContextMenuItem onClick={() => onRegenerate(sb.id)} disabled={sb.isLocked}>
+                                                <Wand2 className="mr-2 h-4 w-4" /> Regenerate
+                                            </ContextMenuItem>
+                                            <ContextMenuItem onClick={() => handleToggleLock(sb.id)}>
+                                                {sb.isLocked ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
+                                                {sb.isLocked ? 'Unlock Soundbite' : 'Lock Soundbite'}
+                                            </ContextMenuItem>
+                                        </ContextMenuContent>
+                                    </ContextMenu>
+                                </CarouselItem>
+                            );
+                        })}
                     </CarouselContent>
                     <CarouselPrevious />
                     <CarouselNext />

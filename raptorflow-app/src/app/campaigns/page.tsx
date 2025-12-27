@@ -5,7 +5,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Campaign, CampaignObjective, RAGStatus } from '@/lib/campaigns-types';
 import { getCampaignProgress, getMovesByCampaign } from '@/lib/campaigns';
 import { CampaignCard } from '@/components/campaigns/CampaignCard';
-import { NewCampaignWizard } from '@/components/campaigns/NewCampaignWizard';
+import NewCampaignWizard from '@/components/campaigns/NewCampaignWizard';
 import { Button } from '@/components/ui/button';
 import {
     Plus,

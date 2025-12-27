@@ -18,41 +18,41 @@ interface SoundbiteStudioProps {
     isGenerating: boolean;
 }
 
-const TYPE_CONFIG: Record<SoundbiteType, { label: string; icon: React.ReactNode; strategy: string }> = {
-    problem_revelation: { 
-        label: '01 / Problem Revelation', 
-        icon: <Zap className="w-4 h-4" />, 
-        strategy: 'Hook the unaware with specific, unstated pain.' 
+const TYPE_CONFIG: Partial<Record<SoundbiteType, { label: string; icon: React.ReactNode; strategy: string }>> = {
+    'problem-reveal': {
+        label: '01 / Problem Revelation',
+        icon: <Zap className="w-4 h-4" />,
+        strategy: 'Hook the unaware with specific, unstated pain.'
     },
-    agitation: { 
-        label: '02 / Agitation', 
-        icon: <AlertCircle className="w-4 h-4" />, 
-        strategy: 'Amplify the emotional consequence of inaction.' 
+    'agitate': {
+        label: '02 / Agitation',
+        icon: <AlertCircle className="w-4 h-4" />,
+        strategy: 'Amplify the emotional consequence of inaction.'
     },
-    mechanism: { 
-        label: '03 / Mechanism', 
-        icon: <RotateCcw className="w-4 h-4" />, 
-        strategy: 'Explain your unique logic that solves the problem.' 
+    'mechanism': {
+        label: '03 / Mechanism',
+        icon: <RotateCcw className="w-4 h-4" />,
+        strategy: 'Explain your unique logic that solves the problem.'
     },
-    objection_handling: { 
-        label: '04 / Objection Handling', 
-        icon: <Shield className="w-4 h-4" />, 
-        strategy: 'Address skepticism with proof and logic.' 
+    'objection-kill': {
+        label: '04 / Objection Handling',
+        icon: <Shield className="w-4 h-4" />,
+        strategy: 'Address skepticism with proof and logic.'
     },
-    transformation: { 
-        label: '05 / Transformation', 
-        icon: <Target className="w-4 h-4" />, 
-        strategy: 'Paint the happy ending with a specific timeframe.' 
+    'transformation': {
+        label: '05 / Transformation',
+        icon: <Target className="w-4 h-4" />,
+        strategy: 'Paint the happy ending with a specific timeframe.'
     },
-    positioning: { 
-        label: '06 / Positioning', 
-        icon: <Award className="w-4 h-4" />, 
-        strategy: 'Status-based positioning. Who uses you?' 
+    'positioning': {
+        label: '06 / Positioning',
+        icon: <Award className="w-4 h-4" />,
+        strategy: 'Status-based positioning. Who uses you?'
     },
-    urgency: { 
-        label: '07 / Urgency', 
-        icon: <Clock className="w-4 h-4" />, 
-        strategy: 'Authentic scarcity and a clear next step.' 
+    'urgency': {
+        label: '07 / Urgency',
+        icon: <Clock className="w-4 h-4" />,
+        strategy: 'Authentic scarcity and a clear next step.'
     },
 };
 
@@ -62,8 +62,8 @@ function VariationCard({ text, isSelected, onSelect }: { text: string; isSelecte
             onClick={onSelect}
             className={cn(
                 "p-6 rounded-xl border-2 text-left transition-all duration-300 relative group",
-                isSelected 
-                    ? "bg-[#2D3538] text-white border-[#2D3538] shadow-lg scale-[1.02]" 
+                isSelected
+                    ? "bg-[#2D3538] text-white border-[#2D3538] shadow-lg scale-[1.02]"
                     : "bg-white text-[#2D3538] border-[#C0C1BE] hover:border-[#2D3538] opacity-60 hover:opacity-100"
             )}
         >
@@ -100,12 +100,12 @@ export function SoundbiteStudio({ soundbites, onGenerate, onUpdate, onLock, onSe
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
                     <Zap className="w-full h-full -rotate-12 scale-150" />
                 </div>
-                
+
                 <div className="flex items-center gap-8 relative z-10">
                     <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center relative">
                         <Sparkles className={cn("w-8 h-8", isGenerating && "animate-pulse")} />
                         {isGenerating && (
-                            <motion.div 
+                            <motion.div
                                 className="absolute inset-0 border-2 border-white rounded-full"
                                 animate={{ scale: [1, 1.3, 1], opacity: [1, 0, 1] }}
                                 transition={{ duration: 2, repeat: Infinity }}
@@ -140,19 +140,23 @@ export function SoundbiteStudio({ soundbites, onGenerate, onUpdate, onLock, onSe
                 )}
 
                 {soundbites.map((sb, idx) => {
-                    const config = TYPE_CONFIG[sb.type as SoundbiteType];
+                    const config = TYPE_CONFIG[sb.type as SoundbiteType] || {
+                        label: sb.type,
+                        icon: <Zap className="w-4 h-4" />,
+                        strategy: 'Strategy pending...'
+                    };
                     const isEditing = editingId === sb.id;
                     const unlocked = isUnlocked(idx);
                     const showVariations = viewingVariationsId === sb.id;
 
                     return (
-                        <div 
+                        <div
                             key={sb.id}
                             className={cn(
                                 "group border rounded-3xl transition-all duration-700 overflow-hidden",
                                 !unlocked ? "opacity-20 grayscale pointer-events-none" : "",
-                                sb.isLocked 
-                                    ? "bg-[#F3F4EE]/50 border-[#C0C1BE]" 
+                                sb.isLocked
+                                    ? "bg-[#F3F4EE]/50 border-[#C0C1BE]"
                                     : "bg-white border-[#C0C1BE] hover:border-[#2D3538] shadow-lg"
                             )}
                         >
@@ -185,14 +189,14 @@ export function SoundbiteStudio({ soundbites, onGenerate, onUpdate, onLock, onSe
                                         <div className="flex gap-3">
                                             {!sb.isLocked && (
                                                 <>
-                                                    <button 
+                                                    <button
                                                         onClick={() => setViewingVariationsId(showVariations ? null : sb.id)}
                                                         className="p-2.5 rounded-xl hover:bg-[#F3F4EE] opacity-20 group-hover:opacity-100 transition-all"
                                                         title="Compare Variations"
                                                     >
                                                         <RotateCcw className="w-4 h-4" />
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={() => setEditingId(isEditing ? null : sb.id)}
                                                         className="p-2.5 rounded-xl hover:bg-[#F3F4EE] opacity-20 group-hover:opacity-100 transition-all"
                                                         title="Manual Refine"
@@ -201,12 +205,12 @@ export function SoundbiteStudio({ soundbites, onGenerate, onUpdate, onLock, onSe
                                                     </button>
                                                 </>
                                             )}
-                                            <button 
+                                            <button
                                                 onClick={() => onLock(sb.id)}
                                                 className={cn(
                                                     "p-2.5 rounded-xl transition-all",
-                                                    sb.isLocked 
-                                                        ? "text-emerald-600 bg-emerald-50" 
+                                                    sb.isLocked
+                                                        ? "text-emerald-600 bg-emerald-50"
                                                         : "opacity-20 group-hover:opacity-100 hover:bg-[#F3F4EE]"
                                                 )}
                                             >
@@ -217,26 +221,26 @@ export function SoundbiteStudio({ soundbites, onGenerate, onUpdate, onLock, onSe
 
                                     <AnimatePresence mode="wait">
                                         {showVariations ? (
-                                            <motion.div 
+                                            <motion.div
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: -10 }}
                                                 className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4"
                                             >
-                                                <VariationCard 
-                                                    text={sb.text} 
-                                                    isSelected={true} 
-                                                    onSelect={() => {}} 
+                                                <VariationCard
+                                                    text={sb.text}
+                                                    isSelected={true}
+                                                    onSelect={() => { }}
                                                 />
                                                 {(sb.alternatives || []).map((alt, i) => (
-                                                    <VariationCard 
+                                                    <VariationCard
                                                         key={i}
-                                                        text={alt} 
-                                                        isSelected={false} 
+                                                        text={alt}
+                                                        isSelected={false}
                                                         onSelect={() => {
                                                             onSelectVariation(sb.id, alt);
                                                             setViewingVariationsId(null);
-                                                        }} 
+                                                        }}
                                                     />
                                                 ))}
                                             </motion.div>
@@ -251,7 +255,7 @@ export function SoundbiteStudio({ soundbites, onGenerate, onUpdate, onLock, onSe
                                                 rows={2}
                                             />
                                         ) : (
-                                            <motion.p 
+                                            <motion.p
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
                                                 className={cn(
