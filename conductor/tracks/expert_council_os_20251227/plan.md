@@ -23,7 +23,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 ### 4. The Data Quant (Analytics/Pattern Recognition)
 - [x] **Task 10: Implement `DataQuantAgent` with `bigquery_query_engine` tool.** (c81ea83)
 - [ ] **Task 11: Equip with "Bayesian Confidence Scorer" for experiment outcomes.**
-- [ ] **Task 12: Grant access to `Matrix_KPI_Stream` for real-time performance monitoring.**
+- [x] **Task 12: Grant access to `Matrix_KPI_Stream` for real-time performance monitoring.** (747f467)
 
 ### 5. The Community Catalyst (Dark Social/Retention)
 - [ ] **Task 13: Implement `CommunityCatalystAgent` with `sentiment_analysis` tool.**
