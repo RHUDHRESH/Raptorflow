@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { MoveCalendarView } from '@/components/moves/MoveCalendarView';
+import { MoveCard } from '@/components/moves/MoveCard';
+import { RationaleDrawer } from '@/components/moves/RationaleDrawer';
 import Link from 'next/link';
 import { useFoundation } from '@/context/FoundationProvider';
 
@@ -102,6 +104,7 @@ export default function MovesPage() {
 
     const [moves, setMoves] = useState<Move[]>([]);
     const [selectedMove, setSelectedMove] = useState<Move | null>(null);
+    const [rationaleMove, setRationaleMove] = useState<Move | null>(null);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
 
     // Initialize moves when foundation loads
@@ -319,53 +322,15 @@ export default function MovesPage() {
                                     </div>
 
                                     <div className="space-y-4">
-                                        {filteredMoves.map((move) => {
-                                            const completed = move.checklist?.filter(t => t.completed).length || 0;
-                                            const total = move.checklist?.length || 0;
-                                            const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-                                            // Calculate current day (simple mock)
-                                            const startDate = move.startedAt ? new Date(move.startedAt) : new Date();
-                                            const dayNumber = Math.min(Math.floor((new Date().getTime() - startDate.getTime()) / 86400000) + 1, move.duration);
-
-                                            return (
-                                                <div
-                                                    key={move.id}
-                                                    onClick={() => setSelectedMove(move)}
-                                                    className="group bg-white rounded-xl border border-[#C0C1BE]/50 p-4 transition-all hover:border-[#2D3538]/30 hover:shadow-md cursor-pointer"
-                                                >
-                                                    <div className="flex items-start justify-between mb-3">
-                                                        <h4 className="text-[15px] font-medium text-[#2D3538]">{move.name}</h4>
-                                                        <button
-                                                            title="View calendar"
-                                                            className="w-6 h-6 rounded-full hover:bg-[#F3F4EE] flex items-center justify-center text-[#9D9F9F] hover:text-[#2D3538] transition-colors"
-                                                        >
-                                                            <Calendar className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-3 text-[11px] text-[#5B5F61] mb-3">
-                                                        <div className="flex items-center gap-1">
-                                                            <Clock className="w-3 h-3" />
-                                                            <span>Day {dayNumber}/{move.duration}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1">
-                                                            <Target className="w-3 h-3" />
-                                                            <span className="capitalize">{move.goal}</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="flex-1 h-1 bg-[#E5E6E3] rounded-full overflow-hidden">
-                                                            <div
-                                                                className="h-full bg-[#2D3538] rounded-full"
-                                                                style={{ width: `${progress}%` }}
-                                                            />
-                                                        </div>
-                                                        <span className="text-[10px] font-mono text-[#9D9F9F]">{completed}/{total}</span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
+                                        {filteredMoves.map((move) => (
+                                            <MoveCard
+                                                key={move.id}
+                                                move={move}
+                                                onClick={() => setSelectedMove(move)}
+                                                onLogProgress={() => toast.info('Log progress coming soon!')}
+                                                onViewRationale={() => setRationaleMove(move)}
+                                            />
+                                        ))}
 
                                         {filteredMoves.length === 0 && (
                                             <div className="text-center py-8 border border-dashed border-[#C0C1BE] rounded-xl">
@@ -386,6 +351,14 @@ export default function MovesPage() {
                         move={selectedMove}
                         onClose={() => setSelectedMove(null)}
                         onUpdateTask={handleUpdateTask}
+                    />
+                )}
+                {/* Rationale Drawer */}
+                {rationaleMove && (
+                    <RationaleDrawer
+                        isOpen={!!rationaleMove}
+                        onClose={() => setRationaleMove(null)}
+                        move={rationaleMove}
                     />
                 )}
             </InferenceErrorBoundary>
