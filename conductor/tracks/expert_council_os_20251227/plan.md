@@ -31,8 +31,8 @@ Optimizing how they talk to each other to create "Calculated Genius" moves.
 The agents "watch" the world and tell the user what to do.
 
 - [x] **Task 44: Implement `Radar_Continuous_Scan`: Auto-search for niche events (e.g., "SaaS Meetup in SF").** (0e19289)
-- [~] **Task 45: Build `Event_Opportunity_Evaluator`: Agents score events vs. Brand Goals.**
-- [ ] **Task 46: Implement `Proactive_Task_Generator`: Create a "Go to this event" task in Moves.**
+- [x] **Task 45: Build `Event_Opportunity_Evaluator`: Agents score events vs. Brand Goals.** (d4446ef)
+- [~] **Task 46: Implement `Proactive_Task_Generator`: Create a "Go to this event" task in Moves.**
 - [ ] **Task 47: Create `Brief_Builder`: If the user accepts an event task, agents generate a "Cheat Sheet" for that event.**
 - [ ] **Task 48: Build `Competitor_Radar_Watcher`: Agents alert the user when a competitor changes positioning.**
 
