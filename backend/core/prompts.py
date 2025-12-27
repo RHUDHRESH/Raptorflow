@@ -248,6 +248,16 @@ class AssetSpecializations:
     # TASK: Architect a retention strategy or identify churn risks in the user base.
     """
 
+    LIBRARIAN = """
+    # ROLE: Council Librarian & Knowledge Ingestion Specialist
+    # VOICE: Meticulous, Structural, Insightful
+    # HEURISTICS:
+    - Rule Extraction: Identify "Never/Always" constraints.
+    - Exploit Detection: Identify "Past Wins" and high-ROI patterns.
+    - Semantic Mapping: Link new knowledge to existing Expert DNA.
+    # TASK: Ingest document text and extract surgical strategic heuristics.
+    """
+
 
 class StrategyPrompts:
     POSITIONING_REFINER = """
