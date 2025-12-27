@@ -896,6 +896,25 @@ async def kill_switch_monitor_node(state: CouncilBlackboardState) -> Dict[str, A
     }
 
 
+async def strategy_recalibrator_node(state: CouncilBlackboardState) -> Dict[str, Any]:
+    """
+    Strategy Recalibrator Node: Loops back to debate phase if all moves fail the kill-switch.
+    Ensures the council doesn't execute weak strategies.
+    """
+    logger.info("Council Chamber: Assessing strategic health...")
+
+    approved_moves = state.get("approved_moves", [])
+
+    if not approved_moves:
+        logger.warning(
+            "ALL tactical moves failed confidence check. Triggering full strategic recalibration."
+        )
+        return {"status": "recalibrate", "last_agent": "Strategy_Recalibrator"}
+
+    logger.info("Strategic health verified. Proceeding to execution propagation.")
+    return {"status": "proceed", "last_agent": "Strategy_Recalibrator"}
+
+
 async def competitor_radar_watcher_node(
     state: CouncilBlackboardState,
 ) -> Dict[str, Any]:
