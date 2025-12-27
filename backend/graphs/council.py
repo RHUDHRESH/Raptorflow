@@ -17,7 +17,7 @@ from agents.specialists.psychologist import PsychologistAgent
 from agents.specialists.retention import RetentionAgent
 from agents.specialists.seo_moat import SEOMoatAgent
 from agents.specialists.viral_alchemist import ViralAlchemistAgent
-from db import save_reasoning_chain, save_rejections
+from db import save_move, save_reasoning_chain, save_rejections
 from models.council import CouncilBlackboardState, CouncilThought, DebateTranscript
 from tools.radar_events import RadarEventsTool
 
@@ -475,3 +475,60 @@ async def event_opportunity_evaluator_node(
         new_signals.append(updated_signal)
 
     return {"radar_signals": new_signals, "last_agent": "Event_Evaluator"}
+
+
+async def proactive_task_generator_node(
+    state: CouncilBlackboardState,
+) -> Dict[str, Any]:
+    """
+    Proactive Task Generator Node: Create a "Go to this event" task in Moves.
+    Converts high-scoring signals into actionable tasks for the user.
+    """
+    logger.info("Council Chamber: Generating proactive tasks...")
+
+    signals = state.get("radar_signals", [])
+
+    if not signals:
+        logger.info("No signals to convert.")
+        return {"last_agent": "Task_Generator"}
+
+    new_signals = []
+    for signal in signals:
+        score = signal.get("metadata", {}).get("score", 0.0)
+        # Threshold for proactive task creation
+        if signal.get("status") == "evaluated" and score >= 0.7:
+            # Create a Move
+            move_data = {
+                "title": f"Proactive Move: Engage with {signal.get('content')}",
+                "description": (
+                    f"The Council has identified a high-leverage opportunity: {signal.get('content')}.\n\n"
+                    f"Rationale: {signal.get('metadata', {}).get('rationales', ['High relevance'])[0]}"
+                ),
+                "status": "pending",
+                "priority": 1 if score > 0.9 else 2,
+                "move_type": "outreach",
+                "tool_requirements": ["outreach_email", "research_deep"],
+                "refinement_data": {
+                    "signal_source": signal.get("source"),
+                    "confidence_score": score,
+                },
+            }
+
+            try:
+                # In this context, we don't have a campaign_id, so we might need a default 'Inbox' campaign
+                # For now, we use a placeholder campaign_id or fetch the default one
+                campaign_id = "00000000-0000-0000-0000-000000000000"  # Default Inbox
+                move_id = await save_move(campaign_id, move_data)
+
+                updated_signal = signal.copy()
+                updated_signal["status"] = "converted"
+                updated_signal["metadata"]["move_id"] = move_id
+                new_signals.append(updated_signal)
+                logger.info(f"Created proactive Move {move_id} from signal.")
+            except Exception as e:
+                logger.error(f"Failed to create proactive Move: {e}")
+                new_signals.append(signal)
+        else:
+            new_signals.append(signal)
+
+    return {"radar_signals": new_signals, "last_agent": "Task_Generator"}
