@@ -34,9 +34,9 @@ The agents "watch" the world and tell the user what to do.
 - [x] **Task 45: Build `Event_Opportunity_Evaluator`: Agents score events vs. Brand Goals.** (d4446ef)
 - [x] **Task 46: Implement `Proactive_Task_Generator`: Create a "Go to this event" task in Moves.** (91bc6a3)
 - [x] **Task 47: Create `Brief_Builder`: If the user accepts an event task, agents generate a "Cheat Sheet" for that event.** (a092c06)
-- [~] **Task 48: Build `Competitor_Radar_Watcher`: Agents alert the user when a competitor changes positioning.**
+- [x] **Task 48: Build `Competitor_Radar_Watcher`: Agents alert the user when a competitor changes positioning.** (aee006e)
 
-- [ ] **Task 48.1: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)**
+- [~] **Task 48.1: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)**
 
 ---
 
