@@ -61,7 +61,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 - [x] **Task 33: Grant access to `Radar_Competitors` to find potential "Enemy of my Enemy" partners.** (38f0b72)
 
 ### 12. The Retention & LTV Specialist (Lifecycle)
-- [ ] **Task 34: Implement `RetentionAgent` with `churn_prediction_heuristics` tool.**
+- [x] **Task 34: Implement `RetentionAgent` with `churn_prediction_heuristics` tool.** (84dce40)
 - [ ] **Task 35: Equip with "Milestone-Based" messaging rules.**
 - [ ] **Task 36: Grant access to `Blackbox_Longitudinal_Data` to analyze customer decay.**
 
