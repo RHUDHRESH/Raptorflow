@@ -100,6 +100,7 @@ class UnifiedToolRegistry:
         from tools.bigquery_engine import BigQueryQueryEngineTool
         from tools.blackbox_roi import BlackboxROIHistoryTool
         from tools.budget_pacing import BudgetPacingSimulatorTool
+        from tools.cohorts_intelligence import CohortsIntelligenceTool
         from tools.conversion_optimization import ConversionOptimizationTool
         from tools.foundation_brandkit import FoundationBrandKitTool
         from tools.journalist_pitch import JournalistPitchArchitectTool
@@ -282,6 +283,15 @@ class UnifiedToolRegistry:
                 cost="low",
                 latency_ms=600,
                 reliability=0.96,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            CohortsIntelligenceTool(),
+            CapabilityDescriptor(
+                cost="low",
+                latency_ms=300,
+                reliability=0.99,
                 permissions=self._all_role_permissions(),
             ),
         )
