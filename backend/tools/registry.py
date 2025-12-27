@@ -95,6 +95,7 @@ class UnifiedToolRegistry:
 
     def _register_default_tools(self) -> None:
         # Register only essential tools that don't require additional config
+        from tools.blackbox_roi import BlackboxROIHistoryTool
         from tools.conversion_optimization import ConversionOptimizationTool
         from tools.search import RaptorSearchTool
         from tools.tavily import TavilyMultiHopTool
@@ -123,6 +124,15 @@ class UnifiedToolRegistry:
                 cost="low",
                 latency_ms=500,
                 reliability=0.95,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            BlackboxROIHistoryTool(),
+            CapabilityDescriptor(
+                cost="low",
+                latency_ms=400,
+                reliability=0.98,
                 permissions=self._all_role_permissions(),
             ),
         )

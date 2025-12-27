@@ -98,6 +98,7 @@ class AgentToolIntegration:
             ],
             "direct_response": [
                 "conversion_optimization",
+                "blackbox_roi_history",
                 "analytics",
                 "raptor_search",
             ],

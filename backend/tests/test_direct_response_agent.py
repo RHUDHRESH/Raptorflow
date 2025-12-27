@@ -16,6 +16,7 @@ async def test_direct_response_agent_initialization():
         assert agent.name == "DirectResponseAgent"
         assert "Direct Response" in agent.system_prompt
         assert any(tool.name == "conversion_optimization" for tool in agent.tools)
+        assert any(tool.name == "blackbox_roi_history" for tool in agent.tools)
 
 
 @pytest.mark.asyncio
