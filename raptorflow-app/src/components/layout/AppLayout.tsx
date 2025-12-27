@@ -89,15 +89,15 @@ export function AppLayout({ children, fullBleed = false }: AppLayoutProps) {
             <AppSidebar />
             <CommandPalette />
             <SidebarInset className={cn(
-                "bg-white transition-colors duration-500",
-                fullBleed && "bg-white"
+                "transition-colors duration-500",
+                fullBleed && "bg-transparent"
             )}>
                 {/* Enhanced Editorial Header */}
                 <header className={cn(
                     "sticky top-0 z-50 flex h-14 shrink-0 items-center transition-all duration-300",
-                    "bg-white/80 dark:bg-[#0E1112]/80 backdrop-blur-xl",
-                    "border-b border-gray-100/50 dark:border-[#1a1f22]/50",
-                    fullBleed && "bg-[#F8F9F7]/80 dark:bg-[#0E1112]/80 border-transparent"
+                    "bg-background/80 dark:bg-background/80 backdrop-blur-xl",
+                    "border-b border-sidebar-border/50",
+                    fullBleed && "bg-background/80 dark:bg-background/80 border-transparent"
                 )}>
                     <div className="flex items-center gap-4 px-4 w-full">
                         {/* Sidebar Toggle */}
@@ -282,8 +282,8 @@ export function AppLayout({ children, fullBleed = false }: AppLayoutProps) {
                 <main className={cn(
                     "flex-1 min-h-[calc(100vh-3.5rem)]",
                     fullBleed
-                        ? "w-full bg-white dark:bg-[#0E1112]"
-                        : "mx-auto max-w-none bg-white dark:bg-[#0a0c0d]"
+                        ? "w-full bg-background"
+                        : "mx-auto max-w-none bg-background"
                 )}>
                     {children}
                 </main>

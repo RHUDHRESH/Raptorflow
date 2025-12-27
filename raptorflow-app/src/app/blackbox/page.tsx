@@ -36,12 +36,77 @@ import { AgentAuditLog, AuditEntry } from '@/components/blackbox/AgentAuditLog';
 import { StrategicDriftRadar } from '@/components/blackbox/StrategicDriftRadar';
 import { CostHeatmap } from '@/components/blackbox/CostHeatmap';
 import { EmptyState } from '@/components/blackbox/EmptyState';
+import { useFoundation } from '@/context/FoundationProvider';
+import { FoundationData } from '@/lib/foundation-types';
+
+// Helper to generate experiments from Foundation
+function generateExperimentsFromFoundation(foundation: FoundationData): Experiment[] {
+    const experiments: Experiment[] = [];
+
+    // 1. Positioning Battle
+    if (foundation.positioning?.core?.primary_claim) {
+        experiments.push({
+            id: 'exp-pos-1',
+            title: 'Battle: Primary Claim Validation',
+            goal: 'positioning_refinement',
+            bet: `The claim "${foundation.positioning.core.primary_claim}" will convert 20% better than the generic category claim.`,
+            status: 'draft',
+            created_at: new Date().toISOString(),
+            confidence_level: 0.7,
+            effort_level: 'medium',
+            channel: 'linkedin',
+            tags: ['strategic', 'foundation'],
+            hypothesis: 'Specific outcomes > Generic benefits',
+            success_criteria: '>20% Conversion Lift'
+        });
+    }
+
+    // 2. Messaging Resonance
+    if (foundation.messaging?.message_house?.controlling_idea) {
+        experiments.push({
+            id: 'exp-msg-1',
+            title: 'Test: Controlling Idea Resonance',
+            goal: 'messaging_optimization',
+            bet: `The angle "${foundation.messaging.message_house.controlling_idea}" will generate higher engagement than feature-led messaging.`,
+            status: 'draft',
+            created_at: new Date(Date.now() - 86400000).toISOString(),
+            confidence_level: 0.8,
+            effort_level: 'low',
+            channel: 'email',
+            tags: ['messaging', 'copy'],
+            hypothesis: 'Narrative > Features',
+            success_criteria: '>5% Reply Rate'
+        });
+    }
+
+    // 3. Pricing/Model Test (if inferred)
+    if (foundation.business?.model?.pricing_model) {
+        experiments.push({
+            id: 'exp-biz-1',
+            title: `Test: ${foundation.business.model.pricing_model} Viability`,
+            goal: 'market_fit',
+            bet: 'Customers are willing to pay upfront for this value proposition.',
+            status: 'draft',
+            created_at: new Date(Date.now() - 172800000).toISOString(),
+            confidence_level: 0.6,
+            effort_level: 'high',
+            channel: 'sales_calls',
+            tags: ['business', 'pricing'],
+            hypothesis: 'Value-based pricing holds',
+            success_criteria: '20% Close Rate'
+        });
+    }
+
+    return experiments;
+}
 
 /**
  * Blackbox Industrial Page
  * Design Gate: PASS (Quiet Luxury Alignment, Inter/Playfair Type Scale, Minimal Accents)
  */
 export default function BlackBoxPage() {
+    const { foundation, isLoading: isFoundationLoading } = useFoundation();
+
     const [experiments, setExperiments] = useState<Experiment[]>([]);
     const [learnings, setLearnings] = useState<LearningArtifact[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -58,7 +123,15 @@ export default function BlackBoxPage() {
         setIsLoading(true);
         try {
             const exps = await getExperimentsDB();
-            setExperiments(exps);
+
+            // If DB is empty and we have foundation data, use suggested experiments
+            if (exps.length === 0 && foundation) {
+                const suggested = generateExperimentsFromFoundation(foundation);
+                setExperiments(suggested);
+            } else {
+                setExperiments(exps);
+            }
+
             const state = loadBlackboxState();
             setLearnings(state.learnings);
         } catch (err) {
@@ -66,11 +139,11 @@ export default function BlackBoxPage() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [foundation]);
 
     useEffect(() => {
         refreshData();
-    }, [refreshData]);
+    }, [refreshData, foundation]);
 
     const handleWizardComplete = useCallback(async (newExps: Experiment[]) => {
         try {
@@ -90,7 +163,13 @@ export default function BlackBoxPage() {
 
         const updated = { ...exp, status: 'launched' as ExperimentStatus, launched_at: new Date().toISOString() };
         try {
-            await updateExperimentDB(updated);
+            // First try to ensure it exists if it's a draft from Foundation
+            const exps = await getExperimentsDB();
+            if (!exps.find(e => e.id === id)) {
+                await createExperimentDB(updated);
+            } else {
+                await updateExperimentDB(updated);
+            }
             refreshData();
             toast.success('Experiment launched');
         } catch (err) {
@@ -135,12 +214,13 @@ export default function BlackBoxPage() {
     const handleDelete = useCallback(async (id: string) => {
         try {
             await deleteExperimentDB(id);
-            refreshData();
+            // Also remove from local state to immediately hide Foundation suggestions that were "deleted"
+            setExperiments(prev => prev.filter(e => e.id !== id));
             toast.success('Experiment deleted');
         } catch (err) {
             toast.error('Failed to delete experiment');
         }
-    }, [refreshData]);
+    }, []);
 
     const handleDuplicate = useCallback((id: string) => {
         const exp = experiments.find(e => e.id === id);
@@ -167,7 +247,13 @@ export default function BlackBoxPage() {
     const handleEditSave = async () => {
         if (!activeEdit) return;
         try {
-            await updateExperimentDB(activeEdit);
+            // Check existence for Foundation drafts
+            const exps = await getExperimentsDB();
+            if (!exps.find(e => e.id === activeEdit.id)) {
+                await createExperimentDB(activeEdit);
+            } else {
+                await updateExperimentDB(activeEdit);
+            }
             refreshData();
             setActiveEdit(null);
             toast.success('Experiment updated');

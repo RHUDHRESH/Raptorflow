@@ -115,14 +115,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
     return (
         <Sidebar collapsible="icon" className="border-r border-sidebar-border/50 bg-sidebar" {...props}>
-            <SidebarHeader className="h-12 flex items-center px-2 mb-2 pt-3">
-                <Link href="/" className="block group-data-[collapsible=icon]:hidden">
+            <SidebarHeader className="h-14 flex items-center justify-center px-4 mb-2">
+                <Link href="/" className="block group-data-[collapsible=icon]:hidden w-full flex justify-center">
                     <Image
                         src="/logo_primary.png"
                         alt="RaptorFlow — Founder OS"
                         width={140}
                         height={40}
-                        className="object-contain object-left"
+                        className="object-contain"
                         priority
                     />
                 </Link>
@@ -133,7 +133,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         alt="RaptorFlow"
                         width={28}
                         height={28}
-                        className="object-contain object-left"
+                        className="object-contain"
                         priority
                     />
                 </Link>

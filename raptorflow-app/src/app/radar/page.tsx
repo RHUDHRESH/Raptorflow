@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
     RadarTab,
     Watchlist,
     Alert,
-    MOCK_WATCHLISTS,
-    MOCK_ALERTS,
+    Competitor,
     MOCK_RADAR_STATUS,
 } from '@/components/radar/types';
 import { AlertFeed } from '@/components/radar/alerts/AlertFeed';
@@ -20,20 +19,92 @@ import { RadarNotifications } from '@/components/radar/RadarNotifications';
 import { ArrowRight, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { scanRecon, generateDossier, getSignalTrends, startScheduler, stopScheduler } from '@/lib/radar';
+import { useFoundation } from '@/context/FoundationProvider';
+
+// Helper to generate watchlists from Foundation data
+function generateWatchlistsFromFoundation(competition: any): Watchlist[] {
+    if (!competition?.direct?.length) return [];
+
+    const competitors: Competitor[] = competition.direct.map((c: any, idx: number) => ({
+        id: `comp-foundation-${idx}`,
+        name: c.name,
+        website: `https://${c.name.toLowerCase().replace(/\s+/g, '')}.com`,
+        sources: [
+            { id: `src-${idx}-1`, type: 'url' as const, name: 'Website', value: `https://${c.name.toLowerCase().replace(/\s+/g, '')}.com`, health: 90 },
+        ],
+        lastRecon: new Date(Date.now() - 1000 * 60 * 60 * 24),
+        notes: `${c.strength} | Weakness: ${c.weakness}`,
+    }));
+
+    return [{
+        id: 'wl-foundation-1',
+        name: 'Direct Competitors',
+        description: 'Competitors from your Foundation data',
+        type: 'competitors',
+        competitors,
+        signalTypes: ['pricing', 'messaging', 'content'],
+        scanFrequency: 'daily',
+        lastScan: new Date(Date.now() - 1000 * 60 * 60 * 2),
+        nextScan: new Date(Date.now() + 1000 * 60 * 60 * 4.5),
+        status: 'active',
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+        updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
+    }];
+}
+
+// Helper to generate alerts from Foundation battlecards
+function generateAlertsFromFoundation(competition: any): Alert[] {
+    if (!competition?.battlecards?.landmines?.length) return [];
+
+    return competition.battlecards.landmines.slice(0, 3).map((landmine: string, idx: number) => ({
+        id: `alert-foundation-${idx}`,
+        watchlistId: 'wl-foundation-1',
+        watchlistName: 'Direct Competitors',
+        competitorId: 'comp-foundation-0',
+        competitorName: competition.direct?.[0]?.name || 'Competitor',
+        type: 'messaging' as const,
+        title: `Objection Pattern: "${landmine}"`,
+        summary: `Common objection detected: "${landmine}". Prepare talk track response.`,
+        impact: 'medium' as const,
+        confidence: 'high' as const,
+        evidence: [],
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * (idx + 1)),
+        status: 'new' as const,
+    }));
+}
 
 export default function RadarPage() {
+    const { getCompetition, isLoading: foundationLoading } = useFoundation();
+    const competition = getCompetition();
+
+    // Generate watchlists from Foundation
+    const foundationWatchlists = useMemo(() =>
+        generateWatchlistsFromFoundation(competition), [competition]);
+
+    // Generate alerts from Foundation
+    const foundationAlerts = useMemo(() =>
+        generateAlertsFromFoundation(competition), [competition]);
+
     const [activeTab, setActiveTab] = useState<RadarTab>('alerts');
-    const [watchlists, setWatchlists] = useState<Watchlist[]>(MOCK_WATCHLISTS);
-    const [alerts, setAlerts] = useState<Alert[]>(MOCK_ALERTS);
+    const [watchlists, setWatchlists] = useState<Watchlist[]>([]);
+    const [alerts, setAlerts] = useState<Alert[]>([]);
     const [showWizard, setShowWizard] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
     const [schedulerActive, setSchedulerActive] = useState(false);
 
-    // Load scheduler status on mount
+    // Initialize with Foundation data
     useEffect(() => {
-        // Could check scheduler status here
-        // For now, default to inactive
-    }, []);
+        if (foundationWatchlists.length > 0) {
+            setWatchlists(foundationWatchlists);
+        }
+        if (foundationAlerts.length > 0) {
+            setAlerts(foundationAlerts);
+        }
+    }, [foundationWatchlists, foundationAlerts]);
+
+    // Get existing competitors for wizard
+    const existingCompetitors = useMemo(() =>
+        competition?.direct?.map((c: any) => c.name) || [], [competition]);
 
     const handleDismissAlert = (id: string) => {
         setAlerts(prev => prev.map(a =>
@@ -171,7 +242,7 @@ export default function RadarPage() {
             <WatchlistWizard
                 onComplete={handleWatchlistComplete}
                 onCancel={() => setShowWizard(false)}
-                existingCompetitors={['Competitor X', 'Competitor Y', 'Competitor Z']}
+                existingCompetitors={existingCompetitors}
             />
         );
     }
@@ -195,11 +266,10 @@ export default function RadarPage() {
                             <button
                                 onClick={handleRunScan}
                                 disabled={isScanning}
-                                className={`h-11 px-5 rounded-xl text-[14px] font-medium transition-all ${
-                                    isScanning
-                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                        : 'border border-[#C0C1BE] text-[#2D3538] hover:bg-white'
-                                }`}
+                                className={`h-11 px-5 rounded-xl text-[14px] font-medium transition-all ${isScanning
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    : 'border border-[#C0C1BE] text-[#2D3538] hover:bg-white'
+                                    }`}
                             >
                                 {isScanning ? 'Scanning...' : 'Run Scan'}
                             </button>
@@ -211,11 +281,10 @@ export default function RadarPage() {
                             </button>
                             <button
                                 onClick={handleToggleScheduler}
-                                className={`h-11 px-5 rounded-xl text-[14px] font-medium transition-all ${
-                                    schedulerActive
-                                        ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
-                                        : 'border border-[#C0C1BE] text-[#2D3538] hover:bg-white'
-                                }`}
+                                className={`h-11 px-5 rounded-xl text-[14px] font-medium transition-all ${schedulerActive
+                                    ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                                    : 'border border-[#C0C1BE] text-[#2D3538] hover:bg-white'
+                                    }`}
                             >
                                 {schedulerActive ? 'Stop Scheduler' : 'Start Scheduler'}
                             </button>
