@@ -811,6 +811,58 @@ async def propagative_executor_node(state: CouncilBlackboardState) -> Dict[str, 
     return {"move_ids": move_ids, "last_agent": "Propagative_Executor"}
 
 
+async def success_predictor_node(state: CouncilBlackboardState) -> Dict[str, Any]:
+    """
+    Success Predictor Node: confidence scoring for each proposed Move.
+    Uses Data Analyst agent to quantify risk and alignment with business goals.
+    """
+    logger.info("Council Chamber: Predicting move success probability...")
+
+    agents = get_council_agents()
+    # Use index 4 (Data Analyst) for scoring
+    analyst = agents[4]
+    refined_moves = state.get("refined_moves", [])
+
+    if not refined_moves:
+        logger.warning("No moves to evaluate, skipping success prediction.")
+        return {"last_agent": "Success_Predictor"}
+
+    evaluated_moves = []
+    for move in refined_moves:
+        score_prompt = (
+            "You are a Council Data Analyst. Evaluate the following Move for success probability (0-100%).\n\n"
+            f"Move: {move.get('title')}\n"
+            f"Description: {move.get('description')}\n\n"
+            "Output ONLY a JSON object with:\n"
+            "- confidence_score (number): 0-100.\n"
+            "- reasoning (string): Surgical justification for the score.\n"
+        )
+
+        score_state = state.copy()
+        score_state["messages"] = list(state.get("messages", [])) + [
+            {"role": "human", "content": score_prompt}
+        ]
+
+        response = await analyst(score_state)
+        content = response["messages"][-1].content if response.get("messages") else "{}"
+
+        eval_move = move.copy()
+        try:
+            json_match = re.search(r"\{.*\}", content, re.DOTALL)
+            if json_match:
+                parsed = json.loads(json_match.group())
+                eval_move.update(parsed)
+        except Exception as e:
+            logger.warning(f"Failed to score move {move.get('title')}: {e}")
+            eval_move["confidence_score"] = 50
+            eval_move["reasoning"] = "Scoring failed, default applied."
+
+        evaluated_moves.append(eval_move)
+
+    logger.info(f"Evaluated {len(evaluated_moves)} moves with confidence metrics.")
+    return {"evaluated_moves": evaluated_moves, "last_agent": "Success_Predictor"}
+
+
 async def competitor_radar_watcher_node(
     state: CouncilBlackboardState,
 ) -> Dict[str, Any]:
