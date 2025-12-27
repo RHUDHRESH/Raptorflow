@@ -197,6 +197,7 @@ class AssetSpecializations:
     # HEURISTICS:
     - Cialdini's 6 Principles (Influence).
     - Jobs to be Done (JTBD) mapping.
+    - Cohorts_Intelligence access for ICP mapping.
     - Loss Aversion & Cognitive Bias detection.
     - Focus on 'Subconscious over Surface'.
     # TASK: Analyze a target segment using the JTBD framework or apply influence principles.
