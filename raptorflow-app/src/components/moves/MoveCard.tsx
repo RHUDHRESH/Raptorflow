@@ -2,12 +2,13 @@
 
 import React from 'react';
 import { Move, GOAL_LABELS, CHANNEL_LABELS, RAGStatus } from '@/lib/campaigns-types';
-import { MoreHorizontal, Clock } from 'lucide-react';
+import { MoreHorizontal, Clock, BrainCircuit } from 'lucide-react';
 
 interface MoveCardProps {
     move: Move;
     onClick: () => void;
     onLogProgress?: () => void;
+    onViewRationale?: () => void;
 }
 
 // Calculate RAG status deterministically
@@ -146,12 +147,21 @@ export function MoveCard({ move, onClick, onLogProgress }: MoveCardProps) {
                         </span>
                     </div>
                 </div>
-                <button
-                    onClick={(e) => { e.stopPropagation(); onLogProgress?.(); }}
-                    className="h-8 px-3.5 bg-[#F8F9F7] border border-[#E5E6E3] rounded-lg text-[12px] font-medium text-[#2D3538] hover:bg-[#1A1D1E] hover:border-[#1A1D1E] hover:text-white transition-colors"
-                >
-                    Log progress
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onViewRationale?.(); }}
+                        title="View Council Rationale"
+                        className="h-8 w-8 bg-[#F8F9F7] border border-[#E5E6E3] rounded-lg flex items-center justify-center text-[#5B5F61] hover:bg-accent/10 hover:border-accent/30 hover:text-accent transition-colors"
+                    >
+                        <BrainCircuit className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onLogProgress?.(); }}
+                        className="h-8 px-3.5 bg-[#F8F9F7] border border-[#E5E6E3] rounded-lg text-[12px] font-medium text-[#2D3538] hover:bg-[#1A1D1E] hover:border-[#1A1D1E] hover:text-white transition-colors"
+                    >
+                        Log progress
+                    </button>
+                </div>
             </div>
 
             {/* Outcome */}

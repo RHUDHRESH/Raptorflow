@@ -22,7 +22,8 @@ import {
     BookOpen,
     Layers,
     Radio,
-    BrainCircuit
+    BrainCircuit,
+    Activity
 } from "lucide-react"
 
 import { SearchForm } from "./SearchForm"
@@ -77,6 +78,12 @@ const items = {
     ],
     intelligence: [
         {
+            title: "Expert Council",
+            subtitle: "Strategic Brain",
+            url: "/council",
+            icon: BrainCircuit,
+        },
+        {
             title: "Radar",
             subtitle: "Market Intelligence",
             url: "/radar",
@@ -92,7 +99,7 @@ const items = {
             title: "Blackbox",
             subtitle: "Learning & Insights",
             url: "/blackbox",
-            icon: BrainCircuit,
+            icon: Activity,
         },
     ],
 }
