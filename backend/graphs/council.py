@@ -17,7 +17,13 @@ from agents.specialists.psychologist import PsychologistAgent
 from agents.specialists.retention import RetentionAgent
 from agents.specialists.seo_moat import SEOMoatAgent
 from agents.specialists.viral_alchemist import ViralAlchemistAgent
-from db import save_move, save_reasoning_chain, save_rejections, update_move_description
+from db import (
+    save_campaign,
+    save_move,
+    save_reasoning_chain,
+    save_rejections,
+    update_move_description,
+)
 from models.council import CouncilBlackboardState, CouncilThought, DebateTranscript
 from tools.radar_competitors import RadarCompetitorsTool
 from tools.radar_events import RadarEventsTool
@@ -595,6 +601,65 @@ async def brief_builder_node(state: CouncilBlackboardState) -> Dict[str, Any]:
             new_signals.append(signal)
 
     return {"radar_signals": new_signals, "last_agent": "Brief_Builder"}
+
+
+async def campaign_arc_generator_node(state: CouncilBlackboardState) -> Dict[str, Any]:
+    """
+    Campaign Arc Generator Node: Convert strategic consensus into a 90-day campaign roadmap.
+    Persists the roadmap to Supabase for propagative move generation.
+    """
+    logger.info("Council Chamber: Generating 90-day campaign roadmap...")
+
+    agents = get_council_agents()
+    # Use Moderator (index 2) to generate the arc
+    moderator = agents[2]
+    decree = state.get("final_strategic_decree")
+    workspace_id = state.get("workspace_id")
+
+    if not decree:
+        logger.warning("No strategic decree found, skipping campaign generation.")
+        return {"last_agent": "Campaign_Generator"}
+
+    arc_prompt = (
+        "You are the Council Moderator. Convert the following Strategic Decree into a 90-day campaign roadmap.\n\n"
+        f"Decree: {decree}\n\n"
+        "Output ONLY a JSON object with:\n"
+        "- title (string): A surgical, premium campaign name.\n"
+        "- objective (string): The North Star goal of the campaign.\n"
+        "- arc_data (object): A nested object with 'phases' (list of strings) and 'milestones'.\n"
+    )
+
+    arc_state = state.copy()
+    arc_state["messages"] = list(state.get("messages", [])) + [
+        {"role": "human", "content": arc_prompt}
+    ]
+
+    response = await moderator(arc_state)
+    content = response["messages"][-1].content if response.get("messages") else "{}"
+
+    campaign_data = {
+        "title": "New Strategic Campaign",
+        "objective": decree[:100],
+        "arc_data": {"phases": ["Discovery", "Execution", "Optimization"]},
+        "status": "draft",
+    }
+
+    try:
+        json_match = re.search(r"\{.*?\}", content, re.DOTALL)
+        if json_match:
+            parsed = json.loads(json_match.group())
+            campaign_data.update(parsed)
+    except Exception as e:
+        logger.warning(f"Failed to parse campaign arc JSON: {e}")
+
+    try:
+        # Save to Supabase
+        campaign_id = await save_campaign(workspace_id, campaign_data)
+        logger.info(f"Successfully generated and persisted Campaign {campaign_id}.")
+        return {"campaign_id": campaign_id, "last_agent": "Campaign_Generator"}
+    except Exception as e:
+        logger.error(f"Failed to persist campaign: {e}")
+        return {"last_agent": "Campaign_Generator"}
 
 
 async def competitor_radar_watcher_node(
