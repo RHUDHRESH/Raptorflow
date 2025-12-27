@@ -38,11 +38,6 @@ def get_pool() -> AsyncConnectionPool:
                 timeout=30,  # Connection timeout
                 max_lifetime=3600,  # 1 hour lifetime (increased)
                 max_idle=600,  # 10 minutes idle timeout
-                check=AsyncConnectionPool.ConnectionCheck(
-                    # Health check configuration
-                    timeout=5,
-                    command="SELECT 1",
-                ),
                 kwargs={
                     # Connection parameters optimization
                     "prepare_threshold": 5,
@@ -53,7 +48,7 @@ def get_pool() -> AsyncConnectionPool:
                     "options": "-c default_transaction_isolation=read_committed",
                 },
             )
-            logger.info(f"Created optimized database pool: min_size=5, max_size=50")
+            logger.info("Created optimized database pool: min_size=5, max_size=50")
         except Exception as e:
             logger.error(f"Failed to create database pool: {e}")
             raise
@@ -72,6 +67,7 @@ async def close_pool():
             _pool = None
 
 
+@asynccontextmanager
 async def get_db_connection():
     """Async context manager for psycopg connection from the pool."""
     pool = get_pool()
@@ -505,3 +501,67 @@ async def save_entity(
             result = await cur.fetchone()
             await conn.commit()
             return result[0]
+
+
+async def save_reasoning_chain(workspace_id: str, chain_data: dict) -> str:
+    """
+    Persists a full Council reasoning chain (debate log) to Supabase.
+    """
+    async with get_db_connection() as conn:
+        async with conn.cursor() as cur:
+            try:
+                # Use provided ID or generate one
+                chain_id = chain_data.get("id")
+
+                if chain_id:
+                    query = """
+                        INSERT INTO reasoning_chains (
+                            id, workspace_id, debate_history, final_synthesis, metrics, metadata
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (id) DO UPDATE SET
+                            debate_history = EXCLUDED.debate_history,
+                            final_synthesis = EXCLUDED.final_synthesis,
+                            metrics = EXCLUDED.metrics,
+                            metadata = EXCLUDED.metadata
+                        RETURNING id;
+                    """
+                    await cur.execute(
+                        query,
+                        (
+                            chain_id,
+                            workspace_id,
+                            psycopg.types.json.Jsonb(
+                                chain_data.get("debate_history", [])
+                            ),
+                            chain_data.get("final_synthesis"),
+                            psycopg.types.json.Jsonb(chain_data.get("metrics", {})),
+                            psycopg.types.json.Jsonb(chain_data.get("metadata", {})),
+                        ),
+                    )
+                else:
+                    query = """
+                        INSERT INTO reasoning_chains (workspace_id, debate_history, final_synthesis, metrics, metadata)
+                        VALUES (%s, %s, %s, %s, %s)
+                        RETURNING id;
+                    """
+                    await cur.execute(
+                        query,
+                        (
+                            workspace_id,
+                            psycopg.types.json.Jsonb(
+                                chain_data.get("debate_history", [])
+                            ),
+                            chain_data.get("final_synthesis"),
+                            psycopg.types.json.Jsonb(chain_data.get("metrics", {})),
+                            psycopg.types.json.Jsonb(chain_data.get("metadata", {})),
+                        ),
+                    )
+
+                result = await cur.fetchone()
+                await conn.commit()
+                return str(result[0])
+            except Exception as e:
+                await conn.rollback()
+                logger.error(f"Failed to save reasoning chain: {e}")
+                raise
