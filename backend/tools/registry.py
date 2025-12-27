@@ -108,6 +108,7 @@ class UnifiedToolRegistry:
         from tools.jtbd_analyzer import JTBDAnalyzerTool
         from tools.matrix_kpi_stream import MatrixKPIStreamTool
         from tools.muse_asset_archive import MuseAssetArchiveTool
+        from tools.partnership_incentives import WinWinIncentiveTool
         from tools.product_marketing import BenefitToFeatureMapperTool
         from tools.radar_events import RadarEventsTool
         from tools.radar_keywords import RadarKeywordsTool
@@ -250,6 +251,15 @@ class UnifiedToolRegistry:
                 cost="medium",
                 latency_ms=800,
                 reliability=0.94,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            WinWinIncentiveTool(),
+            CapabilityDescriptor(
+                cost="low",
+                latency_ms=400,
+                reliability=0.98,
                 permissions=self._all_role_permissions(),
             ),
         )
