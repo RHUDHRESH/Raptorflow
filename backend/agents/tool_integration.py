@@ -109,6 +109,7 @@ class AgentToolIntegration:
             ],
             "brand_philosopher": [
                 "style_guide_enforcer",
+                "foundation_brandkit",
                 "raptor_search",
                 "perplexity_search",
             ],
