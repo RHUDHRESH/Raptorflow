@@ -16,7 +16,7 @@ import {
     UserPlus,
     Activity
 } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
@@ -75,10 +75,12 @@ export function CouncilChamber({ debateHistory = [], consensusMetrics }: Council
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 {/* Left: Experts Grid */}
                 <div className="lg:col-span-2">
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
-                        {EXPERTS.map((expert) => (
-                            <motion.div
-                                key={expert.id}
+                    <LayoutGroup>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                            {EXPERTS.map((expert) => (
+                                <motion.div
+                                    layout
+                                    key={expert.id}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 className={cn(
@@ -97,9 +99,16 @@ export function CouncilChamber({ debateHistory = [], consensusMetrics }: Council
                                     {pulsingExpert === expert.id && (
                                         <motion.div
                                             initial={{ scale: 0.8, opacity: 0 }}
-                                            animate={{ scale: 1.5, opacity: 0.5 }}
-                                            exit={{ scale: 2, opacity: 0 }}
-                                            className="absolute inset-0 rounded-full bg-accent pointer-events-none"
+                                            animate={{
+                                                scale: [1, 1.2, 1],
+                                                opacity: [0.2, 0.5, 0.2]
+                                            }}
+                                            transition={{
+                                                repeat: Infinity,
+                                                duration: 2,
+                                                ease: "easeInOut"
+                                            }}
+                                            className="absolute inset-0 rounded-full bg-accent pointer-events-none blur-md"
                                         />
                                     )}
                                 </div>
