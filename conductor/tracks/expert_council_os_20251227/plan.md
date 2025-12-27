@@ -57,8 +57,8 @@ Consensus triggers action.
 
 ---
 
-## Phase 5: "Calculated Genius" Reasoning UI
-Showing the depth of thought in the "Operator's View."
+## Phase 5: Strategic Self-Correction (Matrix & Kill-Switch) [checkpoint: 50a0a4f]
+The council corrects itself.
 
 - [ ] **Task 56: Design the `Council_Chamber` UI: 12-avatar grid with real-time "Thought" pulses.**
 - [ ] **Task 57: Build the `Rationale_Drawer` component in the Moves module.**
