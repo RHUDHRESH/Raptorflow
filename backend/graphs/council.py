@@ -5,6 +5,8 @@ import re
 from datetime import datetime
 from typing import Any, Dict, List
 
+from langgraph.graph import END, StateGraph
+
 from agents.specialists.brand_philosopher import BrandPhilosopherAgent
 from agents.specialists.community_catalyst import CommunityCatalystAgent
 from agents.specialists.data_quant import DataQuantAgent
@@ -202,15 +204,20 @@ async def consensus_scorer_node(state: CouncilBlackboardState) -> Dict[str, Any]
     response = await lead_agent(scoring_state)
 
     content = response["messages"][-1].content if response.get("messages") else "{}"
+    logger.info(f"DEBUG: Consensus Scorer Node Content: {content}")
 
     # Extract JSON from content (handling potential markdown wrapping)
-    json_match = re.search(r"\{{.*\}}", content, re.DOTALL)
-    if json_match:
+    start_idx = content.find("{")
+    end_idx = content.rfind("}")
+    if start_idx != -1 and end_idx != -1:
         try:
-            metrics = json.loads(json_match.group())
-        except Exception:
+            metrics = json.loads(content[start_idx : end_idx + 1])
+            logger.info(f"DEBUG: Parsed Metrics: {metrics}")
+        except Exception as e:
+            logger.error(f"DEBUG: JSON Parse Error: {e}")
             metrics = {"alignment": 0.5, "confidence": 0.5, "risk": 0.5}
     else:
+        logger.warning("DEBUG: JSON markers not found in content.")
         metrics = {"alignment": 0.5, "confidence": 0.5, "risk": 0.5}
 
     return {"consensus_metrics": metrics, "last_agent": "Consensus_Scorer"}
@@ -460,14 +467,16 @@ async def event_opportunity_evaluator_node(
             content = (
                 res["messages"][-1].content if res.get("messages") else "{'score': 0.5}"
             )
-            # Simple extraction
+            # Robust JSON extraction
             try:
-                json_match = re.search(r"\{{.*\}}", content, re.DOTALL)
-                if json_match:
-                    eval_data = json.loads(json_match.group())
+                start_idx = content.find("{")
+                end_idx = content.rfind("}")
+                if start_idx != -1 and end_idx != -1:
+                    eval_data = json.loads(content[start_idx : end_idx + 1])
                     total_score += eval_data.get("score", 0.5)
                     rationales.append(eval_data.get("rationale", "No rationale."))
-            except Exception:
+            except Exception as e:
+                logger.warning(f"Failed to parse evaluation JSON: {e}")
                 total_score += 0.5
 
         avg_score = total_score / len(evaluators)
@@ -645,9 +654,10 @@ async def campaign_arc_generator_node(state: CouncilBlackboardState) -> Dict[str
     }
 
     try:
-        json_match = re.search(r"\{.*?\}", content, re.DOTALL)
-        if json_match:
-            parsed = json.loads(json_match.group())
+        start_idx = content.find("{")
+        end_idx = content.rfind("}")
+        if start_idx != -1 and end_idx != -1:
+            parsed = json.loads(content[start_idx : end_idx + 1])
             campaign_data.update(parsed)
     except Exception as e:
         logger.warning(f"Failed to parse campaign arc JSON: {e}")
@@ -701,9 +711,10 @@ async def move_decomposition_node(state: CouncilBlackboardState) -> Dict[str, An
     for res in results:
         content = res["messages"][-1].content if res.get("messages") else "{}"
         try:
-            json_match = re.search(r"\{.*\}", content, re.DOTALL)
-            if json_match:
-                parsed = json.loads(json_match.group())
+            start_idx = content.find("{")
+            end_idx = content.rfind("}")
+            if start_idx != -1 and end_idx != -1:
+                parsed = json.loads(content[start_idx : end_idx + 1])
                 all_suggested_moves.extend(parsed.get("moves", []))
         except Exception as e:
             logger.warning(f"Failed to parse suggested moves: {e}")
@@ -758,9 +769,10 @@ async def move_refiner_node(state: CouncilBlackboardState) -> Dict[str, Any]:
 
         new_move = move.copy()
         try:
-            json_match = re.search(r"\{.*\}", content, re.DOTALL)
-            if json_match:
-                parsed = json.loads(json_match.group())
+            start_idx = content.find("{")
+            end_idx = content.rfind("}")
+            if start_idx != -1 and end_idx != -1:
+                parsed = json.loads(content[start_idx : end_idx + 1])
                 new_move.update(parsed)
         except Exception as e:
             logger.warning(f"Failed to refine move {move.get('title')}: {e}")
@@ -848,9 +860,10 @@ async def success_predictor_node(state: CouncilBlackboardState) -> Dict[str, Any
 
         eval_move = move.copy()
         try:
-            json_match = re.search(r"\{.*\}", content, re.DOTALL)
-            if json_match:
-                parsed = json.loads(json_match.group())
+            start_idx = content.find("{")
+            end_idx = content.rfind("}")
+            if start_idx != -1 and end_idx != -1:
+                parsed = json.loads(content[start_idx : end_idx + 1])
                 eval_move.update(parsed)
         except Exception as e:
             logger.warning(f"Failed to score move {move.get('title')}: {e}")
@@ -915,6 +928,89 @@ async def strategy_recalibrator_node(state: CouncilBlackboardState) -> Dict[str,
     return {"status": "proceed", "last_agent": "Strategy_Recalibrator"}
 
 
+def get_expert_council_graph() -> StateGraph:
+    """
+    Expert Council Graph Assembly: Connecting all 15+ nodes into a production orchestration.
+    Defines the full autonomous marketing department workflow.
+    """
+    workflow = StateGraph(CouncilBlackboardState)
+
+    # 1. Proactive Intelligence (The "Watchers")
+    workflow.add_node("radar_scan", radar_continuous_scan_node)
+    workflow.add_node("event_eval", event_opportunity_evaluator_node)
+    workflow.add_node("competitor_watch", competitor_radar_watcher_node)
+
+    # 2. Strategy & Briefing
+    workflow.add_node("task_gen", proactive_task_generator_node)
+    workflow.add_node("brief_build", brief_builder_node)
+
+    # 3. Reasoning & Debate
+    workflow.add_node("initial_reasoning", council_debate_node)
+    workflow.add_node("critique", cross_critique_node)
+    workflow.add_node("consensus", consensus_scorer_node)
+    workflow.add_node("synthesis", synthesis_node)
+
+    # 4. Persistence (Reasoning Chains)
+    workflow.add_node("log_reasoning", reasoning_chain_logger_node)
+    workflow.add_node("log_rejections", rejection_logger_node)
+
+    # 5. Arc & Move Generation
+    workflow.add_node("campaign_gen", campaign_arc_generator_node)
+    workflow.add_node("move_decomp", move_decomposition_node)
+    workflow.add_node("move_refine", move_refiner_node)
+
+    # 6. Strategic Validation
+    workflow.add_node("success_predict", success_predictor_node)
+    workflow.add_node("kill_switch", kill_switch_monitor_node)
+    workflow.add_node("recalibrate", strategy_recalibrator_node)
+
+    # 7. Execution Propagation
+    workflow.add_node("executor", propagative_executor_node)
+
+    # Define Edges
+    workflow.set_entry_point("radar_scan")
+
+    workflow.add_edge("radar_scan", "event_eval")
+    workflow.add_edge("event_eval", "competitor_watch")
+    workflow.add_edge("competitor_watch", "task_gen")
+    workflow.add_edge("task_gen", "brief_build")
+    workflow.add_edge("brief_build", "initial_reasoning")
+
+    workflow.add_edge("initial_reasoning", "critique")
+    workflow.add_edge("critique", "consensus")
+
+    # Consensus Conditional Path
+    workflow.add_conditional_edges(
+        "consensus",
+        lambda x: (
+            "synthesis"
+            if x.get("consensus_metrics", {}).get("alignment", 0) >= 0.7
+            else "initial_reasoning"
+        ),
+    )
+
+    workflow.add_edge("synthesis", "log_reasoning")
+    workflow.add_edge("log_reasoning", "log_rejections")
+    workflow.add_edge("log_rejections", "campaign_gen")
+    workflow.add_edge("campaign_gen", "move_decomp")
+    workflow.add_edge("move_decomp", "move_refine")
+    workflow.add_edge("move_refine", "success_predict")
+    workflow.add_edge("success_predict", "kill_switch")
+    workflow.add_edge("kill_switch", "recalibrate")
+
+    # Recalibration Conditional Path
+    workflow.add_conditional_edges(
+        "recalibrate",
+        lambda x: (
+            "initial_reasoning" if x.get("status") == "recalibrate" else "executor"
+        ),
+    )
+
+    workflow.add_edge("executor", END)
+
+    return workflow
+
+
 async def competitor_radar_watcher_node(
     state: CouncilBlackboardState,
 ) -> Dict[str, Any]:
@@ -968,9 +1064,10 @@ async def competitor_radar_watcher_node(
                 impact_score = 0.5
                 recommendation = "Monitor closely."
                 try:
-                    json_match = re.search(r"\{.*?\}", content, re.DOTALL)
-                    if json_match:
-                        eval_data = json.loads(json_match.group())
+                    start_idx = content.find("{")
+                    end_idx = content.rfind("}")
+                    if start_idx != -1 and end_idx != -1:
+                        eval_data = json.loads(content[start_idx : end_idx + 1])
                         impact_score = eval_data.get("impact", 0.5)
                         recommendation = eval_data.get(
                             "recommendation", "Monitor closely."
