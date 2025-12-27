@@ -16,6 +16,7 @@ async def test_seo_moat_agent_initialization():
         assert agent.name == "SEOMoatAgent"
         assert "SEO & Content Moat" in agent.system_prompt
         assert any(tool.name == "semantic_cluster_generator" for tool in agent.tools)
+        assert any(tool.name == "radar_keywords" for tool in agent.tools)
 
 
 @pytest.mark.asyncio

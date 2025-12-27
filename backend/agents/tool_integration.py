@@ -133,6 +133,7 @@ class AgentToolIntegration:
             ],
             "seo_moat": [
                 "semantic_cluster_generator",
+                "radar_keywords",
                 "seo_optimization",
                 "raptor_search",
             ],
