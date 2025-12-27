@@ -19,6 +19,7 @@ from agents.specialists.seo_moat import SEOMoatAgent
 from agents.specialists.viral_alchemist import ViralAlchemistAgent
 from db import save_reasoning_chain, save_rejections
 from models.council import CouncilBlackboardState, CouncilThought, DebateTranscript
+from tools.radar_events import RadarEventsTool
 
 logger = logging.getLogger("raptorflow.graphs.council")
 
@@ -355,3 +356,46 @@ async def rejection_logger_node(state: CouncilBlackboardState) -> Dict[str, Any]
         logger.error(f"Failed to log rejected paths: {e}")
 
     return {"last_agent": "Rejection_Logger"}
+
+
+async def radar_continuous_scan_node(state: CouncilBlackboardState) -> Dict[str, Any]:
+    """
+    Radar Continuous Scan Node: Auto-search for niche events.
+    Watches the world for opportunities that align with Brand Goals.
+    """
+    logger.info("Council Chamber: Initiating proactive radar scan...")
+
+    brief = state.get("brief", {})
+    goals = brief.get("goals", "marketing opportunities")
+
+    # Use RadarEventsTool to find niche events
+    tool = RadarEventsTool()
+
+    try:
+        # Execute tool search
+        events_res = await tool.run(niche=goals)
+
+        # Parse and accumulate signals
+        new_signals = []
+        if events_res.get("success") and events_res.get("data"):
+            found_events = events_res["data"].get("found_events", [])
+            for event in found_events:
+                new_signals.append(
+                    {
+                        "type": "event_opportunity",
+                        "source": "radar_events",
+                        "content": f"Event: {event.get('name')} (Type: {event.get('type')})",
+                        "metadata": {
+                            "relevance": event.get("relevance"),
+                            "niche": goals,
+                        },
+                        "timestamp": datetime.now().isoformat(),
+                        "status": "new",
+                    }
+                )
+
+        logger.info(f"Radar scan discovered {len(new_signals)} new signals.")
+        return {"radar_signals": new_signals, "last_agent": "Radar_Watcher"}
+    except Exception as e:
+        logger.error(f"Radar scan failed: {e}")
+        return {"last_agent": "Radar_Watcher"}
