@@ -105,6 +105,7 @@ class UnifiedToolRegistry:
         from tools.matrix_kpi_stream import MatrixKPIStreamTool
         from tools.radar_trend_analyzer import RadarTrendAnalyzerTool
         from tools.search import RaptorSearchTool, TavilyMultiHopTool
+        from tools.semantic_cluster import SemanticClusterGeneratorTool
         from tools.sentiment_analysis import SentimentAnalysisTool
         from tools.style_guide_enforcer import StyleGuideEnforcerTool
         from tools.supabase_logs import SupabaseUserLogsTool
@@ -232,6 +233,15 @@ class UnifiedToolRegistry:
                 cost="low",
                 latency_ms=100,
                 reliability=1.0,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            SemanticClusterGeneratorTool(),
+            CapabilityDescriptor(
+                cost="medium",
+                latency_ms=1200,
+                reliability=0.95,
                 permissions=self._all_role_permissions(),
             ),
         )
