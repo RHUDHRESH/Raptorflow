@@ -120,29 +120,30 @@ Enabling the user to train their 12 experts.
 
 ---
 
-## Phase 7: Blackbox Integration & Reflection (The Learning Loop)
+## Phase 7: Blackbox Integration & Reflection (The Learning Loop) [checkpoint: 6aa7d9b]
 Agents get smarter based on what actually happened.
 
-- [ ] **Task 68: Implement `Post_Mortem_Trigger`: Run after a Move is "Executed" in Blackbox.**
-- [ ] **Task 69: Build `Reflection_Node`: Agents analyze delta between `Predicted ROI` vs. `Actual`.**
-- [ ] **Task 70: Implement `Auto_Correction_Heuristic`: Agents rewrite their own prompts based on failure.**
-- [ ] **Task 71: Build `Success_Reinforcement`: Agents prioritize "Winning" exploits in the next debate.**
-- [ ] **Task 72: Create `Influence_Weight_Update`: ROI-based voting weight adjustment.**
+- [x] **Task 68: Implement `Post_Mortem_Trigger`: Run after a Move is "Executed" in Blackbox.** (6aa7d9b)
+- [x] **Task 69: Build `Reflection_Node`: Agents analyze delta between `Predicted ROI` vs. `Actual`.** (6aa7d9b)
+- [x] **Task 70: Implement `Auto_Correction_Heuristic`: Agents rewrite their own prompts based on failure.** (6aa7d9b)
+- [x] **Task 71: Build `Success_Reinforcement`: Agents prioritize "Winning" exploits in the next debate.** (6aa7d9b)
+- [x] **Task 72: Create `Influence_Weight_Update`: ROI-based voting weight adjustment.** (6aa7d9b)
 
-- [ ] **Task 72.1: Conductor - User Manual Verification 'Phase 7' (Protocol in workflow.md)**
+- [x] **Task 72.1: Conductor - User Manual Verification 'Phase 7' (Protocol in workflow.md)** (6aa7d9b)
 
 ---
 
-## Phase 8: Advanced Toolbelt (The "World-Class" Capabilities)
+## Phase 8: Advanced Toolbelt (The "World-Class" Capabilities) [checkpoint: 6aa7d9b]
 Giving agents the power to actually execute marketing.
 
-- [ ] **Task 73: Implement `Search_Native_V2`: Support for LinkedIn/X/Reddit scraping (via Brave/DDG).**
-- [ ] **Task 74: Build `Ad_Copy_Validator`: Checks copy vs. Facebook/Google ad policies.**
-- [ ] **Task 75: Implement `Image_Gen_Director`: Agents write high-fidelity prompts for Muse/DALL-E/Midjourney.**
-- [ ] **Task 76: Build `Code_Snippet_Generator`: Data Quant writes SQL for Matrix custom reports.**
-- [ ] **Task 77: Create `Email_Sequence_Architect`: Multi-step drip logic generation.**
+- [x] **Task 73: Implement `Search_Native_V2`: Support for LinkedIn/X/Reddit scraping (via Brave/DDG).** (6aa7d9b)
+- [x] **Task 74: Build `Ad_Copy_Validator`: Checks copy vs. Facebook/Google ad policies.** (6aa7d9b)
+- [x] **Task 75: Implement `Image_Gen_Director`: Agents write high-fidelity prompts for Muse/DALL-E/Midjourney.** (6aa7d9b)
+- [x] **Task 76: Build `Code_Snippet_Generator`: Data Quant writes SQL for Matrix custom reports.** (6aa7d9b)
+- [x] **Task 77: Create `Email_Sequence_Architect`: Multi-step drip logic generation.** (6aa7d9b)
 
-- [ ] **Task 77.1: Conductor - User Manual Verification 'Phase 8' (Protocol in workflow.md)**
+- [x] **Task 77.1: Conductor - User Manual Verification 'Phase 8' (Protocol in workflow.md)** (6aa7d9b)
+
 
 ---
 

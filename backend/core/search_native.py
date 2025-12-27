@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import random
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import httpx
 
@@ -24,18 +24,30 @@ class NativeSearch:
         self.brave_key = getattr(self.settings, "BRAVE_SEARCH_API_KEY", None)
         self.client = httpx.AsyncClient(timeout=10.0)
 
-    async def query(self, text: str, limit: int = 5) -> List[Dict[str, Any]]:
+    async def query(
+        self, text: str, limit: int = 5, site: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
         Performs a web search and returns structured results.
+        Supports site-specific filtering (linkedin, x, reddit).
         """
         if not text:
             return []
 
+        search_query = text
+        if site:
+            if site.lower() == "linkedin":
+                search_query = f"site:linkedin.com {text}"
+            elif site.lower() == "x" or site.lower() == "twitter":
+                search_query = f"site:x.com {text}"
+            elif site.lower() == "reddit":
+                search_query = f"site:reddit.com {text}"
+
         try:
             if self.brave_key:
-                return await self._brave_search(text, limit)
+                return await self._brave_search(search_query, limit)
             else:
-                return await self._duckduckgo_search(text, limit)
+                return await self._duckduckgo_search(search_query, limit)
         except Exception as e:
             logger.error(f"Search failed: {e}")
             return []

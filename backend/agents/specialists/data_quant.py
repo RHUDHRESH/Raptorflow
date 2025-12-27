@@ -27,3 +27,19 @@ class DataQuantAgent(BaseCognitiveAgent):
     async def __call__(self, state: CognitiveIntelligenceState) -> Dict[str, Any]:
         logger.info(f"DataQuantAgent ({self.name}) crunching longitudinal data...")
         return await super().__call__(state)
+
+    async def generate_sql(self, schema_context: str, query_goal: str) -> str:
+        """
+        Generates a surgical BigQuery SQL snippet.
+        """
+        logger.info(f"DataQuantAgent generating SQL for goal: {query_goal}")
+
+        prompt = (
+            "Generate a surgical BigQuery SQL snippet based on the following context.\n\n"
+            f"Schema Context: {schema_context}\n"
+            f"Goal: {query_goal}\n\n"
+            "Return ONLY the SQL code block. No explanation."
+        )
+
+        response = await self.llm.ainvoke(prompt)
+        return response.content

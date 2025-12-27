@@ -1,6 +1,5 @@
 import logging
 from abc import ABC
-from datetime import datetime
 from typing import Any, AsyncIterator, Dict, List, Optional, Type
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
@@ -8,7 +7,7 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from agents.tool_integration import get_agent_tools
-from db import fetch_heuristics
+from db import fetch_exploits, fetch_heuristics
 from inference import InferenceProvider
 from memory.swarm_coordinator import get_swarm_memory_coordinator
 from models.capabilities import CapabilityProfile
@@ -90,6 +89,21 @@ class BaseCognitiveAgent(ABC):
             logger.error(f"Failed to fetch heuristics for {self.role}: {e}")
             return ""
 
+    async def _get_exploits_prompt(self, workspace_id: Optional[str]) -> str:
+        """Fetches past exploits from DB and formats them for the prompt."""
+        if not workspace_id:
+            return ""
+        try:
+            exploits = await fetch_exploits(workspace_id, self.role)
+            lines = []
+            for e in exploits:
+                lines.append(f"## {e['title']} (Predicted ROI: {e['roi']})")
+                lines.append(f"{e['description']}")
+            return "\n".join(lines)
+        except Exception as e:
+            logger.error(f"Failed to fetch exploits for {self.role}: {e}")
+            return ""
+
     def _format_messages(self, state_messages: List[AgentMessage]) -> List[BaseMessage]:
         """Converts internal AgentMessage to LangChain messages."""
         lc_messages = [SystemMessage(content=self.system_prompt)]
@@ -117,26 +131,16 @@ class BaseCognitiveAgent(ABC):
         # TASK: Critique the following content for {self.role} quality.
         # CONTENT: {content}
         # CRITERIA: Factual density, brand alignment, logic gaps.
+        # OUTPUT: Return ONLY the refined version of the content.
         """
-        critique_res = await self.llm.ainvoke([SystemMessage(content=critique_prompt)])
-        critique = critique_res.content
+        response = await self.llm.ainvoke(critique_prompt)
+        return response.content
 
-        # 2. Refine based on critique
-        refine_prompt = f"""
-        # TASK: Refine the content based on this critique: {critique}
-        # ORIGINAL CONTENT: {content}
-        # OUTPUT: Return the final polished content only.
-        """
-        refine_res = await self.llm.ainvoke([SystemMessage(content=refine_prompt)])
-
-        return refine_res.content
-
-    async def astream(self, state: CognitiveIntelligenceState) -> AsyncIterator[Any]:
-        """
-        Streaming node execution logic.
-        Yields content chunks for real-time UI updates.
-        """
-        logger.info(f"Agent {self.name} ({self.role}) streaming...")
+    async def astream(
+        self,
+        state: CognitiveIntelligenceState,
+    ) -> AsyncIterator[Any]:
+        """Async streaming interface for agent thoughts."""
         messages = self._format_messages(state.get("messages", []))
 
         async for chunk in self.llm_with_tools.astream(messages):
@@ -158,17 +162,25 @@ class BaseCognitiveAgent(ABC):
                 agent_id=self.name, agent_type=self.role
             )
 
-        # Fetch and inject heuristics
+        # Fetch and inject heuristics & exploits
         heuristics_prompt = await self._get_heuristics_prompt(workspace_id)
+        exploits_prompt = await self._get_exploits_prompt(workspace_id)
 
         messages = self._format_messages(state.get("messages", []))
 
-        # Inject heuristics into system message if found
-        if heuristics_prompt and messages:
+        # Inject context into system message if found
+        if messages:
             if isinstance(messages[0], SystemMessage):
-                messages[
-                    0
-                ].content += f"\n\n# ADDITIONAL HEURISTICS:\n{heuristics_prompt}"
+                if heuristics_prompt:
+                    messages[
+                        0
+                    ].content += f"\n\n# ADDITIONAL HEURISTICS:\n{heuristics_prompt}"
+                if exploits_prompt:
+                    messages[
+                        0
+                    ].content += (
+                        f"\n\n# RELEVANT PAST EXPLOITS (WINS):\n{exploits_prompt}"
+                    )
 
         # If output schema is set, use structured output
         if self.output_schema:
@@ -200,25 +212,12 @@ class BaseCognitiveAgent(ABC):
         if self.memory_coordinator:
             await self.memory_coordinator.record_agent_memory(
                 agent_id=self.name,
-                content={
-                    "task": state.get("instructions", ""),
-                    "result": content,
-                    "tokens_used": {"input": input_tokens, "output": output_tokens},
-                    "model_tier": self.model_tier,
-                },
-                importance=0.6,  # Medium importance for agent outputs
+                content=content,
                 metadata={
-                    "agent_type": self.role,
-                    "workspace_id": workspace_id,
-                    "execution_timestamp": str(datetime.now()),
+                    "tokens_in": input_tokens,
+                    "tokens_out": output_tokens,
+                    "role": self.role,
                 },
             )
 
-        return {
-            "messages": [AgentMessage(role=self.role, content=content)],
-            "last_agent": self.name,
-            "token_usage": {
-                f"{self.name}_input": input_tokens,
-                f"{self.name}_output": output_tokens,
-            },
-        }
+        return {"messages": [AgentMessage(role=self.role, content=content)]}

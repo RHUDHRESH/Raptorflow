@@ -679,3 +679,22 @@ async def fetch_heuristics(workspace_id: str, role: str) -> Dict[str, List[str]]
                 else:
                     heuristics["always_rules"].append(row[1])
     return heuristics
+
+
+async def fetch_exploits(workspace_id: str, role: str) -> List[Dict[str, Any]]:
+    """Fetch all relevant exploits for a specific role and workspace."""
+    async with get_db_connection() as conn:
+        async with conn.cursor() as cur:
+            # For now, fetch all exploits for the workspace
+            # In production, we'd use semantic search or role filtering
+            await cur.execute(
+                """
+                SELECT title, description, predicted_roi FROM agent_exploits
+                WHERE workspace_id = %s
+                ORDER BY actual_roi DESC NULLS LAST
+                LIMIT 5
+            """,
+                (workspace_id,),
+            )
+            rows = await cur.fetchall()
+            return [{"title": r[0], "description": r[1], "roi": r[2]} for r in rows]

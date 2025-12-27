@@ -21,6 +21,8 @@ from agents.specialists.seo_moat import SEOMoatAgent
 from agents.specialists.viral_alchemist import ViralAlchemistAgent
 from db import (
     save_campaign,
+    save_exploits,
+    save_heuristics,
     save_move,
     save_reasoning_chain,
     save_rejections,
@@ -926,6 +928,99 @@ async def strategy_recalibrator_node(state: CouncilBlackboardState) -> Dict[str,
 
     logger.info("Strategic health verified. Proceeding to execution propagation.")
     return {"status": "proceed", "last_agent": "Strategy_Recalibrator"}
+
+
+async def reflection_node(state: CouncilBlackboardState) -> Dict[str, Any]:
+    """
+    Reflection Node: Post-mortem analysis of executed moves.
+    Compares predicted ROI vs actual outcomes to update Expert DNA.
+    """
+    logger.info("Council Chamber: Initiating strategic reflection...")
+
+    active_move = state.get("active_move")
+    if not active_move:
+        logger.warning("No active move found for reflection.")
+        return {"last_agent": "Council_Reflector"}
+
+    # Extract Predicted vs Actual
+    predicted_roi = active_move.get("refinement_data", {}).get("confidence_score", 0.5)
+    # Result should contain the actual outcome metrics
+    actual_result = state.get("result", {})
+    actual_roi = actual_result.get("roi", 0.0)
+
+    delta = actual_roi - (predicted_roi / 100.0)
+
+    agents = get_council_agents()
+    # Use Data Quant (index 3) and Brand Philosopher (index 2) for reflection
+    reflector = agents[3]
+
+    reflection_prompt = (
+        "You are the Council Reflector. Analyze the performance of our recent Move.\n\n"
+        f"Move: {active_move.get('title')}\n"
+        f"Predicted Confidence: {predicted_roi}%\n"
+        f"Actual ROI: {actual_roi}\n"
+        f"Performance Delta: {delta:.2f}\n\n"
+        "1. WHY did we succeed or fail?\n"
+        "2. WHAT new 'Never/Always' rules should we add to our DNA?\n"
+        "3. WHAT specific prompt instructions should be updated for the experts involved?\n"
+        "4. UPDATE our exploits database if this was a significant win.\n\n"
+        "Output ONLY a JSON object with:\n"
+        "- reasoning (string): Deep analysis.\n"
+        "- new_heuristics (list of objects): {'type': 'never'|'always', 'content': string}\n"
+        "- prompt_updates (list of objects): {'role': string, 'instruction': string}\n"
+        "- is_exploit (boolean): True if this should be a permanent win record.\n"
+    )
+
+    reflection_state = state.copy()
+    reflection_state["messages"] = list(state.get("messages", [])) + [
+        {"role": "human", "content": reflection_prompt}
+    ]
+
+    response = await reflector(reflection_state)
+    content = response["messages"][-1].content if response.get("messages") else "{}"
+
+    try:
+        start_idx = content.find("{")
+        end_idx = content.rfind("}")
+        if start_idx != -1 and end_idx != -1:
+            parsed = json.loads(content[start_idx : end_idx + 1])
+
+            # Persist new heuristics
+            workspace_id = state.get("workspace_id")
+            if workspace_id and parsed.get("new_heuristics"):
+                h_data = {
+                    "never_rules": [
+                        h["content"]
+                        for h in parsed["new_heuristics"]
+                        if h["type"] == "never"
+                    ],
+                    "always_rules": [
+                        h["content"]
+                        for h in parsed["new_heuristics"]
+                        if h["type"] == "always"
+                    ],
+                }
+                await save_heuristics(workspace_id, h_data)
+                logger.info(
+                    f"Reflected: Added {len(parsed['new_heuristics'])} new heuristics to DNA."
+                )
+
+            if workspace_id and parsed.get("is_exploit"):
+                exploit_data = [
+                    {
+                        "title": f"Win: {active_move.get('title')}",
+                        "description": parsed.get("reasoning"),
+                        "predicted_roi": actual_roi,
+                    }
+                ]
+                await save_exploits(workspace_id, exploit_data)
+                logger.info("Reflected: New exploit recorded.")
+
+            return {"reflection": parsed, "last_agent": "Council_Reflector"}
+    except Exception as e:
+        logger.error(f"Reflection parsing failed: {e}")
+
+    return {"last_agent": "Council_Reflector"}
 
 
 def get_expert_council_graph() -> StateGraph:
