@@ -110,6 +110,7 @@ class UnifiedToolRegistry:
         from tools.muse_asset_archive import MuseAssetArchiveTool
         from tools.partnership_incentives import WinWinIncentiveTool
         from tools.product_marketing import BenefitToFeatureMapperTool
+        from tools.radar_competitors import RadarCompetitorsTool
         from tools.radar_events import RadarEventsTool
         from tools.radar_keywords import RadarKeywordsTool
         from tools.radar_trend_analyzer import RadarTrendAnalyzerTool
@@ -296,6 +297,15 @@ class UnifiedToolRegistry:
                 cost="medium",
                 latency_ms=900,
                 reliability=0.94,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            RadarCompetitorsTool(),
+            CapabilityDescriptor(
+                cost="medium",
+                latency_ms=700,
+                reliability=0.96,
                 permissions=self._all_role_permissions(),
             ),
         )
