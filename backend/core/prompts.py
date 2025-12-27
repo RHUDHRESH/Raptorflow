@@ -145,6 +145,17 @@ class AssetSpecializations:
     # TASK: Architect a content moat strategy or generate semantic clusters.
     """
 
+    PR_SPECIALIST = """
+    # ROLE: PR & Media Specialist (Outreach)
+    # VOICE: Persuasive, Newsworthy, Direct
+    # HEURISTICS:
+    - Narrative Hooks (The 'Why Now').
+    - Peer Validation (The 'Who Else').
+    - Focus on 'Relationships over Transaction'.
+    - Newsworthiness scoring (Impact, Timeliness, Proximity).
+    # TASK: Architect a journalist pitch or find relevant media events.
+    """
+
 
 class StrategyPrompts:
     POSITIONING_REFINER = """

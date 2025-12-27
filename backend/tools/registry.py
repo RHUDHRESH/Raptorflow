@@ -102,6 +102,7 @@ class UnifiedToolRegistry:
         from tools.budget_pacing import BudgetPacingSimulatorTool
         from tools.conversion_optimization import ConversionOptimizationTool
         from tools.foundation_brandkit import FoundationBrandKitTool
+        from tools.journalist_pitch import JournalistPitchArchitectTool
         from tools.matrix_kpi_stream import MatrixKPIStreamTool
         from tools.radar_keywords import RadarKeywordsTool
         from tools.radar_trend_analyzer import RadarTrendAnalyzerTool
@@ -252,6 +253,15 @@ class UnifiedToolRegistry:
                 cost="medium",
                 latency_ms=1000,
                 reliability=0.92,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            JournalistPitchArchitectTool(),
+            CapabilityDescriptor(
+                cost="low",
+                latency_ms=500,
+                reliability=0.98,
                 permissions=self._all_role_permissions(),
             ),
         )
