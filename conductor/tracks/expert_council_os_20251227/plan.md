@@ -48,8 +48,8 @@ Consensus triggers action.
 - [x] **Task 51: Implement `Move_Refiner`: Tool selection and prompt engineering for each Move.** (42aafb7)
 - [x] **Task 52: Build `Propagative_Executor`: Saving refined Moves to the `moves` table.** (4c7c13a)
 - [~] **Task 53: Conductor - User Manual Verification 'Phase 4'.**
-- [ ] **Task 54: Create `Asset_Linkage_Metadata`: Connect Move ID to Muse Artifact ID.**
-- [ ] **Task 55: Build `User_Approval_Workflow`: User clicks "Approve" on a Move -> Muse assets are finalized.**
+- [x] **Task 54: Implement `Success_Predictor`: Confidence scoring for Moves.** (4068ad0)
+- [~] **Task 55: Build `Kill_Switch_Monitor`: Discarding moves with < 40% confidence.**
 
 - [ ] **Task 55.1: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)**
 
