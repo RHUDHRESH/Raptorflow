@@ -8,6 +8,7 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from agents.tool_integration import get_agent_tools
+from db import fetch_heuristics
 from inference import InferenceProvider
 from memory.swarm_coordinator import get_swarm_memory_coordinator
 from models.capabilities import CapabilityProfile
@@ -70,6 +71,24 @@ class BaseCognitiveAgent(ABC):
             for tool in tools
             if self.capability_profile.allows_tool(getattr(tool, "name", ""))
         ]
+
+    async def _get_heuristics_prompt(self, workspace_id: Optional[str]) -> str:
+        """Fetches heuristics from DB and formats them for the prompt."""
+        if not workspace_id:
+            return ""
+        try:
+            heuristics = await fetch_heuristics(workspace_id, self.role)
+            lines = []
+            if heuristics.get("never_rules"):
+                lines.append("# NEVER RULES:")
+                lines.extend([f"- {r}" for r in heuristics["never_rules"]])
+            if heuristics.get("always_rules"):
+                lines.append("# ALWAYS RULES:")
+                lines.extend([f"- {r}" for r in heuristics["always_rules"]])
+            return "\n".join(lines)
+        except Exception as e:
+            logger.error(f"Failed to fetch heuristics for {self.role}: {e}")
+            return ""
 
     def _format_messages(self, state_messages: List[AgentMessage]) -> List[BaseMessage]:
         """Converts internal AgentMessage to LangChain messages."""
@@ -139,7 +158,17 @@ class BaseCognitiveAgent(ABC):
                 agent_id=self.name, agent_type=self.role
             )
 
+        # Fetch and inject heuristics
+        heuristics_prompt = await self._get_heuristics_prompt(workspace_id)
+
         messages = self._format_messages(state.get("messages", []))
+
+        # Inject heuristics into system message if found
+        if heuristics_prompt and messages:
+            if isinstance(messages[0], SystemMessage):
+                messages[
+                    0
+                ].content += f"\n\n# ADDITIONAL HEURISTICS:\n{heuristics_prompt}"
 
         # If output schema is set, use structured output
         if self.output_schema:

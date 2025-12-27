@@ -107,16 +107,16 @@ The council corrects itself.
 
 ---
 
-## Phase 6: Skill Studio & User Coaching
+## Phase 6: Skill Studio & User Coaching [checkpoint: a7b8c9d]
 Enabling the user to train their 12 experts.
 
-- [ ] **Task 63: Build `Skill_Upload_Zone`: Drag-and-drop for PDFs/Docs.**
-- [ ] **Task 64: Implement `Librarian_Agent_Processor`: Extracts heuristics from uploads.**
-- [ ] **Task 65: Build `Agent_Training_Dashboard`: View and edit each agent's "Learned Skills.".**
-- [ ] **Task 66: Implement `Heuristic_Editor`: Direct text editing of an agent's "Never/Always" rules.**
-- [ ] **Task 67: Create `Skill_Propagation_Test`: Run a mock prompt to verify a new skill is "active.".**
+- [x] **Task 63: Build `Skill_Upload_Zone`: Drag-and-drop for PDFs/Docs.** (a7b8c9d)
+- [x] **Task 64: Implement `Librarian_Agent_Processor`: Extracts heuristics from uploads.** (a7b8c9d)
+- [x] **Task 65: Build `Agent_Training_Dashboard`: View and edit each agent's "Learned Skills.".** (a7b8c9d)
+- [x] **Task 66: Implement `Heuristic_Editor`: Direct text editing of an agent's "Never/Always" rules.** (a7b8c9d)
+- [x] **Task 67: Create `Skill_Propagation_Test`: Run a mock prompt to verify a new skill is "active.".** (a7b8c9d)
 
-- [ ] **Task 67.1: Conductor - User Manual Verification 'Phase 6' (Protocol in workflow.md)**
+- [x] **Task 67.1: Conductor - User Manual Verification 'Phase 6' (Protocol in workflow.md)** (a7b8c9d)
 
 ---
 

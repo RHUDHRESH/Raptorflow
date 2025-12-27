@@ -56,6 +56,7 @@ class Config(BaseSettings):
     # AI & LLM Configuration
     LLM_PROVIDER: Optional[str] = None
     INFERENCE_PROVIDER: str = "google"
+    INFERENCE_FORCE_API_KEY: bool = False
 
     # 4-Tier Reasoning System
     MODEL_REASONING_ULTRA: str = "gemini-2.5-flash-lite"
