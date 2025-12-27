@@ -40,8 +40,8 @@ The agents "watch" the world and tell the user what to do.
 
 ---
 
-## Phase 4: Propagative Execution (Campaign -> Move -> Muse)
-The Council's decisions automatically flow into the rest of the app.
+## Phase 4: Propagative Execution (Campaign -> Move -> Muse) [checkpoint: 42ae926]
+Consensus triggers action.
 
 - [x] **Task 49: Implement `Campaign_Arc_Generator`: 90-day plan based on Council Consensus.** (d9ed706)
 - [x] **Task 50: Build `Move_Decomposition_Engine`: Breaking Campaigns into weekly Moves.** (df2aa51)
