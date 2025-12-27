@@ -63,18 +63,6 @@ const items = {
             icon: LayoutDashboard,
         },
         {
-            title: "Foundation",
-            subtitle: "Brand Identity",
-            url: "/foundation",
-            icon: BookOpen,
-        },
-        {
-            title: "Cohorts",
-            subtitle: "Customer Segments",
-            url: "/cohorts",
-            icon: Users,
-        },
-        {
             title: "Moves",
             subtitle: "Weekly Execution",
             url: "/moves",
@@ -115,13 +103,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
     return (
         <Sidebar collapsible="icon" className="border-r border-sidebar-border/50 bg-sidebar" {...props}>
-            <SidebarHeader className="h-14 flex items-center justify-center px-4 mb-2">
+            <SidebarHeader className="h-14 flex items-center justify-center px-4 mb-2 pt-4">
                 <Link href="/" className="block group-data-[collapsible=icon]:hidden w-full flex justify-center">
                     <Image
                         src="/logo_primary.png"
                         alt="RaptorFlow — Founder OS"
-                        width={140}
-                        height={40}
+                        width={180}
+                        height={52}
                         className="object-contain"
                         priority
                     />
