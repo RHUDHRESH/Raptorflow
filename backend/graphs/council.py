@@ -863,6 +863,39 @@ async def success_predictor_node(state: CouncilBlackboardState) -> Dict[str, Any
     return {"evaluated_moves": evaluated_moves, "last_agent": "Success_Predictor"}
 
 
+async def kill_switch_monitor_node(state: CouncilBlackboardState) -> Dict[str, Any]:
+    """
+    Kill Switch Monitor Node: Filtering moves based on confidence threshold (40%).
+    Ensures only high-probability moves proceed to propagative execution.
+    """
+    logger.info("Council Chamber: Monitoring kill-switch thresholds...")
+
+    evaluated_moves = state.get("evaluated_moves", [])
+    approved_moves = []
+    discarded_moves = []
+
+    if not evaluated_moves:
+        logger.warning("No evaluated moves to monitor, skipping.")
+        return {"last_agent": "Kill_Switch"}
+
+    for move in evaluated_moves:
+        score = move.get("confidence_score", 0)
+        if score >= 40:
+            approved_moves.append(move)
+            logger.info(f"Move '{move.get('title')}' PASSED threshold ({score}%).")
+        else:
+            discarded_moves.append(move)
+            logger.warning(
+                f"Move '{move.get('title')}' FAILED threshold ({score}%). Discarding."
+            )
+
+    return {
+        "approved_moves": approved_moves,
+        "discarded_moves": discarded_moves,
+        "last_agent": "Kill_Switch",
+    }
+
+
 async def competitor_radar_watcher_node(
     state: CouncilBlackboardState,
 ) -> Dict[str, Any]:
