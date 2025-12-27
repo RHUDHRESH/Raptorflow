@@ -21,9 +21,9 @@ Optimizing how they talk to each other to create "Calculated Genius" moves.
 - [x] **Task 40: Build the `Consensus_Scorer`: Weighted voting based on the current Goal.** (848a519)
 - [x] **Task 41: Implement `Synthesis_Node`: A Moderator agent writes the final "Strategic Decree.".** (2309faa)
 - [x] **Task 42: Create `Reasoning_Chain` metadata: Save the full debate log to Supabase.** (84ea150)
-- [~] **Task 43: Build the `Rejection_Logger`: Record why certain paths were discarded.**
+- [x] **Task 43: Build the `Rejection_Logger`: Record why certain paths were discarded.** (2936678)
 
-- [ ] **Task 43.1: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)**
+- [~] **Task 43.1: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)**
 
 ---
 
