@@ -49,7 +49,8 @@ Consensus triggers action.
 - [x] **Task 52: Build `Propagative_Executor`: Saving refined Moves to the `moves` table.** (4c7c13a)
 - [~] **Task 53: Conductor - User Manual Verification 'Phase 4'.**
 - [x] **Task 54: Implement `Success_Predictor`: Confidence scoring for Moves.** (4068ad0)
-- [~] **Task 55: Build `Kill_Switch_Monitor`: Discarding moves with < 40% confidence.**
+- [x] **Task 55: Build `Kill_Switch_Monitor`: Discarding moves with < 40% confidence.** (5c4c3ba)
+- [~] **Task 56: Implement `Strategy_Recalibrator`: Looping back to Debate if all Moves fail.**
 
 - [ ] **Task 55.1: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)**
 
