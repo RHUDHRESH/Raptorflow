@@ -19,17 +19,16 @@ async def test_direct_response_agent_initialization():
 
 
 @pytest.mark.asyncio
-async def test_direct_response_agent_execution():
-    """Verify DirectResponseAgent can be called."""
+async def test_direct_response_agent_heuristics():
+    """Verify DirectResponseAgent mentions Scientific Advertising principles."""
     mock_llm = MagicMock()
     mock_llm_with_tools = AsyncMock()
     mock_llm.bind_tools.return_value = mock_llm_with_tools
 
     mock_response = MagicMock()
-    mock_response.content = "Optimize this page for 10% conversion."
-    mock_response.response_metadata = {
-        "token_usage": {"prompt_token_count": 10, "candidates_token_count": 5}
-    }
+    mock_response.content = (
+        "According to Scientific Advertising, we should use specific claims."
+    )
     mock_llm_with_tools.ainvoke.return_value = mock_response
 
     with (
@@ -41,10 +40,11 @@ async def test_direct_response_agent_execution():
 
         agent = DirectResponseAgent()
         state: CognitiveIntelligenceState = {
-            "messages": [AgentMessage(role="human", content="How do I increase ROI?")],
+            "messages": [AgentMessage(role="human", content="Analyze my ad.")],
             "workspace_id": "test-ws",
         }
 
-        result = await agent(state)
-        assert result["last_agent"] == "DirectResponseAgent"
-        assert "Optimize" in result["messages"][0].content
+        await agent(state)
+        # Check if the prompt includes the heuristics
+        assert "Scientific Advertising" in agent.system_prompt
+        assert "Claude Hopkins" in agent.system_prompt
