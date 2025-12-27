@@ -16,6 +16,7 @@ async def test_pr_specialist_agent_initialization():
         assert agent.name == "PRSpecialistAgent"
         assert "PR & Media" in agent.system_prompt
         assert any(tool.name == "journalist_pitch_architect" for tool in agent.tools)
+        assert any(tool.name == "radar_events" for tool in agent.tools)
 
 
 @pytest.mark.asyncio

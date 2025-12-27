@@ -139,6 +139,7 @@ class AgentToolIntegration:
             ],
             "pr_specialist": [
                 "journalist_pitch_architect",
+                "radar_events",
                 "raptor_search",
                 "perplexity_search",
             ],
