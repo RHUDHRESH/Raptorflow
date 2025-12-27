@@ -12,7 +12,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 
 ---
 
-## Phase 2: Agent-to-Agent (A2A) Decision Architecture
+## Phase 2: Agent-to-Agent (A2A) Decision Architecture [checkpoint: 4e33c94]
 Optimizing how they talk to each other to create "Calculated Genius" moves.
 
 - [x] **Task 37: Implement the `Blackboard_State` in LangGraph for shared Agent memory.** (55d25bd)
