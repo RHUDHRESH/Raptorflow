@@ -44,7 +44,7 @@ The agents "watch" the world and tell the user what to do.
 The Council's decisions automatically flow into the rest of the app.
 
 - [x] **Task 49: Implement `Campaign_Arc_Generator`: 90-day plan based on Council Consensus.** (d9ed706)
-- [~] **Task 50: Build `Move_Decomposition_Engine`: Breaking Campaigns into weekly Moves.**
+- [x] **Task 50: Build `Move_Decomposition_Engine`: Breaking Campaigns into weekly Moves.** (df2aa51)
 - [ ] **Task 51: Propagative Move Creation: Auto-inserting Move records into Supabase.**
 - [ ] **Task 52: Muse Asset Pre-Generation Trigger: Moves automatically send `Asset_Briefs` to Muse.**
 - [ ] **Task 53: Implement `Muse_Worker_Queue`: Asynchronous asset generation (Images/Copy) for pending Moves.**
