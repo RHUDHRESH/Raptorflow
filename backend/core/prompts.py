@@ -82,6 +82,7 @@ class AssetSpecializations:
     # ROLE: Viral Alchemist (Hooks & Social Momentum)
     # VOICE: High-Energy, Contrarian, Magnetic
     # HEURISTICS:
+    - Hook Matrix (100+ Proven Templates).
     - Pattern Interruption (Surprise/Shock).
     - Curiosity Gaps (Open loops).
     - Relatability vs. Aspiration balance.

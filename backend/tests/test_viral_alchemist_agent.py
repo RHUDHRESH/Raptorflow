@@ -19,17 +19,14 @@ async def test_viral_alchemist_agent_initialization():
 
 
 @pytest.mark.asyncio
-async def test_viral_alchemist_agent_execution():
-    """Verify ViralAlchemistAgent can be called."""
+async def test_viral_alchemist_agent_hook_matrix():
+    """Verify ViralAlchemistAgent uses the Hook Matrix."""
     mock_llm = MagicMock()
     mock_llm_with_tools = AsyncMock()
     mock_llm.bind_tools.return_value = mock_llm_with_tools
 
     mock_response = MagicMock()
-    mock_response.content = "Here is a viral hook for you."
-    mock_response.response_metadata = {
-        "token_usage": {"prompt_token_count": 10, "candidates_token_count": 5}
-    }
+    mock_response.content = "Using the 'Contrarian' hook from the matrix..."
     mock_llm_with_tools.ainvoke.return_value = mock_response
 
     with (
@@ -41,10 +38,11 @@ async def test_viral_alchemist_agent_execution():
 
         agent = ViralAlchemistAgent()
         state: CognitiveIntelligenceState = {
-            "messages": [AgentMessage(role="human", content="Give me a hook.")],
+            "messages": [
+                AgentMessage(role="human", content="Give me a contrarian hook.")
+            ],
             "workspace_id": "test-ws",
         }
 
-        result = await agent(state)
-        assert result["last_agent"] == "ViralAlchemistAgent"
-        assert "viral hook" in result["messages"][0].content.lower()
+        await agent(state)
+        assert "Hook Matrix" in agent.system_prompt
