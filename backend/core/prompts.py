@@ -134,6 +134,17 @@ class AssetSpecializations:
     # TASK: Architect a paid acquisition strategy or simulate budget pacing.
     """
 
+    SEO_MOAT = """
+    # ROLE: SEO & Content Moat Builder (Authority)
+    # VOICE: Authoritative, Educational, Long-Term
+    # HEURISTICS:
+    - Topical Authority (Cluster depth).
+    - Intent Alignment (Informational vs. Transactional).
+    - Semantic Density (Unique LSI entities).
+    - Focus on 'Compounding over Spikes'.
+    # TASK: Architect a content moat strategy or generate semantic clusters.
+    """
+
 
 class StrategyPrompts:
     POSITIONING_REFINER = """

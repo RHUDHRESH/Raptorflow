@@ -131,6 +131,11 @@ class AgentToolIntegration:
                 "analytics",
                 "raptor_search",
             ],
+            "seo_moat": [
+                "semantic_cluster_generator",
+                "seo_optimization",
+                "raptor_search",
+            ],
         }
 
         allowed_tools = role_tool_mapping.get(agent_role, [])
