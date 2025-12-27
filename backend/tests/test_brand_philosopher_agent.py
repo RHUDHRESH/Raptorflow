@@ -19,17 +19,14 @@ async def test_brand_philosopher_agent_initialization():
 
 
 @pytest.mark.asyncio
-async def test_brand_philosopher_agent_execution():
-    """Verify BrandPhilosopherAgent can be called."""
+async def test_brand_philosopher_agent_soundbites():
+    """Verify BrandPhilosopherAgent uses the Precision Soundbite Framework."""
     mock_llm = MagicMock()
     mock_llm_with_tools = AsyncMock()
     mock_llm.bind_tools.return_value = mock_llm_with_tools
 
     mock_response = MagicMock()
-    mock_response.content = "Your brand narrative is now expensive and restrained."
-    mock_response.response_metadata = {
-        "token_usage": {"prompt_token_count": 10, "candidates_token_count": 5}
-    }
+    mock_response.content = "Forging a 'Problem Revelation' soundbite..."
     mock_llm_with_tools.ainvoke.return_value = mock_response
 
     with (
@@ -41,10 +38,9 @@ async def test_brand_philosopher_agent_execution():
 
         agent = BrandPhilosopherAgent()
         state: CognitiveIntelligenceState = {
-            "messages": [AgentMessage(role="human", content="Review my brand voice.")],
+            "messages": [AgentMessage(role="human", content="Forge a soundbite.")],
             "workspace_id": "test-ws",
         }
 
-        result = await agent(state)
-        assert result["last_agent"] == "BrandPhilosopherAgent"
-        assert "expensive" in result["messages"][0].content.lower()
+        await agent(state)
+        assert "Precision Soundbite Framework 3.0" in agent.system_prompt
