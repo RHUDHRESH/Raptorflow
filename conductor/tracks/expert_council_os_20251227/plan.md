@@ -56,7 +56,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 - [x] **Task 30: Grant access to Muse_Asset_Archive to repurpose product demos.** (05c1d23)
 
 ### 11. The Partnership/Affiliate Hunter (Leverage)
-- [ ] **Task 31: Implement `PartnershipAgent` with `audience_overlap_detector` tool.**
+- [x] **Task 31: Implement `PartnershipAgent` with `audience_overlap_detector` tool.** (f5e2a8c)
 - [ ] **Task 32: Equip with "Win-Win" incentive modeling.**
 - [ ] **Task 33: Grant access to `Radar_Competitors` to find potential "Enemy of my Enemy" partners.**
 
