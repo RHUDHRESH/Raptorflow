@@ -151,6 +151,7 @@ class AgentToolIntegration:
             ],
             "product_lead": [
                 "benefit_to_feature_mapper",
+                "muse_asset_archive",
                 "raptor_search",
                 "perplexity_search",
             ],
