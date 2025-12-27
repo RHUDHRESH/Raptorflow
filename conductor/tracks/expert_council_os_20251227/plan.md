@@ -13,7 +13,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 ### 2. The Viral Alchemist (Hooks/Social)
 - [x] **Task 4: Implement `ViralAlchemistAgent` with `radar_trend_analyzer` tool.** (67ef30b)
 - [x] **Task 5: Equip with "Hook Matrix" (100+ proven social hook templates).** (cefcfbb)
-- [ ] **Task 6: Grant access to `Radar_Search` to find trending memes/topics in the user's niche.**
+- [x] **Task 6: Grant access to `Radar_Search` to find trending memes/topics in the user's niche.** (cb9f478)
 
 ### 3. The Brand Philosopher (Positioning/Aesthetic)
 - [ ] **Task 7: Implement `BrandPhilosopherAgent` with `style_guide_enforcer` tool.**
