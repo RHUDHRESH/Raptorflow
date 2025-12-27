@@ -16,6 +16,7 @@ async def test_psychologist_agent_initialization():
         assert agent.name == "PsychologistAgent"
         assert "Psychologist" in agent.system_prompt
         assert any(tool.name == "jtbd_framework_analyzer" for tool in agent.tools)
+        assert any(tool.name == "cohorts_intelligence" for tool in agent.tools)
 
 
 @pytest.mark.asyncio

@@ -145,6 +145,7 @@ class AgentToolIntegration:
             ],
             "psychologist": [
                 "jtbd_framework_analyzer",
+                "cohorts_intelligence",
                 "raptor_search",
                 "perplexity_search",
             ],
