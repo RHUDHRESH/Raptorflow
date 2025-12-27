@@ -127,6 +127,7 @@ class AgentToolIntegration:
             ],
             "media_buyer": [
                 "budget_pacing_simulator",
+                "ad_platform_mocks",
                 "analytics",
                 "raptor_search",
             ],
