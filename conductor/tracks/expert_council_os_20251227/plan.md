@@ -27,7 +27,7 @@ Optimizing how they talk to each other to create "Calculated Genius" moves.
 
 ---
 
-## Phase 3: Proactive Intelligence (Radar & Events)
+## Phase 3: Proactive Intelligence (Radar & Events) [checkpoint: dc96c22]
 The agents "watch" the world and tell the user what to do.
 
 - [x] **Task 44: Implement `Radar_Continuous_Scan`: Auto-search for niche events (e.g., "SaaS Meetup in SF").** (0e19289)
