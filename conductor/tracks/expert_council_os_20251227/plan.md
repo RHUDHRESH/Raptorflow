@@ -26,7 +26,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 - [x] **Task 12: Grant access to `Matrix_KPI_Stream` for real-time performance monitoring.** (747f467)
 
 ### 5. The Community Catalyst (Dark Social/Retention)
-- [ ] **Task 13: Implement `CommunityCatalystAgent` with `sentiment_analysis` tool.**
+- [x] **Task 13: Implement `CommunityCatalystAgent` with `sentiment_analysis` tool.** (81369dd)
 - [ ] **Task 14: Equip with "Network Effect" growth heuristics.**
 - [ ] **Task 15: Grant access to `Supabase_User_Logs` to identify power-user segments.**
 
