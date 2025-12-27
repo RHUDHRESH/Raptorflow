@@ -38,21 +38,16 @@ export function RationaleDrawer({ isOpen, onClose, move }: RationaleDrawerProps)
 
     // ... mockRationale ...
 
-    const mockRationale = {
-        decree: "Pivot focus to founder-led growth via owned distribution channels.",
-        rationale: "High customer acquisition costs in paid channels require a sustainable organic moat. LinkedIn authority building provides the highest long-term ROI.",
-        consensus: 0.88,
-        risk: 0.15,
-        rejected: [
-            { path: "Aggressive FB Ads", reason: "Current CPMs too high for our CAC target." },
-            { path: "SEO-only play", reason: "Too slow for the 90-day growth arc." }
-        ],
-        expertThoughts: [
-            { agent: "brand_philosopher", thought: "Consistency in voice is non-negotiable. This move reinforces our 'Quiet Luxury' positioning." },
-            { agent: "data_quant", thought: "Competitor data shows a 20% drop in engagement on their paid ads. Now is the time to strike organic." },
-            { agent: "direct_response", thought: "The hook 'Marketing. Finally under control.' has a 4.5x predicted CTR vs baseline." }
-        ]
-    }
+const mockRationale = {
+    decree: "The Council of 12 has reached 94% alignment on this move. The primary driver is a detected shift in competitor search volume (Δ +12%) matched with our brand's unique ability to serve high-intent retention signals.",
+    expertThoughts: [
+        { expertId: "direct_response", thought: "Conversion path is optimized for this specific keyword group. Expected CTR: 4.2%." },
+        { expertId: "brand_philosopher", thought: "Maintaining editorial restraint here will actually increase perceived value. Avoid emojis in the snippet." },
+        { expertId: "data_quant", thought: "Competitor B has dropped their bid floor on these terms by 15% over the last 48 hours." }
+    ],
+    consensusAlignment: 0.94,
+    strategicConfidence: 0.88
+}
 
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>

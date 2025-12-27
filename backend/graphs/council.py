@@ -206,7 +206,6 @@ async def consensus_scorer_node(state: CouncilBlackboardState) -> Dict[str, Any]
     response = await lead_agent(scoring_state)
 
     content = response["messages"][-1].content if response.get("messages") else "{}"
-    logger.info(f"DEBUG: Consensus Scorer Node Content: {content}")
 
     # Extract JSON from content (handling potential markdown wrapping)
     start_idx = content.find("{")
@@ -214,12 +213,11 @@ async def consensus_scorer_node(state: CouncilBlackboardState) -> Dict[str, Any]
     if start_idx != -1 and end_idx != -1:
         try:
             metrics = json.loads(content[start_idx : end_idx + 1])
-            logger.info(f"DEBUG: Parsed Metrics: {metrics}")
         except Exception as e:
-            logger.error(f"DEBUG: JSON Parse Error: {e}")
+            logger.error(f"JSON Parse Error in Consensus Scorer: {e}")
             metrics = {"alignment": 0.5, "confidence": 0.5, "risk": 0.5}
     else:
-        logger.warning("DEBUG: JSON markers not found in content.")
+        logger.warning("JSON markers not found in Consensus Scorer content.")
         metrics = {"alignment": 0.5, "confidence": 0.5, "risk": 0.5}
 
     return {"consensus_metrics": metrics, "last_agent": "Consensus_Scorer"}
