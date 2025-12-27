@@ -46,7 +46,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 - [x] **Task 24: Grant access to `Radar_Events` to find relevant podcasts/conferences.** (a6f7eb7)
 
 ### 9. The Behavioral Psychologist (Consumer Triggers)
-- [ ] **Task 25: Implement `PsychologistAgent` with `jtbd_framework_analyzer` tool.**
+- [x] **Task 25: Implement `PsychologistAgent` with `jtbd_framework_analyzer` tool.** (4291f4b)
 - [ ] **Task 26: Equip with "Cialdini's 6 Principles" of influence.**
 - [ ] **Task 27: Grant access to `Cohorts_Intelligence` to map triggers to specific ICPs.**
 
