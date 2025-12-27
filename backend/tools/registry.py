@@ -101,6 +101,7 @@ class UnifiedToolRegistry:
         from tools.bigquery_engine import BigQueryQueryEngineTool
         from tools.blackbox_roi import BlackboxROIHistoryTool
         from tools.budget_pacing import BudgetPacingSimulatorTool
+        from tools.churn_prediction import ChurnPredictionTool
         from tools.cohorts_intelligence import CohortsIntelligenceTool
         from tools.conversion_optimization import ConversionOptimizationTool
         from tools.foundation_brandkit import FoundationBrandKitTool
@@ -234,6 +235,15 @@ class UnifiedToolRegistry:
                 cost="low",
                 latency_ms=200,
                 reliability=1.0,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            ChurnPredictionTool(),
+            CapabilityDescriptor(
+                cost="medium",
+                latency_ms=600,
+                reliability=0.95,
                 permissions=self._all_role_permissions(),
             ),
         )
