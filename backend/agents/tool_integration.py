@@ -157,6 +157,7 @@ class AgentToolIntegration:
             ],
             "partnership": [
                 "audience_overlap_detector",
+                "win_win_incentive_modeling",
                 "raptor_search",
                 "perplexity_search",
             ],
