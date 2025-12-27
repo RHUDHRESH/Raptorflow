@@ -17,6 +17,7 @@ from agents.specialists.psychologist import PsychologistAgent
 from agents.specialists.retention import RetentionAgent
 from agents.specialists.seo_moat import SEOMoatAgent
 from agents.specialists.viral_alchemist import ViralAlchemistAgent
+from db import save_reasoning_chain
 from models.council import CouncilBlackboardState, CouncilThought, DebateTranscript
 
 logger = logging.getLogger("raptorflow.graphs.council")
@@ -281,16 +282,23 @@ async def reasoning_chain_logger_node(state: CouncilBlackboardState) -> Dict[str
     )
 
     # Prepare payload for Supabase
-    # In a real build, this would be: await db.insert("reasoning_chains", payload)
-    payload = {  # noqa: F841
-        "id": chain_id,
-        "workspace_id": workspace_id,
+    payload = {
+        "id": chain_id if "-" in str(chain_id) else None,  # Only use if UUID format
         "debate_history": [d.model_dump() for d in debate_history],
         "final_synthesis": synthesis,
         "metrics": metrics,
-        "timestamp": datetime.now().isoformat(),
+        "metadata": {
+            "last_agent": state.get("last_agent"),
+            "status": state.get("status"),
+        },
     }
 
-    logger.info(f"Reasoning chain {chain_id} saved to persistent storage.")
-
-    return {"reasoning_chain_id": chain_id, "last_agent": "Council_Logger"}
+    try:
+        # Save to Supabase
+        saved_id = await save_reasoning_chain(workspace_id, payload)
+        logger.info(f"Reasoning chain {saved_id} saved to persistent storage.")
+        return {"reasoning_chain_id": saved_id, "last_agent": "Council_Logger"}
+    except Exception as e:
+        logger.error(f"Failed to persist reasoning chain: {e}")
+        # Return the original ID to avoid breaking the graph flow
+        return {"reasoning_chain_id": chain_id, "last_agent": "Council_Logger"}
