@@ -17,7 +17,7 @@ Optimizing how they talk to each other to create "Calculated Genius" moves.
 
 - [x] **Task 37: Implement the `Blackboard_State` in LangGraph for shared Agent memory.** (55d25bd)
 - [x] **Task 38: Build the `Council_Debate` node: parallel "Thought" generation.** (e253de1)
-- [ ] **Task 39: Implement `Cross_Critique` logic: Agents must critique at least 2 other proposals.**
+- [x] **Task 39: Implement `Cross_Critique` logic: Agents must critique at least 2 other proposals.** (da12ac6)
 - [ ] **Task 40: Build the `Consensus_Scorer`: Weighted voting based on the current Goal.**
 - [ ] **Task 41: Implement `Synthesis_Node`: A Moderator agent writes the final "Strategic Decree.".**
 - [ ] **Task 42: Create `Reasoning_Chain` metadata: Save the full debate log to Supabase.**
