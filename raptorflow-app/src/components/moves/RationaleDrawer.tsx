@@ -9,12 +9,17 @@ import {
     SheetTitle,
     SheetTrigger
 } from "@/components/ui/sheet"
-import { BrainCircuit, Info, CheckCircle2, XCircle, AlertTriangle, TrendingUp, History, Quote } from "lucide-react"
+import {
+    BrainCircuit, Info, CheckCircle2, XCircle, AlertTriangle,
+    TrendingUp, History, Quote, ChevronDown, ChevronUp
+} from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { EXPERTS } from "../council/CouncilChamber"
 import { PedigreeVisualizer } from "../council/PedigreeVisualizer"
 import { ConfidenceHeatmap } from "../council/ConfidenceHeatmap"
 import { cn } from "@/lib/utils"
+import { useState } from "react"
 
 interface RationaleDrawerProps {
     isOpen: boolean
@@ -29,7 +34,10 @@ interface RationaleDrawerProps {
 }
 
 export function RationaleDrawer({ isOpen, onClose, move }: RationaleDrawerProps) {
-    // Mock reasoning data - in production this comes from reasoning_chains table
+    const [showDebate, setShowDebate] = useState(false)
+
+    // ... mockRationale ...
+
     const mockRationale = {
         decree: "Pivot focus to founder-led growth via owned distribution channels.",
         rationale: "High customer acquisition costs in paid channels require a sustainable organic moat. LinkedIn authority building provides the highest long-term ROI.",
@@ -111,28 +119,44 @@ export function RationaleDrawer({ isOpen, onClose, move }: RationaleDrawerProps)
 
                     {/* 3. Expert Perspectives */}
                     <section className="space-y-4">
-                        <h4 className="text-xs font-bold uppercase tracking-widest text-muted-fill">Expert Perspectives</h4>
-                        <div className="space-y-3">
-                            {mockRationale.expertThoughts.map((thought, idx) => {
-                                const expert = EXPERTS.find(e => e.id === thought.agent)
-                                if (!expert) return null
-                                return (
-                                    <div key={idx} className="flex gap-4 p-4 rounded-xl hover:bg-surface/80 transition-colors">
-                                        <Avatar className="h-8 w-8 shrink-0">
-                                            <AvatarFallback className="bg-muted-fill/10">
-                                                <expert.icon className={cn("h-4 w-4", expert.color)} />
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="space-y-1">
-                                            <p className="text-[11px] font-bold text-primary-text uppercase tracking-wider">{expert.name}</p>
-                                            <p className="text-xs text-secondary-text leading-relaxed italic">
-                                                "{thought.thought}"
-                                            </p>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
+                        <button
+                            onClick={() => setShowDebate(!showDebate)}
+                            className="flex items-center justify-between w-full text-xs font-bold uppercase tracking-widest text-muted-fill group"
+                        >
+                            <span>Expert Perspectives</span>
+                            {showDebate ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3 group-hover:translate-y-0.5 transition-transform" />}
+                        </button>
+
+                        <AnimatePresence>
+                            {showDebate && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden space-y-3"
+                                >
+                                    {mockRationale.expertThoughts.map((thought, idx) => {
+                                        const expert = EXPERTS.find(e => e.id === thought.agent)
+                                        if (!expert) return null
+                                        return (
+                                            <div key={idx} className="flex gap-4 p-4 rounded-xl hover:bg-surface/80 transition-colors">
+                                                <Avatar className="h-8 w-8 shrink-0">
+                                                    <AvatarFallback className="bg-muted-fill/10">
+                                                        <expert.icon className={cn("h-4 w-4", expert.color)} />
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="space-y-1">
+                                                    <p className="text-[11px] font-bold text-primary-text uppercase tracking-wider">{expert.name}</p>
+                                                    <p className="text-xs text-secondary-text leading-relaxed italic font-mono">
+                                                        "{thought.thought}"
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </section>
 
                     {/* 3.5 Historical Parallel */}
