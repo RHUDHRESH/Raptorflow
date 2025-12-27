@@ -149,3 +149,62 @@ async def cross_critique_node(state: CouncilBlackboardState) -> Dict[str, Any]:
         "debate_history": [DebateTranscript(**transcript_data)],
         "last_agent": "Council_Critique",
     }
+
+
+async def consensus_scorer_node(state: CouncilBlackboardState) -> Dict[str, Any]:
+    """
+    Consensus Scorer Node: Weighted voting based on the current Goal.
+    Evaluates the debate and calculates alignment, confidence, and risk.
+    """
+    logger.info("Council Chamber: Calculating strategic consensus...")
+
+    agents = get_council_agents()
+    debate_history = state.get("debate_history", [])
+    brief = state.get("brief", {})
+
+    if not debate_history:
+        logger.warning("No debate history found for consensus scoring.")
+        return {"consensus_metrics": {"alignment": 0.0, "confidence": 0.0, "risk": 1.0}}
+
+    # Use a lead agent to synthesize and score
+    # For now, we use the first agent as the 'Consensus Architect'
+    lead_agent = agents[0]
+
+    latest_transcript = debate_history[-1]
+
+    scoring_prompt = (
+        "You are the Council Consensus Architect. Analyze the following debate "
+        "transcript against the strategic goals and output a structured JSON score.\n\n"
+        f"Strategic Goals: {brief.get('goals', 'Not specified')}\n"
+        f"Target ICP: {brief.get('target_icp', 'Not specified')}\n\n"
+        f"Debate Transcript (Round {latest_transcript.round_number}):\n"
+        f"{latest_transcript.model_dump_json()}\n\n"
+        "Output ONLY a JSON object with the following keys:\n"
+        "- alignment (0.0 to 1.0): How well the council agrees on a path.\n"
+        "- confidence (0.0 to 1.0): Based on the quality of proposals and evidence.\n"
+        "- risk (0.0 to 1.0): Potential for failure or brand misalignment.\n"
+    )
+
+    scoring_state = state.copy()
+    scoring_state["messages"] = list(state.get("messages", [])) + [
+        {"role": "human", "content": scoring_prompt}
+    ]
+
+    response = await lead_agent(scoring_state)
+
+    import json
+    import re
+
+    content = response["messages"][-1].content if response.get("messages") else "{}"
+
+    # Extract JSON from content (handling potential markdown wrapping)
+    json_match = re.search(r"\{.*\}", content, re.DOTALL)
+    if json_match:
+        try:
+            metrics = json.loads(json_match.group())
+        except Exception:
+            metrics = {"alignment": 0.5, "confidence": 0.5, "risk": 0.5}
+    else:
+        metrics = {"alignment": 0.5, "confidence": 0.5, "risk": 0.5}
+
+    return {"consensus_metrics": metrics, "last_agent": "Consensus_Scorer"}
