@@ -47,3 +47,10 @@ class CouncilBlackboardState(CognitiveIntelligenceState):
     # 3. Metadata
     reasoning_chain_id: Optional[str]
     radar_signals: Annotated[List[Dict[str, Any]], operator.add]
+    campaign_id: Optional[str]
+    suggested_moves: Annotated[List[Dict[str, Any]], operator.add]
+    refined_moves: Annotated[List[Dict[str, Any]], operator.add]
+    evaluated_moves: Annotated[List[Dict[str, Any]], operator.add]
+    approved_moves: Annotated[List[Dict[str, Any]], operator.add]
+    discarded_moves: Annotated[List[Dict[str, Any]], operator.add]
+    move_ids: Annotated[List[str], operator.add]
