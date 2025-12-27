@@ -15,7 +15,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 ## Phase 2: Agent-to-Agent (A2A) Decision Architecture
 Optimizing how they talk to each other to create "Calculated Genius" moves.
 
-- [ ] **Task 37: Implement the `Blackboard_State` in LangGraph for shared Agent memory.**
+- [x] **Task 37: Implement the `Blackboard_State` in LangGraph for shared Agent memory.** (55d25bd)
 - [ ] **Task 38: Build the `Council_Debate` node: parallel "Thought" generation.**
 - [ ] **Task 39: Implement `Cross_Critique` logic: Agents must critique at least 2 other proposals.**
 - [ ] **Task 40: Build the `Consensus_Scorer`: Weighted voting based on the current Goal.**
