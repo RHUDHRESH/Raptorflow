@@ -103,6 +103,7 @@ class UnifiedToolRegistry:
         from tools.conversion_optimization import ConversionOptimizationTool
         from tools.foundation_brandkit import FoundationBrandKitTool
         from tools.journalist_pitch import JournalistPitchArchitectTool
+        from tools.jtbd_analyzer import JTBDAnalyzerTool
         from tools.matrix_kpi_stream import MatrixKPIStreamTool
         from tools.radar_events import RadarEventsTool
         from tools.radar_keywords import RadarKeywordsTool
@@ -272,6 +273,15 @@ class UnifiedToolRegistry:
                 cost="medium",
                 latency_ms=900,
                 reliability=0.94,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            JTBDAnalyzerTool(),
+            CapabilityDescriptor(
+                cost="low",
+                latency_ms=600,
+                reliability=0.96,
                 permissions=self._all_role_permissions(),
             ),
         )
