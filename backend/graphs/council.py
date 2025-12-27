@@ -17,7 +17,7 @@ from agents.specialists.psychologist import PsychologistAgent
 from agents.specialists.retention import RetentionAgent
 from agents.specialists.seo_moat import SEOMoatAgent
 from agents.specialists.viral_alchemist import ViralAlchemistAgent
-from db import save_move, save_reasoning_chain, save_rejections
+from db import save_move, save_reasoning_chain, save_rejections, update_move_description
 from models.council import CouncilBlackboardState, CouncilThought, DebateTranscript
 from tools.radar_events import RadarEventsTool
 
@@ -532,3 +532,65 @@ async def proactive_task_generator_node(
             new_signals.append(signal)
 
     return {"radar_signals": new_signals, "last_agent": "Task_Generator"}
+
+
+async def brief_builder_node(state: CouncilBlackboardState) -> Dict[str, Any]:
+    """
+    Brief Builder Node: Generate a "Cheat Sheet" for high-leverage opportunities.
+    Provides the user with everything they need to execute the proactive move.
+    """
+    logger.info("Council Chamber: Building tactical briefs for converted moves...")
+
+    agents = get_council_agents()
+    # Use PR Specialist (index 7) or Product Lead (index 9) for briefs
+    builder = agents[7]
+    signals = state.get("radar_signals", [])
+
+    if not signals:
+        logger.info("No signals to build briefs for.")
+        return {"last_agent": "Brief_Builder"}
+
+    new_signals = []
+    for signal in signals:
+        move_id = signal.get("metadata", {}).get("move_id")
+        if signal.get("status") == "converted" and move_id:
+            # Build the brief
+            brief_prompt = (
+                "You are the Council PR & Media Specialist. Generate a tactical 'Cheat Sheet' "
+                "for the following opportunity.\n\n"
+                f"Opportunity: {signal.get('content')}\n"
+                f"Evaluation Rationale: {signal.get('metadata', {}).get('rationales', ['High relevance'])[0]}\n\n"
+                "Your brief must include:\n"
+                "1. WHY THIS MATTERS: Strategic importance.\n"
+                "2. PREP WORK: What to do before engaging.\n"
+                "3. THE HOOK: A surgical opening line or angle.\n"
+                "4. CALL TO ACTION: The desired outcome.\n"
+            )
+
+            builder_state = state.copy()
+            builder_state["messages"] = list(state.get("messages", [])) + [
+                {"role": "human", "content": brief_prompt}
+            ]
+
+            response = await builder(builder_state)
+            brief_content = (
+                response["messages"][-1].content
+                if response.get("messages")
+                else "Tactical brief generation failed."
+            )
+
+            try:
+                # Update the Move description with the full brief
+                await update_move_description(move_id, brief_content)
+
+                updated_signal = signal.copy()
+                updated_signal["metadata"]["brief_content"] = brief_content
+                new_signals.append(updated_signal)
+                logger.info(f"Generated tactical brief for Move {move_id}.")
+            except Exception as e:
+                logger.error(f"Failed to update Move with brief: {e}")
+                new_signals.append(signal)
+        else:
+            new_signals.append(signal)
+
+    return {"radar_signals": new_signals, "last_agent": "Brief_Builder"}
