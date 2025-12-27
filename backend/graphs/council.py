@@ -662,6 +662,65 @@ async def campaign_arc_generator_node(state: CouncilBlackboardState) -> Dict[str
         return {"last_agent": "Campaign_Generator"}
 
 
+async def move_decomposition_node(state: CouncilBlackboardState) -> Dict[str, Any]:
+    """
+    Move Decomposition Node: Breaking Campaigns into suggested weekly Moves.
+    Uses parallel agent reasoning to identify the most effective tactical sequence.
+    """
+    logger.info("Council Chamber: Decomposing campaign into tactical moves...")
+
+    agents = get_council_agents()
+    # Use first 3 experts for decomposition
+    decomposers = agents[:3]
+    decree = state.get("final_strategic_decree")
+
+    if not decree:
+        logger.warning("No strategic decree found, skipping move decomposition.")
+        return {"last_agent": "Move_Decomposer"}
+
+    decomp_prompt = (
+        "You are a Council Expert. Decompose the following Strategic Decree into 4-6 specific weekly 'Moves'.\n\n"
+        f"Decree: {decree}\n\n"
+        "Output ONLY a JSON object with a 'moves' key containing a list of objects with:\n"
+        "- title (string): Short, punchy move title.\n"
+        "- description (string): Detailed execution steps.\n"
+        "- type (string): one of [ops, outreach, creative, analysis].\n"
+    )
+
+    decomp_tasks = []
+    for agent in decomposers:
+        decomp_state = state.copy()
+        decomp_state["messages"] = list(state.get("messages", [])) + [
+            {"role": "human", "content": decomp_prompt}
+        ]
+        decomp_tasks.append(agent(decomp_state))
+
+    results = await asyncio.gather(*decomp_tasks)
+
+    all_suggested_moves = []
+    for res in results:
+        content = res["messages"][-1].content if res.get("messages") else "{}"
+        try:
+            json_match = re.search(r"\{.*\}", content, re.DOTALL)
+            if json_match:
+                parsed = json.loads(json_match.group())
+                all_suggested_moves.extend(parsed.get("moves", []))
+        except Exception as e:
+            logger.warning(f"Failed to parse suggested moves: {e}")
+
+    # Deduplicate or group moves (simple grouping for now)
+    # In a production build, a synthesis agent would select the best 4-8 moves
+    unique_moves = []
+    seen_titles = set()
+    for move in all_suggested_moves:
+        if move.get("title") not in seen_titles:
+            unique_moves.append(move)
+            seen_titles.add(move.get("title"))
+
+    logger.info(f"Move decomposition produced {len(unique_moves)} suggested moves.")
+    return {"suggested_moves": unique_moves, "last_agent": "Move_Decomposer"}
+
+
 async def competitor_radar_watcher_node(
     state: CouncilBlackboardState,
 ) -> Dict[str, Any]:
