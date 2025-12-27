@@ -137,6 +137,11 @@ class AgentToolIntegration:
                 "seo_optimization",
                 "raptor_search",
             ],
+            "pr_specialist": [
+                "journalist_pitch_architect",
+                "raptor_search",
+                "perplexity_search",
+            ],
         }
 
         allowed_tools = role_tool_mapping.get(agent_role, [])
