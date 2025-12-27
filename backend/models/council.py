@@ -46,3 +46,4 @@ class CouncilBlackboardState(CognitiveIntelligenceState):
 
     # 3. Metadata
     reasoning_chain_id: Optional[str]
+    radar_signals: Annotated[List[Dict[str, Any]], operator.add]
