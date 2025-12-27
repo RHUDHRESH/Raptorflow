@@ -116,6 +116,7 @@ class AgentToolIntegration:
             "data_quant": [
                 "bigquery_query_engine",
                 "bayesian_confidence_scorer",
+                "matrix_kpi_stream",
                 "analytics",
             ],
         }
