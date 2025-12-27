@@ -7,6 +7,9 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from agents.tool_integration import get_agent_tools
+from core.agent_monitor import get_agent_health_monitor
+from core.thought_cache import get_thought_cache
+from core.token_governor import get_token_governor
 from db import fetch_exploits, fetch_heuristics
 from inference import InferenceProvider
 from memory.swarm_coordinator import get_swarm_memory_coordinator
@@ -182,6 +185,38 @@ class BaseCognitiveAgent(ABC):
                         f"\n\n# RELEVANT PAST EXPLOITS (WINS):\n{exploits_prompt}"
                     )
 
+        # 1. Check Token Budget
+        governor = get_token_governor()
+        if not await governor.check_budget(workspace_id):
+            logger.error(f"Agent {self.name} aborted: Token budget exceeded.")
+            return {"error": "Token budget exceeded", "messages": []}
+
+        # 2. Check Thought Cache
+        cache = get_thought_cache()
+        # Convert AgentMessage objects to dicts for caching key generation
+        msg_dicts = [
+            {"role": m.role, "content": m.content} for m in state.get("messages", [])
+        ]
+        cached_res = await cache.get(self.role, msg_dicts)
+        if cached_res:
+            return cached_res
+
+        messages = self._format_messages(state.get("messages", []))
+
+        # Inject context into system message if found
+        if messages:
+            if isinstance(messages[0], SystemMessage):
+                if heuristics_prompt:
+                    messages[
+                        0
+                    ].content += f"\n\n# ADDITIONAL HEURISTICS:\n{heuristics_prompt}"
+                if exploits_prompt:
+                    messages[
+                        0
+                    ].content += (
+                        f"\n\n# RELEVANT PAST EXPLOITS (WINS):\n{exploits_prompt}"
+                    )
+
         # If output schema is set, use structured output
         if self.output_schema:
             response = await self.llm_with_structured.ainvoke(messages)
@@ -205,8 +240,27 @@ class BaseCognitiveAgent(ABC):
         token_usage = metadata.get("token_usage", {})
         input_tokens = token_usage.get("prompt_token_count", 0)
         output_tokens = token_usage.get("candidates_token_count", 0)
+        total_tokens = input_tokens + output_tokens
 
         logger.info(f"Agent {self.name} tokens: {input_tokens} in, {output_tokens} out")
+
+        # 3. Audit Response Health
+        monitor = get_agent_health_monitor()
+        health = await monitor.audit_response(
+            self.name, content, {"tokens_out": output_tokens}
+        )
+        if not health["healthy"]:
+            logger.error(f"Agent {self.name} response UNHEALTHY: {health['issues']}")
+            # We could trigger self-correction here if needed
+
+        # 4. Record Token Usage
+        if workspace_id:
+            await governor.record_usage(workspace_id, total_tokens)
+
+        final_res = {"messages": [AgentMessage(role=self.role, content=content)]}
+
+        # 4. Cache Thought
+        await cache.set(self.role, msg_dicts, final_res)
 
         # Record agent execution in memory system
         if self.memory_coordinator:
