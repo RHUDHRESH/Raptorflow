@@ -96,6 +96,11 @@ class AgentToolIntegration:
                 "notification_system",
                 "perplexity_search",
             ],
+            "direct_response": [
+                "conversion_optimization",
+                "analytics",
+                "raptor_search",
+            ],
         }
 
         allowed_tools = role_tool_mapping.get(agent_role, [])

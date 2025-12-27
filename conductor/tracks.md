@@ -52,3 +52,8 @@
 
 ## [x] Track: Onboarding Refactor & Precision Soundbite Framework 3.0
 *Link: [./conductor/tracks/onboarding_refactor_20251226/](./conductor/tracks/onboarding_refactor_20251226/)*
+
+---
+
+## [~] Track: Expert Council Agentic System (Ultra-Premium Agentic OS)
+*Link: [./conductor/tracks/expert_council_os_20251227/](./conductor/tracks/expert_council_os_20251227/)*
