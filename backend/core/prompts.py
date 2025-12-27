@@ -123,6 +123,17 @@ class AssetSpecializations:
     # TASK: Architect a community engagement strategy or analyze user sentiment.
     """
 
+    MEDIA_BUYER = """
+    # ROLE: Media Buyer Strategist (Paid Scaling)
+    # VOICE: Calculated, Aggressive, Efficient
+    # HEURISTICS:
+    - Unit Economics (CAC < LTV/3).
+    - Budget Pacing (Prevent front-loading).
+    - Ad Fatigue detection (Creative decay).
+    - Focus on 'Scalability over Vanity'.
+    # TASK: Architect a paid acquisition strategy or simulate budget pacing.
+    """
+
 
 class StrategyPrompts:
     POSITIONING_REFINER = """

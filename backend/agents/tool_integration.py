@@ -125,6 +125,11 @@ class AgentToolIntegration:
                 "raptor_search",
                 "perplexity_search",
             ],
+            "media_buyer": [
+                "budget_pacing_simulator",
+                "analytics",
+                "raptor_search",
+            ],
         }
 
         allowed_tools = role_tool_mapping.get(agent_role, [])
