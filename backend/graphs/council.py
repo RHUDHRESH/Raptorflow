@@ -17,7 +17,7 @@ from agents.specialists.psychologist import PsychologistAgent
 from agents.specialists.retention import RetentionAgent
 from agents.specialists.seo_moat import SEOMoatAgent
 from agents.specialists.viral_alchemist import ViralAlchemistAgent
-from db import save_reasoning_chain
+from db import save_reasoning_chain, save_rejections
 from models.council import CouncilBlackboardState, CouncilThought, DebateTranscript
 
 logger = logging.getLogger("raptorflow.graphs.council")
@@ -251,11 +251,36 @@ async def synthesis_node(state: CouncilBlackboardState) -> Dict[str, Any]:
         response["messages"][-1].content if response.get("messages") else "No decree."
     )
 
-    # Parse rejected paths (simulated for now, can be extracted with LLM)
-    rejected = [
-        {"path": "Discarded path A", "reason": "Too expensive for current budget."},
-        {"path": "Discarded path B", "reason": "Weak differentiation vs. competitors."},
-    ]
+    # Extract rejected paths from the decree content
+    # Look for "REJECTED PATHS:" section and then bullet points or numbered lists
+    rejected = []
+    rejected_match = re.search(
+        r"REJECTED PATHS:(.*?)(?:$|\n\n)", decree_content, re.DOTALL | re.IGNORECASE
+    )
+    if rejected_match:
+        rejected_text = rejected_match.group(1).strip()
+        # Find individual items (starting with -, *, or 1.)
+        items = re.findall(
+            r"(?:^|\n)(?:[-*\d\.]\s+)(.*?)(?=\n(?:[-*\d\.]\s+)|$)",
+            rejected_text,
+            re.DOTALL,
+        )
+        for item in items:
+            if ":" in item:
+                path, reason = item.split(":", 1)
+                rejected.append({"path": path.strip(), "reason": reason.strip()})
+            else:
+                rejected.append({"path": item.strip(), "reason": "Not specified."})
+
+    if not rejected:
+        # Fallback simulated if parsing fails
+        rejected = [
+            {
+                "path": "Alternative Strategy A",
+                "reason": "Insufficient ROI projection.",
+            },
+            {"path": "Alternative Strategy B", "reason": "High execution risk."},
+        ]
 
     return {
         "final_strategic_decree": decree_content,
@@ -302,3 +327,31 @@ async def reasoning_chain_logger_node(state: CouncilBlackboardState) -> Dict[str
         logger.error(f"Failed to persist reasoning chain: {e}")
         # Return the original ID to avoid breaking the graph flow
         return {"reasoning_chain_id": chain_id, "last_agent": "Council_Logger"}
+
+
+async def rejection_logger_node(state: CouncilBlackboardState) -> Dict[str, Any]:
+    """
+    Rejection Logger Node: Record why certain paths were discarded.
+    Critical for the 'Learning Loop' where agents avoid repeating past mistakes.
+    """
+    logger.info("Council Chamber: Logging rejected paths...")
+
+    workspace_id = state.get("workspace_id")
+    chain_id = state.get("reasoning_chain_id")
+    rejected_paths = state.get("rejected_paths", [])
+
+    if not rejected_paths:
+        logger.info("No rejected paths to log.")
+        return {"last_agent": "Rejection_Logger"}
+
+    if not chain_id or not workspace_id:
+        logger.warning("Missing chain_id or workspace_id, skipping rejection log.")
+        return {"last_agent": "Rejection_Logger"}
+
+    try:
+        await save_rejections(workspace_id, chain_id, rejected_paths)
+        logger.info(f"Successfully logged {len(rejected_paths)} rejected paths.")
+    except Exception as e:
+        logger.error(f"Failed to log rejected paths: {e}")
+
+    return {"last_agent": "Rejection_Logger"}

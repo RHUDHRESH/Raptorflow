@@ -565,3 +565,36 @@ async def save_reasoning_chain(workspace_id: str, chain_data: dict) -> str:
                 await conn.rollback()
                 logger.error(f"Failed to save reasoning chain: {e}")
                 raise
+
+
+async def save_rejections(
+    workspace_id: str, reasoning_chain_id: str, rejections: list[dict]
+):
+    """
+    Persists rejected strategic paths to Supabase for future learning/audit.
+    """
+    async with get_db_connection() as conn:
+        async with conn.cursor() as cur:
+            try:
+                query = """
+                    INSERT INTO council_rejections (
+                        workspace_id, reasoning_chain_id, discarded_path, rejection_reason, metadata
+                    )
+                    VALUES (%s, %s, %s, %s, %s);
+                """
+                for rejection in rejections:
+                    await cur.execute(
+                        query,
+                        (
+                            workspace_id,
+                            reasoning_chain_id,
+                            rejection.get("path"),
+                            rejection.get("reason"),
+                            psycopg.types.json.Jsonb(rejection.get("metadata", {})),
+                        ),
+                    )
+                await conn.commit()
+            except Exception as e:
+                await conn.rollback()
+                logger.error(f"Failed to save council rejections: {e}")
+                raise
