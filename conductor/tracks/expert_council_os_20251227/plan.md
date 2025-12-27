@@ -63,7 +63,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 ### 12. The Retention & LTV Specialist (Lifecycle)
 - [x] **Task 34: Implement `RetentionAgent` with `churn_prediction_heuristics` tool.** (84dce40)
 - [x] **Task 35: Equip with "Milestone-Based" messaging rules.** (58df533)
-- [ ] **Task 36: Grant access to `Blackbox_Longitudinal_Data` to analyze customer decay.**
+- [x] **Task 36: Grant access to `Blackbox_Longitudinal_Data` to analyze customer decay.** (993e20b)
 
 - [ ] **Task 36.1: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)**
 
