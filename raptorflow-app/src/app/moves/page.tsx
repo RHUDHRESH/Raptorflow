@@ -202,7 +202,7 @@ export default function MovesPage() {
         <AppLayout>
             <InferenceErrorBoundary>
                 <div className="min-h-screen px-6 lg:px-12 py-8">
-                    <div className="max-w-5xl mx-auto">
+                    <div className="max-w-[1200px] mx-auto">
 
                         {/* Header */}
                         <header className="flex items-center justify-between mb-8">

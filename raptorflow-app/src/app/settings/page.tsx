@@ -193,7 +193,7 @@ function TargetingSection() {
                                 <Button
                                     variant="secondary"
                                     size="sm"
-                                    onClick={() => router.push('/target')}
+                                    onClick={() => router.push('/cohorts')}
                                 >
                                     View
                                 </Button>

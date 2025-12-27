@@ -1,4 +1,34 @@
-import { Move, ChecklistItem } from './campaigns-types';
+import { Campaign, Move, ChecklistItem } from './campaigns-types';
+
+export const initialCampaigns: Campaign[] = [
+  {
+    id: 'campaign-1',
+    name: 'Q1 Acquisition Drive',
+    objective: 'acquire',
+    offer: 'book_call',
+    channels: ['linkedin', 'email'],
+    duration: 90,
+    moveLength: 14,
+    dailyEffort: 30,
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    startedAt: new Date().toISOString(),
+    qualityScore: 0.85,
+  },
+  {
+    id: 'campaign-2',
+    name: 'Social Proof Builder',
+    objective: 'proof',
+    offer: 'other',
+    channels: ['linkedin'],
+    duration: 28,
+    moveLength: 7,
+    dailyEffort: 15,
+    status: 'planned',
+    createdAt: new Date().toISOString(),
+    qualityScore: 0.92,
+  }
+];
 
 export const initialMoves: Move[] = [
   {
