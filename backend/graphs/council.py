@@ -19,6 +19,7 @@ from agents.specialists.seo_moat import SEOMoatAgent
 from agents.specialists.viral_alchemist import ViralAlchemistAgent
 from db import save_move, save_reasoning_chain, save_rejections, update_move_description
 from models.council import CouncilBlackboardState, CouncilThought, DebateTranscript
+from tools.radar_competitors import RadarCompetitorsTool
 from tools.radar_events import RadarEventsTool
 
 logger = logging.getLogger("raptorflow.graphs.council")
@@ -594,3 +595,88 @@ async def brief_builder_node(state: CouncilBlackboardState) -> Dict[str, Any]:
             new_signals.append(signal)
 
     return {"radar_signals": new_signals, "last_agent": "Brief_Builder"}
+
+
+async def competitor_radar_watcher_node(
+    state: CouncilBlackboardState,
+) -> Dict[str, Any]:
+    """
+    Competitor Radar Watcher Node: Alert the user when a competitor changes positioning.
+    Uses Data Quant to analyze competitor moves and detect shifts.
+    """
+    logger.info("Council Chamber: Scanning competitor radar for positioning shifts...")
+
+    agents = get_council_agents()
+    # Use Data Quant (index 3) for competitor analysis
+    analyst = agents[3]
+    brief = state.get("brief", {})
+    goals = brief.get("goals", "SaaS marketing")
+
+    # Use RadarCompetitorsTool to find competitor changes
+    tool = RadarCompetitorsTool()
+
+    try:
+        # Execute tool scan
+        comp_res = await tool.run(niche=goals)
+
+        new_signals = []
+        if comp_res.get("success") and comp_res.get("data"):
+            competitors = comp_res["data"].get("competitors", [])
+            for comp in competitors:
+                changes = comp.get("recent_changes", "No specific changes detected.")
+
+                # Analyze the change with Data Quant
+                analysis_prompt = (
+                    "You are the Council Data Quant. Analyze the following competitor move.\n\n"
+                    f"Competitor: {comp.get('name')}\n"
+                    f"Move: {changes}\n\n"
+                    "Output a JSON object with:\n"
+                    "- impact (0.0 to 1.0): Severity of the competitive threat.\n"
+                    "- recommendation (string): Short advice on how we should respond.\n"
+                )
+
+                analyst_state = state.copy()
+                analyst_state["messages"] = list(state.get("messages", [])) + [
+                    {"role": "human", "content": analysis_prompt}
+                ]
+
+                response = await analyst(analyst_state)
+                content = (
+                    response["messages"][-1].content
+                    if response.get("messages")
+                    else "{}"
+                )
+
+                impact_score = 0.5
+                recommendation = "Monitor closely."
+                try:
+                    json_match = re.search(r"\{.*?\}", content, re.DOTALL)
+                    if json_match:
+                        eval_data = json.loads(json_match.group())
+                        impact_score = eval_data.get("impact", 0.5)
+                        recommendation = eval_data.get(
+                            "recommendation", "Monitor closely."
+                        )
+                except Exception:
+                    pass
+
+                new_signals.append(
+                    {
+                        "type": "competitor_alert",
+                        "source": "radar_competitors",
+                        "content": f"Competitor {comp.get('name')} update: {changes}",
+                        "metadata": {
+                            "impact": impact_score,
+                            "recommendation": recommendation,
+                            "competitor_name": comp.get("name"),
+                        },
+                        "timestamp": datetime.now().isoformat(),
+                        "status": "new",
+                    }
+                )
+
+        logger.info(f"Competitor watch discovered {len(new_signals)} new alerts.")
+        return {"radar_signals": new_signals, "last_agent": "Competitor_Watcher"}
+    except Exception as e:
+        logger.error(f"Competitor watch failed: {e}")
+        return {"last_agent": "Competitor_Watcher"}
