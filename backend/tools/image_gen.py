@@ -98,7 +98,7 @@ class NanoBananaImageTool:
         # Process first image
         img = response.images[0]
         img_bytes = pil_to_bytes(img)
-        url = await upload_image_to_gcs(img_bytes)
+        url = await upload_image_to_gcs(img_bytes, tenant_id=tenant_id)
 
         # Track Usage
         await self.usage_tracker.track_usage(tenant_id, amount=1, service_type="image")

@@ -7,6 +7,7 @@ from agents.base import BaseCognitiveAgent
 from agents.shared.agents import IntentRouter, QualityGate
 from agents.shared.context_assembler import ContextAssemblerAgent
 from core.lifecycle import apply_lifecycle_transition
+from db import save_asset_vault
 from models.cognitive import AgentMessage, CognitiveIntelligenceState, CognitiveStatus
 from services.budget_governor import BudgetGovernor
 
@@ -281,6 +282,25 @@ async def finalize_node(state: CognitiveIntelligenceState):
     last_asset = state["generated_assets"][-1]
     last_asset["version"] = "final"
 
+    workspace_id = state.get("workspace_id") or state.get("tenant_id")
+    asset_family = state.get("brief", {}).get("asset_family", "text")
+    asset_type = "image" if asset_family == "image" else "text"
+    metadata = {
+        "asset_family": asset_family,
+        "quality_score": state.get("quality_score"),
+        "thread_id": state.get("thread_id"),
+    }
+    try:
+        stored_asset_id = await save_asset_vault(
+            workspace_id=workspace_id,
+            content=last_asset["content"],
+            asset_type=asset_type,
+            metadata=metadata,
+        )
+    except Exception as exc:
+        stored_asset_id = None
+        logger.error("Failed to store muse asset: %s", exc)
+
     msg = AgentMessage(
         role="finalizer", content="Asset finalized and ready for deployment."
     )
@@ -289,7 +309,11 @@ async def finalize_node(state: CognitiveIntelligenceState):
         state,
         CognitiveStatus.COMPLETE,
         "finalizer",
-        {"messages": [msg], "last_agent": "finalizer"},
+        {
+            "messages": [msg],
+            "last_agent": "finalizer",
+            "stored_asset_id": stored_asset_id,
+        },
     )
 
 

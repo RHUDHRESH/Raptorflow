@@ -105,14 +105,18 @@ export async function updateExperimentDB(experiment: Experiment): Promise<void> 
 
 export async function deleteExperimentDB(id: string): Promise<void> {
     const { error } = await supabase
-        .from('experiments')
-        .delete()
-        .eq('id', id);
+    return;
+}
 
-    if (error) {
-        console.error('Error deleting experiment:', error);
-        throw error;
-    }
+const { error } = await supabase
+    .from('experiments')
+    .delete()
+    .eq('id', id);
+
+if (error) {
+    console.error('Error deleting experiment:', error);
+    throw error;
+}
 }
 
 function mapDBExperimentToFrontend(db: any): Experiment {
