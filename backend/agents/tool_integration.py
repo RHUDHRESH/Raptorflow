@@ -113,6 +113,11 @@ class AgentToolIntegration:
                 "raptor_search",
                 "perplexity_search",
             ],
+            "data_quant": [
+                "bigquery_query_engine",
+                "bayesian_confidence_scorer",
+                "analytics",
+            ],
         }
 
         allowed_tools = role_tool_mapping.get(agent_role, [])
