@@ -50,7 +50,8 @@ Consensus triggers action.
 - [~] **Task 53: Conductor - User Manual Verification 'Phase 4'.**
 - [x] **Task 54: Implement `Success_Predictor`: Confidence scoring for Moves.** (4068ad0)
 - [x] **Task 55: Build `Kill_Switch_Monitor`: Discarding moves with < 40% confidence.** (5c4c3ba)
-- [~] **Task 56: Implement `Strategy_Recalibrator`: Looping back to Debate if all Moves fail.**
+- [x] **Task 56: Implement `Strategy_Recalibrator`: Looping back to Debate if all Moves fail.** (6d7ac0f)
+- [~] **Task 57: Conductor - User Manual Verification 'Phase 5'.**
 
 - [ ] **Task 55.1: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)**
 
