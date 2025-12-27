@@ -143,6 +143,11 @@ class AgentToolIntegration:
                 "raptor_search",
                 "perplexity_search",
             ],
+            "psychologist": [
+                "jtbd_framework_analyzer",
+                "raptor_search",
+                "perplexity_search",
+            ],
         }
 
         allowed_tools = role_tool_mapping.get(agent_role, [])
