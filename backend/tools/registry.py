@@ -98,6 +98,7 @@ class UnifiedToolRegistry:
         from tools.bayesian_scorer import BayesianConfidenceScorerTool
         from tools.bigquery_engine import BigQueryQueryEngineTool
         from tools.blackbox_roi import BlackboxROIHistoryTool
+        from tools.budget_pacing import BudgetPacingSimulatorTool
         from tools.conversion_optimization import ConversionOptimizationTool
         from tools.foundation_brandkit import FoundationBrandKitTool
         from tools.matrix_kpi_stream import MatrixKPIStreamTool
@@ -212,6 +213,15 @@ class UnifiedToolRegistry:
                 cost="low",
                 latency_ms=250,
                 reliability=0.99,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            BudgetPacingSimulatorTool(),
+            CapabilityDescriptor(
+                cost="low",
+                latency_ms=200,
+                reliability=1.0,
                 permissions=self._all_role_permissions(),
             ),
         )
