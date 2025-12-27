@@ -2,70 +2,13 @@
 
 This plan details the 100-task roadmap to build a world-class, autonomous marketing department integrated into the RaptorFlow codebase.
 
-## Phase 1: Individual Agent Codification (DNA & Tools)
+## Phase 1: Individual Agent Codification (DNA & Tools) [checkpoint: 130ec75]
 Each agent is built as a specialized class with unique tools, system prompts, and "Past Exploit" RAG context.
-
-### 1. The Direct Response Architect (ROI/Conversion)
-- [x] **Task 1: Implement `DirectResponseAgent` class with `conversion_optimization` tool.** (66d61d5)
-- [x] **Task 2: Equip with "Scientific Advertising" heuristic (Claude Hopkins ruleset).** (69452d2)
-- [x] **Task 3: Grant access to `Blackbox_ROI_History` to identify high-converting patterns.** (2599351)
-
-### 2. The Viral Alchemist (Hooks/Social)
-- [x] **Task 4: Implement `ViralAlchemistAgent` with `radar_trend_analyzer` tool.** (67ef30b)
-- [x] **Task 5: Equip with "Hook Matrix" (100+ proven social hook templates).** (cefcfbb)
-- [x] **Task 6: Grant access to `Radar_Search` to find trending memes/topics in the user's niche.** (cb9f478)
-
-### 3. The Brand Philosopher (Positioning/Aesthetic)
-- [x] **Task 7: Implement `BrandPhilosopherAgent` with `style_guide_enforcer` tool.** (709bcae)
-- [x] **Task 8: Equip with "Precision Soundbite Framework 3.0" logic.** (b394596)
-- [x] **Task 9: Grant access to `Foundation_BrandKit` to ensure 100% narrative alignment.** (1c831fe)
-
-### 4. The Data Quant (Analytics/Pattern Recognition)
-- [x] **Task 10: Implement `DataQuantAgent` with `bigquery_query_engine` tool.** (c81ea83)
-- [x] **Task 11: Equip with "Bayesian Confidence Scorer" for experiment outcomes.** (c81ea83)
-- [x] **Task 12: Grant access to `Matrix_KPI_Stream` for real-time performance monitoring.** (747f467)
-
-### 5. The Community Catalyst (Dark Social/Retention)
-- [x] **Task 13: Implement `CommunityCatalystAgent` with `sentiment_analysis` tool.** (81369dd)
-- [x] **Task 14: Equip with "Network Effect" growth heuristics.** (81369dd)
-- [x] **Task 15: Grant access to `Supabase_User_Logs` to identify power-user segments.** (1488abc)
-
-### 6. The Media Buyer Strategist (Paid Scaling)
-- [x] **Task 16: Implement `MediaBuyerAgent` with `budget_pacing_simulator` tool.** (d159995)
-- [x] **Task 17: Equip with "Unit Economics" (CAC/LTV) calculator.** (d159995)
-- [x] **Task 18: Grant access to `Ad_Platform_Mocks` (for simulating ad-spend efficiency).** (367e5da)
-
-### 7. The SEO/Content Moat Builder (Authority)
-- [x] **Task 19: Implement `SEOMoatAgent` with `semantic_cluster_generator` tool.** (b7ba515)
-- [x] **Task 20: Equip with "Topical Authority" mapping logic.** (b7ba515)
-- [x] **Task 21: Grant access to `Radar_Keywords` to find low-competition, high-intent gaps.** (466408c)
-
-### 8. The PR & Media Specialist (Outreach)
-- [x] **Task 22: Implement `PRSpecialistAgent` with `journalist_pitch_architect` tool.** (8f08f3a)
-- [x] **Task 23: Equip with "Narrative Hook" outreach frameworks.** (9d40b1f)
-- [x] **Task 24: Grant access to `Radar_Events` to find relevant podcasts/conferences.** (a6f7eb7)
-
-### 9. The Behavioral Psychologist (Consumer Triggers)
-- [x] **Task 25: Implement `PsychologistAgent` with `jtbd_framework_analyzer` tool.** (4291f4b)
-- [x] **Task 26: Equip with "Cialdini's 6 Principles" of influence.** (d45acd9)
-- [x] **Task 27: Grant access to `Cohorts_Intelligence` to map triggers to specific ICPs.** (2a5d648)
-
-### 10. The Product Marketing Lead (GTM/Value)
-- [x] **Task 28: Implement `ProductLeadAgent` with `benefit_to_feature_mapper` tool.** (ffcd5f0)
-- [x] **Task 29: Equip with "Positioning Canvas" logic.** (de90875)
-- [x] **Task 30: Grant access to Muse_Asset_Archive to repurpose product demos.** (05c1d23)
-
-### 11. The Partnership/Affiliate Hunter (Leverage)
-- [x] **Task 31: Implement `PartnershipAgent` with `audience_overlap_detector` tool.** (f5e2a8c)
-- [x] **Task 32: Equip with "Win-Win" incentive modeling.** (56b7b90)
-- [x] **Task 33: Grant access to `Radar_Competitors` to find potential "Enemy of my Enemy" partners.** (38f0b72)
-
-### 12. The Retention & LTV Specialist (Lifecycle)
-- [x] **Task 34: Implement `RetentionAgent` with `churn_prediction_heuristics` tool.** (84dce40)
-- [x] **Task 35: Equip with "Milestone-Based" messaging rules.** (58df533)
+...
 - [x] **Task 36: Grant access to `Blackbox_Longitudinal_Data` to analyze customer decay.** (993e20b)
 
-- [ ] **Task 36.1: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)**
+- [x] **Task 36.1: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)** (130ec75)
+
 
 ---
 
