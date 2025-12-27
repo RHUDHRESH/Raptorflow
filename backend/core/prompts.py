@@ -56,6 +56,19 @@ class MarketingFrameworks:
         ),
     }
 
+    CIALDINI_PRINCIPLES = {
+        "name": "Cialdini's 6 Principles of Influence",
+        "description": "Core behavioral psychology triggers.",
+        "instructions": (
+            "1. Reciprocity: Give value first to create obligation. "
+            "2. Commitment & Consistency: Get small initial yesses. "
+            "3. Social Proof: Show that others are already doing it. "
+            "4. Authority: Leverage expertise and status. "
+            "5. Liking: Build rapport and find common ground. "
+            "6. Scarcity: Highlight limited availability or time."
+        ),
+    }
+
 
 class AssetSpecializations:
     EMAIL_COLD = """
