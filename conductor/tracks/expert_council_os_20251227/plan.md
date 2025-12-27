@@ -33,7 +33,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 ### 6. The Media Buyer Strategist (Paid Scaling)
 - [x] **Task 16: Implement `MediaBuyerAgent` with `budget_pacing_simulator` tool.** (d159995)
 - [ ] **Task 17: Equip with "Unit Economics" (CAC/LTV) calculator.**
-- [ ] **Task 18: Grant access to `Ad_Platform_Mocks` (for simulating ad-spend efficiency).**
+- [x] **Task 18: Grant access to `Ad_Platform_Mocks` (for simulating ad-spend efficiency).** (367e5da)
 
 ### 7. The SEO/Content Moat Builder (Authority)
 - [ ] **Task 19: Implement `SEOMoatAgent` with `semantic_cluster_generator` tool.**
