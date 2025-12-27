@@ -721,6 +721,56 @@ async def move_decomposition_node(state: CouncilBlackboardState) -> Dict[str, An
     return {"suggested_moves": unique_moves, "last_agent": "Move_Decomposer"}
 
 
+async def move_refiner_node(state: CouncilBlackboardState) -> Dict[str, Any]:
+    """
+    Move Refiner Node: Enhancing each tactical move with tool selection and execution prompts.
+    Uses specialized agents to ensure every move is actionable and optimized for 'Muse'.
+    """
+    logger.info("Council Chamber: Refining tactical moves with toolsets and prompts...")
+
+    agents = get_council_agents()
+    # Use index 3 (Tactical Strategist) for refinement
+    refiner = agents[3]
+    suggested_moves = state.get("suggested_moves", [])
+
+    if not suggested_moves:
+        logger.warning("No suggested moves found, skipping refinement.")
+        return {"last_agent": "Move_Refiner"}
+
+    refined_moves = []
+    for move in suggested_moves:
+        refine_prompt = (
+            "You are a Council Refiner. Enhance the following tactical move for autonomous execution.\n\n"
+            f"Move: {move.get('title')}\n"
+            f"Description: {move.get('description')}\n\n"
+            "Output ONLY a JSON object with:\n"
+            "- tool_requirements (list of strings): e.g., ['brave_search', 'content_optimizer'].\n"
+            "- muse_prompt (string): A detailed instruction for the 'Muse' asset factory.\n"
+        )
+
+        refine_state = state.copy()
+        refine_state["messages"] = list(state.get("messages", [])) + [
+            {"role": "human", "content": refine_prompt}
+        ]
+
+        response = await refiner(refine_state)
+        content = response["messages"][-1].content if response.get("messages") else "{}"
+
+        new_move = move.copy()
+        try:
+            json_match = re.search(r"\{.*\}", content, re.DOTALL)
+            if json_match:
+                parsed = json.loads(json_match.group())
+                new_move.update(parsed)
+        except Exception as e:
+            logger.warning(f"Failed to refine move {move.get('title')}: {e}")
+
+        refined_moves.append(new_move)
+
+    logger.info(f"Refined {len(refined_moves)} tactical moves.")
+    return {"refined_moves": refined_moves, "last_agent": "Move_Refiner"}
+
+
 async def competitor_radar_watcher_node(
     state: CouncilBlackboardState,
 ) -> Dict[str, Any]:
