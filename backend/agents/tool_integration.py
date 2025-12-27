@@ -102,6 +102,11 @@ class AgentToolIntegration:
                 "analytics",
                 "raptor_search",
             ],
+            "viral_alchemist": [
+                "radar_trend_analyzer",
+                "raptor_search",
+                "perplexity_search",
+            ],
         }
 
         allowed_tools = role_tool_mapping.get(agent_role, [])
