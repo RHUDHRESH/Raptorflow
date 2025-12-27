@@ -7,7 +7,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 
 ### 1. The Direct Response Architect (ROI/Conversion)
 - [x] **Task 1: Implement `DirectResponseAgent` class with `conversion_optimization` tool.** (66d61d5)
-- [ ] **Task 2: Equip with "Scientific Advertising" heuristic (Claude Hopkins ruleset).**
+- [x] **Task 2: Equip with "Scientific Advertising" heuristic (Claude Hopkins ruleset).** (69452d2)
 - [ ] **Task 3: Grant access to `Blackbox_ROI_History` to identify high-converting patterns.**
 
 ### 2. The Viral Alchemist (Hooks/Social)
