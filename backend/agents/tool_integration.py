@@ -155,6 +155,11 @@ class AgentToolIntegration:
                 "raptor_search",
                 "perplexity_search",
             ],
+            "partnership": [
+                "audience_overlap_detector",
+                "raptor_search",
+                "perplexity_search",
+            ],
         }
 
         allowed_tools = role_tool_mapping.get(agent_role, [])

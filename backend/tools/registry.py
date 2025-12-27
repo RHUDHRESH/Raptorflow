@@ -96,6 +96,7 @@ class UnifiedToolRegistry:
     def _register_default_tools(self) -> None:
         # Register only essential tools that don't require additional config
         from tools.ad_platform_mocks import AdPlatformMockTool
+        from tools.audience_overlap import AudienceOverlapDetectorTool
         from tools.bayesian_scorer import BayesianConfidenceScorerTool
         from tools.bigquery_engine import BigQueryQueryEngineTool
         from tools.blackbox_roi import BlackboxROIHistoryTool
@@ -240,6 +241,15 @@ class UnifiedToolRegistry:
                 cost="low",
                 latency_ms=100,
                 reliability=1.0,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            AudienceOverlapDetectorTool(),
+            CapabilityDescriptor(
+                cost="medium",
+                latency_ms=800,
+                reliability=0.94,
                 permissions=self._all_role_permissions(),
             ),
         )
