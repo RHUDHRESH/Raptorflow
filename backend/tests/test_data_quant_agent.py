@@ -17,6 +17,7 @@ async def test_data_quant_agent_initialization():
         assert "Data Quant" in agent.system_prompt
         assert any(tool.name == "bigquery_query_engine" for tool in agent.tools)
         assert any(tool.name == "bayesian_confidence_scorer" for tool in agent.tools)
+        assert any(tool.name == "matrix_kpi_stream" for tool in agent.tools)
 
 
 @pytest.mark.asyncio
