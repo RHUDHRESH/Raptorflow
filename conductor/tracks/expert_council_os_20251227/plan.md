@@ -48,7 +48,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 ### 9. The Behavioral Psychologist (Consumer Triggers)
 - [x] **Task 25: Implement `PsychologistAgent` with `jtbd_framework_analyzer` tool.** (4291f4b)
 - [x] **Task 26: Equip with "Cialdini's 6 Principles" of influence.** (d45acd9)
-- [ ] **Task 27: Grant access to `Cohorts_Intelligence` to map triggers to specific ICPs.**
+- [x] **Task 27: Grant access to `Cohorts_Intelligence` to map triggers to specific ICPs.** (2a5d648)
 
 ### 10. The Product Marketing Lead (GTM/Value)
 - [ ] **Task 28: Implement `ProductLeadAgent` with `benefit_to_feature_mapper` tool.**
