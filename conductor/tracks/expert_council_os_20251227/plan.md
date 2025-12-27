@@ -43,7 +43,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 ### 8. The PR & Media Specialist (Outreach)
 - [x] **Task 22: Implement `PRSpecialistAgent` with `journalist_pitch_architect` tool.** (8f08f3a)
 - [ ] **Task 23: Equip with "Narrative Hook" outreach frameworks.**
-- [ ] **Task 24: Grant access to `Radar_Events` to find relevant podcasts/conferences.**
+- [x] **Task 24: Grant access to `Radar_Events` to find relevant podcasts/conferences.** (a6f7eb7)
 
 ### 9. The Behavioral Psychologist (Consumer Triggers)
 - [ ] **Task 25: Implement `PsychologistAgent` with `jtbd_framework_analyzer` tool.**
