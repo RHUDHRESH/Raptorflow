@@ -104,6 +104,7 @@ class UnifiedToolRegistry:
         from tools.foundation_brandkit import FoundationBrandKitTool
         from tools.journalist_pitch import JournalistPitchArchitectTool
         from tools.matrix_kpi_stream import MatrixKPIStreamTool
+        from tools.radar_events import RadarEventsTool
         from tools.radar_keywords import RadarKeywordsTool
         from tools.radar_trend_analyzer import RadarTrendAnalyzerTool
         from tools.search import RaptorSearchTool, TavilyMultiHopTool
@@ -262,6 +263,15 @@ class UnifiedToolRegistry:
                 cost="low",
                 latency_ms=500,
                 reliability=0.98,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            RadarEventsTool(),
+            CapabilityDescriptor(
+                cost="medium",
+                latency_ms=900,
+                reliability=0.94,
                 permissions=self._all_role_permissions(),
             ),
         )
