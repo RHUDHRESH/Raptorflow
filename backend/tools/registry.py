@@ -97,6 +97,7 @@ class UnifiedToolRegistry:
         # Register only essential tools that don't require additional config
         from tools.blackbox_roi import BlackboxROIHistoryTool
         from tools.conversion_optimization import ConversionOptimizationTool
+        from tools.radar_trend_analyzer import RadarTrendAnalyzerTool
         from tools.search import RaptorSearchTool
         from tools.tavily import TavilyMultiHopTool
 
@@ -133,6 +134,15 @@ class UnifiedToolRegistry:
                 cost="low",
                 latency_ms=400,
                 reliability=0.98,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            RadarTrendAnalyzerTool(),
+            CapabilityDescriptor(
+                cost="medium",
+                latency_ms=700,
+                reliability=0.9,
                 permissions=self._all_role_permissions(),
             ),
         )
