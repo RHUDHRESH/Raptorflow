@@ -53,7 +53,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 ### 10. The Product Marketing Lead (GTM/Value)
 - [x] **Task 28: Implement `ProductLeadAgent` with `benefit_to_feature_mapper` tool.** (ffcd5f0)
 - [x] **Task 29: Equip with "Positioning Canvas" logic.** (de90875)
-- [ ] **Task 30: Grant access to `Muse_Asset_Archive` to repurpose product demos.**
+- [x] **Task 30: Grant access to Muse_Asset_Archive to repurpose product demos.** (05c1d23)
 
 ### 11. The Partnership/Affiliate Hunter (Leverage)
 - [ ] **Task 31: Implement `PartnershipAgent` with `audience_overlap_detector` tool.**
