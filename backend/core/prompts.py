@@ -34,6 +34,28 @@ class MarketingFrameworks:
         ),
     }
 
+    NARRATIVE_HOOK = {
+        "name": "Narrative Hook",
+        "description": "The 'Why Now' / Newsworthiness framework.",
+        "instructions": (
+            "1. The Catalyst: What happened today that makes this relevant? "
+            "2. The Reframe: Why is the current consensus wrong? "
+            "3. The Proof: What data or peer validation backs this up? "
+            "4. The Stakes: What happens if the world ignores this?"
+        ),
+    }
+
+    THE_REFRAME = {
+        "name": "The Reframe",
+        "description": "Contrarian hook for outreach.",
+        "instructions": (
+            "1. Acknowledge the common wisdom. "
+            "2. Introduce the glitch in the matrix (the surprise). "
+            "3. Provide the new mental model. "
+            "4. Ask a question that forces a re-evaluation."
+        ),
+    }
+
 
 class AssetSpecializations:
     EMAIL_COLD = """
