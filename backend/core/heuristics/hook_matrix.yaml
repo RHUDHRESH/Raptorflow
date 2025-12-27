@@ -1,0 +1,38 @@
+id: hook_matrix
+name: Viral Hook Matrix
+categories:
+  - name: Contrarian
+    templates:
+      - "[Industry standard] is dead. Here is what is replacing it."
+      - "Stop doing [Common action]. It is killing your [Result]."
+      - "Everyone thinks [Concept] is good. They are wrong."
+  - name: Data-Driven
+    templates:
+      - "We analyzed [Number] [Items]. Here is what we learned."
+      - "The data is in: [Result] is up by [Percentage]."
+      - "What [Number] hours of [Task] taught me about [Topic]."
+  - name: Curiosity
+    templates:
+      - "The secret to [Result] isn't [Common factor]. It's [Hidden factor]."
+      - "I found a loophole in [System/Process]."
+      - "Why [Big Brand] just did [Action] (and what it means for you)."
+  - name: Storytelling
+    templates:
+      - "I almost quit [Role] until [Event] happened."
+      - "The most expensive mistake I ever made in [Topic]."
+      - "How a [Small action] led to a [Big result]."
+  - name: Listicle
+    templates:
+      - "7 tools that feel illegal to know for [Target Audience]."
+      - "5 frameworks to master [Topic] in under 10 minutes."
+      - "3 habits that separated the top 1% of [Role]."
+  - name: Negative Constraint
+    templates:
+      - "You don't need [Expensive thing] to achieve [Result]."
+      - "I achieved [Result] without [Common painful requirement]."
+      - "Why I stopped [Commonly recommended activity]."
+  - name: High Stakes
+    templates:
+      - "If you don't fix [Problem], [Consequence] is inevitable."
+      - "The window for [Opportunity] is closing fast."
+      - "The one thing that will determine your success in 2026."
