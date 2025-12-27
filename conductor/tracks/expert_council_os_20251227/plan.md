@@ -22,23 +22,23 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 
 ### 4. The Data Quant (Analytics/Pattern Recognition)
 - [x] **Task 10: Implement `DataQuantAgent` with `bigquery_query_engine` tool.** (c81ea83)
-- [ ] **Task 11: Equip with "Bayesian Confidence Scorer" for experiment outcomes.**
+- [x] **Task 11: Equip with "Bayesian Confidence Scorer" for experiment outcomes.** (c81ea83)
 - [x] **Task 12: Grant access to `Matrix_KPI_Stream` for real-time performance monitoring.** (747f467)
 
 ### 5. The Community Catalyst (Dark Social/Retention)
 - [x] **Task 13: Implement `CommunityCatalystAgent` with `sentiment_analysis` tool.** (81369dd)
-- [ ] **Task 14: Equip with "Network Effect" growth heuristics.**
+- [x] **Task 14: Equip with "Network Effect" growth heuristics.** (81369dd)
 - [x] **Task 15: Grant access to `Supabase_User_Logs` to identify power-user segments.** (1488abc)
 
 ### 6. The Media Buyer Strategist (Paid Scaling)
 - [x] **Task 16: Implement `MediaBuyerAgent` with `budget_pacing_simulator` tool.** (d159995)
-- [ ] **Task 17: Equip with "Unit Economics" (CAC/LTV) calculator.**
+- [x] **Task 17: Equip with "Unit Economics" (CAC/LTV) calculator.** (d159995)
 - [x] **Task 18: Grant access to `Ad_Platform_Mocks` (for simulating ad-spend efficiency).** (367e5da)
 
 ### 7. The SEO/Content Moat Builder (Authority)
 - [x] **Task 19: Implement `SEOMoatAgent` with `semantic_cluster_generator` tool.** (b7ba515)
-- [ ] **Task 20: Equip with "Topical Authority" mapping logic.**
-- [ ] **Task 21: Grant access to `Radar_Keywords` to find low-competition, high-intent gaps.**
+- [x] **Task 20: Equip with "Topical Authority" mapping logic.** (b7ba515)
+- [x] **Task 21: Grant access to `Radar_Keywords` to find low-competition, high-intent gaps.** (466408c)
 
 ### 8. The PR & Media Specialist (Outreach)
 - [ ] **Task 22: Implement `PRSpecialistAgent` with `journalist_pitch_architect` tool.**
