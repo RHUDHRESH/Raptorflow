@@ -16,6 +16,7 @@ async def test_community_catalyst_agent_initialization():
         assert agent.name == "CommunityCatalystAgent"
         assert "Community Catalyst" in agent.system_prompt
         assert any(tool.name == "sentiment_analysis" for tool in agent.tools)
+        assert any(tool.name == "supabase_user_logs" for tool in agent.tools)
 
 
 @pytest.mark.asyncio

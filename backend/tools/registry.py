@@ -105,6 +105,7 @@ class UnifiedToolRegistry:
         from tools.search import RaptorSearchTool, TavilyMultiHopTool
         from tools.sentiment_analysis import SentimentAnalysisTool
         from tools.style_guide_enforcer import StyleGuideEnforcerTool
+        from tools.supabase_logs import SupabaseUserLogsTool
 
         self.register_tool(
             RaptorSearchTool(),
@@ -202,6 +203,15 @@ class UnifiedToolRegistry:
                 cost="low",
                 latency_ms=400,
                 reliability=0.95,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            SupabaseUserLogsTool(),
+            CapabilityDescriptor(
+                cost="low",
+                latency_ms=250,
+                reliability=0.99,
                 permissions=self._all_role_permissions(),
             ),
         )

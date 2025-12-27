@@ -121,6 +121,7 @@ class AgentToolIntegration:
             ],
             "community_catalyst": [
                 "sentiment_analysis",
+                "supabase_user_logs",
                 "raptor_search",
                 "perplexity_search",
             ],
