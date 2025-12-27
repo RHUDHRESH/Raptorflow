@@ -771,6 +771,46 @@ async def move_refiner_node(state: CouncilBlackboardState) -> Dict[str, Any]:
     return {"refined_moves": refined_moves, "last_agent": "Move_Refiner"}
 
 
+async def propagative_executor_node(state: CouncilBlackboardState) -> Dict[str, Any]:
+    """
+    Propagative Executor Node: Persisting refined moves to the production execution table.
+    Enables the 'Muse' factory and other execution nodes to pick up these tasks.
+    """
+    logger.info("Council Chamber: Persisting refined moves for execution...")
+
+    refined_moves = state.get("refined_moves", [])
+    campaign_id = state.get("campaign_id")
+    move_ids = []
+
+    if not refined_moves:
+        logger.warning("No refined moves found, skipping execution persistence.")
+        return {"last_agent": "Propagative_Executor"}
+
+    for move in refined_moves:
+        move_data = {
+            "title": move.get("title"),
+            "description": move.get("description"),
+            "status": "pending",
+            "priority": 3,
+            "move_type": move.get("type", "ops"),
+            "tool_requirements": move.get("tool_requirements", []),
+            "refinement_data": {
+                "muse_prompt": move.get("muse_prompt"),
+                "council_consensus_sha": state.get("consensus_metrics", {}).get("sha"),
+            },
+        }
+
+        try:
+            move_id = await save_move(campaign_id, move_data)
+            move_ids.append(move_id)
+            logger.info(f"Successfully persisted Move {move_id}: {move.get('title')}")
+        except Exception as e:
+            logger.error(f"Failed to persist move {move.get('title')}: {e}")
+
+    logger.info(f"Propagated {len(move_ids)} moves into execution pipeline.")
+    return {"move_ids": move_ids, "last_agent": "Propagative_Executor"}
+
+
 async def competitor_radar_watcher_node(
     state: CouncilBlackboardState,
 ) -> Dict[str, Any]:
