@@ -119,6 +119,11 @@ class AgentToolIntegration:
                 "matrix_kpi_stream",
                 "analytics",
             ],
+            "community_catalyst": [
+                "sentiment_analysis",
+                "raptor_search",
+                "perplexity_search",
+            ],
         }
 
         allowed_tools = role_tool_mapping.get(agent_role, [])

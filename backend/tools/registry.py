@@ -103,6 +103,7 @@ class UnifiedToolRegistry:
         from tools.matrix_kpi_stream import MatrixKPIStreamTool
         from tools.radar_trend_analyzer import RadarTrendAnalyzerTool
         from tools.search import RaptorSearchTool, TavilyMultiHopTool
+        from tools.sentiment_analysis import SentimentAnalysisTool
         from tools.style_guide_enforcer import StyleGuideEnforcerTool
 
         self.register_tool(
@@ -192,6 +193,15 @@ class UnifiedToolRegistry:
                 cost="low",
                 latency_ms=150,
                 reliability=0.99,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            SentimentAnalysisTool(),
+            CapabilityDescriptor(
+                cost="low",
+                latency_ms=400,
+                reliability=0.95,
                 permissions=self._all_role_permissions(),
             ),
         )
