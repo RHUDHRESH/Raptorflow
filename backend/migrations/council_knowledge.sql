@@ -27,6 +27,18 @@ CREATE TABLE agent_exploits (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Agent Influence (Weights based on ROI)
+CREATE TABLE agent_influence (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL,
+    agent_role VARCHAR(50) NOT NULL,
+    weight DECIMAL(3,2) DEFAULT 1.0,
+    total_wins INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(workspace_id, agent_role)
+);
+
 -- Indexes
 CREATE INDEX idx_heuristics_workspace ON agent_heuristics(workspace_id);
 CREATE INDEX idx_heuristics_agent ON agent_heuristics(agent_role);
