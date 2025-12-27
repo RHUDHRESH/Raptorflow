@@ -28,7 +28,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 ### 5. The Community Catalyst (Dark Social/Retention)
 - [x] **Task 13: Implement `CommunityCatalystAgent` with `sentiment_analysis` tool.** (81369dd)
 - [ ] **Task 14: Equip with "Network Effect" growth heuristics.**
-- [ ] **Task 15: Grant access to `Supabase_User_Logs` to identify power-user segments.**
+- [x] **Task 15: Grant access to `Supabase_User_Logs` to identify power-user segments.** (1488abc)
 
 ### 6. The Media Buyer Strategist (Paid Scaling)
 - [ ] **Task 16: Implement `MediaBuyerAgent` with `budget_pacing_simulator` tool.**
