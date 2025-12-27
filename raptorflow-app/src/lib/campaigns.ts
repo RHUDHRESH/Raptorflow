@@ -33,7 +33,8 @@ export async function getCampaigns(): Promise<Campaign[]> {
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error('Error fetching campaigns:', error);
+        console.error('Error fetching campaigns:', JSON.stringify(error, null, 2));
+        console.error('Error details:', error);
         return [];
     }
 

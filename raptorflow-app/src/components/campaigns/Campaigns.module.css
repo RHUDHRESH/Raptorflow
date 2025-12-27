@@ -4,9 +4,9 @@
    ================================================ */
 
 /* ===== Page Container ===== */
+/* ===== Page Container ===== */
 .pageContainer {
     min-height: 100vh;
-    background: #F8F9F7;
     display: flex;
     flex-direction: column;
 }
@@ -16,8 +16,7 @@
     position: sticky;
     top: 0;
     z-index: 40;
-    background: #FFFFFF;
-    border-bottom: 1px solid #E5E6E3;
+    background: transparent;
     padding: 16px 48px;
     display: flex;
     align-items: center;
@@ -32,7 +31,7 @@
 
 .pageTitle {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 500;
     color: #2D3538;
     letter-spacing: -0.02em;
@@ -88,9 +87,8 @@
 
 /* ===== Command Strip (Filters) ===== */
 .commandStrip {
-    background: #FFFFFF;
-    border-bottom: 1px solid #E5E6E3;
-    padding: 12px 48px;
+    background: transparent;
+    padding: 0 48px 24px 48px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -134,8 +132,8 @@
 /* ===== Main Content ===== */
 .mainContent {
     flex: 1;
-    padding: 32px 48px;
-    max-width: 1400px;
+    padding: 0 48px 32px 48px;
+    max-width: 1200px;
     margin: 0 auto;
     width: 100%;
 }
