@@ -317,36 +317,36 @@
 
 /* ===== Dynamic Grid System ===== */
 /* Default Grid (Auto) */
-.radioCardsGrid {
+.radioCardsGrid,
+.multiSelectGrid,
+.choiceCardsGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
+    justify-content: center;
 }
 
-/* 4 Items: Explicit 2x2 */
+/* 4 Items: Responsive Grid */
 .gridFour {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
+    justify-content: center;
 }
 
-/* 5 Items: Flex Centered (3 top, 2 bottom) */
+/* 5 Items: Flex Centered */
 .gridFive {
     display: flex;
     flex-wrap: wrap;
-    align-items: stretch;
     justify-content: center;
     gap: 16px;
 }
 
 .gridFive>.cardBase {
     flex-basis: calc(33.333% - 11px);
-    /* 3 per row (minus gap) */
     width: calc(33.333% - 11px);
+    min-width: 200px;
 }
-
-/* Make sure the wrapped items (4th and 5th) look good */
-/* They will naturally wrap and center due to justify-content: center */
 
 /* 7 Items: 4-3 Layout (centered bottom row) */
 .gridSeven {
@@ -359,12 +359,13 @@
 .gridSeven>.cardBase {
     flex-basis: calc(25% - 12px);
     width: calc(25% - 12px);
+    min-width: 180px;
 }
 
-/* Choice Cards (Always 2col) */
+/* Choice Cards (Always 2col on desktop, stack on mobile) */
 .choiceCardsGrid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 16px;
 }
 
@@ -372,6 +373,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
+    justify-content: center;
 }
 
 /* Card Styles */

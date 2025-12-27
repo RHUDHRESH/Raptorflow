@@ -215,22 +215,7 @@ export interface AwarenessMatrix {
   most: string;
 }
 
-// Complete Phase 3 Data
-export interface Phase3Data {
-  primaryContextId: string;
-  primaryContext: PrimaryContext;
-  jtbd: JTBDForces;
-  hierarchy?: MessageHierarchy; // Precision 3.0
-  awarenessMatrix?: AwarenessMatrix; // Precision 3.0
-  vpc: VPCData;
-  differentiators: Differentiator[];
-  strategyCanvas: StrategyCanvas;
-  errc: ERRCGrid;
-  claims: Claim[];
-  primaryClaimId: string;
-  proofStack: ProofStackEntry[];
-  lockedAt?: string;
-}
+// Note: Phase3Data is defined below after all supporting types
 
 // Value Proposition Canvas
 export interface VPCPain {
@@ -350,18 +335,135 @@ export interface PrimaryContext {
   soTheyCan: string;
 }
 
-// Complete Phase 3 Data
+// ==========================================
+// Phase 3 — Value Lab (Framework 4.0)
+// ==========================================
+
+// Phase 3 Session
+export interface Phase3Session {
+  id: string;
+  startedAt: string;
+  inputsLocked: boolean;
+  inputsLockedAt?: string;
+}
+
+// Intake Summary (Screen 3.1)
+export type IntakeSummarySection = 'company' | 'pricing' | 'stack' | 'pains' | 'constraints' | 'proof';
+export type SourceConfidence = 'high' | 'medium' | 'low';
+
+export interface IntakeSummaryItem {
+  id: string;
+  section: IntakeSummarySection;
+  label: string;
+  text: string;
+  sourceConfidence: SourceConfidence;
+  isAssumption: boolean;
+  sourceQuotes: string[];
+}
+
+// Proof Stack (Screen 3.5)
+export type ProofCategory = 'metrics' | 'case-stories' | 'testimonials' | 'screenshots' | 'credentials' | 'not-yet';
+
+export interface ProofArtifact {
+  id: string;
+  category: ProofCategory;
+  title: string;
+  description?: string;
+  url?: string;
+  strength: 'weak' | 'medium' | 'strong';
+  supportsClaims: string[];
+}
+
+// UVP/USP Drafts (Screen 3.8)
+export interface UVPDraft {
+  id: string;
+  text: string;
+  topJobId?: string;
+  topPainId?: string;
+  topGainId?: string;
+  mechanismHint?: string;
+  proofAttached: boolean;
+  differentiationScore: number; // 0-100
+  clarityScore: number; // 0-100
+  isPrimary: boolean;
+}
+
+export interface USPDraft {
+  id: string;
+  text: string;
+  specificBenefit: string;
+  uniquenessVsAlternatives: string;
+  proofAttached: boolean;
+  isSpecific: boolean; // Reeves gate
+  isUnique: boolean; // Reeves gate
+  movesBuyers: boolean; // Reeves gate
+  isPrimary: boolean;
+}
+
+// Offer Profile (Screen 3.9)
+export type DeliveryModeType = 'diy' | 'done-with-you' | 'done-for-you';
+
+export interface OfferProfile {
+  deliveryMode: DeliveryModeType;
+  timeToFirstValue: number; // days
+  successPrerequisites: string[];
+  riskPolicy?: 'pilot' | 'milestone-billing' | 'guarantee' | 'none';
+  riskPolicyDetails?: string;
+}
+
+// Value Innovation Thesis (from ERRC)
+export interface ValueInnovationThesis {
+  create: string;
+  eliminate: string;
+  raise: string;
+  statement: string; // "We create X, eliminate Y, raise Z to break value-cost tradeoff"
+}
+
+// Complete Phase 3 Value Pack
 export interface Phase3Data {
+  // Session
+  session?: Phase3Session;
+
+  // Screen 3.1: Intake Summary
+  intakeSummary?: IntakeSummaryItem[];
+
+  // Screen 3.2: JTBD Profile (existing but enhanced)
   primaryContextId: string;
   primaryContext: PrimaryContext;
   jtbd: JTBDForces;
+
+  // Precision 3.0 extras
+  hierarchy?: MessageHierarchy;
+  awarenessMatrix?: AwarenessMatrix;
+
+  // Screen 3.3 & 3.4: VPC
   vpc: VPCData;
+
+  // Legacy differentiators
   differentiators: Differentiator[];
+
+  // Screen 3.5: Proof Stack
+  proofArtifacts?: ProofArtifact[];
+  proofStack: ProofStackEntry[];
+
+  // Screen 3.6: Strategy Canvas
   strategyCanvas: StrategyCanvas;
+
+  // Screen 3.7: ERRC Grid
   errc: ERRCGrid;
+  valueInnovationThesis?: ValueInnovationThesis;
+
+  // Screen 3.8: UVP/USP Drafts
+  uvpDrafts?: UVPDraft[];
+  uspDrafts?: USPDraft[];
+  mechanismLine?: string;
   claims: Claim[];
   primaryClaimId: string;
-  proofStack: ProofStackEntry[];
+
+  // Screen 3.9: Offer Profile
+  offerProfile?: OfferProfile;
+
+  // Screen 3.10: Lock
   lockedAt?: string;
 }
 
@@ -517,19 +619,67 @@ export interface Phase4Visuals {
 
 // Complete Phase 4 Data
 export interface Phase4Data {
+  // Existing fields (Dunford Component #5 - Market Category)
   marketCategory: MarketCategory;
   categoryOptions: MarketCategory[]; // 3-7 candidates
+  categoryCandidates?: CategoryCandidate[]; // Enhanced candidates (Screen 4.1)
+  antiCategories?: string[]; // NOT a CRM, NOT an agency, etc.
+  pricingPosture?: PricingPosture;
+
+  // Existing: Competitive Alternatives (Dunford Component #1)
   competitiveAlternatives: CompetitiveAlternatives;
+
+  // Existing: Differentiated Capabilities (Dunford Component #2)
   differentiatedCapabilities: DifferentiatedCapability[];
+
+  // NEW: Unique Attributes Inventory (Screen 4.3)
+  uniqueAttributes?: UniqueAttribute[];
+
+  // Existing: Differentiated Value (Dunford Component #3)
   differentiatedValue: DifferentiatedValue[];
+
+  // NEW: Value Claims with proof hooks (Screen 4.4)
+  valueClaims?: ValueClaim[];
+
+  // NEW: Evidence Graph (claim → source mapping)
+  evidenceGraph?: EvidenceNode[];
+
+  // Existing: Target Segments (Dunford Component #4)
   targetSegments: TargetSegment[];
+
+  // NEW: Who Cares Segments (Screen 4.5)
+  whoCareSegments?: WhoCareSegment[];
+
+  // Existing: Positioning outputs
   positioningStatement: string;
   elevatorPitch: ElevatorPitch;
   weAreWeAreNot: WeAreWeAreNot;
   objectionKillshots: ObjectionKillshot[];
+
+  // NEW: Statement variants (Screen 4.6)
+  statementVariants?: PositioningStatementVariant[];
+  canonicalStatementId?: string;
+  oneThing?: string; // The single ownable attribute
+
+  // Existing: Visuals
   visuals: Phase4Visuals;
+
+  // NEW: Attribute Ladder (Screen 4.8)
+  attributeLadder?: AttributeLadderData;
+
+  // Existing: Market sizing
   tamSamSom: TAMSAMSOM;
+
+  // Existing: Proof stack
   proofStack: ProofStackEntry[];
+
+  // NEW: Proof integrity items (Screen 4.11)
+  proofIntegrity?: ProofIntegrityItem[];
+
+  // NEW: Confidence & versioning
+  confidenceScore?: number; // 0-100
+  draftHistory?: PositioningDraft[];
+
   version: string;
   lockedAt?: string;
 }
@@ -823,13 +973,218 @@ export interface ConstraintPolicy {
   tonePreference: TonePreference;
 }
 
-// Complete Phase 6 Data
+// ==========================================
+// Phase 6 — SIGNAL-7 Messaging Factory Types
+// ==========================================
+
+// VoC (Voice of Customer) phrase
+export interface VoCPhrase {
+  id: string;
+  text: string;
+  source: 'extracted' | 'manual';
+  category: 'tired-of' | 'lose-time' | 'dont-trust' | 'need' | 'general';
+  isLocked: boolean;
+}
+
+// SB7 StoryBrand Narrative Spine
+export type GuideVibe = 'expert' | 'ally' | 'operator' | 'contrarian';
+export type NarrativeVariant = 'escape-chaos' | 'become-operator';
+
+export interface SB7Spine {
+  character: string;
+  wants: string;
+  problemExternal: string;
+  problemInternal: string;
+  problemPhilosophical: string;
+  guide: string;
+  guideVibe: GuideVibe;
+  plan: string[];
+  ctaDirect: string;
+  ctaTransitional: string;
+  success: string;
+  failure: string;
+  narrativeVariant: NarrativeVariant;
+}
+
+// Awareness Ladder Stage Content
+export interface AwarenessStageContent {
+  stage: AwarenessStage;
+  whatTheyThinking: string;
+  whatToSay: string;
+  whatNotToSay: string;
+  sampleLine: string;
+  isFocused: boolean;
+}
+
+// SIGNAL-7 Soundbite Types
+export type Signal7Type =
+  | 'status-quo-enemy'
+  | 'problem-agitate'
+  | 'outcome'
+  | 'mechanism'
+  | 'objection-kill'
+  | 'proof'
+  | 'cta';
+
+// Enhanced SIGNAL-7 Soundbite
+export interface Signal7Soundbite {
+  id: string;
+  type: Signal7Type;
+  text: string;
+  purpose: string;
+  awarenessStage: AwarenessStage;
+  proofNeeded: string;
+  evidenceUsed: string[];
+  vocAnchors: string[];
+  punchLevel: number;
+  scores: RigorScores;
+  isLocked: boolean;
+}
+
+// Proof Binding
+export type RiskReversalType = 'pilot' | 'guarantee' | 'cancel-anytime' | 'pay-on-results';
+
+export interface ProofSlot {
+  soundbiteId: string;
+  metricProof?: string;
+  socialProof?: string;
+  mechanismProof?: string;
+  riskReversal?: {
+    type: RiskReversalType;
+    details: string;
+  };
+  status: 'green' | 'yellow' | 'red';
+}
+
+// Voice Specification
+export type ToneDial = 'clinical' | 'confident' | 'bold' | 'provocative';
+export type CadenceStyle = 'short' | 'medium' | 'punchy';
+
+export interface VoiceSpec {
+  toneDial: ToneDial;
+  alwaysUse: string[];
+  neverUse: string[];
+  cadenceStyle: CadenceStyle;
+  brandVoiceExamples: string[];
+}
+
+// Objection Killer
+export interface ObjectionKiller {
+  id: string;
+  objection: string;
+  rebuttal: string;
+  proofAttached?: string;
+}
+
+// Website Hero Pack
+export interface WebsiteHeroPack {
+  headline: string;
+  subhead: string;
+  bullets: string[];
+  cta: string;
+  trustLine: string;
+}
+
+// Ad Angle Pack
+export type AdAngleType = 'pain' | 'status-quo-enemy' | 'mechanism' | 'outcome' | 'proof' | 'urgency';
+
+export interface AdAngle {
+  angle: AdAngleType;
+  headline: string;
+  body: string;
+}
+
+// Channel Asset
+export type ChannelType = 'website' | 'linkedin' | 'ads' | 'email' | 'deck';
+
+export interface ChannelVariant {
+  id: string;
+  label: string;
+  content: {
+    headline?: string;
+    subhead?: string;
+    bullets?: string[];
+    cta?: string;
+    trustLine?: string;
+    body?: string;
+    subject?: string;
+    openingHook?: string;
+  };
+  soundbiteIds: string[];
+  awarenessStage: AwarenessStage;
+}
+
+export interface ChannelAsset {
+  channel: ChannelType;
+  variants: ChannelVariant[];
+}
+
+// QA Report
+export interface FluffyWord {
+  word: string;
+  location: string;
+}
+
+export interface CompetitorSimilarity {
+  soundbiteId: string;
+  competitor: string;
+  similarity: number;
+}
+
+export interface QAReport {
+  sevenSecondTestPass: boolean;
+  differentiationScore: number;
+  fluffyWords: FluffyWord[];
+  claimsAtRisk: string[];
+  competitorSimilarity: CompetitorSimilarity[];
+}
+
+// Tone Risk Level
+export type ToneRisk = 'conservative' | 'balanced' | 'aggressive';
+
+// Complete Phase 6 Data (Extended for SIGNAL-7)
 export interface Phase6Data {
+  // Messaging snapshot
+  snapshotId?: string;
+  toneRisk?: ToneRisk;
+
+  // VoC
+  vocPhrases?: VoCPhrase[];
+
+  // SB7
+  sb7Spine?: SB7Spine;
+
+  // Awareness Ladder
+  awarenessLadder?: AwarenessStageContent[];
+
+  // SIGNAL-7 Soundbites
+  signal7Soundbites?: Signal7Soundbite[];
+
+  // Proof Binding
+  proofSlots?: ProofSlot[];
+
+  // Voice
+  voiceSpec?: VoiceSpec;
+
+  // Objection Killers
+  objectionKillers?: ObjectionKiller[];
+
+  // Assets
+  websiteHero?: WebsiteHeroPack;
+  adAngles?: AdAngle[];
+  channelAssets?: ChannelAsset[];
+
+  // QA
+  qaReport?: QAReport;
+
+  // Legacy (keep for backward compat)
   blueprint: MessagingBlueprint;
   soundbites: Soundbite[];
   variants: SoundbiteVariants[];
   realityCheck: RealityCheck;
   constraints: ConstraintPolicy;
+
+  // Meta
   version: string;
   lockedAt?: string;
 }
@@ -1251,8 +1606,15 @@ export const emptyPhase1Discovery: Phase1Discovery = {
   }
 };
 
-// Empty Phase 3 Differentiation Blueprint for initialization
+// Empty Phase 3 Value Lab for initialization
 export const emptyPhase3: Phase3Data = {
+  // Session
+  session: undefined,
+
+  // Intake Summary
+  intakeSummary: [],
+
+  // JTBD Profile
   primaryContextId: '',
   primaryContext: { youSell: '', to: '', soTheyCan: '' },
   jtbd: {
@@ -1265,6 +1627,8 @@ export const emptyPhase3: Phase3Data = {
     switchTriggers: [],
     successMetrics: []
   },
+
+  // Precision 3.0 extras
   hierarchy: {
     essence: '',
     coreMessage: '',
@@ -1277,40 +1641,96 @@ export const emptyPhase3: Phase3Data = {
     product: '',
     most: ''
   },
+
+  // VPC
   vpc: {
     customerProfile: { jobs: [], pains: [], gains: [] },
     valueMap: { productsServices: [], painRelievers: [], gainCreators: [] },
     fitCoverage: { score: 0, gaps: [] }
   },
+
+  // Differentiators
   differentiators: [],
+
+  // Proof Stack
+  proofArtifacts: [],
+  proofStack: [],
+
+  // Strategy Canvas
   strategyCanvas: {
     factors: [],
     curves: { statusQuo: [], categoryLeader: [], youCurrent: [], youTarget: [] },
     competitorNames: []
   },
+
+  // ERRC
   errc: { eliminate: [], reduce: [], raise: [], create: [] },
+  valueInnovationThesis: undefined,
+
+  // UVP/USP Drafts
+  uvpDrafts: [],
+  uspDrafts: [],
+  mechanismLine: '',
   claims: [],
   primaryClaimId: '',
-  proofStack: []
+
+  // Offer Profile
+  offerProfile: undefined,
+
+  // Lock
+  lockedAt: undefined
 };
 
 // Empty Phase 4 Positioning Lab for initialization
 export const emptyPhase4: Phase4Data = {
+  // Market Category (Dunford Component #5)
   marketCategory: { primary: '', altLabels: [], whyThisContext: [] },
   categoryOptions: [],
+  categoryCandidates: [],
+  antiCategories: [],
+  pricingPosture: 'mid',
+
+  // Competitive Alternatives (Dunford Component #1)
   competitiveAlternatives: {
     statusQuo: [],
     direct: [],
     indirect: [],
     replacementStory: ''
   },
+
+  // Differentiated Capabilities (Dunford Component #2)
   differentiatedCapabilities: [],
+
+  // Unique Attributes (Screen 4.3)
+  uniqueAttributes: [],
+
+  // Differentiated Value (Dunford Component #3)
   differentiatedValue: [],
+
+  // Value Claims (Screen 4.4)
+  valueClaims: [],
+
+  // Evidence Graph
+  evidenceGraph: [],
+
+  // Target Segments (Dunford Component #4)
   targetSegments: [],
+
+  // Who Cares Segments (Screen 4.5)
+  whoCareSegments: [],
+
+  // Positioning outputs
   positioningStatement: '',
   elevatorPitch: { tenSec: '', thirtySec: '', twoMin: '' },
   weAreWeAreNot: { weAre: [], weAreNot: [] },
   objectionKillshots: [],
+
+  // Statement variants (Screen 4.6)
+  statementVariants: [],
+  canonicalStatementId: undefined,
+  oneThing: '',
+
+  // Visuals
   visuals: {
     perceptualMap: {
       xAxis: { label: '', rationale: '' },
@@ -1325,13 +1745,28 @@ export const emptyPhase4: Phase4Data = {
     },
     errc: { eliminate: [], reduce: [], raise: [], create: [] }
   },
+
+  // Attribute Ladder (Screen 4.8)
+  attributeLadder: { attribute: '', rungs: [], moatGapScore: 0 },
+
+  // Market sizing
   tamSamSom: {
     tam: { value: 0, currency: 'USD', formula: '', category: '' },
     sam: { value: 0, currency: 'USD', formula: '', segment: '' },
     som: { value: 0, currency: 'USD', formula: '', reachability: '' },
     assumptions: []
   },
+
+  // Proof stack
   proofStack: [],
+
+  // Proof integrity (Screen 4.11)
+  proofIntegrity: [],
+
+  // Confidence & versioning
+  confidenceScore: 0,
+  draftHistory: [],
+
   version: '1.0'
 };
 
@@ -1349,6 +1784,22 @@ export const emptyPhase5: Phase5Data = {
 
 // Empty Phase 6 Soundbite Forge for initialization
 export const emptyPhase6: Phase6Data = {
+  // SIGNAL-7 new fields
+  snapshotId: undefined,
+  toneRisk: 'balanced',
+  vocPhrases: [],
+  sb7Spine: undefined,
+  awarenessLadder: [],
+  signal7Soundbites: [],
+  proofSlots: [],
+  voiceSpec: undefined,
+  objectionKillers: [],
+  websiteHero: undefined,
+  adAngles: [],
+  channelAssets: [],
+  qaReport: undefined,
+
+  // Legacy fields
   blueprint: {
     controllingIdea: '',
     coreMessage: '',

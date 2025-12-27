@@ -1,225 +1,269 @@
 'use client';
 
 import React from 'react';
-import { BuyingGroup, BuyingRole, BuyingJob, BuyingJobType } from '@/lib/foundation';
+import { motion, Reorder } from 'framer-motion';
+import { BuyingRole } from '@/lib/foundation';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Users, Check, X, GripVertical } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import {
+    Users, User, Wallet, Shield, Scale, Briefcase,
+    Check, X, GripVertical, AlertCircle, Info
+} from 'lucide-react';
 
+// Updated interface to match wizard usage
 interface BuyingGroupMapProps {
-    buyingGroup: BuyingGroup;
-    onChange: (group: BuyingGroup) => void;
-    onContinue: () => void;
+    roles: BuyingRole[];
+    onReorderRoles: (roles: BuyingRole[]) => void;
+    onToggleRole: (roleId: string) => void;
+    onUpdateRole: (roleId: string, updates: Partial<BuyingRole>) => void;
 }
 
-const BUYING_JOBS: { job: BuyingJobType; label: string; description: string }[] = [
-    { job: 'problem-id', label: 'Problem Identification', description: 'Recognizes need for change' },
-    { job: 'solution-explore', label: 'Solution Exploration', description: 'Researches options' },
-    { job: 'requirements', label: 'Requirements Building', description: 'Defines must-haves' },
-    { job: 'supplier-select', label: 'Supplier Selection', description: 'Makes final decision' },
-];
+const ROLE_CONFIG: Record<string, {
+    icon: React.ElementType;
+    color: string;
+    bgColor: string;
+    concerns: string[];
+    fears: string[];
+    proofNeeds: string[];
+}> = {
+    'Economic Buyer': {
+        icon: Wallet,
+        color: '#2D3538',
+        bgColor: '#F3F4EE',
+        concerns: ['ROI', 'Budget alignment', 'Risk mitigation'],
+        fears: ['Wasted investment', 'Team won\'t adopt'],
+        proofNeeds: ['ROI calculator', 'Case studies with metrics']
+    },
+    'Champion': {
+        icon: Users,
+        color: '#64B5F6',
+        bgColor: '#E3F2FD',
+        concerns: ['Implementation ease', 'Quick wins', 'Team adoption'],
+        fears: ['Political risk', 'Time investment wasted'],
+        proofNeeds: ['Quick start demo', 'Reference calls']
+    },
+    'Primary User': {
+        icon: User,
+        color: '#81C784',
+        bgColor: '#E8F5E9',
+        concerns: ['Daily workflow', 'Learning curve', 'Time savings'],
+        fears: ['Another tool to learn', 'Complexity'],
+        proofNeeds: ['Hands-on trial', 'Video tutorials']
+    },
+    'Technical': {
+        icon: Shield,
+        color: '#9575CD',
+        bgColor: '#EDE7F6',
+        concerns: ['Integration', 'Security', 'Data privacy'],
+        fears: ['Security vulnerabilities', 'Integration failures'],
+        proofNeeds: ['Technical docs', 'Security certifications']
+    },
+    'Finance': {
+        icon: Scale,
+        color: '#FFB74D',
+        bgColor: '#FFF3E0',
+        concerns: ['Contract terms', 'Payment flexibility', 'Cost predictability'],
+        fears: ['Hidden costs', 'Lock-in'],
+        proofNeeds: ['Transparent pricing', 'Flexible contracts']
+    },
+    'Blocker': {
+        icon: AlertCircle,
+        color: '#E57373',
+        bgColor: '#FFEBEE',
+        concerns: ['Status quo works', 'Change is risky', 'Timing'],
+        fears: ['Disruption', 'Being wrong about change'],
+        proofNeeds: ['Migration guarantee', 'Parallel run option']
+    }
+};
 
 function RoleCard({
     role,
+    config,
     onToggle,
-    onInfluenceChange,
+    onUpdateInfluence,
+    index
 }: {
     role: BuyingRole;
+    config: typeof ROLE_CONFIG[string];
     onToggle: () => void;
-    onInfluenceChange: (influence: 'high' | 'medium' | 'low') => void;
+    onUpdateInfluence: (influence: 'high' | 'medium' | 'low') => void;
+    index: number;
 }) {
+    const Icon = config?.icon || User;
+    const isActive = role.isActive;
+
     return (
-        <div className={cn(
-            "p-4 rounded-xl border-2 transition-all",
-            role.isActive
-                ? "border-primary bg-primary/5"
-                : "border-dashed border-muted opacity-50"
-        )}>
-            <div className="flex items-center gap-3">
-                <button onClick={onToggle} className="p-2 hover:bg-muted rounded-lg">
-                    {role.isActive ? (
-                        <Check className="h-4 w-4 text-primary" />
-                    ) : (
-                        <X className="h-4 w-4 text-muted-foreground" />
-                    )}
-                </button>
-                <div className="flex-1">
-                    <span className="font-medium">{role.role}</span>
+        <Reorder.Item value={role}>
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className={`bg-white border-2 rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing ${isActive ? 'border-[#2D3538]' : 'border-dashed border-[#E5E6E3] opacity-60'
+                    }`}
+            >
+                {/* Header */}
+                <div
+                    className="p-4 flex items-center gap-4"
+                    style={{ backgroundColor: isActive ? config?.bgColor : '#FAFAF8' }}
+                >
+                    <div className="flex items-center gap-3">
+                        <GripVertical className="w-4 h-4 text-[#9D9F9F]" />
+                        <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center"
+                            style={{ backgroundColor: isActive ? config?.color : '#E5E6E3' }}
+                        >
+                            <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-[#9D9F9F]'}`} />
+                        </div>
+                    </div>
+
+                    <div className="flex-1">
+                        <h3 className={`font-medium ${isActive ? 'text-[#2D3538]' : 'text-[#9D9F9F]'}`}>
+                            {role.role}
+                        </h3>
+                    </div>
+
+                    {/* Toggle & Influence */}
+                    <div className="flex items-center gap-3">
+                        {isActive && (
+                            <div className="flex gap-1">
+                                {(['high', 'medium', 'low'] as const).map(level => (
+                                    <button
+                                        key={level}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onUpdateInfluence(level);
+                                        }}
+                                        className={`px-2 py-1 text-[10px] font-mono uppercase rounded transition-colors ${role.influence === level
+                                                ? 'bg-[#2D3538] text-white'
+                                                : 'bg-white text-[#9D9F9F] hover:bg-[#F3F4EE]'
+                                            }`}
+                                    >
+                                        {level}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onToggle();
+                            }}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isActive
+                                    ? 'bg-[#2D3538] text-white'
+                                    : 'bg-[#E5E6E3] text-[#9D9F9F] hover:bg-[#D0D1CE]'
+                                }`}
+                        >
+                            {isActive ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                        </button>
+                    </div>
                 </div>
-                {role.isActive && (
-                    <div className="flex gap-1">
-                        {(['low', 'medium', 'high'] as const).map(level => (
-                            <button
-                                key={level}
-                                onClick={() => onInfluenceChange(level)}
-                                className={cn(
-                                    "px-2 py-1 text-xs rounded transition-colors",
-                                    role.influence === level
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-muted text-muted-foreground hover:bg-muted/80"
-                                )}
-                            >
-                                {level}
-                            </button>
-                        ))}
+
+                {/* Details (only when active) */}
+                {isActive && config && (
+                    <div className="p-4 border-t border-[#E5E6E3] grid grid-cols-3 gap-4">
+                        <div>
+                            <span className="text-[10px] font-mono uppercase text-[#9D9F9F] block mb-2">
+                                Cares About
+                            </span>
+                            <ul className="space-y-1">
+                                {config.concerns.map((c, i) => (
+                                    <li key={i} className="text-xs text-[#5B5F61] flex items-start gap-1">
+                                        <div className="w-1 h-1 rounded-full bg-[#9D9F9F] mt-1.5 flex-shrink-0" />
+                                        {c}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div>
+                            <span className="text-[10px] font-mono uppercase text-[#9D9F9F] block mb-2">
+                                Fears
+                            </span>
+                            <ul className="space-y-1">
+                                {config.fears.map((f, i) => (
+                                    <li key={i} className="text-xs text-[#E57373] flex items-start gap-1">
+                                        <div className="w-1 h-1 rounded-full bg-[#E57373] mt-1.5 flex-shrink-0" />
+                                        {f}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div>
+                            <span className="text-[10px] font-mono uppercase text-[#9D9F9F] block mb-2">
+                                Proof Needs
+                            </span>
+                            <ul className="space-y-1">
+                                {config.proofNeeds.map((p, i) => (
+                                    <li key={i} className="text-xs text-[#2D3538] flex items-start gap-1">
+                                        <div className="w-1 h-1 rounded-full bg-[#2D3538] mt-1.5 flex-shrink-0" />
+                                        {p}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     </div>
                 )}
-            </div>
-        </div>
+            </motion.div>
+        </Reorder.Item>
     );
 }
 
-function BuyingJobRow({
-    jobDef,
-    buyingJob,
+export function BuyingGroupMap({
     roles,
-    onChange,
-}: {
-    jobDef: typeof BUYING_JOBS[0];
-    buyingJob?: BuyingJob;
-    roles: BuyingRole[];
-    onChange: (job: BuyingJob) => void;
-}) {
-    const activeRoles = roles.filter(r => r.isActive);
+    onReorderRoles,
+    onToggleRole,
+    onUpdateRole
+}: BuyingGroupMapProps) {
+    const activeCount = roles.filter(r => r.isActive).length;
 
     return (
-        <div className="bg-card border rounded-xl p-4">
-            <div className="flex items-start gap-4">
-                <div className="flex-1">
-                    <h4 className="font-medium text-sm">{jobDef.label}</h4>
-                    <p className="text-xs text-muted-foreground">{jobDef.description}</p>
-                </div>
-                <div className="flex gap-2">
-                    <select
-                        value={buyingJob?.primaryRoleId || ''}
-                        onChange={(e) => onChange({
-                            job: jobDef.job,
-                            primaryRoleId: e.target.value,
-                            supportRoleIds: buyingJob?.supportRoleIds || []
-                        })}
-                        className="text-xs px-2 py-1 rounded border bg-background"
-                    >
-                        <option value="">Primary Role</option>
-                        {activeRoles.map(r => (
-                            <option key={r.id} value={r.id}>{r.role.split(' (')[0]}</option>
-                        ))}
-                    </select>
+        <div className="space-y-6">
+            {/* Header Info */}
+            <div className="flex items-start gap-3 p-4 bg-[#F3F4EE] rounded-xl">
+                <Info className="w-5 h-5 text-[#2D3538] flex-shrink-0 mt-0.5" />
+                <div>
+                    <p className="text-sm text-[#5B5F61]">
+                        <strong className="text-[#2D3538]">Buying Group Map</strong> — B2B purchases involve
+                        6–10 stakeholders. Drag to reorder by influence. Toggle roles on/off.
+                    </p>
+                    <p className="text-xs text-[#9D9F9F] mt-1">
+                        Buyers do 83% of their research without talking to you.
+                    </p>
                 </div>
             </div>
-        </div>
-    );
-}
 
-export function BuyingGroupMap({ buyingGroup, onChange, onContinue }: BuyingGroupMapProps) {
-    const handleRoleToggle = (roleId: string) => {
-        onChange({
-            ...buyingGroup,
-            roles: buyingGroup.roles.map(r =>
-                r.id === roleId ? { ...r, isActive: !r.isActive } : r
-            )
-        });
-    };
-
-    const handleInfluenceChange = (roleId: string, influence: 'high' | 'medium' | 'low') => {
-        onChange({
-            ...buyingGroup,
-            roles: buyingGroup.roles.map(r =>
-                r.id === roleId ? { ...r, influence } : r
-            )
-        });
-    };
-
-    const handleJobChange = (job: BuyingJob) => {
-        const existing = buyingGroup.buyingJobs.findIndex(j => j.job === job.job);
-        const newJobs = [...buyingGroup.buyingJobs];
-        if (existing >= 0) {
-            newJobs[existing] = job;
-        } else {
-            newJobs.push(job);
-        }
-        onChange({ ...buyingGroup, buyingJobs: newJobs });
-    };
-
-    const handleFrictionChange = (level: number) => {
-        onChange({ ...buyingGroup, frictionLevel: level });
-    };
-
-    return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div className="text-center space-y-2">
-                <h1 className="text-3xl font-serif font-bold text-foreground">
-                    Buying Group Map
-                </h1>
-                <p className="text-muted-foreground max-w-lg mx-auto">
-                    B2B buying is consensus, not one decision maker. Map who does what.
-                </p>
+            {/* Active Count */}
+            <div className="flex items-center gap-4 p-4 bg-[#2D3538] rounded-2xl">
+                <Users className="w-6 h-6 text-white" />
+                <div>
+                    <span className="text-white/60 text-[10px] font-mono uppercase">Active Roles</span>
+                    <p className="text-white text-xl font-mono">{activeCount} of {roles.length}</p>
+                </div>
             </div>
 
-            {/* Roles Section */}
-            <div className="max-w-2xl mx-auto">
-                <div className="flex items-center gap-2 mb-4">
-                    <Users className="h-5 w-5 text-muted-foreground" />
-                    <h2 className="font-semibold">Buying Roles</h2>
-                </div>
-                <div className="grid gap-3">
-                    {buyingGroup.roles.map(role => (
+            {/* Role Cards */}
+            <Reorder.Group
+                axis="y"
+                values={roles}
+                onReorder={onReorderRoles}
+                className="space-y-3"
+            >
+                {roles.map((role, index) => {
+                    const roleName = role.role.split(' (')[0];
+                    const config = Object.entries(ROLE_CONFIG).find(([key]) =>
+                        roleName.includes(key) || key.includes(roleName.split(' ')[0])
+                    )?.[1] || ROLE_CONFIG['Champion'];
+
+                    return (
                         <RoleCard
                             key={role.id}
                             role={role}
-                            onToggle={() => handleRoleToggle(role.id)}
-                            onInfluenceChange={(inf) => handleInfluenceChange(role.id, inf)}
+                            config={config}
+                            onToggle={() => onToggleRole(role.id)}
+                            onUpdateInfluence={(influence) => onUpdateRole(role.id, { influence })}
+                            index={index}
                         />
-                    ))}
-                </div>
-            </div>
-
-            {/* Buying Jobs Section */}
-            <div className="max-w-2xl mx-auto">
-                <h2 className="font-semibold mb-4">Buying Jobs (Gartner Model)</h2>
-                <div className="space-y-3">
-                    {BUYING_JOBS.map(jobDef => (
-                        <BuyingJobRow
-                            key={jobDef.job}
-                            jobDef={jobDef}
-                            buyingJob={buyingGroup.buyingJobs.find(j => j.job === jobDef.job)}
-                            roles={buyingGroup.roles}
-                            onChange={handleJobChange}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            {/* Friction Level */}
-            <div className="max-w-2xl mx-auto">
-                <h2 className="font-semibold mb-4">Procurement Friction</h2>
-                <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map(level => (
-                        <button
-                            key={level}
-                            onClick={() => handleFrictionChange(level)}
-                            className={cn(
-                                "flex-1 py-3 rounded-lg text-sm font-medium transition-colors",
-                                buyingGroup.frictionLevel === level
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                            )}
-                        >
-                            {level === 1 ? 'Low' : level === 5 ? 'High' : level}
-                        </button>
-                    ))}
-                </div>
-                <p className="text-xs text-muted-foreground mt-2 text-center">
-                    Higher friction = more approvals, longer cycle
-                </p>
-            </div>
-
-            {/* Continue Button */}
-            <div className="flex justify-center pt-4">
-                <Button size="lg" onClick={onContinue} className="px-8 py-6 text-lg rounded-xl">
-                    Continue <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
-            </div>
+                    );
+                })}
+            </Reorder.Group>
         </div>
     );
 }

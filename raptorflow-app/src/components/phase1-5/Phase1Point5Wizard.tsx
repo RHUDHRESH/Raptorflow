@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
     FoundationData,
     emptyFoundation,
@@ -161,8 +162,14 @@ export function Phase1Point5Wizard() {
             <div className={styles.leftPanel}>
                 <div className="w-full h-full flex flex-col">
                     <div className={styles.logoArea}>
-                        <div className="w-6 h-6 bg-white rounded flex-shrink-0" />
-                        <span className={styles.logoText}>RAPTORFLOW</span>
+                        <div className="relative w-8 h-8 rounded overflow-hidden">
+                            <Image
+                                src="/logo_primary.png"
+                                alt="RaptorFlow"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
                     </div>
 
                     <div className={styles.sectionInfo}>

@@ -13,7 +13,7 @@ interface VariantsFactoryProps {
     onContinue: () => void;
 }
 
-const TYPE_LABELS: Record<SoundbiteType, string> = {
+const TYPE_LABELS: Partial<Record<SoundbiteType, string>> = {
     'problem-reveal': 'Problem Reveal',
     'agitate': 'Agitate',
     'jtbd-progress': 'JTBD Progress',

@@ -89,8 +89,8 @@ export function AppLayout({ children, fullBleed = false }: AppLayoutProps) {
             <AppSidebar />
             <CommandPalette />
             <SidebarInset className={cn(
-                "bg-[#FAFBF9] dark:bg-[#0a0c0d] transition-colors duration-500",
-                fullBleed && "bg-[#F8F9F7] dark:bg-[#0E1112]"
+                "bg-white transition-colors duration-500",
+                fullBleed && "bg-white"
             )}>
                 {/* Enhanced Editorial Header */}
                 <header className={cn(
@@ -282,7 +282,7 @@ export function AppLayout({ children, fullBleed = false }: AppLayoutProps) {
                 <main className={cn(
                     "flex-1 min-h-[calc(100vh-3.5rem)]",
                     fullBleed
-                        ? "w-full bg-[#F8F9F7] dark:bg-[#0E1112]"
+                        ? "w-full bg-white dark:bg-[#0E1112]"
                         : "mx-auto max-w-none bg-white dark:bg-[#0a0c0d]"
                 )}>
                     {children}

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -35,8 +36,13 @@ export function Header() {
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2">
                         <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-lg bg-foreground flex items-center justify-center">
-                                <span className="text-background font-display font-bold text-sm">RF</span>
+                            <div className="relative w-8 h-8 rounded-lg overflow-hidden">
+                                <Image
+                                    src="/logo_primary.png"
+                                    alt="RaptorFlow"
+                                    fill
+                                    className="object-cover"
+                                />
                             </div>
                             <span className="font-display text-xl font-semibold tracking-tight">RaptorFlow</span>
                         </div>

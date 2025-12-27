@@ -1,86 +1,154 @@
-'use client';
+"use client"
 
-import * as React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import * as React from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { usePathname } from "next/navigation"
 import {
-    Home01Icon,
-    Layers01Icon,
-    UserGroupIcon,
-    FlashIcon,
-    Megaphone01Icon,
-    DashboardSquare01Icon,
-    SparklesIcon,
-    PackageIcon,
-    Settings01Icon,
-    ArrowDown01Icon,
-    PlusSignIcon
-} from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+    ChevronRight,
+    Search,
+    Settings,
+    LayoutDashboard,
+    Users,
+    Map,
+    Target,
+    Sparkles,
+    Box,
+    Radar,
+    LogOut,
+    Plus,
+    CreditCard,
+    Bell,
+    BookOpen,
+    Layers,
+    Radio,
+    BrainCircuit
+} from "lucide-react"
 
+import { SearchForm } from "./SearchForm"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
     SidebarGroup,
-    SidebarGroupContent,
+    SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarRail,
-} from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+    SidebarSeparator,
+    useSidebar,
+} from "@/components/ui/sidebar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuGroup,
     DropdownMenuItem,
+    DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 
-// Navigation as per UI.md + Foundation Vibe
-const navItems = [
-    { title: 'Home', url: '/dashboard', icon: Home01Icon },
-    { title: 'Foundation', url: '/foundation', icon: Layers01Icon },
-    { title: 'Cohorts', url: '/cohorts', icon: UserGroupIcon },
-    { title: 'Moves', url: '/moves', icon: FlashIcon },
-    { title: 'Campaigns', url: '/campaigns', icon: Megaphone01Icon },
-    { title: 'Radar', url: '/radar', icon: DashboardSquare01Icon },
-    { title: 'Muse', url: '/muse', icon: SparklesIcon },
-    { title: 'Blackbox', url: '/blackbox', icon: PackageIcon },
-];
+// RaptorFlow Navigation Data
+const items = {
+    platform: [
+        {
+            title: "Overview",
+            subtitle: "Command Center",
+            url: "/dashboard",
+            icon: LayoutDashboard,
+        },
+        {
+            title: "Foundation",
+            subtitle: "Brand Identity",
+            url: "/foundation",
+            icon: BookOpen,
+        },
+        {
+            title: "Cohorts",
+            subtitle: "Customer Segments",
+            url: "/cohorts",
+            icon: Users,
+        },
+        {
+            title: "Moves",
+            subtitle: "Weekly Execution",
+            url: "/moves",
+            icon: Target,
+        },
+        {
+            title: "Campaigns",
+            subtitle: "Growth Initiatives",
+            url: "/campaigns",
+            icon: Layers,
+        },
+    ],
+    intelligence: [
+        {
+            title: "Radar",
+            subtitle: "Market Intelligence",
+            url: "/radar",
+            icon: Radio,
+        },
+        {
+            title: "Muse Studio",
+            subtitle: "Creative Engine",
+            url: "/muse",
+            icon: Sparkles,
+        },
+        {
+            title: "Blackbox",
+            subtitle: "Learning & Insights",
+            url: "/blackbox",
+            icon: BrainCircuit,
+        },
+    ],
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const pathname = usePathname();
+    const pathname = usePathname()
+    const { state } = useSidebar()
 
     return (
-        <Sidebar
-            collapsible="icon"
-            variant="sidebar"
-            className="border-r border-sidebar-border bg-sidebar"
-            {...props}
-        >
-            <SidebarHeader className="p-6 pb-2">
-                <Link href="/" className="flex items-center gap-3 group transition-all">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shadow-sm transition-transform group-hover:scale-105">
-                        <span className="text-sm font-bold font-sans tracking-tight">RF</span>
-                    </div>
-                    <div className="flex flex-col group-data-[collapsible=icon]:hidden overflow-hidden transition-all duration-300">
-                        <span className="font-serif text-lg font-medium text-sidebar-foreground tracking-tight leading-none">RaptorFlow</span>
-                        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-muted-foreground/60 mt-1">Founder OS</span>
-                    </div>
+        <Sidebar collapsible="icon" className="border-r border-sidebar-border/50 bg-sidebar" {...props}>
+            <SidebarHeader className="h-12 flex items-center px-2 mb-2 pt-3">
+                <Link href="/" className="block group-data-[collapsible=icon]:hidden">
+                    <Image
+                        src="/logo_primary.png"
+                        alt="RaptorFlow — Founder OS"
+                        width={140}
+                        height={40}
+                        className="object-contain object-left"
+                        priority
+                    />
+                </Link>
+                {/* Collapsed state: show just the icon portion */}
+                <Link href="/" className="hidden group-data-[collapsible=icon]:block">
+                    <Image
+                        src="/logo_primary.png"
+                        alt="RaptorFlow"
+                        width={28}
+                        height={28}
+                        className="object-contain object-left"
+                        priority
+                    />
                 </Link>
             </SidebarHeader>
+            <SearchForm />
+            <SidebarContent className="px-2 py-1">
+                {Object.entries(items).map(([groupTitle, groupItems]) => (
+                    <SidebarGroup key={groupTitle} className="py-1">
+                        <SidebarGroupLabel className="hidden">
+                            {groupTitle}
+                        </SidebarGroupLabel>
+                        <SidebarMenu className="gap-0.5">
+                            {groupItems.map((item) => {
+                                const isActive = pathname === item.url
 
-            <SidebarContent className="px-3 py-6">
-                <SidebarGroup>
-                    <SidebarGroupContent>
-                        <SidebarMenu className="gap-2">
-                            {navItems.map((item) => {
-                                const isActive = pathname === item.url;
                                 return (
                                     <SidebarMenuItem key={item.title}>
                                         <SidebarMenuButton
@@ -88,88 +156,103 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                             isActive={isActive}
                                             tooltip={item.title}
                                             className={cn(
-                                                "h-10 px-3 rounded-lg group/item relative overflow-hidden transition-all duration-200",
+                                                "transition-all duration-150 h-10 rounded-md",
                                                 isActive
-                                                    ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                                                    : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+                                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                                    : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
                                             )}
                                         >
-                                            <Link href={item.url} className="flex items-center gap-3 w-full">
-                                                <HugeiconsIcon icon={item.icon}
-                                                    className={cn(
-                                                        "h-[18px] w-[18px] transition-all duration-200",
-                                                        isActive ? 'opacity-100' : 'opacity-70 group-hover/item:opacity-100'
-                                                    )}
-                                                />
-                                                <span className="text-sm tracking-tight truncate">
-                                                    {item.title}
-                                                </span>
-                                                {isActive && (
-                                                    <motion.div
-                                                        layoutId="sidebar-active-indicator"
-                                                        className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-sidebar-primary rounded-r-full"
-                                                        initial={{ opacity: 0 }}
-                                                        animate={{ opacity: 1 }}
-                                                        exit={{ opacity: 0 }}
-                                                    />
-                                                )}
+                                            <Link href={item.url} className="flex items-center gap-3 w-full px-2">
+                                                {item.icon && <item.icon className={cn("size-4 shrink-0", isActive ? "opacity-100" : "opacity-60")} strokeWidth={1.5} />}
+                                                <div className="flex flex-col items-start gap-0 overflow-hidden group-data-[collapsible=icon]:hidden">
+                                                    <span className="text-sm font-medium leading-tight">{item.title}</span>
+                                                    <span className={cn(
+                                                        "text-[11px] font-normal text-muted-foreground/50 leading-tight",
+                                                        isActive && "text-sidebar-accent-foreground/60"
+                                                    )}>
+                                                        {item.subtitle}
+                                                    </span>
+                                                </div>
                                             </Link>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
                                 )
                             })}
                         </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
+                    </SidebarGroup>
+                ))}
             </SidebarContent>
 
-            <SidebarFooter className="p-4 border-t border-sidebar-border/50">
+            <SidebarFooter className="p-2">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <SidebarMenuButton
-                                    size="lg"
-                                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-lg hover:bg-sidebar-accent/50 transition-all duration-200 px-3 group/user"
+                                    size="default"
+                                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground transition-all duration-150 h-10"
                                 >
-                                    <Avatar className="h-8 w-8 rounded-lg border border-sidebar-border/50">
-                                        <AvatarFallback className="rounded-lg bg-sidebar-accent text-sidebar-foreground text-xs font-medium">FD</AvatarFallback>
+                                    <Avatar className="h-7 w-7 rounded-md border border-sidebar-border/30">
+                                        <AvatarImage src="/avatars/user.jpg" alt="Founder" />
+                                        <AvatarFallback className="rounded-md bg-sidebar-accent font-medium text-xs">FD</AvatarFallback>
                                     </Avatar>
-                                    <div className="grid flex-1 text-left text-sm leading-tight ml-3 group-data-[collapsible=icon]:hidden">
-                                        <span className="truncate font-medium text-sidebar-foreground">Founder</span>
-                                        <span className="truncate text-xs text-muted-foreground">you@startup.com</span>
+                                    <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                                        <span className="truncate font-medium text-sm">Founder</span>
+                                        <span className="truncate text-[11px] text-muted-foreground/60">Pro Plan</span>
                                     </div>
-                                    <HugeiconsIcon icon={ArrowDown01Icon} className="ml-auto h-4 w-4 text-muted-foreground/50 transition-transform group-data-[state=open]/user:rotate-180 group-data-[collapsible=icon]:hidden" />
+                                    <ChevronRight className="ml-auto size-4 transition-transform duration-150 group-data-[state=open]:rotate-90 group-data-[collapsible=icon]:hidden opacity-50" />
                                 </SidebarMenuButton>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
-                                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-sidebar border-sidebar-border text-sidebar-foreground"
-                                side="top"
-                                align="start"
-                                sideOffset={8}
+                                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-popover text-popover-foreground border-border shadow-lg"
+                                side="bottom"
+                                align="end"
+                                sideOffset={4}
                             >
-                                <DropdownMenuItem className="cursor-pointer rounded-md focus:bg-sidebar-accent focus:text-sidebar-accent-foreground">
-                                    <HugeiconsIcon icon={PlusSignIcon} className="mr-2 h-4 w-4 opacity-70" />
-                                    <span>New Workspace</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="bg-sidebar-border/50" />
-                                <DropdownMenuItem asChild className="cursor-pointer rounded-md focus:bg-sidebar-accent focus:text-sidebar-accent-foreground">
-                                    <Link href="/settings">
-                                        <HugeiconsIcon icon={Settings01Icon} className="mr-2 h-4 w-4 opacity-70" />
-                                        <span>Settings</span>
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="bg-sidebar-border/50" />
-                                <DropdownMenuItem className="focus:bg-destructive/10 focus:text-destructive cursor-pointer rounded-md text-red-500/80 focus:text-red-500">
-                                    <span>Log out</span>
+                                <DropdownMenuLabel className="p-0 font-normal">
+                                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                                        <Avatar className="h-8 w-8 rounded-lg">
+                                            <AvatarFallback className="rounded-lg bg-primary/10 text-primary">FD</AvatarFallback>
+                                        </Avatar>
+                                        <div className="grid flex-1 text-left text-sm leading-tight">
+                                            <span className="truncate font-semibold">Founder</span>
+                                            <span className="truncate text-xs text-muted-foreground">founder@raptorflow.com</span>
+                                        </div>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuGroup>
+                                    <DropdownMenuItem className="gap-2 cursor-pointer">
+                                        <Sparkles className="h-4 w-4 text-amber-500" />
+                                        Upgrade to Pro
+                                    </DropdownMenuItem>
+                                </DropdownMenuGroup>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuGroup>
+                                    <DropdownMenuItem className="gap-2 cursor-pointer">
+                                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                                        Billing
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="gap-2 cursor-pointer">
+                                        <Settings className="h-4 w-4 text-muted-foreground" />
+                                        Settings
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="gap-2 cursor-pointer">
+                                        <Bell className="h-4 w-4 text-muted-foreground" />
+                                        Notifications
+                                    </DropdownMenuItem>
+                                </DropdownMenuGroup>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive cursor-pointer">
+                                    <LogOut className="h-4 w-4" />
+                                    Log out
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarFooter>
-
             <SidebarRail />
         </Sidebar>
-    );
+    )
 }
