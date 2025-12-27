@@ -16,6 +16,7 @@ async def test_media_buyer_agent_initialization():
         assert agent.name == "MediaBuyerAgent"
         assert "Media Buyer" in agent.system_prompt
         assert any(tool.name == "budget_pacing_simulator" for tool in agent.tools)
+        assert any(tool.name == "ad_platform_mocks" for tool in agent.tools)
 
 
 @pytest.mark.asyncio
