@@ -442,6 +442,19 @@ async def update_move_status(move_id: str, status: str, result: dict = None):
             await conn.commit()
 
 
+async def update_move_description(move_id: str, description: str):
+    """Updates the description of a move."""
+    async with get_db_connection() as conn:
+        async with conn.cursor() as cur:
+            query = """
+                UPDATE moves
+                SET description = %s, updated_at = now()
+                WHERE id = %s;
+            """
+            await cur.execute(query, (description, move_id))
+            await conn.commit()
+
+
 async def log_agent_decision(tenant_id: str, decision_data: dict):
     """Logs an agent's strategic decision for auditability and MLOps."""
     async with get_db_connection() as conn:
