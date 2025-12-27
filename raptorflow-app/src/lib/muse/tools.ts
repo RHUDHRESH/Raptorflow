@@ -16,6 +16,7 @@ const TYPE_MAP: Record<string, string> = {
     'brand-story': 'text',
     'video-script': 'text',
     'social-post': 'social_post',
+    social_post: 'social_post',
     'product-description': 'text',
     'product-name': 'text',
     'lead-gen-pdf': 'document',
