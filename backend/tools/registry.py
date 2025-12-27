@@ -95,6 +95,8 @@ class UnifiedToolRegistry:
 
     def _register_default_tools(self) -> None:
         # Register only essential tools that don't require additional config
+        from tools.bayesian_scorer import BayesianConfidenceScorerTool
+        from tools.bigquery_engine import BigQueryQueryEngineTool
         from tools.blackbox_roi import BlackboxROIHistoryTool
         from tools.conversion_optimization import ConversionOptimizationTool
         from tools.foundation_brandkit import FoundationBrandKitTool
@@ -162,6 +164,24 @@ class UnifiedToolRegistry:
                 cost="low",
                 latency_ms=200,
                 reliability=0.99,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            BigQueryQueryEngineTool(),
+            CapabilityDescriptor(
+                cost="medium",
+                latency_ms=1500,
+                reliability=0.95,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            BayesianConfidenceScorerTool(),
+            CapabilityDescriptor(
+                cost="low",
+                latency_ms=100,
+                reliability=1.0,
                 permissions=self._all_role_permissions(),
             ),
         )
