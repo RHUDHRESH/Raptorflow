@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import gsap from 'gsap';
+import Image from 'next/image';
 
 interface WelcomeScreenProps {
     onStart: () => void;
@@ -95,10 +96,14 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
             <div className="relative z-10 max-w-[600px] text-center px-8">
                 {/* Logo mark */}
                 <div className="inline-flex items-center gap-3 mb-16 opacity-40">
-                    <div className="w-5 h-5 bg-white rounded-sm" />
-                    <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/50">
-                        RaptorFlow
-                    </span>
+                    <div className="relative w-8 h-8 rounded-sm overflow-hidden">
+                        <Image
+                            src="/logo_primary.png"
+                            alt="RaptorFlow"
+                            fill
+                            className="object-contain"
+                        />
+                    </div>
                 </div>
 
                 {/* Title - Revealed word by word */}

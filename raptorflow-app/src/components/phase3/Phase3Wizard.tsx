@@ -2,86 +2,287 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Phase3Data, emptyPhase3, loadFoundationDB, saveFoundation, FoundationData } from '@/lib/foundation';
+import {
+    Phase3Data,
+    FoundationData,
+    emptyPhase3,
+    loadFoundationDB,
+    saveFoundation,
+    JTBDForces,
+    VPCData,
+    ProofArtifact,
+    UVPDraft,
+    USPDraft,
+    OfferProfile,
+    IntakeSummaryItem,
+    Phase3Session,
+} from '@/lib/foundation';
 import { derivePhase3, derivePhase3FromQuestionnaire } from '@/lib/phase3-derivation';
 import { PhaseScreen, PhaseStep } from '@/components/phase-shared';
-import { Button } from '@/components/ui/button';
-import { Check, ArrowRight, Minus, Plus, Star, AlertCircle, ChevronDown, ChevronUp, Copy, Zap } from 'lucide-react';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
-type Phase3Screen = 'differentiators' | 'claims' | 'complete';
+// Import all screen components
+import { ValueLabLanding } from './ValueLabLanding';
+import { IntakeSummary } from './IntakeSummary';
+import { CustomerProgress } from './CustomerProgress';
+import { VPCCustomerProfile } from './VPCCustomerProfile';
+import { VPCSolutionMap } from './VPCSolutionMap';
+import { ProofStackScreen } from './ProofStackScreen';
+import { StrategyCanvasScreen } from './StrategyCanvasScreen';
+import { ERRCGridScreen } from './ERRCGridScreen';
+import { UVPUSPDrafts } from './UVPUSPDrafts';
+import { OfferPackaging } from './OfferPackaging';
+import { Phase3Review } from './Phase3Review';
+
+// All Phase 3 screens
+type Phase3Screen =
+    | 'landing'
+    | 'intake'
+    | 'jtbd'
+    | 'vpc-customer'
+    | 'vpc-solution'
+    | 'proof'
+    | 'canvas'
+    | 'errc'
+    | 'claims'
+    | 'offer'
+    | 'review';
 
 const STEPS: PhaseStep[] = [
-    { id: 'differentiators', label: 'Differentiators' },
-    { id: 'claims', label: 'Claims' },
-    { id: 'complete', label: 'Complete' },
+    { id: 'intake', label: 'Review Inputs' },
+    { id: 'jtbd', label: 'Customer Goal' },
+    { id: 'vpc-customer', label: 'Their World' },
+    { id: 'vpc-solution', label: 'Your Solution' },
+    { id: 'proof', label: 'Proof Library' },
+    { id: 'canvas', label: 'Competitive Edge' },
+    { id: 'errc', label: 'Strategic Moves' },
+    { id: 'claims', label: 'Your Claims' },
+    { id: 'offer', label: 'How You Deliver' },
+    { id: 'review', label: 'Lock & Continue' },
 ];
 
 const SCREEN_CONTENT: Record<Phase3Screen, { title: string; subtitle: string }> = {
-    differentiators: {
-        title: 'Your Differentiators',
-        subtitle: 'What makes you meaningfully different.'
-    },
-    claims: {
-        title: 'Your Claims',
-        subtitle: 'Positioning statements forged from differentiation.'
-    },
-    complete: {
-        title: 'Blueprint Complete',
-        subtitle: 'Ready to power your positioning.'
-    },
+    landing: { title: 'Value Lab', subtitle: 'Turn everything you told us into a clear, defendable value proposition.' },
+    intake: { title: 'Quick Review', subtitle: 'Here\'s what we extracted. Fix anything that\'s wrong, then continue.' },
+    jtbd: { title: 'What Are They Trying to Achieve?', subtitle: 'Define the core goal your customer is trying to accomplish.' },
+    'vpc-customer': { title: 'Step Into Their Shoes', subtitle: 'What jobs are they doing? What frustrates them? What would delight them?' },
+    'vpc-solution': { title: 'How You Help', subtitle: 'Connect your features to their pains and desired outcomes.' },
+    proof: { title: 'What Can You Actually Prove?', subtitle: 'Add evidence for your claims. No proof = no claim.' },
+    canvas: { title: 'Where You Win', subtitle: 'Plot your value against competitors. Where do you stand out?' },
+    errc: { title: 'Make Strategic Choices', subtitle: 'What to eliminate, reduce, raise, or create to stand apart?' },
+    claims: { title: 'Your Value Propositions', subtitle: 'We drafted these from your inputs. Pick the best ones.' },
+    offer: { title: 'How You Deliver Value', subtitle: 'DIY, done-with-you, or done-for-you? How fast do they see results?' },
+    review: { title: 'Ready to Lock?', subtitle: 'Review your Value Pack and lock it to move to positioning.' },
 };
 
-// Proof Strength calculation
-function getProofStrength(proof: string[] | undefined): { score: number; label: string; color: string } {
-    if (!proof || proof.length === 0) return { score: 0, label: 'UNPROVEN', color: '#DC2626' };
-    if (proof.length === 1) return { score: 30, label: 'WEAK', color: '#F59E0B' };
-    if (proof.length === 2) return { score: 60, label: 'MEDIUM', color: '#9D9F9F' };
-    return { score: 100, label: 'STRONG', color: '#2D3538' };
+// Generate intake summary from foundation data
+function generateIntakeSummary(foundation: FoundationData): IntakeSummaryItem[] {
+    const items: IntakeSummaryItem[] = [];
+    const phase1 = foundation.phase1;
+
+    if (phase1?.identity) {
+        items.push({
+            id: uuidv4(),
+            section: 'company',
+            label: 'Company',
+            text: `${phase1.identity.company || 'Your Company'}`,
+            sourceConfidence: 'high',
+            isAssumption: false,
+            sourceQuotes: [],
+        });
+    }
+
+    if (phase1?.offer) {
+        items.push({
+            id: uuidv4(),
+            section: 'company',
+            label: 'Offer Type',
+            text: phase1.offer.primaryType || 'Solution',
+            sourceConfidence: 'high',
+            isAssumption: false,
+            sourceQuotes: [],
+        });
+    }
+
+    if (phase1?.buyerUser?.userRoles) {
+        items.push({
+            id: uuidv4(),
+            section: 'company',
+            label: 'Target Audience',
+            text: phase1.buyerUser.userRoles.join(', ') || 'Business leaders',
+            sourceConfidence: 'medium',
+            isAssumption: false,
+            sourceQuotes: [],
+        });
+    }
+
+    if (phase1?.triggers?.triggers) {
+        phase1.triggers.triggers.forEach((t, i) => {
+            items.push({
+                id: uuidv4(),
+                section: 'pains',
+                label: `Trigger ${i + 1}`,
+                text: t.freeText || t.type || 'Growth challenge',
+                sourceConfidence: 'medium',
+                isAssumption: false,
+                sourceQuotes: [],
+            });
+        });
+    }
+
+    if (phase1?.currentSystem?.artifacts) {
+        items.push({
+            id: uuidv4(),
+            section: 'stack',
+            label: 'Current Tools',
+            text: phase1.currentSystem.artifacts.join(', ') || 'Various tools',
+            sourceConfidence: 'high',
+            isAssumption: false,
+            sourceQuotes: [],
+        });
+    }
+
+    if (phase1?.proofGuardrails?.forbiddenClaims) {
+        phase1.proofGuardrails.forbiddenClaims.forEach((claim, i) => {
+            items.push({
+                id: uuidv4(),
+                section: 'constraints',
+                label: `Forbidden ${i + 1}`,
+                text: claim,
+                sourceConfidence: 'high',
+                isAssumption: false,
+                sourceQuotes: [],
+            });
+        });
+    }
+
+    return items;
 }
 
-// Copy to clipboard helper
-function copyToClipboard(text: string, label: string) {
-    navigator.clipboard.writeText(text);
-    toast.success(`${label} copied!`, { description: 'Paste it in your pitch deck.' });
-}
+// Generate default UVP drafts
+function generateDefaultUVPDrafts(phase3: Phase3Data): UVPDraft[] {
+    const primaryJob = phase3.jtbd?.jobs?.find(j => j.isPrimary)?.statement || 'achieve their goals';
+    const topPain = phase3.vpc?.customerProfile?.pains?.[0]?.text || 'common frustrations';
+    const topGain = phase3.vpc?.customerProfile?.gains?.[0]?.text || 'desired outcomes';
 
-// Generic competitor claims by industry
-function getCompetitorClaim(industry?: string): string {
-    const genericClaims = [
-        "We help businesses grow faster with our solution.",
-        "The all-in-one platform for modern teams.",
-        "Trusted by thousands of companies worldwide.",
-        "Save time and money with our innovative approach.",
-        "The easiest way to manage your workflow."
+    return [
+        {
+            id: uuidv4(),
+            text: `Help you ${primaryJob} without ${topPain}.`,
+            topJobId: phase3.jtbd?.jobs?.[0]?.id,
+            topPainId: phase3.vpc?.customerProfile?.pains?.[0]?.id,
+            proofAttached: false,
+            differentiationScore: 65,
+            clarityScore: 70,
+            isPrimary: true,
+        },
+        {
+            id: uuidv4(),
+            text: `The fastest way to ${topGain} for busy founders.`,
+            topGainId: phase3.vpc?.customerProfile?.gains?.[0]?.id,
+            proofAttached: false,
+            differentiationScore: 55,
+            clarityScore: 80,
+            isPrimary: false,
+        },
+        {
+            id: uuidv4(),
+            text: `Finally ${primaryJob} with a system that actually works.`,
+            topJobId: phase3.jtbd?.jobs?.[0]?.id,
+            proofAttached: false,
+            differentiationScore: 50,
+            clarityScore: 75,
+            isPrimary: false,
+        },
     ];
-    return genericClaims[Math.floor(Math.random() * genericClaims.length)];
+}
+
+// Generate default USP drafts
+function generateDefaultUSPDrafts(phase3: Phase3Data): USPDraft[] {
+    const mechanism = phase3.primaryContext?.youSell || 'our unique approach';
+    const errcCreate = phase3.errc?.create?.[0]?.factor || 'innovative capability';
+
+    return [
+        {
+            id: uuidv4(),
+            text: `The only ${mechanism} that delivers ${errcCreate}.`,
+            specificBenefit: errcCreate,
+            uniquenessVsAlternatives: 'First to market',
+            proofAttached: false,
+            isSpecific: true,
+            isUnique: true,
+            movesBuyers: true,
+            isPrimary: true,
+        },
+        {
+            id: uuidv4(),
+            text: `Unlike alternatives, we focus 100% on ${errcCreate}.`,
+            specificBenefit: errcCreate,
+            uniquenessVsAlternatives: 'Focus differentiator',
+            proofAttached: false,
+            isSpecific: true,
+            isUnique: true,
+            movesBuyers: false,
+            isPrimary: false,
+        },
+        {
+            id: uuidv4(),
+            text: `Built for founders who won't settle for generic solutions.`,
+            specificBenefit: 'Founder-focused',
+            uniquenessVsAlternatives: 'Audience focus',
+            proofAttached: false,
+            isSpecific: false,
+            isUnique: true,
+            movesBuyers: true,
+            isPrimary: false,
+        },
+    ];
 }
 
 export function Phase3Wizard() {
     const router = useRouter();
     const [foundation, setFoundation] = useState<FoundationData | null>(null);
     const [phase3, setPhase3] = useState<Phase3Data>(emptyPhase3);
-    const [currentScreen, setCurrentScreen] = useState<Phase3Screen>('differentiators');
+    const [currentScreen, setCurrentScreen] = useState<Phase3Screen>('landing');
     const [isLoading, setIsLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [showErrc, setShowErrc] = useState(false);
-    const [competitorClaim] = useState(getCompetitorClaim());
 
+    // Load data on mount
     useEffect(() => {
         const loadData = async () => {
             try {
                 const data = await loadFoundationDB();
                 setFoundation(data);
 
-                if (data.phase3) {
+                if (data.phase3 && data.phase3.jtbd?.jobs?.length > 0) {
+                    // Use existing Phase 3 data
                     setPhase3(data.phase3);
                 } else if (data.completedAt || data.phase1) {
+                    // Derive from Phase 1/2
                     setIsProcessing(true);
                     const derived = data.phase1
                         ? await derivePhase3(data.phase1)
                         : await derivePhase3FromQuestionnaire(data);
-                    setPhase3(derived);
+
+                    // Add session and intake summary
+                    const session: Phase3Session = {
+                        id: uuidv4(),
+                        startedAt: new Date().toISOString(),
+                        inputsLocked: false,
+                    };
+
+                    const intakeSummary = generateIntakeSummary(data);
+
+                    setPhase3({
+                        ...derived,
+                        session,
+                        intakeSummary,
+                        proofArtifacts: [],
+                        uvpDrafts: generateDefaultUVPDrafts(derived),
+                        uspDrafts: generateDefaultUSPDrafts(derived),
+                        mechanismLine: '',
+                    });
                     setIsProcessing(false);
                 }
 
@@ -96,6 +297,7 @@ export function Phase3Wizard() {
         loadData();
     }, []);
 
+    // Auto-save phase3 data
     const savePhase3 = useCallback(async (data: Phase3Data) => {
         if (!foundation) return;
         try {
@@ -105,26 +307,32 @@ export function Phase3Wizard() {
         }
     }, [foundation]);
 
-    const currentIndex = STEPS.findIndex(s => s.id === currentScreen);
+    // Navigation helpers
+    const screenOrder: Phase3Screen[] = [
+        'landing', 'intake', 'jtbd', 'vpc-customer', 'vpc-solution',
+        'proof', 'canvas', 'errc', 'claims', 'offer', 'review'
+    ];
+
+    const currentIndex = screenOrder.indexOf(currentScreen);
 
     const goNext = () => {
-        if (currentIndex < STEPS.length - 1) {
-            setCurrentScreen(STEPS[currentIndex + 1].id as Phase3Screen);
+        if (currentIndex < screenOrder.length - 1) {
+            setCurrentScreen(screenOrder[currentIndex + 1]);
             savePhase3(phase3);
         }
     };
 
     const goBack = () => {
         if (currentIndex > 0) {
-            setCurrentScreen(STEPS[currentIndex - 1].id as Phase3Screen);
+            setCurrentScreen(screenOrder[currentIndex - 1]);
         } else {
             router.push('/foundation');
         }
     };
 
     const handleStepClick = (stepId: string) => {
-        const stepIndex = STEPS.findIndex(s => s.id === stepId);
-        if (stepIndex <= currentIndex) {
+        const stepIndex = screenOrder.indexOf(stepId as Phase3Screen);
+        if (stepIndex >= 0 && stepIndex <= currentIndex) {
             setCurrentScreen(stepId as Phase3Screen);
         }
     };
@@ -133,315 +341,169 @@ export function Phase3Wizard() {
         const lockedData = { ...phase3, lockedAt: new Date().toISOString() };
         setPhase3(lockedData);
         await savePhase3(lockedData);
-        toast.success('Blueprint locked!');
+        toast.success('Phase 3 locked!');
         router.push('/foundation/phase4');
     };
 
+    // Loading states
     if (isLoading || isProcessing) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#F3F4EE]">
                 <div className="text-center space-y-6">
                     <div className="w-16 h-16 border-[3px] border-[#2D3538] border-t-transparent rounded-full animate-spin mx-auto" />
                     <p className="font-serif text-2xl text-[#2D3538]">
-                        {isProcessing ? 'Deriving blueprint...' : 'Loading...'}
+                        {isProcessing ? 'Deriving value proposition...' : 'Loading...'}
                     </p>
                 </div>
             </div>
         );
     }
 
-    if (!foundation?.phase1 && !foundation?.completedAt) {
+    // Show landing screen
+    if (currentScreen === 'landing') {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#F3F4EE]">
-                <div className="text-center space-y-8 max-w-md px-8">
-                    <AlertCircle className="w-12 h-12 text-[#2D3538] mx-auto" />
-                    <h1 className="font-serif text-3xl text-[#2D3538]">Complete Foundation First</h1>
-                    <Button
-                        onClick={() => router.push('/foundation')}
-                        className="bg-[#2D3538] hover:bg-[#1A1D1E] text-white px-10 py-6 rounded-2xl"
-                    >
-                        Go to Foundation
-                    </Button>
-                </div>
-            </div>
+            <ValueLabLanding
+                onStart={() => setCurrentScreen('intake')}
+                evidenceSnippets={[]}
+                completedSteps={[]}
+            />
         );
     }
 
     const { title, subtitle } = SCREEN_CONTENT[currentScreen];
-
-    const getContextString = () => {
-        if (typeof phase3.primaryContext === 'string') return phase3.primaryContext;
-        if (phase3.primaryContext?.youSell) {
-            return `You sell ${phase3.primaryContext.youSell} to ${phase3.primaryContext.to}`;
-        }
-        return null;
-    };
-
-    const primaryClaim = phase3.claims?.find(c => c.id === phase3.primaryClaimId)?.promise || phase3.claims?.[0]?.promise || 'Your positioning claim';
+    const stepIndex = STEPS.findIndex(s => s.id === currentScreen);
 
     return (
         <PhaseScreen
             phaseNumber={3}
-            phaseTitle="Differentiation Blueprint"
+            phaseTitle="Value & Offer"
             currentStepId={currentScreen}
             steps={STEPS}
             title={title}
             subtitle={subtitle}
             onBack={goBack}
             onStepClick={handleStepClick}
-            showContinue={currentScreen !== 'complete'}
-            continueText="Continue"
-            onContinue={goNext}
+            showContinue={false}
         >
-            {/* Screen 1: Differentiators */}
-            {currentScreen === 'differentiators' && (
-                <div className="space-y-6">
-                    {/* Context Card */}
-                    {getContextString() && (
-                        <div className="bg-[#FAFAF8] border border-[#E5E6E3] rounded-xl p-4 flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-[#2D3538]" />
-                            <p className="text-sm text-[#5B5F61]">{getContextString()}</p>
-                        </div>
-                    )}
-
-                    {/* Differentiators with Proof Strength Bar */}
-                    <div className="space-y-4">
-                        {(phase3.differentiators || [
-                            { id: '1', capability: 'Unique capability', mechanism: 'How it works', proof: [], status: 'unproven' },
-                        ]).map((diff, i) => {
-                            const proofStrength = getProofStrength(diff.proof);
-                            return (
-                                <div
-                                    key={diff.id || i}
-                                    className="bg-white border border-[#E5E6E3] rounded-2xl p-8 transition-all hover:shadow-lg group"
-                                >
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[11px] font-mono uppercase tracking-[0.15em] text-[#9D9F9F]">
-                                                #{i + 1}
-                                            </span>
-                                        </div>
-                                        {/* Copy Button */}
-                                        <button
-                                            onClick={() => copyToClipboard(`${diff.capability}: ${diff.mechanism}`, 'Differentiator')}
-                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-[#F3F4EE] rounded-lg"
-                                        >
-                                            <Copy className="w-4 h-4 text-[#9D9F9F]" />
-                                        </button>
-                                    </div>
-
-                                    <h3 className="font-serif text-xl text-[#2D3538] mb-2">{diff.capability}</h3>
-                                    <p className="text-[#5B5F61] mb-4">{diff.mechanism}</p>
-
-                                    {/* Proof Strength Bar */}
-                                    <div className="pt-4 border-t border-[#E5E6E3]">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-[10px] font-mono uppercase tracking-[0.1em] text-[#9D9F9F]">
-                                                Proof Strength
-                                            </span>
-                                            <span
-                                                className="text-[10px] font-mono uppercase tracking-[0.1em] font-medium"
-                                                style={{ color: proofStrength.color }}
-                                            >
-                                                {proofStrength.label}
-                                            </span>
-                                        </div>
-                                        {/* Proof Strength Bar - Improved visibility */}
-                                        <div className="relative h-3 bg-[#E5E6E3] rounded-full overflow-hidden">
-                                            {/* Segment markers */}
-                                            <div className="absolute inset-0 flex">
-                                                <div className="w-1/4 border-r border-white/30" />
-                                                <div className="w-1/4 border-r border-white/30" />
-                                                <div className="w-1/4 border-r border-white/30" />
-                                                <div className="w-1/4" />
-                                            </div>
-                                            {/* Fill bar */}
-                                            <div
-                                                className="h-full rounded-full transition-all duration-700 relative z-10"
-                                                style={{
-                                                    width: `${proofStrength.score}%`,
-                                                    backgroundColor: proofStrength.color
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* ERRC Accordion */}
-                    <div className="bg-[#FAFAF8] border border-[#E5E6E3] rounded-2xl overflow-hidden">
-                        <button
-                            onClick={() => setShowErrc(!showErrc)}
-                            className="w-full flex items-center justify-between p-5 hover:bg-white transition-colors"
-                        >
-                            <span className="text-[11px] font-mono uppercase tracking-[0.15em] text-[#9D9F9F]">
-                                Strategic Actions
-                            </span>
-                            {showErrc ? <ChevronUp className="w-4 h-4 text-[#9D9F9F]" /> : <ChevronDown className="w-4 h-4 text-[#9D9F9F]" />}
-                        </button>
-
-                        {showErrc && (
-                            <div className="grid grid-cols-2 gap-3 p-5 pt-0">
-                                <div className="p-4 bg-white rounded-xl">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Minus className="w-3 h-3 text-[#5B5F61]" />
-                                        <span className="text-xs font-mono uppercase text-[#9D9F9F]">Eliminate</span>
-                                    </div>
-                                    <ul className="text-sm text-[#2D3538] space-y-1">
-                                        {(phase3.errc?.eliminate || [{ factor: 'Factor' }]).slice(0, 2).map((item, i) => (
-                                            <li key={i}>{typeof item === 'string' ? item : item.factor}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                <div className="p-4 bg-white rounded-xl">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Plus className="w-3 h-3 text-[#5B5F61]" />
-                                        <span className="text-xs font-mono uppercase text-[#9D9F9F]">Create</span>
-                                    </div>
-                                    <ul className="text-sm text-[#2D3538] space-y-1">
-                                        {(phase3.errc?.create || [{ factor: 'Factor' }]).slice(0, 2).map((item, i) => (
-                                            <li key={i}>{typeof item === 'string' ? item : item.factor}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
+            {/* Screen: Intake Summary */}
+            {currentScreen === 'intake' && (
+                <IntakeSummary
+                    items={phase3.intakeSummary || []}
+                    onItemEdit={(id, text) => {
+                        setPhase3({
+                            ...phase3,
+                            intakeSummary: phase3.intakeSummary?.map(item =>
+                                item.id === id ? { ...item, text } : item
+                            ) || [],
+                        });
+                    }}
+                    onToggleAssumption={(id) => {
+                        setPhase3({
+                            ...phase3,
+                            intakeSummary: phase3.intakeSummary?.map(item =>
+                                item.id === id ? { ...item, isAssumption: !item.isAssumption } : item
+                            ) || [],
+                        });
+                    }}
+                    onConfirm={goNext}
+                    onBack={goBack}
+                />
             )}
 
-            {/* Screen 2: Claims with Battle Mode */}
+            {/* Screen: Customer Progress (JTBD) */}
+            {currentScreen === 'jtbd' && (
+                <CustomerProgress
+                    jtbd={phase3.jtbd}
+                    onUpdate={(jtbd) => setPhase3({ ...phase3, jtbd })}
+                    onContinue={goNext}
+                    onBack={goBack}
+                />
+            )}
+
+            {/* Screen: VPC Customer Profile */}
+            {currentScreen === 'vpc-customer' && (
+                <VPCCustomerProfile
+                    vpc={phase3.vpc}
+                    onUpdate={(vpc) => setPhase3({ ...phase3, vpc })}
+                    onContinue={goNext}
+                    onBack={goBack}
+                />
+            )}
+
+            {/* Screen: VPC Solution Map */}
+            {currentScreen === 'vpc-solution' && (
+                <VPCSolutionMap
+                    vpc={phase3.vpc}
+                    proofArtifacts={phase3.proofArtifacts}
+                    onUpdate={(vpc) => setPhase3({ ...phase3, vpc })}
+                    onContinue={goNext}
+                    onBack={goBack}
+                />
+            )}
+
+            {/* Screen: Proof Stack */}
+            {currentScreen === 'proof' && (
+                <ProofStackScreen
+                    proofArtifacts={phase3.proofArtifacts || []}
+                    onUpdate={(artifacts) => setPhase3({ ...phase3, proofArtifacts: artifacts })}
+                    onContinue={goNext}
+                    onBack={goBack}
+                />
+            )}
+
+            {/* Screen: Strategy Canvas */}
+            {currentScreen === 'canvas' && (
+                <StrategyCanvasScreen
+                    canvas={phase3.strategyCanvas}
+                    onChange={(canvas) => setPhase3({ ...phase3, strategyCanvas: canvas })}
+                    onContinue={goNext}
+                />
+            )}
+
+            {/* Screen: ERRC Grid */}
+            {currentScreen === 'errc' && (
+                <ERRCGridScreen
+                    errc={phase3.errc}
+                    onChange={(errc) => setPhase3({ ...phase3, errc })}
+                    onContinue={goNext}
+                />
+            )}
+
+            {/* Screen: UVP/USP Drafts */}
             {currentScreen === 'claims' && (
-                <div className="space-y-8">
-                    {phase3.claims && phase3.claims.length > 0 ? (
-                        <>
-                            {/* Claim Battle: You vs. Competitor */}
-                            <div className="relative">
-                                <div className="grid grid-cols-2 gap-4">
-                                    {/* Competitor Claim (Generic) */}
-                                    <div className="bg-[#FAFAF8] border border-[#E5E6E3] rounded-2xl p-6 opacity-60">
-                                        <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-[#9D9F9F] block mb-3">
-                                            Generic Competitor
-                                        </span>
-                                        <p className="text-[#5B5F61] text-sm italic">
-                                            "{competitorClaim}"
-                                        </p>
-                                    </div>
-
-                                    {/* Your Claim */}
-                                    <div className="bg-[#2D3538] rounded-2xl p-6 relative group">
-                                        <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-white/50 block mb-3">
-                                            Your Claim
-                                        </span>
-                                        <p className="text-white font-medium">
-                                            "{primaryClaim}"
-                                        </p>
-                                        {/* Copy Button */}
-                                        <button
-                                            onClick={() => copyToClipboard(primaryClaim, 'Claim')}
-                                            className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-white/10 rounded-lg"
-                                        >
-                                            <Copy className="w-4 h-4 text-white/60" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* VS Badge */}
-                                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                                    <div className="w-10 h-10 bg-white border-2 border-[#2D3538] rounded-full flex items-center justify-center shadow-lg">
-                                        <Zap className="w-4 h-4 text-[#2D3538]" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Why Yours Wins */}
-                            <div className="bg-[#FAFAF8] border border-[#E5E6E3] rounded-xl p-5">
-                                <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-[#9D9F9F] block mb-3">
-                                    Why Yours Wins
-                                </span>
-                                <ul className="space-y-2">
-                                    <li className="flex items-center gap-2 text-sm text-[#2D3538]">
-                                        <Check className="w-4 h-4 text-[#2D3538]" />
-                                        Specific to your differentiation
-                                    </li>
-                                    <li className="flex items-center gap-2 text-sm text-[#2D3538]">
-                                        <Check className="w-4 h-4 text-[#2D3538]" />
-                                        Backed by proof (not generic claims)
-                                    </li>
-                                    <li className="flex items-center gap-2 text-sm text-[#2D3538]">
-                                        <Check className="w-4 h-4 text-[#2D3538]" />
-                                        Clear outcome for the customer
-                                    </li>
-                                </ul>
-                            </div>
-
-                            {/* Primary Claim Card with Star */}
-                            <div className="bg-[#2D3538] rounded-3xl p-10 relative group">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <Star className="w-4 h-4 text-white/50" />
-                                    <span className="text-[11px] font-mono uppercase tracking-[0.15em] text-white/50">
-                                        Primary Claim
-                                    </span>
-                                </div>
-                                <p className="font-serif text-[26px] text-white leading-[1.4]">
-                                    "{primaryClaim}"
-                                </p>
-                                {/* Copy Button */}
-                                <button
-                                    onClick={() => copyToClipboard(primaryClaim, 'Primary claim')}
-                                    className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-white/10 rounded-lg"
-                                >
-                                    <Copy className="w-5 h-5 text-white/60" />
-                                </button>
-                            </div>
-
-                            {/* Alt Claims */}
-                            {phase3.claims.length > 1 && (
-                                <div className="grid grid-cols-2 gap-4">
-                                    {phase3.claims.filter(c => c.id !== phase3.primaryClaimId).slice(0, 2).map((claim) => (
-                                        <div key={claim.id} className="bg-white border border-[#E5E6E3] rounded-2xl p-6 relative group">
-                                            <p className="text-[#2D3538] text-sm">"{claim.promise}"</p>
-                                            <button
-                                                onClick={() => copyToClipboard(claim.promise, 'Claim')}
-                                                className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-[#F3F4EE] rounded-lg"
-                                            >
-                                                <Copy className="w-3 h-3 text-[#9D9F9F]" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <div className="bg-white border border-[#E5E6E3] rounded-3xl p-10 text-center">
-                            <p className="text-[#5B5F61]">Claims will be generated from your differentiation.</p>
-                        </div>
-                    )}
-                </div>
+                <UVPUSPDrafts
+                    uvpDrafts={phase3.uvpDrafts || []}
+                    uspDrafts={phase3.uspDrafts || []}
+                    mechanismLine={phase3.mechanismLine || ''}
+                    onUpdateUVP={(drafts) => setPhase3({ ...phase3, uvpDrafts: drafts })}
+                    onUpdateUSP={(drafts) => setPhase3({ ...phase3, uspDrafts: drafts })}
+                    onUpdateMechanism={(line) => setPhase3({ ...phase3, mechanismLine: line })}
+                    onRegenerate={(type, broader) => {
+                        // Regeneration logic - could call AI here
+                        toast.info(`Regenerating ${type}...`);
+                    }}
+                    onContinue={goNext}
+                    onBack={goBack}
+                />
             )}
 
-            {/* Screen 3: Complete */}
-            {currentScreen === 'complete' && (
-                <div className="text-center space-y-10 py-8">
-                    <div className="w-20 h-20 mx-auto bg-[#2D3538] rounded-full flex items-center justify-center">
-                        <Check className="w-10 h-10 text-white" />
-                    </div>
+            {/* Screen: Offer Packaging */}
+            {currentScreen === 'offer' && (
+                <OfferPackaging
+                    offerProfile={phase3.offerProfile}
+                    onUpdate={(profile) => setPhase3({ ...phase3, offerProfile: profile })}
+                    onContinue={goNext}
+                    onBack={goBack}
+                />
+            )}
 
-                    <div className="max-w-sm mx-auto">
-                        <p className="text-lg text-[#5B5F61]">
-                            Your differentiation blueprint is ready.
-                        </p>
-                    </div>
-
-                    <Button
-                        onClick={handleLock}
-                        className="bg-[#2D3538] hover:bg-[#1A1D1E] text-white px-12 py-7 rounded-2xl text-lg font-medium transition-all hover:scale-[1.02]"
-                    >
-                        Continue to Phase 4 <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                </div>
+            {/* Screen: Review & Lock */}
+            {currentScreen === 'review' && (
+                <Phase3Review
+                    phase3={phase3}
+                    onLock={handleLock}
+                    onBack={goBack}
+                />
             )}
         </PhaseScreen>
     );

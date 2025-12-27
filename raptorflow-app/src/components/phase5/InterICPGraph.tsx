@@ -1,233 +1,292 @@
 'use client';
 
-import React from 'react';
-import { InterICPGraph, ICPGraphNode, ICPGraphEdge, ICPEdgeType } from '@/lib/foundation';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import {
+    GitBranch, Users, ArrowRight, Star, Circle,
+    Plus, Trash2, Edit2, Check, Info
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Circle, ArrowRightCircle, Star, X, Plus } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ICP, InterICPGraph, ICPGraphNode, ICPGraphEdge, ICPEdgeType } from '@/lib/foundation';
 
+// Updated interface to match wizard usage
 interface InterICPGraphProps {
+    icps: ICP[];
     graph: InterICPGraph;
-    onChange: (graph: InterICPGraph) => void;
-    onContinue: () => void;
+    onUpdateGraph: (graph: InterICPGraph) => void;
+    onSetTargetSequence: (sequence: string[]) => void;
 }
+
+const EDGE_TYPES: Array<{ type: ICPEdgeType; label: string; color: string }> = [
+    { type: 'influences', label: 'Influences', color: '#64B5F6' },
+    { type: 'refers', label: 'Refers', color: '#81C784' },
+    { type: 'upstream', label: 'Upgrade', color: '#FFB74D' },
+    { type: 'downstream', label: 'Downgrade', color: '#E57373' }
+];
 
 function NodeCard({
     node,
     isWedge,
+    isInSequence,
+    sequencePosition,
     onSetWedge,
-    onRemove,
+    onToggleSequence
 }: {
     node: ICPGraphNode;
     isWedge: boolean;
+    isInSequence: boolean;
+    sequencePosition?: number;
     onSetWedge: () => void;
-    onRemove: () => void;
+    onToggleSequence: () => void;
 }) {
+    const isICP = node.type === 'icp';
+
     return (
-        <div className={cn(
-            "p-4 rounded-xl border-2 flex items-center gap-3",
-            node.type === 'icp'
-                ? "border-primary bg-primary/5"
-                : "border-amber-500 bg-amber-50/50 dark:bg-amber-950/20"
-        )}>
-            <div className={cn(
-                "w-10 h-10 rounded-full flex items-center justify-center",
-                node.type === 'icp' ? "bg-primary/20" : "bg-amber-200 dark:bg-amber-900/50"
-            )}>
-                <Circle className="h-4 w-4" />
-            </div>
-            <div className="flex-1">
-                <span className="font-medium">{node.label}</span>
-                <span className={cn(
-                    "text-xs ml-2",
-                    node.type === 'icp' ? "text-primary" : "text-amber-600"
-                )}>
-                    {node.type === 'icp' ? 'ICP' : 'Influencer'}
-                </span>
-            </div>
-            {node.type === 'icp' && (
-                <button
-                    onClick={onSetWedge}
-                    className={cn(
-                        "p-2 rounded-lg transition-colors",
-                        isWedge ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+        <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`bg-white border-2 rounded-2xl p-5 ${isWedge ? 'border-[#2D3538] shadow-lg' : 'border-[#E5E6E3]'
+                }`}
+        >
+            <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isICP ? 'bg-[#2D3538]' : 'bg-[#9D9F9F]'
+                    }`}>
+                    {isICP ? (
+                        <Users className="w-6 h-6 text-white" />
+                    ) : (
+                        <GitBranch className="w-6 h-6 text-white" />
                     )}
-                    title="Set as primary wedge ICP"
-                >
-                    <Star className={cn("h-4 w-4", isWedge && "fill-current")} />
-                </button>
-            )}
-            {node.type === 'influencer' && (
-                <button onClick={onRemove} className="p-2 hover:bg-destructive/10 rounded-lg">
-                    <X className="h-4 w-4 text-muted-foreground" />
-                </button>
-            )}
-        </div>
+                </div>
+
+                <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-mono uppercase text-[#9D9F9F]">
+                            {isICP ? 'ICP' : 'Influencer'}
+                        </span>
+                        {isWedge && (
+                            <span className="text-[9px] font-mono uppercase bg-[#2D3538] text-white px-2 py-0.5 rounded">
+                                Primary Wedge
+                            </span>
+                        )}
+                        {isInSequence && sequencePosition !== undefined && (
+                            <span className="text-[9px] font-mono bg-[#F3F4EE] px-2 py-0.5 rounded">
+                                #{sequencePosition + 1} in sequence
+                            </span>
+                        )}
+                    </div>
+                    <h3 className="font-medium text-[#2D3538] mt-1">{node.label}</h3>
+                </div>
+
+                <div className="flex gap-2">
+                    {isICP && !isWedge && (
+                        <button
+                            onClick={onSetWedge}
+                            className="p-2 hover:bg-[#F3F4EE] rounded-lg transition-colors"
+                            title="Set as primary wedge"
+                        >
+                            <Star className="w-4 h-4 text-[#9D9F9F]" />
+                        </button>
+                    )}
+                    {isICP && (
+                        <button
+                            onClick={onToggleSequence}
+                            className={`p-2 rounded-lg transition-colors ${isInSequence
+                                    ? 'bg-[#2D3538] text-white'
+                                    : 'hover:bg-[#F3F4EE] text-[#9D9F9F]'
+                                }`}
+                            title={isInSequence ? 'Remove from sequence' : 'Add to sequence'}
+                        >
+                            {isInSequence ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                        </button>
+                    )}
+                </div>
+            </div>
+        </motion.div>
     );
 }
 
-function EdgeCard({
+function EdgeItem({
     edge,
-    nodes,
-    onRemove,
-    onWeightChange,
+    fromNode,
+    toNode,
+    onRemove
 }: {
     edge: ICPGraphEdge;
-    nodes: ICPGraphNode[];
+    fromNode?: ICPGraphNode;
+    toNode?: ICPGraphNode;
     onRemove: () => void;
-    onWeightChange: (weight: number) => void;
 }) {
-    const fromNode = nodes.find(n => n.id === edge.from);
-    const toNode = nodes.find(n => n.id === edge.to);
-
-    const typeLabels: Record<ICPEdgeType, string> = {
-        influences: '→ influences →',
-        refers: '→ refers →',
-        upstream: '← upstream of',
-        downstream: '→ downstream of'
-    };
+    const edgeConfig = EDGE_TYPES.find(t => t.type === edge.type) || EDGE_TYPES[0];
 
     return (
-        <div className="p-3 bg-muted/50 rounded-lg flex items-center gap-3">
-            <span className="text-sm font-medium">{fromNode?.label}</span>
-            <span className="text-xs text-muted-foreground">{typeLabels[edge.type]}</span>
-            <span className="text-sm font-medium">{toNode?.label}</span>
-            <div className="flex-1" />
+        <div className="flex items-center gap-3 bg-[#FAFAF8] rounded-xl p-3">
+            <div className="flex items-center gap-2 flex-1">
+                <span className="text-sm text-[#2D3538]">{fromNode?.label || 'Unknown'}</span>
+                <ArrowRight className="w-4 h-4 text-[#9D9F9F]" />
+                <span className="text-sm text-[#2D3538]">{toNode?.label || 'Unknown'}</span>
+            </div>
+            <span
+                className="text-[10px] font-mono uppercase px-2 py-1 rounded"
+                style={{ backgroundColor: edgeConfig.color + '20', color: edgeConfig.color }}
+            >
+                {edgeConfig.label}
+            </span>
             <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map(w => (
-                    <button
-                        key={w}
-                        onClick={() => onWeightChange(w)}
-                        className={cn(
-                            "w-6 h-6 rounded text-xs",
-                            edge.weight === w
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted text-muted-foreground hover:bg-muted/80"
-                        )}
-                    >
-                        {w}
-                    </button>
+                {[1, 2, 3, 4, 5].map(i => (
+                    <div
+                        key={i}
+                        className={`w-1 h-3 rounded-sm ${i <= edge.weight ? 'bg-[#2D3538]' : 'bg-[#E5E6E3]'
+                            }`}
+                    />
                 ))}
             </div>
-            <button onClick={onRemove} className="p-1 hover:bg-destructive/10 rounded">
-                <X className="h-3 w-3 text-muted-foreground" />
+            <button
+                onClick={onRemove}
+                className="p-1 hover:bg-red-50 rounded transition-colors"
+            >
+                <Trash2 className="w-3 h-3 text-red-400 hover:text-red-600" />
             </button>
         </div>
     );
 }
 
-export function InterICPGraphScreen({ graph, onChange, onContinue }: InterICPGraphProps) {
+export function InterICPGraph({
+    icps,
+    graph,
+    onUpdateGraph,
+    onSetTargetSequence
+}: InterICPGraphProps) {
+    const [targetSequence, setTargetSequence] = useState<string[]>(graph.targetSequence || []);
+
     const icpNodes = graph.nodes.filter(n => n.type === 'icp');
     const influencerNodes = graph.nodes.filter(n => n.type === 'influencer');
 
-    const setWedge = (nodeId: string) => {
-        onChange({ ...graph, primaryWedgeICP: nodeId });
+    const handleSetWedge = (nodeId: string) => {
+        onUpdateGraph({ ...graph, primaryWedgeICP: nodeId });
     };
 
-    const removeNode = (nodeId: string) => {
-        onChange({
-            ...graph,
-            nodes: graph.nodes.filter(n => n.id !== nodeId),
-            edges: graph.edges.filter(e => e.from !== nodeId && e.to !== nodeId)
-        });
+    const handleToggleSequence = (nodeId: string) => {
+        let newSequence: string[];
+        if (targetSequence.includes(nodeId)) {
+            newSequence = targetSequence.filter(id => id !== nodeId);
+        } else {
+            newSequence = [...targetSequence, nodeId];
+        }
+        setTargetSequence(newSequence);
+        onSetTargetSequence(newSequence);
     };
 
-    const removeEdge = (edgeId: string) => {
-        onChange({
+    const handleRemoveEdge = (edgeId: string) => {
+        onUpdateGraph({
             ...graph,
             edges: graph.edges.filter(e => e.id !== edgeId)
         });
     };
 
-    const updateEdgeWeight = (edgeId: string, weight: number) => {
-        onChange({
-            ...graph,
-            edges: graph.edges.map(e => e.id === edgeId ? { ...e, weight } : e)
-        });
-    };
-
     return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div className="text-center space-y-2">
-                <h1 className="text-3xl font-serif font-bold text-foreground">
-                    Inter-ICP Relationship Graph
-                </h1>
-                <p className="text-muted-foreground max-w-lg mx-auto">
-                    Map how ICPs and influencers connect. This drives ecosystem leverage.
-                </p>
+        <div className="space-y-6">
+            {/* Header Info */}
+            <div className="flex items-start gap-3 p-4 bg-[#F3F4EE] rounded-xl">
+                <Info className="w-5 h-5 text-[#2D3538] flex-shrink-0 mt-0.5" />
+                <div>
+                    <p className="text-sm text-[#5B5F61]">
+                        <strong className="text-[#2D3538]">ICP Relationship Graph</strong> — How your ICPs connect.
+                        Set your primary wedge and define the targeting sequence.
+                    </p>
+                </div>
             </div>
 
+            {/* Target Sequence */}
+            {targetSequence.length > 0 && (
+                <div className="bg-[#2D3538] rounded-2xl p-5">
+                    <span className="text-[10px] font-mono uppercase text-white/60 block mb-3">
+                        Target Sequence
+                    </span>
+                    <div className="flex items-center gap-3">
+                        {targetSequence.map((id, i) => {
+                            const node = graph.nodes.find(n => n.id === id);
+                            return (
+                                <React.Fragment key={id}>
+                                    <div className="bg-white/10 rounded-xl px-4 py-2 flex items-center gap-2">
+                                        <span className="text-white font-mono text-sm">#{i + 1}</span>
+                                        <span className="text-white text-sm">{node?.label}</span>
+                                    </div>
+                                    {i < targetSequence.length - 1 && (
+                                        <ArrowRight className="w-4 h-4 text-white/40" />
+                                    )}
+                                </React.Fragment>
+                            );
+                        })}
+                    </div>
+                    <p className="text-xs text-white/60 mt-3">
+                        Target in this order based on fit score and friction levels.
+                    </p>
+                </div>
+            )}
+
             {/* ICP Nodes */}
-            <div className="max-w-2xl mx-auto">
-                <h2 className="font-semibold mb-4">ICPs</h2>
-                <div className="grid gap-3">
+            <div>
+                <h3 className="text-[10px] font-mono uppercase tracking-[0.15em] text-[#9D9F9F] mb-3">
+                    ICPs ({icpNodes.length})
+                </h3>
+                <div className="space-y-3">
                     {icpNodes.map(node => (
                         <NodeCard
                             key={node.id}
                             node={node}
-                            isWedge={node.id === graph.primaryWedgeICP}
-                            onSetWedge={() => setWedge(node.id)}
-                            onRemove={() => { }}
+                            isWedge={graph.primaryWedgeICP === node.id}
+                            isInSequence={targetSequence.includes(node.id)}
+                            sequencePosition={targetSequence.indexOf(node.id)}
+                            onSetWedge={() => handleSetWedge(node.id)}
+                            onToggleSequence={() => handleToggleSequence(node.id)}
                         />
                     ))}
                 </div>
             </div>
 
             {/* Influencer Nodes */}
-            <div className="max-w-2xl mx-auto">
-                <h2 className="font-semibold mb-4">Influencer Nodes</h2>
-                <div className="grid gap-3">
-                    {influencerNodes.map(node => (
-                        <NodeCard
-                            key={node.id}
-                            node={node}
-                            isWedge={false}
-                            onSetWedge={() => { }}
-                            onRemove={() => removeNode(node.id)}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            {/* Edges */}
-            <div className="max-w-2xl mx-auto">
-                <h2 className="font-semibold mb-4">Relationships (weight = leverage)</h2>
-                <div className="space-y-2">
-                    {graph.edges.map(edge => (
-                        <EdgeCard
-                            key={edge.id}
-                            edge={edge}
-                            nodes={graph.nodes}
-                            onRemove={() => removeEdge(edge.id)}
-                            onWeightChange={(w) => updateEdgeWeight(edge.id, w)}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            {/* Wedge Strategy */}
-            {graph.primaryWedgeICP && (
-                <div className="max-w-2xl mx-auto bg-primary/5 border-2 border-primary/20 rounded-xl p-4 text-center">
-                    <Star className="h-6 w-6 text-primary mx-auto mb-2" />
-                    <p className="font-semibold">
-                        Primary Wedge: {icpNodes.find(n => n.id === graph.primaryWedgeICP)?.label}
-                    </p>
-                    <p className="text-sm text-muted-foreground">This is the ICP you enter through</p>
+            {influencerNodes.length > 0 && (
+                <div>
+                    <h3 className="text-[10px] font-mono uppercase tracking-[0.15em] text-[#9D9F9F] mb-3">
+                        Influencers ({influencerNodes.length})
+                    </h3>
+                    <div className="space-y-3">
+                        {influencerNodes.map(node => (
+                            <NodeCard
+                                key={node.id}
+                                node={node}
+                                isWedge={false}
+                                isInSequence={false}
+                                onSetWedge={() => { }}
+                                onToggleSequence={() => { }}
+                            />
+                        ))}
+                    </div>
                 </div>
             )}
 
-            {/* Continue Button */}
-            <div className="flex justify-center pt-4">
-                <Button
-                    size="lg"
-                    onClick={onContinue}
-                    disabled={!graph.primaryWedgeICP}
-                    className="px-8 py-6 text-lg rounded-xl"
-                >
-                    {graph.primaryWedgeICP ? 'Continue' : 'Select a Primary Wedge ICP'}
-                    <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
+            {/* Edges */}
+            <div>
+                <h3 className="text-[10px] font-mono uppercase tracking-[0.15em] text-[#9D9F9F] mb-3">
+                    Relationships ({graph.edges.length})
+                </h3>
+                <div className="space-y-2">
+                    {graph.edges.map(edge => (
+                        <EdgeItem
+                            key={edge.id}
+                            edge={edge}
+                            fromNode={graph.nodes.find(n => n.id === edge.from)}
+                            toNode={graph.nodes.find(n => n.id === edge.to)}
+                            onRemove={() => handleRemoveEdge(edge.id)}
+                        />
+                    ))}
+                    {graph.edges.length === 0 && (
+                        <div className="text-center py-8 text-[#9D9F9F]">
+                            <GitBranch className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                            <p className="text-sm">No relationships defined yet</p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
