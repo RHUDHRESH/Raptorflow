@@ -107,6 +107,7 @@ class UnifiedToolRegistry:
         from tools.foundation_brandkit import FoundationBrandKitTool
         from tools.journalist_pitch import JournalistPitchArchitectTool
         from tools.jtbd_analyzer import JTBDAnalyzerTool
+        from tools.longitudinal_data import BlackboxLongitudinalDataTool
         from tools.matrix_kpi_stream import MatrixKPIStreamTool
         from tools.milestone_messaging import MilestoneMessagingTool
         from tools.muse_asset_archive import MuseAssetArchiveTool
@@ -335,6 +336,15 @@ class UnifiedToolRegistry:
                 cost="low",
                 latency_ms=600,
                 reliability=0.96,
+                permissions=self._all_role_permissions(),
+            ),
+        )
+        self.register_tool(
+            BlackboxLongitudinalDataTool(),
+            CapabilityDescriptor(
+                cost="medium",
+                latency_ms=800,
+                reliability=0.97,
                 permissions=self._all_role_permissions(),
             ),
         )

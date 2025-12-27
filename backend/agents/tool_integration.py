@@ -165,6 +165,7 @@ class AgentToolIntegration:
             "retention": [
                 "churn_prediction_heuristics",
                 "milestone_based_messaging",
+                "blackbox_longitudinal_data",
                 "raptor_search",
                 "perplexity_search",
             ],
