@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -434,6 +436,42 @@ async def ingest_muse_content(
     result = await rag_ingest_graph.ainvoke(state)
     chunks = result.get("chunks", [])
     return {"status": result.get("status", "complete"), "chunks_ingested": len(chunks)}
+
+
+@router.post("/ingest/foundation")
+async def ingest_foundation_metadata(
+    tenant_id: UUID = Depends(get_tenant_id),
+    _current_user: dict = Depends(get_internal_or_user),
+):
+    root_path = Path(__file__).resolve().parents[3]
+    default_path = root_path / "foundation_text.json"
+    foundation_path = Path(os.getenv("FOUNDATION_METADATA_PATH", default_path))
+
+    if not foundation_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Foundation metadata file not found at {foundation_path}",
+        )
+
+    content = foundation_path.read_text(encoding="utf-8")
+    metadata = {
+        "type": "foundation",
+        "source_file": foundation_path.name,
+    }
+
+    state = {
+        "workspace_id": str(tenant_id),
+        "content": content,
+        "filename": foundation_path.name,
+        "metadata": metadata,
+    }
+    result = await rag_ingest_graph.ainvoke(state)
+    chunks = result.get("chunks", [])
+    return {
+        "status": result.get("status", "complete"),
+        "chunks_ingested": len(chunks),
+        "source_file": foundation_path.name,
+    }
 
 
 @router.get("/health")
