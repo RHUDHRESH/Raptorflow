@@ -1,7 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 import psycopg
 from langgraph.checkpoint.postgres import PostgresSaver
@@ -602,33 +602,80 @@ async def save_reasoning_chain(workspace_id: str, chain_data: dict) -> str:
 
 
 async def save_rejections(
-    workspace_id: str, reasoning_chain_id: str, rejections: list[dict]
+    workspace_id: str, chain_id: str, rejected_paths: List[Dict[str, Any]]
 ):
-    """
-    Persists rejected strategic paths to Supabase for future learning/audit.
-    """
+    """Save rejected strategic paths for future avoidance."""
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
-            try:
-                query = """
-                    INSERT INTO council_rejections (
-                        workspace_id, reasoning_chain_id, discarded_path, rejection_reason, metadata
-                    )
-                    VALUES (%s, %s, %s, %s, %s);
+            for path in rejected_paths:
+                await cur.execute(
+                    """
+                    INSERT INTO rejected_paths (workspace_id, reasoning_chain_id, path_name, reason)
+                    VALUES (%s, %s, %s, %s)
+                """,
+                    (workspace_id, chain_id, path.get("path"), path.get("reason")),
+                )
+
+
+async def save_heuristics(workspace_id: str, heuristics: Dict[str, List[str]]):
+    """Save Never/Always rules extracted by the Librarian."""
+    async with get_db_connection() as conn:
+        async with conn.cursor() as cur:
+            # Save Never rules
+            for rule in heuristics.get("never_rules", []):
+                await cur.execute(
+                    """
+                    INSERT INTO agent_heuristics (workspace_id, rule_type, content)
+                    VALUES (%s, 'never', %s)
+                """,
+                    (workspace_id, rule),
+                )
+            # Save Always rules
+            for rule in heuristics.get("always_rules", []):
+                await cur.execute(
+                    """
+                    INSERT INTO agent_heuristics (workspace_id, rule_type, content)
+                    VALUES (%s, 'always', %s)
+                """,
+                    (workspace_id, rule),
+                )
+
+
+async def save_exploits(workspace_id: str, exploits: List[Dict[str, Any]]):
+    """Save proven exploits extracted by the Librarian."""
+    async with get_db_connection() as conn:
+        async with conn.cursor() as cur:
+            for exploit in exploits:
+                await cur.execute(
+                    """
+                    INSERT INTO agent_exploits (workspace_id, title, description, predicted_roi)
+                    VALUES (%s, %s, %s, %s)
+                """,
+                    (
+                        workspace_id,
+                        exploit.get("title"),
+                        exploit.get("description"),
+                        exploit.get("predicted_roi"),
+                    ),
+                )
+
+
+async def fetch_heuristics(workspace_id: str, role: str) -> Dict[str, List[str]]:
+    """Fetch all active heuristics for a specific role and workspace."""
+    heuristics = {"never_rules": [], "always_rules": []}
+    async with get_db_connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
                 """
-                for rejection in rejections:
-                    await cur.execute(
-                        query,
-                        (
-                            workspace_id,
-                            reasoning_chain_id,
-                            rejection.get("path"),
-                            rejection.get("reason"),
-                            psycopg.types.json.Jsonb(rejection.get("metadata", {})),
-                        ),
-                    )
-                await conn.commit()
-            except Exception as e:
-                await conn.rollback()
-                logger.error(f"Failed to save council rejections: {e}")
-                raise
+                SELECT rule_type, content FROM agent_heuristics
+                WHERE workspace_id = %s AND (agent_role = %s OR agent_role IS NULL)
+            """,
+                (workspace_id, role),
+            )
+            rows = await cur.fetchall()
+            for row in rows:
+                if row[0] == "never":
+                    heuristics["never_rules"].append(row[1])
+                else:
+                    heuristics["always_rules"].append(row[1])
+    return heuristics

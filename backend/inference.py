@@ -367,9 +367,16 @@ class InferenceProvider:
                 f"Routing to Tier: {normalized_tier.upper()} -> Model: {model_name}"
             )
 
-            use_genai = bool(api_key) and not _has_google_credentials()
+            force_api_key = bool(getattr(settings, "INFERENCE_FORCE_API_KEY", False))
+            use_genai = bool(api_key) and (
+                force_api_key or not _has_google_credentials()
+            )
 
             if use_genai:
+                if force_api_key:
+                    logger.info(
+                        "INFERENCE_FORCE_API_KEY enabled; using Gemini API key client."
+                    )
                 logger.warning(
                     "Vertex credentials not found. Falling back to Gemini API key client."
                 )
@@ -478,7 +485,12 @@ class InferenceProvider:
 
         if provider == "google":
             api_key = get_vertex_api_key()
-            if api_key and not _has_google_credentials():
+            force_api_key = bool(getattr(settings, "INFERENCE_FORCE_API_KEY", False))
+            if api_key and (force_api_key or not _has_google_credentials()):
+                if force_api_key:
+                    logger.info(
+                        "INFERENCE_FORCE_API_KEY enabled; using Gemini API key embeddings."
+                    )
                 return GenAIEmbeddings(
                     model_name=settings.EMBEDDING_MODEL, api_key=api_key
                 )
