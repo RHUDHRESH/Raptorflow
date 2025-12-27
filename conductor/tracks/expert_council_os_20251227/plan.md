@@ -46,8 +46,8 @@ The Council's decisions automatically flow into the rest of the app.
 - [x] **Task 49: Implement `Campaign_Arc_Generator`: 90-day plan based on Council Consensus.** (d9ed706)
 - [x] **Task 50: Build `Move_Decomposition_Engine`: Breaking Campaigns into weekly Moves.** (df2aa51)
 - [x] **Task 51: Implement `Move_Refiner`: Tool selection and prompt engineering for each Move.** (42aafb7)
-- [~] **Task 52: Build `Propagative_Executor`: Saving refined Moves to the `moves` table.**
-- [ ] **Task 53: Implement `Muse_Worker_Queue`: Asynchronous asset generation (Images/Copy) for pending Moves.**
+- [x] **Task 52: Build `Propagative_Executor`: Saving refined Moves to the `moves` table.** (4c7c13a)
+- [~] **Task 53: Conductor - User Manual Verification 'Phase 4'.**
 - [ ] **Task 54: Create `Asset_Linkage_Metadata`: Connect Move ID to Muse Artifact ID.**
 - [ ] **Task 55: Build `User_Approval_Workflow`: User clicks "Approve" on a Move -> Muse assets are finalized.**
 
