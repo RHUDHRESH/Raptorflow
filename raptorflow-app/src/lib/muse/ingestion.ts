@@ -1,46 +1,42 @@
-import { VertexAIEmbeddings } from "@langchain/google-vertexai";
-import { createClient } from "@supabase/supabase-js";
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy-key';
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-const embeddings = new VertexAIEmbeddings({
-    model: "text-embedding-004"
-});
+const backendUrl =
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "";
+const internalKey = process.env.RF_INTERNAL_KEY || "";
+const tenantId = process.env.DEFAULT_TENANT_ID || "";
 
 export async function ingestFileContent(content: string, metadata: Record<string, unknown> = {}) {
-    if (!supabase) throw new Error("Supabase not configured");
-
-    // 1. Split text into chunks
-    const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 1000,
-        chunkOverlap: 200,
-    });
-
-    const docs = await splitter.createDocuments([content]);
-
-    // 2. Embed and Store
-    for (const doc of docs) {
-        const embedding = await embeddings.embedQuery(doc.pageContent);
-
-        const { error } = await supabase
-            .from('muse_assets')
-            .insert({
-                content: doc.pageContent,
-                metadata: {
-                    ...metadata,
-                    source: metadata.filename || 'uploaded-file',
-                    ingested_at: new Date().toISOString()
-                },
-                embedding
-            });
-
-        if (error) {
-            console.error("Error storing chunk:", error);
-        }
+    if (!backendUrl || !internalKey || !tenantId) {
+        throw new Error("Muse ingest backend not configured");
     }
 
-    return docs.length;
+    const filename =
+        typeof metadata.filename === "string" && metadata.filename.length > 0
+            ? metadata.filename
+            : "uploaded-file";
+
+    const response = await fetch(`${backendUrl}/v1/muse/ingest`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-RF-Internal-Key": internalKey,
+            "X-Tenant-ID": tenantId
+        },
+        body: JSON.stringify({
+            content,
+            filename,
+            metadata: {
+                ...metadata,
+                ingested_at: new Date().toISOString()
+            }
+        })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Muse ingest failed: ${errorText}`);
+    }
+
+    const result = await response.json();
+    return result?.chunks_ingested || 0;
 }

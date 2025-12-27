@@ -201,3 +201,21 @@ async def get_current_user(
         "role": payload.get("role"),
         "claims": payload,
     }
+
+
+async def get_internal_or_user(
+    x_rf_internal_key: Optional[str] = Header(None, alias="X-RF-Internal-Key"),
+    authorization: Optional[str] = Header(None),
+) -> dict[str, Any]:
+    """
+    Allows internal service calls via X-RF-Internal-Key or falls back to JWT auth.
+    """
+    settings = get_settings()
+    if (
+        x_rf_internal_key
+        and settings.RF_INTERNAL_KEY
+        and x_rf_internal_key == settings.RF_INTERNAL_KEY
+    ):
+        return {"id": "internal", "role": "internal", "claims": {}}
+
+    return await get_current_user(authorization)

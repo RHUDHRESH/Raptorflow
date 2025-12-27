@@ -20,12 +20,13 @@ class SemanticRAGNode:
         # 1. Embed raw_prompt (simulated)
         dummy_embedding = [0.1] * 768
 
-        # 2. Search fact_store
+        # 2. Search muse_assets (foundation + approved assets)
         facts = await vector_search(
             workspace_id=workspace_id,
             embedding=dummy_embedding,
-            table="fact_store",
+            table="muse_assets",
             limit=5,
+            filters={"type": "foundation"},
         )
 
         logger.info(f"Retrieved {len(facts)} surgical facts.")

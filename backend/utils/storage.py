@@ -14,6 +14,8 @@ async def upload_image_to_gcs(
     image_data: bytes,
     content_type: str = "image/png",
     bucket_name: Optional[str] = None,
+    tenant_id: Optional[str] = None,
+    prefix: str = "muse/images",
 ) -> str:
     """
     Surgically uploads image data to Google Cloud Storage and returns the public URL.
@@ -26,7 +28,9 @@ async def upload_image_to_gcs(
         bucket = client.bucket(bucket_name)
 
         # Generate a unique filename
-        filename = f"muse_{uuid.uuid4()}.png"
+        filename = f"{prefix}/{uuid.uuid4()}.png"
+        if tenant_id:
+            filename = f"{tenant_id}/{filename}"
         blob = bucket.blob(filename)
 
         blob.upload_from_string(image_data, content_type=content_type)
