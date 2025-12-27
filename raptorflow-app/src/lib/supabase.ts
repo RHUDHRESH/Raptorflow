@@ -6,11 +6,8 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key'
 console.log('[Supabase] Initializing client with:', {
     url: supabaseUrl,
     keyLength: supabaseAnonKey?.length,
-    isDummy: supabaseUrl.includes('dummy')
+    isDummy: supabaseUrl.includes('dummy'),
+    keyStart: supabaseAnonKey?.slice(0, 5) + '...'
 });
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-export const isSupabaseConfigured = () => {
-    return !supabaseUrl.includes('dummy') && supabaseAnonKey !== 'dummy-key';
-};

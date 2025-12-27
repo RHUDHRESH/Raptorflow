@@ -165,7 +165,7 @@ async def vector_search(
         raise ValueError(f"table must be one of: {allowed_tables}")
     # Map table to its specific column names
     SCHEMA_MAP = {
-        "muse_assets": {"content": "content", "workspace": "metadata->>'workspace_id'"},
+        "muse_assets": {"content": "content", "workspace": "workspace_id"},
         "agent_memory_semantic": {"content": "fact", "workspace": "tenant_id"},
         "agent_memory_episodic": {"content": "observation", "workspace": "thread_id"},
         "entity_embeddings": {"content": "description", "workspace": "workspace_id"},
@@ -304,20 +304,42 @@ async def save_asset_db(workspace_id: str, asset_data: dict):
         async with conn.cursor() as cur:
             try:
                 query = """
-                    INSERT INTO muse_assets (content, metadata, embedding)
-                    VALUES (%s, %s, %s)
+                    INSERT INTO muse_assets (
+                        workspace_id,
+                        content,
+                        asset_type,
+                        metadata,
+                        embedding,
+                        status,
+                        quality_score,
+                        generation_prompt,
+                        generation_model,
+                        generation_tokens,
+                        tags
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id;
                 """
-                # Ensure workspace_id is in metadata
                 metadata = asset_data.get("metadata", {})
                 metadata["workspace_id"] = workspace_id
+
+                asset_type = asset_data.get("asset_type") or "text"
+                status = asset_data.get("status") or "ready"
 
                 await cur.execute(
                     query,
                     (
+                        workspace_id,
                         asset_data["content"],
+                        asset_type,
                         psycopg.types.json.Jsonb(metadata),
                         asset_data.get("embedding"),
+                        status,
+                        asset_data.get("quality_score"),
+                        asset_data.get("generation_prompt"),
+                        asset_data.get("generation_model"),
+                        asset_data.get("generation_tokens"),
+                        asset_data.get("tags"),
                     ),
                 )
                 result = await cur.fetchone()
@@ -345,7 +367,7 @@ async def save_asset_vault(
         }
     )
 
-    asset_data = {"content": content, "metadata": metadata}
+    asset_data = {"content": content, "metadata": metadata, "asset_type": asset_type}
     return await save_asset_db(workspace_id, asset_data)
 
 

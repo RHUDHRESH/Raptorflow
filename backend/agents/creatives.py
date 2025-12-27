@@ -437,7 +437,7 @@ class ImageArchitect:
         image_urls = []
         for img in response.images:
             img_bytes = pil_to_bytes(img)
-            url = await upload_image_to_gcs(img_bytes)
+            url = await upload_image_to_gcs(img_bytes, tenant_id=tenant_id)
             image_urls.append(url)
 
         # Track usage

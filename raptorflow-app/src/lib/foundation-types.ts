@@ -1,6 +1,6 @@
 /**
  * Foundation Data Types
- * TypeScript interfaces matching foundation_test.json structure
+ * TypeScript interfaces matching foundation_text.json structure
  */
 
 // === Meta & Confidence ===

@@ -50,7 +50,7 @@ export function FoundationProvider({ children }: { children: ReactNode }) {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch('/foundation_test.json');
+            const response = await fetch('/foundation_text.json');
             if (!response.ok) {
                 throw new Error(`Failed to load foundation: ${response.statusText}`);
             }

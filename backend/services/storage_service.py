@@ -112,3 +112,65 @@ class BrandAssetManager:
         blob = bucket.blob(blob_name)
         blob.make_public()
         return blob.public_url
+
+
+class MuseAssetManager:
+    """
+    Industrial Manager for Muse assets (generated images, exports, documents).
+    Handles uploads to GCS and URL resolution.
+    """
+
+    def __init__(self, bucket_name: str):
+        self.bucket_name = bucket_name
+        self._client: Optional[storage.Client] = None
+
+    @property
+    def client(self) -> storage.Client:
+        if self._client is None:
+            self._client = storage.Client()
+        return self._client
+
+    def upload_asset(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        tenant_id: str,
+        folder: str = "generated",
+    ) -> str:
+        """
+        Uploads a Muse asset to GCS and returns the blob path.
+        """
+        try:
+            bucket = self.client.get_bucket(self.bucket_name)
+            blob = bucket.blob(f"{tenant_id}/muse/{folder}/{filename}")
+            blob.upload_from_string(file_content, content_type=content_type)
+            logger.info(
+                "Successfully uploaded muse asset: %s to %s",
+                filename,
+                self.bucket_name,
+            )
+            return blob.name
+        except Exception as e:
+            logger.error("Failed to upload muse asset: %s", e)
+            raise
+
+    def generate_signed_url(self, blob_name: str, expiration_minutes: int = 15) -> str:
+        """
+        Generates a signed URL for a blob.
+        """
+        bucket = self.client.get_bucket(self.bucket_name)
+        blob = bucket.blob(blob_name)
+        return blob.generate_signed_url(
+            expiration=timedelta(minutes=expiration_minutes),
+            version="v4",
+        )
+
+    def make_blob_public(self, blob_name: str) -> str:
+        """
+        Makes a blob public and returns its public URL.
+        """
+        bucket = self.client.get_bucket(self.bucket_name)
+        blob = bucket.blob(blob_name)
+        blob.make_public()
+        return blob.public_url
