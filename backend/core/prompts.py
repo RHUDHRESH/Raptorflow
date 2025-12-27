@@ -69,6 +69,18 @@ class MarketingFrameworks:
         ),
     }
 
+    POSITIONING_CANVAS = {
+        "name": "Positioning Canvas",
+        "description": "Surgical product positioning framework.",
+        "instructions": (
+            "1. Target Customer: Who is the specific hero of this story? "
+            "2. Problem: What is the single biggest pain they face? "
+            "3. Category: What is the market frame of reference? "
+            "4. Unique Value: Why is this the only logical choice? "
+            "5. Proof: What is the 'Reason to Believe' (data/social proof)?"
+        ),
+    }
+
 
 class AssetSpecializations:
     EMAIL_COLD = """
