@@ -31,7 +31,7 @@ Each agent is built as a specialized class with unique tools, system prompts, an
 - [x] **Task 15: Grant access to `Supabase_User_Logs` to identify power-user segments.** (1488abc)
 
 ### 6. The Media Buyer Strategist (Paid Scaling)
-- [ ] **Task 16: Implement `MediaBuyerAgent` with `budget_pacing_simulator` tool.**
+- [x] **Task 16: Implement `MediaBuyerAgent` with `budget_pacing_simulator` tool.** (d159995)
 - [ ] **Task 17: Equip with "Unit Economics" (CAC/LTV) calculator.**
 - [ ] **Task 18: Grant access to `Ad_Platform_Mocks` (for simulating ad-spend efficiency).**
 
