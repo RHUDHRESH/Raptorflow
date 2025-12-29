@@ -1,18 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 export interface MatrixOverview {
   system_state: {
     kill_switch_engaged: boolean;
     system_status: string;
-    active_agents: Record<string, {
-      status: string;
-      last_heartbeat: string;
-      current_task?: string;
-      metadata?: Record<string, unknown>;
-    }>;
+    active_agents: Record<
+      string,
+      {
+        status: string;
+        last_heartbeat: string;
+        current_task?: string;
+        metadata?: Record<string, unknown>;
+      }
+    >;
   };
   health_report: {
-    status: "healthy" | "warning" | "unhealthy";
+    status: 'healthy' | 'warning' | 'unhealthy';
     services: Record<string, boolean>;
   };
   cost_report: {
@@ -21,18 +24,21 @@ export interface MatrixOverview {
     status: string;
   };
   swarm_health?: {
-    status: "healthy" | "warning" | "unhealthy";
+    status: 'healthy' | 'warning' | 'unhealthy';
     signals: string[];
     tool_failure_rates: {
       overall_failure_rate: number;
       total_executions: number;
-      tools: Record<string, {
-        success: number;
-        failure: number;
-        total: number;
-        failure_rate: number;
-        last_seen?: string;
-      }>;
+      tools: Record<
+        string,
+        {
+          success: number;
+          failure: number;
+          total: number;
+          failure_rate: number;
+          last_seen?: string;
+        }
+      >;
       updated_at?: string;
     };
     budget_overrun: {
@@ -70,8 +76,10 @@ export function useMatrixOverview(workspaceId: string) {
   useEffect(() => {
     async function fetchOverview() {
       try {
-        const res = await fetch(`${API_URL}/v1/matrix/overview?workspace_id=${workspaceId}`);
-        if (!res.ok) throw new Error("Failed to fetch matrix overview");
+        const res = await fetch(
+          `${API_URL}/v1/matrix/overview?workspace_id=${workspaceId}`
+        );
+        if (!res.ok) throw new Error('Failed to fetch matrix overview');
         const json = await res.json();
         setData(json);
       } catch (err: unknown) {

@@ -40,7 +40,13 @@ const stats: Stat[] = [
   },
 ];
 
-function AnimatedNumber({ value, duration = 2 }: { value: number; duration?: number }) {
+function AnimatedNumber({
+  value,
+  duration = 2,
+}: {
+  value: number;
+  duration?: number;
+}) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
@@ -101,7 +107,10 @@ export function EnhancedStats() {
               <GlassmorphismCard className="p-8 h-full" data-magnetic>
                 {/* Progress circle */}
                 <div className="relative w-32 h-32 mx-auto mb-6">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                  <svg
+                    className="w-full h-full -rotate-90"
+                    viewBox="0 0 100 100"
+                  >
                     {/* Background circle */}
                     <circle
                       cx="50"
@@ -137,8 +146,20 @@ export function EnhancedStats() {
                         x2="100%"
                         y2="100%"
                       >
-                        <stop offset="0%" className={cn('text-opacity-100', stat.color.split(' ')[0])} />
-                        <stop offset="100%" className={cn('text-opacity-100', stat.color.split(' ')[2])} />
+                        <stop
+                          offset="0%"
+                          className={cn(
+                            'text-opacity-100',
+                            stat.color.split(' ')[0]
+                          )}
+                        />
+                        <stop
+                          offset="100%"
+                          className={cn(
+                            'text-opacity-100',
+                            stat.color.split(' ')[2]
+                          )}
+                        />
                       </linearGradient>
                     </defs>
                   </svg>

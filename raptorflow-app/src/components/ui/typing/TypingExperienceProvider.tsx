@@ -1,17 +1,34 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import { usePathname } from 'next/navigation';
 import { AudioEngine, AudioConfig, SoundProfile } from './AudioEngine';
 import { AnimationEngine, AnimationConfig } from './AnimationEngine';
-import { ContextManager, ContextualSettings, TypingContext } from './ContextManager';
+import {
+  ContextManager,
+  ContextualSettings,
+  TypingContext,
+} from './ContextManager';
 
 interface TypingExperienceContextType {
   // Core functionality
   playKeySound: (options?: { velocity?: number; position?: number }) => void;
   playClickSound: (options?: { velocity?: number; position?: number }) => void;
-  playBackspaceSound: (options?: { velocity?: number; position?: number }) => void;
-  playCompletionSound: (options?: { velocity?: number; position?: number }) => void;
+  playBackspaceSound: (options?: {
+    velocity?: number;
+    position?: number;
+  }) => void;
+  playCompletionSound: (options?: {
+    velocity?: number;
+    position?: number;
+  }) => void;
   animateElement: (element: HTMLElement, context: any) => void;
 
   // Configuration
@@ -38,12 +55,15 @@ interface TypingExperienceContextType {
   getAvailableAnimationProfiles: () => string[];
 }
 
-const TypingExperienceContext = createContext<TypingExperienceContextType | null>(null);
+const TypingExperienceContext =
+  createContext<TypingExperienceContextType | null>(null);
 
 export function useTypingExperience() {
   const context = useContext(TypingExperienceContext);
   if (!context) {
-    throw new Error('useTypingExperience must be used within TypingExperienceProvider');
+    throw new Error(
+      'useTypingExperience must be used within TypingExperienceProvider'
+    );
   }
   return context;
 }
@@ -57,13 +77,19 @@ interface TypingExperienceProviderProps {
   };
 }
 
-export function TypingExperienceProvider({ children, config = {} }: TypingExperienceProviderProps) {
+export function TypingExperienceProvider({
+  children,
+  config = {},
+}: TypingExperienceProviderProps) {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [isAnimationEnabled, setIsAnimationEnabled] = useState(true);
   const [currentSoundProfile, setCurrentSoundProfile] = useState('luxury');
-  const [currentAnimationProfile, setCurrentAnimationProfile] = useState('luxury');
-  const [currentContext, setCurrentContext] = useState<TypingContext | null>(null);
+  const [currentAnimationProfile, setCurrentAnimationProfile] =
+    useState('luxury');
+  const [currentContext, setCurrentContext] = useState<TypingContext | null>(
+    null
+  );
 
   // Engine instances
   const audioEngineRef = useRef<AudioEngine | null>(null);
@@ -76,12 +102,12 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
       try {
         // Initialize Audio Engine
         const audioConfig: AudioConfig = {
-          volume: 0.1,  // Further reduced for luxury feel
+          volume: 0.1, // Further reduced for luxury feel
           adaptiveVolume: true,
           spatialAudio: false,
           soundProfile: 'luxury',
-          sensitivityMode: 'minimal',  // Keep minimal for less noise
-          ...config.sound
+          sensitivityMode: 'minimal', // Keep minimal for less noise
+          ...config.sound,
         };
 
         audioEngineRef.current = new AudioEngine(audioConfig);
@@ -94,7 +120,7 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
           speed: 100,
           intensity: 'subtle',
           accessibilityMode: false,
-          ...config.animation
+          ...config.animation,
         };
 
         animationEngineRef.current = new AnimationEngine(animationConfig);
@@ -109,9 +135,9 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
             completionSounds: true,
             particleEffects: false,
             rippleEffects: true,
-            adaptiveVolume: true
+            adaptiveVolume: true,
           },
-          ...config.contextual
+          ...config.contextual,
         };
 
         contextManagerRef.current = new ContextManager(contextualSettings);
@@ -154,24 +180,30 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
         // Update engines
         audioEngineRef.current?.updateConfig({
           soundProfile: settings.soundProfile,
-          volume: settings.volume
+          volume: settings.volume,
         });
 
         animationEngineRef.current?.updateConfig({
           profile: settings.animationProfile,
           intensity: settings.intensity,
-          accessibilityMode: !isAnimationEnabled
+          accessibilityMode: !isAnimationEnabled,
         });
 
         // Play sounds based on key
         if (isSoundEnabled && settings.features.completionSounds) {
-          const velocity = e.key === 'Backspace' || e.key === 'Delete' ? 0.7 : 1;
+          const velocity =
+            e.key === 'Backspace' || e.key === 'Delete' ? 0.7 : 1;
 
           if (e.key === 'Backspace' || e.key === 'Delete') {
             playBackspaceSound({ velocity });
           } else if (e.key === 'Enter') {
             playCompletionSound({ velocity });
-          } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          } else if (
+            e.key.length === 1 &&
+            !e.ctrlKey &&
+            !e.metaKey &&
+            !e.altKey
+          ) {
             playKeySound({ velocity });
           }
         }
@@ -180,7 +212,7 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
         if (isAnimationEnabled) {
           animationEngineRef.current?.animateElement(target, {
             type: 'typing',
-            velocity: e.key === 'Backspace' ? 0.7 : 1
+            velocity: e.key === 'Backspace' ? 0.7 : 1,
           });
         }
       }
@@ -206,7 +238,7 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
         if (isAnimationEnabled) {
           animationEngineRef.current?.animateElement(target, {
             type: 'click',
-            velocity: 1
+            velocity: 1,
           });
 
           // Add ripple effect
@@ -222,7 +254,7 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
       const target = e.target as HTMLElement;
       if (isAnimationEnabled && target instanceof HTMLElement) {
         animationEngineRef.current?.animateElement(target, {
-          type: 'focus'
+          type: 'focus',
         });
       }
     };
@@ -240,37 +272,49 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
   }, [isInitialized, isSoundEnabled, isAnimationEnabled]);
 
   // Sound functions
-  const playKeySound = useCallback((options: { velocity?: number; position?: number } = {}) => {
-    audioEngineRef.current?.playSound('key', {
-      velocity: options.velocity,
-      spatialPosition: options.position,
-      pitchVariation: (Math.random() - 0.5) * 0.1
-    });
-  }, []);
+  const playKeySound = useCallback(
+    (options: { velocity?: number; position?: number } = {}) => {
+      audioEngineRef.current?.playSound('key', {
+        velocity: options.velocity,
+        spatialPosition: options.position,
+        pitchVariation: (Math.random() - 0.5) * 0.1,
+      });
+    },
+    []
+  );
 
-  const playClickSound = useCallback((options: { velocity?: number; position?: number } = {}) => {
-    audioEngineRef.current?.playSound('click', {
-      velocity: options.velocity || 0.8,
-      spatialPosition: options.position,
-      pitchVariation: (Math.random() - 0.5) * 0.05
-    });
-  }, []);
+  const playClickSound = useCallback(
+    (options: { velocity?: number; position?: number } = {}) => {
+      audioEngineRef.current?.playSound('click', {
+        velocity: options.velocity || 0.8,
+        spatialPosition: options.position,
+        pitchVariation: (Math.random() - 0.5) * 0.05,
+      });
+    },
+    []
+  );
 
-  const playBackspaceSound = useCallback((options: { velocity?: number; position?: number } = {}) => {
-    audioEngineRef.current?.playSound('backspace', {
-      velocity: options.velocity || 0.7,
-      spatialPosition: options.position,
-      pitchVariation: (Math.random() - 0.5) * 0.08
-    });
-  }, []);
+  const playBackspaceSound = useCallback(
+    (options: { velocity?: number; position?: number } = {}) => {
+      audioEngineRef.current?.playSound('backspace', {
+        velocity: options.velocity || 0.7,
+        spatialPosition: options.position,
+        pitchVariation: (Math.random() - 0.5) * 0.08,
+      });
+    },
+    []
+  );
 
-  const playCompletionSound = useCallback((options: { velocity?: number; position?: number } = {}) => {
-    audioEngineRef.current?.playSound('completion', {
-      velocity: options.velocity || 1,
-      spatialPosition: options.position,
-      pitchVariation: (Math.random() - 0.5) * 0.03
-    });
-  }, []);
+  const playCompletionSound = useCallback(
+    (options: { velocity?: number; position?: number } = {}) => {
+      audioEngineRef.current?.playSound('completion', {
+        velocity: options.velocity || 1,
+        spatialPosition: options.position,
+        pitchVariation: (Math.random() - 0.5) * 0.03,
+      });
+    },
+    []
+  );
 
   // Animation function
   const animateElement = useCallback((element: HTMLElement, context: any) => {
@@ -287,7 +331,9 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
   const setAnimationProfile = useCallback((profile: string) => {
     animationEngineRef.current?.updateConfig({ profile });
     setCurrentAnimationProfile(profile);
-    contextManagerRef.current?.updateUserPreferences({ animationProfile: profile });
+    contextManagerRef.current?.updateUserPreferences({
+      animationProfile: profile,
+    });
   }, []);
 
   const setVolume = useCallback((volume: number) => {
@@ -295,10 +341,13 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
     contextManagerRef.current?.updateUserPreferences({ volume: volume / 100 });
   }, []);
 
-  const setIntensity = useCallback((intensity: 'subtle' | 'normal' | 'pronounced') => {
-    animationEngineRef.current?.updateConfig({ intensity });
-    contextManagerRef.current?.updateUserPreferences({ intensity });
-  }, []);
+  const setIntensity = useCallback(
+    (intensity: 'subtle' | 'normal' | 'pronounced') => {
+      animationEngineRef.current?.updateConfig({ intensity });
+      contextManagerRef.current?.updateUserPreferences({ intensity });
+    },
+    []
+  );
 
   const setAccessibilityMode = useCallback((enabled: boolean) => {
     animationEngineRef.current?.updateConfig({ accessibilityMode: enabled });
@@ -341,7 +390,7 @@ export function TypingExperienceProvider({ children, config = {} }: TypingExperi
     isAnimationEnabled,
     currentSoundProfile,
     currentAnimationProfile,
-    currentContext: currentContext || {} as TypingContext,
+    currentContext: currentContext || ({} as TypingContext),
     getTypingMetrics,
     getContextInsights,
     recordFeedback,

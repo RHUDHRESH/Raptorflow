@@ -2,27 +2,28 @@
 
 import { FoundationData } from '@/lib/foundation';
 
-
 /**
  * Generate a PDF of the Foundation Blueprint
  * Uses browser print functionality for simplicity
  */
-export async function generateFoundationPDF(data: FoundationData): Promise<void> {
-    // Create a new window with formatted content
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-        alert('Please allow popups to download the PDF');
-        return;
-    }
+export async function generateFoundationPDF(
+  data: FoundationData
+): Promise<void> {
+  // Create a new window with formatted content
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('Please allow popups to download the PDF');
+    return;
+  }
 
-    const businessName = data.business?.name || 'Your Business';
-    const today = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+  const businessName = data.business?.name || 'Your Business';
+  const today = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
-    const html = `
+  const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -216,6 +217,6 @@ export async function generateFoundationPDF(data: FoundationData): Promise<void>
 </html>
     `;
 
-    printWindow.document.write(html);
-    printWindow.document.close();
+  printWindow.document.write(html);
+  printWindow.document.close();
 }

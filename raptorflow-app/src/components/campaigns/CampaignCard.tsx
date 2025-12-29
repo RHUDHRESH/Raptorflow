@@ -1,165 +1,213 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Campaign, OBJECTIVE_LABELS, CHANNEL_LABELS, RAGStatus } from '@/lib/campaigns-types';
-import { ChevronRight, MoreHorizontal, Play, Target, Zap, RefreshCw, DollarSign, Rocket, ArrowRight } from 'lucide-react';
-import { getCampaignProgress } from '@/lib/campaigns';
-import { useRouter } from 'next/navigation';
-import styles from './Campaigns.module.css';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ChevronDown,
+  ChevronUp,
+  MoreHorizontal,
+  Calendar,
+  Target,
+  Play,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { Campaign, Move } from '@/lib/campaigns-types';
+import { MoveMiniCard } from '@/components/moves/MoveMiniCard';
+import { cn } from '@/lib/utils';
 
 interface CampaignCardProps {
-    campaign: Campaign;
-    progress?: {
-        totalMoves: number;
-        completedMoves: number;
-        weekNumber: number;
-        totalWeeks: number;
-    };
-    activeMove?: any;
-    onClick?: () => void;
-    variant?: 'default' | 'attention';
+  campaign: Campaign;
+  moves?: Move[]; // Make optional as it might not always be passed
+  progress?: number;
+  activeMove?: Move;
+  variant?: 'default' | 'attention';
+  readOnly?: boolean;
+  onEdit?: (c: Campaign) => void;
+  onDelete?: (c: Campaign) => void;
+  onArchive?: (c: Campaign) => void;
+  onMoveClick?: (m: Move) => void;
 }
 
-const OBJECTIVE_ICONS: Record<string, any> = {
-    acquire: Rocket,
-    activate: Zap,
-    retain: RefreshCw,
-    monetize: DollarSign,
-    expand: Target,
-};
+export function CampaignCard({
+  campaign,
+  moves = [],
+  progress: progressProp,
+  activeMove,
+  variant = 'default',
+  readOnly = false,
+  onEdit = () => { },
+  onDelete = () => { },
+  onArchive = () => { },
+  onMoveClick = () => { },
+}: CampaignCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false); // Default collapsed
 
-export function CampaignCard({ campaign, progress: initialProgress, activeMove, onClick, variant = 'default' }: CampaignCardProps) {
-    const router = useRouter();
-    const [progress, setProgress] = useState(initialProgress);
+  const statusColors = {
+    draft: 'bg-gray-100 text-gray-600',
+    active: 'bg-emerald-100 text-emerald-700',
+    paused: 'bg-amber-100 text-amber-700',
+    completed: 'bg-blue-100 text-blue-700',
+    archived: 'bg-gray-100 text-gray-400',
+    planned: 'bg-purple-100 text-purple-700',
+    wrapup: 'bg-orange-100 text-orange-700',
+  };
 
-    useEffect(() => {
-        if (!initialProgress) {
-            getCampaignProgress(campaign.id).then(setProgress);
-        }
-    }, [campaign.id, initialProgress]);
+  const progress = progressProp ?? (
+    moves.length > 0
+      ? Math.round(
+        (moves.filter((m) => m.status === 'completed').length /
+          moves.length) *
+        100
+      )
+      : 0);
 
-    // Calculate pacing
-    const dayOfCampaign = campaign.timeline?.startDate
-        ? Math.floor((Date.now() - new Date(campaign.timeline.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
-        : 1;
-    const totalDays = campaign.timeline?.duration || 90;
-    const target = campaign.metrics?.target || 0;
-    const current = campaign.metrics?.current || 0;
-    const expectedByNow = Math.floor((dayOfCampaign / totalDays) * target);
-    const progressPercent = target > 0 ? Math.round((current / target) * 100) : 0;
-    const ragStatus = campaign.ragStatus || 'green';
-
-    const Icon = OBJECTIVE_ICONS[campaign.objective] || Target;
-
-    const ragColors: Record<RAGStatus, string> = {
-        green: 'green',
-        amber: 'amber',
-        red: 'red',
-    };
-
-    const handleClick = () => {
-        if (onClick) {
-            onClick();
-        } else {
-            router.push(`/campaigns/${campaign.id}`);
-        }
-    };
-
-    return (
-        <div
-            className={`${styles.campaignCard} ${variant === 'attention' ? styles.attention : ''}`}
-            onClick={handleClick}
-        >
-            {/* Header */}
-            <div className={styles.cardHeader}>
-                <div className={styles.cardLeft}>
-                    <div className={`${styles.objectiveIcon} ${styles[campaign.objective]}`}>
-                        <Icon style={{ width: 18, height: 18 }} />
-                    </div>
-                    <div className={styles.cardTitleGroup}>
-                        <span className={`${styles.objectiveBadge} ${styles[campaign.objective]}`}>
-                            {OBJECTIVE_LABELS[campaign.objective]?.label || campaign.objective}
-                        </span>
-                        <h3 className={styles.cardTitle}>{campaign.name}</h3>
-                        {campaign.targetAudience && (
-                            <span className={styles.cardSubtitle}>{campaign.targetAudience}</span>
-                        )}
-                    </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {campaign.channels?.slice(0, 2).map(ch => (
-                        <span key={ch} className={styles.chip}>
-                            {CHANNEL_LABELS[ch]}
-                        </span>
-                    ))}
-                    <button className={styles.moreBtn} onClick={e => e.stopPropagation()}>
-                        <MoreHorizontal style={{ width: 16, height: 16 }} />
-                    </button>
-                </div>
+  return (
+    <div className="bg-white rounded-2xl border border-[#E5E6E3] shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+      {/* Header */}
+      <div
+        className="p-6 cursor-pointer hover:bg-[#FCFDFB] transition-colors"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4">
+            <div className="mt-1 p-2 rounded-xl bg-[#F8F9F7] border border-[#E5E6E3]">
+              <Target className="w-5 h-5 text-[#2D3538]" />
             </div>
-
-            {/* Pacing Section */}
-            <div className={styles.pacingSection}>
-                <div className={styles.pacingRow}>
-                    <span className={styles.pacingText}>
-                        Day <span className={styles.pacingValue}>{Math.min(dayOfCampaign, totalDays)}/{totalDays}</span>
-                        {' • '}Target: <span className={styles.pacingValue}>{expectedByNow}</span> by now
-                        {' • '}<span className={styles.pacingValue}>{current}</span> actual
-                    </span>
-                    <div className={styles.progressBar}>
-                        <div
-                            className={`${styles.progressFill} ${styles[ragColors[ragStatus]]}`}
-                            style={{ width: `${Math.min(progressPercent, 100)}%` }}
-                        />
-                    </div>
-                </div>
-
-                <div className={`${styles.ragBadge} ${styles[ragColors[ragStatus]]}`}>
-                    <span className={`${styles.ragDot} ${styles[ragColors[ragStatus]]}`} />
-                    {ragStatus.toUpperCase()}
-                    {ragStatus !== 'green' && (
-                        <span className={styles.ragReason}>
-                            — {ragStatus === 'amber' ? 'Behind pace' : 'Needs attention'}
-                        </span>
-                    )}
-                </div>
-            </div>
-
-            {/* Move Info */}
-            <div className={styles.moveInfo}>
-                <span className={styles.moveText}>
-                    {activeMove ? (
-                        <>
-                            Moves: <span className={styles.moveHighlight}>1 active</span>
-                            {activeMove.name && ` • ${activeMove.name}`}
-                            {` • Day ${activeMove.currentDay || 1}/${activeMove.duration || 7}`}
-                        </>
-                    ) : (
-                        <>
-                            {progress?.completedMoves || 0}/{progress?.totalMoves || 0} moves completed
-                        </>
-                    )}
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h3 className="font-serif text-lg font-medium text-[#2D3538]">
+                  {campaign.name}
+                </h3>
+                <span
+                  className={cn(
+                    'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full',
+                    statusColors[campaign.status]
+                  )}
+                >
+                  {campaign.status}
                 </span>
+              </div>
+              <p className="text-sm text-[#5B5F61] line-clamp-1">
+                {campaign.objective} Objective
+              </p>
 
-                <div className={styles.cardActions}>
-                    {!activeMove && campaign.status === 'active' && (
-                        <button className={styles.actionBtn} onClick={e => {
-                            e.stopPropagation();
-                            router.push(`/campaigns/${campaign.id}`);
-                        }}>
-                            Start next move
-                        </button>
-                    )}
-                    <button className={styles.secondaryBtn} onClick={e => {
-                        e.stopPropagation();
-                        router.push(`/campaigns/${campaign.id}`);
-                    }}>
-                        Open
-                        <ChevronRight style={{ width: 14, height: 14 }} />
-                    </button>
-                </div>
+              <div className="flex items-center gap-4 mt-3 text-xs text-[#9D9F9F]">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  {moves.length} Moves
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  {progress}% Complete
+                </span>
+              </div>
             </div>
+          </div>
+
+          <div
+            className="flex items-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {!readOnly && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-[#9D9F9F] hover:text-[#2D3538]"
+                  >
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => onEdit(campaign)}>
+                    Edit Campaign
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onArchive(campaign)}>
+                    Archive
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-red-600"
+                    onClick={() => onDelete(campaign)}
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-[#9D9F9F]"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+            >
+              {isExpanded ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
         </div>
-    );
+
+        {/* Progress Bar */}
+        <div className="mt-6 h-1 w-full bg-[#F3F4EE] rounded-full overflow-hidden">
+          <div
+            className="h-full bg-[#2D3538] transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Moves List (Collapsible) */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0 }}
+            animate={{ height: 'auto' }}
+            exit={{ height: 0 }}
+            className="overflow-hidden border-t border-[#E5E6E3] bg-[#FCFDFB]"
+          >
+            <div className="p-4 space-y-3">
+              {moves.length > 0 ? (
+                moves.map((move) => (
+                  <MoveMiniCard
+                    key={move.id}
+                    move={move}
+                    onClick={() => onMoveClick(move)}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-8 text-[#9D9F9F] text-xs">
+                  No moves in this campaign yet.
+                </div>
+              )}
+              {!readOnly && (
+                <Button
+                  variant="outline"
+                  className="w-full border-dashed border-[#C0C1BE] text-[#5B5F61] hover:text-[#2D3538] hover:border-[#2D3538]"
+                >
+                  + Add Move to Campaign
+                </Button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }

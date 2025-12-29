@@ -14,7 +14,24 @@ def get_secret(name: str, project_id: Optional[str] = None) -> Optional[str]:
     Fetches secrets from GCP Secret Manager with a fallback to local environment variables.
     Ensures industrial-grade security for credentials.
     """
-    # 1. Check GCP Secret Manager
+    # 1. Prefer environment variables to avoid blocking on unavailable Secret Manager access.
+    env_val = os.getenv(name)
+    if env_val:
+        logger.debug(f"Using environment variable for {name}.")
+        return env_val
+
+    if os.getenv("DISABLE_GCP_SECRET_MANAGER", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }:
+        logger.debug(
+            f"Secret Manager disabled via DISABLE_GCP_SECRET_MANAGER. "
+            f"Skipping Secret Manager for {name}."
+        )
+        return None
+
+    # 2. Check GCP Secret Manager
     if not project_id:
         project_id = os.getenv("GCP_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
 
@@ -37,7 +54,7 @@ def get_secret(name: str, project_id: Optional[str] = None) -> Optional[str]:
             f"GCP_PROJECT_ID not set. Skipping Secret Manager for {name}. Falling back to ENV."
         )
 
-    # 2. Fallback to Environment Variables
+    # 3. Fallback to Environment Variables (in case it was set after first check)
     env_val = os.getenv(name)
     if env_val:
         logger.debug(f"Using environment variable for {name}.")

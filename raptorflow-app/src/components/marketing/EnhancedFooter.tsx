@@ -107,7 +107,9 @@ export function EnhancedFooter() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <span className="font-display text-2xl font-medium">RaptorFlow</span>
+            <span className="font-display text-2xl font-medium">
+              RaptorFlow
+            </span>
             <span className="text-xs text-muted-foreground">
               © {year} All rights reserved.
             </span>

@@ -37,3 +37,21 @@ class BriefBuilderAgent:
         )
 
         return await self.llm.ainvoke([system_msg, HumanMessage(content=prompt)])
+
+
+def get_swarm_brief_builder():
+    """Factory for Swarm-compatible Brief Builder."""
+    from swarm import Agent
+
+    from agents.handoffs import handoff_to_supervisor
+
+    return Agent(
+        name="Brief Builder",
+        instructions="""
+        You are the Brief Builder. Your mission is to take raw user input and
+        turn it into a structured marketing brief (Goal, Audience, Offer, Tone, CTA).
+
+        Once you have gathered all necessary components, hand off to the Supervisor.
+        """,
+        functions=[handoff_to_supervisor],
+    )

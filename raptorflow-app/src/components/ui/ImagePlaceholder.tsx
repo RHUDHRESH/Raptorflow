@@ -63,14 +63,23 @@ export function ImagePlaceholder({
               />
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill={`url(#grid-${prompt.replace(/\s/g, '-')})`} />
+          <rect
+            width="100%"
+            height="100%"
+            fill={`url(#grid-${prompt.replace(/\s/g, '-')})`}
+          />
         </svg>
       </div>
 
       {/* Content */}
       <div className="relative z-10 p-6 text-center max-w-md">
         <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-        <p className={cn('text-muted-foreground font-medium leading-relaxed', sizeClasses[size])}>
+        <p
+          className={cn(
+            'text-muted-foreground font-medium leading-relaxed',
+            sizeClasses[size]
+          )}
+        >
           📸 <span className="italic">{prompt}</span>
         </p>
       </div>
@@ -93,7 +102,10 @@ export function ImagePlaceholderGrid({
   prompts,
   className,
 }: {
-  prompts: { prompt: string; aspectRatio?: 'square' | 'video' | 'portrait' | 'wide' }[];
+  prompts: {
+    prompt: string;
+    aspectRatio?: 'square' | 'video' | 'portrait' | 'wide';
+  }[];
   className?: string;
 }) {
   return (

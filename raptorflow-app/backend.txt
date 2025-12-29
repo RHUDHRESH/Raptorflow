@@ -1,706 +1,1410 @@
 # RaptorFlow Backend — Complete Industrial Specification
+
 ## Python/FastAPI Backend for Multi-Agent Marketing Intelligence
 
+
+
 ---
+
+
 
 # PART 1: SYSTEM OVERVIEW
 
+
+
 ## 1.1 Architecture Summary
+
 ```
+
 ┌─────────────────────────────────────────────────────────────────────┐
+
 │                           FRONTEND (Next.js)                        │
+
 │   Onboarding | ICPs | Campaigns | Moves | Muse | Matrix | Blackbox  │
+
 └────────────────────────────────┬────────────────────────────────────┘
+
                                  │ REST / WebSocket
+
 ┌────────────────────────────────▼────────────────────────────────────┐
+
 │                         BACKEND (FastAPI)                            │
+
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌─────────────┐ │
+
 │  │ Onboarding   │ │ Campaigns/   │ │ Muse Agent   │ │ Blackbox    │ │
+
 │  │ Spine        │ │ Moves API    │ │ + RAG        │ │ Learning    │ │
+
 │  └──────────────┘ └──────────────┘ └──────────────┘ └─────────────┘ │
+
 │                                                                      │
+
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌─────────────┐ │
+
 │  │ Radar        │ │ Skills       │ │ Matrix       │ │ ICP/Brand   │ │
+
 │  │ Intelligence │ │ Manager      │ │ Telemetry    │ │ Memory      │ │
+
 │  └──────────────┘ └──────────────┘ └──────────────┘ └─────────────┘ │
+
 └────────────────────────────────┬────────────────────────────────────┘
+
                                  │
+
 ┌────────────────────────────────▼────────────────────────────────────┐
+
 │                         DATA LAYER                                   │
+
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌─────────────┐ │
+
 │  │ PostgreSQL   │ │ pgvector     │ │ Redis        │ │ S3/GCS      │ │
+
 │  │ (Supabase)   │ │ (RAG)        │ │ (Cache)      │ │ (Files)     │ │
+
 │  └──────────────┘ └──────────────┘ └──────────────┘ └─────────────┘ │
+
 └─────────────────────────────────────────────────────────────────────┘
+
 ```
+
+
 
 ## 1.2 Tech Stack
+
 - **Language**: Python 3.11+
+
 - **Framework**: FastAPI
+
 - **Database**: PostgreSQL (Supabase)
+
 - **Vector Store**: pgvector (embeddings for RAG)
+
 - **Cache**: Redis (session state, hot data, rate limiting)
+
 - **Object Storage**: S3/GCS (uploaded files, PDFs, images)
+
 - **AI Framework**: LangGraph, LangChain
+
 - **LLM Provider**: Google Vertex AI (Gemini 2.5 Flash, Gemini 2.5 Flash-Lite)
+
 - **Embeddings**: Vertex AI `text-embedding-004`
+
 - **OCR**: Google Cloud Vision API
+
 - **Auth**: Supabase Auth (JWT)
 
+
+
 ---
+
+
 
 # PART 2: DATABASE SCHEMA (PostgreSQL)
 
+
+
 ## 2.1 Core Tables
 
+
+
 ### `tenants`
+
 ```sql
+
 CREATE TABLE tenants (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     name VARCHAR(255) NOT NULL,
+
     domain VARCHAR(255),
+
     plan VARCHAR(50) DEFAULT 'free', -- 'free', 'pro', 'enterprise'
+
     settings JSONB DEFAULT '{}',
+
     created_at TIMESTAMP DEFAULT NOW(),
+
     updated_at TIMESTAMP DEFAULT NOW()
+
 );
+
 ```
+
+
 
 ### `users`
+
 ```sql
+
 CREATE TABLE users (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+
     email VARCHAR(255) UNIQUE NOT NULL,
+
     role VARCHAR(50) DEFAULT 'member', -- 'owner', 'admin', 'member'
+
     metadata JSONB DEFAULT '{}',
+
     created_at TIMESTAMP DEFAULT NOW()
+
 );
+
 ```
 
+
+
 ---
+
+
 
 ## 2.2 Foundation & Brand (Onboarding Data)
 
+
+
 ### `foundations`
+
 ```sql
+
 CREATE TABLE foundations (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+
+
 
     -- Business Basics
+
     business_name VARCHAR(255),
+
     business_type VARCHAR(50), -- 'saas', 'agency', 'd2c', 'local-service', 'creator', 'marketplace', 'other'
+
     industry VARCHAR(100),
+
     stage VARCHAR(50), -- 'idea', 'pre-launch', 'beta', 'live', 'scaling', 'early', 'growth'
+
     website_url TEXT,
+
     offer_statement TEXT,
+
     price_band VARCHAR(50), -- 'free', 'under-5k', '5k-25k', '25k-1l', '1l-plus'
+
     sales_motion VARCHAR(50), -- 'self-serve', 'demo-led', 'hybrid'
+
     team_size VARCHAR(20),
 
+
+
     -- Confessions (Raw user input - THE GOLD)
+
     confession_expensive_problem TEXT,
+
     confession_embarrassing_truth TEXT,
+
     confession_stupid_idea TEXT,
+
     confession_signaling TEXT,
+
     confession_friction TEXT,
 
+
+
     -- Cohort Data
+
     customer_type VARCHAR(50)[], -- Array: ['b2b', 'b2c', 'b2g', 'mixed']
+
     buyer_role_chips VARCHAR(50)[], -- ['founder', 'marketing', 'sales', 'ops', 'finance']
+
     primary_regions VARCHAR(50)[], -- ['india', 'us', 'eu', 'global']
+
     languages VARCHAR(50)[], -- ['english', 'hinglish', 'tamil']
+
     scarf_drivers VARCHAR(50)[], -- ['status', 'certainty', 'autonomy', 'relatedness', 'fairness']
+
     decision_style VARCHAR(50), -- 'satisficer', 'maximizer'
+
     risk_tolerance VARCHAR(50), -- 'regret-minimizer', 'opportunity-seeker'
 
+
+
     -- Customer Insights (Deep)
+
     best_customers TEXT[], -- 3 descriptions
+
     trigger_events VARCHAR(50)[], -- ['funding-round', 'missed-target', 'hiring-surge', ...]
+
     alternatives VARCHAR(50)[], -- ['spreadsheets', 'hubspot', 'agencies', 'nothing']
+
     pain_ranking TEXT[], -- Ordered list
 
+
+
     -- Positioning & Messaging
+
     category VARCHAR(255),
+
     target_audience TEXT,
+
     psychological_outcome TEXT,
+
     owned_position TEXT,
+
     reframed_weakness TEXT,
+
     primary_heuristic TEXT,
+
     belief_pillar TEXT,
+
     promise_pillar TEXT,
+
     proof_pillar TEXT,
+
     voice_preference VARCHAR(50), -- 'calm-premium', 'direct-punchy', 'friendly-warm'
 
+
+
     -- Derived Data (Populated by AI Agents)
+
     derived_brand_voice TEXT,
+
     derived_strategic_pivot TEXT,
+
     derived_contradictions TEXT[],
+
     clarity_score REAL, -- 0.0 to 1.0
 
+
+
     -- Files
+
     context_files TEXT[], -- Array of S3/GCS URLs
 
+
+
     completed_at TIMESTAMP,
+
     created_at TIMESTAMP DEFAULT NOW(),
+
     updated_at TIMESTAMP DEFAULT NOW()
+
 );
+
 CREATE INDEX idx_foundations_tenant ON foundations(tenant_id);
+
 ```
+
+
 
 ### `brand_kits`
+
 ```sql
+
 CREATE TABLE brand_kits (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+
     foundation_id UUID REFERENCES foundations(id) ON DELETE SET NULL,
 
+
+
     primary_color VARCHAR(20),
+
     secondary_color VARCHAR(20),
+
     accent_color VARCHAR(20),
+
     font_family VARCHAR(100),
+
     logo_url TEXT,
 
+
+
     voice_samples TEXT[], -- Example content in brand voice
+
     banned_words TEXT[],
 
+
+
     created_at TIMESTAMP DEFAULT NOW(),
+
     updated_at TIMESTAMP DEFAULT NOW()
+
 );
+
 ```
 
+
+
 ---
+
+
 
 ## 2.3 ICPs (Ideal Customer Profiles)
 
+
+
 ### `icps`
+
 ```sql
+
 CREATE TABLE icps (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+
     foundation_id UUID REFERENCES foundations(id) ON DELETE SET NULL,
 
+
+
     name VARCHAR(255) NOT NULL,
+
     priority VARCHAR(50), -- 'primary', 'secondary'
+
     status VARCHAR(50) DEFAULT 'active', -- 'draft', 'active', 'deprecated'
+
     confidence_score REAL, -- 0.0 to 1.0
+
     reasoning TEXT, -- AI-generated reasoning
 
+
+
     -- Firmographics (JSONB)
+
     firmographics JSONB NOT NULL DEFAULT '{}',
+
     /*
+
     {
+
         "companyType": ["saas", "agency"],
+
         "companySizeMin": 10,
+
         "companySizeMax": 100,
+
         "geography": ["us", "eu"],
+
         "acvMin": 5000,
+
         "acvMax": 50000,
+
         "salesMotion": ["self-serve", "demo-led"],
+
         "budgetComfort": ["5k-25k"],
+
         "decisionMaker": ["founder", "marketing"]
+
     }
+
     */
+
+
 
     -- Pain Map (JSONB)
+
     pain_map JSONB NOT NULL DEFAULT '{}',
+
     /*
+
     {
+
         "primaryPains": ["No consistent content", "Lack of pipeline"],
+
         "secondaryPains": ["Random marketing efforts"],
+
         "triggerEvents": ["funding-round", "missed-target"],
+
         "urgencyLevel": "now" // "now" | "soon" | "someday"
+
     }
+
     */
+
+
 
     -- Psycholinguistics (JSONB) - THE MAGIC
+
     psycholinguistics JSONB NOT NULL DEFAULT '{}',
+
     /*
+
     {
+
         "mindsetTraits": ["skeptical", "data-driven", "time-starved"],
+
         "emotionalTriggers": ["fomo", "control", "status"],
+
         "tonePreference": ["direct", "no-fluff"],
+
         "wordsToUse": ["ROI", "system", "proof", "compound"],
+
         "wordsToAvoid": ["synergy", "delighted", "leverage"],
+
         "proofPreference": ["case-study", "metrics", "logos"],
+
         "ctaStyle": ["direct", "soft"]
+
     }
+
     */
+
+
 
     -- Disqualifiers (JSONB)
+
     disqualifiers JSONB NOT NULL DEFAULT '{}',
+
     /*
+
     {
+
         "excludedCompanyTypes": ["enterprise"],
+
         "excludedSizes": ["1000+"],
+
         "excludedGeographies": ["apac"],
+
         "excludedBehaviors": ["needs 6+ months to decide", "RFP required"]
+
     }
+
     */
+
+
 
     -- Performance Tracking (JSONB)
+
     performance JSONB DEFAULT '{}',
+
     /*
+
     {
+
         "impressions": 10000,
+
         "leads": 50,
+
         "conversions": 5,
+
         "avgConversionRate": 0.10,
+
         "lastEvaluatedAt": "2024-01-15T00:00:00Z",
+
         "confidenceAdjustment": 0.05
+
     }
+
     */
 
+
+
     created_at TIMESTAMP DEFAULT NOW(),
+
     updated_at TIMESTAMP DEFAULT NOW()
+
 );
+
 CREATE INDEX idx_icps_tenant ON icps(tenant_id);
+
 CREATE INDEX idx_icps_priority ON icps(priority);
+
 ```
 
+
+
 ---
+
+
 
 ## 2.4 Campaigns & Moves
 
+
+
 ### `campaigns`
+
 ```sql
+
 CREATE TABLE campaigns (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
 
+
+
     title VARCHAR(255) NOT NULL,
+
     objective VARCHAR(50) NOT NULL, -- 'acquire', 'convert', 'launch', 'proof', 'retain', 'reposition'
+
     status VARCHAR(50) DEFAULT 'planned', -- 'planned', 'active', 'paused', 'wrapup', 'archived'
 
+
+
     cohort_id UUID REFERENCES icps(id) ON DELETE SET NULL,
+
     cohort_name VARCHAR(255),
 
+
+
     offer VARCHAR(50), -- 'book_call', 'start_trial', 'download', 'buy_now', 'reply_email', 'subscribe'
+
     offer_details TEXT, -- e.g., calendar link
+
     channels VARCHAR(50)[], -- ['linkedin', 'email', 'instagram', 'whatsapp', 'cold_dms', 'partnerships', 'twitter']
 
+
+
     duration INT DEFAULT 90, -- days
+
     move_length INT DEFAULT 14, -- 7 or 14
+
     daily_effort INT DEFAULT 30, -- minutes
 
+
+
     arc_data JSONB, -- 90-day strategy arc generated by AI
+
     audit_data JSONB, -- Campaign audit results
+
     quality_score REAL, -- 0.0 to 1.0
+
+
 
     wrapup_data JSONB, -- { whatWorked, whatDidnt, biggestInsight, nextRecommendation }
 
+
+
     start_date TIMESTAMP,
+
     end_date TIMESTAMP,
+
     created_at TIMESTAMP DEFAULT NOW(),
+
     updated_at TIMESTAMP DEFAULT NOW()
+
 );
+
 CREATE INDEX idx_campaigns_tenant ON campaigns(tenant_id);
+
 CREATE INDEX idx_campaigns_status ON campaigns(status);
+
 ```
 
+
+
 ### `moves`
+
 ```sql
+
 CREATE TABLE moves (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     campaign_id UUID REFERENCES campaigns(id) ON DELETE CASCADE,
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
 
+
+
     title VARCHAR(255) NOT NULL,
+
     description TEXT,
+
     goal VARCHAR(50), -- 'leads', 'calls', 'sales', 'proof', 'distribution', 'activation'
+
     channel VARCHAR(50), -- 'linkedin', 'email', etc.
+
     secondary_channel VARCHAR(50),
+
     duration INT DEFAULT 7, -- 7, 14, or 28
+
     daily_effort INT DEFAULT 30, -- minutes
 
+
+
     owner VARCHAR(255),
+
     outcome_target VARCHAR(255), -- e.g., "10 calls booked"
 
+
+
     status VARCHAR(50) DEFAULT 'queued', -- 'draft', 'queued', 'active', 'completed', 'abandoned'
+
     priority INT DEFAULT 1,
 
+
+
     -- Checklist (JSONB Array)
+
     checklist JSONB DEFAULT '[]',
+
     /*
+
     [
+
         { "id": "uuid", "label": "Write hook", "group": "create", "completed": false, "assetLink": null },
+
         { "id": "uuid", "label": "Post to LinkedIn", "group": "publish", "completed": false }
+
     ]
+
     */
+
+
 
     asset_ids UUID[], -- References to muse_assets
 
+
+
     refinement_data JSONB, -- { estimated_effort, deadline, rationale }
+
     tool_requirements TEXT[],
 
+
+
     -- Override Tracking
+
     override_data JSONB, -- { reason, originalCampaignObjective, loggedAt }
 
+
+
     -- Self Report (User fills after completing)
+
     self_report JSONB,
+
     /*
+
     {
+
         "didComplete": true,
+
         "whatHappened": "Got 5 calls booked",
+
         "metrics": { "name": "calls", "value": 5 },
+
         "submittedAt": "2024-01-15T10:30:00Z"
+
     }
+
     */
 
+
+
     started_at TIMESTAMP,
+
     due_date TIMESTAMP,
+
     completed_at TIMESTAMP,
+
     created_at TIMESTAMP DEFAULT NOW(),
+
     updated_at TIMESTAMP DEFAULT NOW()
+
 );
+
 CREATE INDEX idx_moves_campaign ON moves(campaign_id);
+
 CREATE INDEX idx_moves_tenant ON moves(tenant_id);
+
 CREATE INDEX idx_moves_status ON moves(status);
+
 ```
 
+
+
 ---
+
+
 
 ## 2.5 Muse (Content Generation)
 
+
+
 ### `muse_assets`
+
 ```sql
+
 CREATE TABLE muse_assets (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
 
+
+
     type VARCHAR(50), -- 'post', 'email', 'ad', 'landing-page', 'script', 'meme'
+
     title VARCHAR(255),
+
     content TEXT NOT NULL,
+
     hook TEXT, -- Extracted hook
 
+
+
     cohort_id UUID REFERENCES icps(id) ON DELETE SET NULL,
+
     campaign_id UUID REFERENCES campaigns(id) ON DELETE SET NULL,
+
     move_id UUID REFERENCES moves(id) ON DELETE SET NULL,
+
+
 
     metadata JSONB DEFAULT '{}', -- Arbitrary context
 
+
+
     performance_data JSONB, -- { impressions, clicks, conversions }
 
+
+
     -- Vector embedding for RAG
+
     embedding vector(768),
 
+
+
     created_at TIMESTAMP DEFAULT NOW(),
+
     updated_at TIMESTAMP DEFAULT NOW()
+
 );
+
 CREATE INDEX idx_muse_tenant ON muse_assets(tenant_id);
+
 CREATE INDEX idx_muse_type ON muse_assets(type);
+
 -- pgvector index for similarity search
+
 CREATE INDEX idx_muse_embedding ON muse_assets USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+
 ```
 
+
+
 ### `muse_threads` (Conversation History)
+
 ```sql
+
 CREATE TABLE muse_threads (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
 
+
+
     title VARCHAR(255),
+
     summary TEXT,
+
+
 
     messages JSONB DEFAULT '[]', -- Array of { role, content, timestamp }
 
+
+
     active BOOLEAN DEFAULT TRUE,
+
     created_at TIMESTAMP DEFAULT NOW(),
+
     updated_at TIMESTAMP DEFAULT NOW()
+
 );
+
 ```
 
+
+
 ---
+
+
 
 ## 2.6 Skills System
 
+
+
 ### `skills`
+
 ```sql
+
 CREATE TABLE skills (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE, -- NULL for system skills
 
+
+
     name VARCHAR(255) NOT NULL,
+
     description TEXT,
+
     type VARCHAR(50) NOT NULL, -- 'system', 'custom'
+
     role VARCHAR(50), -- 'hook', 'structure', 'tone', 'cta', 'proof', 'edit_polish'
+
     version VARCHAR(20) DEFAULT '1.0.0',
 
+
+
     instructions TEXT NOT NULL, -- The actual prompt/instructions
+
     inputs JSONB DEFAULT '{}', -- Schema for inputs
+
     output VARCHAR(100), -- Expected output type
+
     tools TEXT[], -- List of tool names this skill uses
 
+
+
     is_active BOOLEAN DEFAULT TRUE,
+
     created_at TIMESTAMP DEFAULT NOW(),
+
     updated_at TIMESTAMP DEFAULT NOW()
+
 );
+
 CREATE INDEX idx_skills_type ON skills(type);
+
 CREATE INDEX idx_skills_role ON skills(role);
+
 ```
 
+
+
 ---
+
+
 
 ## 2.7 Blackbox (Experiments & Learnings)
 
+
+
 ### `experiments`
+
 ```sql
+
 CREATE TABLE experiments (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
 
+
+
     goal VARCHAR(50) NOT NULL, -- 'replies', 'leads', 'calls', 'clicks', 'sales', 'followers'
+
     risk_level VARCHAR(50) NOT NULL, -- 'safe', 'spicy', 'unreasonable'
+
     channel VARCHAR(50) NOT NULL,
 
+
+
     title VARCHAR(255) NOT NULL,
+
     bet TEXT NOT NULL, -- One sentence
+
     why TEXT,
+
     principle VARCHAR(50), -- Behavioral principle
 
+
+
     effort VARCHAR(20), -- '10m', '30m', '2h'
+
     time_to_signal VARCHAR(20), -- '24h', '48h', '7d'
 
+
+
     skill_stack JSONB DEFAULT '[]', -- Array of SkillRef
+
     asset_plan JSONB, -- { asset_type, variants, target_length, notes }
+
     asset_ids UUID[],
+
+
 
     status VARCHAR(50) DEFAULT 'draft', -- 'draft', 'generated', 'launched', 'checked_in', 'expired'
 
+
+
     launched_at TIMESTAMP,
+
     checkin_due_at TIMESTAMP,
+
     checkin_remind_at TIMESTAMP,
+
     checkin_expire_at TIMESTAMP,
 
+
+
     self_report JSONB, -- { outcome, metric_name, metric_value, run_again, why_chips }
+
     learning_id UUID REFERENCES learnings(id),
+
     confidence REAL,
+
+
 
     created_at TIMESTAMP DEFAULT NOW(),
+
     updated_at TIMESTAMP DEFAULT NOW()
+
 );
+
 CREATE INDEX idx_experiments_tenant ON experiments(tenant_id);
+
 CREATE INDEX idx_experiments_status ON experiments(status);
+
 ```
 
+
+
 ### `blackbox_outcomes_industrial`
+
 ```sql
+
 CREATE TABLE blackbox_outcomes_industrial (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
 
+
+
     source VARCHAR(100), -- Where this came from
+
     value REAL,
+
     confidence REAL,
 
+
+
     campaign_id UUID REFERENCES campaigns(id) ON DELETE SET NULL,
+
     move_id UUID REFERENCES moves(id) ON DELETE SET NULL,
+
     experiment_id UUID REFERENCES experiments(id) ON DELETE SET NULL,
+
+
 
     metadata JSONB DEFAULT '{}',
 
+
+
     timestamp TIMESTAMP DEFAULT NOW()
+
 );
+
 CREATE INDEX idx_outcomes_campaign ON blackbox_outcomes_industrial(campaign_id);
+
 CREATE INDEX idx_outcomes_move ON blackbox_outcomes_industrial(move_id);
+
 ```
 
+
+
 ### `blackbox_learnings_industrial`
+
 ```sql
+
 CREATE TABLE blackbox_learnings_industrial (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
 
+
+
     content TEXT NOT NULL,
+
     summary TEXT,
+
     learning_type VARCHAR(50), -- 'tactical', 'strategic', 'content'
 
+
+
     skill_weight_deltas JSONB DEFAULT '[]', -- [{ skill_id, delta }]
+
     suggested_preset JSONB, -- SkillPreset object
+
+
 
     source_ids UUID[], -- References to experiments, moves, etc.
 
+
+
     created_at TIMESTAMP DEFAULT NOW()
+
 );
+
 ```
 
+
+
 ### `blackbox_telemetry_industrial`
+
 ```sql
+
 CREATE TABLE blackbox_telemetry_industrial (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
 
+
+
     event_type VARCHAR(50), -- 'inference_start', 'inference_end', 'tool_start', 'tool_end', 'error'
+
     source VARCHAR(100), -- 'MoveGenerator', 'StrategyAligner', etc.
+
+
 
     metadata JSONB DEFAULT '{}', -- { model, latency_ms, tokens, tool, status, error }
 
+
+
     campaign_id UUID REFERENCES campaigns(id) ON DELETE SET NULL,
+
     move_id UUID REFERENCES moves(id) ON DELETE SET NULL,
 
+
+
     timestamp TIMESTAMP DEFAULT NOW()
+
 );
+
 CREATE INDEX idx_telemetry_event ON blackbox_telemetry_industrial(event_type);
+
 CREATE INDEX idx_telemetry_source ON blackbox_telemetry_industrial(source);
+
 ```
 
+
+
 ---
+
+
 
 ## 2.8 Radar (Competitive Intelligence)
 
+
+
 ### `radar_signals`
+
 ```sql
+
 CREATE TABLE radar_signals (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
 
+
+
     type VARCHAR(50), -- 'move', 'shift', 'hook'
+
     source VARCHAR(255),
+
     content TEXT,
+
     confidence REAL,
+
+
 
     icp_id UUID REFERENCES icps(id) ON DELETE SET NULL,
 
+
+
     processed BOOLEAN DEFAULT FALSE,
 
+
+
     timestamp TIMESTAMP DEFAULT NOW()
+
 );
+
 ```
+
+
 
 ### `competitor_dossiers`
+
 ```sql
+
 CREATE TABLE competitor_dossiers (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
 
+
+
     name VARCHAR(255) NOT NULL,
+
     threat_level VARCHAR(50), -- 'low', 'medium', 'high'
+
     strategy TEXT,
+
     vulnerabilities TEXT,
+
     target_segments TEXT[],
 
+
+
     last_updated TIMESTAMP DEFAULT NOW(),
+
     created_at TIMESTAMP DEFAULT NOW()
+
 );
+
 ```
 
+
+
 ---
+
+
 
 ## 2.9 Matrix (System Health & Telemetry)
 
+
+
 ### `matrix_events`
+
 ```sql
+
 CREATE TABLE matrix_events (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
 
+
+
     event_type VARCHAR(50), -- Same as telemetry
+
     source VARCHAR(100),
+
     metadata JSONB,
 
+
+
     timestamp TIMESTAMP DEFAULT NOW()
+
 );
+
 ```
 
+
+
 ---
+
+
 
 ## 2.10 File Uploads & OCR
 
+
+
 ### `uploaded_files`
+
 ```sql
+
 CREATE TABLE uploaded_files (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
 
+
+
     filename VARCHAR(255) NOT NULL,
+
     original_name VARCHAR(255),
+
     mime_type VARCHAR(100),
+
     size_bytes BIGINT,
+
+
 
     storage_url TEXT NOT NULL, -- S3/GCS URL
 
+
+
     ocr_text TEXT, -- Extracted text from OCR
+
     ocr_status VARCHAR(50), -- 'pending', 'processing', 'completed', 'failed'
+
+
 
     metadata JSONB DEFAULT '{}',
 
+
+
     created_at TIMESTAMP DEFAULT NOW()
+
 );
+
 ```
 
+
+
 ---
+
+
 
 ## 2.11 Supabase RPC Functions (pgvector)
 
+
+
 ### `match_muse_assets` (RAG Search)
+
 ```sql
+
 CREATE OR REPLACE FUNCTION match_muse_assets(
+
     query_embedding vector(768),
+
     match_threshold REAL DEFAULT 0.7,
+
     match_count INT DEFAULT 5
+
 )
+
 RETURNS TABLE (
+
     id UUID,
+
     content TEXT,
+
     similarity REAL
+
 )
+
 LANGUAGE plpgsql
+
 AS $$
+
 BEGIN
+
     RETURN QUERY
+
     SELECT
+
         muse_assets.id,
+
         muse_assets.content,
+
         1 - (muse_assets.embedding <=> query_embedding) AS similarity
+
     FROM muse_assets
+
     WHERE 1 - (muse_assets.embedding <=> query_embedding) > match_threshold
+
     ORDER BY muse_assets.embedding <=> query_embedding
+
     LIMIT match_count;
+
 END;
+
 $$;
+
 ```
+
+
 
 ---
 
+
+
 # PART 3: API ENDPOINTS
+
+
 
 ## 3.1 Onboarding & Foundation
 
+
+
 | Method | Endpoint | Description |
+
 |--------|----------|-------------|
+
 | POST | `/api/v1/onboarding/process` | **[CRITICAL]** Triggers multi-agent synthesis (Architect → Prophet → Strategist) |
+
 | GET | `/api/v1/foundations` | Get current tenant's foundation |
+
 | PUT | `/api/v1/foundations` | Update foundation |
+
 | POST | `/api/v1/foundations/files/upload` | Upload context files (triggers OCR if applicable) |
+
 | GET | `/api/v1/brand-kit` | Get brand kit |
+
 | PUT | `/api/v1/brand-kit` | Update brand kit |
+
+
 
 ## 3.2 ICPs
 
+
+
 | Method | Endpoint | Description |
+
 |--------|----------|-------------|
+
 | GET | `/api/v1/icps` | List all ICPs |
+
 | POST | `/api/v1/icps` | Create ICP |
+
 | GET | `/api/v1/icps/{id}` | Get single ICP |
+
 | PUT | `/api/v1/icps/{id}` | Update ICP |
+
 | DELETE | `/api/v1/icps/{id}` | Delete ICP |
+
 | POST | `/api/v1/icps/regenerate` | Trigger AI to regenerate ICPs from foundation |
+
 | GET | `/api/v1/icps/{id}/memory` | Get ICP Memory object (for agents) |
+
+
 
 ## 3.3 Campaigns
 
+
+
 | Method | Endpoint | Description |
+
 |--------|----------|-------------|
+
 | GET | `/api/v1/campaigns` | List campaigns |
+
 | POST | `/api/v1/campaigns` | Create campaign |
+
 | GET | `/api/v1/campaigns/{id}` | Get campaign |
+
 | PUT | `/api/v1/campaigns/{id}` | Update campaign |
+
 | DELETE | `/api/v1/campaigns/{id}` | Archive campaign |
+
 | POST | `/api/v1/campaigns/generate-arc/{id}` | **[AI]** Generate 90-day strategic arc |
+
 | GET | `/api/v1/campaigns/{id}/gantt` | Get campaign Gantt data |
+
 | POST | `/api/v1/campaigns/{id}/pivot` | Apply strategic pivot |
+
 | POST | `/api/v1/campaigns/{id}/wrapup` | Submit campaign wrapup |
+
+
 
 ## 3.4 Moves
 
@@ -712,265 +1416,529 @@ $$;
 | PUT | `/api/v1/moves/{id}` | Update move |
 | DELETE | `/api/v1/moves/{id}` | Delete move |
 | PATCH | `/api/v1/moves/{id}/status` | Update move status (triggers learning cycle) |
+| GET | `/api/v1/moves/{id}/rationale` | Fetch rationale, expert thoughts, and rejected paths |
+| POST | `/api/v1/moves/{id}/tasks` | Append a checklist task (label, instructions, due date, effort) |
+| PUT | `/api/v1/moves/{id}/tasks/{task_id}` | Update a task or mark it complete |
+| POST | `/api/v1/moves/{id}/metrics` | Log daily metrics and recalc RAG |
 | POST | `/api/v1/moves/generate-weekly/{campaign_id}` | **[AI]** Generate next week's moves |
 | GET | `/api/v1/moves/generate-weekly/{campaign_id}/status` | Check generation status |
 | POST | `/api/v1/moves/{id}/checklist/{item_id}/toggle` | Toggle checklist item |
 
+Detailed move responses include checklist, assets, daily_metrics, confidence, rag_status, rag_reason, refinement metadata, and tool requirements. Rationale responses surface the decree, consensus metrics, expert_thoughts with agent names/roles, rejected paths, and optional historical parallels.
+
+
 ## 3.5 Muse (Content Generation)
 
+
+
 | Method | Endpoint | Description |
+
 |--------|----------|-------------|
+
 | POST | `/api/v1/muse/create` | **[AI]** Create content asset |
+
 | POST | `/api/v1/muse/chat` | Chat with Muse agent |
+
 | GET | `/api/v1/muse/assets` | List assets |
+
 | GET | `/api/v1/muse/assets/{id}` | Get asset |
+
 | PUT | `/api/v1/muse/assets/{id}` | Update asset |
+
 | DELETE | `/api/v1/muse/assets/{id}` | Delete asset |
+
 | POST | `/api/v1/muse/search` | **[RAG]** Semantic search over assets |
+
 | POST | `/api/v1/muse/ingest` | Ingest file content for RAG |
+
 | GET | `/api/v1/muse/threads` | List conversation threads |
+
 | GET | `/api/v1/muse/threads/{id}` | Get thread with messages |
+
+
 
 ## 3.6 Skills
 
+
+
 | Method | Endpoint | Description |
+
 |--------|----------|-------------|
+
 | GET | `/api/v1/skills` | List all skills (system + custom) |
+
 | POST | `/api/v1/skills` | Create custom skill |
+
 | PUT | `/api/v1/skills/{id}` | Update skill |
+
 | DELETE | `/api/v1/skills/{id}` | Delete custom skill |
+
+
 
 ## 3.7 Blackbox (Experiments & Learnings)
 
+
+
 | Method | Endpoint | Description |
+
 |--------|----------|-------------|
+
 | GET | `/api/v1/blackbox/experiments` | List experiments |
+
 | POST | `/api/v1/blackbox/experiments` | Create experiment |
+
 | PUT | `/api/v1/blackbox/experiments/{id}` | Update experiment |
+
 | POST | `/api/v1/blackbox/experiments/{id}/launch` | Launch experiment |
+
 | POST | `/api/v1/blackbox/experiments/{id}/checkin` | Submit self-report |
+
 | GET | `/api/v1/blackbox/learning/feed` | Get learning feed |
+
 | POST | `/api/v1/blackbox/learning/cycle/{move_id}` | **[AI]** Trigger learning cycle |
+
 | POST | `/api/v1/blackbox/specialist/run/{agent_id}/{move_id}` | **[AI]** Run specialist agent |
+
 | GET | `/api/v1/blackbox/outcomes?campaign_id={id}` | Get outcomes by campaign |
+
 | GET | `/api/v1/blackbox/telemetry?move_id={id}` | Get telemetry |
+
 | GET | `/api/v1/blackbox/evidence/{learning_id}` | Get evidence package |
+
+
 
 ## 3.8 Radar (Competitive Intelligence)
 
+
+
 | Method | Endpoint | Description |
+
 |--------|----------|-------------|
+
 | POST | `/api/v1/radar/scan/recon` | **[AI]** Scan for competitor signals |
+
 | POST | `/api/v1/radar/scan/dossier` | **[AI]** Generate competitor dossier |
+
 | GET | `/api/v1/radar/signals` | List signals |
+
 | GET | `/api/v1/radar/dossiers` | List dossiers |
+
 | GET | `/api/v1/radar/dossiers/{id}` | Get dossier |
+
+
 
 ## 3.9 Matrix (System Health)
 
+
+
 | Method | Endpoint | Description |
+
 |--------|----------|-------------|
+
 | GET | `/api/v1/matrix/overview?workspace_id={ws}` | Get system overview |
+
 | GET | `/api/v1/matrix/events` | Get recent events (telemetry) |
+
 | POST | `/api/v1/matrix/kill-switch` | Emergency stop all agents |
+
+
 
 ## 3.10 Files & OCR
 
+
+
 | Method | Endpoint | Description |
+
 |--------|----------|-------------|
+
 | POST | `/api/v1/files/upload` | Upload file to S3/GCS |
+
 | POST | `/api/v1/files/{id}/ocr` | **[AI]** Trigger OCR processing |
+
 | GET | `/api/v1/files/{id}/ocr/status` | Check OCR status |
+
+
 
 ## 3.11 Health & Auth
 
+
+
 | Method | Endpoint | Description |
+
 |--------|----------|-------------|
+
 | GET | `/health` | Health check (public: `{ "status": "ok" }`, internal: add `X-RF-Internal-Key`) |
+
 | GET | `/api/v1/auth/me` | Get current user |
 
+
+
 ---
+
+
 
 # PART 4: AI AGENT ARCHITECTURE (LangGraph)
 
+
+
 ## 4.1 Onboarding Spine
 
+
+
 ### Nodes:
+
 1. **Architect** - Validates foundation, detects contradictions, refines brand voice
+
 2. **Prophet** - Generates 3 emergent ICPs from Foundation (NOT templates)
+
 3. **Strategist** - Generates Campaign + 3 initial Moves
 
+
+
 ### Graph:
+
 ```
+
 __start__ → Architect → Prophet → Strategist → __end__
+
 ```
+
+
 
 ### State Schema:
+
 ```python
+
 class OnboardingState(TypedDict):
+
     foundation: FoundationData
+
     derived: dict  # Brand voice, strategic pivot
+
     icps: list[ICP]
+
     campaign: Campaign
+
     moves: list[Move]
+
     status: list[str]
+
     errors: list[str]
+
 ```
 
+
+
 ---
+
+
 
 ## 4.2 Muse Agent
 
+
+
 ### Nodes:
+
 1. **Agent** - Main reasoning node (model with tools bound)
+
 2. **Tools** - Execute tools
 
+
+
 ### Tools:
+
 - `retrieve_brand_context` - RAG search over muse_assets
+
 - `save_generated_asset` - Save asset to DB
+
 - Custom skill-based tools (dynamically loaded)
 
+
+
 ### Graph:
-```
-__start__ → agent ←→ tools →(conditional)→ __end__
+
 ```
 
+__start__ → agent ←→ tools →(conditional)→ __end__
+
+```
+
+
+
 ---
+
+
 
 ## 4.3 Learning Cycle Agent
 
+
+
 Triggered when a Move is marked complete. Analyzes performance and generates learnings.
 
+
+
 ---
+
+
 
 ## 4.4 Radar Agent
 
+
+
 Performs competitive intelligence scans using web search tools.
 
+
+
 ---
+
+
 
 # PART 5: CACHING STRATEGY (Redis)
 
+
+
 ## 5.1 What to Cache
 
+
+
 | Key Pattern | TTL | Description |
+
 |-------------|-----|-------------|
+
 | `tenant:{id}:foundation` | 5min | Foundation data |
+
 | `tenant:{id}:icps` | 5min | Active ICPs |
+
 | `tenant:{id}:brand_kit` | 10min | Brand kit |
+
 | `tenant:{id}:active_move` | 1min | Currently active move |
+
 | `session:{user_id}:muse_thread` | 30min | Active Muse conversation |
+
 | `rate_limit:{tenant_id}:inference` | 1min | Rate limiting for AI calls |
 
+
+
 ## 5.2 Cache Invalidation
+
 - On any write to foundation → invalidate `foundation`, `icps`
+
 - On ICP regeneration → invalidate `icps`
+
 - On move status change → invalidate `active_move`
 
+
+
 ---
+
+
 
 # PART 6: FILE STORAGE & OCR
 
+
+
 ## 6.1 Storage
+
 - Use **S3** or **Google Cloud Storage**
+
 - Bucket structure: `raptorflow-{env}/tenants/{tenant_id}/files/{uuid}.{ext}`
 
+
+
 ## 6.2 OCR Pipeline
+
 1. User uploads file (PDF, image)
+
 2. Backend stores in S3/GCS
+
 3. Backend triggers async OCR job
+
 4. OCR worker uses **Google Cloud Vision API**
+
 5. Extracted text stored in `uploaded_files.ocr_text`
+
 6. If OCR text is long, also ingest into `muse_assets` for RAG
 
+
+
 ---
+
+
 
 # PART 7: ENVIRONMENT VARIABLES
 
+
+
 ```env
+
 # Database
+
 DATABASE_URL=postgresql://...
+
 SUPABASE_URL=https://...
+
 SUPABASE_SERVICE_ROLE_KEY=...
 
+
+
 # AI
+
 GOOGLE_CLOUD_PROJECT=...
+
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
+
 VERTEX_AI_LOCATION=us-central1
+
 INFERENCE_SIMPLE=<vertex-api-key>  # Legacy key name
 
+
+
 # Cache
+
 REDIS_URL=redis://...
 
+
+
 # Storage
+
 AWS_ACCESS_KEY_ID=...
+
 AWS_SECRET_ACCESS_KEY=...
+
 S3_BUCKET=raptorflow-prod
+
 # OR
+
 GCS_BUCKET=raptorflow-prod
 
+
+
 # Auth
+
 RF_INTERNAL_KEY=<internal-service-key>
 
+
+
 # Feature Flags
+
 ENABLE_OCR=true
+
 ENABLE_RADAR=true
+
 ```
 
+
+
 ---
+
+
 
 # PART 8: DELIVERABLES
 
+
+
 ## File Structure
-```
-backend/
-├── main.py                 # FastAPI app with CORS, lifespan
-├── config.py               # Environment config
-├── routers/
-│   ├── onboarding.py
-│   ├── foundations.py
-│   ├── icps.py
-│   ├── campaigns.py
-│   ├── moves.py
-│   ├── muse.py
-│   ├── skills.py
-│   ├── blackbox.py
-│   ├── radar.py
-│   ├── matrix.py
-│   └── files.py
-├── agents/
-│   ├── spine.py            # Onboarding spine (LangGraph)
-│   ├── muse_agent.py       # Muse agent
-│   ├── learning_agent.py   # Learning cycle
-│   ├── radar_agent.py      # Competitive intel
-│   └── tools.py            # All tool definitions
-├── db/
-│   ├── supabase.py         # Supabase client
-│   ├── models.py           # Pydantic schemas
-│   └── redis.py            # Redis client
-├── services/
-│   ├── rag.py              # RAG search
-│   ├── ocr.py              # OCR processing
-│   ├── storage.py          # S3/GCS file ops
-│   └── embeddings.py       # Embedding generation
-├── middleware/
-│   └── auth.py             # JWT auth
-└── workers/
-    └── ocr_worker.py       # Background OCR processing
+
 ```
 
+backend/
+
+├── main.py                 # FastAPI app with CORS, lifespan
+
+├── config.py               # Environment config
+
+├── routers/
+
+│   ├── onboarding.py
+
+│   ├── foundations.py
+
+│   ├── icps.py
+
+│   ├── campaigns.py
+
+│   ├── moves.py
+
+│   ├── muse.py
+
+│   ├── skills.py
+
+│   ├── blackbox.py
+
+│   ├── radar.py
+
+│   ├── matrix.py
+
+│   └── files.py
+
+├── agents/
+
+│   ├── spine.py            # Onboarding spine (LangGraph)
+
+│   ├── muse_agent.py       # Muse agent
+
+│   ├── learning_agent.py   # Learning cycle
+
+│   ├── radar_agent.py      # Competitive intel
+
+│   └── tools.py            # All tool definitions
+
+├── db/
+
+│   ├── supabase.py         # Supabase client
+
+│   ├── models.py           # Pydantic schemas
+
+│   └── redis.py            # Redis client
+
+├── services/
+
+│   ├── rag.py              # RAG search
+
+│   ├── ocr.py              # OCR processing
+
+│   ├── storage.py          # S3/GCS file ops
+
+│   └── embeddings.py       # Embedding generation
+
+├── middleware/
+
+│   └── auth.py             # JWT auth
+
+└── workers/
+
+    └── ocr_worker.py       # Background OCR processing
+
+```
+
+
+
 ---
+
+
 
 # PART 9: CRITICAL IMPLEMENTATION NOTES
 
+
+
 1. **JSON Output**: All LLM responses must be JSON-parsable. Use regex extraction as fallback.
+
 2. **Timeouts**: Synthesis can take 60-120 seconds. Use appropriate timeouts and async patterns.
+
 3. **Telemetry**: Log ALL agent activity to `blackbox_telemetry_industrial` for debugging and learning.
+
 4. **Rate Limiting**: Implement per-tenant rate limits for AI calls.
+
 5. **Error Handling**: Never crash on AI errors. Fall back to cached data or defaults.
+
 6. **Embeddings**: Generate on write, not on read. Store immediately.
+
 7. **Multi-tenancy**: EVERY query must be scoped by `tenant_id`.
 
+
+
 ---
+
+
 
 **END OF SPECIFICATION**

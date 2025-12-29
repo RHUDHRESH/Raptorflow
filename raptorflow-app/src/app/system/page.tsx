@@ -6,7 +6,9 @@ export default function SystemPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Backend Services</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              Backend Services
+            </h2>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-600">API Server</span>
@@ -24,7 +26,9 @@ export default function SystemPage() {
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Performance</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              Performance
+            </h2>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-600">Response Time</span>
@@ -42,7 +46,9 @@ export default function SystemPage() {
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Recent Activity</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              Recent Activity
+            </h2>
             <div className="space-y-2">
               <div className="text-sm text-gray-600">
                 Last scan: 2 hours ago
@@ -50,9 +56,7 @@ export default function SystemPage() {
               <div className="text-sm text-gray-600">
                 Signals processed: 1,234
               </div>
-              <div className="text-sm text-gray-600">
-                Active users: 42
-              </div>
+              <div className="text-sm text-gray-600">Active users: 42</div>
             </div>
           </div>
         </div>

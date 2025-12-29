@@ -30,10 +30,12 @@ export function MoveRefinerView({ data, className }: MoveRefinerViewProps) {
   }
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn('space-y-4', className)}>
       <div className="flex items-center gap-2 px-1">
         <BrainCircuit className="w-4 h-4 text-accent" />
-        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400">Agentic Optimization</h3>
+        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400">
+          Agentic Optimization
+        </h3>
       </div>
 
       <div className="bg-accent/5 border border-accent/20 rounded-2xl p-6 relative overflow-hidden group">
@@ -44,7 +46,9 @@ export function MoveRefinerView({ data, className }: MoveRefinerViewProps) {
                 <Clock className="w-3 h-3" />
                 Effort
               </div>
-              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{data.estimated_effort || 'Medium'}</div>
+              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                {data.estimated_effort || 'Medium'}
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -52,7 +56,9 @@ export function MoveRefinerView({ data, className }: MoveRefinerViewProps) {
                 <Calendar className="w-3 h-3" />
                 Target Date
               </div>
-              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{data.deadline || 'End of Week'}</div>
+              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                {data.deadline || 'End of Week'}
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -60,14 +66,17 @@ export function MoveRefinerView({ data, className }: MoveRefinerViewProps) {
                 <CheckCircle2 className="w-3 h-3" />
                 Confidence
               </div>
-              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">High (0.92)</div>
+              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                High (0.92)
+              </div>
             </div>
           </div>
 
           <div className="pt-4 border-t border-accent/10">
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
               <span className="text-accent mr-2 font-bold">Rationale:</span>
-              {data.rationale || "This move was surgically decomposed from your 90-day strategic arc to maximize early distribution signals."}
+              {data.rationale ||
+                'This move was surgically decomposed from your 90-day strategic arc to maximize early distribution signals.'}
             </p>
           </div>
         </div>

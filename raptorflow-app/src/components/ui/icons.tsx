@@ -11,7 +11,13 @@ export interface IconProps {
   weight?: 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone';
 }
 
-export const AppIcon: React.FC<IconProps> = ({ icon, size = 16, className, color, weight = 'regular' }) => {
+export const AppIcon: React.FC<IconProps> = ({
+  icon,
+  size = 16,
+  className,
+  color,
+  weight = 'regular',
+}) => {
   if (!icon) return null;
 
   // Use any to bypass TypeScript's strict checking for dynamic icon access
@@ -22,7 +28,7 @@ export const AppIcon: React.FC<IconProps> = ({ icon, size = 16, className, color
     size,
     className,
     color,
-    weight
+    weight,
   });
 };
 

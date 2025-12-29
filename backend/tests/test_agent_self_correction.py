@@ -49,9 +49,10 @@ async def test_agent_self_correction_with_peer_critiques():
         MagicMock(content="Expanded polished content."),
     ]
 
-    with patch("backend.agents.base.InferenceProvider") as mock_inference, patch(
-        "backend.agents.base.PeerReviewMemory"
-    ) as mock_peer_memory:
+    with (
+        patch("backend.agents.base.InferenceProvider") as mock_inference,
+        patch("backend.agents.base.PeerReviewMemory") as mock_peer_memory,
+    ):
         mock_inference.get_model.return_value = mock_llm
         mock_peer_instance = MagicMock()
         mock_peer_instance.get_recent_critiques = AsyncMock(

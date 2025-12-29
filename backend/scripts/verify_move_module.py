@@ -45,11 +45,12 @@ async def verify():
     print("✓ Progress Tracker: Progress calculation correct.")
 
     # 5. Verify Move Persistence (Mock DB)
-    with patch(
-        "backend.agents.moves.save_move", new_callable=AsyncMock
-    ) as mock_save, patch(
-        "backend.agents.moves.log_agent_decision", new_callable=AsyncMock
-    ) as mock_log:
+    with (
+        patch("backend.agents.moves.save_move", new_callable=AsyncMock) as mock_save,
+        patch(
+            "backend.agents.moves.log_agent_decision", new_callable=AsyncMock
+        ) as mock_log,
+    ):
         mock_save.return_value = "mock-uuid"
         persistence = MovePersistence()
         await persistence(

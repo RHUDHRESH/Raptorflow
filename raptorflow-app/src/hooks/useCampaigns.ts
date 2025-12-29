@@ -16,15 +16,14 @@ export function useCampaigns(pollInterval: number = 10000) {
 
   const refresh = useCallback(async () => {
     try {
-      const [cData, mData] = await Promise.all([
-        getCampaigns(),
-        getMoves()
-      ]);
+      const [cData, mData] = await Promise.all([getCampaigns(), getMoves()]);
       setCampaigns(cData);
       setMoves(mData);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to refresh data'));
+      setError(
+        err instanceof Error ? err : new Error('Failed to refresh data')
+      );
     } finally {
       setIsLoading(false);
     }

@@ -8,9 +8,10 @@ from models.cognitive import CognitiveStatus
 
 @pytest.fixture
 def mock_db():
-    with patch(
-        "backend.graphs.cognitive_spine.get_pool", new_callable=MagicMock
-    ), patch("backend.graphs.cognitive_spine.SupabaseSaver", new_callable=MagicMock):
+    with (
+        patch("backend.graphs.cognitive_spine.get_pool", new_callable=MagicMock),
+        patch("backend.graphs.cognitive_spine.SupabaseSaver", new_callable=MagicMock),
+    ):
         yield
 
 

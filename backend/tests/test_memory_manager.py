@@ -12,11 +12,12 @@ async def test_memory_manager_store_trace_l1_only():
     mock_l2 = AsyncMock()
     mock_l3 = AsyncMock()
 
-    with patch("backend.memory.manager.L1ShortTermMemory", return_value=mock_l1), patch(
-        "backend.memory.manager.L2EpisodicMemory", return_value=mock_l2
-    ), patch("backend.memory.manager.L3SemanticMemory", return_value=mock_l3), patch(
-        "backend.memory.manager.InferenceProvider"
-    ) as mock_inference:
+    with (
+        patch("backend.memory.manager.L1ShortTermMemory", return_value=mock_l1),
+        patch("backend.memory.manager.L2EpisodicMemory", return_value=mock_l2),
+        patch("backend.memory.manager.L3SemanticMemory", return_value=mock_l3),
+        patch("backend.memory.manager.InferenceProvider") as mock_inference,
+    ):
 
         manager = MemoryManager()
         await manager.store_trace(
@@ -37,11 +38,12 @@ async def test_memory_manager_store_trace_important_l2():
     mock_l2 = AsyncMock()
     mock_l3 = AsyncMock()
 
-    with patch("backend.memory.manager.L1ShortTermMemory", return_value=mock_l1), patch(
-        "backend.memory.manager.L2EpisodicMemory", return_value=mock_l2
-    ), patch("backend.memory.manager.L3SemanticMemory", return_value=mock_l3), patch(
-        "backend.memory.manager.InferenceProvider"
-    ) as mock_inference:
+    with (
+        patch("backend.memory.manager.L1ShortTermMemory", return_value=mock_l1),
+        patch("backend.memory.manager.L2EpisodicMemory", return_value=mock_l2),
+        patch("backend.memory.manager.L3SemanticMemory", return_value=mock_l3),
+        patch("backend.memory.manager.InferenceProvider") as mock_inference,
+    ):
 
         mock_embedder = AsyncMock()
         mock_embedder.aembed_query.return_value = [0.1, 0.2]

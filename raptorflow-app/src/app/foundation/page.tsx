@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
 export default function FoundationPage() {
-    redirect('/foundation/phase1');
+  redirect('/foundation/phase1');
 }

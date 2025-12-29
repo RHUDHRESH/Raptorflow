@@ -64,3 +64,101 @@ def test_update_move_status_endpoint():
         assert response.json()["status"] == "updated"
     finally:
         app.dependency_overrides.clear()
+
+
+def test_get_move_detail_endpoint():
+    from api.v1.moves import get_move_service
+
+    mock_service = MagicMock()
+    mock_service.get_move_detail = AsyncMock(return_value={"id": "move-123"})
+
+    app.dependency_overrides[get_move_service] = lambda: mock_service
+    try:
+        response = client.get("/v1/moves/move-123")
+        assert response.status_code == 200
+        assert response.json()["data"]["move"]["id"] == "move-123"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_get_move_rationale_endpoint():
+    from api.v1.moves import get_move_service
+
+    mock_service = MagicMock()
+    mock_service.get_move_rationale = AsyncMock(return_value={"decree": "Test"})
+
+    app.dependency_overrides[get_move_service] = lambda: mock_service
+    try:
+        response = client.get("/v1/moves/move-123/rationale")
+        assert response.status_code == 200
+        assert response.json()["data"]["decree"] == "Test"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_add_task_endpoint():
+    from api.v1.moves import get_move_service
+
+    mock_service = MagicMock()
+    mock_service.add_task = AsyncMock(return_value={"id": "move-123"})
+
+    app.dependency_overrides[get_move_service] = lambda: mock_service
+    try:
+        response = client.post(
+            "/v1/moves/move-123/tasks",
+            json={"label": "Task A"},
+        )
+        assert response.status_code == 200
+        assert response.json()["data"]["move"]["id"] == "move-123"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_update_task_endpoint():
+    from api.v1.moves import get_move_service
+
+    mock_service = MagicMock()
+    mock_service.update_task = AsyncMock(return_value={"id": "move-123"})
+
+    app.dependency_overrides[get_move_service] = lambda: mock_service
+    try:
+        response = client.put(
+            "/v1/moves/move-123/tasks/task-1",
+            json={"completed": True},
+        )
+        assert response.status_code == 200
+        assert response.json()["data"]["move"]["id"] == "move-123"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_update_move_endpoint():
+    from api.v1.moves import get_move_service
+
+    mock_service = MagicMock()
+    mock_service.update_move = AsyncMock(return_value={"id": "move-123"})
+
+    app.dependency_overrides[get_move_service] = lambda: mock_service
+    try:
+        response = client.put("/v1/moves/move-123", json={"title": "Updated"})
+        assert response.status_code == 200
+        assert response.json()["data"]["move"]["id"] == "move-123"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_log_move_metric_endpoint():
+    from api.v1.moves import get_move_service
+
+    mock_service = MagicMock()
+    mock_service.append_metric = AsyncMock(
+        return_value={"move": {"id": "move-123"}, "rag": {"status": "green"}}
+    )
+
+    app.dependency_overrides[get_move_service] = lambda: mock_service
+    try:
+        response = client.post("/v1/moves/move-123/metrics", json={"leads": 5})
+        assert response.status_code == 200
+        assert response.json()["data"]["move"]["id"] == "move-123"
+    finally:
+        app.dependency_overrides.clear()

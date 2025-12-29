@@ -4,9 +4,9 @@ const iconNames = Object.keys(icons);
 console.log('Total icons:', iconNames.length);
 
 const find = (pattern) => {
-    const regex = new RegExp(pattern, 'i');
-    const matches = iconNames.filter(n => regex.test(n));
-    console.log(`${pattern}:`, matches.slice(0, 5));
+  const regex = new RegExp(pattern, 'i');
+  const matches = iconNames.filter((n) => regex.test(n));
+  console.log(`${pattern}:`, matches.slice(0, 5));
 };
 
 find('Flash');

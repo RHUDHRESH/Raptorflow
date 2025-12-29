@@ -10,13 +10,11 @@ import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvide
  * Groups all context providers that require 'use client'
  */
 export function ClientProviders({ children }: { children: ReactNode }) {
-    return (
-        <SmoothScrollProvider>
-            <FoundationProvider>
-                <TypingExperienceProvider>
-                    {children}
-                </TypingExperienceProvider>
-            </FoundationProvider>
-        </SmoothScrollProvider>
-    );
+  return (
+    <SmoothScrollProvider>
+      <FoundationProvider>
+        <TypingExperienceProvider>{children}</TypingExperienceProvider>
+      </FoundationProvider>
+    </SmoothScrollProvider>
+  );
 }

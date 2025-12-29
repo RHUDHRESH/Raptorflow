@@ -4,12 +4,15 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 
 from core.auth import get_current_user, get_tenant_id
+from core.cache import get_cache_manager
 from core.vault import Vault
 from models.radar_models import (
     RadarDossierRequest,
     RadarReconRequest,
     RadarSource,
     RadarSourceRequest,
+    Signal,
+    SignalResponse,
 )
 from services.radar_repository import RadarRepository
 from services.radar_service import RadarService
@@ -22,7 +25,21 @@ async def get_radar_service():
     return RadarService(vault)
 
 
-@router.post("/scan/recon", response_model=List[Dict[str, Any]])
+async def get_cached_signals(cache_key: str):
+    """Get cached signals or None if not found."""
+    cache = get_cache_manager()
+    return cache.get_json(cache_key)
+
+
+async def set_cached_signals(
+    cache_key: str, data: List[Dict[str, Any]], ttl: int = 300
+):
+    """Set cached signals."""
+    cache = get_cache_manager()
+    cache.set_json(cache_key, data, expiry_seconds=ttl)
+
+
+@router.post("/scan/recon", response_model=List[SignalResponse])
 async def scan_recon(
     request: RadarReconRequest,
     tenant_id: UUID = Depends(get_tenant_id),
@@ -31,11 +48,36 @@ async def scan_recon(
 ):
     """Performs a competitive signals scan."""
     try:
-        return await service.scan_recon(
+        signals = await service.scan_recon(
             str(tenant_id), request.icp_id, request.source_urls
         )
+        # Convert to SignalResponse format with all required fields
+        response = [
+            SignalResponse(
+                id=signal["id"],
+                tenant_id=signal["tenant_id"],
+                category=signal["category"],
+                title=signal["title"],
+                content=signal["content"],
+                strength=signal["strength"],
+                freshness=signal["freshness"],
+                evidence_count=len(signal.get("evidence", [])),
+                action_suggestion=signal.get("action_suggestion"),
+                source_competitor=signal.get("source_competitor"),
+                cluster_id=signal.get("cluster_id"),
+                created_at=signal["created_at"],
+                updated_at=signal["updated_at"],
+            )
+            for signal in signals
+        ]
+
+        # Cache recent signals for 5 minutes
+        cache_key = f"radar:{tenant_id}:signals:recent"
+        await set_cached_signals(cache_key, [s.model_dump() for s in response], ttl=300)
+
+        return response
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Recon scan failed: {str(e)}")
 
 
 @router.post("/scan/dossier", response_model=Dict[str, Any])
@@ -45,13 +87,38 @@ async def scan_dossier(
     _current_user: dict = Depends(get_current_user),
     service: RadarService = Depends(get_radar_service),
 ):
-    """Generates deep competitor dossiers."""
+    """Generates deep competitor dossiers with comprehensive intelligence."""
     try:
-        return await service.generate_dossier(
+        dossier = await service.generate_dossier(
             str(tenant_id), request.campaign_id, request.signal_ids
         )
+        # Ensure all required dossier fields are present
+        response = {
+            "id": dossier.get("id"),
+            "tenant_id": dossier.get("tenant_id"),
+            "campaign_id": dossier.get("campaign_id"),
+            "title": dossier.get("title", "Competitive Intelligence Dossier"),
+            "summary": dossier.get("summary", []),
+            "pinned_signals": dossier.get("pinned_signals", []),
+            "hypotheses": dossier.get("hypotheses", []),
+            "recommended_experiments": dossier.get("recommended_experiments", []),
+            "copy_snippets": dossier.get("copy_snippets", []),
+            "market_narrative": dossier.get("market_narrative", {}),
+            "created_at": dossier.get("created_at"),
+            "updated_at": dossier.get("updated_at"),
+            "is_published": dossier.get("is_published", False),
+        }
+
+        # Cache dossier for 10 minutes
+        cache_key = f"radar:{tenant_id}:dossier:{request.campaign_id}"
+        cache = get_cache_manager()
+        cache.set_json(cache_key, response, expiry_seconds=600)
+
+        return response
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500, detail=f"Dossier generation failed: {str(e)}"
+        )
 
 
 @router.get("/signals", response_model=List[Dict[str, Any]])

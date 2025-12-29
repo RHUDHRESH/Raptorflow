@@ -1,15 +1,21 @@
-"use client";
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Activity, Cpu, Clock } from "lucide-react";
-import { useMatrixOverview } from "@/hooks/useMatrixOverview";
-import { MatrixListSkeleton } from "./LoadingSkeletons";
-import { MatrixEmptyState } from "./EmptyStates";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Activity, Cpu, Clock } from 'lucide-react';
+import { useMatrixOverview } from '@/hooks/useMatrixOverview';
+import { MatrixListSkeleton } from './LoadingSkeletons';
+import { MatrixEmptyState } from './EmptyStates';
 
 export function AgentPoolList() {
-  const { data, loading } = useMatrixOverview("verify_ws");
+  const { data, loading } = useMatrixOverview('verify_ws');
 
   if (loading) return <MatrixListSkeleton />;
 
@@ -22,7 +28,9 @@ export function AgentPoolList() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="font-display text-xl">Agent Pool</CardTitle>
-            <CardDescription className="text-xs">Active cognitive threads in parallel.</CardDescription>
+            <CardDescription className="text-xs">
+              Active cognitive threads in parallel.
+            </CardDescription>
           </div>
           <Badge variant="outline" className="font-mono text-xs">
             {agentIds.length} ACTIVE
@@ -39,16 +47,21 @@ export function AgentPoolList() {
               />
             ) : (
               agentIds.map((id) => (
-                <div key={id} className="p-4 hover:bg-muted/10 transition-colors">
+                <div
+                  key={id}
+                  className="p-4 hover:bg-muted/10 transition-colors"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
                         <Cpu className="h-4 w-4 text-primary" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold font-sans tracking-tight">{id}</h4>
+                        <h4 className="text-sm font-bold font-sans tracking-tight">
+                          {id}
+                        </h4>
                         <p className="text-xs text-muted-foreground line-clamp-1">
-                          {agents[id].current_task || "Awaiting task..."}
+                          {agents[id].current_task || 'Awaiting task...'}
                         </p>
                       </div>
                     </div>

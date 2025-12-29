@@ -33,7 +33,7 @@ describe('Brand Kit Validation', () => {
   });
 
   it('should fail if messagingPillars is empty', () => {
-     const invalidData = {
+    const invalidData = {
       brandVoice: 'Voice',
       positioning: 'Positioning',
       messagingPillars: [],
@@ -60,7 +60,10 @@ describe('Brand Kit Persistence', () => {
       messagingPillars: ['Innovation'],
     };
     saveBrandKit(kit);
-    expect(localStorage.setItem).toHaveBeenCalledWith('rf_brand_kit', JSON.stringify(kit));
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      'rf_brand_kit',
+      JSON.stringify(kit)
+    );
   });
 
   it('should retrieve brand kit from localStorage', () => {

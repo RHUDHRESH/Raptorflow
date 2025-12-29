@@ -10,28 +10,36 @@ interface AuthGuardProps {
 
 export function AuthGuard({ children }: AuthGuardProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     async function checkAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!session) {
         setIsAuthenticated(false);
         router.push('/login');
       } else {
         setIsAuthenticated(true);
+        setHasAccess(true);
       }
     }
 
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         setIsAuthenticated(false);
+        setHasAccess(false);
         router.push('/login');
       } else {
         setIsAuthenticated(true);
+        setHasAccess(true);
       }
     });
 
@@ -40,7 +48,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     };
   }, [router]);
 
-  if (isAuthenticated === null) {
+  if (isAuthenticated === null || hasAccess === null) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-canvas">
         <div className="animate-pulse text-muted-foreground font-mono">
@@ -50,7 +58,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !hasAccess) {
     return null;
   }
 

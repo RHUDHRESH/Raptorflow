@@ -51,10 +51,7 @@ export function ParallaxShowcase() {
   return (
     <section ref={ref} className="py-32 lg:py-40 relative overflow-hidden">
       {/* Parallax Background */}
-      <motion.div
-        className="absolute inset-0 -z-10"
-        style={{ y }}
-      >
+      <motion.div className="absolute inset-0 -z-10" style={{ y }}>
         <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-foreground/5 blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-muted-foreground/5 blur-3xl" />
       </motion.div>
@@ -69,12 +66,11 @@ export function ParallaxShowcase() {
             The Complete System
           </p>
           <h2 className="font-display text-5xl lg:text-6xl font-medium tracking-tight mb-6">
-            <SplitText animation="blur">
-              Six modules. One flow.
-            </SplitText>
+            <SplitText animation="blur">Six modules. One flow.</SplitText>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Every piece of RaptorFlow connects to create a marketing machine that compounds.
+            Every piece of RaptorFlow connects to create a marketing machine
+            that compounds.
           </p>
         </div>
 
@@ -84,7 +80,7 @@ export function ParallaxShowcase() {
             const yOffset = useTransform(
               scrollYProgress,
               [0, 1],
-              [0, (index % 2 === 0 ? -50 : 50)]
+              [0, index % 2 === 0 ? -50 : 50]
             );
 
             return (

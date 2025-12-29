@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // Advanced Animation Engine for 10x Typing Experience
 export interface AnimationProfile {
@@ -36,23 +36,26 @@ export class AnimationEngine {
       keyframes: [
         { transform: 'scale(1)', boxShadow: 'none' },
         { transform: 'scale(1.01)', boxShadow: '0 0 0 1px rgba(0,0,0,0.05)' },
-        { transform: 'scale(1)', boxShadow: 'none' }
+        { transform: 'scale(1)', boxShadow: 'none' },
       ],
       duration: 60,
       easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-      properties: ['transform', 'box-shadow']
+      properties: ['transform', 'box-shadow'],
     });
     // Luxury Profile - Microscopic, elegant transitions (NO SCALE)
     this.animationProfiles.set('luxury', {
       name: 'luxury',
       keyframes: [
         { borderColor: 'var(--border)', boxShadow: 'none' },
-        { borderColor: 'var(--accent)', boxShadow: '0 0 0 2px rgba(215, 201, 174, 0.1)' },
-        { borderColor: 'var(--border)', boxShadow: 'none' }
+        {
+          borderColor: 'var(--accent)',
+          boxShadow: '0 0 0 2px rgba(215, 201, 174, 0.1)',
+        },
+        { borderColor: 'var(--border)', boxShadow: 'none' },
       ],
       duration: 80,
       easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-      properties: ['border-color', 'box-shadow']
+      properties: ['border-color', 'box-shadow'],
     });
 
     // Professional Profile - Clean, purposeful animations
@@ -61,11 +64,11 @@ export class AnimationEngine {
       keyframes: [
         { transform: 'scale(1)', borderColor: 'rgba(0,0,0,0.08)' },
         { transform: 'scale(1.02)', borderColor: 'rgba(0,0,0,0.12)' },
-        { transform: 'scale(1)', borderColor: 'rgba(0,0,0,0.08)' }
+        { transform: 'scale(1)', borderColor: 'rgba(0,0,0,0.08)' },
       ],
       duration: 80,
       easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-      properties: ['transform', 'border-color']
+      properties: ['transform', 'border-color'],
     });
 
     // Creative Profile - Expressive, fluid animations
@@ -74,11 +77,11 @@ export class AnimationEngine {
       keyframes: [
         { transform: 'scale(1) rotate(0deg)', filter: 'brightness(1)' },
         { transform: 'scale(1.03) rotate(1deg)', filter: 'brightness(1.1)' },
-        { transform: 'scale(1) rotate(0deg)', filter: 'brightness(1)' }
+        { transform: 'scale(1) rotate(0deg)', filter: 'brightness(1)' },
       ],
       duration: 120,
       easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-      properties: ['transform', 'filter']
+      properties: ['transform', 'filter'],
     });
 
     // Gaming Profile - Responsive, dynamic animations
@@ -86,20 +89,26 @@ export class AnimationEngine {
       name: 'gaming',
       keyframes: [
         { transform: 'scale(1)', boxShadow: '0 0 0 rgba(59, 130, 246, 0)' },
-        { transform: 'scale(1.05)', boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)' },
-        { transform: 'scale(1)', boxShadow: '0 0 0 rgba(59, 130, 246, 0)' }
+        {
+          transform: 'scale(1.05)',
+          boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)',
+        },
+        { transform: 'scale(1)', boxShadow: '0 0 0 rgba(59, 130, 246, 0)' },
       ],
       duration: 100,
       easing: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-      properties: ['transform', 'box-shadow']
+      properties: ['transform', 'box-shadow'],
     });
   }
 
-  animateElement(element: HTMLElement, context: {
-    type: 'typing' | 'click' | 'focus' | 'completion';
-    velocity?: number;
-    position?: { x: number; y: number };
-  }): void {
+  animateElement(
+    element: HTMLElement,
+    context: {
+      type: 'typing' | 'click' | 'focus' | 'completion';
+      velocity?: number;
+      position?: { x: number; y: number };
+    }
+  ): void {
     if (!this.config.enabled || this.config.accessibilityMode) return;
 
     const profile = this.animationProfiles.get(this.config.profile);
@@ -115,7 +124,7 @@ export class AnimationEngine {
     const animation = element.animate(modifiedProfile.keyframes, {
       duration: modifiedProfile.duration * (this.config.speed / 100),
       easing: modifiedProfile.easing,
-      fill: 'forwards'
+      fill: 'forwards',
     });
 
     this.activeAnimations.add(animation);
@@ -126,14 +135,20 @@ export class AnimationEngine {
     };
 
     // Performance monitoring
-    this.performanceMonitor.recordAnimation(context.type, modifiedProfile.duration);
+    this.performanceMonitor.recordAnimation(
+      context.type,
+      modifiedProfile.duration
+    );
   }
 
-  private modifyProfileForContext(profile: AnimationProfile, context: {
-    type: 'typing' | 'click' | 'focus' | 'completion';
-    velocity?: number;
-    position?: { x: number; y: number };
-  }): AnimationProfile {
+  private modifyProfileForContext(
+    profile: AnimationProfile,
+    context: {
+      type: 'typing' | 'click' | 'focus' | 'completion';
+      velocity?: number;
+      position?: { x: number; y: number };
+    }
+  ): AnimationProfile {
     const modified = { ...profile };
 
     // Adjust based on velocity
@@ -181,13 +196,16 @@ export class AnimationEngine {
     element.style.position = 'relative';
     element.appendChild(ripple);
 
-    const animation = ripple.animate([
-      { transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
-      { transform: 'translate(-50%, -50%) scale(4)', opacity: 0 }
-    ], {
-      duration: 600,
-      easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-    });
+    const animation = ripple.animate(
+      [
+        { transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
+        { transform: 'translate(-50%, -50%) scale(4)', opacity: 0 },
+      ],
+      {
+        duration: 600,
+        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      }
+    );
 
     animation.onfinish = () => {
       ripple.remove();
@@ -218,19 +236,22 @@ export class AnimationEngine {
       const endX = Math.cos(angle) * distance;
       const endY = Math.sin(angle) * distance;
 
-      const animation = particle.animate([
+      const animation = particle.animate(
+        [
+          {
+            transform: 'translate(0, 0) scale(1)',
+            opacity: 1,
+          },
+          {
+            transform: `translate(${endX}px, ${endY}px) scale(0)`,
+            opacity: 0,
+          },
+        ],
         {
-          transform: 'translate(0, 0) scale(1)',
-          opacity: 1
-        },
-        {
-          transform: `translate(${endX}px, ${endY}px) scale(0)`,
-          opacity: 0
+          duration: 400,
+          easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         }
-      ], {
-        duration: 400,
-        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-      });
+      );
 
       animation.onfinish = () => {
         particle.remove();
@@ -240,7 +261,7 @@ export class AnimationEngine {
 
   cancelAnimation(element: HTMLElement): void {
     const animations = element.getAnimations();
-    animations.forEach(animation => {
+    animations.forEach((animation) => {
       animation.cancel();
       this.activeAnimations.delete(animation);
     });
@@ -259,7 +280,7 @@ export class AnimationEngine {
   }
 
   cleanup(): void {
-    this.activeAnimations.forEach(animation => animation.cancel());
+    this.activeAnimations.forEach((animation) => animation.cancel());
     this.activeAnimations.clear();
   }
 }
@@ -283,9 +304,9 @@ class PerformanceMonitor {
       averageDurations: Object.fromEntries(
         Array.from(this.totalDurations.entries()).map(([type, total]) => [
           type,
-          total / (this.animationCounts.get(type) || 1)
+          total / (this.animationCounts.get(type) || 1),
         ])
-      )
+      ),
     };
   }
 }

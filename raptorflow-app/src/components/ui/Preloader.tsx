@@ -41,7 +41,10 @@ export function Preloader({ onComplete, className }: PreloaderProps) {
             className
           )}
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.8, ease: 'easeInOut' } }}
+          exit={{
+            opacity: 0,
+            transition: { duration: 0.8, ease: 'easeInOut' },
+          }}
         >
           <div className="relative">
             {/* Logo/Brand */}

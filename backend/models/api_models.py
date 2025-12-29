@@ -51,7 +51,7 @@ class CampaignCreateRequest(BaseRequestModel):
     objective: str = Field(
         ..., min_length=10, max_length=1000, description="Campaign objective"
     )
-    status: Optional[str] = Field("draft", regex="^(draft|active|paused|completed)$")
+    status: Optional[str] = Field("draft", pattern="^(draft|active|paused|completed)$")
 
     @validator("title")
     def validate_title(cls, v):
@@ -66,9 +66,11 @@ class CampaignUpdateRequest(BaseRequestModel):
 
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     objective: Optional[str] = Field(None, min_length=10, max_length=1000)
-    status: Optional[str] = Field(None, regex="^(draft|active|paused|completed)$")
+    status: Optional[str] = Field(None, pattern="^(draft|active|paused|completed)$")
     arc_data: Optional[Dict[str, Any]] = None
     kpi_targets: Optional[Dict[str, Any]] = None
+    phase_order: Optional[List[str]] = None
+    milestones: Optional[List[Dict[str, Any]]] = None
 
 
 class CampaignResponse(BaseModel):
@@ -85,6 +87,57 @@ class CampaignResponse(BaseModel):
     kpi_targets: Optional[Dict[str, Any]] = None
 
 
+class CampaignSummary(BaseModel):
+    """Lightweight payload for campaign listings."""
+
+    id: str
+    title: str
+    objective: Optional[str]
+    status: str
+    workspace_id: str
+    campaign_tag: Optional[str]
+    arc_data: Dict[str, Any]
+    phase_order: List[str]
+    milestones: List[Dict[str, Any]]
+    move_count: int
+
+
+class MoveSummary(BaseModel):
+    """Minimal move info returned in campaign details."""
+
+    id: str
+    title: str
+    description: Optional[str]
+    status: str
+    priority: int
+    move_type: str
+    campaign_id: Optional[str]
+    workspace_id: str
+    campaign_name: Optional[str]
+    consensus_metrics: Optional[Dict[str, float]] = None
+    decree: Optional[str] = None
+    reasoning_chain_id: Optional[str] = None
+    created_at: str
+    updated_at: str
+
+
+class CampaignDetail(BaseModel):
+    """Rich campaign detail view including associated moves."""
+
+    id: str
+    title: str
+    objective: Optional[str]
+    status: str
+    workspace_id: str
+    campaign_tag: Optional[str]
+    arc_data: Dict[str, Any]
+    phase_order: List[str]
+    milestones: List[Dict[str, Any]]
+    moves: List[MoveSummary]
+    created_at: str
+    updated_at: str
+
+
 # Move Models
 class MoveCreateRequest(BaseRequestModel):
     """Request model for creating moves."""
@@ -92,7 +145,7 @@ class MoveCreateRequest(BaseRequestModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: str = Field(..., min_length=10, max_length=2000)
     priority: Optional[int] = Field(3, ge=1, le=5)
-    move_type: str = Field(..., regex="^(content|paid|organic|technical|research)$")
+    move_type: str = Field(..., pattern="^(content|paid|organic|technical|research)$")
     tool_requirements: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
 
 
@@ -100,7 +153,7 @@ class MoveResponse(BaseModel):
     """Response model for move data."""
 
     id: str
-    campaign_id: str
+    campaign_id: Optional[str]
     title: str
     description: str
     status: str
@@ -110,6 +163,152 @@ class MoveResponse(BaseModel):
     updated_at: str
     tool_requirements: Optional[List[Dict[str, Any]]] = None
     execution_result: Optional[Dict[str, Any]] = None
+    checklist: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+    assets: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+    daily_metrics: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+    confidence: Optional[float] = None
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    paused_at: Optional[str] = None
+    rag_status: Optional[str] = None
+    rag_reason: Optional[str] = None
+    refinement_data: Optional[Dict[str, Any]] = None
+    campaign_name: Optional[str] = None
+
+
+class MoveUpdateRequest(BaseRequestModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = Field(None, min_length=1, max_length=4000)
+    status: Optional[str] = Field(
+        None,
+        description="Move lifecycle status",
+        pattern="^(draft|queued|active|paused|completed|abandoned)$",
+    )
+    confidence: Optional[int] = Field(None, ge=0, le=10)
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    paused_at: Optional[str] = None
+    priority: Optional[int] = Field(None, ge=1, le=5)
+
+
+class MoveTaskCreateRequest(BaseRequestModel):
+    label: str = Field(..., min_length=1, max_length=255)
+    instructions: Optional[str] = Field(None, max_length=2000)
+    due_date: Optional[str] = None
+    estimated_minutes: Optional[int] = Field(None, ge=0)
+    proposed_by: Optional[str] = None
+    group: Optional[str] = Field("setup")
+
+
+class MoveTaskUpdateRequest(BaseRequestModel):
+    label: Optional[str] = Field(None, min_length=1, max_length=255)
+    instructions: Optional[str] = Field(None, max_length=2000)
+    due_date: Optional[str] = None
+    estimated_minutes: Optional[int] = Field(None, ge=0)
+    proposed_by: Optional[str] = None
+    group: Optional[str] = None
+    completed: Optional[bool] = None
+
+
+class MoveMetricRequest(BaseRequestModel):
+    leads: Optional[int] = Field(None, ge=0)
+    replies: Optional[int] = Field(None, ge=0)
+    calls: Optional[int] = Field(None, ge=0)
+    confidence: Optional[int] = Field(None, ge=0, le=10)
+    note: Optional[str] = Field(None, max_length=1000)
+
+
+class CouncilPlanRequest(BaseRequestModel):
+    """Request payload for Council planning endpoints."""
+
+    workspace_id: str
+    objective: str
+    details: str
+
+
+class CouncilCampaignPlanRequest(CouncilPlanRequest):
+    """Request payload for campaign planning that includes ICP targeting."""
+
+    target_icp: str
+
+
+class CouncilMoveRationale(BaseModel):
+    """Represents the Council rationale metadata tied to moves."""
+
+    final_decree: str
+    consensus_metrics: Dict[str, float]
+    reasoning_chain_id: Optional[str]
+
+
+class CouncilMovePayload(BaseModel):
+    """Minimal move descriptor used during persistence flows."""
+
+    title: str
+    description: str
+    move_type: str
+    priority: Optional[int] = Field(3, ge=1, le=5)
+    tool_requirements: Optional[List[str]] = Field(default_factory=list)
+    muse_prompt: Optional[str] = None
+    refinement_data: Optional[Dict[str, Any]] = Field(default_factory=dict)
+
+
+class CouncilMoveCreateRequest(BaseRequestModel):
+    """Payload for storing Council generated moves."""
+
+    workspace_id: str
+    campaign_id: Optional[str] = None
+    moves: List[CouncilMovePayload]
+    rationale: CouncilMoveRationale
+
+
+class CouncilCampaignPayload(BaseModel):
+    """Structured campaign blueprint returned by the Council."""
+
+    title: str
+    objective: str
+    arc_data: Dict[str, Any]
+    status: Optional[str] = Field("draft", pattern="^(draft|active|paused|completed)$")
+
+
+class CouncilCampaignCreateRequest(BaseRequestModel):
+    """Payload for creating a campaign with Council moves."""
+
+    workspace_id: str
+    campaign_data: CouncilCampaignPayload
+    moves: List[CouncilMovePayload]
+
+
+class CouncilCampaignArcData(BaseModel):
+    """90-day campaign arc metadata returned by the Council."""
+
+    title: Optional[str] = None
+    objective: Optional[str] = None
+    arc_data: Dict[str, Any] = Field(default_factory=dict)
+
+
+class CouncilMovePlanResponse(BaseModel):
+    """Response payload for Council move planning."""
+
+    decree: Optional[str] = None
+    consensus_metrics: Dict[str, float] = Field(default_factory=dict)
+    proposed_moves: List[Dict[str, Any]] = Field(default_factory=list)
+    refined_moves: List[Dict[str, Any]] = Field(default_factory=list)
+    approved_moves: List[Dict[str, Any]] = Field(default_factory=list)
+    discarded_moves: List[Dict[str, Any]] = Field(default_factory=list)
+    debate_history: List[Dict[str, Any]] = Field(default_factory=list)
+    rejected_paths: List[Dict[str, Any]] = Field(default_factory=list)
+    rationale: Optional[CouncilMoveRationale] = None
+    reasoning_chain_id: Optional[str] = None
+    campaign_id: Optional[str] = None
+    cached: Optional[bool] = None
+    suggested_moves: Optional[List[Dict[str, Any]]] = None
+    rejected_moves: Optional[List[Dict[str, Any]]] = None
+
+
+class CouncilCampaignPlanResponse(CouncilMovePlanResponse):
+    """Response payload for Council campaign planning."""
+
+    campaign_data: Optional[CouncilCampaignArcData] = None
 
 
 # Asset Models
@@ -117,7 +316,7 @@ class AssetCreateRequest(BaseRequestModel):
     """Request model for creating assets."""
 
     content: str = Field(..., min_length=1, max_length=50000)
-    asset_type: str = Field(..., regex="^(image|text|video|document|creative)$")
+    asset_type: str = Field(..., pattern="^(image|text|video|document|creative)$")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
     @validator("content")
@@ -144,7 +343,7 @@ class VectorSearchRequest(BaseRequestModel):
 
     embedding: List[float] = Field(..., min_items=1, max_items=1536)
     limit: Optional[int] = Field(10, ge=1, le=100)
-    memory_type: Optional[str] = Field("semantic", regex="^(semantic|episodic)$")
+    memory_type: Optional[str] = Field("semantic", pattern="^(semantic|episodic)$")
     filters: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
     @validator("embedding")
@@ -174,7 +373,7 @@ class MemorySaveRequest(BaseRequestModel):
 
     content: str = Field(..., min_length=1, max_length=10000)
     embedding: List[float] = Field(..., min_items=1, max_items=1536)
-    memory_type: str = Field("semantic", regex="^(semantic|episodic)$")
+    memory_type: str = Field("semantic", pattern="^(semantic|episodic)$")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
     @validator("content")
@@ -367,9 +566,9 @@ class MuseGenerationRequest(BaseRequestModel):
     """Request model for Muse asset generation."""
 
     prompt: str = Field(..., min_length=5, max_length=1000)
-    asset_type: str = Field(..., regex="^(image|text|creative)$")
+    asset_type: str = Field(..., pattern="^(image|text|creative)$")
     style: Optional[str] = Field(
-        "professional", regex="^(professional|casual|bold|minimal)$"
+        "professional", pattern="^(professional|casual|bold|minimal)$"
     )
     count: Optional[int] = Field(1, ge=1, le=5)
 
@@ -422,7 +621,7 @@ class PaymentIntentRequest(BaseRequestModel):
     """Request model for payment intent creation."""
 
     amount: int = Field(..., ge=100, description="Amount in cents")
-    currency: Optional[str] = Field("usd", regex="^(usd|eur|gbp)$")
+    currency: Optional[str] = Field("usd", pattern="^(usd|eur|gbp)$")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
 
@@ -452,7 +651,7 @@ class SubscriptionResponse(BaseModel):
 class FeedbackRequest(BaseRequestModel):
     """Request model for user feedback."""
 
-    feedback_type: str = Field(..., regex="^(bug|feature|general)$")
+    feedback_type: str = Field(..., pattern="^(bug|feature|general)$")
     content: str = Field(..., min_length=10, max_length=2000)
     rating: Optional[int] = Field(None, ge=1, le=5)
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)

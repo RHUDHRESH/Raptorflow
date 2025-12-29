@@ -27,7 +27,7 @@ export const initialCampaigns: Campaign[] = [
     status: 'planned',
     createdAt: new Date().toISOString(),
     qualityScore: 0.92,
-  }
+  },
 ];
 
 export const initialMoves: Move[] = [
@@ -38,7 +38,8 @@ export const initialMoves: Move[] = [
     channel: 'linkedin',
     duration: 7,
     dailyEffort: 30,
-    description: 'Execute targeted outreach to 50 prospects in the SaaS industry',
+    description:
+      'Execute targeted outreach to 50 prospects in the SaaS industry',
     outcomeTarget: '10 calls booked',
     checklist: [
       {
@@ -65,12 +66,18 @@ export const initialMoves: Move[] = [
     createdAt: new Date().toISOString(),
     dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     campaignId: 'campaign-1',
-    hypothesis: 'If we send personalized outreach to SaaS prospects, then we can book 10 discovery calls',
+    hypothesis:
+      'If we send personalized outreach to SaaS prospects, then we can book 10 discovery calls',
     control: 'No outreach',
     variant: 'Personalized LinkedIn messages',
     success_metric: 'Call booking rate',
     sample_size: '50 prospects',
-    action_steps: ['Research prospects', 'Craft personalized messages', 'Send outreach', 'Follow up'],
+    action_steps: [
+      'Research prospects',
+      'Craft personalized messages',
+      'Send outreach',
+      'Follow up',
+    ],
   },
   {
     id: 'move-2',
@@ -107,12 +114,18 @@ export const initialMoves: Move[] = [
     startedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
     campaignId: 'campaign-1',
-    hypothesis: 'If we optimize the landing page copy and design, then we can increase signup conversion by 20%',
+    hypothesis:
+      'If we optimize the landing page copy and design, then we can increase signup conversion by 20%',
     control: 'Current landing page',
     variant: 'New hero section with clearer value proposition',
     success_metric: 'Signup conversion rate',
     sample_size: '1000 visitors',
-    action_steps: ['Analyze current metrics', 'Design new hero', 'Implement changes', 'Run A/B test'],
+    action_steps: [
+      'Analyze current metrics',
+      'Design new hero',
+      'Implement changes',
+      'Run A/B test',
+    ],
   },
   {
     id: 'move-3',
@@ -148,11 +161,17 @@ export const initialMoves: Move[] = [
     createdAt: new Date().toISOString(),
     dueDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
     campaignId: 'campaign-2',
-    hypothesis: 'If we publish customer success stories, then we can increase trust and conversion rates',
+    hypothesis:
+      'If we publish customer success stories, then we can increase trust and conversion rates',
     control: 'No social proof',
     variant: '3 detailed case studies with results',
     success_metric: 'Case study engagement rate',
     sample_size: '3 customers',
-    action_steps: ['Identify customers', 'Schedule interviews', 'Write case studies', 'Publish and promote'],
+    action_steps: [
+      'Identify customers',
+      'Schedule interviews',
+      'Write case studies',
+      'Publish and promote',
+    ],
   },
 ];

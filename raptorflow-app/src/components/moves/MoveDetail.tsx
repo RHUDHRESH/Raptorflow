@@ -1,890 +1,846 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Move, MoveSelfReport, GOAL_LABELS, CHANNEL_LABELS, RAGStatus } from '@/lib/campaigns-types';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
 import {
-    updateMove,
-    toggleChecklistItem,
-    extendMove,
-} from '@/lib/campaigns';
-import {
-    Check,
-    X,
-    Target,
-    Clock,
-    Sparkles,
-    MoreHorizontal,
-    Trash2,
-    Pause,
-    Play,
-    Copy,
-    FileText,
-    BarChart3,
-    Activity
+  CheckCircle2,
+  Circle,
+  Clock,
+  AlertTriangle,
+  TrendingUp,
+  Layout,
+  FileText,
+  BarChart3,
+  MoreHorizontal,
+  Calendar as CalendarIcon,
+  ChevronDown,
+  ChevronUp,
+  ChevronRight,
+  BrainCircuit,
+  X,
+  Play,
+  Pause,
+  Edit2,
+  Save,
 } from 'lucide-react';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Move, CouncilResponse } from '@/lib/campaigns-types';
+import { updateMove, updateMoveTasks } from '@/lib/api';
+import { cn } from '@/lib/utils';
+import { PedigreeVisualizer } from '@/components/council/PedigreeVisualizer';
+import { ConfidenceHeatmap } from '@/components/council/ConfidenceHeatmap';
+import { EXPERTS } from '@/components/council/CouncilChamber';
 import { toast } from 'sonner';
+import { createMuseAsset } from '@/lib/muse/api';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface MoveDetailProps {
-    move: Move | null;
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onUpdate: (move: Move) => void;
-    onDelete: (moveId: string) => void;
-    onRefresh?: () => void;
+  move: Move | null;
+  rationale: CouncilResponse | null;
+  open?: boolean;
+  onClose?: () => void;
+  onUpdate: (updates: Partial<Move>) => void;
+  onToggleTask: (taskId: string) => void;
+  onRefresh?: () => void;
+  standalone?: boolean;
 }
 
-type TabId = 'today' | 'plan' | 'assets' | 'results' | 'log';
+export function MoveDetail({
+  move,
+  rationale,
+  open = true,
+  onClose = () => { },
+  onUpdate,
+  onToggleTask,
+  onRefresh,
+  standalone = false,
+}: MoveDetailProps) {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState('rationale');
+  const [showExperts, setShowExperts] = useState(false);
+  const [showRejected, setShowRejected] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<string | null>(null);
 
-interface Tab {
-    id: TabId;
-    label: string;
-    icon: React.ReactNode;
-}
+  // Editing State
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editGoal, setEditGoal] = useState('');
+  const [editDuration, setEditDuration] = useState(0);
 
-const TABS: Tab[] = [
-    { id: 'today', label: 'Today', icon: <Clock style={{ width: 14, height: 14 }} /> },
-    { id: 'plan', label: 'Plan', icon: <FileText style={{ width: 14, height: 14 }} /> },
-    { id: 'assets', label: 'Assets', icon: <Sparkles style={{ width: 14, height: 14 }} /> },
-    { id: 'results', label: 'Results', icon: <BarChart3 style={{ width: 14, height: 14 }} /> },
-    { id: 'log', label: 'Activity', icon: <Activity style={{ width: 14, height: 14 }} /> },
-];
-
-function calculateRAG(move: Move): { status: RAGStatus; reason: string } {
-    if (move.rag && move.ragReason) {
-        return { status: move.rag, reason: move.ragReason };
+  useEffect(() => {
+    if (move) {
+      setEditName(move.name);
+      setEditGoal(move.goal);
+      setEditDuration(move.duration);
     }
-    return { status: 'green', reason: 'On pace' };
-}
+  }, [move?.id]);
 
-function getDayNumber(move: Move): number {
-    if (!move.startedAt) return 0;
-    const now = new Date();
-    const startedAt = new Date(move.startedAt);
-    const daysElapsed = Math.floor((now.getTime() - startedAt.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    return Math.min(daysElapsed, move.duration);
-}
+  if (!move) return null;
 
-export function MoveDetail({ move, open, onOpenChange, onUpdate, onDelete, onRefresh }: MoveDetailProps) {
-    const [activeTab, setActiveTab] = useState<TabId>('today');
-    const [completing, setCompleting] = useState(false);
-    const [whatHappened, setWhatHappened] = useState('');
-    const [metricValue, setMetricValue] = useState('');
-    const [confirmDelete, setConfirmDelete] = useState(false);
+  const handleSaveEdit = async () => {
+    onUpdate({
+      name: editName,
+      goal: editGoal as any,
+      duration: editDuration as any,
+    });
+    setIsEditing(false);
+  };
 
-    // Quick log state
-    const [logLeads, setLogLeads] = useState(0);
-    const [logReplies, setLogReplies] = useState(0);
-    const [logCalls, setLogCalls] = useState(0);
-    const [logConfidence, setLogConfidence] = useState(7);
+  const handleStatusChange = (newStatus: Move['status']) => {
+    onUpdate({ status: newStatus });
+  };
 
-    if (!move) return null;
+  // Mock metrics data with confidence trend
+  const metricsData = [
+    { day: 'Mon', leads: 2, calls: 0, confidence: 85 },
+    { day: 'Tue', leads: 4, calls: 1, confidence: 88 },
+    { day: 'Wed', leads: 3, calls: 1, confidence: 82 },
+    { day: 'Thu', leads: 8, calls: 3, confidence: 90 },
+    { day: 'Fri', leads: 12, calls: 5, confidence: 94 },
+    { day: 'Sat', leads: 5, calls: 2, confidence: 91 },
+    { day: 'Sun', leads: 3, calls: 1, confidence: 89 },
+  ];
 
-    const rag = calculateRAG(move);
-    const dayNumber = getDayNumber(move);
-    const totalTasks = move.checklist?.length || 0;
-    const completedTasks = move.checklist?.filter(t => t.completed).length || 0;
-    const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const selectedChecklistItem = move.checklist.find(
+    (t) => t.id === selectedTask
+  );
 
-    const handleToggleChecklist = (itemId: string) => {
-        toggleChecklistItem(move.id, itemId);
-        const updatedChecklist = move.checklist.map(item =>
-            item.id === itemId ? { ...item, completed: !item.completed } : item
-        );
-        onUpdate({ ...move, checklist: updatedChecklist });
-    };
-
-    const handlePause = async () => {
-        const updated = { ...move, status: 'paused' as const, pausedAt: new Date().toISOString() };
-        await updateMove(updated);
-        onUpdate(updated);
-        toast.info('Move paused');
-    };
-
-    const handleResume = async () => {
-        const updated = { ...move, status: 'active' as const, pausedAt: undefined };
-        await updateMove(updated);
-        onUpdate(updated);
-        toast.success('Move resumed');
-    };
-
-    const handleActivate = async () => {
-        const now = new Date().toISOString();
-        const dueDate = new Date(Date.now() + move.duration * 24 * 60 * 60 * 1000).toISOString();
-        const updated = {
-            ...move,
-            status: 'active' as const,
-            startedAt: now,
-            dueDate
-        };
-        await updateMove(updated);
-        onUpdate(updated);
-        if (onRefresh) onRefresh();
-        toast.success('Move activated!');
-    };
-
-    const handleDeleteConfirm = () => {
-        onDelete(move.id);
-        setConfirmDelete(false);
-        onOpenChange(false);
-    };
-
-    const handleComplete = () => {
-        setCompleting(true);
-    };
-
-    const submitCompletion = async () => {
-        const report: MoveSelfReport = {
-            didComplete: true,
-            whatHappened,
-            metrics: metricValue ? { name: move.goal, value: parseInt(metricValue) } : undefined,
-            submittedAt: new Date().toISOString(),
-        };
-
-        const updated: Move = {
-            ...move,
-            status: 'completed',
-            completedAt: new Date().toISOString(),
-            selfReport: report
-        };
-
-        await updateMove(updated);
-        onUpdate(updated);
-        if (onRefresh) onRefresh();
-        setCompleting(false);
-        onOpenChange(false);
-        toast.success('Move completed!');
-    };
-
-    const handleSaveLog = async () => {
-        const newMetrics = {
-            leads: logLeads,
-            replies: logReplies,
-            calls: logCalls,
-            energy: 7,
-            quality: 7,
-            executed: true,
-            submittedAt: new Date().toISOString()
-        };
-
-        const updated = {
-            ...move,
-            confidence: logConfidence,
-            dailyMetrics: [...(move.dailyMetrics || []), newMetrics]
-        };
-
-        await updateMove(updated);
-        onUpdate(updated);
-        toast.success('Progress logged');
-    };
-
-    // Get today's tasks (incomplete ones)
-    const todaysTasks = move.checklist?.filter(t => !t.completed).slice(0, 5) || [];
-
-    // Get today's asset (first draft asset)
-    const todaysAsset = move.assets?.find(a => a.status === 'draft');
-
-    const renderTabContent = () => {
-        switch (activeTab) {
-            case 'today':
-                return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                        {/* Today's Tasks */}
-                        <div>
-                            <h4 style={{
-                                fontFamily: 'Inter, sans-serif',
-                                fontSize: 11,
-                                fontWeight: 600,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.15em',
-                                color: '#9D9F9F',
-                                marginBottom: 12
-                            }}>
-                                Tasks ({move.dailyEffort}m)
-                            </h4>
-                            <div style={{
-                                background: '#FFFFFF',
-                                border: '1px solid #E5E6E3',
-                                borderRadius: 16,
-                                overflow: 'hidden'
-                            }}>
-                                {todaysTasks.length > 0 ? todaysTasks.map(task => (
-                                    <div
-                                        key={task.id}
-                                        onClick={() => handleToggleChecklist(task.id)}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 12,
-                                            padding: 16,
-                                            borderBottom: '1px solid #F8F9F7',
-                                            cursor: 'pointer',
-                                            transition: 'background 150ms ease'
-                                        }}
-                                    >
-                                        <div style={{
-                                            width: 20,
-                                            height: 20,
-                                            borderRadius: 6,
-                                            border: '1px solid #E5E6E3',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>
-                                            {task.completed && <Check style={{ width: 12, height: 12, color: '#22C55E' }} />}
-                                        </div>
-                                        <span style={{
-                                            fontFamily: 'Inter, sans-serif',
-                                            fontSize: 14,
-                                            color: '#2D3538'
-                                        }}>
-                                            {task.label}
-                                        </span>
-                                    </div>
-                                )) : (
-                                    <div style={{ padding: 24, textAlign: 'center', color: '#9D9F9F' }}>
-                                        All tasks completed! 🎉
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Today's Asset */}
-                        {todaysAsset && (
-                            <div>
-                                <h4 style={{
-                                    fontFamily: 'Inter, sans-serif',
-                                    fontSize: 11,
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.15em',
-                                    color: '#9D9F9F',
-                                    marginBottom: 12
-                                }}>
-                                    Today's Asset
-                                </h4>
-                                <div style={{
-                                    background: '#FFFFFF',
-                                    border: '1px solid #E5E6E3',
-                                    borderRadius: 16,
-                                    padding: 20
-                                }}>
-                                    <div style={{
-                                        fontFamily: 'Inter, sans-serif',
-                                        fontSize: 14,
-                                        fontWeight: 500,
-                                        color: '#2D3538',
-                                        marginBottom: 12
-                                    }}>
-                                        {todaysAsset.title}
-                                    </div>
-                                    <p style={{
-                                        fontFamily: 'Inter, sans-serif',
-                                        fontSize: 13,
-                                        color: '#5B5F61',
-                                        lineHeight: 1.6,
-                                        marginBottom: 16
-                                    }}>
-                                        {todaysAsset.content.slice(0, 200)}...
-                                    </p>
-                                    <div style={{ display: 'flex', gap: 8 }}>
-                                        <Button variant="outline" size="sm">
-                                            <Copy style={{ width: 14, height: 14, marginRight: 6 }} />
-                                            Copy
-                                        </Button>
-                                        <Button variant="outline" size="sm">
-                                            Mark Used
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Quick Log */}
-                        <div>
-                            <h4 style={{
-                                fontFamily: 'Inter, sans-serif',
-                                fontSize: 11,
-                                fontWeight: 600,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.15em',
-                                color: '#9D9F9F',
-                                marginBottom: 12
-                            }}>
-                                Quick Log Progress
-                            </h4>
-                            <div style={{
-                                background: '#FFFFFF',
-                                border: '1px solid #E5E6E3',
-                                borderRadius: 16,
-                                padding: 20
-                            }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
-                                    <div>
-                                        <label style={{ fontSize: 11, color: '#9D9F9F', display: 'block', marginBottom: 4 }}>Replies</label>
-                                        <input
-                                            type="number"
-                                            value={logReplies}
-                                            onChange={(e) => setLogReplies(parseInt(e.target.value) || 0)}
-                                            style={{
-                                                width: '100%',
-                                                padding: '8px 12px',
-                                                border: '1px solid #E5E6E3',
-                                                borderRadius: 8,
-                                                fontFamily: 'JetBrains Mono, monospace',
-                                                fontSize: 14
-                                            }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ fontSize: 11, color: '#9D9F9F', display: 'block', marginBottom: 4 }}>Leads</label>
-                                        <input
-                                            type="number"
-                                            value={logLeads}
-                                            onChange={(e) => setLogLeads(parseInt(e.target.value) || 0)}
-                                            style={{
-                                                width: '100%',
-                                                padding: '8px 12px',
-                                                border: '1px solid #E5E6E3',
-                                                borderRadius: 8,
-                                                fontFamily: 'JetBrains Mono, monospace',
-                                                fontSize: 14
-                                            }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ fontSize: 11, color: '#9D9F9F', display: 'block', marginBottom: 4 }}>Calls</label>
-                                        <input
-                                            type="number"
-                                            value={logCalls}
-                                            onChange={(e) => setLogCalls(parseInt(e.target.value) || 0)}
-                                            style={{
-                                                width: '100%',
-                                                padding: '8px 12px',
-                                                border: '1px solid #E5E6E3',
-                                                borderRadius: 8,
-                                                fontFamily: 'JetBrains Mono, monospace',
-                                                fontSize: 14
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                                <div style={{ marginBottom: 16 }}>
-                                    <label style={{ fontSize: 11, color: '#9D9F9F', display: 'block', marginBottom: 4 }}>Confidence (1-10)</label>
-                                    <input
-                                        type="range"
-                                        min="1"
-                                        max="10"
-                                        value={logConfidence}
-                                        onChange={(e) => setLogConfidence(parseInt(e.target.value))}
-                                        style={{ width: '100%' }}
-                                    />
-                                    <div style={{ textAlign: 'center', fontFamily: 'JetBrains Mono', fontSize: 14 }}>{logConfidence}/10</div>
-                                </div>
-                                <Button onClick={handleSaveLog} style={{ width: '100%' }}>
-                                    Save Log
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                );
-
-            case 'plan':
-                const groups = {
-                    setup: move.checklist?.filter(i => i.group === 'setup') || [],
-                    create: move.checklist?.filter(i => i.group === 'create') || [],
-                    publish: move.checklist?.filter(i => i.group === 'publish') || [],
-                    followup: move.checklist?.filter(i => i.group === 'followup') || [],
-                };
-
-                return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                        {Object.entries(groups).map(([group, items]) => items.length > 0 && (
-                            <div key={group}>
-                                <h4 style={{
-                                    fontFamily: 'Inter, sans-serif',
-                                    fontSize: 11,
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.15em',
-                                    color: '#9D9F9F',
-                                    marginBottom: 12
-                                }}>
-                                    {group} Phase
-                                </h4>
-                                <div style={{
-                                    background: '#FFFFFF',
-                                    border: '1px solid #E5E6E3',
-                                    borderRadius: 16,
-                                    overflow: 'hidden'
-                                }}>
-                                    {items.map(item => (
-                                        <div
-                                            key={item.id}
-                                            onClick={() => handleToggleChecklist(item.id)}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 12,
-                                                padding: 16,
-                                                borderBottom: '1px solid #F8F9F7',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: 20,
-                                                height: 20,
-                                                borderRadius: 6,
-                                                border: item.completed ? 'none' : '1px solid #E5E6E3',
-                                                background: item.completed ? '#22C55E' : 'transparent',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
-                                            }}>
-                                                {item.completed && <Check style={{ width: 12, height: 12, color: '#FFFFFF' }} />}
-                                            </div>
-                                            <span style={{
-                                                fontFamily: 'Inter, sans-serif',
-                                                fontSize: 14,
-                                                color: item.completed ? '#9D9F9F' : '#2D3538',
-                                                textDecoration: item.completed ? 'line-through' : 'none'
-                                            }}>
-                                                {item.label}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                );
-
-            case 'assets':
-                return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        {move.assets && move.assets.length > 0 ? move.assets.map(asset => (
-                            <div key={asset.id} style={{
-                                background: '#FFFFFF',
-                                border: '1px solid #E5E6E3',
-                                borderRadius: 16,
-                                padding: 20
-                            }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                                    <span style={{
-                                        fontFamily: 'Inter',
-                                        fontSize: 14,
-                                        fontWeight: 500,
-                                        color: '#2D3538'
-                                    }}>
-                                        {asset.title}
-                                    </span>
-                                    <span style={{
-                                        fontSize: 10,
-                                        fontWeight: 600,
-                                        textTransform: 'uppercase',
-                                        padding: '4px 8px',
-                                        background: asset.status === 'used' ? '#E5E6E3' : '#F8F9F7',
-                                        borderRadius: 6,
-                                        color: '#5B5F61'
-                                    }}>
-                                        {asset.status}
-                                    </span>
-                                </div>
-                                <p style={{
-                                    fontFamily: 'Inter',
-                                    fontSize: 13,
-                                    color: '#5B5F61',
-                                    lineHeight: 1.6
-                                }}>
-                                    {asset.content.slice(0, 150)}...
-                                </p>
-                            </div>
-                        )) : (
-                            <div style={{
-                                textAlign: 'center',
-                                padding: 48,
-                                color: '#9D9F9F'
-                            }}>
-                                <Sparkles style={{ width: 32, height: 32, marginBottom: 12, opacity: 0.3 }} />
-                                <p>No assets generated yet</p>
-                                <Button variant="outline" style={{ marginTop: 16 }}>
-                                    Generate Assets
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-                );
-
-            case 'results':
-                const latestMetrics = move.dailyMetrics?.[move.dailyMetrics.length - 1];
-                return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                        {/* Outcome vs Target */}
-                        <div style={{
-                            background: '#FFFFFF',
-                            border: '1px solid #E5E6E3',
-                            borderRadius: 16,
-                            padding: 24
-                        }}>
-                            <h4 style={{
-                                fontFamily: 'Inter',
-                                fontSize: 11,
-                                fontWeight: 600,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.15em',
-                                color: '#9D9F9F',
-                                marginBottom: 16
-                            }}>
-                                Progress vs Target
-                            </h4>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                                <span style={{
-                                    fontFamily: 'Playfair Display',
-                                    fontSize: 48,
-                                    fontWeight: 500,
-                                    color: '#2D3538'
-                                }}>
-                                    {latestMetrics?.calls || latestMetrics?.leads || 0}
-                                </span>
-                                <span style={{
-                                    fontFamily: 'Inter',
-                                    fontSize: 18,
-                                    color: '#9D9F9F'
-                                }}>
-                                    / {move.targetNumber || 10} {move.outcomeType || 'calls'}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Daily Metrics History */}
-                        {move.dailyMetrics && move.dailyMetrics.length > 0 && (
-                            <div>
-                                <h4 style={{
-                                    fontFamily: 'Inter',
-                                    fontSize: 11,
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.15em',
-                                    color: '#9D9F9F',
-                                    marginBottom: 12
-                                }}>
-                                    Daily Check-ins
-                                </h4>
-                                <div style={{
-                                    background: '#FFFFFF',
-                                    border: '1px solid #E5E6E3',
-                                    borderRadius: 16,
-                                    overflow: 'hidden'
-                                }}>
-                                    {move.dailyMetrics.slice(-7).reverse().map((m, i) => (
-                                        <div key={i} style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            padding: 16,
-                                            borderBottom: '1px solid #F8F9F7'
-                                        }}>
-                                            <span style={{ fontFamily: 'Inter', fontSize: 13, color: '#5B5F61' }}>
-                                                {m.submittedAt ? new Date(m.submittedAt).toLocaleDateString() : 'Today'}
-                                            </span>
-                                            <div style={{ display: 'flex', gap: 16, fontFamily: 'JetBrains Mono', fontSize: 12 }}>
-                                                <span>{m.leads}L</span>
-                                                <span>{m.replies}R</span>
-                                                <span>{m.calls}C</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                );
-
-            case 'log':
-                return (
-                    <div style={{
-                        textAlign: 'center',
-                        padding: 48,
-                        color: '#9D9F9F'
-                    }}>
-                        <Activity style={{ width: 32, height: 32, marginBottom: 12, opacity: 0.3 }} />
-                        <p>Activity log coming soon</p>
-                    </div>
-                );
-
-            default:
-                return null;
-        }
-    };
-
-    return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent
-                side="right"
-                style={{
-                    width: 480,
-                    maxWidth: '100vw',
-                    padding: 0,
-                    background: '#F8F9F7',
-                    borderLeft: '1px solid #E5E6E3'
-                }}
+  const Content = (
+    <div
+      className={cn(
+        'flex flex-col h-full bg-canvas',
+        standalone ? 'min-h-screen' : 'max-w-5xl h-[90vh]'
+      )}
+    >
+      {/* Header */}
+      <div className="p-6 border-b border-borders/50 flex justify-between items-start bg-background/50 backdrop-blur-sm z-10">
+        <div className="space-y-2 flex-1 mr-8">
+          <div className="flex items-center gap-3 mb-1">
+            <span className="text-[10px] uppercase tracking-widest font-mono text-muted-foreground">
+              {move.campaignName || 'Uncategorized Move'}
+            </span>
+            <ChevronRight className="w-3 h-3 text-muted-foreground/50" />
+            <Badge
+              variant="outline"
+              className="uppercase tracking-widest text-[10px] font-mono border-accent/20 text-accent"
             >
-                {/* Header */}
-                <div style={{
-                    padding: 24,
-                    background: '#FFFFFF',
-                    borderBottom: '1px solid #E5E6E3'
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                        <div>
-                            <h2 style={{
-                                fontFamily: 'Playfair Display, Georgia, serif',
-                                fontSize: 24,
-                                fontWeight: 500,
-                                color: '#2D3538',
-                                marginBottom: 8
-                            }}>
-                                {move.name}
-                            </h2>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                                <span style={{
-                                    fontSize: 10,
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    padding: '4px 8px',
-                                    background: '#F8F9F7',
-                                    borderRadius: 6,
-                                    color: '#5B5F61'
-                                }}>
-                                    {GOAL_LABELS[move.goal]?.label}
-                                </span>
-                                <span style={{
-                                    fontSize: 10,
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    padding: '4px 8px',
-                                    background: '#F8F9F7',
-                                    borderRadius: 6,
-                                    color: '#5B5F61'
-                                }}>
-                                    {CHANNEL_LABELS[move.channel]}
-                                </span>
-                            </div>
-                        </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <MoreHorizontal style={{ width: 16, height: 16 }} />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                    onClick={() => setConfirmDelete(true)}
-                                    style={{ color: '#DC2626' }}
-                                >
-                                    <Trash2 style={{ width: 14, height: 14, marginRight: 8 }} />
-                                    Delete Move
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
+              {move.channel}
+            </Badge>
+          </div>
 
-                    {/* Status Row */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <Clock style={{ width: 14, height: 14, color: '#9D9F9F' }} />
-                                <span style={{ fontFamily: 'JetBrains Mono', fontSize: 12, color: '#2D3538' }}>
-                                    Day {dayNumber}/{move.duration}
-                                </span>
-                            </div>
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                                padding: '4px 10px',
-                                background: rag.status === 'green' ? 'rgba(34, 197, 94, 0.1)' :
-                                    rag.status === 'amber' ? 'rgba(245, 158, 11, 0.1)' :
-                                        'rgba(239, 68, 68, 0.1)',
-                                borderRadius: 6
-                            }}>
-                                <div style={{
-                                    width: 6,
-                                    height: 6,
-                                    borderRadius: '50%',
-                                    background: rag.status === 'green' ? '#22C55E' :
-                                        rag.status === 'amber' ? '#F59E0B' : '#EF4444'
-                                }} />
-                                <span style={{
-                                    fontFamily: 'Inter',
-                                    fontSize: 11,
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    color: rag.status === 'green' ? '#16A34A' :
-                                        rag.status === 'amber' ? '#D97706' : '#DC2626'
-                                }}>
-                                    {rag.status}
-                                </span>
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                            {move.status === 'queued' && (
-                                <Button variant="default" size="sm" onClick={handleActivate}>
-                                    <Play style={{ width: 14, height: 14, marginRight: 4 }} />
-                                    Activate
-                                </Button>
-                            )}
-                            {move.status === 'active' && (
-                                <Button variant="outline" size="sm" onClick={handlePause}>
-                                    <Pause style={{ width: 14, height: 14 }} />
-                                </Button>
-                            )}
-                            {move.status === 'paused' && (
-                                <Button variant="outline" size="sm" onClick={handleResume}>
-                                    <Play style={{ width: 14, height: 14 }} />
-                                </Button>
-                            )}
-                        </div>
-                    </div>
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "w-2.5 h-2.5 rounded-full",
+              move.rag === 'green' ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" :
+                move.rag === 'amber' ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" :
+                  "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
+            )} title={`RAG Status: ${move.rag || 'green'}`} />
+            <span
+              className={cn(
+                'text-[10px] uppercase tracking-widest font-bold',
+                move.status === 'active'
+                  ? 'text-emerald-500'
+                  : 'text-muted-foreground'
+              )}
+            >
+              {move.status} status
+            </span>
+          </div>
+
+          {isEditing ? (
+            <div className="space-y-4 max-w-md animate-in fade-in slide-in-from-left-2">
+              <Input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="text-2xl font-serif h-12"
+                placeholder="Move Name"
+              />
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+                    Strategic Goal
+                  </label>
+                  <select
+                    value={editGoal}
+                    onChange={(e) => setEditGoal(e.target.value)}
+                    className="w-full h-9 rounded-md border border-borders bg-surface px-3 py-1 text-sm shadow-sm focus:ring-1 focus:ring-accent outline-none"
+                  >
+                    <option value="leads">Leads</option>
+                    <option value="calls">Calls</option>
+                    <option value="sales">Sales</option>
+                    <option value="proof">Proof</option>
+                    <option value="distribution">Distribution</option>
+                  </select>
                 </div>
-
-                {/* Tabs */}
-                <div style={{
-                    display: 'flex',
-                    gap: 4,
-                    padding: '12px 24px',
-                    background: '#FFFFFF',
-                    borderBottom: '1px solid #E5E6E3'
-                }}>
-                    {TABS.map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                                padding: '8px 12px',
-                                background: activeTab === tab.id ? '#1A1D1E' : 'transparent',
-                                color: activeTab === tab.id ? '#FFFFFF' : '#5B5F61',
-                                border: 'none',
-                                borderRadius: 8,
-                                fontFamily: 'Inter, sans-serif',
-                                fontSize: 12,
-                                fontWeight: 500,
-                                cursor: 'pointer',
-                                transition: 'all 150ms ease'
-                            }}
-                        >
-                            {tab.icon}
-                            {tab.label}
-                        </button>
-                    ))}
+                <div className="flex-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+                    Duration (Days)
+                  </label>
+                  <Input
+                    type="number"
+                    value={editDuration}
+                    onChange={(e) => setEditDuration(parseInt(e.target.value))}
+                    className="h-9"
+                  />
                 </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={handleSaveEdit}
+                  className="bg-ink text-white"
+                >
+                  Save Changes
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {standalone ? (
+                <h1 className="text-3xl font-serif text-ink flex items-center gap-2 group">
+                  {move.name}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <Edit2 className="w-3 h-3 text-muted-foreground" />
+                  </Button>
+                </h1>
+              ) : (
+                <DialogTitle className="text-3xl font-serif text-ink flex items-center gap-2 group">
+                  {move.name}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <Edit2 className="w-3 h-3 text-muted-foreground" />
+                  </Button>
+                </DialogTitle>
+              )}
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4" />
+                  {move.duration} Day Protocol
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <TrendingUp className="w-4 h-4" />
+                  Target: {move.goal}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" />
+                  {Math.round(
+                    (move.checklist.filter((t) => t.completed).length /
+                      move.checklist.length) *
+                    100 || 0
+                  )}
+                  % Execution
+                </span>
+              </div>
+            </>
+          )}
+        </div>
 
-                {/* Tab Content */}
-                <div style={{ padding: 24, overflowY: 'auto', height: 'calc(100vh - 280px)' }}>
-                    {completing ? (
-                        <div style={{
-                            background: '#FFFFFF',
-                            border: '1px solid #E5E6E3',
-                            borderRadius: 16,
-                            padding: 24
-                        }}>
-                            <h3 style={{
-                                fontFamily: 'Playfair Display',
-                                fontSize: 20,
-                                marginBottom: 24
-                            }}>
-                                Complete Move
-                            </h3>
-                            <div style={{ marginBottom: 16 }}>
-                                <label style={{ fontSize: 12, color: '#9D9F9F', display: 'block', marginBottom: 8 }}>
-                                    What happened?
-                                </label>
-                                <textarea
-                                    value={whatHappened}
-                                    onChange={e => setWhatHappened(e.target.value)}
-                                    placeholder="Brief summary..."
-                                    style={{
-                                        width: '100%',
-                                        minHeight: 100,
-                                        padding: 12,
-                                        border: '1px solid #E5E6E3',
-                                        borderRadius: 12,
-                                        fontFamily: 'Inter',
-                                        fontSize: 14,
-                                        resize: 'none'
-                                    }}
-                                />
-                            </div>
-                            <div style={{ display: 'flex', gap: 12 }}>
-                                <Button variant="outline" onClick={() => setCompleting(false)}>Cancel</Button>
-                                <Button onClick={submitCompletion}>Complete</Button>
-                            </div>
-                        </div>
-                    ) : (
-                        renderTabContent()
-                    )}
-                </div>
-
-                {/* Footer */}
-                {!completing && move.status === 'active' && (
-                    <div style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        padding: 24,
-                        background: '#FFFFFF',
-                        borderTop: '1px solid #E5E6E3',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                    }}>
-                        <span style={{ fontFamily: 'JetBrains Mono', fontSize: 12, color: '#9D9F9F' }}>
-                            {completedTasks}/{totalTasks} tasks
-                        </span>
-                        <Button onClick={handleComplete}>
-                            Complete Move
-                        </Button>
-                    </div>
+        <div className="flex items-center gap-2">
+          {onRefresh && (
+            <Button variant="ghost" size="sm" onClick={onRefresh} className="text-secondary-text h-9">
+              Refresh Data
+            </Button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2 border-borders bg-surface h-9">
+                {move.status === 'active' ? (
+                  <Pause className="w-4 h-4" />
+                ) : (
+                  <Play className="w-4 h-4" />
                 )}
-            </SheetContent>
+                {move.status === 'active' ? 'Pause' : 'Start'} Objective
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-surface border-borders">
+              <DropdownMenuItem onClick={() => handleStatusChange('active')}>
+                Resume Active
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusChange('paused')}>
+                Enter Pause State
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusChange('completed')} className="text-emerald-500 font-bold">
+                Archive as Complete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {!standalone && (
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="w-5 h-5" />
+            </Button>
+          )}
+        </div>
+      </div>
 
-            {/* Delete Confirmation Dialog */}
-            <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-                <DialogContent style={{ maxWidth: 400 }}>
-                    <DialogHeader>
-                        <DialogTitle style={{ fontFamily: 'Playfair Display, Georgia, serif' }}>
-                            Delete Move?
-                        </DialogTitle>
-                        <DialogDescription>
-                            This will permanently delete "{move.name}" and all associated data. This action cannot be undone.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter style={{ gap: 12 }}>
-                        <Button variant="outline" onClick={() => setConfirmDelete(false)}>
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDeleteConfirm}
-                            style={{ background: '#DC2626' }}
+      <div className="flex-1 overflow-hidden flex flex-col">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="h-full flex flex-col"
+        >
+          <div className="px-6 border-b border-borders/50 bg-background/30">
+            <TabsList className="bg-transparent h-14 w-full justify-start gap-8 p-0">
+              <TabsTrigger
+                value="rationale"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none h-full px-0 font-display text-base"
+              >
+                Council Rationale
+              </TabsTrigger>
+              <TabsTrigger
+                value="execution"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none h-full px-0 font-display text-base"
+              >
+                Execution Plan
+              </TabsTrigger>
+              <TabsTrigger
+                value="metrics"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-accent rounded-none h-full px-0 font-display text-base"
+              >
+                Activity & Metrics
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <ScrollArea className="flex-1 bg-muted/20">
+            <div className="p-8 max-w-5xl mx-auto space-y-8 pb-32">
+              <TabsContent
+                value="rationale"
+                className="m-0 space-y-8 animate-in fade-in slide-in-from-bottom-2"
+              >
+                {!rationale ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="animate-pulse flex flex-col items-center gap-4">
+                      <BrainCircuit className="w-8 h-8 text-accent/50" />
+                      <span className="text-sm text-muted-foreground font-mono">
+                        Strategizing...
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Strategic Decree */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      <div className="lg:col-span-2 space-y-6">
+                        <section className="bg-surface border border-borders/50 rounded-2xl p-8 shadow-sm">
+                          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-fill mb-4 flex items-center gap-2">
+                            <BrainCircuit className="h-4 w-4" />
+                            Strategic Decree
+                          </h3>
+                          <p className="text-xl font-serif italic text-ink leading-relaxed">
+                            "{rationale?.strategicDecree}"
+                          </p>
+                          <div className="mt-8">
+                            <PedigreeVisualizer />
+                          </div>
+                        </section>
+
+                        {/* Collapsible Expert Perspectives */}
+                        <section className="space-y-4">
+                          <button
+                            onClick={() => setShowExperts(!showExperts)}
+                            className="flex items-center justify-between w-full group"
+                          >
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-fill flex items-center gap-2 group-hover:text-ink transition-colors">
+                              <MoreHorizontal className="h-3 w-3" />
+                              Expert Perspectives
+                            </h3>
+                            {showExperts ? (
+                              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </button>
+
+                          {showExperts && (
+                            <div className="grid gap-3 animate-in slide-in-from-top-2 fade-in">
+                              {rationale?.debateTranscript?.map((item, i) => (
+                                <div
+                                  key={i}
+                                  className="bg-surface border border-borders/30 rounded-xl p-4 flex gap-4"
+                                >
+                                  <Avatar className="h-8 w-8 shrink-0">
+                                    <AvatarFallback className="bg-accent/10 text-accent font-bold text-xs">
+                                      {item.role[0]}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="text-xs font-bold text-ink uppercase tracking-wider mb-1">
+                                      {item.role}
+                                    </p>
+                                    <p className="text-sm text-secondary-text leading-relaxed">
+                                      "{item.argument}"
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </section>
+                      </div>
+
+                      <div className="space-y-6">
+                        {/* Alignment */}
+                        <div className="bg-surface border border-borders/50 rounded-2xl p-6">
+                          <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div>
+                              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">
+                                Confidence
+                              </p>
+                              <p className="text-3xl font-mono text-ink">
+                                {(rationale?.confidence || 0) * 100}%
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">
+                                Risk Level
+                              </p>
+                              <p className="text-3xl font-mono text-amber-600">
+                                Low
+                              </p>
+                            </div>
+                          </div>
+                          <ConfidenceHeatmap />
+                        </div>
+
+                        {/* Discarded Paths */}
+                        <div className="bg-surface border border-borders/50 rounded-2xl p-6">
+                          <button
+                            onClick={() => setShowRejected(!showRejected)}
+                            className="flex items-center justify-between w-full mb-4 group"
+                          >
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-fill flex items-center gap-2 group-hover:text-ink transition-colors">
+                              <AlertTriangle className="h-3 w-3" />
+                              Rejected Paths
+                            </h3>
+                            {showRejected ? (
+                              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </button>
+
+                          {showRejected && (
+                            <div className="space-y-4 animate-in slide-in-from-top-2 fade-in">
+                              {rationale?.rejectedPaths?.map((path, i) => (
+                                <div
+                                  key={i}
+                                  className="p-3 bg-muted/30 rounded-lg border border-borders/20"
+                                >
+                                  <p className="text-xs font-bold text-ink mb-1">
+                                    {path.path}
+                                  </p>
+                                  <p className="text-[11px] text-muted-foreground">
+                                    {path.reason}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+
+              <TabsContent
+                value="execution"
+                className="m-0 animate-in fade-in slide-in-from-bottom-2 h-full flex flex-col lg:flex-row gap-6"
+              >
+                <div className="flex-1 space-y-6">
+                  <div className="bg-surface border border-borders/50 rounded-2xl p-8">
+                    <h3 className="text-lg font-display font-medium mb-6">
+                      Tactical Checklist
+                    </h3>
+                    <div className="space-y-1">
+                      {move.checklist.map((task) => (
+                        <div
+                          key={task.id}
+                          className={cn(
+                            'group flex items-center gap-4 p-4 rounded-xl transition-all duration-200 border border-transparent cursor-pointer',
+                            task.completed
+                              ? 'bg-muted/10 opacity-60'
+                              : 'hover:bg-muted/20 hover:border-borders/30',
+                            selectedTask === task.id
+                              ? 'bg-muted/20 border-accent/30 ring-1 ring-accent/30'
+                              : ''
+                          )}
+                          onClick={() => setSelectedTask(task.id)}
                         >
-                            <Trash2 style={{ width: 14, height: 14, marginRight: 6 }} />
-                            Delete
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleTask(task.id);
+                            }}
+                            className={cn(
+                              'flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors',
+                              task.completed
+                                ? 'bg-accent border-accent text-white'
+                                : 'border-muted-foreground/30 hover:border-accent'
+                            )}
+                          >
+                            {task.completed && (
+                              <CheckCircle2 className="w-4 h-4" />
+                            )}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className={cn(
+                                'text-sm font-medium truncate transition-all',
+                                task.completed
+                                  ? 'text-muted-foreground line-through'
+                                  : 'text-ink'
+                              )}
+                            >
+                              {task.label}
+                            </p>
+                            <div className="flex items-center gap-3 mt-1">
+                              <p className="text-xs text-muted-foreground capitalize">
+                                {task.group} Phase
+                              </p>
+                              {task.completed && (
+                                <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 rounded-sm">
+                                  Done
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              'transition-opacity text-xs h-7 text-muted-foreground',
+                              selectedTask === task.id
+                                ? 'opacity-100'
+                                : 'opacity-0 group-hover:opacity-100'
+                            )}
+                          >
+                            Details <ChevronRight className="w-3 h-3 ml-1" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full lg:w-[350px] shrink-0 space-y-6">
+                  {selectedChecklistItem ? (
+                    <div className="bg-surface border border-borders/50 rounded-2xl p-6 animate-in slide-in-from-right-4 fade-in duration-300">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-sm font-bold uppercase tracking-widest text-muted-fill">
+                          Task Details
+                        </h3>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => setSelectedTask(null)}
+                        >
+                          <X className="w-4 h-4 text-muted-foreground" />
                         </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </Sheet>
-    );
+                      </div>
+
+                      <div className="space-y-6">
+                        <div>
+                          <h4 className="text-lg font-serif text-ink mb-2">
+                            {selectedChecklistItem.label}
+                          </h4>
+                          <Badge variant="outline" className="capitalize">
+                            {selectedChecklistItem.group}
+                          </Badge>
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                            Proposed By
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="bg-ink text-white text-[10px]">
+                                ST
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm font-medium text-ink">
+                              The Strategist
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Muse Prompt Display */}
+                        <div className="space-y-2">
+                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                            Muse Prompt
+                          </p>
+                          <div className="text-xs font-mono text-secondary-text bg-muted/30 p-3 rounded-lg border border-borders/20 overflow-x-auto whitespace-pre-wrap">
+                            {selectedChecklistItem.muse_prompt ||
+                              'No prompt available.'}
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-borders/20">
+                          <Button
+                            className="w-full bg-surface border border-borders hover:bg-muted/10 text-ink"
+                            onClick={async () => {
+                              const refinementPrompt =
+                                typeof move.refinementData?.muse_prompt === 'string'
+                                  ? move.refinementData.muse_prompt
+                                  : '';
+                              const prompt =
+                                selectedChecklistItem.muse_prompt ||
+                                refinementPrompt ||
+                                move.description ||
+                                `Create asset for ${move.name}`;
+                              try {
+                                toast.loading('Creating Muse asset...', {
+                                  id: 'muse-create',
+                                });
+                                const asset = await createMuseAsset(
+                                  prompt,
+                                  'email',
+                                  JSON.stringify({
+                                    move_id: move.id,
+                                    campaign_id: move.campaignId,
+                                    source: 'move-task',
+                                  })
+                                );
+                                toast.success('Muse asset ready.', {
+                                  id: 'muse-create',
+                                });
+                                router.push(`/muse?asset_id=${asset.id}`);
+                              } catch (error) {
+                                toast.error('Failed to create Muse asset.', {
+                                  id: 'muse-create',
+                                });
+                              }
+                            }}
+                          >
+                            Open Workspace
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="bg-surface border border-borders/50 rounded-2xl p-6">
+                        <h3 className="text-sm font-bold mb-4">Requirements</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {move.toolRequirements?.map((tool) => (
+                            <Badge
+                              key={tool}
+                              variant="secondary"
+                              className="bg-muted text-muted-foreground font-mono text-[10px]"
+                            >
+                              {tool}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-accent/10 to-transparent border border-accent/20 rounded-2xl p-6">
+                        <h3 className="text-sm font-bold text-accent mb-2">
+                          Micro-Win
+                        </h3>
+                        <p className="text-sm text-secondary-text leading-relaxed">
+                          Completing this move contributes to the{' '}
+                          <span className="font-bold text-ink">
+                            "Authority Builder"
+                          </span>{' '}
+                          milestone.
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent
+                value="metrics"
+                className="m-0 animate-in fade-in slide-in-from-bottom-2"
+              >
+                <div className="bg-surface border border-borders/50 rounded-2xl p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <h3 className="text-lg font-display font-medium">
+                        Performance Velocity
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Real-time impact tracking
+                      </p>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="text-right">
+                        <p className="text-2xl font-mono font-bold text-ink">
+                          37
+                        </p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                          Leads
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-mono font-bold text-ink">
+                          12
+                        </p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                          Calls
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="h-[400px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={metricsData}>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          opacity={0.05}
+                          vertical={false}
+                        />
+                        <XAxis
+                          dataKey="day"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: '#9ca3af' }}
+                          dy={10}
+                        />
+                        <YAxis
+                          yAxisId="left"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: '#9ca3af' }}
+                        />
+                        <YAxis
+                          yAxisId="right"
+                          orientation="right"
+                          domain={[0, 100]}
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 10, fill: '#D7C9AE' }}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#141A1C',
+                            borderRadius: '12px',
+                            border: '1px solid #2B3437',
+                            color: '#E9ECE6',
+                          }}
+                          itemStyle={{ fontSize: '12px' }}
+                        />
+                        <Line
+                          yAxisId="left"
+                          type="monotone"
+                          dataKey="leads"
+                          stroke="#E9ECE6"
+                          strokeWidth={3}
+                          dot={{
+                            r: 4,
+                            fill: '#141A1C',
+                            strokeWidth: 2,
+                            stroke: '#E9ECE6'
+                          }}
+                          activeDot={{ r: 6, fill: '#D7C9AE' }}
+                        />
+                        <Line
+                          yAxisId="right"
+                          type="monotone"
+                          dataKey="calls"
+                          stroke="#10B981"
+                          strokeWidth={3}
+                          dot={{
+                            r: 4,
+                            fill: '#141A1C',
+                            strokeWidth: 2,
+                            stroke: '#10B981',
+                          }}
+                        />
+                        <Line
+                          yAxisId="right"
+                          type="monotone"
+                          dataKey="confidence"
+                          stroke="#D7C9AE"
+                          strokeWidth={2}
+                          strokeDasharray="5 5"
+                          dot={false}
+                          activeDot={{ r: 4, fill: '#D7C9AE' }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </TabsContent>
+            </div>
+          </ScrollArea>
+        </Tabs>
+      </div>
+
+      {!standalone && (
+        <DialogFooter className="p-6 border-t border-borders/50 bg-background/50 backdrop-blur-sm z-10 flex justify-between items-center sm:justify-between">
+          <div className="text-xs text-muted-foreground font-mono">
+            ID: {move.id} • Created:{' '}
+            {new Date(move.createdAt).toLocaleDateString()}
+          </div>
+          <Button
+            onClick={onClose}
+            className="px-8 bg-ink text-white hover:bg-ink/90"
+          >
+            Close Detail View
+          </Button>
+        </DialogFooter>
+      )}
+    </div>
+  );
+
+  if (standalone) {
+    return Content;
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-5xl h-[90vh] p-0 overflow-hidden flex flex-col bg-canvas sm:rounded-2xl">
+        {Content}
+      </DialogContent>
+    </Dialog>
+  );
 }

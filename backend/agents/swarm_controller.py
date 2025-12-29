@@ -1,11 +1,61 @@
 import logging
 from typing import Any, Dict, List
 
-from agents.supervisor import HierarchicalSupervisor
-from agents.swarm_decomposer import SwarmTaskDecomposer
-from models.swarm import SwarmState
+from swarm import Swarm
+
+from agents.supervisor import get_swarm_supervisor
+from db.swarm_context import load_swarm_context, save_swarm_context
+from models.cognitive import AgentMessage
 
 logger = logging.getLogger("raptorflow.agents.swarm_controller")
+
+
+class SwarmOrchestrator:
+    """
+    SOTA Swarm Orchestrator using OpenAI Swarm.
+    Manages the lifecycle of dynamic agent teams.
+    """
+
+    def __init__(self):
+        self.client = Swarm()
+        self.root_agent = get_swarm_supervisor()
+
+    async def run_mission(
+        self, prompt: str, workspace_id: str, context: dict = None
+    ) -> Dict[str, Any]:
+        """
+        Runs a full swarm mission starting from the Supervisor.
+        """
+        logger.info(
+            f"SwarmOrchestrator initiating mission for workspace: {workspace_id}"
+        )
+
+        # Load existing context from DB
+        db_context = await load_swarm_context(workspace_id)
+
+        # Initial context
+        context_vars = {**db_context, **(context or {})}
+        context_vars["workspace_id"] = workspace_id
+
+        # Swarm library's run is sync, but we treat it as blocking here
+        response = self.client.run(
+            agent=self.root_agent,
+            messages=[{"role": "user", "content": prompt}],
+            context_variables=context_vars,
+            debug=True,
+        )
+
+        # Persist updated context
+        await save_swarm_context(workspace_id, response.context_variables)
+
+        return {
+            "messages": [
+                AgentMessage(role=m["role"], content=m["content"])
+                for m in response.messages
+            ],
+            "context_variables": response.context_variables,
+            "last_agent": response.agent.name if response.agent else "Unknown",
+        }
 
 
 class SwarmController:

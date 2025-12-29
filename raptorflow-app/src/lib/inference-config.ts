@@ -6,7 +6,7 @@
 
 export interface InferenceConfig {
   apiKey: string;
-  provider: "vertex";
+  provider: 'vertex';
   region: string;
   projectId?: string;
   models: {
@@ -14,7 +14,7 @@ export interface InferenceConfig {
     high: string;
     reasoning: string;
     general: string;
-  }
+  };
 }
 
 export interface InferenceStatus {
@@ -25,16 +25,16 @@ export interface InferenceStatus {
 function hasDefaultCredentials(): boolean {
   return Boolean(
     process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-      process.env.VERTEX_AI_USE_ADC === "true" ||
-      process.env.NEXT_PUBLIC_VERTEX_AI_USE_ADC === "true"
+    process.env.VERTEX_AI_USE_ADC === 'true' ||
+    process.env.NEXT_PUBLIC_VERTEX_AI_USE_ADC === 'true'
   );
 }
 
 function requiresVertexAuth(modelName: string): boolean {
-  return modelName.trim().toLowerCase().startsWith("gemini-2.5");
+  return modelName.trim().toLowerCase().startsWith('gemini-2.5');
 }
 
-function hasApiKeyCompatibleModels(models: InferenceConfig["models"]): boolean {
+function hasApiKeyCompatibleModels(models: InferenceConfig['models']): boolean {
   return Object.values(models).some((model) => !requiresVertexAuth(model));
 }
 
@@ -54,7 +54,7 @@ export function getInferenceConfig(): InferenceConfig {
   const defaultModel =
     process.env.MODEL_GENERAL ||
     process.env.NEXT_PUBLIC_MODEL_GENERAL ||
-    "gemini-2.5-flash-lite";
+    'gemini-2.5-flash-lite';
 
   const models = {
     ultra:
@@ -75,9 +75,12 @@ export function getInferenceConfig(): InferenceConfig {
       defaultModel,
   };
 
-  const normalizedKey = apiKey?.trim() || "";
+  const normalizedKey = apiKey?.trim() || '';
   const hasCreds = hasDefaultCredentials();
-  const region = process.env.NEXT_PUBLIC_GCP_REGION || process.env.GCP_REGION || "europe-west1";
+  const region =
+    process.env.NEXT_PUBLIC_GCP_REGION ||
+    process.env.GCP_REGION ||
+    'europe-west1';
   const projectId =
     process.env.NEXT_PUBLIC_GCP_PROJECT_ID ||
     process.env.GCP_PROJECT_ID ||
@@ -85,15 +88,15 @@ export function getInferenceConfig(): InferenceConfig {
 
   if (normalizedKey && !hasCreds && !hasApiKeyCompatibleModels(models)) {
     console.warn(
-      "WARNING: Gemini 2.5 requires Vertex AI OAuth credentials. API keys are not supported."
+      'WARNING: Gemini 2.5 requires Vertex AI OAuth credentials. API keys are not supported.'
     );
   }
 
   if (!normalizedKey && !hasCreds) {
-    console.warn("WARNING: Vertex API key is missing. Inference is disabled.");
+    console.warn('WARNING: Vertex API key is missing. Inference is disabled.');
     return {
-      apiKey: "",
-      provider: "vertex",
+      apiKey: '',
+      provider: 'vertex',
       region,
       projectId,
       models,
@@ -102,7 +105,7 @@ export function getInferenceConfig(): InferenceConfig {
 
   return {
     apiKey: normalizedKey,
-    provider: "vertex",
+    provider: 'vertex',
     region,
     projectId,
     models,
@@ -124,14 +127,15 @@ export function getInferenceStatus(): InferenceStatus {
   if (!config.apiKey.length) {
     return {
       ready: false,
-      reason: "Missing AI credentials. Set INFERENCE_SIMPLE or configure Vertex ADC.",
+      reason:
+        'Missing AI credentials. Set INFERENCE_SIMPLE or configure Vertex ADC.',
     };
   }
   if (!hasApiKeyCompatibleModels(config.models)) {
     return {
       ready: false,
       reason:
-        "Gemini 2.5 requires Vertex AI OAuth credentials (ADC). API keys are not supported.",
+        'Gemini 2.5 requires Vertex AI OAuth credentials (ADC). API keys are not supported.',
     };
   }
   return { ready: true };

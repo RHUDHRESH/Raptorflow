@@ -8,11 +8,12 @@ from memory.semantic_l3 import L3SemanticMemory
 @pytest.mark.asyncio
 async def test_l3_search_foundation():
     """Verify searching for brand foundation context in L3 memory."""
-    with patch(
-        "backend.memory.semantic_l3.vector_search", new_callable=AsyncMock
-    ) as mock_search, patch(
-        "backend.memory.semantic_l3.InferenceProvider"
-    ) as mock_inference:
+    with (
+        patch(
+            "backend.memory.semantic_l3.vector_search", new_callable=AsyncMock
+        ) as mock_search,
+        patch("backend.memory.semantic_l3.InferenceProvider") as mock_inference,
+    ):
 
         mock_embedder = AsyncMock()
         mock_embedder.aembed_query.return_value = [0.1, 0.2, 0.3]

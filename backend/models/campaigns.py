@@ -20,8 +20,10 @@ class Campaign(BaseModel):
 
     id: UUID = Field(default_factory=uuid4)
     tenant_id: UUID
+    workspace_id: UUID
     title: str
     objective: Optional[str] = None
+    campaign_tag: Optional[str] = None
     status: CampaignStatus = CampaignStatus.DRAFT
     progress: float = Field(
         default=0.0, description="Total campaign completion (0.0 to 1.0)"
@@ -32,7 +34,9 @@ class Campaign(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.now)
 
     # SOTA Data Blobs
-    arc_data: Optional[dict] = None
+    arc_data: dict = Field(default_factory=dict)
+    phase_order: List[str] = Field(default_factory=list)
+    milestones: List[dict] = Field(default_factory=list)
     kpi_targets: Optional[dict] = None
     audit_data: Optional[dict] = None
 

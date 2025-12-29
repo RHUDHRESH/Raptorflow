@@ -9,45 +9,58 @@ export function useProofVault(initialItems: ProofItem[] = []) {
       ...newItem,
       id: `proof_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
-    setItems(prev => [...prev, item]);
+    setItems((prev) => [...prev, item]);
     return item;
   }, []);
 
   const updateItem = useCallback((id: string, updates: Partial<ProofItem>) => {
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, ...updates } : item
-    ));
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
+    );
   }, []);
 
   const deleteItem = useCallback((id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id));
+    setItems((prev) => prev.filter((item) => item.id !== id));
   }, []);
 
-  const getItemsByType = useCallback((type: ProofItem['type']) => {
-    return items.filter(item => item.type === type);
-  }, [items]);
+  const getItemsByType = useCallback(
+    (type: ProofItem['type']) => {
+      return items.filter((item) => item.type === type);
+    },
+    [items]
+  );
 
-  const getItemsByPhase = useCallback((phase: number) => {
-    return items.filter(item => item.linkedPhases?.includes(phase));
-  }, [items]);
+  const getItemsByPhase = useCallback(
+    (phase: number) => {
+      return items.filter((item) => item.linkedPhases?.includes(phase));
+    },
+    [items]
+  );
 
   const getVerifiedItems = useCallback(() => {
-    return items.filter(item => item.verified);
+    return items.filter((item) => item.verified);
   }, [items]);
 
-  const getTopRatedItems = useCallback((minRating: number = 4) => {
-    return items.filter(item => item.rating && item.rating >= minRating);
-  }, [items]);
+  const getTopRatedItems = useCallback(
+    (minRating: number = 4) => {
+      return items.filter((item) => item.rating && item.rating >= minRating);
+    },
+    [items]
+  );
 
-  const searchItems = useCallback((query: string) => {
-    const lowercaseQuery = query.toLowerCase();
-    return items.filter(item =>
-      item.title.toLowerCase().includes(lowercaseQuery) ||
-      item.content.toLowerCase().includes(lowercaseQuery) ||
-      item.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery)) ||
-      item.source?.toLowerCase().includes(lowercaseQuery)
-    );
-  }, [items]);
+  const searchItems = useCallback(
+    (query: string) => {
+      const lowercaseQuery = query.toLowerCase();
+      return items.filter(
+        (item) =>
+          item.title.toLowerCase().includes(lowercaseQuery) ||
+          item.content.toLowerCase().includes(lowercaseQuery) ||
+          item.tags.some((tag) => tag.toLowerCase().includes(lowercaseQuery)) ||
+          item.source?.toLowerCase().includes(lowercaseQuery)
+      );
+    },
+    [items]
+  );
 
   return {
     items,

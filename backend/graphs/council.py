@@ -666,7 +666,11 @@ async def campaign_arc_generator_node(state: CouncilBlackboardState) -> Dict[str
         # Save to Supabase
         campaign_id = await save_campaign(workspace_id, campaign_data)
         logger.info(f"Successfully generated and persisted Campaign {campaign_id}.")
-        return {"campaign_id": campaign_id, "last_agent": "Campaign_Generator"}
+        return {
+            "campaign_id": campaign_id,
+            "campaign_data": campaign_data,
+            "last_agent": "Campaign_Generator",
+        }
     except Exception as e:
         logger.error(f"Failed to persist campaign: {e}")
         return {"last_agent": "Campaign_Generator"}
@@ -810,6 +814,9 @@ async def propagative_executor_node(state: CouncilBlackboardState) -> Dict[str, 
                 "muse_prompt": move.get("muse_prompt"),
                 "council_consensus_sha": state.get("consensus_metrics", {}).get("sha"),
             },
+            "consensus_metrics": state.get("consensus_metrics", {}),
+            "decree": state.get("final_strategic_decree"),
+            "reasoning_chain_id": state.get("reasoning_chain_id"),
         }
 
         try:

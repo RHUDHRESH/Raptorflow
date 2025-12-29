@@ -1,7 +1,19 @@
-from typing import Optional
+import re
+from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
-from db import get_db_connection
-from models.campaigns import Campaign, GanttChart
+from core.cache import CacheManager, get_cache_manager
+from db import (
+    archive_campaign,
+    fetch_campaign_details,
+    fetch_campaign_summaries,
+    fetch_moves_for_campaign,
+    get_db_connection,
+    save_campaign,
+    update_campaign_record,
+    update_moves_phase_order,
+)
+from models.campaigns import Campaign, CampaignStatus, GanttChart
 
 
 class CampaignService:
@@ -10,59 +22,182 @@ class CampaignService:
     Manages business logic for 90-day arcs and Gantt visualizations.
     """
 
+    CACHE_TTL_S = 60
+
+    def __init__(self, cache_manager: Optional[CacheManager] = None):
+        self.cache: Optional[CacheManager] = cache_manager
+        if self.cache is None:
+            try:
+                self.cache = get_cache_manager()
+            except Exception:
+                self.cache = None
+
+    def _slugify_campaign_title(self, title: str) -> str:
+        candidate = re.sub(r"[^a-z0-9]+", "-", (title or "").lower()).strip("-")
+        candidate = candidate or "campaign"
+        return f"{candidate}-{uuid4().hex[:6]}"
+
     async def save_campaign(self, campaign: Campaign):
         """Persists a campaign to Supabase."""
-        async with get_db_connection() as conn:
-            async with conn.cursor() as cur:
-                query = """
-                    INSERT INTO campaigns (id, tenant_id, title, objective, status, start_date, end_date)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (id) DO UPDATE SET
-                        title = EXCLUDED.title,
-                        objective = EXCLUDED.objective,
-                        status = EXCLUDED.status,
-                        updated_at = now();
-                """
-                await cur.execute(
-                    query,
-                    (
-                        str(campaign.id),
-                        str(campaign.tenant_id),
-                        campaign.title,
-                        campaign.objective,
-                        campaign.status.value,
-                        campaign.start_date,
-                        campaign.end_date,
-                    ),
-                )
-                await conn.commit()
+        campaign_tag = campaign.campaign_tag or f"{campaign.title}-{campaign.id}"
+        payload: Dict[str, Any] = {
+            "workspace_id": str(campaign.workspace_id or campaign.tenant_id),
+            "title": campaign.title,
+            "objective": campaign.objective,
+            "status": campaign.status.value,
+            "arc_data": campaign.arc_data or {},
+            "phase_order": campaign.phase_order,
+            "milestones": campaign.milestones,
+            "campaign_tag": campaign_tag,
+            "kpi_targets": campaign.kpi_targets or {},
+            "audit_data": campaign.audit_data or {},
+        }
+        await save_campaign(
+            str(campaign.tenant_id), payload, campaign_id=str(campaign.id)
+        )
+
+    async def create_campaign(
+        self, workspace_id: str, payload: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Creates a new campaign record for the workspace."""
+        campaign_tag = payload.get("campaign_tag") or self._slugify_campaign_title(
+            payload.get("title", "campaign")
+        )
+        campaign_payload: Dict[str, Any] = {
+            "workspace_id": workspace_id,
+            "title": payload.get("title"),
+            "objective": payload.get("objective"),
+            "status": payload.get("status", "draft"),
+            "arc_data": payload.get("arc_data", {}),
+            "phase_order": payload.get("phase_order", []),
+            "milestones": payload.get("milestones", []),
+            "campaign_tag": campaign_tag,
+            "kpi_targets": payload.get("kpi_targets", {}),
+            "audit_data": payload.get("audit_data", {}),
+        }
+
+        campaign_id = await save_campaign(workspace_id, campaign_payload)
+        campaign = await self.get_campaign(campaign_id)
+        if not campaign:
+            raise RuntimeError("Campaign was created but could not be retrieved.")
+        return campaign.model_dump()
 
     async def get_campaign(self, campaign_id: str) -> Optional[Campaign]:
         """Retrieves a campaign from Supabase."""
         async with get_db_connection() as conn:
             async with conn.cursor() as cur:
-                query = "SELECT * FROM campaigns WHERE id = %s"
+                query = """
+                    SELECT
+                        id, tenant_id, workspace_id, title, objective, status,
+                        progress, start_date, end_date, arc_data,
+                        phase_order, milestones, campaign_tag, kpi_targets, audit_data,
+                        created_at, updated_at
+                    FROM campaigns
+                    WHERE id = %s
+                    LIMIT 1
+                """
                 await cur.execute(query, (campaign_id,))
                 row = await cur.fetchone()
                 if not row:
                     return None
 
-                # Assuming table order: id, tenant_id, title, objective, status, progress,
-                # start_date, end_date, created_at, updated_at, arc_data, kpi_targets, audit_data
-                # In production, we should map by column name.
+                (
+                    cam_id,
+                    tenant_id,
+                    workspace_id,
+                    title,
+                    objective,
+                    status,
+                    progress,
+                    start_date,
+                    end_date,
+                    arc_data,
+                    phase_order,
+                    milestones,
+                    campaign_tag,
+                    kpi_targets,
+                    audit_data,
+                    created_at,
+                    updated_at,
+                ) = row
+
                 return Campaign(
-                    id=row[0],
-                    tenant_id=row[1],
-                    title=row[2],
-                    objective=row[3],
-                    status=row[4],
-                    progress=row[5] or 0.0,
-                    start_date=row[6],
-                    end_date=row[7],
-                    arc_data=row[10],
-                    kpi_targets=row[11],
-                    audit_data=row[12],
+                    id=cam_id,
+                    tenant_id=tenant_id,
+                    workspace_id=workspace_id,
+                    title=title,
+                    objective=objective,
+                    status=CampaignStatus(status),
+                    progress=progress or 0.0,
+                    start_date=start_date,
+                    end_date=end_date,
+                    arc_data=arc_data or {},
+                    phase_order=phase_order or [],
+                    milestones=milestones or [],
+                    campaign_tag=campaign_tag,
+                    kpi_targets=kpi_targets or {},
+                    audit_data=audit_data or {},
+                    created_at=created_at,
+                    updated_at=updated_at,
                 )
+
+    async def list_campaigns(
+        self,
+        workspace_id: str,
+        status: Optional[str] = None,
+        search: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> List[Dict[str, Any]]:
+        """List campaigns with move summaries for a workspace."""
+        cache_key = f"campaigns:{workspace_id}:{status}:{search}:{limit}:{offset}"
+        if self.cache:
+            cached = self.cache.get_json(cache_key)
+            if cached is not None:
+                return cached
+
+        campaigns = await fetch_campaign_summaries(
+            workspace_id, status=status, search=search, limit=limit, offset=offset
+        )
+        if self.cache:
+            self.cache.set_json(cache_key, campaigns, expiry_seconds=self.CACHE_TTL_S)
+        return campaigns
+
+    async def get_campaign_with_moves(
+        self, workspace_id: str, campaign_id: str
+    ) -> Optional[Dict[str, Any]]:
+        """Return campaign metadata plus associated moves."""
+        cache_key = f"campaign:{workspace_id}:{campaign_id}"
+        if self.cache:
+            cached = self.cache.get_json(cache_key)
+            if cached is not None:
+                return cached
+
+        campaign = await fetch_campaign_details(workspace_id, campaign_id)
+        if not campaign:
+            return None
+        moves = await fetch_moves_for_campaign(workspace_id, campaign_id)
+        campaign["moves"] = moves
+        if self.cache:
+            self.cache.set_json(cache_key, campaign, expiry_seconds=self.CACHE_TTL_S)
+        return campaign
+
+    async def update_campaign(
+        self, workspace_id: str, campaign_id: str, payload: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Apply partial updates to a campaign and propagate phases."""
+        updated = await update_campaign_record(workspace_id, campaign_id, payload)
+        if not updated:
+            return None
+        if payload.get("phase_order"):
+            await update_moves_phase_order(
+                workspace_id, campaign_id, payload["phase_order"]
+            )
+        return updated
+
+    async def soft_delete_campaign(self, workspace_id: str, campaign_id: str):
+        """Archive a campaign and its moves."""
+        await archive_campaign(workspace_id, campaign_id)
 
     async def generate_90_day_arc(self, campaign_id: str) -> Optional[dict]:
         """Triggers the agentic orchestrator to generate a 90-day arc."""

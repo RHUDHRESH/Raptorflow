@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { forwardRef, useEffect, useRef, useCallback } from 'react';
 import { useTypingExperience } from './TypingExperienceProvider';
@@ -9,22 +9,13 @@ interface EnhancedInputProps extends React.InputHTMLAttributes<HTMLInputElement>
 
 export const EnhancedInput = forwardRef<HTMLInputElement, EnhancedInputProps>(
   ({ className, ...props }, ref) => {
-    const inputRef = useRef<HTMLInputElement>(null);
-    const { animateCursor, playKeySound, playBackspaceSound } = useTypingExperience();
+    const { animateCursor, playKeySound, playBackspaceSound } =
+      useTypingExperience();
     const lastKeyTime = useRef<number>(0);
 
-    // Merge refs
-    const mergedRef = useCallback((element: HTMLInputElement | null) => {
-      if (typeof ref === 'function') {
-        ref(element);
-      } else if (ref) {
-        ref.current = element;
-      }
-      inputRef.current = element;
-    }, [ref]);
-
     useEffect(() => {
-      const input = inputRef.current;
+      const input = (ref as React.RefObject<HTMLInputElement>)?.current;
+      if (!input) return;
       if (!input) return;
 
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -59,8 +50,8 @@ export const EnhancedInput = forwardRef<HTMLInputElement, EnhancedInputProps>(
 
     return (
       <input
-        ref={mergedRef}
         className={className}
+        ref={ref}
         {...props}
       />
     );

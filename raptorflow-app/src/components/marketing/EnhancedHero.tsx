@@ -163,7 +163,11 @@ export function EnhancedHero() {
             <motion.div
               className="inline-flex flex-col items-center gap-2 text-muted-foreground"
               animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
             >
               <span className="text-xs uppercase tracking-widest">Scroll</span>
               <svg

@@ -20,13 +20,13 @@ async def test_sanity_check_all_pass():
     mock_db_cm = MagicMock()
     mock_db_cm.__aenter__.return_value = mock_conn
 
-    with patch(
-        "backend.services.sanity_check.get_cache", return_value=mock_redis
-    ), patch(
-        "backend.services.sanity_check.get_db_connection", return_value=mock_db_cm
-    ), patch(
-        "backend.services.sanity_check.InferenceProvider"
-    ) as mock_inference:
+    with (
+        patch("backend.services.sanity_check.get_cache", return_value=mock_redis),
+        patch(
+            "backend.services.sanity_check.get_db_connection", return_value=mock_db_cm
+        ),
+        patch("backend.services.sanity_check.InferenceProvider") as mock_inference,
+    ):
 
         # Mock LLM ping
         mock_inference.get_model.return_value = AsyncMock()
@@ -55,13 +55,13 @@ async def test_sanity_check_service_failure():
     mock_db_cm = MagicMock()
     mock_db_cm.__aenter__.return_value = mock_conn
 
-    with patch(
-        "backend.services.sanity_check.get_cache", return_value=mock_redis
-    ), patch(
-        "backend.services.sanity_check.get_db_connection", return_value=mock_db_cm
-    ), patch(
-        "backend.services.sanity_check.InferenceProvider"
-    ) as mock_inference:
+    with (
+        patch("backend.services.sanity_check.get_cache", return_value=mock_redis),
+        patch(
+            "backend.services.sanity_check.get_db_connection", return_value=mock_db_cm
+        ),
+        patch("backend.services.sanity_check.InferenceProvider") as mock_inference,
+    ):
 
         mock_inference.get_model.return_value = AsyncMock()
 

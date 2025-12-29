@@ -10,28 +10,30 @@ vi.mock('pg', () => {
 });
 
 vi.mock('../vertexai', () => ({
-    gemini2Flash: {
-        bindTools: vi.fn(() => ({
-            invoke: vi.fn(),
-        })),
-    }
+  gemini2Flash: {
+    bindTools: vi.fn(() => ({
+      invoke: vi.fn(),
+    })),
+  },
 }));
 
 vi.mock('@langchain/google-vertexai', () => ({
-    ChatVertexAI: class {},
-    GoogleVertexAIEmbeddings: class {
-        constructor() {}
-        embedQuery() { return Promise.resolve([]); }
-    },
+  ChatVertexAI: class {},
+  GoogleVertexAIEmbeddings: class {
+    constructor() {}
+    embedQuery() {
+      return Promise.resolve([]);
+    }
+  },
 }));
 
 import { createMuseGraph } from '../agent';
 
 describe('Muse Agent Graph', () => {
-    it('should compile the graph', () => {
-        const graphInstance = createMuseGraph();
-        expect(graphInstance).toBeDefined();
-        // Check if it has invoke method (Runnable)
-        expect(typeof graphInstance.invoke).toBe('function');
-    });
+  it('should compile the graph', () => {
+    const graphInstance = createMuseGraph();
+    expect(graphInstance).toBeDefined();
+    // Check if it has invoke method (Runnable)
+    expect(typeof graphInstance.invoke).toBe('function');
+  });
 });

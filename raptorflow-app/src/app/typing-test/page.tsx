@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { useTypingExperience } from '@/components/ui/typing/TypingExperienceProvider';
@@ -11,12 +11,16 @@ export default function TypingTestPage() {
   return (
     <div className="min-h-screen bg-[#FAF9F6] p-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-4xl font-serif text-[#1E1E1E] mb-8">10x Typing Experience Test</h1>
+        <h1 className="text-4xl font-serif text-[#1E1E1E] mb-8">
+          10x Typing Experience Test
+        </h1>
 
         <div className="space-y-6">
           {/* Test Input Fields */}
           <div className="bg-white p-6 rounded-lg border border-[rgba(0,0,0,0.08)]">
-            <h2 className="text-xl font-semibold text-[#1E1E1E] mb-4">Test Input Fields</h2>
+            <h2 className="text-xl font-semibold text-[#1E1E1E] mb-4">
+              Test Input Fields
+            </h2>
 
             <div className="space-y-4">
               <div>
@@ -49,7 +53,9 @@ export default function TypingTestPage() {
 
           {/* Test Buttons */}
           <div className="bg-white p-6 rounded-lg border border-[rgba(0,0,0,0.08)]">
-            <h2 className="text-xl font-semibold text-[#1E1E1E] mb-4">Test Buttons</h2>
+            <h2 className="text-xl font-semibold text-[#1E1E1E] mb-4">
+              Test Buttons
+            </h2>
 
             <div className="flex gap-4">
               <button
@@ -67,34 +73,56 @@ export default function TypingTestPage() {
 
           {/* Instructions */}
           <div className="bg-white p-6 rounded-lg border border-[rgba(0,0,0,0.08)]">
-            <h2 className="text-xl font-semibold text-[#1E1E1E] mb-4">What to Test</h2>
+            <h2 className="text-xl font-semibold text-[#1E1E1E] mb-4">
+              What to Test
+            </h2>
 
             <ul className="space-y-2 text-[#6B6B6B]">
-              <li>• Type in the input fields - you should hear enhanced "thocky" sounds</li>
-              <li>• Press Backspace/Delete - you should hear a different sound</li>
+              <li>
+                • Type in the input fields - you should hear enhanced "thocky"
+                sounds
+              </li>
+              <li>
+                • Press Backspace/Delete - you should hear a different sound
+              </li>
               <li>• Press Enter - you should hear a satisfying bell sound</li>
               <li>• Click the buttons - you should hear click sounds</li>
               <li>• Watch for smooth cursor animations (60ms speed)</li>
-              <li>• Use the controls panel to adjust volume, intensity, and profiles</li>
-              <li>• Try different sound profiles (Professional, Creative, Gaming, Minimalist)</li>
+              <li>
+                • Use the controls panel to adjust volume, intensity, and
+                profiles
+              </li>
+              <li>
+                • Try different sound profiles (Professional, Creative, Gaming,
+                Minimalist)
+              </li>
               <li>• Test context-aware adaptations</li>
             </ul>
           </div>
 
           {/* Current Values Display */}
           <div className="bg-white p-6 rounded-lg border border-[rgba(0,0,0,0.08)]">
-            <h2 className="text-xl font-semibold text-[#1E1E1E] mb-4">Current Values</h2>
+            <h2 className="text-xl font-semibold text-[#1E1E1E] mb-4">
+              Current Values
+            </h2>
 
             <div className="space-y-2 text-sm">
-              <p><strong>Text Input:</strong> "{text}"</p>
-              <p><strong>Message:</strong> "{message}"</p>
-              <p><strong>Text Length:</strong> {text.length} characters</p>
-              <p><strong>Message Length:</strong> {message.length} characters</p>
+              <p>
+                <strong>Text Input:</strong> "{text}"
+              </p>
+              <p>
+                <strong>Message:</strong> "{message}"
+              </p>
+              <p>
+                <strong>Text Length:</strong> {text.length} characters
+              </p>
+              <p>
+                <strong>Message Length:</strong> {message.length} characters
+              </p>
             </div>
           </div>
         </div>
       </div>
-
     </div>
   );
 }

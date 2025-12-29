@@ -7,6 +7,7 @@ These are **frozen**. Do not deviate.
 ## Button
 
 ### Primary
+
 ```
 Background:    var(--color-ink) → #171717
 Text:          #FFFFFF
@@ -22,6 +23,7 @@ Disabled:      opacity 0.5, cursor not-allowed
 ```
 
 ### Secondary
+
 ```
 Background:    transparent
 Text:          var(--color-ink)
@@ -34,6 +36,7 @@ Active:        transform scale(0.98)
 ```
 
 ### Ghost (Text Button)
+
 ```
 Background:    transparent
 Text:          var(--color-muted)
@@ -49,6 +52,7 @@ Hover:         text-decoration underline, color var(--color-ink)
 ## Card
 
 ### Default
+
 ```
 Background:    var(--color-surface) → #FFFFFF
 Border:        1px solid var(--color-border-subtle)
@@ -60,6 +64,7 @@ Hover:         (optional) shadow var(--shadow-sm)
 ```
 
 ### Elevated
+
 ```
 Background:    var(--color-surface)
 Border:        none
@@ -69,6 +74,7 @@ Padding:       24px
 ```
 
 **Rules:**
+
 - No colored backgrounds, ever
 - No colored borders, ever
 - Pick border OR shadow, not both
@@ -78,6 +84,7 @@ Padding:       24px
 ## Input
 
 ### Text Input
+
 ```
 Background:    var(--color-surface)
 Border:        1px solid var(--color-border)
@@ -91,6 +98,7 @@ Placeholder:   color var(--color-ghost)
 ```
 
 ### Minimal (Bottom border only)
+
 ```
 Background:    transparent
 Border:        none
@@ -107,6 +115,7 @@ Focus:         border-color var(--color-ink)
 ## Tabs
 
 ### Underline Style (ONLY)
+
 ```
 Container:
   Border-bottom: 1px solid var(--color-border)
@@ -133,6 +142,7 @@ Tab Hover:
 ## Badge (Use Sparingly)
 
 ### Neutral
+
 ```
 Background:    var(--color-border-subtle)
 Text:          var(--color-muted)
@@ -142,6 +152,7 @@ Radius:        var(--radius-full)
 ```
 
 **Rules:**
+
 - Maximum 1-2 per card
 - No colored badges
 - Prefer status dots over badges
@@ -160,6 +171,7 @@ Colors:
 ```
 
 **Rules:**
+
 - Dots only, never pill backgrounds
 - 8px diameter maximum
 - Used inline with text
@@ -169,6 +181,7 @@ Colors:
 ## Modal / Dialog
 
 ### Slide-in
+
 ```
 Position:      fixed right, full height
 Width:         480px max
@@ -190,6 +203,7 @@ Backdrop:      rgba(0,0,0,0.4)
 ## Empty State
 
 ### Template
+
 ```
 [Icon - 48px, muted, optional]
 
@@ -204,6 +218,7 @@ Create your first ___
 ```
 
 **Rules:**
+
 - No sad illustrations
 - No jokes/emojis
 - One action only
@@ -237,6 +252,7 @@ Shimmer gradient:
 ```
 
 **Rules:**
+
 - Subtle shimmer, not aggressive
 - Match exact shape of content
 
@@ -266,6 +282,7 @@ Nav Item Hover:
 ```
 
 **Rules:**
+
 - ≤10 items
 - No colored icons
 - No notification badges (except Help)

@@ -28,6 +28,7 @@ services:
       - NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-key
       - NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
     volumes:
       - ./raptorflow-app:/app
       - /app/node_modules

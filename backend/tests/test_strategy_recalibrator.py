@@ -1,6 +1,8 @@
 import pytest
+
 from graphs.council import strategy_recalibrator_node
 from models.council import CouncilBlackboardState
+
 
 @pytest.mark.asyncio
 async def test_strategy_recalibrator_node_all_fail():
@@ -15,12 +17,13 @@ async def test_strategy_recalibrator_node_all_fail():
         "status": "complete",
         "synthesis": "Synthesis text",
         "rejected_paths": [],
-        "radar_signals": []
+        "radar_signals": [],
     }
-    
+
     result = await strategy_recalibrator_node(state)
-    
+
     assert result["status"] == "recalibrate"
+
 
 @pytest.mark.asyncio
 async def test_strategy_recalibrator_node_success():
@@ -35,9 +38,9 @@ async def test_strategy_recalibrator_node_success():
         "status": "complete",
         "synthesis": "Synthesis text",
         "rejected_paths": [],
-        "radar_signals": []
+        "radar_signals": [],
     }
-    
+
     result = await strategy_recalibrator_node(state)
-    
+
     assert result["status"] == "proceed"

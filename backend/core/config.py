@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -48,6 +49,7 @@ class Config(BaseSettings):
     DB_RETRY_DELAY: float = 1.0
     DB_CIRCUIT_BREAKER_THRESHOLD: int = 5
     DB_CIRCUIT_BREAKER_TIMEOUT: int = 300
+    DB_DISABLE_POOL: bool = False
 
     # Upstash Configuration
     UPSTASH_REDIS_REST_URL: Optional[str] = None
@@ -112,6 +114,9 @@ class Config(BaseSettings):
     PHONEPE_ENV: Optional[str] = None
     PHONEPE_WEBHOOK_USERNAME: Optional[str] = None
     PHONEPE_WEBHOOK_PASSWORD: Optional[str] = None
+    PHONEPE_MERCHANT_ID: Optional[str] = None
+    PHONEPE_SALT_KEY: Optional[str] = None
+    PHONEPE_SALT_INDEX: Optional[str] = None
     PAYMENT_REDIRECT_ALLOWLIST: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     # Security
@@ -121,18 +126,26 @@ class Config(BaseSettings):
     ALLOW_DEFAULT_TENANT_ID_FALLBACK: bool = False
     AUTONOMY_LEVEL: str = "medium"
     NEXT_PUBLIC_API_URL: str = "http://localhost:8000"
+    FRONTEND_URL: str = "http://localhost:3000"
     AUTH_JWKS_URL: Optional[str] = None
     AUTH_ISSUER: Optional[str] = None
     AUTH_AUDIENCE: Optional[str] = None
     AUTH_JWT_SECRET: Optional[str] = None
     AUTH_JWT_ALGORITHMS: str = "RS256,HS256"
+    DISABLE_PAID_ACCESS: bool = False
 
     # Monitoring
     LANGCHAIN_TRACING_V2: str = "false"
     LANGCHAIN_API_KEY: Optional[str] = None
 
+    _repo_root = Path(__file__).resolve().parents[2]
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file=(
+            str(_repo_root / ".env"),
+            str(_repo_root / "backend" / ".env"),
+        ),
+        env_file_encoding="utf-8",
+        extra="ignore",
     )
 
     def validate_infra(self):
@@ -158,7 +171,17 @@ class Config(BaseSettings):
             )
 
         # Validate PhonePe configuration if payments are enabled
-        if not self.PHONEPE_CLIENT_ID or not self.PHONEPE_CLIENT_SECRET:
+        has_client_creds = (
+            self.PHONEPE_CLIENT_ID
+            and self.PHONEPE_CLIENT_SECRET
+            and self.PHONEPE_CLIENT_VERSION
+        )
+        has_merchant_creds = (
+            self.PHONEPE_MERCHANT_ID
+            and self.PHONEPE_SALT_KEY
+            and self.PHONEPE_SALT_INDEX
+        )
+        if not has_client_creds and not has_merchant_creds:
             logger.warning("PhonePe configuration missing. Payment features will fail.")
 
         # Validate image generation settings

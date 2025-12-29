@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Zap, AlertTriangle, Check } from "lucide-react";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Zap, AlertTriangle, Check } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function GlobalKillSwitch() {
   const [isConfirming, setIsConfirming] = useState(false);
@@ -13,21 +13,21 @@ export function GlobalKillSwitch() {
   const handleHalt = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/matrix/kill-switch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: "Manual UI Trigger" })
+      const res = await fetch('/api/v1/matrix/kill-switch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Manual UI Trigger' }),
       });
 
-      if (!res.ok) throw new Error("Failed to engage kill-switch.");
+      if (!res.ok) throw new Error('Failed to engage kill-switch.');
 
       setIsHalted(true);
-      toast.error("SYSTEM HALTED", {
-        description: "All agentic activity has been stopped immediately.",
+      toast.error('SYSTEM HALTED', {
+        description: 'All agentic activity has been stopped immediately.',
       });
     } catch (err: any) {
-      toast.error("Action Failed", {
-        description: err.message
+      toast.error('Action Failed', {
+        description: err.message,
       });
     } finally {
       setLoading(false);
@@ -37,7 +37,11 @@ export function GlobalKillSwitch() {
 
   if (isHalted) {
     return (
-      <Button disabled variant="outline" className="h-11 rounded-xl px-6 border-red-200 text-red-600 bg-red-50">
+      <Button
+        disabled
+        variant="outline"
+        className="h-11 rounded-xl px-6 border-red-200 text-red-600 bg-red-50"
+      >
         <Check className="mr-2 h-4 w-4" />
         SYSTEM OFFLINE
       </Button>
@@ -53,7 +57,7 @@ export function GlobalKillSwitch() {
           onClick={handleHalt}
           disabled={loading}
         >
-          {loading ? "Engaging..." : "CONFIRM HALT"}
+          {loading ? 'Engaging...' : 'CONFIRM HALT'}
         </Button>
         <Button
           variant="ghost"

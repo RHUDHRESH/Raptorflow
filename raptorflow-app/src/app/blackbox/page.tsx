@@ -3,29 +3,50 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
-    ExperimentList,
-    ResultsStrip,
-    CheckinCard,
-    BlackBoxWizard,
-    ExperimentDetail
+  ExperimentList,
+  ResultsStrip,
+  CheckinCard,
+  BlackBoxWizard,
+  ExperimentDetail,
 } from '@/components/blackbox';
-import { Experiment, SelfReport, ExperimentStatus, LearningArtifact } from '@/lib/blackbox-types';
 import {
-    saveBlackboxState,
-    loadBlackboxState,
-    getEvidencePackage,
-    getExperimentsDB,
-    createExperimentDB,
-    updateExperimentDB,
-    deleteExperimentDB,
-    saveOutcome,
-    saveLearning
+  Experiment,
+  SelfReport,
+  ExperimentStatus,
+  LearningArtifact,
+} from '@/lib/blackbox-types';
+import {
+  saveBlackboxState,
+  loadBlackboxState,
+  getEvidencePackage,
+  getExperimentsDB,
+  createExperimentDB,
+  updateExperimentDB,
+  deleteExperimentDB,
+  saveOutcome,
+  saveLearning,
 } from '@/lib/blackbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Download, Sparkles, Brain, TrendingUp, Terminal, FileText, LayoutDashboard } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Plus,
+  Trash2,
+  Download,
+  Sparkles,
+  Brain,
+  TrendingUp,
+  Terminal,
+  FileText,
+  LayoutDashboard,
+} from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -40,64 +61,96 @@ import { useFoundation } from '@/context/FoundationProvider';
 import { FoundationData } from '@/lib/foundation-types';
 
 // Helper to generate experiments from Foundation
-function generateExperimentsFromFoundation(foundation: FoundationData): Experiment[] {
-    const experiments: Experiment[] = [];
+function generateExperimentsFromFoundation(
+  foundation: FoundationData
+): Experiment[] {
+  const experiments: Experiment[] = [];
 
-    // 1. Positioning Battle
-    if (foundation.positioning?.core?.primary_claim) {
-        experiments.push({
-            id: 'exp-pos-1',
-            title: 'Battle: Primary Claim Validation',
-            goal: 'positioning_refinement',
-            bet: `The claim "${foundation.positioning.core.primary_claim}" will convert 20% better than the generic category claim.`,
-            status: 'draft',
-            created_at: new Date().toISOString(),
-            confidence_level: 0.7,
-            effort_level: 'medium',
-            channel: 'linkedin',
-            tags: ['strategic', 'foundation'],
-            hypothesis: 'Specific outcomes > Generic benefits',
-            success_criteria: '>20% Conversion Lift'
-        });
-    }
+  // 1. Positioning Battle
+  if (foundation.positioning?.uvp_usp?.uvp) {
+    experiments.push({
+      id: 'exp-pos-1',
+      title: 'Battle: Primary Claim Validation',
+      goal: 'clicks', // closest proxy for validation
+      bet: `The claim "${foundation.positioning.uvp_usp.uvp}" will convert 20% better than the generic category claim.`,
+      why: 'Positioning is the leverage point of all marketing.',
+      principle: 'identity',
+      status: 'draft',
+      created_at: new Date().toISOString(),
+      confidence: 0.7,
+      risk_level: 'safe',
+      effort: '30m',
+      channel: 'linkedin',
+      hypothesis: 'Specific outcomes > Generic benefits',
+      success_metric: '>20% Conversion Lift',
+      control: 'Generic category messaging',
+      variant: foundation.positioning.uvp_usp.uvp,
+      sample_size: '500 impressions',
+      duration_days: 3,
+      time_to_signal: '48h',
+      action_steps: ['Create 2 LinkedIn posts', 'Run for 48h', 'Compare CTR'],
+      skill_stack: [],
+      asset_ids: [],
+    });
+  }
 
-    // 2. Messaging Resonance
-    if (foundation.messaging?.message_house?.controlling_idea) {
-        experiments.push({
-            id: 'exp-msg-1',
-            title: 'Test: Controlling Idea Resonance',
-            goal: 'messaging_optimization',
-            bet: `The angle "${foundation.messaging.message_house.controlling_idea}" will generate higher engagement than feature-led messaging.`,
-            status: 'draft',
-            created_at: new Date(Date.now() - 86400000).toISOString(),
-            confidence_level: 0.8,
-            effort_level: 'low',
-            channel: 'email',
-            tags: ['messaging', 'copy'],
-            hypothesis: 'Narrative > Features',
-            success_criteria: '>5% Reply Rate'
-        });
-    }
+  // 2. Messaging Resonance
+  if (foundation.messaging?.message_house?.controlling_idea) {
+    experiments.push({
+      id: 'exp-msg-1',
+      title: 'Test: Controlling Idea Resonance',
+      goal: 'replies',
+      bet: `The angle "${foundation.messaging.message_house.controlling_idea}" will generate higher engagement than feature-led messaging.`,
+      why: 'Narrative resonance drives higher reply rates.',
+      principle: 'pattern_interrupt',
+      status: 'draft',
+      created_at: new Date(Date.now() - 86400000).toISOString(),
+      confidence: 0.8,
+      risk_level: 'safe',
+      effort: '10m',
+      channel: 'email',
+      hypothesis: 'Narrative > Features',
+      success_metric: '>5% Reply Rate',
+      control: 'Feature-based outreach',
+      variant: foundation.messaging.message_house.controlling_idea,
+      sample_size: '50 emails',
+      duration_days: 2,
+      time_to_signal: '48h',
+      action_steps: ['Draft narrative email', 'Send to 50 prospects', 'Track replies'],
+      skill_stack: [],
+      asset_ids: [],
+    });
+  }
 
-    // 3. Pricing/Model Test (if inferred)
-    if (foundation.business?.model?.pricing_model) {
-        experiments.push({
-            id: 'exp-biz-1',
-            title: `Test: ${foundation.business.model.pricing_model} Viability`,
-            goal: 'market_fit',
-            bet: 'Customers are willing to pay upfront for this value proposition.',
-            status: 'draft',
-            created_at: new Date(Date.now() - 172800000).toISOString(),
-            confidence_level: 0.6,
-            effort_level: 'high',
-            channel: 'sales_calls',
-            tags: ['business', 'pricing'],
-            hypothesis: 'Value-based pricing holds',
-            success_criteria: '20% Close Rate'
-        });
-    }
+  // 3. Pricing/Model Test (if inferred)
+  if (foundation.business?.offer?.pricing?.model) {
+    experiments.push({
+      id: 'exp-biz-1',
+      title: `Test: ${foundation.business.offer.pricing.model} Viability`,
+      goal: 'sales',
+      bet: 'Customers are willing to pay upfront for this value proposition.',
+      why: 'Pricing power is the ultimate proof of value.',
+      principle: 'pricing_psych',
+      status: 'draft',
+      created_at: new Date(Date.now() - 172800000).toISOString(),
+      confidence: 0.6,
+      risk_level: 'spicy',
+      effort: '2h',
+      channel: 'other', // sales_calls mapped to other
+      hypothesis: 'Value-based pricing holds',
+      success_metric: '20% Close Rate',
+      control: 'Standard pricing',
+      variant: foundation.business.offer.pricing.model,
+      sample_size: '10 Calls',
+      duration_days: 7,
+      time_to_signal: '7d',
+      action_steps: ['Update pitch deck', 'Pitch on 10 calls', 'Record objections'],
+      skill_stack: [],
+      asset_ids: [],
+    });
+  }
 
-    return experiments;
+  return experiments;
 }
 
 /**
@@ -105,455 +158,595 @@ function generateExperimentsFromFoundation(foundation: FoundationData): Experime
  * Design Gate: PASS (Quiet Luxury Alignment, Inter/Playfair Type Scale, Minimal Accents)
  */
 export default function BlackBoxPage() {
-    const { foundation, isLoading: isFoundationLoading } = useFoundation();
+  const { foundation, isLoading: isFoundationLoading } = useFoundation();
 
-    const [experiments, setExperiments] = useState<Experiment[]>([]);
-    const [learnings, setLearnings] = useState<LearningArtifact[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [activeCheckin, setActiveCheckin] = useState<Experiment | null>(null);
-    const [activeDetail, setActiveDetail] = useState<Experiment | null>(null);
-    const [activeEdit, setActiveEdit] = useState<Experiment | null>(null);
-    const [showWizard, setShowWizard] = useState(false);
-    const [evidenceTraces, setEvidenceTraces] = useState<EvidenceTrace[]>([]);
-    const [showEvidence, setShowEvidence] = useState(false);
-    const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
-    const [showAudit, setShowAudit] = useState(false);
+  const [experiments, setExperiments] = useState<Experiment[]>([]);
+  const [learnings, setLearnings] = useState<LearningArtifact[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeCheckin, setActiveCheckin] = useState<Experiment | null>(null);
+  const [activeDetail, setActiveDetail] = useState<Experiment | null>(null);
+  const [activeEdit, setActiveEdit] = useState<Experiment | null>(null);
+  const [showWizard, setShowWizard] = useState(false);
+  const [evidenceTraces, setEvidenceTraces] = useState<EvidenceTrace[]>([]);
+  const [showEvidence, setShowEvidence] = useState(false);
+  const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
+  const [showAudit, setShowAudit] = useState(false);
 
-    const refreshData = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const exps = await getExperimentsDB();
+  const refreshData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const exps = await getExperimentsDB();
 
-            // If DB is empty and we have foundation data, use suggested experiments
-            if (exps.length === 0 && foundation) {
-                const suggested = generateExperimentsFromFoundation(foundation);
-                setExperiments(suggested);
-            } else {
-                setExperiments(exps);
-            }
+      // If DB is empty and we have foundation data, use suggested experiments
+      if (exps.length === 0 && foundation) {
+        const suggested = generateExperimentsFromFoundation(foundation);
+        setExperiments(suggested);
+      } else {
+        setExperiments(exps);
+      }
 
-            const state = loadBlackboxState();
-            setLearnings(state.learnings);
-        } catch (err) {
-            console.error('Failed to load Blackbox data', err);
-        } finally {
-            setIsLoading(false);
+      const state = loadBlackboxState();
+      setLearnings(state.learnings);
+    } catch (err) {
+      console.error('Failed to load Blackbox data', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [foundation]);
+
+  useEffect(() => {
+    refreshData();
+  }, [refreshData, foundation]);
+
+  const handleWizardComplete = useCallback(
+    async (newExps: Experiment[]) => {
+      try {
+        for (const exp of newExps) {
+          await createExperimentDB(exp);
         }
-    }, [foundation]);
-
-    useEffect(() => {
         refreshData();
-    }, [refreshData, foundation]);
+        toast.success('Experiments synced to Industrial Spine');
+      } catch (err) {
+        toast.error('Failed to sync experiments');
+      }
+    },
+    [refreshData]
+  );
 
-    const handleWizardComplete = useCallback(async (newExps: Experiment[]) => {
-        try {
-            for (const exp of newExps) {
-                await createExperimentDB(exp);
-            }
-            refreshData();
-            toast.success('Experiments synced to Industrial Spine');
-        } catch (err) {
-            toast.error('Failed to sync experiments');
+  const handleLaunch = useCallback(
+    async (id: string) => {
+      const exp = experiments.find((e) => e.id === id);
+      if (!exp) return;
+
+      const updated = {
+        ...exp,
+        status: 'launched' as ExperimentStatus,
+        launched_at: new Date().toISOString(),
+      };
+      try {
+        // First try to ensure it exists if it's a draft from Foundation
+        const exps = await getExperimentsDB();
+        if (!exps.find((e) => e.id === id)) {
+          await createExperimentDB(updated);
+        } else {
+          await updateExperimentDB(updated);
         }
-    }, [refreshData]);
+        refreshData();
+        toast.success('Experiment launched');
+      } catch (err) {
+        toast.error('Failed to launch experiment');
+      }
+    },
+    [experiments, refreshData]
+  );
 
-    const handleLaunch = useCallback(async (id: string) => {
-        const exp = experiments.find(e => e.id === id);
-        if (!exp) return;
+  const handleCheckin = useCallback(
+    async (report: SelfReport) => {
+      if (!activeCheckin) return;
 
-        const updated = { ...exp, status: 'launched' as ExperimentStatus, launched_at: new Date().toISOString() };
-        try {
-            // First try to ensure it exists if it's a draft from Foundation
-            const exps = await getExperimentsDB();
-            if (!exps.find(e => e.id === id)) {
-                await createExperimentDB(updated);
-            } else {
-                await updateExperimentDB(updated);
-            }
-            refreshData();
-            toast.success('Experiment launched');
-        } catch (err) {
-            toast.error('Failed to launch experiment');
-        }
-    }, [experiments, refreshData]);
+      const updatedExp = {
+        ...activeCheckin,
+        status: 'checked_in' as ExperimentStatus,
+        self_report: report,
+      };
 
-    const handleCheckin = useCallback(async (report: SelfReport) => {
-        if (!activeCheckin) return;
+      try {
+        await updateExperimentDB(updatedExp);
 
-        const updatedExp = { ...activeCheckin, status: 'checked_in' as ExperimentStatus, self_report: report };
+        // Save as official industrial outcome
+        await saveOutcome({
+          source: `experiment:${activeCheckin.title}`,
+          value: report.metric_value,
+          confidence: 1.0,
+          move_id: activeCheckin.id,
+        });
 
-        try {
-            await updateExperimentDB(updatedExp);
+        const learningContent =
+          report.outcome === 'great' || report.outcome === 'worked'
+            ? `"${activeCheckin.title}" worked for ${activeCheckin.goal}.`
+            : `"${activeCheckin.title}" underperformed.` +
+            (report.why_chips
+              ? ` Issues: ${report.why_chips.join(', ')}`
+              : '');
 
-            // Save as official industrial outcome
-            await saveOutcome({
-                source: `experiment:${activeCheckin.title}`,
-                value: report.metric_value,
-                confidence: 1.0,
-                move_id: activeCheckin.id
-            });
+        await saveLearning({
+          content: learningContent,
+          learning_type: 'tactical',
+          source_ids: [activeCheckin.id],
+        });
 
-            const learningContent = report.outcome === 'great' || report.outcome === 'worked'
-                ? `"${activeCheckin.title}" worked for ${activeCheckin.goal}.`
-                : `"${activeCheckin.title}" underperformed.` + (report.why_chips ? ` Issues: ${report.why_chips.join(', ')}` : '');
+        refreshData();
+        setActiveCheckin(null);
+        toast.success('Check-in and Learning synced');
+      } catch (err) {
+        toast.error('Failed to record check-in');
+      }
+    },
+    [activeCheckin, refreshData]
+  );
 
-            await saveLearning({
-                content: learningContent,
-                learning_type: 'tactical',
-                source_ids: [activeCheckin.id]
-            });
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      await deleteExperimentDB(id);
+      // Also remove from local state to immediately hide Foundation suggestions that were "deleted"
+      setExperiments((prev) => prev.filter((e) => e.id !== id));
+      toast.success('Experiment deleted');
+    } catch (err) {
+      toast.error('Failed to delete experiment');
+    }
+  }, []);
 
-            refreshData();
-            setActiveCheckin(null);
-            toast.success('Check-in and Learning synced');
-        } catch (err) {
-            toast.error('Failed to record check-in');
-        }
-    }, [activeCheckin, refreshData]);
+  const handleDuplicate = useCallback(
+    (id: string) => {
+      const exp = experiments.find((e) => e.id === id);
+      if (!exp) return;
+      const dup = {
+        ...exp,
+        id: `exp-${Date.now()}`,
+        status: 'draft' as ExperimentStatus,
+        created_at: new Date().toISOString(),
+        launched_at: undefined,
+        self_report: undefined,
+      };
+      const updated = [dup, ...experiments];
+      setExperiments(updated);
+      toast.success('Experiment duplicated');
+    },
+    [experiments]
+  );
 
-    const handleDelete = useCallback(async (id: string) => {
-        try {
-            await deleteExperimentDB(id);
-            // Also remove from local state to immediately hide Foundation suggestions that were "deleted"
-            setExperiments(prev => prev.filter(e => e.id !== id));
-            toast.success('Experiment deleted');
-        } catch (err) {
-            toast.error('Failed to delete experiment');
-        }
-    }, []);
+  const handleMove = useCallback(
+    (id: string, direction: 'up' | 'down') => {
+      const index = experiments.findIndex((e) => e.id === id);
+      if (index === -1) return;
 
-    const handleDuplicate = useCallback((id: string) => {
-        const exp = experiments.find(e => e.id === id);
-        if (!exp) return;
-        const dup = { ...exp, id: `exp-${Date.now()}`, status: 'draft' as ExperimentStatus, created_at: new Date().toISOString(), launched_at: undefined, self_report: undefined };
-        const updated = [dup, ...experiments];
-        setExperiments(updated);
-        toast.success('Experiment duplicated');
-    }, [experiments]);
+      const newExperiments = [...experiments];
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
 
-    const handleMove = useCallback((id: string, direction: 'up' | 'down') => {
-        const index = experiments.findIndex(e => e.id === id);
-        if (index === -1) return;
+      if (targetIndex >= 0 && targetIndex < newExperiments.length) {
+        [newExperiments[index], newExperiments[targetIndex]] = [
+          newExperiments[targetIndex],
+          newExperiments[index],
+        ];
+        setExperiments(newExperiments);
+      }
+    },
+    [experiments]
+  );
 
-        const newExperiments = [...experiments];
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+  const handleEditSave = async () => {
+    if (!activeEdit) return;
+    try {
+      // Check existence for Foundation drafts
+      const exps = await getExperimentsDB();
+      if (!exps.find((e) => e.id === activeEdit.id)) {
+        await createExperimentDB(activeEdit);
+      } else {
+        await updateExperimentDB(activeEdit);
+      }
+      refreshData();
+      setActiveEdit(null);
+      toast.success('Experiment updated');
+    } catch (err) {
+      toast.error('Failed to update experiment');
+    }
+  };
 
-        if (targetIndex >= 0 && targetIndex < newExperiments.length) {
-            [newExperiments[index], newExperiments[targetIndex]] = [newExperiments[targetIndex], newExperiments[index]];
-            setExperiments(newExperiments);
-        }
-    }, [experiments]);
+  const handleClear = useCallback(() => {
+    if (confirm('Are you sure you want to delete all experiments?')) {
+      setExperiments([]);
+      setLearnings([]);
+      saveBlackboxState({ experiments: [], learnings: [], skill_weights: {} });
+      toast.success('All cleared');
+    }
+  }, []);
 
-    const handleEditSave = async () => {
-        if (!activeEdit) return;
-        try {
-            // Check existence for Foundation drafts
-            const exps = await getExperimentsDB();
-            if (!exps.find(e => e.id === activeEdit.id)) {
-                await createExperimentDB(activeEdit);
-            } else {
-                await updateExperimentDB(activeEdit);
-            }
-            refreshData();
-            setActiveEdit(null);
-            toast.success('Experiment updated');
-        } catch (err) {
-            toast.error('Failed to update experiment');
-        }
+  const handleViewEvidence = (learningId: string) => {
+    const fetchData = async () => {
+      const traces = await getEvidencePackage(learningId);
+      setEvidenceTraces(traces);
+      setShowEvidence(true);
     };
+    fetchData();
+  };
 
-    const handleClear = useCallback(() => {
-        if (confirm('Are you sure you want to delete all experiments?')) {
-            setExperiments([]);
-            setLearnings([]);
-            saveBlackboxState({ experiments: [], learnings: [], skill_weights: {} });
-            toast.success('All cleared');
-        }
-    }, []);
+  const handleViewAuditLog = (moveId?: string) => {
+    // If moveId is provided, we use the move-specific audit view
+    // Otherwise we show the global feed (requires a different endpoint or handled in component)
+    setShowAudit(true);
+  };
 
-    const handleViewEvidence = (learningId: string) => {
-        const fetchData = async () => {
-            const traces = await getEvidencePackage(learningId);
-            setEvidenceTraces(traces);
-            setShowEvidence(true);
-        };
-        fetchData();
-    };
+  const handleExportPDF = () => {
+    toast.promise(new Promise((resolve) => setTimeout(resolve, 1500)), {
+      loading: 'Generating Strategic Summary PDF...',
+      success: 'Blackbox_Summary_Dec2025.pdf exported successfully',
+      error: 'Failed to export PDF',
+    });
+    window.print();
+  };
 
-    const handleViewAuditLog = (moveId?: string) => {
-        // If moveId is provided, we use the move-specific audit view
-        // Otherwise we show the global feed (requires a different endpoint or handled in component)
-        setShowAudit(true);
-    };
+  const winner = experiments.find(
+    (e) =>
+      e.status === 'checked_in' &&
+      (e.self_report?.outcome === 'great' ||
+        e.self_report?.outcome === 'worked')
+  );
+  const active = experiments.filter((e) => e.status !== 'checked_in');
+  const completed = experiments.filter((e) => e.status === 'checked_in');
 
-    const handleExportPDF = () => {
-        toast.promise(
-            new Promise((resolve) => setTimeout(resolve, 1500)),
-            {
-                loading: 'Generating Strategic Summary PDF...',
-                success: 'Blackbox_Summary_Dec2025.pdf exported successfully',
-                error: 'Failed to export PDF',
-            }
-        );
-        window.print();
-    };
+  return (
+    <AppLayout>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="max-w-6xl mx-auto space-y-10 pb-20 px-4 md:px-0"
+      >
+        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-border pb-6 pt-2 gap-6">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-display font-semibold tracking-tight text-foreground flex items-center gap-3">
+              Blackbox{' '}
+              <span className="text-accent/50 italic font-medium text-2xl md:text-3xl px-2 py-0.5 rounded bg-accent/5 border border-accent/10">
+                Industrial
+              </span>
+            </h1>
+            <p className="text-sm text-muted-foreground font-sans mt-2 max-w-md">
+              The industrial intelligence engine. Outcomes tracked, insights
+              extracted, strategy hardened by evidence.
+            </p>
+          </div>
 
-    const winner = experiments.find(e => e.status === 'checked_in' && (e.self_report?.outcome === 'great' || e.self_report?.outcome === 'worked'));
-    const active = experiments.filter(e => e.status !== 'checked_in');
-    const completed = experiments.filter(e => e.status === 'checked_in');
-
-    return (
-        <AppLayout>
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="max-w-6xl mx-auto space-y-10 pb-20 px-4 md:px-0"
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleExportPDF}
+              className="rounded-lg text-muted-foreground h-10 px-4 font-sans hover:text-accent hover:bg-accent/5 text-sm"
             >
-                <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-border pb-6 pt-2 gap-6">
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-display font-semibold tracking-tight text-foreground flex items-center gap-3">
-                            Blackbox <span className="text-accent/50 italic font-medium text-2xl md:text-3xl px-2 py-0.5 rounded bg-accent/5 border border-accent/10">Industrial</span>
-                        </h1>
-                        <p className="text-sm text-muted-foreground font-sans mt-2 max-w-md">
-                            The industrial intelligence engine. Outcomes tracked, insights extracted, strategy hardened by evidence.
-                        </p>
-                    </div>
+              <Download className="w-4 h-4 mr-2" /> Export
+            </Button>
+            <Button
+              onClick={() => setShowWizard(true)}
+              className="rounded-xl bg-foreground text-background hover:bg-foreground/90 h-10 px-6 font-sans font-medium tracking-tight text-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" /> New Experiment
+            </Button>
+            {experiments.length > 0 && (
+              <Button
+                variant="ghost"
+                onClick={handleClear}
+                className="rounded-lg text-muted-foreground h-10 w-10 p-0 font-sans hover:text-red-500 hover:bg-red-50/10"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
-                        <Button
-                            variant="outline"
-                            onClick={handleExportPDF}
-                            className="rounded-lg text-muted-foreground h-10 px-4 font-sans hover:text-accent hover:bg-accent/5 text-sm"
-                        >
-                            <Download className="w-4 h-4 mr-2" /> Export
-                        </Button>
-                        <Button onClick={() => setShowWizard(true)} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 h-10 px-6 font-sans font-medium tracking-tight text-sm">
-                            <Plus className="w-4 h-4 mr-2" /> New Experiment
-                        </Button>
-                        {experiments.length > 0 && (
-                            <Button variant="ghost" onClick={handleClear} className="rounded-lg text-muted-foreground h-10 w-10 p-0 font-sans hover:text-red-500 hover:bg-red-50/10">
-                                <Trash2 className="w-4 h-4" />
-                            </Button>
-                        )}
-                    </div>
+        <BoardroomView />
+
+        {experiments.length === 0 ? (
+          <div className="py-12">
+            <EmptyState
+              title="No intelligence gathered yet"
+              description="Execute your first marketing move to start capturing telemetry and extracting strategic insights."
+              actionLabel="Create First Experiment"
+              onAction={() => setShowWizard(true)}
+              icon={LayoutDashboard}
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <ResultsStrip
+                winner={winner}
+                learnings={learnings}
+                onRunAgain={() => winner && handleDuplicate(winner.id)}
+              />
+
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                  <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground font-sans">
+                    Strategic Pivots
+                  </h2>
                 </div>
-
-                <BoardroomView />
-
-                {experiments.length === 0 ? (
-                    <div className="py-12">
-                        <EmptyState
-                            title="No intelligence gathered yet"
-                            description="Execute your first marketing move to start capturing telemetry and extracting strategic insights."
-                            actionLabel="Create First Experiment"
-                            onAction={() => setShowWizard(true)}
-                            icon={LayoutDashboard}
-                        />
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div className="lg:col-span-2 space-y-8">
-                            <ResultsStrip winner={winner} learnings={learnings} onRunAgain={() => winner && handleDuplicate(winner.id)} />
-
-                            <section className="space-y-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Sparkles className="h-4 w-4 text-accent" />
-                                    <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground font-sans">
-                                        Strategic Pivots
-                                    </h2>
-                                </div>
-                                <div className="grid gap-4">
-                                    {learnings.filter(l => l.learning_type === 'strategic').length === 0 ? (
-                                        <p className="text-xs text-muted-foreground italic px-1">No strategic pivots generated yet.</p>
-                                    ) : (
-                                        learnings.filter(l => l.learning_type === 'strategic').map((learning: any) => (
-                                            <div key={learning.id} className="p-5 md:p-6 rounded-2xl border border-accent/20 bg-accent/5 backdrop-blur-sm relative overflow-hidden group">
-                                                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity hidden md:block">
-                                                    <Brain size={80} />
-                                                </div>
-                                                <div className="flex flex-col md:flex-row items-start gap-4">
-                                                    <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground shrink-0 shadow-lg shadow-accent/20">
-                                                        <TrendingUp size={20} />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <h3 className="font-semibold text-lg font-sans leading-tight">Strategic Learning</h3>
-                                                        <p className="text-sm text-muted-foreground font-sans leading-relaxed">
-                                                            {learning.content}
-                                                        </p>
-                                                        <div className="pt-4 flex flex-wrap items-center gap-3">
-                                                            <Button
-                                                                size="sm"
-                                                                className="rounded-lg h-8 bg-foreground text-background px-4 font-sans text-xs"
-                                                                onClick={() => toast.info('Apply pivot coming soon')}
-                                                            >
-                                                                Apply Pivot
-                                                            </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="rounded-lg h-8 px-4 font-sans text-xs border-border bg-background/50"
-                                                                onClick={() => handleViewEvidence(learning.id)}
-                                                            >
-                                                                View Evidence
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </section>
-
-                            {active.length > 0 && (
-                                <section className="space-y-4 pt-4">
-                                    <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans px-1">
-                                        Active Flywheel <span className="text-muted-foreground/40 font-mono ml-1">[{active.length}]</span>
-                                    </h2>
-                                    <ExperimentList
-                                        experiments={active}
-                                        onLaunch={handleLaunch}
-                                        onSwap={() => toast('Swap coming soon')}
-                                        onCheckin={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveCheckin(e); }}
-                                        onView={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveDetail(e); }}
-                                        onDelete={handleDelete}
-                                        onDuplicate={handleDuplicate}
-                                        onMove={handleMove}
-                                        onEdit={(id) => setActiveEdit(experiments.find(e => e.id === id) || null)}
-                                    />
-                                </section>
-                            )}
-                        </div>
-
-                        <div className="space-y-8">
-                            <StrategicDriftRadar />
-                            <CostHeatmap />
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between px-1">
-                                    <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans">
-                                        Live Telemetry
-                                    </h2>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 px-2 text-[10px] font-mono text-muted-foreground hover:text-accent"
-                                        onClick={() => handleViewAuditLog()}
-                                    >
-                                        <Terminal size={12} className="mr-1" /> View Audit Log
-                                    </Button>
-                                </div>
-                                <TelemetryFeed />
+                <div className="grid gap-4">
+                  {learnings.filter((l) => l.learning_type === 'strategic')
+                    .length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic px-1">
+                      No strategic pivots generated yet.
+                    </p>
+                  ) : (
+                    learnings
+                      .filter((l) => l.learning_type === 'strategic')
+                      .map((learning: any) => (
+                        <div
+                          key={learning.id}
+                          className="p-5 md:p-6 rounded-2xl border border-accent/20 bg-accent/5 backdrop-blur-sm relative overflow-hidden group"
+                        >
+                          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity hidden md:block">
+                            <Brain size={80} />
+                          </div>
+                          <div className="flex flex-col md:flex-row items-start gap-4">
+                            <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground shrink-0 shadow-lg shadow-accent/20">
+                              <TrendingUp size={20} />
                             </div>
-
-                            {completed.length > 0 && (
-                                <section className="space-y-4">
-                                    <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans px-1">
-                                        History
-                                    </h2>
-                                    <div className="opacity-80 scale-95 origin-top">
-                                        <ExperimentList
-                                            experiments={completed}
-                                            onView={(id) => { const e = experiments.find(x => x.id === id); if (e) setActiveDetail(e); }}
-                                            onDelete={handleDelete}
-                                            onDuplicate={handleDuplicate}
-                                        />
-                                    </div>
-                                </section>
-                            )}
+                            <div className="space-y-1">
+                              <h3 className="font-semibold text-lg font-sans leading-tight">
+                                Strategic Learning
+                              </h3>
+                              <p className="text-sm text-muted-foreground font-sans leading-relaxed">
+                                {learning.content}
+                              </p>
+                              <div className="pt-4 flex flex-wrap items-center gap-3">
+                                <Button
+                                  size="sm"
+                                  className="rounded-lg h-8 bg-foreground text-background px-4 font-sans text-xs"
+                                  onClick={() =>
+                                    toast.info('Apply pivot coming soon')
+                                  }
+                                >
+                                  Apply Pivot
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="rounded-lg h-8 px-4 font-sans text-xs border-border bg-background/50"
+                                  onClick={() =>
+                                    handleViewEvidence(learning.id)
+                                  }
+                                >
+                                  View Evidence
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                    </div>
-                )}
+                      ))
+                  )}
+                </div>
+              </section>
 
-                <BlackBoxWizard open={showWizard} onOpenChange={setShowWizard} onComplete={handleWizardComplete} />
-
-                <ExperimentDetail
-                    experiment={activeDetail}
-                    open={!!activeDetail}
-                    onOpenChange={(o) => !o && setActiveDetail(null)}
+              {active.length > 0 && (
+                <section className="space-y-4 pt-4">
+                  <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans px-1">
+                    Active Flywheel{' '}
+                    <span className="text-muted-foreground/40 font-mono ml-1">
+                      [{active.length}]
+                    </span>
+                  </h2>
+                  <ExperimentList
+                    experiments={active}
                     onLaunch={handleLaunch}
-                    onCheckin={(id) => { const e = experiments.find(x => x.id === id); if (e) { setActiveDetail(null); setActiveCheckin(e); } }}
-                />
+                    onSwap={() => toast('Swap coming soon')}
+                    onCheckin={(id) => {
+                      const e = experiments.find((x) => x.id === id);
+                      if (e) setActiveCheckin(e);
+                    }}
+                    onView={(id) => {
+                      const e = experiments.find((x) => x.id === id);
+                      if (e) setActiveDetail(e);
+                    }}
+                    onDelete={handleDelete}
+                    onDuplicate={handleDuplicate}
+                    onMove={handleMove}
+                    onEdit={(id) =>
+                      setActiveEdit(
+                        experiments.find((e) => e.id === id) || null
+                      )
+                    }
+                  />
+                </section>
+              )}
+            </div>
 
-                <Dialog open={!!activeCheckin} onOpenChange={(o) => !o && setActiveCheckin(null)}>
-                    <DialogContent className="p-0 bg-transparent border-none shadow-none max-w-md">
-                        {activeCheckin && <CheckinCard experiment={activeCheckin} onSubmit={handleCheckin} onCancel={() => setActiveCheckin(null)} />}
-                    </DialogContent>
-                </Dialog>
+            <div className="space-y-8">
+              <StrategicDriftRadar />
+              <CostHeatmap />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between px-1">
+                  <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans">
+                    Live Telemetry
+                  </h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-[10px] font-mono text-muted-foreground hover:text-accent"
+                    onClick={() => handleViewAuditLog()}
+                  >
+                    <Terminal size={12} className="mr-1" /> View Audit Log
+                  </Button>
+                </div>
+                <TelemetryFeed />
+              </div>
 
-                <Dialog open={!!activeEdit} onOpenChange={(o) => !o && setActiveEdit(null)}>
-                    <DialogContent className="max-w-md bg-background border-border">
-                        <DialogHeader>
-                            <DialogTitle className="font-sans font-semibold">Edit Experiment</DialogTitle>
-                        </DialogHeader>
-                        {activeEdit && (
-                            <div className="space-y-4 py-2">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-semibold text-muted-foreground font-sans uppercase tracking-tighter">Title</label>
-                                    <Input
-                                        value={activeEdit.title}
-                                        onChange={(e) => setActiveEdit({ ...activeEdit, title: e.target.value })}
-                                        className="font-sans rounded-lg border-border"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-semibold text-muted-foreground font-sans uppercase tracking-tighter">The Bet</label>
-                                    <Textarea
-                                        value={activeEdit.bet}
-                                        onChange={(e) => setActiveEdit({ ...activeEdit, bet: e.target.value })}
-                                        className="font-sans resize-none rounded-lg border-border"
-                                        rows={3}
-                                    />
-                                </div>
-                            </div>
-                        )}
-                        <DialogFooter>
-                            <Button variant="ghost" onClick={() => setActiveEdit(null)} className="font-sans rounded-lg">Cancel</Button>
-                            <Button onClick={handleEditSave} className="bg-foreground text-background font-sans font-semibold rounded-lg tracking-tight">Save Changes</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+              {completed.length > 0 && (
+                <section className="space-y-4">
+                  <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-sans px-1">
+                    History
+                  </h2>
+                  <div className="opacity-80 scale-95 origin-top">
+                    <ExperimentList
+                      experiments={completed}
+                      onView={(id) => {
+                        const e = experiments.find((x) => x.id === id);
+                        if (e) setActiveDetail(e);
+                      }}
+                      onDelete={handleDelete}
+                      onDuplicate={handleDuplicate}
+                    />
+                  </div>
+                </section>
+              )}
+            </div>
+          </div>
+        )}
 
-                <Dialog open={showEvidence} onOpenChange={setShowEvidence}>
-                    <DialogContent className="max-w-2xl bg-background border-border overflow-hidden flex flex-col max-h-[80vh]">
-                        <DialogHeader className="pb-4">
-                            <DialogTitle className="font-sans font-semibold flex items-center gap-2">
-                                <FileText className="h-5 w-5 text-accent" />
-                                Strategic Evidence
-                            </DialogTitle>
-                            <p className="text-sm text-muted-foreground font-sans">
-                                Raw intelligence retrieved by agents to support this pivot.
-                            </p>
-                        </DialogHeader>
-                        <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                            <EvidenceLog traces={evidenceTraces} />
-                        </div>
-                        <DialogFooter className="pt-4 border-t border-border mt-2">
-                            <Button variant="ghost" onClick={() => setShowEvidence(false)} className="font-sans rounded-lg">Close</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+        <BlackBoxWizard
+          open={showWizard}
+          onOpenChange={setShowWizard}
+          onComplete={handleWizardComplete}
+        />
 
-                <Dialog open={showAudit} onOpenChange={setShowAudit}>
-                    <DialogContent className="max-w-4xl bg-background border-border overflow-hidden flex flex-col h-[85vh]">
-                        <DialogHeader className="pb-4">
-                            <DialogTitle className="font-sans font-semibold flex items-center gap-2">
-                                <Terminal className="h-5 w-5 text-accent" />
-                                Agent Audit Log
-                            </DialogTitle>
-                            <p className="text-sm text-muted-foreground font-sans">
-                                Deep inspection of raw agent inputs, tool calls, and LLM responses.
-                            </p>
-                        </DialogHeader>
-                        <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                            <AgentAuditLog entries={auditEntries} />
-                        </div>
-                        <DialogFooter className="pt-4 border-t border-border mt-2">
-                            <Button variant="ghost" onClick={() => setShowAudit(false)} className="font-sans rounded-lg">Close Audit Log</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            </motion.div>
-        </AppLayout>
-    );
+        <ExperimentDetail
+          experiment={activeDetail}
+          open={!!activeDetail}
+          onOpenChange={(o) => !o && setActiveDetail(null)}
+          onLaunch={handleLaunch}
+          onCheckin={(id) => {
+            const e = experiments.find((x) => x.id === id);
+            if (e) {
+              setActiveDetail(null);
+              setActiveCheckin(e);
+            }
+          }}
+        />
+
+        <Dialog
+          open={!!activeCheckin}
+          onOpenChange={(o) => !o && setActiveCheckin(null)}
+        >
+          <DialogContent className="p-0 bg-transparent border-none shadow-none max-w-md">
+            {activeCheckin && (
+              <CheckinCard
+                experiment={activeCheckin}
+                onSubmit={handleCheckin}
+                onCancel={() => setActiveCheckin(null)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={!!activeEdit}
+          onOpenChange={(o) => !o && setActiveEdit(null)}
+        >
+          <DialogContent className="max-w-md bg-background border-border">
+            <DialogHeader>
+              <DialogTitle className="font-sans font-semibold">
+                Edit Experiment
+              </DialogTitle>
+            </DialogHeader>
+            {activeEdit && (
+              <div className="space-y-4 py-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground font-sans uppercase tracking-tighter">
+                    Title
+                  </label>
+                  <Input
+                    value={activeEdit.title}
+                    onChange={(e) =>
+                      setActiveEdit({ ...activeEdit, title: e.target.value })
+                    }
+                    className="font-sans rounded-lg border-border"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground font-sans uppercase tracking-tighter">
+                    The Bet
+                  </label>
+                  <Textarea
+                    value={activeEdit.bet}
+                    onChange={(e) =>
+                      setActiveEdit({ ...activeEdit, bet: e.target.value })
+                    }
+                    className="font-sans resize-none rounded-lg border-border"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button
+                variant="ghost"
+                onClick={() => setActiveEdit(null)}
+                className="font-sans rounded-lg"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleEditSave}
+                className="bg-foreground text-background font-sans font-semibold rounded-lg tracking-tight"
+              >
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showEvidence} onOpenChange={setShowEvidence}>
+          <DialogContent className="max-w-2xl bg-background border-border overflow-hidden flex flex-col max-h-[80vh]">
+            <DialogHeader className="pb-4">
+              <DialogTitle className="font-sans font-semibold flex items-center gap-2">
+                <FileText className="h-5 w-5 text-accent" />
+                Strategic Evidence
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground font-sans">
+                Raw intelligence retrieved by agents to support this pivot.
+              </p>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+              <EvidenceLog traces={evidenceTraces} />
+            </div>
+            <DialogFooter className="pt-4 border-t border-border mt-2">
+              <Button
+                variant="ghost"
+                onClick={() => setShowEvidence(false)}
+                className="font-sans rounded-lg"
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showAudit} onOpenChange={setShowAudit}>
+          <DialogContent className="max-w-4xl bg-background border-border overflow-hidden flex flex-col h-[85vh]">
+            <DialogHeader className="pb-4">
+              <DialogTitle className="font-sans font-semibold flex items-center gap-2">
+                <Terminal className="h-5 w-5 text-accent" />
+                Agent Audit Log
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground font-sans">
+                Deep inspection of raw agent inputs, tool calls, and LLM
+                responses.
+              </p>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+              <AgentAuditLog entries={auditEntries} />
+            </div>
+            <DialogFooter className="pt-4 border-t border-border mt-2">
+              <Button
+                variant="ghost"
+                onClick={() => setShowAudit(false)}
+                className="font-sans rounded-lg"
+              >
+                Close Audit Log
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </motion.div>
+    </AppLayout>
+  );
 }

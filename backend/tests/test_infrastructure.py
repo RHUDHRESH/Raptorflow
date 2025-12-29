@@ -34,9 +34,10 @@ async def test_upstash_cache_logic():
     cache = get_cache()
 
     # Mocking the actual Redis call to avoid network dependencies in unit tests
-    with patch.object(cache, "set", new_callable=AsyncMock) as mock_set, patch.object(
-        cache, "get", new_callable=AsyncMock
-    ) as mock_get:
+    with (
+        patch.object(cache, "set", new_callable=AsyncMock) as mock_set,
+        patch.object(cache, "get", new_callable=AsyncMock) as mock_get,
+    ):
 
         mock_get.return_value = "cached_result"
 
@@ -65,9 +66,10 @@ async def test_checkpointer_persistence_mocked():
     mock_pool = MagicMock()
     mock_pool.opened = True
 
-    with patch("backend.db.get_pool", return_value=mock_pool), patch(
-        "backend.db.SupabaseSaver"
-    ) as MockSaver:
+    with (
+        patch("backend.db.get_pool", return_value=mock_pool),
+        patch("backend.db.SupabaseSaver") as MockSaver,
+    ):
 
         mock_saver_inst = MockSaver.return_value
         mock_saver_inst.aget = AsyncMock(
