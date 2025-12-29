@@ -54,6 +54,7 @@ This is the exact spec for the War Room dashboard.
 ## Blocks (Exact)
 
 ### 1. Page Header
+
 ```
 Layout:       flex, space-between, align-start
 Margin-bottom: 48px
@@ -67,6 +68,7 @@ Right:
 ```
 
 ### 2. Hero Move Card
+
 ```
 Layout:       Card default, full width
 Padding:      32px
@@ -81,6 +83,7 @@ Content:
 ```
 
 ### 3. Focus List
+
 ```
 Layout:       Single column, no card wrapper
 Margin-bottom: 48px
@@ -99,6 +102,7 @@ Items (5 max):
 ```
 
 ### 4. Campaign Progress
+
 ```
 Layout:       No card wrapper
 Margin-bottom: 48px
@@ -126,6 +130,7 @@ Milestones:
 ```
 
 ### 5. Metrics (Optional, below fold)
+
 ```
 Layout:       flex, 4 items, gap 24px
 Margin-bottom: 48px
@@ -142,29 +147,29 @@ No colored deltas. Just gray with +/- sign.
 
 ## Typography Exact
 
-| Element      | Font           | Size   | Weight | Color   |
-|--------------|----------------|--------|--------|---------|
-| Page title   | Playfair       | 40px   | 600    | #171717 |
-| Page subtitle| Inter          | 16px   | 400    | #737373 |
-| Section label| Inter          | 12px   | 500    | #A3A3A3 |
-| Card title   | Inter          | 20px   | 600    | #171717 |
-| Body         | Inter          | 16px   | 400    | #171717 |
-| Muted        | Inter          | 14px   | 400    | #737373 |
-| Caption      | Inter          | 12px   | 400    | #A3A3A3 |
-| Numbers      | JetBrains Mono | varies | 600    | #171717 |
+| Element       | Font           | Size   | Weight | Color   |
+| ------------- | -------------- | ------ | ------ | ------- |
+| Page title    | Playfair       | 40px   | 600    | #171717 |
+| Page subtitle | Inter          | 16px   | 400    | #737373 |
+| Section label | Inter          | 12px   | 500    | #A3A3A3 |
+| Card title    | Inter          | 20px   | 600    | #171717 |
+| Body          | Inter          | 16px   | 400    | #171717 |
+| Muted         | Inter          | 14px   | 400    | #737373 |
+| Caption       | Inter          | 12px   | 400    | #A3A3A3 |
+| Numbers       | JetBrains Mono | varies | 600    | #171717 |
 
 ---
 
 ## Spacing Exact
 
-| Element                | Value |
-|------------------------|-------|
-| Page padding           | 48px  |
-| Section margin-bottom  | 48px  |
-| Card padding           | 24-32px |
-| List item padding      | 12px 0 |
-| Button height          | 44px  |
-| Progress bar height    | 4px   |
+| Element               | Value   |
+| --------------------- | ------- |
+| Page padding          | 48px    |
+| Section margin-bottom | 48px    |
+| Card padding          | 24-32px |
+| List item padding     | 12px 0  |
+| Button height         | 44px    |
+| Progress bar height   | 4px     |
 
 ---
 
@@ -202,6 +207,7 @@ CTA:          Full width button
 ## Empty State
 
 ### No active campaign
+
 ```
 Title:      "No active campaign"
 Body:       "Start a 90-day campaign to get your first moves."
@@ -209,6 +215,7 @@ CTA:        "Create Campaign" (primary button)
 ```
 
 ### No moves queued
+
 ```
 Title:      "Queue is empty"
 Body:       "Your next move will appear here when a campaign is active."

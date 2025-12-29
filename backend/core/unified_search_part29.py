@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import aiofiles
 import aiofiles.os
-import redis
+import redis.asyncio as redis
 
 from core.unified_search_part1 import ContentType, SearchMode, SearchQuery, SearchResult
 from core.unified_search_part2 import SearchProvider

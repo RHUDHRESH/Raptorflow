@@ -36,7 +36,9 @@ async def store_vectors(state: IngestState):
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
             base_metadata = state.get("metadata", {})
-            filename = state.get("filename") or base_metadata.get("filename") or "ingest"
+            filename = (
+                state.get("filename") or base_metadata.get("filename") or "ingest"
+            )
             for index, (chunk, emb) in enumerate(
                 zip(state["chunks"], state["embeddings"])
             ):

@@ -91,14 +91,15 @@ export function GSAPScrollReveal() {
             </div>
             <div className="reveal-text">
               <p className="text-xl text-muted-foreground mb-6 leading-relaxed">
-                Every week builds on the last. Your positioning stays consistent.
-                Your campaigns stack up. Results compound exponentially.
+                Every week builds on the last. Your positioning stays
+                consistent. Your campaigns stack up. Results compound
+                exponentially.
               </p>
             </div>
             <div className="reveal-text">
               <p className="text-lg text-muted-foreground leading-relaxed">
-                No more starting from scratch every Monday. No more scattered tactics.
-                Just systematic growth that gets easier over time.
+                No more starting from scratch every Monday. No more scattered
+                tactics. Just systematic growth that gets easier over time.
               </p>
             </div>
           </div>

@@ -5,12 +5,29 @@ import { z } from 'zod';
 // ==========================================
 
 // Legacy types (kept for backward compatibility)
-export type BusinessStage = 'idea' | 'pre-launch' | 'beta' | 'live' | 'scaling' | 'early' | 'growth'; // Updated + legacy
-export type RevenueModel = 'saas' | 'services' | 'product' | 'marketplace' | 'other';
+export type BusinessStage =
+  | 'idea'
+  | 'pre-launch'
+  | 'beta'
+  | 'live'
+  | 'scaling'
+  | 'early'
+  | 'growth'; // Updated + legacy
+export type RevenueModel =
+  | 'saas'
+  | 'services'
+  | 'product'
+  | 'marketplace'
+  | 'other';
 export type TeamSize = 'solo' | '2-5' | '6-20' | '20+';
 
 export type CustomerType = 'b2b' | 'b2c' | 'b2g' | 'mixed';
-export type SCARFDriver = 'status' | 'certainty' | 'autonomy' | 'relatedness' | 'fairness';
+export type SCARFDriver =
+  | 'status'
+  | 'certainty'
+  | 'autonomy'
+  | 'relatedness'
+  | 'fairness';
 export type DecisionStyle = 'satisficer' | 'maximizer';
 export type RiskTolerance = 'regret-minimizer' | 'opportunity-seeker';
 
@@ -18,44 +35,417 @@ export type RiskTolerance = 'regret-minimizer' | 'opportunity-seeker';
 // New Types for Know You Flow
 // ==========================================
 
-export type BusinessType = 'saas' | 'agency' | 'd2c' | 'local-service' | 'creator' | 'marketplace' | 'other';
+export type BusinessType =
+  | 'saas'
+  | 'agency'
+  | 'd2c'
+  | 'local-service'
+  | 'creator'
+  | 'marketplace'
+  | 'other';
 export type PriceBand = 'free' | 'under-5k' | '5k-25k' | '25k-1l' | '1l-plus';
 export type SalesMotion = 'self-serve' | 'demo-led' | 'hybrid';
-export type BuyerRoleChip = 'founder' | 'marketing' | 'sales' | 'hr' | 'ops' | 'finance' | 'other';
+export type BuyerRoleChip =
+  | 'founder'
+  | 'marketing'
+  | 'sales'
+  | 'hr'
+  | 'ops'
+  | 'finance'
+  | 'other';
 export type RegionCode = 'india' | 'us' | 'eu' | 'global' | 'other';
 export type LanguageCode = 'english' | 'hinglish' | 'tamil' | 'hindi' | 'other';
-export type PrimaryGoal = 'leads' | 'close-deals' | 'increase-conversion' | 'content-engine' | 'launch' | 'retention';
-export type Constraint = 'low-budget' | 'no-time' | 'no-design' | 'compliance' | 'no-audience';
-export type Channel = 'linkedin' | 'instagram' | 'whatsapp' | 'email' | 'youtube' | 'seo' | 'ads' | 'offline';
-export type ToolOption = 'none' | 'sheets' | 'notion' | 'hubspot' | 'zoho' | 'pipedrive' | 'mailchimp' | 'klaviyo' | 'other';
-export type ProofType = 'testimonials' | 'case-study' | 'metrics' | 'logos' | 'none';
-export type VoicePreference = 'calm-premium' | 'direct-punchy' | 'friendly-warm' | 'technical-precise' | 'bold-contrarian';
+export type PrimaryGoal =
+  | 'leads'
+  | 'close-deals'
+  | 'increase-conversion'
+  | 'content-engine'
+  | 'launch'
+  | 'retention';
+export type Constraint =
+  | 'low-budget'
+  | 'no-time'
+  | 'no-design'
+  | 'compliance'
+  | 'no-audience';
+export type Channel =
+  | 'linkedin'
+  | 'instagram'
+  | 'whatsapp'
+  | 'email'
+  | 'youtube'
+  | 'seo'
+  | 'ads'
+  | 'offline';
+export type ToolOption =
+  | 'none'
+  | 'sheets'
+  | 'notion'
+  | 'hubspot'
+  | 'zoho'
+  | 'pipedrive'
+  | 'mailchimp'
+  | 'klaviyo'
+  | 'other';
+export type ProofType =
+  | 'testimonials'
+  | 'case-study'
+  | 'metrics'
+  | 'logos'
+  | 'none';
+export type VoicePreference =
+  | 'calm-premium'
+  | 'direct-punchy'
+  | 'friendly-warm'
+  | 'technical-precise'
+  | 'bold-contrarian';
 
 // NEW: Trigger event types
 export type TriggerEvent =
-  | 'hiring-surge' | 'funding-round' | 'missed-target' | 'compliance-change'
-  | 'competitor-threat' | 'tech-migration' | 'team-expansion' | 'churn-spike'
-  | 'reorg' | 'new-leadership' | 'budget-approval' | 'seasonal-peak';
+  | 'hiring-surge'
+  | 'funding-round'
+  | 'missed-target'
+  | 'compliance-change'
+  | 'competitor-threat'
+  | 'tech-migration'
+  | 'team-expansion'
+  | 'churn-spike'
+  | 'reorg'
+  | 'new-leadership'
+  | 'budget-approval'
+  | 'seasonal-peak';
 
 // NEW: Alternative/competitor types
 export type AlternativeType =
-  | 'spreadsheets' | 'notion' | 'hubspot' | 'marketo' | 'agencies'
-  | 'freelancers' | 'zapier-glue' | 'internal-team' | 'nothing';
+  | 'direct-competitor'
+  | 'alternative-solution'
+  | 'diy-approach'
+  | 'status-quo'
+  | 'different-category'
+  | 'spreadsheets'
+  | 'notion'
+  | 'hubspot'
+  | 'marketo'
+  | 'agencies'
+  | 'freelancers'
+  | 'zapier-glue'
+  | 'internal-team'
+  | 'nothing';
+
+// NEW: Category candidate for market framing
+export interface CategoryCandidate {
+  id: string;
+  name: string;
+  description: string;
+  risk: 'low' | 'medium' | 'high';
+  isSelected?: boolean;
+  comparisonSet?: string[];
+  marketSize?: string;
+  growthRate?: string;
+}
+
+// NEW: Pricing posture for market positioning
+export type PricingPosture = 'premium' | 'mid' | 'budget' | 'volume';
+
+// NEW: Positioning statement variants
+export interface PositioningStatementVariant {
+  id: string;
+  style: StatementStyle;
+  template?: string;
+  variables?: Record<string, string>;
+  text?: string;
+  components?: Record<string, string | undefined>;
+  proofCoverage?: number;
+  isCanonical?: boolean;
+  score?: number;
+}
+
+export type StatementStyle =
+  | 'direct'
+  | 'emotional'
+  | 'technical'
+  | 'storytelling'
+  | 'dunford'
+  | 'ries'
+  | 'godin';
+
+// Additional missing types
+export interface UniqueAttribute {
+  id: string;
+  attribute: string;
+  proof: string;
+  differentiator: string;
+  type?: AttributeType;
+  copyability?: Copyability;
+  requiresProof?: boolean;
+  source?: string;
+  isConfidential?: boolean;
+  evidenceIds?: string[];
+}
+
+export interface ValueClaim {
+  id: string;
+  claim: string;
+  claimText?: string;
+  evidence: EvidenceNode[];
+  confidence: number;
+  isSelected?: boolean;
+  attributeId?: string;
+  valueType?: ValueType;
+  riskLevel?: string;
+  evidenceIds?: string[];
+  proofHook?: ProofHookType;
+}
+
+export interface EvidenceNode {
+  id: string;
+  claimId?: string;
+  type: 'testimonial' | 'metric' | 'case_study' | 'expert_opinion';
+  content: string;
+  source: string;
+  credibility: number;
+}
+
+export interface WhoCareSegment {
+  id: string;
+  name: string;
+  valueAlignment: string[];
+  triggerEvents: string[];
+  budgetPlausibility: string;
+  salesFriction: string;
+  rank: 'primary' | 'secondary' | 'avoid' | 'unranked';
+  segment?: string;
+  size?: string;
+  painPoints?: string[];
+  valueProposition?: string;
+}
+
+export interface AttributeLadderData {
+  attribute: string;
+  rungs: Array<{
+    feature: string;
+    benefit: string;
+    value: string;
+    emotional: string;
+  }>;
+  moatGapScore: number;
+}
+
+export type ProofTier = 1 | 2 | 3 | 4;
+
+export type AttributeType = 'feature' | 'process' | 'workflow' | 'outcome' | 'data-advantage' | 'distribution';
+
+export type Copyability = 'easy' | 'medium' | 'hard';
+
+export type ValueType = 'functional' | 'emotional' | 'social';
+
+export type ProofHookType = 'metric' | 'quote' | 'demo' | 'case_study' | 'expert_opinion' | 'benchmark';
+
+export interface BeliefItem {
+  id: string;
+  text: string;
+  isRequired: boolean;
+}
+
+export interface ObjectionItem {
+  id: string;
+  objection: string;
+  rootCause: string;
+  proofTypeRequired: 'case-study' | 'demo' | 'guarantee' | 'testimonial' | 'metric';
+  isDealKiller: boolean;
+  rank: number;
+}
+
+export type BuyingJobTypeExtended = 
+  | 'problem-id'
+  | 'solution-explore'
+  | 'requirements'
+  | 'supplier-select'
+  | 'validation'
+  | 'consensus';
+
+export interface BuyingJobsCoverageCell {
+  buyingJob: BuyingJobTypeExtended;
+  roleId: string;
+  coverage: number; // 0-100
+  notes?: string;
+  assets?: string[];
+  beliefRequired?: string;
+  hasGap?: boolean;
+  assetSuggested?: string;
+}
+
+export interface ChannelHabitatItem {
+  id: string;
+  platform: string;
+  contentTypes: string[];
+  timingPattern: string;
+  confidenceScore: number;
+  isPrimary: boolean;
+  isSecondary: boolean;
+}
+
+export interface DataQualityMeter {
+  firmographic: number;
+  pain: number;
+  trigger: number;
+  proof: number;
+  constraints: number;
+  overall: number;
+}
+
+export interface EvidenceEntity {
+  id: string;
+  type: string;
+  value: string;
+  source: string;
+  confidence: 'proven' | 'claimed' | 'hypothesis';
+}
+
+export interface NegativeICPDisqualifier {
+  id: string;
+  type: 'industry' | 'budget' | 'behavior' | 'structure' | 'technical';
+  description: string;
+  churnRiskScore: number; // 0-100
+}
+
+export interface NegativeICP {
+  industries?: string[];
+  behaviorSignals?: string[];
+  minBudgetThreshold?: number;
+  disqualifiers?: NegativeICPDisqualifier[];
+}
+
+export interface TriggerSignal {
+  id: string;
+  name: string;
+  description: string;
+  strength: number;
+  detectionMethods: string[];
+  intentKeywords: string[];
+  isConfirmed?: boolean;
+}
+
+export interface IntentSignal {
+  id: string;
+  name: string;
+  description: string;
+  strength: number;
+  detectionMethods: string[];
+  intentKeywords: string[];
+  source?: string;
+}
+
+export interface ProofIntegrityItem {
+  id?: string;
+  claim: string;
+  claimText?: string;
+  evidenceAttached: boolean;
+  tier: ProofTier;
+  tierLabel: string;
+  needsFix: boolean;
+  isHypothesis: boolean;
+  claimId?: string;
+}
+
+export interface PositioningData {
+  statement: string;
+  variants: PositioningStatementVariant[];
+  attributes: UniqueAttribute[];
+  valueClaims: ValueClaim[];
+  segments: WhoCareSegment[];
+  ladder: AttributeLadderData[];
+  proof: ProofIntegrityItem[];
+}
+
+export interface PositioningDraft {
+  id: string;
+  timestamp: string;
+  content: PositioningData;
+  changeDescription: string;
+}
 
 // ==========================================
 // Phase 1 Discovery Objects (Customer Discovery Output)
 // ==========================================
 
-export type ChangeType = 'regulation' | 'tech' | 'behavior' | 'competitor' | 'cost' | 'market' | 'other';
-export type BragMetric = 'revenue' | 'leads' | 'cac' | 'roas' | 'activation' | 'retention' | 'churn' | 'nps' | 'hours-saved' | 'other';
-export type OptimizingFor = 'acquire' | 'activate' | 'retain' | 'monetize' | 'expand' | 'reposition';
-export type OfferType = 'saas' | 'service' | 'course' | 'marketplace' | 'app' | 'hardware' | 'other';
+export type ChangeType =
+  | 'regulation'
+  | 'tech'
+  | 'behavior'
+  | 'competitor'
+  | 'cost'
+  | 'market'
+  | 'other';
+export type BragMetric =
+  | 'revenue'
+  | 'leads'
+  | 'cac'
+  | 'roas'
+  | 'activation'
+  | 'retention'
+  | 'churn'
+  | 'nps'
+  | 'hours-saved'
+  | 'other';
+export type OptimizingFor =
+  | 'acquire'
+  | 'activate'
+  | 'retain'
+  | 'monetize'
+  | 'expand'
+  | 'reposition';
+export type OfferType =
+  | 'saas'
+  | 'service'
+  | 'course'
+  | 'marketplace'
+  | 'app'
+  | 'hardware'
+  | 'other';
 export type DeliveryMode = 'done-for-you' | 'done-with-you' | 'coaching';
-export type TimeToValue = 'instant' | 'same-day' | '1-week' | '2-4-weeks' | '1-3-months' | 'longer';
-export type PricingMode = 'monthly' | 'annual' | 'per-seat' | 'per-usage' | 'one-time' | 'performance';
-export type TriggerType = 'hiring' | 'revenue-drop' | 'growth-plateau' | 'new-launch' | 'competitor' | 'budget-cycle' | 'compliance' | 'burnout' | 'other';
-export type VoiceTone = 'calm' | 'bold' | 'technical' | 'friendly' | 'luxury' | 'playful';
-export type ArtifactLocation = 'sheets' | 'excel' | 'notion' | 'hubspot' | 'whatsapp' | 'slack' | 'email' | 'trello' | 'in-my-head' | 'other';
+export type TimeToValue =
+  | 'instant'
+  | 'same-day'
+  | '1-week'
+  | '2-4-weeks'
+  | '1-3-months'
+  | 'longer';
+export type PricingMode =
+  | 'monthly'
+  | 'annual'
+  | 'per-seat'
+  | 'per-usage'
+  | 'one-time'
+  | 'performance';
+export type TriggerType =
+  | 'hiring'
+  | 'revenue-drop'
+  | 'growth-plateau'
+  | 'new-launch'
+  | 'competitor'
+  | 'budget-cycle'
+  | 'compliance'
+  | 'burnout'
+  | 'other';
+export type VoiceTone =
+  | 'calm'
+  | 'bold'
+  | 'technical'
+  | 'friendly'
+  | 'luxury'
+  | 'playful';
+export type ArtifactLocation =
+  | 'sheets'
+  | 'excel'
+  | 'notion'
+  | 'hubspot'
+  | 'whatsapp'
+  | 'slack'
+  | 'email'
+  | 'trello'
+  | 'in-my-head'
+  | 'other';
 
 export interface IdentityCard {
   name: string;
@@ -184,8 +574,8 @@ export interface JTBDJob {
 export interface JTBDForces {
   jobs: JTBDJob[];
   functional?: string; // Precision 3.0
-  emotional?: string;  // Precision 3.0
-  social?: string;     // Precision 3.0
+  emotional?: string; // Precision 3.0
+  social?: string; // Precision 3.0
   strugglingMoments: string[];
   forces: {
     push: string[];
@@ -348,7 +738,13 @@ export interface Phase3Session {
 }
 
 // Intake Summary (Screen 3.1)
-export type IntakeSummarySection = 'company' | 'pricing' | 'stack' | 'pains' | 'constraints' | 'proof';
+export type IntakeSummarySection =
+  | 'company'
+  | 'pricing'
+  | 'stack'
+  | 'pains'
+  | 'constraints'
+  | 'proof';
 export type SourceConfidence = 'high' | 'medium' | 'low';
 
 export interface IntakeSummaryItem {
@@ -362,7 +758,13 @@ export interface IntakeSummaryItem {
 }
 
 // Proof Stack (Screen 3.5)
-export type ProofCategory = 'metrics' | 'case-stories' | 'testimonials' | 'screenshots' | 'credentials' | 'not-yet';
+export type ProofCategory =
+  | 'metrics'
+  | 'case-stories'
+  | 'testimonials'
+  | 'screenshots'
+  | 'credentials'
+  | 'not-yet';
 
 export interface ProofArtifact {
   id: string;
@@ -520,11 +922,11 @@ export interface DifferentiatedValue {
 
 // Target Segment (Dunford Component #4)
 export interface SegmentScores {
-  pain: number;       // 1-5
-  budget: number;     // 1-5
-  triggers: number;   // 1-5
-  switching: number;  // 1-5
-  proofFit: number;   // 1-5
+  pain: number; // 1-5
+  budget: number; // 1-5
+  triggers: number; // 1-5
+  switching: number; // 1-5
+  proofFit: number; // 1-5
 }
 
 export interface TargetSegment {
@@ -741,7 +1143,11 @@ export interface BuyingRole {
 }
 
 // Buying Job (Gartner model)
-export type BuyingJobType = 'problem-id' | 'solution-explore' | 'requirements' | 'supplier-select';
+export type BuyingJobType =
+  | 'problem-id'
+  | 'solution-explore'
+  | 'requirements'
+  | 'supplier-select';
 
 export interface BuyingJob {
   job: BuyingJobType;
@@ -770,11 +1176,11 @@ export interface ICPHabitat {
 
 // Fit Score
 export interface ICPFitScore {
-  valueFit: number;      // 1-5
+  valueFit: number; // 1-5
   switchability: number; // 1-5
-  reachability: number;  // 1-5
-  dealSize: number;      // 1-5
-  confidence: number;    // 1-5
+  reachability: number; // 1-5
+  dealSize: number; // 1-5
+  confidence: number; // 1-5
   total: number;
 }
 
@@ -852,6 +1258,7 @@ export interface InterICPGraph {
   nodes: ICPGraphNode[];
   edges: ICPGraphEdge[];
   primaryWedgeICP: string;
+  targetSequence?: string[];
 }
 
 // Complete Phase 5 Data
@@ -861,6 +1268,18 @@ export interface Phase5Data {
   interICPGraph: InterICPGraph;
   version: string;
   lockedAt?: string;
+  primaryICPId?: string;
+  secondaryICPIds?: string[];
+  buyingJobsCoverage?: {
+    cells: BuyingJobsCoverageCell[];
+    gaps: string[];
+  };
+  triggerStack?: TriggerSignal[];
+  intentSignals?: TriggerSignal[];
+  channelHabitats?: ChannelHabitatItem[];
+  beliefs?: BeliefItem[];
+  objectionStack?: ObjectionItem[];
+  negativeICP?: NegativeICP;
 }
 
 // ==========================================
@@ -868,7 +1287,12 @@ export interface Phase5Data {
 // ==========================================
 
 // Awareness Stage (Schwartz)
-export type AwarenessStage = 'unaware' | 'problem' | 'solution' | 'product' | 'most';
+export type AwarenessStage =
+  | 'unaware'
+  | 'problem'
+  | 'solution'
+  | 'product'
+  | 'most';
 
 // Soundbite Types (Precision 3.0 - 7 types)
 export type SoundbiteType =
@@ -891,11 +1315,11 @@ export type SoundbiteType =
 
 // Rigor Gate Scores
 export interface RigorScores {
-  specificity: number;      // 1-5: penalize empty adjectives
-  proof: number;            // 1-5: attached proof type
-  differentiation: number;  // 1-5: competitor couldn't say this
-  awarenessFit: number;     // 1-5: matches awareness stage
-  cognitiveLoad: number;    // 1-5: length/complexity
+  specificity: number; // 1-5: penalize empty adjectives
+  proof: number; // 1-5: attached proof type
+  differentiation: number; // 1-5: competitor couldn't say this
+  awarenessFit: number; // 1-5: matches awareness stage
+  cognitiveLoad: number; // 1-5: length/complexity
   total: number;
   passing: boolean;
 }
@@ -1042,7 +1466,11 @@ export interface Signal7Soundbite {
 }
 
 // Proof Binding
-export type RiskReversalType = 'pilot' | 'guarantee' | 'cancel-anytime' | 'pay-on-results';
+export type RiskReversalType =
+  | 'pilot'
+  | 'guarantee'
+  | 'cancel-anytime'
+  | 'pay-on-results';
 
 export interface ProofSlot {
   soundbiteId: string;
@@ -1086,7 +1514,13 @@ export interface WebsiteHeroPack {
 }
 
 // Ad Angle Pack
-export type AdAngleType = 'pain' | 'status-quo-enemy' | 'mechanism' | 'outcome' | 'proof' | 'urgency';
+export type AdAngleType =
+  | 'pain'
+  | 'status-quo-enemy'
+  | 'mechanism'
+  | 'outcome'
+  | 'proof'
+  | 'urgency';
 
 export interface AdAngle {
   angle: AdAngleType;
@@ -1197,14 +1631,14 @@ export interface BusinessBasics {
   name: string;
   industry: string;
   stage: BusinessStage | '';
-  businessType?: BusinessType | '';        // NEW: Type of business
+  businessType?: BusinessType | ''; // NEW: Type of business
   revenueModel: RevenueModel[] | RevenueModel | '';
   teamSize: TeamSize | '';
   contextFiles?: string[];
-  websiteUrl?: string;                     // NEW: The one link
-  offerStatement?: string;                 // NEW: One-line offer
-  priceBand?: PriceBand | '';              // NEW
-  salesMotion?: SalesMotion | '';          // NEW
+  websiteUrl?: string; // NEW: The one link
+  offerStatement?: string; // NEW: One-line offer
+  priceBand?: PriceBand | ''; // NEW
+  salesMotion?: SalesMotion | ''; // NEW
 }
 
 export interface ConfessionData {
@@ -1218,9 +1652,9 @@ export interface ConfessionData {
 export interface CohortData {
   customerType: CustomerType[] | CustomerType | '';
   buyerRole: string;
-  buyerRoleChips?: BuyerRoleChip[];        // NEW: Chip-based buyer role
-  primaryRegions?: RegionCode[];            // NEW: Regions where they sell
-  languages?: LanguageCode[];               // NEW: Languages they use
+  buyerRoleChips?: BuyerRoleChip[]; // NEW: Chip-based buyer role
+  primaryRegions?: RegionCode[]; // NEW: Regions where they sell
+  languages?: LanguageCode[]; // NEW: Languages they use
   primaryDrivers: SCARFDriver[];
   decisionStyle: DecisionStyle | '';
   riskTolerance: RiskTolerance | '';
@@ -1231,7 +1665,7 @@ export interface CohortData {
   averageOrderValue?: string;
 }
 
-export interface PositioningData {
+export interface PositioningStatementData {
   category: string;
   targetAudience: string;
   psychologicalOutcome: string;
@@ -1244,7 +1678,7 @@ export interface MessagingData {
   beliefPillar: string;
   promisePillar: string;
   proofPillar: string;
-  voicePreference?: VoicePreference | '';   // NEW: Voice preference
+  voicePreference?: VoicePreference | ''; // NEW: Voice preference
 }
 
 // NEW: Goals section for Know You flow
@@ -1266,10 +1700,10 @@ export interface ProofData {
 
 // NEW: Customer insights section (best customers, triggers, alternatives, pains)
 export interface CustomerInsightsData {
-  bestCustomers?: string[];           // 3 best customer descriptions
-  triggerEvents?: TriggerEvent[];     // What makes them buy now
-  alternatives?: AlternativeType[];   // What they used before
-  painRanking?: string[];             // Ranked list of pains
+  bestCustomers?: string[]; // 3 best customer descriptions
+  triggerEvents?: TriggerEvent[]; // What makes them buy now
+  alternatives?: AlternativeType[]; // What they used before
+  painRanking?: string[]; // Ranked list of pains
 }
 
 // ==========================================
@@ -1377,7 +1811,14 @@ export interface DerivedSoundbites {
   oneLiner: string;
 
   soundbites: Array<{
-    type: 'problem' | 'agitation' | 'mechanism' | 'objection' | 'transformation' | 'proof' | 'urgency';
+    type:
+      | 'problem'
+      | 'agitation'
+      | 'mechanism'
+      | 'objection'
+      | 'transformation'
+      | 'proof'
+      | 'urgency';
     awarenessLevel: 'unaware' | 'problem' | 'solution' | 'product' | 'most';
     text: string;
     useCase: string;
@@ -1428,7 +1869,13 @@ export interface DerivedData {
 
 export interface ProofItem {
   id: string;
-  type: 'testimonial' | 'case_study' | 'metric' | 'logo' | 'screenshot' | 'document';
+  type:
+    | 'testimonial'
+    | 'case_study'
+    | 'metric'
+    | 'logo'
+    | 'screenshot'
+    | 'document';
   title: string;
   content: string;
   source?: string;
@@ -1446,7 +1893,8 @@ export interface ProofItem {
 export const brandKitSchema = z.object({
   brandVoice: z.string().min(1, 'Brand voice is required'),
   positioning: z.string().min(1, 'Positioning statement is required'),
-  messagingPillars: z.array(z.string().min(1))
+  messagingPillars: z
+    .array(z.string().min(1))
     .min(1, 'At least one messaging pillar is required')
     .max(5, 'Maximum of 5 messaging pillars allowed'),
 });
@@ -1467,14 +1915,14 @@ export interface FoundationData {
   business: BusinessBasics;
   confession: ConfessionData;
   cohorts: CohortData;
-  positioning: PositioningData;
+  positioning: PositioningStatementData;
   messaging: MessagingData;
 
   // Know You sections
   goals?: GoalsData;
   reality?: CurrentRealityData;
   proof?: ProofData;
-  customerInsights?: CustomerInsightsData;  // NEW
+  customerInsights?: CustomerInsightsData; // NEW
 
   // Derived data (from backend)
   derived?: DerivedData;
@@ -1524,7 +1972,7 @@ export const emptyFoundation: FoundationData = {
     embarrassingTruth: '',
     stupidIdea: '',
     signaling: '',
-    friction: ''
+    friction: '',
   },
   cohorts: {
     customerType: '',
@@ -1544,7 +1992,7 @@ export const emptyFoundation: FoundationData = {
     targetAudience: '',
     psychologicalOutcome: '',
     ownedPosition: '',
-    reframedWeakness: ''
+    reframedWeakness: '',
   },
   messaging: {
     primaryHeuristic: '',
@@ -1570,7 +2018,7 @@ export const emptyFoundation: FoundationData = {
     alternatives: [],
     painRanking: [],
   },
-  brandVoice: ''
+  brandVoice: '',
 };
 
 // Empty Phase 1 Discovery for initialization
@@ -1578,7 +2026,7 @@ export const emptyPhase1Discovery: Phase1Discovery = {
   identity: {
     name: '',
     company: '',
-    geo: { basedIn: '', sellsTo: [] }
+    geo: { basedIn: '', sellsTo: [] },
   },
   origin: { narrative: '' },
   whyNow: { mission: '', recentChange: '', changeType: 'other' },
@@ -1587,23 +2035,29 @@ export const emptyPhase1Discovery: Phase1Discovery = {
     win90Bullets: [],
     win12Months: '',
     bragMetric: 'revenue',
-    optimizingFor: 'acquire'
+    optimizingFor: 'acquire',
   },
   offer: {
     primaryType: 'saas',
     timeToValue: 'instant',
-    unfairAdvantage: { howWeWin: '', whyCantCopy: '', whyItMatters: '' }
+    unfairAdvantage: { howWeWin: '', whyCantCopy: '', whyItMatters: '' },
   },
   value: { pricingMode: 'monthly', currency: 'INR' },
   buyerUser: { userRoles: [], buyerRoles: [], samePersonAsBuyer: true },
   triggers: { triggers: [] },
   currentSystem: { workflowSteps: [], artifacts: [], triedBefore: [] },
   proofGuardrails: {
-    proofAssets: { testimonials: false, caseStudies: false, numbers: false, logos: false, screenshots: false },
+    proofAssets: {
+      testimonials: false,
+      caseStudies: false,
+      numbers: false,
+      logos: false,
+      screenshots: false,
+    },
     forbiddenClaims: [],
     voiceTone: 'calm',
-    wordsToAvoid: []
-  }
+    wordsToAvoid: [],
+  },
 };
 
 // Empty Phase 3 Value Lab for initialization
@@ -1625,28 +2079,28 @@ export const emptyPhase3: Phase3Data = {
     strugglingMoments: [],
     forces: { push: [], pull: [], anxiety: [], habit: [] },
     switchTriggers: [],
-    successMetrics: []
+    successMetrics: [],
   },
 
   // Precision 3.0 extras
   hierarchy: {
     essence: '',
     coreMessage: '',
-    pillars: []
+    pillars: [],
   },
   awarenessMatrix: {
     unaware: '',
     problem: '',
     solution: '',
     product: '',
-    most: ''
+    most: '',
   },
 
   // VPC
   vpc: {
     customerProfile: { jobs: [], pains: [], gains: [] },
     valueMap: { productsServices: [], painRelievers: [], gainCreators: [] },
-    fitCoverage: { score: 0, gaps: [] }
+    fitCoverage: { score: 0, gaps: [] },
   },
 
   // Differentiators
@@ -1659,8 +2113,13 @@ export const emptyPhase3: Phase3Data = {
   // Strategy Canvas
   strategyCanvas: {
     factors: [],
-    curves: { statusQuo: [], categoryLeader: [], youCurrent: [], youTarget: [] },
-    competitorNames: []
+    curves: {
+      statusQuo: [],
+      categoryLeader: [],
+      youCurrent: [],
+      youTarget: [],
+    },
+    competitorNames: [],
   },
 
   // ERRC
@@ -1678,7 +2137,7 @@ export const emptyPhase3: Phase3Data = {
   offerProfile: undefined,
 
   // Lock
-  lockedAt: undefined
+  lockedAt: undefined,
 };
 
 // Empty Phase 4 Positioning Lab for initialization
@@ -1695,7 +2154,7 @@ export const emptyPhase4: Phase4Data = {
     statusQuo: [],
     direct: [],
     indirect: [],
-    replacementStory: ''
+    replacementStory: '',
   },
 
   // Differentiated Capabilities (Dunford Component #2)
@@ -1735,15 +2194,20 @@ export const emptyPhase4: Phase4Data = {
     perceptualMap: {
       xAxis: { label: '', rationale: '' },
       yAxis: { label: '', rationale: '' },
-      points: []
+      points: [],
     },
     ladder: { category: '', rungs: [], whyDifferentLadder: '' },
     strategyCanvas: {
       factors: [],
-      curves: { statusQuo: [], categoryLeader: [], youCurrent: [], youTarget: [] },
-      competitorNames: []
+      curves: {
+        statusQuo: [],
+        categoryLeader: [],
+        youCurrent: [],
+        youTarget: [],
+      },
+      competitorNames: [],
     },
-    errc: { eliminate: [], reduce: [], raise: [], create: [] }
+    errc: { eliminate: [], reduce: [], raise: [], create: [] },
   },
 
   // Attribute Ladder (Screen 4.8)
@@ -1754,7 +2218,7 @@ export const emptyPhase4: Phase4Data = {
     tam: { value: 0, currency: 'USD', formula: '', category: '' },
     sam: { value: 0, currency: 'USD', formula: '', segment: '' },
     som: { value: 0, currency: 'USD', formula: '', reachability: '' },
-    assumptions: []
+    assumptions: [],
   },
 
   // Proof stack
@@ -1767,7 +2231,7 @@ export const emptyPhase4: Phase4Data = {
   confidenceScore: 0,
   draftHistory: [],
 
-  version: '1.0'
+  version: '1.0',
 };
 
 // Empty Phase 5 ICP Engine for initialization
@@ -1777,9 +2241,9 @@ export const emptyPhase5: Phase5Data = {
   interICPGraph: {
     nodes: [],
     edges: [],
-    primaryWedgeICP: ''
+    primaryWedgeICP: '',
   },
-  version: '1.0'
+  version: '1.0',
 };
 
 // Empty Phase 6 Soundbite Forge for initialization
@@ -1804,7 +2268,7 @@ export const emptyPhase6: Phase6Data = {
     controllingIdea: '',
     coreMessage: '',
     pillars: [],
-    missingProofAlerts: []
+    missingProofAlerts: [],
   },
   soundbites: [],
   variants: [],
@@ -1812,15 +2276,15 @@ export const emptyPhase6: Phase6Data = {
     competitorChecks: [],
     proofQuality: [],
     awarenessMismatches: [],
-    claimsAtRisk: []
+    claimsAtRisk: [],
   },
   constraints: {
     bannedClaims: [],
     bannedWords: [],
     regulatedFlags: [],
-    tonePreference: 'direct'
+    tonePreference: 'direct',
   },
-  version: '1.0'
+  version: '1.0',
 };
 
 // ==========================================
@@ -1852,15 +2316,15 @@ export const saveFoundation = async (data: FoundationData) => {
 
     // Sync to Supabase
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
-        await supabase
-          .from('foundation_state')
-          .upsert({
-            tenant_id: user.id,
-            data: data,
-            updated_at: new Date().toISOString()
-          });
+        await supabase.from('foundation_state').upsert({
+          tenant_id: user.id,
+          data: data,
+          updated_at: new Date().toISOString(),
+        });
       }
     } catch (err) {
       console.warn('Failed to sync foundation to Supabase', err);
@@ -1870,9 +2334,14 @@ export const saveFoundation = async (data: FoundationData) => {
     const legacyKit: BrandKit = {
       brandVoice: data.brandVoice || '',
       positioning: `We are the ${data.positioning.category} for ${data.positioning.targetAudience} who want ${data.positioning.psychologicalOutcome}.`,
-      messagingPillars: [data.messaging.beliefPillar, data.messaging.promisePillar, data.messaging.proofPillar].filter(Boolean)
+      messagingPillars: [
+        data.messaging.beliefPillar,
+        data.messaging.promisePillar,
+        data.messaging.proofPillar,
+      ].filter(Boolean),
     };
-    if (legacyKit.messagingPillars.length === 0) legacyKit.messagingPillars = [''];
+    if (legacyKit.messagingPillars.length === 0)
+      legacyKit.messagingPillars = [''];
     saveBrandKit(legacyKit);
   }
 };
@@ -1888,7 +2357,9 @@ export const loadFoundation = (): FoundationData => {
 
 export const loadFoundationDB = async (): Promise<FoundationData> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
       const { data, error } = await supabase
         .from('foundation_state')
@@ -1899,7 +2370,10 @@ export const loadFoundationDB = async (): Promise<FoundationData> => {
       if (data && !error) {
         // Update local cache
         if (typeof window !== 'undefined') {
-          localStorage.setItem(FOUNDATION_STORAGE_KEY, JSON.stringify(data.data));
+          localStorage.setItem(
+            FOUNDATION_STORAGE_KEY,
+            JSON.stringify(data.data)
+          );
         }
         return data.data as FoundationData;
       }
@@ -1911,17 +2385,29 @@ export const loadFoundationDB = async (): Promise<FoundationData> => {
 };
 
 export const ONBOARDING_STEPS = [
-  { id: 'business', name: 'Business Basics', description: 'Your core identity' },
-  { id: 'confession', name: 'Confession', description: 'Current reality check' },
+  {
+    id: 'business',
+    name: 'Business Basics',
+    description: 'Your core identity',
+  },
+  {
+    id: 'confession',
+    name: 'Confession',
+    description: 'Current reality check',
+  },
   { id: 'cohorts', name: 'Cohorts', description: 'Who you serve' },
   { id: 'positioning', name: 'Positioning', description: 'How you win' },
   { id: 'messaging', name: 'Messaging', description: 'What you say' },
   { id: 'review', name: 'Review', description: 'Verify & Launch' },
 ];
 
-export async function uploadLogo(file: File): Promise<{ url: string; status: string }> {
+export async function uploadLogo(
+  file: File
+): Promise<{ url: string; status: string }> {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const tenantId = user?.id || '00000000-0000-0000-0000-000000000000';
 
   const formData = new FormData();
@@ -1930,7 +2416,7 @@ export async function uploadLogo(file: File): Promise<{ url: string; status: str
   const response = await fetch(`${API_URL}/v1/assets/upload-logo`, {
     method: 'POST',
     headers: {
-      'X-Tenant-ID': tenantId
+      'X-Tenant-ID': tenantId,
     },
     body: formData,
   });

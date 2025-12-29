@@ -158,12 +158,18 @@ class BaseCognitiveAgent(ABC):
         # Initialize memory coordinator if needed
         workspace_id = state.get("workspace_id")
         if workspace_id and not self.memory_coordinator:
-            self.memory_coordinator = get_swarm_memory_coordinator(workspace_id)
+            try:
+                self.memory_coordinator = get_swarm_memory_coordinator(workspace_id)
 
-            # Register agent with memory system
-            await self.memory_coordinator.initialize_agent_memory(
-                agent_id=self.name, agent_type=self.role
-            )
+                # Register agent with memory system
+                await self.memory_coordinator.initialize_agent_memory(
+                    agent_id=self.name, agent_type=self.role
+                )
+            except Exception as e:
+                logger.error(
+                    "Failed to initialize memory for %s: %s", self.name, e
+                )
+                self.memory_coordinator = None
 
         # Fetch and inject heuristics & exploits
         heuristics_prompt = await self._get_heuristics_prompt(workspace_id)
@@ -241,21 +247,29 @@ class BaseCognitiveAgent(ABC):
         if workspace_id:
             await governor.record_usage(workspace_id, total_tokens)
 
-        final_res = {"messages": [AgentMessage(role=self.role, content=content)]}
+        final_res = {
+            "messages": [AgentMessage(role=self.role, content=content)],
+            "token_usage": token_usage,
+        }
 
         # 4. Cache Thought
         await cache.set(self.role, msg_dicts, final_res)
 
         # Record agent execution in memory system
         if self.memory_coordinator:
-            await self.memory_coordinator.record_agent_memory(
-                agent_id=self.name,
-                content=content,
-                metadata={
-                    "tokens_in": input_tokens,
-                    "tokens_out": output_tokens,
-                    "role": self.role,
-                },
-            )
+            try:
+                await self.memory_coordinator.record_agent_memory(
+                    agent_id=self.name,
+                    content=content,
+                    metadata={
+                        "tokens_in": input_tokens,
+                        "tokens_out": output_tokens,
+                        "role": self.role,
+                    },
+                )
+            except Exception as e:
+                logger.error(
+                    "Failed to record memory for %s: %s", self.name, e
+                )
 
         return final_res

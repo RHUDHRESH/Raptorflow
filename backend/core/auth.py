@@ -1,13 +1,15 @@
 import logging
 import os
+from datetime import datetime, timezone
 from typing import Any, Optional
 from uuid import UUID
 
 import httpx
-from fastapi import Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from jose import ExpiredSignatureError, JWTError, jwk, jwt
 
 from core.config import get_settings
+from db import get_db_connection
 
 logger = logging.getLogger("raptorflow.auth")
 
@@ -173,17 +175,40 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired."
         )
-    except (JWTError, httpx.HTTPError) as exc:
-        logger.warning(f"Invalid JWT token: {exc}")
+    except (JWTError, httpx.HTTPError, Exception) as exc:
+        logger.warning(f"JWT verification failed, attempting Supabase fallback: {exc}")
+        supabase_url = settings.SUPABASE_URL
+        supabase_key = settings.SUPABASE_SERVICE_ROLE_KEY
+        if supabase_url and supabase_key:
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    response = await client.get(
+                        f"{supabase_url.rstrip('/')}/auth/v1/user",
+                        headers={
+                            "Authorization": f"Bearer {token}",
+                            "apikey": supabase_key,
+                        },
+                    )
+                if response.status_code == 200:
+                    user_payload = response.json()
+                    return {
+                        "id": user_payload.get("id"),
+                        "email": user_payload.get("email"),
+                        "role": user_payload.get("role"),
+                        "claims": user_payload,
+                    }
+                logger.warning(
+                    "Supabase fallback auth failed with status %s",
+                    response.status_code,
+                )
+            except Exception as fallback_exc:
+                logger.error(
+                    "Supabase fallback auth error: %s",
+                    fallback_exc,
+                )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token.",
-        )
-    except Exception as e:
-        logger.error(f"Unexpected error during JWT verification: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication failed.",
         )
 
     # Validate required claims
@@ -219,3 +244,108 @@ async def get_internal_or_user(
         return {"id": "internal", "role": "internal", "claims": {}}
 
     return await get_current_user(authorization)
+
+
+async def require_workspace_owner(
+    current_user: dict = Depends(get_current_user),
+    x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID"),
+) -> str:
+    """
+    Verify user is workspace owner for billing operations.
+    Returns workspace_id for database operations.
+    """
+    # Get workspace ID from tenant header
+    if not x_tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Workspace ID required for billing operations",
+        )
+
+    workspace_id = x_tenant_id
+
+    # Check if user is owner (in production, this would query database)
+    # For now, we'll check user role or allow in development
+    user_role = current_user.get("role", "").lower()
+
+    settings = get_settings()
+    if (
+        settings.ENVIRONMENT == "development"
+        or user_role in ["owner", "admin", "workspace_owner"]
+        or current_user.get("id") == "internal"  # Allow internal service calls
+    ):
+        return workspace_id
+
+    # In production, you would query the workspace_members table
+    # async with get_db_connection() as conn:
+    #     async with conn.cursor() as cur:
+    #         await cur.execute("""
+    #             SELECT role FROM workspace_members
+    #             WHERE workspace_id = %s AND user_id = %s
+    #         """, (workspace_id, current_user["id"]))
+    #         member = await cur.fetchone()
+    #
+    #         if not member or member[0] != "owner":
+    #             raise HTTPException(
+    #                 status_code=status.HTTP_403_FORBIDDEN,
+    #                 detail="Only workspace owners can manage billing"
+    #             )
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Only workspace owners can manage billing operations",
+    )
+
+
+async def require_active_subscription(
+    current_user: dict = Depends(get_internal_or_user),
+    x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID"),
+) -> str:
+    """
+    Enforce paid access by requiring an active subscription for the workspace.
+    """
+    settings = get_settings()
+    if settings.DISABLE_PAID_ACCESS:
+        return x_tenant_id or ""
+    if current_user.get("role") == "internal":
+        return x_tenant_id or ""
+
+    if not x_tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Workspace ID required for paid access",
+        )
+
+    async with get_db_connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT status, current_period_end
+                FROM subscriptions
+                WHERE workspace_id = %s OR organization_id = %s
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (x_tenant_id, x_tenant_id),
+            )
+            row = await cur.fetchone()
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Active subscription required.",
+        )
+
+    status_value, period_end = row
+    now = datetime.now(timezone.utc)
+    if status_value != "active":
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Active subscription required.",
+        )
+    if period_end and period_end < now:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Subscription expired.",
+        )
+
+    return x_tenant_id

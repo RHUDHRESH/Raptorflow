@@ -120,10 +120,16 @@ export function GSAPHero() {
                     key={i}
                     className="headline-word inline-block mr-4 mb-2"
                     style={{
-                      background: i === 0 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' :
-                                  i === 3 ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' : 'none',
-                      WebkitBackgroundClip: i === 0 || i === 3 ? 'text' : 'none',
-                      WebkitTextFillColor: i === 0 || i === 3 ? 'transparent' : 'inherit',
+                      background:
+                        i === 0
+                          ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                          : i === 3
+                            ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+                            : 'none',
+                      WebkitBackgroundClip:
+                        i === 0 || i === 3 ? 'text' : 'none',
+                      WebkitTextFillColor:
+                        i === 0 || i === 3 ? 'transparent' : 'inherit',
                     }}
                   >
                     {word}
@@ -133,7 +139,8 @@ export function GSAPHero() {
             </div>
 
             <p className="text-xl lg:text-2xl text-muted-foreground mb-12 max-w-xl leading-relaxed">
-              From chaos to clarity to execution. RaptorFlow turns your messy marketing into a predictable revenue machine.
+              From chaos to clarity to execution. RaptorFlow turns your messy
+              marketing into a predictable revenue machine.
             </p>
 
             <div ref={ctaRef} className="flex flex-col sm:flex-row gap-4">
@@ -168,7 +175,9 @@ export function GSAPHero() {
                 ))}
               </div>
               <p className="text-sm text-muted-foreground">
-                Trusted by <span className="font-semibold text-foreground">500+</span> founders
+                Trusted by{' '}
+                <span className="font-semibold text-foreground">500+</span>{' '}
+                founders
               </p>
             </div>
           </div>
@@ -195,7 +204,8 @@ export function GSAPHero() {
 
       <style jsx>{`
         @keyframes float {
-          0%, 100% {
+          0%,
+          100% {
             transform: translateY(0);
           }
           50% {

@@ -83,3 +83,20 @@ Relevant feedback:
             f"- [{signal}] tool={tool_hint} agent={agent_hint} "
             f"context={context} feedback={content}"
         )
+
+
+def get_swarm_intent_router():
+    """Factory for Swarm-compatible Intent Router."""
+    from swarm import Agent
+
+    from agents.handoffs import handoff_to_brief_builder, handoff_to_supervisor
+
+    return Agent(
+        name="Intent Router",
+        instructions="""
+        You are the Intent Router. Classify the user's intent into: email, social, meme, or strategy.
+        If the request needs a formal brief (e.g. creative work), hand off to the Brief Builder.
+        Otherwise, hand off to the Supervisor.
+        """,
+        functions=[handoff_to_brief_builder, handoff_to_supervisor],
+    )

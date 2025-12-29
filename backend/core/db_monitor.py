@@ -44,9 +44,21 @@ class DatabasePoolMonitor:
         """Get current pool statistics."""
         async with self._lock:
             try:
-                # Get pool size information
-                pool_size = self.pool.get_size()
-                pool_idle = self.pool.get_idle_size()
+                # Get pool size information (psycopg_pool exposes get_stats in newer versions)
+                pool_stats = {}
+                if hasattr(self.pool, "get_stats"):
+                    try:
+                        pool_stats = self.pool.get_stats()
+                    except Exception:
+                        pool_stats = {}
+
+                pool_size = (
+                    pool_stats.get("pool_size")
+                    or pool_stats.get("size")
+                    or pool_stats.get("total")
+                    or (pool_stats.get("used", 0) + pool_stats.get("idle", 0))
+                )
+                pool_idle = pool_stats.get("idle", 0)
 
                 self.stats.total_connections = pool_size
                 self.stats.idle_connections = pool_idle

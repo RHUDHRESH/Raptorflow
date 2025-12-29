@@ -9,28 +9,36 @@ gsap.registerPlugin(ScrollTrigger);
 
 const testimonials = [
   {
-    quote: "RaptorFlow is the missing piece we didn't know we needed. Marketing finally makes sense.",
-    author: "Sarah Chen",
-    role: "CEO, TechStart",
-    avatarPrompt: "Professional headshot: Female entrepreneur, 30s, confident smile, modern office background, natural lighting",
+    quote:
+      "RaptorFlow is the missing piece we didn't know we needed. Marketing finally makes sense.",
+    author: 'Sarah Chen',
+    role: 'CEO, TechStart',
+    avatarPrompt:
+      'Professional headshot: Female entrepreneur, 30s, confident smile, modern office background, natural lighting',
   },
   {
-    quote: "From 5 disconnected tools to 1 unified system. Our marketing velocity increased 10x.",
-    author: "Marcus Rodriguez",
-    role: "Founder, GrowthLab",
-    avatarPrompt: "Professional headshot: Male founder, early 30s, glasses, casual business attire, tech startup vibe",
+    quote:
+      'From 5 disconnected tools to 1 unified system. Our marketing velocity increased 10x.',
+    author: 'Marcus Rodriguez',
+    role: 'Founder, GrowthLab',
+    avatarPrompt:
+      'Professional headshot: Male founder, early 30s, glasses, casual business attire, tech startup vibe',
   },
   {
-    quote: "The AI positioning saved us months of trial and error. We found our voice in 10 minutes.",
-    author: "Emily Watson",
-    role: "CMO, Innovate Co",
-    avatarPrompt: "Professional headshot: Female marketing executive, late 20s, creative industry aesthetic",
+    quote:
+      'The AI positioning saved us months of trial and error. We found our voice in 10 minutes.',
+    author: 'Emily Watson',
+    role: 'CMO, Innovate Co',
+    avatarPrompt:
+      'Professional headshot: Female marketing executive, late 20s, creative industry aesthetic',
   },
   {
-    quote: "Weekly Moves changed everything. We ship actual marketing now, not just strategy docs.",
-    author: "David Park",
-    role: "Head of Marketing, ScaleUp",
-    avatarPrompt: "Professional headshot: Male marketing leader, mid 30s, professional but approachable",
+    quote:
+      'Weekly Moves changed everything. We ship actual marketing now, not just strategy docs.',
+    author: 'David Park',
+    role: 'Head of Marketing, ScaleUp',
+    avatarPrompt:
+      'Professional headshot: Male marketing leader, mid 30s, professional but approachable',
   },
 ];
 

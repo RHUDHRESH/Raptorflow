@@ -1,6 +1,13 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import { usePathname } from 'next/navigation';
 
 interface TypingSound {
@@ -29,17 +36,24 @@ interface TypingExperienceContextType {
   isCursorEnabled: boolean;
 }
 
-const TypingExperienceContext = createContext<TypingExperienceContextType | null>(null);
+const TypingExperienceContext =
+  createContext<TypingExperienceContextType | null>(null);
 
 export function useTypingExperience() {
   const context = useContext(TypingExperienceContext);
   if (!context) {
-    throw new Error('useTypingExperience must be used within TypingExperienceProvider');
+    throw new Error(
+      'useTypingExperience must be used within TypingExperienceProvider'
+    );
   }
   return context;
 }
 
-export function TypingExperienceProvider({ children }: { children: React.ReactNode }) {
+export function TypingExperienceProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [isSoundEnabled, setSoundEnabled] = useState(true);
   const [isCursorEnabled, setCursorEnabled] = useState(true);
   const [soundVolume, setSoundVolume] = useState(0.3);
@@ -62,7 +76,8 @@ export function TypingExperienceProvider({ children }: { children: React.ReactNo
       try {
         // Create audio context on first user interaction to avoid browser restrictions
         const createAudioContext = () => {
-          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          const AudioContextClass =
+            window.AudioContext || (window as any).webkitAudioContext;
           if (!AudioContextClass) {
             console.warn('Web Audio API not supported');
             return null;
@@ -117,25 +132,34 @@ export function TypingExperienceProvider({ children }: { children: React.ReactNo
         // Click sound - subtle and cushioned
         const clickDuration = 0.06;
         const clickFrames = sampleRate * clickDuration;
-        const clickBuffer = audioContext.createBuffer(1, clickFrames, sampleRate);
+        const clickBuffer = audioContext.createBuffer(
+          1,
+          clickFrames,
+          sampleRate
+        );
         const clickData = clickBuffer.getChannelData(0);
 
         for (let i = 0; i < clickFrames; i++) {
           const t = i / sampleRate;
           // Soft attack and decay for muted feel
           const envelope = Math.min(t * 8, 1) * Math.exp(-t * 40);
-          clickData[i] = envelope * (
-            0.6 * Math.sin(2 * Math.PI * 600 * t) + // Main body
-            0.2 * Math.sin(2 * Math.PI * 1200 * t) + // Upper harmonics
-            0.1 * Math.sin(2 * Math.PI * 2400 * t)     // Subtle sparkle
-          ) * 0.3;
+          clickData[i] =
+            envelope *
+            (0.6 * Math.sin(2 * Math.PI * 600 * t) + // Main body
+              0.2 * Math.sin(2 * Math.PI * 1200 * t) + // Upper harmonics
+              0.1 * Math.sin(2 * Math.PI * 2400 * t)) * // Subtle sparkle
+            0.3;
         }
         clickSoundBufferRef.current = clickBuffer;
 
         // Backspace sound - deeper, more substantial thock
         const backspaceDuration = 0.15; // Even longer for resonance
         const backspaceFrames = sampleRate * backspaceDuration;
-        const backspaceBuffer = audioContext.createBuffer(1, backspaceFrames, sampleRate);
+        const backspaceBuffer = audioContext.createBuffer(
+          1,
+          backspaceFrames,
+          sampleRate
+        );
         const backspaceData = backspaceBuffer.getChannelData(0);
 
         for (let i = 0; i < backspaceFrames; i++) {
@@ -146,12 +170,13 @@ export function TypingExperienceProvider({ children }: { children: React.ReactNo
           const resonance = Math.sin(t * 30) * 0.15 * Math.exp(-t * 15);
           const envelope = attack * decay + resonance;
 
-          backspaceData[i] = envelope * (
-            0.7 * Math.sin(2 * Math.PI * 120 * t) + // Deep sub-bass
-            0.4 * Math.sin(2 * Math.PI * 240 * t) +   // Low-mid
-            0.2 * Math.sin(2 * Math.PI * 480 * t) +   // Mid
-            0.1 * Math.sin(2 * Math.PI * 960 * t)     // Upper harmonics
-          ) * 0.6;
+          backspaceData[i] =
+            envelope *
+            (0.7 * Math.sin(2 * Math.PI * 120 * t) + // Deep sub-bass
+              0.4 * Math.sin(2 * Math.PI * 240 * t) + // Low-mid
+              0.2 * Math.sin(2 * Math.PI * 480 * t) + // Mid
+              0.1 * Math.sin(2 * Math.PI * 960 * t)) * // Upper harmonics
+            0.6;
         }
         backspaceSoundBufferRef.current = backspaceBuffer;
 
@@ -176,12 +201,12 @@ export function TypingExperienceProvider({ children }: { children: React.ReactNo
           const third = 0.2 * Math.sin(2 * Math.PI * 1875 * t);
           const sparkle = 0.1 * Math.sin(2 * Math.PI * 3000 * t);
 
-          bellData[i] = envelope * (fundamental + octave + fifth + third + sparkle) * 0.25;
+          bellData[i] =
+            envelope * (fundamental + octave + fifth + third + sparkle) * 0.25;
         }
         bellSoundBufferRef.current = bellBuffer;
 
         console.log('Typing sounds initialized successfully');
-
       } catch (error) {
         console.warn('Failed to initialize typing sounds:', error);
       }
@@ -206,59 +231,62 @@ export function TypingExperienceProvider({ children }: { children: React.ReactNo
     };
   }, []);
 
-  const playSound = useCallback((buffer: AudioBuffer | null) => {
-    if (!isSoundEnabled || !buffer) return;
+  const playSound = useCallback(
+    (buffer: AudioBuffer | null) => {
+      if (!isSoundEnabled || !buffer) return;
 
-    const now = Date.now();
-    // Rate limiting to prevent sound spam
-    if (now - lastKeyTimeRef.current < 30) return;
-    lastKeyTimeRef.current = now;
+      const now = Date.now();
+      // Rate limiting to prevent sound spam
+      if (now - lastKeyTimeRef.current < 30) return;
+      lastKeyTimeRef.current = now;
 
-    try {
-      // Ensure audio context exists and is running
-      let audioContext = audioContextRef.current;
-      if (!audioContext) {
-        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-        if (!AudioContextClass) return;
-        audioContext = new AudioContextClass();
-        audioContextRef.current = audioContext;
-      }
-
-      // Resume context if suspended
-      if (audioContext.state === 'suspended') {
-        audioContext.resume().catch(console.warn);
-      }
-
-      const source = audioContext.createBufferSource();
-      source.buffer = buffer;
-
-      const gainNode = audioContext.createGain();
-      gainNode.gain.value = soundVolume;
-
-      // Add slight randomization to pitch for natural feel
-      const playbackRate = 0.95 + Math.random() * 0.1;
-      source.playbackRate.value = playbackRate;
-
-      source.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      source.start(0);
-
-      // Clean up after sound finishes
-      source.onended = () => {
-        try {
-          source.disconnect();
-          gainNode.disconnect();
-        } catch (e) {
-          // Ignore cleanup errors
+      try {
+        // Ensure audio context exists and is running
+        let audioContext = audioContextRef.current;
+        if (!audioContext) {
+          const AudioContextClass =
+            window.AudioContext || (window as any).webkitAudioContext;
+          if (!AudioContextClass) return;
+          audioContext = new AudioContextClass();
+          audioContextRef.current = audioContext;
         }
-      };
 
-    } catch (error) {
-      // Silently fail to avoid breaking the app
-      console.debug('Sound playback failed:', error);
-    }
-  }, [isSoundEnabled, soundVolume]);
+        // Resume context if suspended
+        if (audioContext.state === 'suspended') {
+          audioContext.resume().catch(console.warn);
+        }
+
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = soundVolume;
+
+        // Add slight randomization to pitch for natural feel
+        const playbackRate = 0.95 + Math.random() * 0.1;
+        source.playbackRate.value = playbackRate;
+
+        source.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        source.start(0);
+
+        // Clean up after sound finishes
+        source.onended = () => {
+          try {
+            source.disconnect();
+            gainNode.disconnect();
+          } catch (e) {
+            // Ignore cleanup errors
+          }
+        };
+      } catch (error) {
+        // Silently fail to avoid breaking the app
+        console.debug('Sound playback failed:', error);
+      }
+    },
+    [isSoundEnabled, soundVolume]
+  );
 
   const playKeySound = useCallback(() => {
     playSound(keySoundBufferRef.current);
@@ -276,26 +304,29 @@ export function TypingExperienceProvider({ children }: { children: React.ReactNo
     playSound(bellSoundBufferRef.current);
   }, [playSound]);
 
-  const animateCursor = useCallback((element: HTMLElement) => {
-    if (!isCursorEnabled || !element) return;
+  const animateCursor = useCallback(
+    (element: HTMLElement) => {
+      if (!isCursorEnabled || !element) return;
 
-    // Clear any existing animation
-    if (cursorAnimationTimeoutRef.current) {
-      clearTimeout(cursorAnimationTimeoutRef.current);
-    }
+      // Clear any existing animation
+      if (cursorAnimationTimeoutRef.current) {
+        clearTimeout(cursorAnimationTimeoutRef.current);
+      }
 
-    // Subtle, elegant cursor animation - no lunging
-    element.style.transition = `all ${cursorSpeed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+      // Subtle, elegant cursor animation - no lunging
+      element.style.transition = `all ${cursorSpeed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
 
-    // Gentle scale and subtle glow instead of aggressive transform
-    element.style.transform = 'scale(1.02)';
-    element.style.boxShadow = '0 0 0 1px rgba(0, 0, 0, 0.05)';
+      // Gentle scale and subtle glow instead of aggressive transform
+      element.style.transform = 'scale(1.02)';
+      element.style.boxShadow = '0 0 0 1px rgba(0, 0, 0, 0.05)';
 
-    cursorAnimationTimeoutRef.current = setTimeout(() => {
-      element.style.transform = 'scale(1)';
-      element.style.boxShadow = '';
-    }, cursorSpeed);
-  }, [isCursorEnabled, cursorSpeed]);
+      cursorAnimationTimeoutRef.current = setTimeout(() => {
+        element.style.transform = 'scale(1)';
+        element.style.boxShadow = '';
+      }, cursorSpeed);
+    },
+    [isCursorEnabled, cursorSpeed]
+  );
 
   // Global keyboard event listener
   useEffect(() => {
@@ -324,7 +355,12 @@ export function TypingExperienceProvider({ children }: { children: React.ReactNo
         } else if (e.key === 'Enter') {
           // Satisfying completion sound for Enter
           playBellSound();
-        } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        } else if (
+          e.key.length === 1 &&
+          !e.ctrlKey &&
+          !e.metaKey &&
+          !e.altKey
+        ) {
           // Only play for actual character input, not modifier keys
           playKeySound();
         }

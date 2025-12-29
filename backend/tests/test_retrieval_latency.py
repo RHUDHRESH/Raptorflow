@@ -18,9 +18,13 @@ async def test_retrieval_latency_target():
         await asyncio.sleep(0.05)
         return [("id", "content", {}, 0.9)]
 
-    with patch(
-        "backend.inference.InferenceProvider.get_embeddings", return_value=mock_embedder
-    ), patch("backend.memory.semantic.vector_search", side_effect=slow_search):
+    with (
+        patch(
+            "backend.inference.InferenceProvider.get_embeddings",
+            return_value=mock_embedder,
+        ),
+        patch("backend.memory.semantic.vector_search", side_effect=slow_search),
+    ):
 
         memory = SemanticMemory()
 

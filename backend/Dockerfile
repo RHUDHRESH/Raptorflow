@@ -1,4 +1,7 @@
-FROM python:3.14-slim
+FROM python:3.11-slim
+
+ARG BUILD_ID=2025-12-28-01
+ENV BUILD_ID=$BUILD_ID
 
 WORKDIR /app
 
@@ -6,21 +9,22 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     gcc \
+    git \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
-# Install poetry
-RUN pip install poetry
+# Copy requirements
+COPY requirements.txt .
 
-# Copy project files
-COPY pyproject.toml .
-COPY README.md .
-
-# Disable virtualenv creation by poetry and install dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --no-interaction --no-ansi
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
 COPY . .
+
+# Install PhonePe Node bridge dependencies
+RUN npm --prefix phonepe install --omit=dev
 
 # Expose port
 EXPOSE 8080

@@ -5,7 +5,7 @@ Radar Cache - Redis-backed state management for signal discovery
 import logging
 from typing import Any, Dict, Optional
 
-from core.cache import get_cache_client
+from core.cache import get_cache_manager
 
 logger = logging.getLogger("raptorflow.radar_cache")
 
@@ -17,7 +17,7 @@ class RadarCache:
     """
 
     def __init__(self):
-        self.client = get_cache_client()
+        self.client = get_cache_manager()
 
     async def get_source_content(self, tenant_id: str, source_id: str) -> Optional[str]:
         """Retrieves cached content hash for change detection."""
@@ -29,7 +29,7 @@ class RadarCache:
     ):
         """Caches content hash for change detection."""
         key = f"radar:{tenant_id}:source:{source_id}:content"
-        self.client.set(key, content, ex=ttl)
+        self.client.set_with_expiry(key, content, expiry_seconds=ttl)
 
     async def get_scheduler_status(self, tenant_id: str) -> Optional[Dict[str, Any]]:
         """Retrieves automated scan scheduler status."""
@@ -41,4 +41,4 @@ class RadarCache:
     ):
         """Updates automated scan scheduler status."""
         key = f"radar:{tenant_id}:scheduler:status"
-        self.client.set_json(key, status, ex=ttl)
+        self.client.set_json(key, status, expiry_seconds=ttl)

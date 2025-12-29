@@ -16,11 +16,12 @@ async def test_episodic_memory_vector_search():
     mock_embedder = AsyncMock()
     mock_embedder.aembed_query.return_value = [0.1] * 768
 
-    with patch(
-        "backend.memory.episodic.get_memory", new_callable=AsyncMock
-    ) as mock_get_memory, patch(
-        "backend.memory.episodic.InferenceProvider"
-    ) as mock_inference:
+    with (
+        patch(
+            "backend.memory.episodic.get_memory", new_callable=AsyncMock
+        ) as mock_get_memory,
+        patch("backend.memory.episodic.InferenceProvider") as mock_inference,
+    ):
 
         mock_inference.get_embeddings.return_value = mock_embedder
         mock_get_memory.return_value = mock_results

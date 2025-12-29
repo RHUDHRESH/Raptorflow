@@ -14,7 +14,10 @@ interface InferenceVerificationProps {
  * SOTA Verification Component (Task 24)
  * Allows developers to audit that UI state matches Supabase exactly.
  */
-export function InferenceVerification({ campaign, dbState }: InferenceVerificationProps) {
+export function InferenceVerification({
+  campaign,
+  dbState,
+}: InferenceVerificationProps) {
   const matches = JSON.stringify(campaign.id) === JSON.stringify(dbState?.id);
 
   return (
@@ -23,8 +26,11 @@ export function InferenceVerification({ campaign, dbState }: InferenceVerificati
         <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
           <Database size={12} /> Persistence Audit
         </h4>
-        <Badge variant={matches ? "outline" : "destructive"} className="text-[8px] h-4">
-          {matches ? "SYNCED" : "MISMATCH"}
+        <Badge
+          variant={matches ? 'outline' : 'destructive'}
+          className="text-[8px] h-4"
+        >
+          {matches ? 'SYNCED' : 'MISMATCH'}
         </Badge>
       </div>
 

@@ -15,9 +15,13 @@ async def test_rag_retrieval_node_execution():
         "semantic": [{"id": "sem1", "content": "L3 Context", "similarity": 0.8}],
     }
 
-    with patch(
-        "backend.agents.rag_retrieval.MemoryManager", return_value=mock_memory_manager
-    ), patch("backend.agents.rag_retrieval.InferenceProvider") as mock_inference:
+    with (
+        patch(
+            "backend.agents.rag_retrieval.MemoryManager",
+            return_value=mock_memory_manager,
+        ),
+        patch("backend.agents.rag_retrieval.InferenceProvider") as mock_inference,
+    ):
 
         mock_model = MagicMock()
         mock_expansion_chain = AsyncMock()

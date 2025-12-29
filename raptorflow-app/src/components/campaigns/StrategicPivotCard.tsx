@@ -24,7 +24,11 @@ interface StrategicPivotCardProps {
  * SOTA Strategic Pivot Card (Task 21)
  * Presents agent-recommended strategic shifts with actionable buttons.
  */
-export function StrategicPivotCard({ pivot, onApply, onIgnore }: StrategicPivotCardProps) {
+export function StrategicPivotCard({
+  pivot,
+  onApply,
+  onIgnore,
+}: StrategicPivotCardProps) {
   return (
     <Card className="p-6 border border-accent/20 bg-accent/5 backdrop-blur-sm relative overflow-hidden group rounded-[2rem]">
       <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -32,20 +36,34 @@ export function StrategicPivotCard({ pivot, onApply, onIgnore }: StrategicPivotC
       </div>
 
       <div className="flex items-start gap-5">
-        <div className={cn(
-          "h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-accent/10",
-          pivot.severity === 'high' ? "bg-red-500 text-white" : "bg-accent text-accent-foreground"
-        )}>
-          {pivot.severity === 'high' ? <ShieldAlert size={24} /> : <ArrowUpRight size={24} />}
+        <div
+          className={cn(
+            'h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-accent/10',
+            pivot.severity === 'high'
+              ? 'bg-red-500 text-white'
+              : 'bg-accent text-accent-foreground'
+          )}
+        >
+          {pivot.severity === 'high' ? (
+            <ShieldAlert size={24} />
+          ) : (
+            <ArrowUpRight size={24} />
+          )}
         </div>
 
         <div className="space-y-2 flex-1">
           <div className="flex items-center justify-between">
-            <h3 className="font-display font-semibold text-xl text-zinc-900 dark:text-zinc-100">{pivot.title}</h3>
-            <span className={cn(
-              "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border",
-              pivot.severity === 'high' ? "bg-red-50 border-red-200 text-red-700" : "bg-accent/10 border-accent/20 text-accent"
-            )}>
+            <h3 className="font-display font-semibold text-xl text-zinc-900 dark:text-zinc-100">
+              {pivot.title}
+            </h3>
+            <span
+              className={cn(
+                'text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border',
+                pivot.severity === 'high'
+                  ? 'bg-red-50 border-red-200 text-red-700'
+                  : 'bg-accent/10 border-accent/20 text-accent'
+              )}
+            >
               {pivot.severity} PRIORITY
             </span>
           </div>

@@ -68,11 +68,11 @@ class TracingManager:
 
     def generate_trace_id(self) -> str:
         """Generate a unique trace ID."""
-        return str(uuid.uuid4().replace("-", ""))
+        return str(uuid.uuid4()).replace("-", "")
 
     def generate_span_id(self) -> str:
         """Generate a unique span ID."""
-        return str(uuid.uuid4().replace("-", ""))[:16]
+        return str(uuid.uuid4()).replace("-", "")[:16]
 
     async def start_span(
         self,

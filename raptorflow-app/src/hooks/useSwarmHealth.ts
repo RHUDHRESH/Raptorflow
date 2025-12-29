@@ -1,18 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export interface SwarmHealth {
-  status: "healthy" | "warning" | "unhealthy";
+  status: 'healthy' | 'warning' | 'unhealthy';
   signals: string[];
   tool_failure_rates: {
     overall_failure_rate: number;
     total_executions: number;
-    tools: Record<string, {
-      success: number;
-      failure: number;
-      total: number;
-      failure_rate: number;
-      last_seen?: string;
-    }>;
+    tools: Record<
+      string,
+      {
+        success: number;
+        failure: number;
+        total: number;
+        failure_rate: number;
+        last_seen?: string;
+      }
+    >;
     updated_at?: string;
   };
   budget_overrun: {
@@ -36,18 +39,18 @@ export function useSwarmHealth(workspaceId?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     async function fetchHealth() {
       try {
         const url = new URL(`${API_URL}/v1/matrix/swarm-health`);
         if (workspaceId) {
-          url.searchParams.set("workspace_id", workspaceId);
+          url.searchParams.set('workspace_id', workspaceId);
         }
 
         const res = await fetch(url.toString());
-        if (!res.ok) throw new Error("Failed to fetch swarm health");
+        if (!res.ok) throw new Error('Failed to fetch swarm health');
         const json = await res.json();
         setData(json);
       } catch (err: unknown) {

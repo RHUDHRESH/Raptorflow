@@ -8,7 +8,11 @@ interface NewCampaignWizardProps {
   onComplete: (campaign: any) => void;
 }
 
-export default function NewCampaignWizard({ open, onOpenChange, onComplete }: NewCampaignWizardProps) {
+export default function NewCampaignWizard({
+  open,
+  onOpenChange,
+  onComplete,
+}: NewCampaignWizardProps) {
   if (!open) return null;
 
   return (

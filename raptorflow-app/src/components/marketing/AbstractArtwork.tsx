@@ -36,11 +36,7 @@ export function AbstractArtwork({
             strokeWidth="2"
             fill="none"
             initial={animate ? { pathLength: 0, rotate: 0 } : undefined}
-            animate={
-              animate
-                ? { pathLength: 1, rotate: 360 }
-                : undefined
-            }
+            animate={animate ? { pathLength: 1, rotate: 360 } : undefined}
             transition={{ duration: 2, ease: 'easeInOut' }}
           />
           <motion.circle
@@ -52,11 +48,7 @@ export function AbstractArtwork({
             fill="none"
             opacity="0.5"
             initial={animate ? { pathLength: 0, rotate: 0 } : undefined}
-            animate={
-              animate
-                ? { pathLength: 1, rotate: -360 }
-                : undefined
-            }
+            animate={animate ? { pathLength: 1, rotate: -360 } : undefined}
             transition={{ duration: 2.5, ease: 'easeInOut', delay: 0.2 }}
           />
 

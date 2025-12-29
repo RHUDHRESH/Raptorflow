@@ -2,17 +2,26 @@ import asyncio
 import logging
 import os
 import sys
+from pathlib import Path
 
 import httpx
 import psycopg
 from dotenv import load_dotenv
 from google.cloud import secretmanager
 
-# Load .env from root
-load_dotenv()
+ROOT_PATH = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT_PATH))
+sys.path.insert(0, str(ROOT_PATH / "backend"))
+
+# Load .env from repo root and backend folder
+load_dotenv(ROOT_PATH / ".env")
+load_dotenv(ROOT_PATH / "backend" / ".env")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("diagnose_infra")
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 async def check_supabase():
@@ -82,7 +91,7 @@ async def check_supabase():
     else:
         try:
             # Use a short timeout
-            conn = await psycopg.AsyncConnection.connect(db_url, timeout=10)
+            conn = await psycopg.AsyncConnection.connect(db_url, connect_timeout=10)
             await conn.close()
             logger.info("Supabase Database connection successful.")
         except Exception as e:
@@ -146,14 +155,43 @@ async def check_gcp():
     return True
 
 
+async def check_vertex_ai():
+    logger.info("Checking Vertex AI inference readiness...")
+    try:
+        from backend.inference import InferenceProvider
+
+        if not InferenceProvider.is_ready():
+            logger.error(
+                "Vertex AI not ready. Set VERTEX_AI_API_KEY/INFERENCE_SIMPLE or configure ADC."
+            )
+            return False
+
+        embeddings = InferenceProvider.get_embeddings()
+        if embeddings is None:
+            logger.error("Vertex AI embeddings client not available.")
+            return False
+
+        # Minimal request to validate auth and model access.
+        await asyncio.wait_for(embeddings.aembed_query("diagnostic ping"), timeout=20)
+        logger.info("Vertex AI embeddings call succeeded.")
+        return True
+    except asyncio.TimeoutError:
+        logger.error("Vertex AI inference check timed out.")
+        return False
+    except Exception as exc:
+        logger.error(f"Vertex AI inference check failed: {exc}")
+        return False
+
+
 async def main():
     logger.info("Starting Industrial Infrastructure Diagnosis...")
 
-    s_ok = await check_supabase()
-    r_ok = await check_redis()
-    g_ok = await check_gcp()
+    s_ok = await asyncio.wait_for(check_supabase(), timeout=30)
+    r_ok = await asyncio.wait_for(check_redis(), timeout=15)
+    g_ok = await asyncio.wait_for(check_gcp(), timeout=15)
+    v_ok = await asyncio.wait_for(check_vertex_ai(), timeout=30)
 
-    if s_ok and r_ok and g_ok:
+    if s_ok and r_ok and g_ok and v_ok:
         logger.info("DIAGNOSIS COMPLETE: ALL SYSTEMS NOMINAL.")
     else:
         logger.error("DIAGNOSIS COMPLETE: FAILURES DETECTED.")

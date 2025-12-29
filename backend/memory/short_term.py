@@ -29,6 +29,8 @@ class L1ShortTermMemory:
         agent_importance: str = DEFAULT_IMPORTANCE,
     ):
         """Stores a piece of state in L1 memory with a TTL."""
+        if not self.client:
+            return False
         if ttl is None:
             policy = get_memory_policy()
             ttl = policy.resolve(workspace_importance, agent_importance).ttl_seconds
@@ -43,6 +45,8 @@ class L1ShortTermMemory:
 
     async def retrieve(self, key: str) -> Optional[Any]:
         """Retrieves state from L1 memory."""
+        if not self.client:
+            return None
         full_key = f"{self.prefix}{key}"
         try:
             data = await self.client.get(full_key)
@@ -55,6 +59,8 @@ class L1ShortTermMemory:
 
     async def forget(self, key: str) -> bool:
         """Deletes a key from L1 memory."""
+        if not self.client:
+            return False
         full_key = f"{self.prefix}{key}"
         try:
             await self.client.delete(full_key)
@@ -65,6 +71,8 @@ class L1ShortTermMemory:
 
     async def increment(self, key: str, amount: int = 1) -> Optional[int]:
         """Increments a counter in L1 memory."""
+        if not self.client:
+            return None
         full_key = f"{self.prefix}{key}"
         try:
             return await self.client.incrby(full_key, amount)
@@ -74,6 +82,8 @@ class L1ShortTermMemory:
 
     async def decrement(self, key: str, amount: int = 1) -> Optional[int]:
         """Decrements a counter in L1 memory."""
+        if not self.client:
+            return None
         full_key = f"{self.prefix}{key}"
         try:
             return await self.client.decrby(full_key, amount)
@@ -88,6 +98,8 @@ class L1ShortTermMemory:
         logger.warning(
             "L1 Memory delete_pattern: Using pattern delete on Upstash Redis."
         )
+        if not self.client:
+            return False
         try:
             # For Upstash Redis, we might need to handle this carefully if it's a large set
             # For now, we assume basic delete support for the pattern

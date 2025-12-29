@@ -12,42 +12,48 @@ const bentoItems = [
   {
     title: 'Foundation Module',
     description: 'Define your market positioning in minutes',
-    imagePrompt: 'Clean interface showing ICP builder: Circular avatar placeholders with demographic info, pain points listed as tags, buying behavior graphs. Minimalist design, purple accents.',
+    imagePrompt:
+      'Clean interface showing ICP builder: Circular avatar placeholders with demographic info, pain points listed as tags, buying behavior graphs. Minimalist design, purple accents.',
     span: 'lg:col-span-2 lg:row-span-2',
     size: 'lg' as const,
   },
   {
     title: 'AI Content Engine',
     description: 'Generate on-brand content at scale',
-    imagePrompt: 'AI writing assistant interface: Text editor with AI suggestions sidebar, tone selector, brand voice controls. Modern writing tool aesthetic.',
+    imagePrompt:
+      'AI writing assistant interface: Text editor with AI suggestions sidebar, tone selector, brand voice controls. Modern writing tool aesthetic.',
     span: 'lg:col-span-1 lg:row-span-1',
     size: 'md' as const,
   },
   {
     title: 'Analytics Dashboard',
     description: 'Track what matters',
-    imagePrompt: 'Analytics dashboard: Clean charts showing campaign performance, engagement metrics, conversion funnels. Data visualization with gradients.',
+    imagePrompt:
+      'Analytics dashboard: Clean charts showing campaign performance, engagement metrics, conversion funnels. Data visualization with gradients.',
     span: 'lg:col-span-1 lg:row-span-1',
     size: 'md' as const,
   },
   {
     title: 'Campaign Timeline',
     description: '90-day strategic view',
-    imagePrompt: 'Gantt chart / timeline view: Horizontal bars showing overlapping campaigns across 3 months, milestones marked, color-coded by category.',
+    imagePrompt:
+      'Gantt chart / timeline view: Horizontal bars showing overlapping campaigns across 3 months, milestones marked, color-coded by category.',
     span: 'lg:col-span-1 lg:row-span-1',
     size: 'md' as const,
   },
   {
     title: 'Team Collaboration',
     description: 'Real-time updates',
-    imagePrompt: 'Team workspace: Avatar circles of team members, live cursors, comment threads, activity feed. Collaborative tool interface.',
+    imagePrompt:
+      'Team workspace: Avatar circles of team members, live cursors, comment threads, activity feed. Collaborative tool interface.',
     span: 'lg:col-span-1 lg:row-span-1',
     size: 'md' as const,
   },
   {
     title: 'Asset Library',
     description: 'All your marketing assets organized',
-    imagePrompt: 'Media library grid: Thumbnails of images, videos, documents in organized folders. Clean file management UI with preview cards.',
+    imagePrompt:
+      'Media library grid: Thumbnails of images, videos, documents in organized folders. Clean file management UI with preview cards.',
     span: 'lg:col-span-2 lg:row-span-1',
     size: 'md' as const,
   },
@@ -142,14 +148,14 @@ export function GSAPBentoGrid() {
                 <h3 className="font-display text-2xl font-bold mb-2">
                   {item.title}
                 </h3>
-                <p className="text-muted-foreground mb-6">
-                  {item.description}
-                </p>
+                <p className="text-muted-foreground mb-6">{item.description}</p>
 
                 {/* Image */}
                 <ImagePlaceholder
                   prompt={item.imagePrompt}
-                  aspectRatio={item.span.includes('row-span-2') ? 'portrait' : 'video'}
+                  aspectRatio={
+                    item.span.includes('row-span-2') ? 'portrait' : 'video'
+                  }
                   size={item.size}
                   className="mt-auto"
                 />
