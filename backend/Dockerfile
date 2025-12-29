@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 ARG BUILD_ID=2025-12-28-01
 ENV BUILD_ID=$BUILD_ID
