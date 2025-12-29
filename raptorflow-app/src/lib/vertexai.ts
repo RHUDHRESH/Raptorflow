@@ -1,6 +1,6 @@
-import { ChatVertexAI } from "@langchain/google-vertexai";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { getInferenceConfig, type InferenceConfig } from "./inference-config";
+import { ChatVertexAI } from '@langchain/google-vertexai';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import { getInferenceConfig, type InferenceConfig } from './inference-config';
 
 // Lazy-initialized model instances
 type GeminiChatModel = ChatVertexAI | ChatGoogleGenerativeAI;
@@ -9,20 +9,17 @@ let _gemini2Flash: GeminiChatModel | null = null;
 let _gemini15Pro: GeminiChatModel | null = null;
 let _gemini15Flash: GeminiChatModel | null = null;
 
-const MODEL_FALLBACK_ORDER = [
-  "gemini-2.5-flash-lite",
-  "gemini-2.5-flash",
-];
+const MODEL_FALLBACK_ORDER = ['gemini-2.5-flash-lite', 'gemini-2.5-flash'];
 
 function isApiKeyCompatibleModel(modelName: string): boolean {
-  return !modelName.trim().toLowerCase().startsWith("gemini-2.5");
+  return !modelName.trim().toLowerCase().startsWith('gemini-2.5');
 }
 
 function hasDefaultCredentials(): boolean {
   return Boolean(
     process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-      process.env.VERTEX_AI_USE_ADC === "true" ||
-      process.env.NEXT_PUBLIC_VERTEX_AI_USE_ADC === "true"
+    process.env.VERTEX_AI_USE_ADC === 'true' ||
+    process.env.NEXT_PUBLIC_VERTEX_AI_USE_ADC === 'true'
   );
 }
 
@@ -34,8 +31,7 @@ function buildModelChain(primary?: string, fallbacks?: string[]) {
 }
 
 function isModelAccessError(error: unknown): boolean {
-  const message =
-    error instanceof Error ? error.message : String(error ?? "");
+  const message = error instanceof Error ? error.message : String(error ?? '');
   const status =
     (error as { response?: { status?: number } })?.response?.status ??
     (error as { status?: number })?.status;
@@ -135,14 +131,14 @@ export async function invokeWithModelFallback<TInput>({
   if (lastError) {
     throw lastError;
   }
-  throw new Error("No available Gemini models for this request.");
+  throw new Error('No available Gemini models for this request.');
 }
 
 // Getter functions for lazy initialization
 export function getGemini2Flash(): GeminiChatModel | null {
   if (!_gemini2Flash) {
     const config = getInferenceConfig();
-    const modelName = config.models.general || "gemini-2.5-flash-lite";
+    const modelName = config.models.general || 'gemini-2.5-flash-lite';
     _gemini2Flash = createModel(modelName, 0.7, 8192, config);
   }
   return _gemini2Flash;
@@ -152,7 +148,7 @@ export function getGemini15Pro(): GeminiChatModel | null {
   if (!_gemini15Pro) {
     const config = getInferenceConfig();
     const modelName =
-      config.models.ultra || config.models.high || "gemini-2.5-flash";
+      config.models.ultra || config.models.high || 'gemini-2.5-flash';
     _gemini15Pro = createModel(modelName, 0.5, 8192, config);
   }
   return _gemini15Pro;
@@ -161,7 +157,7 @@ export function getGemini15Pro(): GeminiChatModel | null {
 export function getGemini15Flash(): GeminiChatModel | null {
   if (!_gemini15Flash) {
     const config = getInferenceConfig();
-    const modelName = config.models.general || "gemini-2.5-flash-lite";
+    const modelName = config.models.general || 'gemini-2.5-flash-lite';
     _gemini15Flash = createModel(modelName, 0.3, 2048, config);
   }
   return _gemini15Flash;
@@ -173,4 +169,4 @@ export const gemini2Flash = null as unknown as GeminiChatModel;
 export const gemini15Pro = null as unknown as GeminiChatModel;
 export const gemini15Flash = null as unknown as GeminiChatModel;
 
-export const geminiEmbeddingModel = "text-embedding-004"; // For reference in RAG
+export const geminiEmbeddingModel = 'text-embedding-004'; // For reference in RAG

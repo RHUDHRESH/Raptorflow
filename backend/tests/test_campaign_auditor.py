@@ -7,19 +7,24 @@ from graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
 @pytest.fixture
 def mock_auditor_agents():
-    with patch(
-        "backend.graphs.moves_campaigns_orchestrator.SemanticMemory",
-        new_callable=MagicMock,
-    ) as mock_semantic, patch(
-        "backend.graphs.moves_campaigns_orchestrator.LongTermMemory",
-        new_callable=MagicMock,
-    ) as mock_ltm, patch(
-        "backend.graphs.moves_campaigns_orchestrator.BrandVoiceAligner",
-        new_callable=MagicMock,
-    ) as mock_aligner, patch(
-        "backend.graphs.moves_campaigns_orchestrator.InferenceProvider",
-        new_callable=MagicMock,
-    ) as mock_inf:
+    with (
+        patch(
+            "backend.graphs.moves_campaigns_orchestrator.SemanticMemory",
+            new_callable=MagicMock,
+        ) as mock_semantic,
+        patch(
+            "backend.graphs.moves_campaigns_orchestrator.LongTermMemory",
+            new_callable=MagicMock,
+        ) as mock_ltm,
+        patch(
+            "backend.graphs.moves_campaigns_orchestrator.BrandVoiceAligner",
+            new_callable=MagicMock,
+        ) as mock_aligner,
+        patch(
+            "backend.graphs.moves_campaigns_orchestrator.InferenceProvider",
+            new_callable=MagicMock,
+        ) as mock_inf,
+    ):
 
         sem_instance = mock_semantic.return_value
         sem_instance.search = AsyncMock(return_value=[{"content": "mocked"}])
@@ -62,13 +67,16 @@ async def test_campaign_auditor_node_direct():
 
     mock_llm = MagicMock()
 
-    with patch(
-        "backend.graphs.moves_campaigns_orchestrator.InferenceProvider.get_model",
-        return_value=mock_llm,
-    ), patch(
-        "backend.graphs.moves_campaigns_orchestrator.BrandVoiceAligner",
-        new_callable=MagicMock,
-    ) as mock_aligner:
+    with (
+        patch(
+            "backend.graphs.moves_campaigns_orchestrator.InferenceProvider.get_model",
+            return_value=mock_llm,
+        ),
+        patch(
+            "backend.graphs.moves_campaigns_orchestrator.BrandVoiceAligner",
+            new_callable=MagicMock,
+        ) as mock_aligner,
+    ):
 
         mock_aligner.return_value.side_effect = AsyncMock(
             return_value={"context_brief": {"brand_alignment": {"score": 0.9}}}

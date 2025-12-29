@@ -3,7 +3,7 @@ import signal
 import sys
 from datetime import datetime
 
-from fastapi import FastAPI, Header, Request
+from fastapi import Depends, FastAPI, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -14,16 +14,19 @@ from api.v1.blackbox_memory import router as blackbox_memory_router
 from api.v1.blackbox_roi import router as blackbox_roi_router
 from api.v1.blackbox_telemetry import router as blackbox_telemetry_router
 from api.v1.campaigns import router as campaigns_router
+from api.v1.council import router as council_router
 from api.v1.feedback import router as feedback_router
 from api.v1.foundation import router as foundation_router
 from api.v1.matrix import router as matrix_router
 from api.v1.moves import router as moves_router
 from api.v1.muse import router as muse_router
+from api.v1.notifications import router as notifications_router
 from api.v1.payments import router as payments_router
 from api.v1.radar import router as radar_router
 from api.v1.radar_analytics import router as radar_analytics_router
 from api.v1.radar_notifications import router as radar_notifications_router
 from api.v1.radar_scheduler import router as radar_scheduler_router
+from api.v1.subscriptions import router as subscriptions_router
 from api.v1.synthesis import router as synthesis_router
 from core.advanced_ratelimit import (
     RateLimitMiddleware,
@@ -38,6 +41,7 @@ from core.compression import CompressionMiddleware
 
 # Core imports
 from core.config import get_settings
+from core.auth import require_active_subscription
 from core.db_monitor import start_pool_monitoring, stop_pool_monitoring
 from core.degradation import start_degradation_monitoring, stop_degradation_monitoring
 from core.exceptions import RaptorFlowError
@@ -83,6 +87,15 @@ app = FastAPI(
     },
 )
 
+@app.get("/")
+async def root():
+    return {
+        "status": "ok",
+        "message": "RaptorFlow backend is running",
+        "health": "/health",
+        "docs": "/docs",
+    }
+
 
 # Graceful shutdown handler
 async def shutdown():
@@ -124,6 +137,8 @@ async def startup_event():
     from db import get_pool
 
     pool = get_pool()
+    if not hasattr(pool, "_opened") or not pool._opened:
+        await pool.open()
     await start_pool_monitoring(pool)
 
     logger.info("RaptorFlow backend started successfully")
@@ -143,12 +158,14 @@ origins = [
     "http://127.0.0.1:3001",
     "https://raptorflow.vercel.app",
     "https://raptorflow-hp.vercel.app",
+    "https://raptorflow-app.vercel.app",
+    "https://raptorflow-app-raptorflow.vercel.app",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex="http://localhost:.*",  # Robustness for dynamic local ports
+    allow_origin_regex="https://.*\\.vercel\\.app|http://localhost:.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -161,27 +178,32 @@ app.add_middleware(RateLimitMiddleware, rate_limiter=get_advanced_rate_limiter()
 app.add_middleware(TracingMiddleware, tracing_manager=get_tracing_manager())
 app.add_middleware(VersionMiddleware, version_manager=get_version_manager())
 app.add_middleware(MetricsMiddleware, metrics_collector=get_metrics_collector())
-app.add_middleware(RateLimitMiddleware, limit=60, window=60)  # Legacy rate limiter
 app.add_middleware(CorrelationIDMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
-app.include_router(foundation_router)
-app.include_router(blackbox_telemetry_router)
-app.include_router(blackbox_memory_router)
-app.include_router(blackbox_roi_router)
-app.include_router(blackbox_learning_router)
-app.include_router(campaigns_router)
-app.include_router(moves_router)
-app.include_router(matrix_router)
+settings = get_settings()
+paid_access = [] if settings.DISABLE_PAID_ACCESS else [Depends(require_active_subscription)]
+
+app.include_router(foundation_router, dependencies=paid_access)
+app.include_router(blackbox_telemetry_router, dependencies=paid_access)
+app.include_router(blackbox_memory_router, dependencies=paid_access)
+app.include_router(blackbox_roi_router, dependencies=paid_access)
+app.include_router(blackbox_learning_router, dependencies=paid_access)
+app.include_router(campaigns_router, dependencies=paid_access)
+app.include_router(moves_router, dependencies=paid_access)
+app.include_router(matrix_router, dependencies=paid_access)
 app.include_router(payments_router)
-app.include_router(radar_router)
-app.include_router(radar_analytics_router)
-app.include_router(radar_scheduler_router)
-app.include_router(radar_notifications_router)
-app.include_router(synthesis_router)
-app.include_router(muse_router)
-app.include_router(assets_router)
-app.include_router(feedback_router)
+app.include_router(subscriptions_router)
+app.include_router(radar_router, dependencies=paid_access)
+app.include_router(radar_analytics_router, dependencies=paid_access)
+app.include_router(radar_scheduler_router, dependencies=paid_access)
+app.include_router(radar_notifications_router, dependencies=paid_access)
+app.include_router(synthesis_router, dependencies=paid_access)
+app.include_router(muse_router, dependencies=paid_access)
+app.include_router(assets_router, dependencies=paid_access)
+app.include_router(feedback_router, dependencies=paid_access)
+app.include_router(council_router, dependencies=paid_access)
+app.include_router(notifications_router, dependencies=paid_access)
 
 
 # Global Exception Handler
@@ -227,7 +249,7 @@ async def health_check(
     # 2. Check Cache (Upstash)
     try:
         cache = get_cache_client()
-        if cache.ping():
+        if cache and cache.ping():
             health_status["components"]["cache"] = "up"
         else:
             raise Exception("Redis ping failed")
@@ -243,11 +265,23 @@ async def health_check(
             from core.secrets import get_secret
 
             supabase_url = get_secret("SUPABASE_URL")
+            supabase_key = get_secret("SUPABASE_ANON_KEY") or get_secret(
+                "SUPABASE_SERVICE_ROLE_KEY"
+            )
             if supabase_url:
                 import httpx
 
+                headers = {}
+                if supabase_key:
+                    headers = {
+                        "apikey": supabase_key,
+                        "Authorization": f"Bearer {supabase_key}",
+                    }
+
                 async with httpx.AsyncClient(timeout=5.0) as client:
-                    response = await client.get(f"{supabase_url}/auth/v1/settings")
+                    response = await client.get(
+                        f"{supabase_url}/auth/v1/settings", headers=headers
+                    )
                     if response.status_code == 200:
                         health_status["components"]["supabase_auth"] = "up"
                     else:

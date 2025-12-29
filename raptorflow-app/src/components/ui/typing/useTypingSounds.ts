@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useRef } from 'react';
 import { useTypingExperience } from './TypingExperienceProvider';
@@ -10,7 +10,8 @@ import { useTypingExperience } from './TypingExperienceProvider';
  */
 export function useTypingSounds() {
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
-  const { playKeySound, playClickSound, playBackspaceSound } = useTypingExperience();
+  const { playKeySound, playClickSound, playBackspaceSound } =
+    useTypingExperience();
 
   useEffect(() => {
     const element = inputRef.current;
@@ -20,7 +21,11 @@ export function useTypingSounds() {
       const keyboardEvent = e as KeyboardEvent;
       if (keyboardEvent.key === 'Backspace') {
         playBackspaceSound({ velocity: 0.4 });
-      } else if (keyboardEvent.key.length === 1 && !keyboardEvent.ctrlKey && !keyboardEvent.metaKey) {
+      } else if (
+        keyboardEvent.key.length === 1 &&
+        !keyboardEvent.ctrlKey &&
+        !keyboardEvent.metaKey
+      ) {
         playKeySound({ velocity: 0.3 });
       }
     };

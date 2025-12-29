@@ -1,9 +1,22 @@
-"use client";
+'use client';
 
 // Intelligent Context Manager for 10x Typing Experience
 export interface TypingContext {
-  inputType: 'text' | 'password' | 'email' | 'textarea' | 'search' | 'number' | 'rich-text';
-  application: 'coding' | 'writing' | 'messaging' | 'form' | 'search' | 'creative';
+  inputType:
+    | 'text'
+    | 'password'
+    | 'email'
+    | 'textarea'
+    | 'search'
+    | 'number'
+    | 'rich-text';
+  application:
+    | 'coding'
+    | 'writing'
+    | 'messaging'
+    | 'form'
+    | 'search'
+    | 'creative';
   environment: 'office' | 'home' | 'mobile' | 'public';
   timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night';
   userState: 'focused' | 'distracted' | 'tired' | 'energetic';
@@ -39,7 +52,14 @@ export class ContextManager {
 
   private detectInitialContext(): TypingContext {
     const hour = new Date().getHours();
-    const timeOfDay = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : hour < 21 ? 'evening' : 'night';
+    const timeOfDay =
+      hour < 12
+        ? 'morning'
+        : hour < 17
+          ? 'afternoon'
+          : hour < 21
+            ? 'evening'
+            : 'night';
 
     return {
       inputType: 'text',
@@ -47,7 +67,7 @@ export class ContextManager {
       environment: 'home',
       timeOfDay,
       userState: 'focused',
-      taskComplexity: 'moderate'
+      taskComplexity: 'moderate',
     };
   }
 
@@ -56,7 +76,7 @@ export class ContextManager {
     this.adaptationRules.set('morning', {
       soundProfile: 'luxury',
       intensity: 'subtle',
-      volume: 0.2
+      volume: 0.2,
     });
 
     this.adaptationRules.set('night', {
@@ -67,8 +87,8 @@ export class ContextManager {
         completionSounds: false,
         particleEffects: false,
         rippleEffects: false,
-        adaptiveVolume: false
-      }
+        adaptiveVolume: false,
+      },
     });
 
     // Environment-based adaptations
@@ -80,8 +100,8 @@ export class ContextManager {
         completionSounds: true,
         particleEffects: false,
         rippleEffects: false,
-        adaptiveVolume: true
-      }
+        adaptiveVolume: true,
+      },
     });
 
     this.adaptationRules.set('public', {
@@ -92,8 +112,8 @@ export class ContextManager {
         completionSounds: false,
         particleEffects: false,
         rippleEffects: false,
-        adaptiveVolume: false
-      }
+        adaptiveVolume: false,
+      },
     });
 
     // Application-based adaptations
@@ -104,8 +124,8 @@ export class ContextManager {
         completionSounds: true,
         particleEffects: false,
         rippleEffects: false,
-        adaptiveVolume: true
-      }
+        adaptiveVolume: true,
+      },
     });
 
     this.adaptationRules.set('creative', {
@@ -115,25 +135,28 @@ export class ContextManager {
         completionSounds: true,
         particleEffects: true,
         rippleEffects: true,
-        adaptiveVolume: true
-      }
+        adaptiveVolume: true,
+      },
     });
 
     // User state adaptations
     this.adaptationRules.set('tired', {
       soundProfile: 'minimalist',
       intensity: 'subtle',
-      volume: 0.2
+      volume: 0.2,
     });
 
     this.adaptationRules.set('energetic', {
       soundProfile: 'gaming',
       intensity: 'pronounced',
-      volume: 0.5
+      volume: 0.5,
     });
   }
 
-  updateContext(element: HTMLElement, event: KeyboardEvent | MouseEvent): TypingContext {
+  updateContext(
+    element: HTMLElement,
+    event: KeyboardEvent | MouseEvent
+  ): TypingContext {
     const newContext = this.analyzeContext(element, event);
 
     // Detect user state from typing patterns
@@ -151,7 +174,10 @@ export class ContextManager {
     return newContext;
   }
 
-  private analyzeContext(element: HTMLElement, event: KeyboardEvent | MouseEvent): TypingContext {
+  private analyzeContext(
+    element: HTMLElement,
+    event: KeyboardEvent | MouseEvent
+  ): TypingContext {
     const context = { ...this.currentContext };
 
     // Detect input type
@@ -171,7 +197,14 @@ export class ContextManager {
 
     // Update time of day
     const hour = new Date().getHours();
-    context.timeOfDay = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : hour < 21 ? 'evening' : 'night';
+    context.timeOfDay =
+      hour < 12
+        ? 'morning'
+        : hour < 17
+          ? 'afternoon'
+          : hour < 21
+            ? 'evening'
+            : 'night';
 
     // Detect task complexity
     context.taskComplexity = this.detectTaskComplexity(element);
@@ -181,18 +214,24 @@ export class ContextManager {
 
   private mapInputType(type: string): TypingContext['inputType'] {
     const typeMap: Record<string, TypingContext['inputType']> = {
-      'text': 'text',
-      'password': 'password',
-      'email': 'email',
-      'search': 'search',
-      'number': 'number'
+      text: 'text',
+      password: 'password',
+      email: 'email',
+      search: 'search',
+      number: 'number',
     };
     return typeMap[type] || 'text';
   }
 
-  private detectApplication(element: HTMLElement): TypingContext['application'] {
+  private detectApplication(
+    element: HTMLElement
+  ): TypingContext['application'] {
     // Check for coding environments
-    if (element.closest('.code-editor, .monaco-editor, .ace_editor, [data-language]')) {
+    if (
+      element.closest(
+        '.code-editor, .monaco-editor, .ace_editor, [data-language]'
+      )
+    ) {
       return 'coding';
     }
 
@@ -227,14 +266,20 @@ export class ContextManager {
 
     // Public space detection (based on time and browser patterns)
     const hour = new Date().getHours();
-    if (hour >= 9 && hour <= 17 && !window.location.hostname.includes('localhost')) {
+    if (
+      hour >= 9 &&
+      hour <= 17 &&
+      !window.location.hostname.includes('localhost')
+    ) {
       return 'office';
     }
 
     return 'home';
   }
 
-  private detectTaskComplexity(element: HTMLElement): TypingContext['taskComplexity'] {
+  private detectTaskComplexity(
+    element: HTMLElement
+  ): TypingContext['taskComplexity'] {
     // Complex tasks
     if (element.closest('.complex-form, .wizard, .multi-step')) {
       return 'complex';
@@ -256,10 +301,10 @@ export class ContextManager {
       this.currentContext.timeOfDay,
       this.currentContext.environment,
       this.currentContext.application,
-      this.currentContext.userState
+      this.currentContext.userState,
     ];
 
-    contextKeys.forEach(key => {
+    contextKeys.forEach((key) => {
       const adaptations = this.adaptationRules.get(key);
       if (adaptations) {
         Object.assign(settings, adaptations);
@@ -292,13 +337,18 @@ export class ContextManager {
   private storeFeedbackData(feedback: any): void {
     // In a real implementation, this would store to a database
     // For now, store in localStorage
-    const feedbackHistory = JSON.parse(localStorage.getItem('typing-feedback') || '[]');
+    const feedbackHistory = JSON.parse(
+      localStorage.getItem('typing-feedback') || '[]'
+    );
     feedbackHistory.push({
       ...feedback,
       context: this.currentContext,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
-    localStorage.setItem('typing-feedback', JSON.stringify(feedbackHistory.slice(-100)));
+    localStorage.setItem(
+      'typing-feedback',
+      JSON.stringify(feedbackHistory.slice(-100))
+    );
   }
 
   getContextInsights(): {
@@ -309,13 +359,14 @@ export class ContextManager {
     const insights = {
       dominantContexts: {} as Record<string, number>,
       peakProductivityTimes: [] as string[],
-      preferredProfiles: {} as Record<string, string>
+      preferredProfiles: {} as Record<string, string>,
     };
 
     // Analyze context history
-    this.contextHistory.forEach(context => {
+    this.contextHistory.forEach((context) => {
       const key = `${context.application}-${context.environment}`;
-      insights.dominantContexts[key] = (insights.dominantContexts[key] || 0) + 1;
+      insights.dominantContexts[key] =
+        (insights.dominantContexts[key] || 0) + 1;
     });
 
     return insights;
@@ -336,7 +387,11 @@ export class ContextManager {
 
 // Typing metrics for user state detection
 class TypingMetrics {
-  private keystrokes: Array<{ timestamp: number; key: string; velocity: number }> = [];
+  private keystrokes: Array<{
+    timestamp: number;
+    key: string;
+    velocity: number;
+  }> = [];
   private typingSpeeds: number[] = [];
   private errorRate = 0;
 
@@ -381,7 +436,8 @@ class TypingMetrics {
   detectUserState(): TypingContext['userState'] {
     if (this.typingSpeeds.length < 5) return 'focused';
 
-    const avgSpeed = this.typingSpeeds.reduce((a, b) => a + b, 0) / this.typingSpeeds.length;
+    const avgSpeed =
+      this.typingSpeeds.reduce((a, b) => a + b, 0) / this.typingSpeeds.length;
 
     if (avgSpeed > 80) return 'energetic';
     if (avgSpeed < 30) return 'tired';
@@ -391,25 +447,32 @@ class TypingMetrics {
   }
 
   getMetrics(): { speed: number; accuracy: number; consistency: number } {
-    const speed = this.typingSpeeds.length > 0
-      ? this.typingSpeeds.reduce((a, b) => a + b, 0) / this.typingSpeeds.length
-      : 0;
+    const speed =
+      this.typingSpeeds.length > 0
+        ? this.typingSpeeds.reduce((a, b) => a + b, 0) /
+          this.typingSpeeds.length
+        : 0;
 
     return {
       speed,
       accuracy: 1 - this.errorRate,
-      consistency: this.calculateConsistency()
+      consistency: this.calculateConsistency(),
     };
   }
 
   private calculateConsistency(): number {
     if (this.typingSpeeds.length < 10) return 1;
 
-    const mean = this.typingSpeeds.reduce((a, b) => a + b, 0) / this.typingSpeeds.length;
-    const variance = this.typingSpeeds.reduce((sum, speed) => sum + Math.pow(speed - mean, 2), 0) / this.typingSpeeds.length;
+    const mean =
+      this.typingSpeeds.reduce((a, b) => a + b, 0) / this.typingSpeeds.length;
+    const variance =
+      this.typingSpeeds.reduce(
+        (sum, speed) => sum + Math.pow(speed - mean, 2),
+        0
+      ) / this.typingSpeeds.length;
     const standardDeviation = Math.sqrt(variance);
 
     // Consistency is inverse of coefficient of variation
-    return mean > 0 ? 1 - (standardDeviation / mean) : 0;
+    return mean > 0 ? 1 - standardDeviation / mean : 0;
   }
 }

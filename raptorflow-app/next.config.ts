@@ -1,12 +1,12 @@
-import type { NextConfig } from "next";
-import path from "path";
-import { fileURLToPath } from "url";
+import type { NextConfig } from 'next';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   // Externalize pg to avoid Turbopack symlink issues on Windows
-  serverExternalPackages: ["pg"],
+  serverExternalPackages: ['pg'],
   turbopack: {
     root: rootDir,
   },

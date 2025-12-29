@@ -244,3 +244,23 @@ class HumanInTheLoopNode:
 def create_team_supervisor(llm: any, team_members: List[str], system_prompt: str):
     """Factory function for the HierarchicalSupervisor."""
     return HierarchicalSupervisor(llm, team_members, system_prompt)
+
+
+def get_swarm_supervisor():
+    """Factory for Swarm-compatible Supervisor."""
+    from swarm import Agent
+
+    from agents.handoffs import handoff_to_muse, handoff_to_router
+
+    return Agent(
+        name="Swarm Supervisor",
+        instructions="""
+        You are the Swarm Supervisor. Orchestrate the mission by handing off
+        to specialized agents.
+
+        - If the user's intent is unknown, hand off to the Intent Router.
+        - If the brief is ready and needs creative execution, hand off to Muse.
+        - Monitor context variables to ensure alignment.
+        """,
+        functions=[handoff_to_router, handoff_to_muse],
+    )

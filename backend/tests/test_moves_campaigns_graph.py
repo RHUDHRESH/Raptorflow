@@ -7,13 +7,16 @@ from graphs.moves_campaigns_orchestrator import moves_campaigns_orchestrator
 
 @pytest.fixture
 def mock_memories():
-    with patch(
-        "backend.graphs.moves_campaigns_orchestrator.SemanticMemory",
-        new_callable=MagicMock,
-    ) as mock_semantic, patch(
-        "backend.graphs.moves_campaigns_orchestrator.LongTermMemory",
-        new_callable=MagicMock,
-    ) as mock_ltm:
+    with (
+        patch(
+            "backend.graphs.moves_campaigns_orchestrator.SemanticMemory",
+            new_callable=MagicMock,
+        ) as mock_semantic,
+        patch(
+            "backend.graphs.moves_campaigns_orchestrator.LongTermMemory",
+            new_callable=MagicMock,
+        ) as mock_ltm,
+    ):
 
         sem_instance = mock_semantic.return_value
         sem_instance.search = AsyncMock(return_value=[{"content": "mocked context"}])

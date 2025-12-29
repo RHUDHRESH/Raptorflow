@@ -8,13 +8,11 @@ from services.matrix_service import MatrixService
 @pytest.mark.asyncio
 async def test_matrix_service_get_aggregated_overview():
     """Verify that MatrixService aggregates data from multiple monitors."""
-    with patch(
-        "backend.services.matrix_service.SystemSanityCheck"
-    ) as mock_sanity, patch(
-        "backend.services.matrix_service.LatencyMonitor"
-    ) as mock_latency, patch(
-        "backend.services.matrix_service.CostGovernor"
-    ) as mock_cost:
+    with (
+        patch("backend.services.matrix_service.SystemSanityCheck") as mock_sanity,
+        patch("backend.services.matrix_service.LatencyMonitor") as mock_latency,
+        patch("backend.services.matrix_service.CostGovernor") as mock_cost,
+    ):
 
         # Mock Sanity Check
         mock_sanity.return_value.run_suite = AsyncMock(

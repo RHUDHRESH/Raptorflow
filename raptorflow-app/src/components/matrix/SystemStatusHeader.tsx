@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, AlertCircle, ShieldAlert, Loader2 } from "lucide-react";
-import { useMatrixOverview } from "@/hooks/useMatrixOverview";
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle2, AlertCircle, ShieldAlert, Loader2 } from 'lucide-react';
+import { useMatrixOverview } from '@/hooks/useMatrixOverview';
 
 export function SystemStatusHeader() {
-  const { data, loading, error } = useMatrixOverview("verify_ws");
+  const { data, loading, error } = useMatrixOverview('verify_ws');
 
   if (loading) {
     return (
@@ -22,31 +22,32 @@ export function SystemStatusHeader() {
   }
 
   // Map API status to UI config
-  const status = data?.health_report?.status || "healthy";
+  const status = data?.health_report?.status || 'healthy';
 
   const statusConfig = {
     healthy: {
-      label: "SYSTEM ONLINE",
-      sub: "All services operating within surgical parameters.",
+      label: 'SYSTEM ONLINE',
+      sub: 'All services operating within surgical parameters.',
       icon: CheckCircle2,
-      color: "text-green-600 bg-green-50 border-green-200",
+      color: 'text-green-600 bg-green-50 border-green-200',
     },
     warning: {
-      label: "DEGRADED PERFORMANCE",
-      sub: "Latency spikes or partial service failures detected.",
+      label: 'DEGRADED PERFORMANCE',
+      sub: 'Latency spikes or partial service failures detected.',
       icon: AlertCircle,
-      color: "text-amber-600 bg-amber-50 border-amber-200",
+      color: 'text-amber-600 bg-amber-50 border-amber-200',
     },
     unhealthy: {
-      label: "SYSTEM CRITICAL",
-      sub: "Critical service outage. Automated guardrails active.",
+      label: 'SYSTEM CRITICAL',
+      sub: 'Critical service outage. Automated guardrails active.',
       icon: ShieldAlert,
-      color: "text-red-600 bg-red-50 border-red-200",
+      color: 'text-red-600 bg-red-50 border-red-200',
     },
   };
 
   // Fallback for unexpected status
-  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.healthy;
+  const config =
+    statusConfig[status as keyof typeof statusConfig] || statusConfig.healthy;
   const Icon = config.icon;
 
   if (error) {
@@ -55,7 +56,9 @@ export function SystemStatusHeader() {
         <CardContent className="p-6 flex items-center justify-between text-red-600">
           <div className="flex items-center space-x-3">
             <AlertCircle className="h-5 w-5" />
-            <span className="font-bold text-sm">TELEMETRY OFFLINE: {error}</span>
+            <span className="font-bold text-sm">
+              TELEMETRY OFFLINE: {error}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -65,9 +68,13 @@ export function SystemStatusHeader() {
   return (
     <Card className="rounded-2xl border-border overflow-hidden shadow-sm">
       <CardContent className="p-0">
-        <div className={`flex items-center justify-between p-6 ${config.color.split(' ')[1]}`}>
+        <div
+          className={`flex items-center justify-between p-6 ${config.color.split(' ')[1]}`}
+        >
           <div className="flex items-center space-x-4">
-            <div className={`p-3 rounded-full bg-white shadow-sm ${config.color.split(' ')[0]}`}>
+            <div
+              className={`p-3 rounded-full bg-white shadow-sm ${config.color.split(' ')[0]}`}
+            >
               <Icon className="h-6 w-6" />
             </div>
             <div>
@@ -75,7 +82,10 @@ export function SystemStatusHeader() {
                 <h2 className="text-sm font-bold tracking-widest uppercase font-sans">
                   {config.label}
                 </h2>
-                <Badge variant="outline" className={`font-mono text-[10px] bg-white ${config.color.split(' ')[0]}`}>
+                <Badge
+                  variant="outline"
+                  className={`font-mono text-[10px] bg-white ${config.color.split(' ')[0]}`}
+                >
                   v1.0.0-industrial
                 </Badge>
               </div>

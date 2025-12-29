@@ -20,7 +20,7 @@ export function NavigationEnhancer({
   onNavigate,
   onSave,
   onRefresh,
-  isLoading = false
+  isLoading = false,
 }: NavigationEnhancerProps) {
   const [backEnabled, setBackEnabled] = useState(false);
   const [nextEnabled, setNextEnabled] = useState(false);
@@ -65,11 +65,11 @@ export function NavigationEnhancer({
 
   const getPhaseName = (phase: string) => {
     const phaseNames: Record<string, string> = {
-      'icps': 'ICP Reveal',
-      'positioning': 'Positioning',
-      'competitors': 'Competitive Analysis',
-      'messaging': 'Messaging',
-      'market': 'Market Analysis'
+      icps: 'ICP Reveal',
+      positioning: 'Positioning',
+      competitors: 'Competitive Analysis',
+      messaging: 'Messaging',
+      market: 'Market Analysis',
     };
     return phaseNames[phase] || phase;
   };
@@ -98,10 +98,12 @@ export function NavigationEnhancer({
                   phase === currentPhase
                     ? 'text-[#2D3538] font-medium'
                     : completedPhases.includes(phase)
-                    ? 'text-[#5B5F61] hover:text-[#2D3538]'
-                    : 'text-[#C0C1BE] cursor-not-allowed'
+                      ? 'text-[#5B5F61] hover:text-[#2D3538]'
+                      : 'text-[#C0C1BE] cursor-not-allowed'
                 }`}
-                onClick={() => completedPhases.includes(phase) && onNavigate(phase)}
+                onClick={() =>
+                  completedPhases.includes(phase) && onNavigate(phase)
+                }
               >
                 {getPhaseName(phase)}
               </span>
@@ -163,7 +165,7 @@ export function useNavigationState(initialPhase: string = 'icps') {
     'positioning',
     'competitors',
     'messaging',
-    'market'
+    'market',
   ]);
 
   const navigateToPhase = (phase: string) => {
@@ -173,7 +175,7 @@ export function useNavigationState(initialPhase: string = 'icps') {
   };
 
   const markPhaseCompleted = (phase: string) => {
-    setCompletedPhases(prev =>
+    setCompletedPhases((prev) =>
       prev.includes(phase) ? prev : [...prev, phase]
     );
   };
@@ -189,6 +191,6 @@ export function useNavigationState(initialPhase: string = 'icps') {
     availablePhases,
     navigateToPhase,
     markPhaseCompleted,
-    resetProgress
+    resetProgress,
   };
 }

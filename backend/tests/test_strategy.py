@@ -64,12 +64,15 @@ async def test_founder_profiler_logic():
         preferred_communication_style="Direct",
     )
 
-    with patch(
-        "backend.agents.strategists.FounderArchetypeProfiler.__init__",
-        return_value=None,
-    ), patch(
-        "backend.agents.strategists.save_entity", new_callable=AsyncMock
-    ) as mock_save:
+    with (
+        patch(
+            "backend.agents.strategists.FounderArchetypeProfiler.__init__",
+            return_value=None,
+        ),
+        patch(
+            "backend.agents.strategists.save_entity", new_callable=AsyncMock
+        ) as mock_save,
+    ):
 
         profiler = create_founder_profiler(mock_llm)
         profiler.chain = mock_chain

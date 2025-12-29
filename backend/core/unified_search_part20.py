@@ -217,7 +217,7 @@ class ImageProcessor:
 
         # Basic image header validation
         if media_type == MediaType.JPEG:
-            if not image_bytes.startswith(b"\xFF\xD8\xFF"):
+            if not image_bytes.startswith(b"\xff\xd8\xff"):
                 raise ValueError("Invalid JPEG image")
         elif media_type == MediaType.PNG:
             if not image_bytes.startswith(b"\x89PNG\r\n\x1a\n"):

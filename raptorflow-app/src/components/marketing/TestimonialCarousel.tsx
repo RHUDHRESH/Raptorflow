@@ -16,22 +16,25 @@ interface Testimonial {
 
 const testimonials: Testimonial[] = [
   {
-    quote: "RaptorFlow transformed how we think about marketing. We went from scattered tactics to a real system in weeks.",
-    author: "Sarah Chen",
-    role: "Founder",
-    company: "TechStart Inc",
+    quote:
+      'RaptorFlow transformed how we think about marketing. We went from scattered tactics to a real system in weeks.',
+    author: 'Sarah Chen',
+    role: 'Founder',
+    company: 'TechStart Inc',
   },
   {
-    quote: "Finally, a marketing tool that actually helps founders ship. The AI positioning is scary good.",
-    author: "Marcus Rodriguez",
-    role: "CEO",
-    company: "GrowthLab",
+    quote:
+      'Finally, a marketing tool that actually helps founders ship. The AI positioning is scary good.',
+    author: 'Marcus Rodriguez',
+    role: 'CEO',
+    company: 'GrowthLab',
   },
   {
-    quote: "We've tried every marketing tool. This is the first one that gave us clarity instead of more chaos.",
-    author: "Emily Watson",
-    role: "Head of Marketing",
-    company: "Innovate Co",
+    quote:
+      "We've tried every marketing tool. This is the first one that gave us clarity instead of more chaos.",
+    author: 'Emily Watson',
+    role: 'Head of Marketing',
+    company: 'Innovate Co',
   },
 ];
 
@@ -40,7 +43,9 @@ export function TestimonialCarousel() {
 
   const next = () => setCurrent((prev) => (prev + 1) % testimonials.length);
   const prev = () =>
-    setCurrent((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+    setCurrent(
+      (prev) => (prev - 1 + testimonials.length) % testimonials.length
+    );
 
   return (
     <section className="py-32 lg:py-40 relative overflow-hidden border-y border-border">
@@ -93,7 +98,8 @@ export function TestimonialCarousel() {
                     {testimonials[current].author}
                   </p>
                   <p className="text-muted-foreground text-sm">
-                    {testimonials[current].role} at {testimonials[current].company}
+                    {testimonials[current].role} at{' '}
+                    {testimonials[current].company}
                   </p>
                 </div>
               </div>

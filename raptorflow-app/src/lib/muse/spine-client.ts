@@ -4,77 +4,85 @@
  */
 
 export interface SpineResponse {
-    thread_id: string;
-    asset_content: string;
-    quality_score: number;
-    status: string;
-    iterations: number;
+  thread_id: string;
+  asset_content: string;
+  quality_score: number;
+  status: string;
+  iterations: number;
 }
 
 export interface SpineError {
-    error: string;
-    code: string;
-    detail: string;
+  error: string;
+  code: string;
+  detail: string;
 }
 
 class SpineClient {
-    private baseUrl: string;
-    private apiKey: string;
+  private baseUrl: string;
+  private apiKey: string;
 
-    constructor() {
-        // FORCE RELATIVE PATH to use internal Next.js API (avoids hitting dead localhost:8000)
-        this.baseUrl = '';
-        // this.baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-        this.apiKey = process.env.RF_INTERNAL_KEY || '';
+  constructor() {
+    // FORCE RELATIVE PATH to use internal Next.js API (avoids hitting dead localhost:8000)
+    this.baseUrl = '';
+    // this.baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    this.apiKey = process.env.RF_INTERNAL_KEY || '';
+  }
+
+  private async request<T>(path: string, options: RequestInit): Promise<T> {
+    const url = `${this.baseUrl}${path}`;
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        'Content-Type': 'application/json',
+        'X-API-Key': this.apiKey,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Spine API Error: ${response.status} ${errorText}`);
     }
 
-    private async request<T>(path: string, options: RequestInit): Promise<T> {
-        const url = `${this.baseUrl}${path}`;
-        const response = await fetch(url, {
-            ...options,
-            headers: {
-                ...options.headers,
-                'Content-Type': 'application/json',
-                'X-API-Key': this.apiKey,
-            },
-        });
+    return response.json();
+  }
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Spine API Error: ${response.status} ${errorText}`);
-        }
+  async createAsset(
+    prompt: string,
+    workspaceId: string,
+    userId: string,
+    threadId?: string
+  ): Promise<SpineResponse> {
+    // Redirect to chat endpoint for now as it handles generation too
+    return this.chat(prompt, threadId);
+  }
 
-        return response.json();
-    }
+  async chat(message: string, threadId?: string): Promise<SpineResponse> {
+    // Use the internal Next.js API route
+    const result = await this.request<{ response: string; threadId: string }>(
+      '/api/muse/chat',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          message,
+          threadId,
+        }),
+      }
+    );
 
-    async createAsset(prompt: string, workspaceId: string, userId: string, threadId?: string): Promise<SpineResponse> {
-        // Redirect to chat endpoint for now as it handles generation too
-        return this.chat(prompt, threadId);
-    }
+    // Map internal API result to SpineResponse contract
+    return {
+      thread_id: result.threadId,
+      asset_content: result.response,
+      quality_score: 1.0, // Mocked for internal agent
+      status: 'completed',
+      iterations: 1,
+    };
+  }
 
-    async chat(message: string, threadId?: string): Promise<SpineResponse> {
-        // Use the internal Next.js API route
-        const result = await this.request<{ response: string; threadId: string }>('/api/muse/chat', {
-            method: 'POST',
-            body: JSON.stringify({
-                message,
-                threadId
-            }),
-        });
-
-        // Map internal API result to SpineResponse contract
-        return {
-            thread_id: result.threadId,
-            asset_content: result.response,
-            quality_score: 1.0, // Mocked for internal agent
-            status: 'completed',
-            iterations: 1
-        };
-    }
-
-    async checkHealth(): Promise<{ status: string }> {
-        return this.request<{ status: string }>('/health', { method: 'GET' });
-    }
+  async checkHealth(): Promise<{ status: string }> {
+    return this.request<{ status: string }>('/health', { method: 'GET' });
+  }
 }
 
 export const spine = new SpineClient();

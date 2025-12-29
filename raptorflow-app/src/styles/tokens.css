@@ -72,42 +72,42 @@
   /* ============================================
      COLORS — LIGHT MODE (Crisp Zinc SaaS)
      ============================================ */
-  --color-canvas: #FFFFFF;
+  --color-canvas: #ffffff;
   /* Pure White */
-  --color-surface: #FFFFFF;
-  --color-ink: #09090B;
+  --color-surface: #ffffff;
+  --color-ink: #09090b;
   /* Zinc-950 */
-  --color-secondary-text: #52525B;
+  --color-secondary-text: #52525b;
   /* Zinc-600 */
-  --color-muted: #A1A1AA;
+  --color-muted: #a1a1aa;
   /* Zinc-400 */
-  --color-border: #E4E4E7;
+  --color-border: #e4e4e7;
   /* Zinc-200 */
   --color-border-subtle: rgba(0, 0, 0, 0.04);
 
   /* Status colors (Strict Neutrality) */
-  --color-green: #09090B;
+  --color-green: #09090b;
   /* Ink */
-  --color-amber: #18181B;
+  --color-amber: #18181b;
   /* Zinc-900 */
-  --color-red: #09090B;
+  --color-red: #09090b;
   /* Ink */
-  --color-blue: #09090B;
+  --color-blue: #09090b;
 
   /* ============================================
      COLORS — DARK MODE (Crisp Zinc SaaS)
      ============================================ */
-  --dark-canvas: #09090B;
+  --dark-canvas: #09090b;
   /* Zinc-950 */
-  --dark-surface: #18181B;
+  --dark-surface: #18181b;
   /* Zinc-900 */
-  --dark-ink: #FAFAFA;
+  --dark-ink: #fafafa;
   /* Zinc-50 */
-  --dark-secondary-text: #A1A1AA;
+  --dark-secondary-text: #a1a1aa;
   /* Zinc-400 */
-  --dark-border: #27272A;
+  --dark-border: #27272a;
   /* Zinc-800 */
-  --dark-accent: #E4E4E7;
+  --dark-accent: #e4e4e7;
   /* Zinc-200 */
 
   /* ============================================

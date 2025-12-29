@@ -5,67 +5,67 @@ import * as foundation from '@/lib/foundation';
 
 // Mock foundation library
 vi.mock('@/lib/foundation', () => ({
-    emptyFoundation: {
-        currentStep: 0,
-        business: {},
-        phase3: {},
-        phase6: {}
-    },
-    saveFoundation: vi.fn(),
-    loadFoundationDB: vi.fn().mockResolvedValue({
-        currentStep: 0,
-        business: { name: 'Test Corp' },
-    }),
+  emptyFoundation: {
+    currentStep: 0,
+    business: {},
+    phase3: {},
+    phase6: {},
+  },
+  saveFoundation: vi.fn(),
+  loadFoundationDB: vi.fn().mockResolvedValue({
+    currentStep: 0,
+    business: { name: 'Test Corp' },
+  }),
 }));
 
 describe('useOnboarding hook', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('loads data on mount', async () => {
+    const { result } = renderHook(() => useOnboarding());
+
+    // Initially loading
+    expect(result.current.isLoading).toBe(true);
+
+    // Wait for useEffect
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    it('loads data on mount', async () => {
-        const { result } = renderHook(() => useOnboarding());
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.data.business.name).toBe('Test Corp');
+  });
 
-        // Initially loading
-        expect(result.current.isLoading).toBe(true);
+  it('updates data locally', async () => {
+    const { result } = renderHook(() => useOnboarding());
 
-        // Wait for useEffect
-        await act(async () => {
-            await new Promise(resolve => setTimeout(resolve, 0));
-        });
-
-        expect(result.current.isLoading).toBe(false);
-        expect(result.current.data.business.name).toBe('Test Corp');
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    it('updates data locally', async () => {
-        const { result } = renderHook(() => useOnboarding());
-
-        await act(async () => {
-            await new Promise(resolve => setTimeout(resolve, 0));
-        });
-
-        act(() => {
-            result.current.updateData(prev => ({
-                ...prev,
-                business: { ...prev.business, name: 'New Name' }
-            }));
-        });
-
-        expect(result.current.data.business.name).toBe('New Name');
+    act(() => {
+      result.current.updateData((prev) => ({
+        ...prev,
+        business: { ...prev.business, name: 'New Name' },
+      }));
     });
 
-    it('saves progress to DB', async () => {
-        const { result } = renderHook(() => useOnboarding());
+    expect(result.current.data.business.name).toBe('New Name');
+  });
 
-        await act(async () => {
-            await new Promise(resolve => setTimeout(resolve, 0));
-        });
+  it('saves progress to DB', async () => {
+    const { result } = renderHook(() => useOnboarding());
 
-        await act(async () => {
-            await result.current.saveProgress();
-        });
-
-        expect(foundation.saveFoundation).toHaveBeenCalled();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
+
+    await act(async () => {
+      await result.current.saveProgress();
+    });
+
+    expect(foundation.saveFoundation).toHaveBeenCalled();
+  });
 });

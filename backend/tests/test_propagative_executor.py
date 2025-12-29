@@ -1,7 +1,10 @@
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from graphs.council import propagative_executor_node
 from models.council import CouncilBlackboardState
+
 
 @pytest.mark.asyncio
 async def test_propagative_executor_node():
@@ -15,7 +18,7 @@ async def test_propagative_executor_node():
                 "description": "Desc 1",
                 "type": "ops",
                 "tool_requirements": ["search"],
-                "muse_prompt": "Prompt 1"
+                "muse_prompt": "Prompt 1",
             }
         ],
         "parallel_thoughts": [],
@@ -25,13 +28,13 @@ async def test_propagative_executor_node():
         "status": "complete",
         "synthesis": "Synthesis text",
         "rejected_paths": [],
-        "radar_signals": []
+        "radar_signals": [],
     }
-    
+
     with patch("graphs.council.save_move", new_callable=AsyncMock) as mock_save:
         mock_save.return_value = "move_123"
         result = await propagative_executor_node(state)
-        
+
         assert "move_ids" in result
         assert result["move_ids"] == ["move_123"]
         mock_save.assert_awaited_once()

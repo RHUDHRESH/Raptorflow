@@ -10,20 +10,25 @@ gsap.registerPlugin(ScrollTrigger);
 const features = [
   {
     title: 'AI Positioning',
-    description: 'Transform messy context into crystal-clear positioning that resonates with your ICP.',
-    imagePrompt: 'Screenshot of AI positioning interface: Clean dashboard showing input fields for business context on left, AI-generated positioning framework on right with ICP profiles, value props, and messaging pillars. Modern UI with purple/pink gradients. Professional SaaS aesthetic.',
+    description:
+      'Transform messy context into crystal-clear positioning that resonates with your ICP.',
+    imagePrompt:
+      'Screenshot of AI positioning interface: Clean dashboard showing input fields for business context on left, AI-generated positioning framework on right with ICP profiles, value props, and messaging pillars. Modern UI with purple/pink gradients. Professional SaaS aesthetic.',
     color: 'from-blue-500 to-purple-600',
   },
   {
     title: '90-Day War Plans',
-    description: 'Strategic campaigns that build momentum instead of random tactics.',
-    imagePrompt: 'Kanban board view of 90-day marketing campaign: Three columns labeled "Month 1, 2, 3" with colorful cards representing campaigns. Each card shows metrics, status badges, and mini progress bars. Smooth gradients, modern calendar UI, timeline visualization.',
+    description:
+      'Strategic campaigns that build momentum instead of random tactics.',
+    imagePrompt:
+      'Kanban board view of 90-day marketing campaign: Three columns labeled "Month 1, 2, 3" with colorful cards representing campaigns. Each card shows metrics, status badges, and mini progress bars. Smooth gradients, modern calendar UI, timeline visualization.',
     color: 'from-purple-500 to-pink-600',
   },
   {
     title: 'Weekly Moves',
     description: 'Concrete marketing tasks that compound week over week.',
-    imagePrompt: 'Weekly task dashboard: Grid of actionable move cards with checkboxes, due dates, and AI-generated content previews. Show mix of social posts, blog drafts, email campaigns. Clean task management UI with satisfying completion animations.',
+    imagePrompt:
+      'Weekly task dashboard: Grid of actionable move cards with checkboxes, due dates, and AI-generated content previews. Show mix of social posts, blog drafts, email campaigns. Clean task management UI with satisfying completion animations.',
     color: 'from-pink-500 to-red-500',
   },
 ];
@@ -88,7 +93,10 @@ export function GSAPFeatureSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-32 lg:py-40 relative overflow-hidden">
+    <section
+      ref={sectionRef}
+      className="py-32 lg:py-40 relative overflow-hidden"
+    >
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-background to-muted/20 -z-10" />
 
@@ -149,7 +157,9 @@ export function GSAPFeatureSection() {
               </div>
 
               {/* Image */}
-              <div className={`feature-image ${index % 2 === 1 ? 'lg:col-start-1 lg:row-start-1' : ''}`}>
+              <div
+                className={`feature-image ${index % 2 === 1 ? 'lg:col-start-1 lg:row-start-1' : ''}`}
+              >
                 <ImagePlaceholder
                   prompt={feature.imagePrompt}
                   aspectRatio="video"

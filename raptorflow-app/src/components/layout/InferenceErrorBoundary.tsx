@@ -17,7 +17,7 @@ interface State {
 export class InferenceErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
-    error: null
+    error: null,
   };
 
   public static getDerivedStateFromError(error: Error): State {
@@ -47,7 +47,8 @@ export class InferenceErrorBoundary extends Component<Props, State> {
               Intelligence Interrupted
             </h2>
             <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
-              Something went wrong while executing the agentic workflow. This is usually a connectivity issue with Vertex AI.
+              The intelligence engine hit a temporary issue. Give it a moment
+              and try again.
             </p>
           </div>
           <Button

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // Advanced Audio Engine for 10x Typing Experience
 export interface SoundProfile {
@@ -41,7 +41,8 @@ export class AudioEngine {
 
     try {
       // Create audio context with proper fallback
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContextClass) {
         console.warn('Web Audio API not supported');
         return;
@@ -71,7 +72,6 @@ export class AudioEngine {
 
       this.isInitialized = true;
       console.log('Audio engine initialized successfully');
-
     } catch (error) {
       console.error('Failed to initialize audio engine:', error);
       throw error;
@@ -84,7 +84,8 @@ export class AudioEngine {
     const sampleRate = this.audioContext.sampleRate;
 
     // Create Professional Profile
-    const professionalProfile = await this.createProfessionalProfile(sampleRate);
+    const professionalProfile =
+      await this.createProfessionalProfile(sampleRate);
     this.soundProfiles.set('professional', professionalProfile);
 
     // Create Creative Profile
@@ -106,38 +107,58 @@ export class AudioEngine {
 
   private async createLuxuryProfile(sampleRate: number): Promise<SoundProfile> {
     const duration = 0.08;
-    const keyBuffer = this.audioContext!.createBuffer(1, duration * sampleRate, sampleRate);
+    const keyBuffer = this.audioContext!.createBuffer(
+      1,
+      duration * sampleRate,
+      sampleRate
+    );
     const keyData = keyBuffer.getChannelData(0);
 
     // Luxury: Low frequency "thud" around 120-150Hz. Very dampened.
     for (let i = 0; i < keyData.length; i++) {
       const t = i / sampleRate;
       // Fundamental at 120Hz (velvety thud)
-      keyData[i] = Math.sin(2 * Math.PI * 120 * t) * 0.05 * Math.exp(-60 * t) +
+      keyData[i] =
+        Math.sin(2 * Math.PI * 120 * t) * 0.05 * Math.exp(-60 * t) +
         // Subtle high-end texture for "paper" feel
         (Math.random() - 0.5) * 0.005 * Math.exp(-200 * t);
     }
 
-    const clickBuffer = this.audioContext!.createBuffer(1, 0.02 * sampleRate, sampleRate);
+    const clickBuffer = this.audioContext!.createBuffer(
+      1,
+      0.02 * sampleRate,
+      sampleRate
+    );
     const clickData = clickBuffer.getChannelData(0);
     for (let i = 0; i < clickData.length; i++) {
       const t = i / sampleRate;
-      clickData[i] = Math.sin(2 * Math.PI * 180 * t) * 0.03 * Math.exp(-150 * t);
+      clickData[i] =
+        Math.sin(2 * Math.PI * 180 * t) * 0.03 * Math.exp(-150 * t);
     }
 
-    const backspaceBuffer = this.audioContext!.createBuffer(1, 0.05 * sampleRate, sampleRate);
+    const backspaceBuffer = this.audioContext!.createBuffer(
+      1,
+      0.05 * sampleRate,
+      sampleRate
+    );
     const backspaceData = backspaceBuffer.getChannelData(0);
     for (let i = 0; i < backspaceData.length; i++) {
       const t = i / sampleRate;
-      backspaceData[i] = Math.sin(2 * Math.PI * 90 * t) * 0.06 * Math.exp(-50 * t);
+      backspaceData[i] =
+        Math.sin(2 * Math.PI * 90 * t) * 0.06 * Math.exp(-50 * t);
     }
 
-    const completionBuffer = this.audioContext!.createBuffer(1, 0.15 * sampleRate, sampleRate);
+    const completionBuffer = this.audioContext!.createBuffer(
+      1,
+      0.15 * sampleRate,
+      sampleRate
+    );
     const completionData = completionBuffer.getChannelData(0);
     for (let i = 0; i < completionData.length; i++) {
       const t = i / sampleRate;
-      completionData[i] = (Math.sin(2 * Math.PI * 120 * t) * 0.1 +
-        Math.sin(2 * Math.PI * 240 * t) * 0.02) *
+      completionData[i] =
+        (Math.sin(2 * Math.PI * 120 * t) * 0.1 +
+          Math.sin(2 * Math.PI * 240 * t) * 0.02) *
         Math.exp(-10 * t);
     }
 
@@ -147,45 +168,67 @@ export class AudioEngine {
       clickSound: clickBuffer,
       backspaceSound: backspaceBuffer,
       completionSound: completionBuffer,
-      characteristics: { bass: 0.9, mid: 0.1, high: 0, resonance: 0.05 }
+      characteristics: { bass: 0.9, mid: 0.1, high: 0, resonance: 0.05 },
     };
   }
 
-  private async createProfessionalProfile(sampleRate: number): Promise<SoundProfile> {
+  private async createProfessionalProfile(
+    sampleRate: number
+  ): Promise<SoundProfile> {
     const duration = 0.06;
-    const keyBuffer = this.audioContext!.createBuffer(1, duration * sampleRate, sampleRate);
+    const keyBuffer = this.audioContext!.createBuffer(
+      1,
+      duration * sampleRate,
+      sampleRate
+    );
     const keyData = keyBuffer.getChannelData(0);
 
     // Professional: Based on 432 Hz "Earth's natural frequency" for grounding
     for (let i = 0; i < keyData.length; i++) {
       const t = i / sampleRate;
-      keyData[i] = Math.sin(2 * Math.PI * 216 * t) * 0.08 * Math.exp(-80 * t) +  // 432/2 - subharmonic
-        Math.sin(2 * Math.PI * 432 * t) * 0.04 * Math.exp(-100 * t) +  // 432 Hz - grounding
+      keyData[i] =
+        Math.sin(2 * Math.PI * 216 * t) * 0.08 * Math.exp(-80 * t) + // 432/2 - subharmonic
+        Math.sin(2 * Math.PI * 432 * t) * 0.04 * Math.exp(-100 * t) + // 432 Hz - grounding
         Math.sin(2 * Math.PI * 648 * t) * 0.02 * Math.exp(-120 * t); // 432*1.5 - harmonic
     }
 
-    const clickBuffer = this.audioContext!.createBuffer(1, 0.015 * sampleRate, sampleRate);
+    const clickBuffer = this.audioContext!.createBuffer(
+      1,
+      0.015 * sampleRate,
+      sampleRate
+    );
     const clickData = clickBuffer.getChannelData(0);
     for (let i = 0; i < clickData.length; i++) {
       const t = i / sampleRate;
-      clickData[i] = Math.sin(2 * Math.PI * 528 * t) * 0.06 * Math.exp(-400 * t); // 528 Hz - love frequency
+      clickData[i] =
+        Math.sin(2 * Math.PI * 528 * t) * 0.06 * Math.exp(-400 * t); // 528 Hz - love frequency
     }
 
-    const backspaceBuffer = this.audioContext!.createBuffer(1, 0.04 * sampleRate, sampleRate);
+    const backspaceBuffer = this.audioContext!.createBuffer(
+      1,
+      0.04 * sampleRate,
+      sampleRate
+    );
     const backspaceData = backspaceBuffer.getChannelData(0);
     for (let i = 0; i < backspaceData.length; i++) {
       const t = i / sampleRate;
-      backspaceData[i] = Math.sin(2 * Math.PI * 174 * t) * 0.1 * Math.exp(-60 * t) +  // 174 Hz - physical relaxation
-        Math.sin(2 * Math.PI * 348 * t) * 0.04 * Math.exp(-80 * t);  // 174*2 - harmonic
+      backspaceData[i] =
+        Math.sin(2 * Math.PI * 174 * t) * 0.1 * Math.exp(-60 * t) + // 174 Hz - physical relaxation
+        Math.sin(2 * Math.PI * 348 * t) * 0.04 * Math.exp(-80 * t); // 174*2 - harmonic
     }
 
-    const completionBuffer = this.audioContext!.createBuffer(1, 0.12 * sampleRate, sampleRate);
+    const completionBuffer = this.audioContext!.createBuffer(
+      1,
+      0.12 * sampleRate,
+      sampleRate
+    );
     const completionData = completionBuffer.getChannelData(0);
     for (let i = 0; i < completionData.length; i++) {
       const t = i / sampleRate;
-      completionData[i] = (Math.sin(2 * Math.PI * 432 * t) * 0.12 +   // 432 Hz - grounding
-        Math.sin(2 * Math.PI * 528 * t) * 0.08 +   // 528 Hz - emotional balance
-        Math.sin(2 * Math.PI * 639 * t) * 0.04) *  // 639 Hz - harmony
+      completionData[i] =
+        (Math.sin(2 * Math.PI * 432 * t) * 0.12 + // 432 Hz - grounding
+          Math.sin(2 * Math.PI * 528 * t) * 0.08 + // 528 Hz - emotional balance
+          Math.sin(2 * Math.PI * 639 * t) * 0.04) * // 639 Hz - harmony
         Math.exp(-4 * t); // Gentle fade
     }
 
@@ -195,45 +238,67 @@ export class AudioEngine {
       clickSound: clickBuffer,
       backspaceSound: backspaceBuffer,
       completionSound: completionBuffer,
-      characteristics: { bass: 0.7, mid: 0.25, high: 0.05, resonance: 0.15 }
+      characteristics: { bass: 0.7, mid: 0.25, high: 0.05, resonance: 0.15 },
     };
   }
 
-  private async createCreativeProfile(sampleRate: number): Promise<SoundProfile> {
+  private async createCreativeProfile(
+    sampleRate: number
+  ): Promise<SoundProfile> {
     const duration = 0.05;
-    const keyBuffer = this.audioContext!.createBuffer(1, duration * sampleRate, sampleRate);
+    const keyBuffer = this.audioContext!.createBuffer(
+      1,
+      duration * sampleRate,
+      sampleRate
+    );
     const keyData = keyBuffer.getChannelData(0);
 
     // Creative: 528 Hz "Love Frequency" for emotional balance
     for (let i = 0; i < keyData.length; i++) {
       const t = i / sampleRate;
-      keyData[i] = Math.sin(2 * Math.PI * 264 * t) * 0.06 * Math.exp(-90 * t) +  // 528/2 - subharmonic
-        Math.sin(2 * Math.PI * 528 * t) * 0.03 * Math.exp(-110 * t) +  // 528 Hz - love frequency
+      keyData[i] =
+        Math.sin(2 * Math.PI * 264 * t) * 0.06 * Math.exp(-90 * t) + // 528/2 - subharmonic
+        Math.sin(2 * Math.PI * 528 * t) * 0.03 * Math.exp(-110 * t) + // 528 Hz - love frequency
         Math.sin(2 * Math.PI * 792 * t) * 0.01 * Math.exp(-130 * t); // 528*1.5 - harmonic
     }
 
-    const clickBuffer = this.audioContext!.createBuffer(1, 0.012 * sampleRate, sampleRate);
+    const clickBuffer = this.audioContext!.createBuffer(
+      1,
+      0.012 * sampleRate,
+      sampleRate
+    );
     const clickData = clickBuffer.getChannelData(0);
     for (let i = 0; i < clickData.length; i++) {
       const t = i / sampleRate;
-      clickData[i] = Math.sin(2 * Math.PI * 639 * t) * 0.05 * Math.exp(-500 * t); // 639 Hz - connection/harmony
+      clickData[i] =
+        Math.sin(2 * Math.PI * 639 * t) * 0.05 * Math.exp(-500 * t); // 639 Hz - connection/harmony
     }
 
-    const backspaceBuffer = this.audioContext!.createBuffer(1, 0.03 * sampleRate, sampleRate);
+    const backspaceBuffer = this.audioContext!.createBuffer(
+      1,
+      0.03 * sampleRate,
+      sampleRate
+    );
     const backspaceData = backspaceBuffer.getChannelData(0);
     for (let i = 0; i < backspaceData.length; i++) {
       const t = i / sampleRate;
-      backspaceData[i] = Math.sin(2 * Math.PI * 216 * t) * 0.08 * Math.exp(-70 * t) +  // 432/2 - grounding
-        Math.sin(2 * Math.PI * 432 * t) * 0.03 * Math.exp(-90 * t);  // 432 Hz - calming
+      backspaceData[i] =
+        Math.sin(2 * Math.PI * 216 * t) * 0.08 * Math.exp(-70 * t) + // 432/2 - grounding
+        Math.sin(2 * Math.PI * 432 * t) * 0.03 * Math.exp(-90 * t); // 432 Hz - calming
     }
 
-    const completionBuffer = this.audioContext!.createBuffer(1, 0.1 * sampleRate, sampleRate);
+    const completionBuffer = this.audioContext!.createBuffer(
+      1,
+      0.1 * sampleRate,
+      sampleRate
+    );
     const completionData = completionBuffer.getChannelData(0);
     for (let i = 0; i < completionData.length; i++) {
       const t = i / sampleRate;
-      completionData[i] = (Math.sin(2 * Math.PI * 528 * t) * 0.1 +    // 528 Hz - emotional balance
-        Math.sin(2 * Math.PI * 639 * t) * 0.06 +   // 639 Hz - harmony
-        Math.sin(2 * Math.PI * 741 * t) * 0.03) *  // 528+213 - gentle lift
+      completionData[i] =
+        (Math.sin(2 * Math.PI * 528 * t) * 0.1 + // 528 Hz - emotional balance
+          Math.sin(2 * Math.PI * 639 * t) * 0.06 + // 639 Hz - harmony
+          Math.sin(2 * Math.PI * 741 * t) * 0.03) * // 528+213 - gentle lift
         Math.exp(-5 * t); // Slow fade
     }
 
@@ -243,45 +308,65 @@ export class AudioEngine {
       clickSound: clickBuffer,
       backspaceSound: backspaceBuffer,
       completionSound: completionBuffer,
-      characteristics: { bass: 0.8, mid: 0.15, high: 0.05, resonance: 0.1 }
+      characteristics: { bass: 0.8, mid: 0.15, high: 0.05, resonance: 0.1 },
     };
   }
 
   private async createGamingProfile(sampleRate: number): Promise<SoundProfile> {
     const duration = 0.04;
-    const keyBuffer = this.audioContext!.createBuffer(1, duration * sampleRate, sampleRate);
+    const keyBuffer = this.audioContext!.createBuffer(
+      1,
+      duration * sampleRate,
+      sampleRate
+    );
     const keyData = keyBuffer.getChannelData(0);
 
     // Gaming: Alpha waves (8-12 Hz) for relaxed alertness - scaled up to audible range
     for (let i = 0; i < keyData.length; i++) {
       const t = i / sampleRate;
-      keyData[i] = Math.sin(2 * Math.PI * 216 * t) * 0.05 * Math.exp(-100 * t) +  // 432/2 - grounding
+      keyData[i] =
+        Math.sin(2 * Math.PI * 216 * t) * 0.05 * Math.exp(-100 * t) + // 432/2 - grounding
         Math.sin(2 * Math.PI * 432 * t) * 0.025 * Math.exp(-120 * t) + // 432 Hz - calming
         Math.sin(2 * Math.PI * 648 * t) * 0.01 * Math.exp(-140 * t); // 432*1.5 - harmonic
     }
 
-    const clickBuffer = this.audioContext!.createBuffer(1, 0.01 * sampleRate, sampleRate);
+    const clickBuffer = this.audioContext!.createBuffer(
+      1,
+      0.01 * sampleRate,
+      sampleRate
+    );
     const clickData = clickBuffer.getChannelData(0);
     for (let i = 0; i < clickData.length; i++) {
       const t = i / sampleRate;
-      clickData[i] = Math.sin(2 * Math.PI * 528 * t) * 0.04 * Math.exp(-600 * t); // 528 Hz - love frequency
+      clickData[i] =
+        Math.sin(2 * Math.PI * 528 * t) * 0.04 * Math.exp(-600 * t); // 528 Hz - love frequency
     }
 
-    const backspaceBuffer = this.audioContext!.createBuffer(1, 0.025 * sampleRate, sampleRate);
+    const backspaceBuffer = this.audioContext!.createBuffer(
+      1,
+      0.025 * sampleRate,
+      sampleRate
+    );
     const backspaceData = backspaceBuffer.getChannelData(0);
     for (let i = 0; i < backspaceData.length; i++) {
       const t = i / sampleRate;
-      backspaceData[i] = Math.sin(2 * Math.PI * 174 * t) * 0.06 * Math.exp(-80 * t) +  // 174 Hz - physical relaxation
-        Math.sin(2 * Math.PI * 348 * t) * 0.02 * Math.exp(-100 * t);  // 174*2 - harmonic
+      backspaceData[i] =
+        Math.sin(2 * Math.PI * 174 * t) * 0.06 * Math.exp(-80 * t) + // 174 Hz - physical relaxation
+        Math.sin(2 * Math.PI * 348 * t) * 0.02 * Math.exp(-100 * t); // 174*2 - harmonic
     }
 
-    const completionBuffer = this.audioContext!.createBuffer(1, 0.08 * sampleRate, sampleRate);
+    const completionBuffer = this.audioContext!.createBuffer(
+      1,
+      0.08 * sampleRate,
+      sampleRate
+    );
     const completionData = completionBuffer.getChannelData(0);
     for (let i = 0; i < completionData.length; i++) {
       const t = i / sampleRate;
-      completionData[i] = (Math.sin(2 * Math.PI * 432 * t) * 0.08 +   // 432 Hz - grounding
-        Math.sin(2 * Math.PI * 528 * t) * 0.05 +   // 528 Hz - emotional balance
-        Math.sin(2 * Math.PI * 639 * t) * 0.02) *  // 639 Hz - harmony
+      completionData[i] =
+        (Math.sin(2 * Math.PI * 432 * t) * 0.08 + // 432 Hz - grounding
+          Math.sin(2 * Math.PI * 528 * t) * 0.05 + // 528 Hz - emotional balance
+          Math.sin(2 * Math.PI * 639 * t) * 0.02) * // 639 Hz - harmony
         Math.exp(-6 * t); // Very slow fade
     }
 
@@ -291,13 +376,19 @@ export class AudioEngine {
       clickSound: clickBuffer,
       backspaceSound: backspaceBuffer,
       completionSound: completionBuffer,
-      characteristics: { bass: 0.85, mid: 0.12, high: 0.03, resonance: 0.08 }
+      characteristics: { bass: 0.85, mid: 0.12, high: 0.03, resonance: 0.08 },
     };
   }
 
-  private async createMinimalistProfile(sampleRate: number): Promise<SoundProfile> {
+  private async createMinimalistProfile(
+    sampleRate: number
+  ): Promise<SoundProfile> {
     const duration = 0.03;
-    const keyBuffer = this.audioContext!.createBuffer(1, duration * sampleRate, sampleRate);
+    const keyBuffer = this.audioContext!.createBuffer(
+      1,
+      duration * sampleRate,
+      sampleRate
+    );
     const keyData = keyBuffer.getChannelData(0);
 
     // Minimalist: Theta waves (4-8 Hz) for deep relaxation - scaled to audible range
@@ -306,25 +397,40 @@ export class AudioEngine {
       keyData[i] = Math.sin(2 * Math.PI * 174 * t) * 0.03 * Math.exp(-120 * t); // 174 Hz - physical relaxation
     }
 
-    const clickBuffer = this.audioContext!.createBuffer(1, 0.006 * sampleRate, sampleRate);
+    const clickBuffer = this.audioContext!.createBuffer(
+      1,
+      0.006 * sampleRate,
+      sampleRate
+    );
     const clickData = clickBuffer.getChannelData(0);
     for (let i = 0; i < clickData.length; i++) {
       const t = i / sampleRate;
-      clickData[i] = Math.sin(2 * Math.PI * 216 * t) * 0.02 * Math.exp(-800 * t); // 432/2 - ultra gentle
+      clickData[i] =
+        Math.sin(2 * Math.PI * 216 * t) * 0.02 * Math.exp(-800 * t); // 432/2 - ultra gentle
     }
 
-    const backspaceBuffer = this.audioContext!.createBuffer(1, 0.015 * sampleRate, sampleRate);
+    const backspaceBuffer = this.audioContext!.createBuffer(
+      1,
+      0.015 * sampleRate,
+      sampleRate
+    );
     const backspaceData = backspaceBuffer.getChannelData(0);
     for (let i = 0; i < backspaceData.length; i++) {
       const t = i / sampleRate;
-      backspaceData[i] = Math.sin(2 * Math.PI * 136 * t) * 0.04 * Math.exp(-100 * t); // 174*0.78 - ultra low
+      backspaceData[i] =
+        Math.sin(2 * Math.PI * 136 * t) * 0.04 * Math.exp(-100 * t); // 174*0.78 - ultra low
     }
 
-    const completionBuffer = this.audioContext!.createBuffer(1, 0.06 * sampleRate, sampleRate);
+    const completionBuffer = this.audioContext!.createBuffer(
+      1,
+      0.06 * sampleRate,
+      sampleRate
+    );
     const completionData = completionBuffer.getChannelData(0);
     for (let i = 0; i < completionData.length; i++) {
       const t = i / sampleRate;
-      completionData[i] = Math.sin(2 * Math.PI * 174 * t) * 0.05 * Math.exp(-8 * t); // 174 Hz - deep relaxation
+      completionData[i] =
+        Math.sin(2 * Math.PI * 174 * t) * 0.05 * Math.exp(-8 * t); // 174 Hz - deep relaxation
     }
 
     return {
@@ -333,15 +439,18 @@ export class AudioEngine {
       clickSound: clickBuffer,
       backspaceSound: backspaceBuffer,
       completionSound: completionBuffer,
-      characteristics: { bass: 0.95, mid: 0.05, high: 0, resonance: 0.03 }
+      characteristics: { bass: 0.95, mid: 0.05, high: 0, resonance: 0.03 },
     };
   }
 
-  playSound(soundType: 'key' | 'click' | 'backspace' | 'completion', options: {
-    velocity?: number;
-    spatialPosition?: number;
-    pitchVariation?: number;
-  } = {}): void {
+  playSound(
+    soundType: 'key' | 'click' | 'backspace' | 'completion',
+    options: {
+      velocity?: number;
+      spatialPosition?: number;
+      pitchVariation?: number;
+    } = {}
+  ): void {
     if (!this.audioContext || !this.isInitialized) return;
 
     const velocity = options.velocity || 0.8;
@@ -373,7 +482,7 @@ export class AudioEngine {
     source.buffer = buffer;
 
     // Apply velocity and pitch variation
-    const playbackRate = 1 + (pitchVariation * (velocity - 0.5) * 0.2);
+    const playbackRate = 1 + pitchVariation * (velocity - 0.5) * 0.2;
     source.playbackRate.value = playbackRate;
 
     // Create gain envelope for velocity

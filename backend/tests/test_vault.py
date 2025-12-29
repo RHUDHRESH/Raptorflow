@@ -7,9 +7,10 @@ from core.vault import Vault
 
 def test_vault_get_secret_fallback_to_env():
     """Test that vault falls back to env vars if Secret Manager fails."""
-    with patch(
-        "google.cloud.secretmanager.SecretManagerServiceClient"
-    ) as mock_client, patch("os.getenv") as mock_getenv:
+    with (
+        patch("google.cloud.secretmanager.SecretManagerServiceClient") as mock_client,
+        patch("os.getenv") as mock_getenv,
+    ):
 
         # Mock Secret Manager failure
         mock_client.return_value.access_secret_version.side_effect = Exception(

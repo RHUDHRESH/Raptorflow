@@ -15,10 +15,10 @@ async def test_fortress_e2e_stress():
     app = build_ultimate_spine()
 
     # Mocking external I/O to test the logic fortress
-    with patch(
-        "backend.db.psycopg.AsyncConnection.connect", new_callable=AsyncMock
-    ), patch("backend.services.cache.Redis", new_callable=AsyncMock), patch(
-        "backend.services.telemetry.Client", new_callable=AsyncMock
+    with (
+        patch("backend.db.psycopg.AsyncConnection.connect", new_callable=AsyncMock),
+        patch("backend.services.cache.Redis", new_callable=AsyncMock),
+        patch("backend.services.telemetry.Client", new_callable=AsyncMock),
     ):
 
         config = {"configurable": {"thread_id": "stress_test_1"}}

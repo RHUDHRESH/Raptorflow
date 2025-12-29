@@ -8,8 +8,9 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, 
 from pydantic import BaseModel, Field
 
 from core.auth import get_internal_or_user, get_tenant_id
+from core.cache import get_cache_manager
 from core.config import get_settings
-from db import get_db_connection, save_asset_db, vector_search
+from db import get_db_connection, resolve_tenant_column, save_asset_db, vector_search
 from graphs.muse_create import build_muse_spine
 from graphs.rag_ingest import rag_ingest_graph
 from inference import InferenceProvider
@@ -43,6 +44,19 @@ ALLOWED_MUSE_ASSET_TYPES = {
 }
 
 ALLOWED_MUSE_STATUSES = {"generating", "ready", "blocked", "archived"}
+
+
+def _foundation_metadata_candidates(root_path: Path) -> List[Path]:
+    env_path = os.getenv("FOUNDATION_METADATA_PATH")
+    candidates: List[Path] = []
+    if env_path:
+        env_candidate = Path(env_path)
+        if not env_candidate.is_absolute():
+            env_candidate = root_path / env_candidate
+        candidates.append(env_candidate)
+    candidates.append(root_path / "foundation_test.json")
+    candidates.append(root_path / "foundation_text.json")
+    return candidates
 
 
 def _normalize_asset_type(asset_type: Optional[str]) -> str:
@@ -211,20 +225,33 @@ async def list_muse_assets(
     tenant_id: UUID = Depends(get_tenant_id),
     _current_user: dict = Depends(get_internal_or_user),
 ):
+    cache_key = f"muse_assets:{tenant_id}:{limit}:{offset}"
+    try:
+        cache = get_cache_manager()
+        cached = cache.get_json(cache_key)
+        if cached is not None:
+            return cached
+    except Exception:
+        cache = None
+
+    tenant_column = await resolve_tenant_column("muse_assets")
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
                 f"""
                 SELECT {ASSET_SELECT_COLUMNS}
                 FROM muse_assets
-                WHERE workspace_id = %s
+                WHERE {tenant_column} = %s
                 ORDER BY created_at DESC
                 LIMIT %s OFFSET %s
                 """,
                 (str(tenant_id), limit, offset),
             )
             rows = await cur.fetchall()
-    return [_map_asset_row(row) for row in rows]
+    assets = [_map_asset_row(row) for row in rows]
+    if cache:
+        cache.set_json(cache_key, assets, expiry_seconds=60)
+    return assets
 
 
 @router.get("/assets/{asset_id}", response_model=MuseAssetRecord)
@@ -233,20 +260,33 @@ async def get_muse_asset(
     tenant_id: UUID = Depends(get_tenant_id),
     _current_user: dict = Depends(get_internal_or_user),
 ):
+    cache_key = f"muse_asset:{tenant_id}:{asset_id}"
+    try:
+        cache = get_cache_manager()
+        cached = cache.get_json(cache_key)
+        if cached is not None:
+            return cached
+    except Exception:
+        cache = None
+
+    tenant_column = await resolve_tenant_column("muse_assets")
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
                 f"""
                 SELECT {ASSET_SELECT_COLUMNS}
                 FROM muse_assets
-                WHERE id = %s AND workspace_id = %s
+                WHERE id = %s AND {tenant_column} = %s
                 """,
                 (asset_id, str(tenant_id)),
             )
             row = await cur.fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="Muse asset not found")
-    return _map_asset_row(row)
+    asset = _map_asset_row(row)
+    if cache:
+        cache.set_json(cache_key, asset, expiry_seconds=60)
+    return asset
 
 
 @router.post("/assets", response_model=MuseAssetRecord)
@@ -267,7 +307,9 @@ async def create_muse_asset_record(
         "tags": request.tags,
     }
     asset_id = await save_asset_db(str(tenant_id), asset_data)
-    return await get_muse_asset(asset_id, tenant_id=tenant_id, _current_user=_current_user)
+    return await get_muse_asset(
+        asset_id, tenant_id=tenant_id, _current_user=_current_user
+    )
 
 
 @router.put("/assets/{asset_id}", response_model=MuseAssetRecord)
@@ -308,13 +350,14 @@ async def update_muse_asset(
     updates.append("updated_at = now()")
     params.extend([asset_id, str(tenant_id)])
 
+    tenant_column = await resolve_tenant_column("muse_assets")
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
                 f"""
                 UPDATE muse_assets
                 SET {", ".join(updates)}
-                WHERE id = %s AND workspace_id = %s
+                WHERE id = %s AND {tenant_column} = %s
                 RETURNING {ASSET_SELECT_COLUMNS}
                 """,
                 tuple(params),
@@ -332,12 +375,13 @@ async def delete_muse_asset(
     tenant_id: UUID = Depends(get_tenant_id),
     _current_user: dict = Depends(get_internal_or_user),
 ):
+    tenant_column = await resolve_tenant_column("muse_assets")
     async with get_db_connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
-                """
+                f"""
                 DELETE FROM muse_assets
-                WHERE id = %s AND workspace_id = %s
+                WHERE id = %s AND {tenant_column} = %s
                 RETURNING id;
                 """,
                 (asset_id, str(tenant_id)),
@@ -378,7 +422,9 @@ async def upload_muse_asset(
         else manager.generate_signed_url(blob_name)
     )
 
-    asset_type = "image" if (file.content_type or "").startswith("image/") else "document"
+    asset_type = (
+        "image" if (file.content_type or "").startswith("image/") else "document"
+    )
     metadata = {
         "gcs_bucket": settings.GCS_MUSE_CREATIVES_BUCKET,
         "gcs_path": blob_name,
@@ -444,13 +490,14 @@ async def ingest_foundation_metadata(
     _current_user: dict = Depends(get_internal_or_user),
 ):
     root_path = Path(__file__).resolve().parents[3]
-    default_path = root_path / "foundation_text.json"
-    foundation_path = Path(os.getenv("FOUNDATION_METADATA_PATH", default_path))
+    candidates = _foundation_metadata_candidates(root_path)
+    foundation_path = next((path for path in candidates if path.exists()), None)
 
-    if not foundation_path.exists():
+    if not foundation_path:
+        attempted = ", ".join(str(path) for path in candidates)
         raise HTTPException(
             status_code=404,
-            detail=f"Foundation metadata file not found at {foundation_path}",
+            detail=f"Foundation metadata file not found. Tried: {attempted}",
         )
 
     content = foundation_path.read_text(encoding="utf-8")

@@ -41,7 +41,9 @@ export function AnimatedGradient({
 
 export function GradientMesh({ className }: { className?: string }) {
   return (
-    <div className={cn('absolute inset-0 overflow-hidden opacity-30', className)}>
+    <div
+      className={cn('absolute inset-0 overflow-hidden opacity-30', className)}
+    >
       <svg className="w-full h-full" viewBox="0 0 1000 1000">
         <defs>
           <radialGradient id="grad1" cx="30%" cy="30%">

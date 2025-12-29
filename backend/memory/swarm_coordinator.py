@@ -22,6 +22,7 @@ class SwarmMemoryCoordinator:
 
         self.workspace_id = workspace_id
         self.consolidator = SwarmMemoryConsolidator(workspace_id)
+        self.cache = _NullCache()
 
         # Active agent tracking
         self.active_agents: Set[str] = set()
@@ -34,6 +35,17 @@ class SwarmMemoryCoordinator:
         self.cache_misses = 0
 
         logger.info(f"SwarmMemoryCoordinator initialized for workspace {workspace_id}")
+
+
+class _NullCache:
+    async def get(self, _key):
+        return None
+
+    async def set(self, *_args, **_kwargs):
+        return False
+
+    async def delete(self, _key):
+        return False
 
     async def initialize_agent_memory(self, agent_id: str, agent_type: str) -> bool:
         """
