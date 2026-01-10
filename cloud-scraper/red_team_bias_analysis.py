@@ -16,8 +16,10 @@ from typing import Any, Dict, List, Optional, Tuple
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("raptorflow.redteam.analysis")
 
+
 class BiasType(Enum):
     """Types of biases to analyze"""
+
     CONFIRMATION_BIAS = "confirmation_bias"
     ANTHROPOMORPHIC_BIAS = "anthropomorphic_bias"
     OVERCONFIDENCE_BIAS = "overconfidence_bias"
@@ -27,8 +29,10 @@ class BiasType(Enum):
     TECHNOLOGY_HYPE_BIAS = "technology_hype_bias"
     VALIDATION_BIAS = "validation_bias"
 
+
 class RealityCheck(Enum):
     """Reality assessment categories"""
+
     TECHNICAL_FEASIBILITY = "technical_feasibility"
     ACTUAL_INFERENCE = "actual_inference"
     REAL_COMMUNICATION = "real_communication"
@@ -36,9 +40,11 @@ class RealityCheck(Enum):
     DATA_INTEGRITY = "data_integrity"
     SYSTEM_LIMITATIONS = "system_limitations"
 
+
 @dataclass
 class BiasFinding:
     """Individual bias finding"""
+
     bias_type: BiasType
     description: str
     severity: str  # low, medium, high, critical
@@ -47,9 +53,11 @@ class BiasFinding:
     reality_check: str
     mitigation_strategy: str
 
+
 @dataclass
 class RealityAssessment:
     """Reality assessment finding"""
+
     category: RealityCheck
     claimed_capability: str
     actual_capability: str
@@ -57,6 +65,7 @@ class RealityAssessment:
     confidence_level: float
     supporting_evidence: List[str]
     limitations: List[str]
+
 
 class RedTeamAnalyzer:
     """Red team analysis system for bias vs reality"""
@@ -112,12 +121,14 @@ class RedTeamAnalyzer:
             self._analyze_data_dependency_bias(),
             self._analyze_scope_creep_bias(),
             self._analyze_technology_hype_bias(),
-            self._analyze_validation_bias()
+            self._analyze_validation_bias(),
         ]
 
         for analysis in bias_analyses:
             self.bias_findings.append(analysis)
-            print(f"  🔍 {analysis.bias_type.value}: {analysis.severity.upper()} severity")
+            print(
+                f"  🔍 {analysis.bias_type.value}: {analysis.severity.upper()} severity"
+            )
 
     def _analyze_simulation_bias(self) -> BiasFinding:
         """Analyze simulation vs real inference bias"""
@@ -130,11 +141,11 @@ class RedTeamAnalyzer:
                 "Agent responses are pre-programmed templates",
                 "No real API calls to external inference engines",
                 "Statistical analysis claims without actual computation",
-                "Pattern recognition without actual ML models"
+                "Pattern recognition without actual ML models",
             ],
             impact_assessment="High - Misleads users about actual AI capabilities",
             reality_check="REALITY: System uses rule-based responses and templates, not genuine inference",
-            mitigation_strategy="Clearly distinguish between simulated demonstrations and actual AI inference"
+            mitigation_strategy="Clearly distinguish between simulated demonstrations and actual AI inference",
         )
 
     def _analyze_anthropomorphic_bias(self) -> BiasFinding:
@@ -148,11 +159,11 @@ class RedTeamAnalyzer:
                 "Agents described as 'thinking', 'reasoning', 'understanding'",
                 "Claims of 'collaboration' and 'communication' between agents",
                 "Personification of software processes",
-                "Emotional language in agent descriptions"
+                "Emotional language in agent descriptions",
             ],
             impact_assessment="Medium - Creates unrealistic expectations about AI capabilities",
             reality_check="REALITY: Agents are software programs executing code, not sentient beings",
-            mitigation_strategy="Use accurate technical language instead of anthropomorphic descriptions"
+            mitigation_strategy="Use accurate technical language instead of anthropomorphic descriptions",
         )
 
     def _analyze_overconfidence_bias(self) -> BiasFinding:
@@ -166,11 +177,11 @@ class RedTeamAnalyzer:
                 "Confidence scores (87%, 89%, 91%) without actual statistical calculation",
                 "Precision in metrics without underlying data",
                 "Claims of 'high reliability' without validation",
-                "Performance metrics without measurement methodology"
+                "Performance metrics without measurement methodology",
             ],
             impact_assessment="High - False confidence in system reliability and accuracy",
             reality_check="REALITY: Confidence scores are arbitrary numbers, not statistically derived",
-            mitigation_strategy="Implement actual statistical validation or remove confidence scores"
+            mitigation_strategy="Implement actual statistical validation or remove confidence scores",
         )
 
     def _analyze_confirmation_bias(self) -> BiasFinding:
@@ -184,11 +195,11 @@ class RedTeamAnalyzer:
                 "Research findings always positive and favorable",
                 "No contradictory or negative results reported",
                 "SWOT analysis always shows more strengths than weaknesses",
-                "Competitive analysis always favors the target"
+                "Competitive analysis always favors the target",
             ],
             impact_assessment="Medium - Skews analysis toward positive outcomes",
             reality_check="REALITY: System generates template-based responses, not objective analysis",
-            mitigation_strategy="Implement balanced analysis with genuine pros/cons assessment"
+            mitigation_strategy="Implement balanced analysis with genuine pros/cons assessment",
         )
 
     def _analyze_data_dependency_bias(self) -> BiasFinding:
@@ -202,11 +213,11 @@ class RedTeamAnalyzer:
                 "Claims of '25 sources analyzed' without actual data retrieval",
                 "'Market size: $2.5B' without source verification",
                 "'Growth rate: 15%' without statistical basis",
-                "Financial analysis without actual financial data"
+                "Financial analysis without actual financial data",
             ],
             impact_assessment="High - Presents analysis as data-driven when it's template-based",
             reality_check="REALITY: No actual data retrieval or analysis occurs",
-            mitigation_strategy="Either implement real data analysis or remove data claims"
+            mitigation_strategy="Either implement real data analysis or remove data claims",
         )
 
     def _analyze_scope_creep_bias(self) -> BiasFinding:
@@ -220,11 +231,11 @@ class RedTeamAnalyzer:
                 "Claims of 'universal query handling' for any topic",
                 "'15 specialized agents' without actual agent differentiation",
                 "'Multi-domain intelligence' without domain expertise",
-                "'Strategic recommendations' without business analysis capability"
+                "'Strategic recommendations' without business analysis capability",
             ],
             impact_assessment="Critical - System presented as all-knowing when it's template-based",
             reality_check="REALITY: System has limited, predefined capabilities only",
-            mitigation_strategy="Clearly define and limit scope to actual capabilities"
+            mitigation_strategy="Clearly define and limit scope to actual capabilities",
         )
 
     def _analyze_technology_hype_bias(self) -> BiasFinding:
@@ -238,11 +249,11 @@ class RedTeamAnalyzer:
                 "'Advanced AI agents' without actual AI implementation",
                 "'Swarm intelligence' without distributed computing",
                 "'Real-time inference' without actual processing",
-                "'Multi-agent orchestration' without actual coordination"
+                "'Multi-agent orchestration' without actual coordination",
             ],
             impact_assessment="Medium - Misleads about technical sophistication",
             reality_check="REALITY: System uses basic Python scripts, not advanced AI",
-            mitigation_strategy="Use accurate technical descriptions"
+            mitigation_strategy="Use accurate technical descriptions",
         )
 
     def _analyze_validation_bias(self) -> BiasFinding:
@@ -256,11 +267,11 @@ class RedTeamAnalyzer:
                 "'Cross-source verification' without actual sources",
                 "'Fact-checking' without fact database",
                 "'Credibility scoring' without credibility metrics",
-                "'Quality assurance' without quality measures"
+                "'Quality assurance' without quality measures",
             ],
             impact_assessment="High - False sense of reliability and accuracy",
             reality_check="REALITY: No actual validation or verification occurs",
-            mitigation_strategy="Implement real validation or remove validation claims"
+            mitigation_strategy="Implement real validation or remove validation claims",
         )
 
     async def assess_reality(self):
@@ -272,7 +283,7 @@ class RedTeamAnalyzer:
             self._check_real_communication(),
             self._check_genuine_collaboration(),
             self._check_data_integrity(),
-            self._check_system_limitations()
+            self._check_system_limitations(),
         ]
 
         for check in reality_checks:
@@ -292,14 +303,14 @@ class RedTeamAnalyzer:
                 "Code analysis shows simple Python functions",
                 "No ML libraries or AI frameworks used",
                 "Responses are template-based, not generated",
-                "No actual learning or adaptation capability"
+                "No actual learning or adaptation capability",
             ],
             limitations=[
                 "No machine learning components",
                 "No natural language processing",
                 "No distributed computing architecture",
-                "No actual intelligence beyond rule-following"
-            ]
+                "No actual intelligence beyond rule-following",
+            ],
         )
 
     def _check_actual_inference(self) -> RealityAssessment:
@@ -315,14 +326,14 @@ class RedTeamAnalyzer:
                 "No statistical libraries imported or used",
                 "No data processing or analysis functions",
                 "Numbers are hard-coded, not calculated",
-                "No machine learning models or algorithms"
+                "No machine learning models or algorithms",
             ],
             limitations=[
                 "No statistical analysis capability",
                 "No pattern recognition algorithms",
                 "No confidence calculation methodology",
-                "No actual inference beyond rule-based logic"
-            ]
+                "No actual inference beyond rule-based logic",
+            ],
         )
 
     def _check_real_communication(self) -> RealityAssessment:
@@ -338,14 +349,14 @@ class RedTeamAnalyzer:
                 "All agents run in same Python process",
                 "No network communication or message queues",
                 "No actual message passing protocols",
-                "Communication is simulated through function calls"
+                "Communication is simulated through function calls",
             ],
             limitations=[
                 "No distributed architecture",
                 "No actual message passing system",
                 "No inter-agent communication protocols",
-                "No network communication capability"
-            ]
+                "No network communication capability",
+            ],
         )
 
     def _check_genuine_collaboration(self) -> RealityAssessment:
@@ -361,14 +372,14 @@ class RedTeamAnalyzer:
                 "No consensus algorithms implemented",
                 "No voting or agreement mechanisms",
                 "No actual sharing of insights between agents",
-                "Outcomes are predetermined, not emergent"
+                "Outcomes are predetermined, not emergent",
             ],
             limitations=[
                 "No collaboration algorithms",
                 "No consensus building mechanisms",
                 "No emergent intelligence",
-                "No actual agent coordination"
-            ]
+                "No actual agent coordination",
+            ],
         )
 
     def _check_data_integrity(self) -> RealityAssessment:
@@ -384,14 +395,14 @@ class RedTeamAnalyzer:
                 "No API calls to external data sources",
                 "No web scraping or data retrieval",
                 "No database queries or data processing",
-                "All data is fabricated or template-based"
+                "All data is fabricated or template-based",
             ],
             limitations=[
                 "No data retrieval capability",
                 "No data processing infrastructure",
                 "No source verification mechanisms",
-                "No actual data analysis"
-            ]
+                "No actual data analysis",
+            ],
         )
 
     def _check_system_limitations(self) -> RealityAssessment:
@@ -407,14 +418,14 @@ class RedTeamAnalyzer:
                 "Only works for predefined query patterns",
                 "No adaptability to new domains",
                 "Limited to template-based responses",
-                "No actual learning or generalization"
+                "No actual learning or generalization",
             ],
             limitations=[
                 "Highly limited scope",
                 "No adaptability",
                 "Template-based only",
-                "No generalization capability"
-            ]
+                "No generalization capability",
+            ],
         )
 
     async def assess_vulnerabilities(self):
@@ -426,29 +437,29 @@ class RedTeamAnalyzer:
                 "severity": "CRITICAL",
                 "description": "System claims AI capabilities it doesn't possess",
                 "impact": "User deception, false expectations",
-                "exploit_scenario": "Users believe they're getting AI analysis when getting templates"
+                "exploit_scenario": "Users believe they're getting AI analysis when getting templates",
             },
             {
                 "name": "Fabricated Data Analysis",
                 "severity": "CRITICAL",
                 "description": "System presents fabricated analysis as real data-driven insights",
                 "impact": "Business decisions based on false information",
-                "exploit_scenario": "Strategic decisions made using fabricated market data"
+                "exploit_scenario": "Strategic decisions made using fabricated market data",
             },
             {
                 "name": "Misleading Confidence Scores",
                 "severity": "HIGH",
                 "description": "Confidence scores without statistical basis",
                 "impact": "False trust in system reliability",
-                "exploit_scenario": "Users trust fabricated confidence levels"
+                "exploit_scenario": "Users trust fabricated confidence levels",
             },
             {
                 "name": "Simulation Deception",
                 "severity": "HIGH",
                 "description": "Presents simulations as real-time processes",
                 "impact": "Belief in actual AI processing",
-                "exploit_scenario": "Users think they're seeing real AI at work"
-            }
+                "exploit_scenario": "Users think they're seeing real AI at work",
+            },
         ]
 
         for vuln in vulnerabilities:
@@ -464,28 +475,28 @@ class RedTeamAnalyzer:
             {
                 "claim": "15 specialized agents deployed",
                 "reality": "8 Python functions in single script",
-                "gap": "No actual agent differentiation or specialization"
+                "gap": "No actual agent differentiation or specialization",
             },
             {
                 "claim": "Real-time inference processing",
                 "reality": "Sequential function calls with sleep() delays",
-                "gap": "No actual inference, just simulated processing time"
+                "gap": "No actual inference, just simulated processing time",
             },
             {
                 "claim": "Multi-agent communication",
                 "reality": "Function calls within same process",
-                "gap": "No actual inter-agent communication"
+                "gap": "No actual inter-agent communication",
             },
             {
                 "claim": "Statistical analysis with 91% confidence",
                 "reality": "Hard-coded confidence numbers",
-                "gap": "No actual statistical computation"
+                "gap": "No actual statistical computation",
             },
             {
                 "claim": "Analysis of 25+ data sources",
                 "reality": "No data retrieval or processing",
-                "gap": "Complete fabrication of data analysis"
-            }
+                "gap": "Complete fabrication of data analysis",
+            },
         ]
 
         for validation in claims_validation:
@@ -499,14 +510,18 @@ class RedTeamAnalyzer:
 
         # Calculate severity scores
         bias_severity_scores = {
-            "CRITICAL": len([b for b in self.bias_findings if b.severity == "CRITICAL"]),
+            "CRITICAL": len(
+                [b for b in self.bias_findings if b.severity == "CRITICAL"]
+            ),
             "HIGH": len([b for b in self.bias_findings if b.severity == "HIGH"]),
             "MEDIUM": len([b for b in self.bias_findings if b.severity == "MEDIUM"]),
-            "LOW": len([b for b in self.bias_findings if b.severity == "LOW"])
+            "LOW": len([b for b in self.bias_findings if b.severity == "LOW"]),
         }
 
         # Calculate reality gaps
-        avg_reality_gap = sum(r.confidence_level for r in self.reality_assessments) / len(self.reality_assessments)
+        avg_reality_gap = sum(
+            r.confidence_level for r in self.reality_assessments
+        ) / len(self.reality_assessments)
 
         # Compile final assessment
         final_assessment = {
@@ -515,31 +530,44 @@ class RedTeamAnalyzer:
                 "timestamp": datetime.now().isoformat(),
                 "duration": str(datetime.now() - self.start_time),
                 "analyzer": "Red Team Analysis System",
-                "scope": "Comprehensive bias vs reality assessment"
+                "scope": "Comprehensive bias vs reality assessment",
             },
             "executive_summary": {
                 "critical_finding": "System significantly misrepresents capabilities and uses fabricated analysis",
                 "overall_assessment": "HIGH RISK - System presents template-based responses as AI intelligence",
                 "reality_gap_score": avg_reality_gap,
                 "bias_severity_distribution": bias_severity_scores,
-                "critical_vulnerabilities": len([v for v in self.critical_vulnerabilities if v["severity"] == "CRITICAL"])
+                "critical_vulnerabilities": len(
+                    [
+                        v
+                        for v in self.critical_vulnerabilities
+                        if v["severity"] == "CRITICAL"
+                    ]
+                ),
             },
             "bias_analysis": {
                 "total_biases_identified": len(self.bias_findings),
-                "critical_biases": [b.__dict__ for b in self.bias_findings if b.severity == "CRITICAL"],
-                "high_risk_biases": [b.__dict__ for b in self.bias_findings if b.severity == "HIGH"],
-                "bias_summary": "System exhibits multiple high-severity biases, particularly simulation and scope creep"
+                "critical_biases": [
+                    b.__dict__ for b in self.bias_findings if b.severity == "CRITICAL"
+                ],
+                "high_risk_biases": [
+                    b.__dict__ for b in self.bias_findings if b.severity == "HIGH"
+                ],
+                "bias_summary": "System exhibits multiple high-severity biases, particularly "
+                "simulation and scope creep",
             },
             "reality_assessment": {
                 "total_gaps_identified": len(self.reality_assessments),
                 "reality_checks": [r.__dict__ for r in self.reality_assessments],
                 "average_confidence_gap": avg_reality_gap,
-                "reality_summary": "Massive gap between claimed capabilities and actual implementation"
+                "reality_summary": "Massive gap between claimed capabilities and actual implementation",
             },
             "critical_vulnerabilities": {
                 "total_vulnerabilities": len(self.critical_vulnerabilities),
                 "vulnerabilities": self.critical_vulnerabilities,
-                "exploit_scenarios": [v["exploit_scenario"] for v in self.critical_vulnerabilities]
+                "exploit_scenarios": [
+                    v["exploit_scenario"] for v in self.critical_vulnerabilities
+                ],
             },
             "recommendations": [
                 "IMMEDIATE: Remove false capability claims and be transparent about limitations",
@@ -547,17 +575,18 @@ class RedTeamAnalyzer:
                 "SHORT-TERM: Implement actual data retrieval or remove data claims",
                 "SHORT-TERM: Replace fabricated confidence scores with actual uncertainty",
                 "MEDIUM-TERM: Either implement real AI capabilities or reposition as template tool",
-                "LONG-TERM: Complete system redesign with genuine AI components if needed"
+                "LONG-TERM: Complete system redesign with genuine AI components if needed",
             ],
             "conclusion": {
                 "overall_risk_level": "CRITICAL",
                 "primary_concern": "System deception through false capability representation",
                 "user_impact": "High - Users may make decisions based on fabricated analysis",
-                "recommendation": "Immediate transparency and capability alignment required"
-            }
+                "recommendation": "Immediate transparency and capability alignment required",
+            },
         }
 
         return final_assessment
+
 
 async def execute_red_team_analysis():
     """Execute comprehensive red team analysis"""
@@ -570,24 +599,30 @@ async def execute_red_team_analysis():
     print("=" * 80)
 
     print(f"🎯 Overall Risk Level: {report['conclusion']['overall_risk_level']}")
-    print(f"📊 Reality Gap Score: {report['executive_summary']['reality_gap_score']:.1%}")
-    print(f"⚠️ Critical Vulnerabilities: {report['executive_summary']['critical_vulnerabilities']}")
+    print(
+        f"📊 Reality Gap Score: {report['executive_summary']['reality_gap_score']:.1%}"
+    )
+    print(
+        f"⚠️ Critical Vulnerabilities: {report['executive_summary']['critical_vulnerabilities']}"
+    )
 
-    print(f"\n🔍 Bias Severity Distribution:")
-    for severity, count in report['executive_summary']['bias_severity_distribution'].items():
+    print("\n🔍 Bias Severity Distribution:")
+    for severity, count in report["executive_summary"][
+        "bias_severity_distribution"
+    ].items():
         if count > 0:
             print(f"  {severity}: {count}")
 
-    print(f"\n⚠️ Critical Biases:")
-    for bias in report['bias_analysis']['critical_biases']:
+    print("\n⚠️ Critical Biases:")
+    for bias in report["bias_analysis"]["critical_biases"]:
         print(f"  • {bias['bias_type']}: {bias['description'][:60]}...")
 
-    print(f"\n🎯 Reality Gaps:")
-    for gap in report['reality_assessment']['reality_checks'][:3]:
+    print("\n🎯 Reality Gaps:")
+    for gap in report["reality_assessment"]["reality_checks"][:3]:
         print(f"  • {gap['category']}: {gap['gap_analysis'][:60]}...")
 
-    print(f"\n📋 Immediate Recommendations:")
-    for i, rec in enumerate(report['recommendations'][:3], 1):
+    print("\n📋 Immediate Recommendations:")
+    for i, rec in enumerate(report["recommendations"][:3], 1):
         print(f"  {i}. {rec}")
 
     print("\n" + "=" * 80)
@@ -597,6 +632,7 @@ async def execute_red_team_analysis():
     print("=" * 80)
 
     return report
+
 
 if __name__ == "__main__":
     asyncio.run(execute_red_team_analysis())

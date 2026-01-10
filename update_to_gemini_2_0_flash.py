@@ -10,7 +10,7 @@ from datetime import datetime
 def update_ai_config():
     """Update ai-config.ts with gemini-2.0-flash-001"""
 
-    config_content = f'''/**
+    config_content = f"""/**
  * UNIVERSAL AI CONFIGURATION
  * This file ensures ALL AI services use gemini-2.0-flash-001 universally
  * Updated: {datetime.now().isoformat()}
@@ -84,45 +84,48 @@ if (typeof window !== 'undefined') {{
 }}
 
 export default AI_CONFIG;
-'''
+"""
 
-    with open('c:/Users/hp/OneDrive/Desktop/Raptorflow/frontend/src/lib/ai-config.ts', 'w') as f:
+    with open(
+        "c:/Users/hp/OneDrive/Desktop/Raptorflow/frontend/src/lib/ai-config.ts", "w"
+    ) as f:
         f.write(config_content)
 
     print("✅ Updated ai-config.ts with gemini-2.0-flash-001")
+
 
 def update_backend_main():
     """Update backend main.py with gemini-2.0-flash-001"""
 
     try:
-        with open('c:/Users/hp/OneDrive/Desktop/Raptorflow/backend/main.py', 'r') as f:
+        with open("c:/Users/hp/OneDrive/Desktop/Raptorflow/backend/main.py", "r") as f:
             content = f.read()
 
         # Replace the model in the AIRequest class
         content = content.replace(
             'model: str = "gemini-1.5-flash"  # UNIVERSALLY ENFORCED MODEL',
-            'model: str = "gemini-2.0-flash-001"  # UNIVERSALLY ENFORCED MODEL'
+            'model: str = "gemini-2.0-flash-001"  # UNIVERSALLY ENFORCED MODEL',
         )
 
         # Replace in the endpoint
         content = content.replace(
             'universal_model = "gemini-1.5-flash"',
-            'universal_model = "gemini-2.0-flash-001"'
+            'universal_model = "gemini-2.0-flash-001"',
         )
 
         # Replace in the comment
         content = content.replace(
             '"""Generate content using Vertex AI - UNIVERSALLY ENFORCED GEMINI 1.5 FLASH"""',
-            '"""Generate content using Vertex AI - UNIVERSALLY ENFORCED GEMINI 2.0 FLASH-001"""'
+            '"""Generate content using Vertex AI - UNIVERSALLY ENFORCED GEMINI 2.0 FLASH-001"""',
         )
 
         # Replace in the logging
         content = content.replace(
             'logger.warning(f"Model override attempted: {request.model} -> {universal_model}")',
-            'logger.warning(f"Model override attempted: {request.model} -> gemini-2.0-flash-001")'
+            'logger.warning(f"Model override attempted: {request.model} -> gemini-2.0-flash-001")',
         )
 
-        with open('c:/Users/hp/OneDrive/Desktop/Raptorflow/backend/main.py', 'w') as f:
+        with open("c:/Users/hp/OneDrive/Desktop/Raptorflow/backend/main.py", "w") as f:
             f.write(content)
 
         print("✅ Updated backend main.py with gemini-2.0-flash-001")
@@ -130,26 +133,30 @@ def update_backend_main():
     except Exception as e:
         print(f"❌ Failed to update backend: {e}")
 
+
 def update_vertex_ai_service():
     """Update vertex-ai.ts with gemini-2.0-flash-001"""
 
     try:
-        with open('c:/Users/hp/OneDrive/Desktop/Raptorflow/frontend/src/lib/vertex-ai.ts', 'r') as f:
+        with open(
+            "c:/Users/hp/OneDrive/Desktop/Raptorflow/frontend/src/lib/vertex-ai.ts", "r"
+        ) as f:
             content = f.read()
 
         # Replace default model in generateContent
         content = content.replace(
             "model: universalModel, // ALWAYS use universal model",
-            "model: universalModel, // ALWAYS use gemini-2.0-flash-001"
+            "model: universalModel, // ALWAYS use gemini-2.0-flash-001",
         )
 
         # Update comments
         content = content.replace(
-            "// ENFORCE UNIVERSAL MODEL USAGE",
-            "// ENFORCE GEMINI-2.0-FLASH-001 USAGE"
+            "// ENFORCE UNIVERSAL MODEL USAGE", "// ENFORCE GEMINI-2.0-FLASH-001 USAGE"
         )
 
-        with open('c:/Users/hp/OneDrive/Desktop/Raptorflow/frontend/src/lib/vertex-ai.ts', 'w') as f:
+        with open(
+            "c:/Users/hp/OneDrive/Desktop/Raptorflow/frontend/src/lib/vertex-ai.ts", "w"
+        ) as f:
             f.write(content)
 
         print("✅ Updated vertex-ai.ts with gemini-2.0-flash-001")
@@ -157,30 +164,31 @@ def update_vertex_ai_service():
     except Exception as e:
         print(f"❌ Failed to update vertex-ai.ts: {e}")
 
+
 def update_ocr_processors():
     """Update OCR processors to use gemini-2.0-flash-001"""
 
     ocr_files = [
-        'c:/Users/hp/OneDrive/Desktop/Raptorflow/backend/agents/tools/ocr_complex/vision_gemini.py',
-        'c:/Users/hp/OneDrive/Desktop/Raptorflow/backend/agents/tools/ocr_complex/ocr_engine.py',
-        'c:/Users/hp/OneDrive/Desktop/Raptorflow/backend/agents/tools/ocr_complex/ocr_multilang.py'
+        "c:/Users/hp/OneDrive/Desktop/Raptorflow/backend/agents/tools/ocr_complex/vision_gemini.py",
+        "c:/Users/hp/OneDrive/Desktop/Raptorflow/backend/agents/tools/ocr_complex/ocr_engine.py",
+        "c:/Users/hp/OneDrive/Desktop/Raptorflow/backend/agents/tools/ocr_complex/ocr_multilang.py",
     ]
 
     for file_path in ocr_files:
         try:
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 content = f.read()
 
             # Replace all occurrences of gemini-1.5-flash
-            content = content.replace('gemini-1.5-flash', 'gemini-2.0-flash-001')
+            content = content.replace("gemini-1.5-flash", "gemini-2.0-flash-001")
 
             # Update model names in generativeai imports
             content = content.replace(
                 "genai.GenerativeModel('gemini-1.5-flash')",
-                "genai.GenerativeModel('gemini-2.0-flash-001')"
+                "genai.GenerativeModel('gemini-2.0-flash-001')",
             )
 
-            with open(file_path, 'w') as f:
+            with open(file_path, "w") as f:
                 f.write(content)
 
             print(f"✅ Updated {file_path.split('/')[-1]} with gemini-2.0-flash-001")
@@ -188,36 +196,43 @@ def update_ocr_processors():
         except Exception as e:
             print(f"❌ Failed to update {file_path}: {e}")
 
+
 def update_test_page():
     """Update test page to reflect the new model"""
 
     try:
-        with open('c:/Users/hp/OneDrive/Desktop/Raptorflow/frontend/src/app/test-gemini/page.tsx', 'r') as f:
+        with open(
+            "c:/Users/hp/OneDrive/Desktop/Raptorflow/frontend/src/app/test-gemini/page.tsx",
+            "r",
+        ) as f:
             content = f.read()
 
         # Update page title and content
         content = content.replace(
-            '🚨 UNIVERSAL GEMINI 1.5 FLASH TEST 🚨',
-            '🚨 UNIVERSAL GEMINI 2.0 FLASH-001 TEST 🚨'
+            "🚨 UNIVERSAL GEMINI 1.5 FLASH TEST 🚨",
+            "🚨 UNIVERSAL GEMINI 2.0 FLASH-001 TEST 🚨",
         )
 
         content = content.replace(
-            'This app ONLY uses Gemini 1.5 Flash - all other models are blocked',
-            'This app ONLY uses Gemini 2.0 Flash-001 - all other models are blocked'
+            "This app ONLY uses Gemini 1.5 Flash - all other models are blocked",
+            "This app ONLY uses Gemini 2.0 Flash-001 - all other models are blocked",
         )
 
         content = content.replace(
-            'Test Universal Gemini 1.5 Flash',
-            'Test Universal Gemini 2.0 Flash-001'
+            "Test Universal Gemini 1.5 Flash", "Test Universal Gemini 2.0 Flash-001"
         )
 
-        with open('c:/Users/hp/OneDrive/Desktop/Raptorflow/frontend/src/app/test-gemini/page.tsx', 'w') as f:
+        with open(
+            "c:/Users/hp/OneDrive/Desktop/Raptorflow/frontend/src/app/test-gemini/page.tsx",
+            "w",
+        ) as f:
             f.write(content)
 
         print("✅ Updated test page with gemini-2.0-flash-001")
 
     except Exception as e:
         print(f"❌ Failed to update test page: {e}")
+
 
 def create_verification_test():
     """Create a test to verify the new model works"""
@@ -267,10 +282,13 @@ if __name__ == "__main__":
     test_gemini_2_0_flash_001()
 '''
 
-    with open('c:/Users/hp/OneDrive/Desktop/Raptorflow/verify_gemini_2_0_flash.py', 'w') as f:
+    with open(
+        "c:/Users/hp/OneDrive/Desktop/Raptorflow/verify_gemini_2_0_flash.py", "w"
+    ) as f:
         f.write(test_code)
 
     print("✅ Created verification test for gemini-2.0-flash-001")
+
 
 def main():
     """Update all files to use gemini-2.0-flash-001"""
@@ -288,6 +306,7 @@ def main():
     print("\n🎉 ALL FILES UPDATED!")
     print("✅ Universal model is now: gemini-2.0-flash-001")
     print("🚀 Ready to test with real Vertex AI!")
+
 
 if __name__ == "__main__":
     main()
