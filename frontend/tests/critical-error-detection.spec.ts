@@ -32,17 +32,17 @@ test.describe('Critical Page Error Detection', () => {
     for (const route of criticalRoutes) {
       try {
         console.log(`Testing: ${route}`);
-        
-        const response = await page.goto(`http://localhost:3001${route}`, { 
+
+        const response = await page.goto(`http://localhost:3001${route}`, {
           waitUntil: 'domcontentloaded',
-          timeout: 8000 
+          timeout: 8000
         });
 
         if (!response || response.status() >= 400) {
-          errors.push({ 
-            type: 'network', 
-            message: `HTTP ${response?.status || 'No response'}`, 
-            url: `http://localhost:3001${route}` 
+          errors.push({
+            type: 'network',
+            message: `HTTP ${response?.status || 'No response'}`,
+            url: `http://localhost:3001${route}`
           });
         }
 
@@ -53,12 +53,12 @@ test.describe('Critical Page Error Detection', () => {
         }
 
         console.log(`✅ ${route} - OK`);
-        
+
       } catch (error) {
-        errors.push({ 
-          type: 'navigation', 
-          message: error instanceof Error ? error.message : String(error), 
-          url: `http://localhost:3001${route}` 
+        errors.push({
+          type: 'navigation',
+          message: error instanceof Error ? error.message : String(error),
+          url: `http://localhost:3001${route}`
         });
         console.log(`❌ ${route} - ERROR: ${error}`);
       }

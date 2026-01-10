@@ -334,7 +334,7 @@ class RedTeamAnalyzer:
             actual_capability="Sequential function calls in single process",
             gap_analysis="No actual inter-process communication or message passing",
             confidence_level=0.92,
-            supporting_evidence[
+            supporting_evidence=[
                 "All agents run in same Python process",
                 "No network communication or message queues",
                 "No actual message passing protocols",

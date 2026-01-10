@@ -291,12 +291,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-'''
-
-    with open('c:/Users/hp/OneDrive/Desktop/Raptorflow/update_to_gemini_2_0_flash.py', 'w') as f:
-        f.write(test_code)
-
-    print("✅ Created update script for gemini-2.0-flash-001")
-
-if __name__ == "__main__":
-    main()
