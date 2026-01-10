@@ -92,7 +92,7 @@ class RaptorFlowTester:
                 supabase_key = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 
                 if supabase_url and supabase_key:
-                    client = create_client(supabase_url, supababase_key)
+                    client = create_client(supabase_url, supabase_key)
                     # Test auth endpoint
                     session = client.auth.get_session()
                     self.log_test(
