@@ -1,0 +1,56 @@
+# Cloud Run Scraper Dependencies - Enhanced with 20 FREE Upgrades
+fastapi==0.128.0
+uvicorn[standard]==0.24.0
+playwright==1.40.0
+pydantic==2.9.0
+httpx==0.28.1
+google-cloud-storage==2.10.0
+google-cloud-pubsub==2.19.0
+google-cloud-logging==3.8.0
+pytesseract==0.3.10
+Pillow==10.1.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+readability-lxml==0.8.4.1
+markdownify==1.2.2
+python-multipart==0.0.6
+structlog==23.2.0
+
+# JavaScript Execution & Browser Automation (FREE)
+selenium==4.15.2
+undetected-chromedriver==3.5.4
+pyppeteer==1.0.2
+
+# OCR & Visual Analysis (FREE)
+opencv-python==4.8.1.78
+colorthief==0.2.1
+
+# Content Enhancement (FREE)
+html5lib==1.1
+cssutils==2.7.1
+
+# Data Processing (FREE)
+pandas==2.1.3
+numpy==1.25.2
+scikit-learn==1.3.2
+nltk==3.8.1
+
+# Storage & Search (FREE)
+whoosh==2.7.4
+elasticsearch==8.11.0
+redis==5.0.1
+
+# Performance (FREE)
+aiofiles==23.2.1
+uvloop==0.19.0
+
+# Compliance (FREE)
+robotexclusionrulesparser==1.7.0
+fake-useragent==1.4.0
+
+# Quality Control (FREE)
+langdetect==1.0.9
+
+# Monitoring (FREE)
+prometheus-client==0.19.0
+psutil==5.9.6

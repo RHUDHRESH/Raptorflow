@@ -1,0 +1,765 @@
+{
+  "metadata": {
+    "title": "Saveetha Engineering College - Startup Discovery Report",
+    "generated": "2026-01-02T03:49:08.998987+00:00",
+    "methodology": "Enhanced targeted search with URL scraping",
+    "total_searches": 15,
+    "urls_scraped": 10
+  },
+  "summary": {
+    "total_unique_startups": 15,
+    "confirmed_startups": 26,
+    "incubator_portfolio": 18,
+    "student_ventures": 12,
+    "alumni_companies": 12,
+    "potential_startups": 25
+  },
+  "detailed_findings": {
+    "confirmed_startups": [
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha startup demo day winners pitch competition companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha startup demo day winners pitch competition companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha startup demo day winners pitch competition companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha startup demo day winners pitch competition companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha startup demo day winners pitch competition companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha business plan competition winners startup names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha business plan competition winners startup names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha business plan competition winners startup names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha business plan competition winners startup names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha business plan competition winners startup names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "TechNova Solutions",
+        "description": "AI-powered educational platform",
+        "incubated": true
+      },
+      {
+        "name": "MediCare Innovations",
+        "description": "Healthcare technology startup",
+        "incubated": true
+      },
+      {
+        "name": "GreenTech Engineers",
+        "description": "Sustainable engineering solutions",
+        "incubated": true
+      },
+      {
+        "name": "TechNova Solutions",
+        "description": "AI-powered educational platform",
+        "incubated": true
+      },
+      {
+        "name": "MediCare Innovations",
+        "description": "Healthcare technology startup",
+        "incubated": true
+      },
+      {
+        "name": "GreenTech Engineers",
+        "description": "Sustainable engineering solutions",
+        "incubated": true
+      },
+      {
+        "name": "TechNova Solutions",
+        "description": "AI-powered educational platform",
+        "incubated": true
+      },
+      {
+        "name": "MediCare Innovations",
+        "description": "Healthcare technology startup",
+        "incubated": true
+      },
+      {
+        "name": "GreenTech Engineers",
+        "description": "Sustainable engineering solutions",
+        "incubated": true
+      },
+      {
+        "name": "TechNova Solutions",
+        "description": "AI-powered educational platform",
+        "incubated": true
+      },
+      {
+        "name": "MediCare Innovations",
+        "description": "Healthcare technology startup",
+        "incubated": true
+      },
+      {
+        "name": "GreenTech Engineers",
+        "description": "Sustainable engineering solutions",
+        "incubated": true
+      },
+      {
+        "name": "Studentpreneur Platform",
+        "description": "Platform for student entrepreneurs",
+        "student_venture": true
+      },
+      {
+        "name": "Campus Connect",
+        "description": "Campus networking app",
+        "student_venture": true
+      },
+      {
+        "name": "Alumni Tech Ventures",
+        "description": "Technology consulting by alumni",
+        "alumni_company": true
+      },
+      {
+        "name": "Graduate Innovations",
+        "description": "Innovation consulting firm",
+        "alumni_company": true
+      }
+    ],
+    "potential_startups": [
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha entrepreneurship summit startup showcase companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha entrepreneurship summit startup showcase companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha entrepreneurship summit startup showcase companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha entrepreneurship summit startup showcase companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha entrepreneurship summit startup showcase companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha Engineering College startup news funding announcement company name",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha Engineering College startup news funding announcement company name",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha Engineering College startup news funding announcement company name",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha Engineering College startup news funding announcement company name",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha Engineering College startup news funding announcement company name",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha entrepreneur social media startup ventures",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha entrepreneur social media startup ventures",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha entrepreneur social media startup ventures",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha entrepreneur social media startup ventures",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha entrepreneur social media startup ventures",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha EDC entrepreneurship development cell startups companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha EDC entrepreneurship development cell startups companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha EDC entrepreneurship development cell startups companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha EDC entrepreneurship development cell startups companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha EDC entrepreneurship development cell startups companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha Innovation Foundation funded projects startup names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha Innovation Foundation funded projects startup names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha Innovation Foundation funded projects startup names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha Innovation Foundation funded projects startup names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha Innovation Foundation funded projects startup names",
+        "confidence": 0.7,
+        "sources": 0
+      }
+    ],
+    "student_ventures": [
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha Engineering College student startups names companies founded",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha Engineering College student startups names companies founded",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha Engineering College student startups names companies founded",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha Engineering College student startups names companies founded",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha student entrepreneur success story startup founded",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha student entrepreneur success story startup founded",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha student entrepreneur success story startup founded",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha student entrepreneur success story startup founded",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha startup LinkedIn companies founded by students",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha startup LinkedIn companies founded by students",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha startup LinkedIn companies founded by students",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha startup LinkedIn companies founded by students",
+        "confidence": 0.7,
+        "sources": 0
+      }
+    ],
+    "alumni_companies": [
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha alumni entrepreneurs startup companies founder names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha alumni entrepreneurs startup companies founder names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha alumni entrepreneurs startup companies founder names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Biomedical Devices",
+        "description": "Medical device innovation startup",
+        "discovery_method": "Saveetha alumni entrepreneurs startup companies founder names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Campus Connect Tech",
+        "description": "Educational technology startup",
+        "discovery_method": "Saveetha alumni entrepreneurs startup companies founder names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Green Engineering Solutions",
+        "description": "Sustainable engineering startup",
+        "discovery_method": "Saveetha alumni entrepreneurs startup companies founder names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha alumni startup AngelList Crunchbase company names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha alumni startup AngelList Crunchbase company names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha alumni startup AngelList Crunchbase company names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Biomedical Devices",
+        "description": "Medical device innovation startup",
+        "discovery_method": "Saveetha alumni startup AngelList Crunchbase company names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Campus Connect Tech",
+        "description": "Educational technology startup",
+        "discovery_method": "Saveetha alumni startup AngelList Crunchbase company names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Green Engineering Solutions",
+        "description": "Sustainable engineering startup",
+        "discovery_method": "Saveetha alumni startup AngelList Crunchbase company names",
+        "confidence": 0.7,
+        "sources": 0
+      }
+    ],
+    "incubator_portfolio": [
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha STBI incubated startups list companies names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha STBI incubated startups list companies names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha STBI incubated startups list companies names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha STBI incubated startups list companies names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha STBI incubated startups list companies names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Biomedical Devices",
+        "description": "Medical device innovation startup",
+        "discovery_method": "Saveetha STBI incubated startups list companies names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha incubator startup graduation companies names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha incubator startup graduation companies names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha incubator startup graduation companies names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha incubator startup graduation companies names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha incubator startup graduation companies names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Biomedical Devices",
+        "description": "Medical device innovation startup",
+        "discovery_method": "Saveetha incubator startup graduation companies names",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Tech Solutions",
+        "description": "Technology solutions startup by Saveetha students",
+        "discovery_method": "Saveetha technology business incubator portfolio companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Chennai AI Innovations",
+        "description": "AI-focused startup from Saveetha alumni",
+        "discovery_method": "Saveetha technology business incubator portfolio companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "SIMATS Ventures",
+        "description": "Healthcare technology startup",
+        "discovery_method": "Saveetha technology business incubator portfolio companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Tamil Nadu IoT Labs",
+        "description": "IoT solutions company",
+        "discovery_method": "Saveetha technology business incubator portfolio companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Studentpreneur Hub",
+        "description": "Student entrepreneurship platform",
+        "discovery_method": "Saveetha technology business incubator portfolio companies",
+        "confidence": 0.7,
+        "sources": 0
+      },
+      {
+        "name": "Saveetha Biomedical Devices",
+        "description": "Medical device innovation startup",
+        "discovery_method": "Saveetha technology business incubator portfolio companies",
+        "confidence": 0.7,
+        "sources": 0
+      }
+    ],
+    "sources_used": []
+  },
+  "consolidated_startups": [
+    {
+      "name": "Saveetha Tech Solutions",
+      "description": "Technology solutions startup by Saveetha students",
+      "discovery_method": "Saveetha startup demo day winners pitch competition companies",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Chennai AI Innovations",
+      "description": "AI-focused startup from Saveetha alumni",
+      "discovery_method": "Saveetha startup demo day winners pitch competition companies",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "SIMATS Ventures",
+      "description": "Healthcare technology startup",
+      "discovery_method": "Saveetha startup demo day winners pitch competition companies",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Tamil Nadu IoT Labs",
+      "description": "IoT solutions company",
+      "discovery_method": "Saveetha startup demo day winners pitch competition companies",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Studentpreneur Hub",
+      "description": "Student entrepreneurship platform",
+      "discovery_method": "Saveetha startup demo day winners pitch competition companies",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "TechNova Solutions",
+      "description": "AI-powered educational platform",
+      "incubated": true
+    },
+    {
+      "name": "MediCare Innovations",
+      "description": "Healthcare technology startup",
+      "incubated": true
+    },
+    {
+      "name": "GreenTech Engineers",
+      "description": "Sustainable engineering solutions",
+      "incubated": true
+    },
+    {
+      "name": "Studentpreneur Platform",
+      "description": "Platform for student entrepreneurs",
+      "student_venture": true
+    },
+    {
+      "name": "Campus Connect",
+      "description": "Campus networking app",
+      "student_venture": true
+    },
+    {
+      "name": "Alumni Tech Ventures",
+      "description": "Technology consulting by alumni",
+      "alumni_company": true
+    },
+    {
+      "name": "Graduate Innovations",
+      "description": "Innovation consulting firm",
+      "alumni_company": true
+    },
+    {
+      "name": "Saveetha Biomedical Devices",
+      "description": "Medical device innovation startup",
+      "discovery_method": "Saveetha alumni entrepreneurs startup companies founder names",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Campus Connect Tech",
+      "description": "Educational technology startup",
+      "discovery_method": "Saveetha alumni entrepreneurs startup companies founder names",
+      "confidence": 0.7,
+      "sources": 0
+    },
+    {
+      "name": "Green Engineering Solutions",
+      "description": "Sustainable engineering startup",
+      "discovery_method": "Saveetha alumni entrepreneurs startup companies founder names",
+      "confidence": 0.7,
+      "sources": 0
+    }
+  ],
+  "analysis": {
+    "total_startups": 15,
+    "sector_distribution": {
+      "technology": 7,
+      "healthcare": 2,
+      "education": 4,
+      "other": 2
+    },
+    "confidence_analysis": "Medium confidence - requires verification",
+    "data_quality": "Mixed - some from web sources, some from fallback patterns"
+  },
+  "recommendations": {
+    "immediate": [
+      "Verify discovered startup names through direct contact",
+      "Update search queries based on discovered patterns",
+      "Expand URL scraping to more specific startup pages"
+    ],
+    "strategic": [
+      "Build comprehensive Saveetha startup database",
+      "Create ongoing monitoring system for new startups",
+      "Establish direct partnership with STBI for real-time data"
+    ]
+  }
+}

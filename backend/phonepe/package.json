@@ -1,9 +1,0 @@
-{
-  "name": "raptorflow-phonepe-bridge",
-  "private": true,
-  "version": "1.0.0",
-  "type": "commonjs",
-  "dependencies": {
-    "pg-sdk-node": "^2.0.2"
-  }
-}

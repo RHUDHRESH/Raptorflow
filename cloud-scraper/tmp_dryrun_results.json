@@ -1,0 +1,223 @@
+{
+  "analysis": {
+    "total_platforms": 3,
+    "total_content": 6,
+    "platform_stats": {
+      "reddit": {
+        "content_count": 2,
+        "avg_relevance": 0.15,
+        "minnesota_related": 0,
+        "coffee_related": 2,
+        "success_rate": 1.0,
+        "source_count": 5
+      },
+      "blogs": {
+        "content_count": 2,
+        "avg_relevance": 0.4231,
+        "minnesota_related": 2,
+        "coffee_related": 0,
+        "success_rate": 1.0,
+        "source_count": 5
+      },
+      "social": {
+        "content_count": 2,
+        "avg_relevance": 0.2165,
+        "minnesota_related": 2,
+        "coffee_related": 0,
+        "success_rate": 1.0,
+        "source_count": 4
+      }
+    },
+    "top_platforms": [
+      [
+        "reddit",
+        {
+          "content_count": 2,
+          "avg_relevance": 0.15,
+          "minnesota_related": 0,
+          "coffee_related": 2,
+          "success_rate": 1.0,
+          "source_count": 5
+        }
+      ],
+      [
+        "blogs",
+        {
+          "content_count": 2,
+          "avg_relevance": 0.4231,
+          "minnesota_related": 2,
+          "coffee_related": 0,
+          "success_rate": 1.0,
+          "source_count": 5
+        }
+      ],
+      [
+        "social",
+        {
+          "content_count": 2,
+          "avg_relevance": 0.2165,
+          "minnesota_related": 2,
+          "coffee_related": 0,
+          "success_rate": 1.0,
+          "source_count": 4
+        }
+      ]
+    ],
+    "trending_topics": [
+      "minnesota",
+      "daily",
+      "question",
+      "thread",
+      "what",
+      "brewing",
+      "week"
+    ],
+    "confidence_score": 0.28296,
+    "latencies": {
+      "reddit": [
+        0.5405054092407227,
+        1.923415184020996,
+        1.6313261985778809,
+        2.3437576293945312,
+        1.2942872047424316,
+        1.297010898590088,
+        1.9655954837799072,
+        1.304152011871338,
+        1.3550786972045898
+      ],
+      "blogs": [
+        3.814181327819824,
+        1.4424889087677002,
+        5.6487135887146,
+        2.2364795207977295,
+        0.5441384315490723
+      ],
+      "social": []
+    },
+    "failures": {
+      "reddit": 2,
+      "news": 6
+    },
+    "retries": {
+      "reddit": 1,
+      "news": 3
+    },
+    "insights": [
+      "Most active: reddit (2 items)",
+      "Minnesota-related: 4 items",
+      "Coffee-related: 2 items"
+    ]
+  },
+  "results": {
+    "reddit": [
+      {
+        "source_url": "https://reddit.com/r/Coffee/comments/1q3n92r/mod_the_daily_question_thread/",
+        "title": "[MOD] The Daily Question Thread",
+        "content": "Welcome to the daily\u00a0[/r/Coffee](https://www.reddit.com/r/Coffee)\u00a0question thread!\n\nThere are no stupid questions here, ask a question and get an answer! We all have to start somewhere and sometimes it is hard to figure out just what you are doing right or doing wrong. Luckily, the\u00a0[/r/Coffee](https://www.reddit.com/r/Coffee)\u00a0community loves to help out.\n\nDo you have a question about how to use a specific piece of gear or what gear you should be buying? Want to know how much coffee you should use or how you should grind it? Not sure about how much water you should use or how hot it should be? Wondering about your coffee's shelf life?\n\nDon't forget to use the resources in our\u00a0[wiki](http://www.reddit.com/r/Coffee/wiki)! We have some great starter guides on our\u00a0[wiki \"Guides\" page](https://www.reddit.com/r/Coffee/wiki/guides)\u00a0and\u00a0[here is the wiki \"Gear By Price\" page](http://www.reddit.com/r/Coffee/wiki/gear#wiki_coffee_gear_suggestions)\u00a0if you'd like to see coffee gear that\u00a0[/r/Coffee](https://www.reddit.com/r/Coffee)\u00a0members recommend.\n\nAs always, be nice!",
+        "author": "menschmaschine5",
+        "published_date": "2026-01-04 11:01:30+00:00",
+        "minnesota_mentions": 0,
+        "coffee_mentions": 1,
+        "relevance_score": 0.15,
+        "engagement_score": 0.07400000000000001,
+        "content_hash": "3f41b5cee4d07758f5f2c6025672c5d1",
+        "simhash": 1273313725691547249,
+        "token_count": 205,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://reddit.com/r/Coffee/comments/1q2330j/mod_what_have_you_been_brewing_this_week_coffee/",
+        "title": "[MOD] What have you been brewing this week?/ Coffee bean recommendations",
+        "content": "Hey everyone!\n\nWelcome back to the weekly /r/Coffee thread where you can share what you are brewing or ask for bean recommendations. This is a place to share and talk about your favorite coffee roasters or beans.\n\nHow was that new coffee you just picked up? Are you looking for a particular coffee or just want a recommendation for something new to try?\n\nFeel free to provide links for buying online. Also please add a little taste description and what gear you are brewing with. Please note that this thread is for peer-to-peer bean recommendations only. Please do not use this thread to promote a business you have a vested interest in.\n\nSo what have you been brewing this week?",
+        "author": "menschmaschine5",
+        "published_date": "2026-01-02 16:28:03+00:00",
+        "minnesota_mentions": 0,
+        "coffee_mentions": 1,
+        "relevance_score": 0.15,
+        "engagement_score": 0.126,
+        "content_hash": "6fceaf88c26cf517318d570d37fc1fd0",
+        "simhash": 15196176065148966609,
+        "token_count": 134,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      }
+    ],
+    "news": [],
+    "blogs": [
+      {
+        "source_url": "https://minnesotamonthly.com/",
+        "title": "Minnesota Monthly",
+        "content": "Things to do around Minnesota this week: World Junior Hockey Championship, Crystal Ball New Year's Eve Party, Land O'Lakes Dog Show, and more",
+        "author": "",
+        "published_date": "2026-01-05 05:21:52.857608+00:00",
+        "minnesota_mentions": 1,
+        "coffee_mentions": 0,
+        "relevance_score": 0.21589999999999998,
+        "engagement_score": 0.0,
+        "content_hash": "a732d8d7918918e30de27f69fc551187",
+        "simhash": 10648013128560037776,
+        "token_count": 27,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://www.mnopedia.org/",
+        "title": "MNopedia | Minnesota Encyclopedia",
+        "content": "Maxene Andrews is born in Minneapolis. With her sisters LaVerne (born July 6, 1911) and Patty (born February 26, 1918), she would form theAndrews Sisterssinging group, known as \"America's wartime sweethearts\" and remembered for their 1941 hit \"Boogie Woogie Bugle Boy.\"",
+        "author": "",
+        "published_date": "2026-01-05 05:21:56.187362+00:00",
+        "minnesota_mentions": 3,
+        "coffee_mentions": 0,
+        "relevance_score": 0.6303,
+        "engagement_score": 0.0,
+        "content_hash": "81ec7bbdf512aabd996dc8b9245c345e",
+        "simhash": 1144925128038507977,
+        "token_count": 45,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      }
+    ],
+    "social": [
+      {
+        "source_url": "https://www.startribune.com/northstar-rail-train-end/601556437",
+        "title": "Minnesotans say they will miss the \u2018stress-free\u2019 Northstar as train takes its last ride",
+        "content": "The commuter rail ended service after 16 years on Jan. 4.",
+        "author": "",
+        "published_date": "2026-01-04 14:33:39+00:00",
+        "minnesota_mentions": 1,
+        "coffee_mentions": 0,
+        "relevance_score": 0.2145,
+        "engagement_score": 0.0,
+        "content_hash": "b7d7d4f52330faad79cfb4af766ea20b",
+        "simhash": 2858351914137368407,
+        "token_count": 26,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      },
+      {
+        "source_url": "https://www.startribune.com/minnesota-leaders-condemn-trump-post-promoting-false-theory-about-hortman-killing/601557552",
+        "title": "Hortman children condemn Trump post promoting false theory about their parents\u2019 killing",
+        "content": "Colin and Sophie Hortman are asking President Trump to remove a video he shared and to apologize.",
+        "author": "",
+        "published_date": "2026-01-04 13:01:38+00:00",
+        "minnesota_mentions": 1,
+        "coffee_mentions": 0,
+        "relevance_score": 0.2185,
+        "engagement_score": 0.0,
+        "content_hash": "254b57a3f7894e9e527413f091442112",
+        "simhash": 8236834570984142642,
+        "token_count": 29,
+        "truncated": 0,
+        "fetch_version": "2026.01.05",
+        "schema_version": 3
+      }
+    ],
+    "forums": []
+  }
+}
