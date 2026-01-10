@@ -1,1 +1,0 @@
-export { FoundationResults } from './FoundationResults';

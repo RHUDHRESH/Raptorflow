@@ -1,0 +1,18 @@
+httpx
+pydantic-settings
+duckduckgo-search
+beautifulsoup4
+google-cloud-secret-manager
+
+# PhonePe Payment Gateway SDK - Latest 2026
+phonepe-sdk>=1.0.0
+
+# Additional payment dependencies
+fastapi>=0.104.0
+uvicorn>=0.24.0
+python-multipart>=0.0.6
+requests>=2.31.0
+psycopg2-binary>=2.9.7
+asyncpg>=0.29.0
+sqlalchemy>=2.0.0
+alembic>=1.12.0

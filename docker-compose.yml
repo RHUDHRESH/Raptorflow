@@ -1,4 +1,7 @@
+version: '3.8'
+
 services:
+  # Backend Service
   backend:
     build:
       context: ./backend
@@ -6,36 +9,112 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - GCP_PROJECT_ID=raptorflow-481505
-      - GCP_REGION=europe-west1
-      - INFERENCE_PROVIDER=google
-      - SUPABASE_URL=http://supabase:54321
-      - SUPABASE_SERVICE_ROLE_KEY=placeholder-key
-      - UPSTASH_REDIS_REST_URL=http://redis:6379
-      - UPSTASH_REDIS_REST_TOKEN=placeholder-token
+      - NODE_ENV=production
+      - PYTHONPATH=/app/backend
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+      - GCP_REGION=${GCP_REGION}
+      - REDIS_URL=${REDIS_URL}
+      - VERTEX_AI_API_KEY=${VERTEX_AI_API_KEY}
     volumes:
-      - ./backend:/app
+      - ./backend:/app/backend
+      - ./logs:/app/logs
     depends_on:
       - redis
+    networks:
+      - raptorflow-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
+  # Frontend Service
   frontend:
     build:
-      context: ./raptorflow-app
-      dockerfile: Dockerfile
+      context: ./frontend
+      dockerfile: ../Dockerfile
+      target: frontend
     ports:
-      - "3000:3000"
+      - "3000:80"
     environment:
-      - NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-key
-      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
-    volumes:
-      - ./raptorflow-app:/app
-      - /app/node_modules
+      - NODE_ENV=production
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - NEXT_PUBLIC_BACKEND_URL=http://backend:8080
+      - NEXT_PUBLIC_API_URL=http://backend:8080
     depends_on:
       - backend
+    networks:
+      - raptorflow-network
+    restart: unless-stopped
 
+  # Redis Cache
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - raptorflow-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # Nginx Reverse Proxy (Production)
+  nginx-proxy:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - raptorflow-network
+    restart: unless-stopped
+
+  # Monitoring (Optional)
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - raptorflow-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - raptorflow-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+volumes:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  raptorflow-network:
+    driver: bridge
