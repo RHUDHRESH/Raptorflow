@@ -11,9 +11,6 @@ import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-# Pydantic imports
-from pydantic import BaseModel, validator
-
 # Redis import
 import redis
 import vertexai
@@ -25,7 +22,9 @@ from google.cloud import aiplatform, bigquery, storage
 
 # Import onboarding routes
 from onboarding_routes import router as onboarding_router
-from pydantic import BaseModel, EmailStr
+
+# Pydantic imports
+from pydantic import BaseModel, EmailStr, validator
 from vertexai.generative_models import GenerativeModel
 
 # Supabase Integration
