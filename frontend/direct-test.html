@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Authentication Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .links {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+        .links a {
+            display: block;
+            margin-bottom: 10px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+        .test-credentials {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Direct Authentication Test</h1>
+        <p>This page tests the authentication by making direct API calls to the Raptorflow backend.</p>
+
+        <div class="test-credentials">
+            <strong>📝 Test Credentials:</strong><br>
+            Email: testuser@gmail.com<br>
+            Password: password123<br>
+            Full Name: Test User
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" value="testuser@gmail.com" placeholder="Enter your email">
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" value="password123" placeholder="Enter your password">
+        </div>
+
+        <div class="form-group">
+            <label for="fullName">Full Name:</label>
+            <input type="text" id="fullName" value="Test User" placeholder="Enter your full name">
+        </div>
+
+        <button onclick="testDirectAPI()">🔧 Test Direct API</button>
+        <button onclick="testBypassAPI()">⚡ Test Bypass API</button>
+        <button onclick="testSupabaseAPI()">🗄️ Test Supabase API</button>
+        <button onclick="checkServerStatus()">🔍 Check Server</button>
+        <button onclick="openLoginPage()">🌐 Open Login Page</button>
+        <button onclick="clearResults()">🗑️ Clear</button>
+
+        <div id="result"></div>
+
+        <div class="links">
+            <h3>🚀 Direct Links (click to test)</h3>
+            <a href="http://localhost:3000/login" target="_blank">🔗 Login Page (New Tab)</a>
+            <a href="http://localhost:3000/signup" target="_blank">🔗 Signup Page (New Tab)</a>
+            <a href="http://localhost:3000/" target="_blank">🏠 Home Page (New Tab)</a>
+            <a href="http://localhost:3000/workspace" target="_blank">💼 Workspace (New Tab)</a>
+            <a href="http://localhost:3000/api/verify-setup" target="_blank">🔧 API: Verify Setup</a>
+        </div>
+    </div>
+
+    <script>
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = message;
+        }
+
+        function clearResults() {
+            document.getElementById('result').textContent = '';
+            document.getElementById('result').className = 'result';
+        }
+
+        async function testDirectAPI() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fullName = document.getElementById('fullName').value;
+
+            showResult('Testing direct API connection...', 'info');
+
+            try {
+                // Test basic connectivity
+                const response = await fetch('http://localhost:3000/api/verify-setup');
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(`✅ Server Connected Successfully!\n\nDatabase Status:\n- Supabase: ${data.supabase.connected ? '✅' : '❌'}\n- User Profiles: ${data.tables.user_profiles ? '✅' : '❌'}\n- Payments: ${data.tables.payments ? '✅' : '❌'}\n- Auth Working: ${data.auth.working ? '✅' : '❌'}\n\nFull Response:\n${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    showResult(`❌ Server Connection Failed!\n\nStatus: ${response.status}\nError: ${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network Error!\n\n${error.message}\n\nMake sure the dev server is running on http://localhost:3000`, 'error');
+            }
+        }
+
+        async function testBypassAPI() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fullName = document.getElementById('fullName').value;
+
+            showResult('Testing bypass authentication...', 'info');
+
+            try {
+                const response = await fetch('http://localhost:3000/api/auth-bypass', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password, fullName })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(`✅ Bypass Authentication Successful!\n\nUser Created:\n- ID: ${data.user.id}\n- Email: ${data.user.email}\n- Name: ${data.user.user_metadata.full_name}\n\nSession:\n- Access Token: ${data.session.access_token.substring(0, 20)}...\n- Expires: ${data.session.expires_at}\n\nFull Response:\n${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    showResult(`❌ Bypass Authentication Failed!\n\nStatus: ${response.status}\nError: ${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network Error!\n\n${error.message}`, 'error');
+            }
+        }
+
+        async function testSupabaseAPI() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fullName = document.getElementById('fullName').value;
+
+            showResult('Testing Supabase authentication...', 'info');
+
+            try {
+                const response = await fetch('http://localhost:3000/api/test-auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password, fullName })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(`✅ Supabase Authentication Successful!\n\nUser Created:\n- ID: ${data.user.id}\n- Email: ${data.user.email}\n- Confirmed: ${data.user.email_confirmed ? 'Yes' : 'No'}\n- Profile: ${data.profile ? 'Created' : 'Not Created (tables missing)'}\n\nFull Response:\n${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    showResult(`❌ Supabase Authentication Failed!\n\nStatus: ${response.status}\nError: ${data.error}\nCode: ${data.code}\n\nFull Response:\n${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Network Error!\n\n${error.message}`, 'error');
+            }
+        }
+
+        async function checkServerStatus() {
+            showResult('Checking server status...', 'info');
+
+            try {
+                const response = await fetch('http://localhost:3000/api/verify-setup');
+                const text = await response.text();
+
+                showResult(`Server Response:\n\nStatus: ${response.status}\nContent-Type: ${response.headers.get('content-type')}\n\nBody:\n${text}`, response.ok ? 'success' : 'error');
+            } catch (error) {
+                showResult(`❌ Server Check Failed!\n\n${error.message}\n\nTroubleshooting:\n1. Make sure npm run dev is running\n2. Check that port 3000 is available\n3. Verify no firewall blocking`, 'error');
+            }
+        }
+
+        function openLoginPage() {
+            window.open('http://localhost:3000/login', '_blank');
+        }
+
+        // Auto-test on page load
+        window.addEventListener('load', function() {
+            setTimeout(checkServerStatus, 500);
+        });
+    </script>
+</body>
+</html>

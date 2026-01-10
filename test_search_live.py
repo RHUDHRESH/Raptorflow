@@ -15,13 +15,12 @@ async def test():
 
         if not results:
             print("❌ No results found (check internet connection).")
-            continue
-
-        for i, res in enumerate(results, 1):
-            print(f"{i}. {res['title']}")
-            print(f"   URL: {res['url']}")
-            print(f"   SNIPPET: {res['snippet'][:150]}...")
-            print("-" * 10)
+        else:
+            for i, res in enumerate(results, 1):
+                print(f"{i}. {res['title']}")
+                print(f"   URL: {res['url']}")
+                print(f"   SNIPPET: {res['snippet'][:150]}...")
+                print("-" * 10)
 
     await search.close()
 

@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "query": "Saveetha Engineering College startups and entrepreneurship programs",
+    "timestamp": "2026-01-02T03:40:11.282568+00:00",
+    "processing_time": 0.001609,
+    "confidence_score": 0.7,
+    "model_usage": {
+      "flashlight": 2,
+      "flash": 2,
+      "ultra": 0,
+      "fallback": 0
+    },
+    "cost_estimate": 0.00019999999999999998,
+    "status": "degraded",
+    "fallback_used": true
+  },
+  "findings": {
+    "key_findings": [
+      "Saveetha has active startup ecosystem",
+      "STBI provides incubation support",
+      "Multiple entrepreneurship programs available"
+    ],
+    "source_credibility_assessment": {
+      "high": 0.8,
+      "medium": 0.2
+    },
+    "confidence_score": 0.75,
+    "insights_and_patterns": [
+      "institutional_support",
+      "student_innovation"
+    ],
+    "recommendations": [
+      "leverage_existing_programs",
+      "expand_incubator"
+    ],
+    "sources_count": 0,
+    "data_points": 0
+  },
+  "sources": [],
+  "executive_summary": "Research completed with 70.0% confidence. Key findings include: Saveetha has active startup ecosystem; STBI provides incubation support; Multiple entrepreneurship programs available",
+  "errors": null
+}

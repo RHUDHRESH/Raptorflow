@@ -1,8 +1,0 @@
-{
-  "track_id": "muse_sota_upgrade_20251222",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2025-12-22T20:55:00Z",
-  "updated_at": "2025-12-22T20:55:00Z",
-  "description": "Upgrade Muse backend to SOTA production-grade status with LangGraph, Supabase, and Upstash."
-}
