@@ -8,6 +8,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer
 
+
 def main():
     """Main function to generate PDF"""
     try:
@@ -91,6 +92,7 @@ def main():
     except Exception as e:
         print(f"❌ PDF generation error: {str(e)}")
         return None
+
 
 if __name__ == "__main__":
     result = main() if "main" in globals() else None
