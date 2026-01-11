@@ -212,7 +212,8 @@ class ConnectionPool:
                 if not is_healthy:
                     logger.warning(
                         f"Connection failed health check, removing from pool"
-                await self._close_connection(conn_info["connection"])
+                    )
+                    await self._close_connection(conn_info["connection"])
 
                 self.stats["health_checks"] += 1
 
