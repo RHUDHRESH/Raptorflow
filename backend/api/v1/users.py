@@ -383,9 +383,22 @@ async def get_user_notifications(
     """
     Get user notifications
     """
-    # In a real implementation, you would have a notifications table
-    # For now, return mock data
-    return {"notifications": [], "unread_count": 0, "user_id": current_user.id}
+    try:
+        # Query notifications table
+        result = supabase.table("notifications").select("*").eq("user_id", current_user.id).order("created_at", desc=True).limit(limit).execute()
+        
+        notifications = result.data or []
+        unread_count = len([n for n in notifications if not n.get("read", False)])
+        
+        return {
+            "notifications": notifications, 
+            "unread_count": unread_count, 
+            "user_id": current_user.id
+        }
+    except Exception as e:
+        logger.error(f"Failed to get notifications for user {current_user.id}: {e}")
+        # Return empty list on error rather than failing
+        return {"notifications": [], "unread_count": 0, "user_id": current_user.id}
 
 
 @router.post("/me/mark-notifications-read")
