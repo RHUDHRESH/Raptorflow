@@ -217,7 +217,7 @@ async def handle_webhook(request: Request, background_tasks: BackgroundTasks):
         )
 
         if validation_result["success"] and validation_result["valid"]:
-            logger.info(f"Webhook validated and processed (2026)")
+            logger.info("Webhook validated and processed (2026)")
 
             # DB LOGGING: Log webhook receipt
             webhook_id = str(uuid.uuid4())
@@ -394,17 +394,21 @@ async def handle_payment_success(webhook_payload: Dict[str, Any]):
             # We need to fetch customer email. It might be in the webhook data or we need to look up transaction.
             # PhonePe webhook usually has some user identifier or we look up the txn from DB.
             # Let's try to get txn first to get email.
-            txn = await payment_repo.get_by_merchant_order_id(data.get("merchantOrderId")) # Assuming this exists in webhook
+            txn = await payment_repo.get_by_merchant_order_id(
+                data.get("merchantOrderId")
+            )  # Assuming this exists in webhook
             # Or use transactionId if we implemented get_by_txn_id
-            
+
             if txn and txn.get("customer_email"):
-                 # We have email, send welcome
-                 email_service.send_welcome_email(
-                     user_email=txn["customer_email"],
-                     plan_name="Premium Plan" # Placeholder, or derive from amount/metadata
-                 )
+                # We have email, send welcome
+                email_service.send_welcome_email(
+                    user_email=txn["customer_email"],
+                    plan_name="Premium Plan",  # Placeholder, or derive from amount/metadata
+                )
             else:
-                 logger.warning("Could not send welcome email: Customer email not found for transaction")
+                logger.warning(
+                    "Could not send welcome email: Customer email not found for transaction"
+                )
 
     except Exception as e:
         logger.error(f"Error handling payment success (2026): {str(e)}")
