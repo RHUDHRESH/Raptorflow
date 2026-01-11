@@ -16,13 +16,13 @@ def cleanup_expired_tasks():
     """Clean up expired task results"""
     try:
         logger.info("Starting cleanup of expired tasks")
-        
+
         # This would integrate with your result backend cleanup
         # For Redis, this is handled automatically by result_expires config
-        
+
         logger.info("Completed cleanup of expired tasks")
         return {"success": True, "timestamp": datetime.utcnow().isoformat()}
-        
+
     except Exception as e:
         logger.error(f"Task cleanup failed: {e}")
         return {"success": False, "error": str(e)}
@@ -34,23 +34,23 @@ def health_check():
     try:
         # Check basic functionality
         start_time = time.time()
-        
+
         # Simulate some work
         time.sleep(0.1)
-        
+
         end_time = time.time()
-        
+
         return {
             "success": True,
             "timestamp": datetime.utcnow().isoformat(),
             "processing_time": end_time - start_time,
-            "worker_id": health_check.request.id
+            "worker_id": health_check.request.id,
         }
-        
+
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         return {
             "success": False,
             "error": str(e),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }

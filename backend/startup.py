@@ -13,9 +13,9 @@ from typing import Any, Dict, Optional
 from agents.dispatcher import AgentDispatcher
 from agents.llm import get_llm
 from cognitive import CognitiveEngine
+from core.migrations import run_migrations
 from core.redis import get_redis_client
 from core.supabase import get_supabase_client
-from core.migrations import run_migrations
 from memory.controller import MemoryController
 
 from supabase import create_client
