@@ -42,6 +42,11 @@ from api.v1 import (
     users,
     workspaces,
 )
+from core.posthog import add_posthog_middleware
+from core.prometheus_metrics import PrometheusMiddleware, init_prometheus_metrics
+
+# Import monitoring
+from core.sentry import init_sentry
 
 # Import dependencies
 from dependencies import get_cognitive_engine, get_db, get_memory_controller, get_redis
@@ -50,16 +55,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # GCP Imports
 from google.cloud import aiplatform, bigquery, storage
+from middleware.compression import add_compression_middleware
 from middleware.errors import ErrorMiddleware
 from middleware.logging import LoggingMiddleware
 from middleware.metrics import MetricsMiddleware
 from middleware.rate_limit import create_rate_limit_middleware
-from middleware.compression import add_compression_middleware
-
-# Import monitoring
-from core.sentry import init_sentry
-from core.prometheus_metrics import init_prometheus_metrics, PrometheusMiddleware
-from core.posthog import add_posthog_middleware
 from shutdown import cleanup_app
 
 # Import startup/shutdown
@@ -119,7 +119,7 @@ if os.getenv("ENABLE_COMPRESSION", "true").lower() == "true":
         enable_brotli=True,
         prefer_brotli=True,
         minimum_size=int(os.getenv("COMPRESSION_MIN_SIZE", "1024")),
-        compression_level=int(os.getenv("COMPRESSION_LEVEL", "6"))
+        compression_level=int(os.getenv("COMPRESSION_LEVEL", "6")),
     )
 
 # Add middleware in order
@@ -132,7 +132,9 @@ if not allowed_origins:
     if os.getenv("ENVIRONMENT") == "production":
         raise ValueError("ALLOWED_ORIGINS must be set in production")
     else:
-        raise ValueError("ALLOWED_ORIGINS must be set - no development fallbacks allowed")
+        raise ValueError(
+            "ALLOWED_ORIGINS must be set - no development fallbacks allowed"
+        )
 
 app.add_middleware(
     CORSMiddleware,
@@ -151,7 +153,7 @@ if os.getenv("ENABLE_RATE_LIMITING", "true").lower() == "true":
             "auth": 20,
             "agents": 50,
             "upload": 10,
-        }
+        },
     )
     app.add_middleware(rate_limit_middleware)
 
@@ -177,7 +179,9 @@ app.include_router(episodes.router, prefix="/api/v1/episodes", tags=["episodes"]
 app.include_router(approvals.router, prefix="/api/v1/approvals", tags=["approvals"])
 app.include_router(cognitive.router, prefix="/api/v1/cognitive", tags=["cognitive"])
 app.include_router(metrics.router, prefix="/api/v1/metrics", tags=["metrics"])
-app.include_router(health_comprehensive.router, prefix="/api/v1/health", tags=["health"])
+app.include_router(
+    health_comprehensive.router, prefix="/api/v1/health", tags=["health"]
+)
 app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
 
 
