@@ -4,7 +4,7 @@ Main Raptorflow workflow graph using LangGraph.
 
 from typing import Annotated, Any, Dict, List, Optional, TypedDict
 
-from langchain_core.messages import add_messages
+from langchain_core.messages import BaseMessage, trim_messages
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
