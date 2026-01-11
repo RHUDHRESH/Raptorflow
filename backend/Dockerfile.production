@@ -1,0 +1,81 @@
+# RaptorFlow Backend Production Dockerfile
+# Multi-stage build for optimized production image
+
+# Build stage
+FROM python:3.11-slim as builder
+
+# Set build arguments
+ARG BUILD_ENV=production
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create and activate virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+COPY requirements-prod.txt .
+
+# Install Python dependencies
+RUN pip install --upgrade pip && \
+    pip install -r requirements-prod.txt
+
+# Production stage
+FROM python:3.11-slim as production
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    ENVIRONMENT=production
+
+# Install runtime system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
+
+# Create non-root user
+RUN groupadd -r raptorflow && useradd -r -g raptorflow raptorflow
+
+# Copy virtual environment from builder stage
+COPY --from=builder /opt/venv /opt/venv
+
+# Create application directories
+RUN mkdir -p /app /app/logs /app/temp && \
+    chown -R raptorflow:raptorflow /app
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code
+COPY --chown=raptorflow:raptorflow . .
+
+# Create necessary directories and set permissions
+RUN mkdir -p /app/.cache /app/.local && \
+    chown -R raptorflow:raptorflow /app
+
+# Switch to non-root user
+USER raptorflow
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Expose port
+EXPOSE 8080
+
+# Default command
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "4"]

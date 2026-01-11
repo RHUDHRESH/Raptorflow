@@ -190,7 +190,7 @@ async def process_ocr(file_path: str, file_content: bytes) -> Dict[str, Any]:
                     "status": "success",
                     "extracted_text": combined_text.strip(),
                     "page_count": len(images),
-                    "method": "tesseract_pdf_ocr",
+                    "method": os.getenv("METHOD"),
                     "confidence": avg_confidence / 100.0,
                     "metadata": {"pages": len(images), "file_size": file_size},
                 }
@@ -206,7 +206,7 @@ async def process_ocr(file_path: str, file_content: bytes) -> Dict[str, Any]:
                     "status": "success",
                     "extracted_text": text.strip(),
                     "page_count": 1,
-                    "method": "direct_text_extraction",
+                    "method": os.getenv("METHOD"),
                     "confidence": 1.0,
                     "metadata": {"encoding": "utf-8", "file_size": file_size},
                 }

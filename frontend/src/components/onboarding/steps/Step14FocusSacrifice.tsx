@@ -316,7 +316,7 @@ export default function Step14FocusSacrifice() {
             )}
 
             <div className="flex justify-center pt-4">
-                <span className="font-technical text-[var(--muted)]">FOCUS-SACRIFICE • STEP 14/25</span>
+                <span className="font-technical text-[var(--muted)]">STRATEGIC-FOCUS • STEP 13/24</span>
             </div>
         </div>
     );

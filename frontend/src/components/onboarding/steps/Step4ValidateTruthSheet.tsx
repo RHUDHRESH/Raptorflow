@@ -525,7 +525,7 @@ export default function Step4ValidateTruthSheet() {
 
             <div className="flex justify-center pt-4">
                 <span className="font-technical text-[var(--muted)]">
-                    DOCUMENT: TRUTH-SHEET | STEP 04/25 | {isLocked ? "LOCKED" : "DRAFT"}
+                    REVIEW-YOUR-FACTS • STEP 04/24 • {isLocked ? "LOCKED" : "DRAFT"}
                 </span>
             </div>
         </div>

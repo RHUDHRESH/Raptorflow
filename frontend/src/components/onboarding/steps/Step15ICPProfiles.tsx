@@ -491,8 +491,7 @@ export default function Step15ICPProfiles() {
                             code={profile.code}
                             showCorners
                             padding="lg"
-                            className={`cursor-pointer transition-all hover:shadow-md ${isPrimary ? "ring-2 ring-[var(--blueprint)] bg-[var(--blueprint-light)]" : isSecondary ? "ring-2 ring-[var(--success)]" : ""}`}
-                            onClick={() => setViewingProfile(profile)}
+                            className={`transition-all ${isPrimary ? "ring-2 ring-[var(--blueprint)] bg-[var(--blueprint-light)]" : isSecondary ? "ring-2 ring-[var(--success)]" : ""}`}
                         >
                             <div className="flex items-center gap-6">
                                 <div className="w-16 h-16 rounded-xl bg-[var(--ink)] flex flex-col items-center justify-center text-[var(--paper)] flex-shrink-0">
@@ -506,11 +505,42 @@ export default function Step15ICPProfiles() {
                                         {isSecondary && <BlueprintBadge variant="success">SECONDARY</BlueprintBadge>}
                                     </div>
                                     <p className="text-sm text-[var(--secondary)] mb-2">{profile.tagline}</p>
-                                    <span className="font-technical text-[9px] text-[var(--muted)]">
-                                        STAGE {profile.marketSophistication.stage}: {profile.marketSophistication.name.toUpperCase()}
-                                    </span>
+                                    <div className="flex items-center gap-4">
+                                        <span className="font-technical text-[9px] text-[var(--muted)]">
+                                            {profile.demographics.role} • {profile.demographics.stage}
+                                        </span>
+                                        <button
+                                            onClick={() => setViewingProfile(profile)}
+                                            className="font-technical text-[9px] text-[var(--blueprint)] hover:underline"
+                                        >
+                                            VIEW DETAILS →
+                                        </button>
+                                    </div>
                                 </div>
-                                <ChevronRight size={20} className="text-[var(--muted)] flex-shrink-0" />
+                                <div className="flex flex-col gap-2 flex-shrink-0">
+                                    <button
+                                        onClick={() => handleSetPrimary(profile.id)}
+                                        disabled={isPrimary}
+                                        className={`px-3 py-1.5 rounded-lg font-technical text-[10px] transition-all ${isPrimary
+                                            ? "bg-[var(--blueprint)] text-[var(--paper)]"
+                                            : "bg-[var(--canvas)] text-[var(--secondary)] hover:bg-[var(--blueprint)] hover:text-[var(--paper)]"
+                                            }`}
+                                    >
+                                        {isPrimary ? "★ PRIMARY" : "SET PRIMARY"}
+                                    </button>
+                                    {!isPrimary && (
+                                        <button
+                                            onClick={() => handleSetSecondary(profile.id)}
+                                            disabled={isSecondary}
+                                            className={`px-3 py-1.5 rounded-lg font-technical text-[10px] transition-all ${isSecondary
+                                                ? "bg-[var(--success)] text-[var(--paper)]"
+                                                : "bg-[var(--canvas)] text-[var(--secondary)] hover:bg-[var(--success)] hover:text-[var(--paper)]"
+                                                }`}
+                                        >
+                                            {isSecondary ? "SECONDARY" : "SET SECONDARY"}
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </BlueprintCard>
                     );
@@ -544,7 +574,7 @@ export default function Step15ICPProfiles() {
             )}
 
             <div className="flex justify-center pt-4">
-                <span className="font-technical text-[var(--muted)]">ICP-PROFILES • STEP 15/25</span>
+                <span className="font-technical text-[var(--muted)]">IDEAL-CUSTOMERS • STEP 14/24</span>
             </div>
         </div>
     );

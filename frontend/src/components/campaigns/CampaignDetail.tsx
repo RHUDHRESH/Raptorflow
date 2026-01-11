@@ -26,8 +26,9 @@ import {
 import { BlueprintCard } from '@/components/ui/BlueprintCard';
 import { BlueprintButton } from '@/components/ui/BlueprintButton';
 import { BlueprintBadge } from '@/components/ui/BlueprintBadge';
-import { useEnhancedCampaignStore, Campaign, CampaignStatus, Move } from '@/stores/enhancedCampaignStore';
+import { useEnhancedCampaignStore } from '@/stores/enhancedCampaignStore';
 import { useCampaignMoves } from '@/stores/enhancedCampaignStore';
+import { Campaign, CampaignStatus, MoveStatus } from '@/types/campaign';
 import { MoveComposer } from './MoveComposer';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -82,8 +83,8 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
   const budgetProgress = totalBudget > 0 ? (spentBudget / totalBudget) * 100 : 0;
 
   const totalMoves = moves.length;
-  const completedMoves = moves.filter(m => m.status === 'completed').length;
-  const runningMoves = moves.filter(m => m.status === 'running').length;
+  const completedMoves = moves.filter(m => m.status === MoveStatus.COMPLETED).length;
+  const runningMoves = moves.filter(m => m.status === MoveStatus.RUNNING).length;
   const moveProgress = totalMoves > 0 ? (completedMoves / totalMoves) * 100 : 0;
 
   // Toggle move expansion
@@ -104,7 +105,7 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
     setIsExecuting(true);
     try {
       for (const move of moves) {
-        if (move.status === 'draft' || move.status === 'scheduled') {
+        if (move.status === MoveStatus.DRAFT || move.status === MoveStatus.SCHEDULED) {
           await executeMove(move.id);
         }
       }
@@ -116,7 +117,7 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
   // Pause all moves
   const pauseAllMoves = async () => {
     for (const move of moves) {
-      if (move.status === 'running') {
+      if (move.status === MoveStatus.RUNNING) {
         await pauseMove(move.id);
       }
     }
@@ -133,9 +134,9 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
             <div className={cn(
               "w-2 h-2 rounded-full",
               campaign.status === CampaignStatus.ACTIVE ? "bg-[var(--success)]" :
-              campaign.status === CampaignStatus.PAUSED ? "bg-[var(--warning)]" :
-              campaign.status === CampaignStatus.COMPLETED ? "bg-[var(--blueprint)]" :
-              "bg-[var(--ink-ghost)]"
+                campaign.status === CampaignStatus.PAUSED ? "bg-[var(--warning)]" :
+                  campaign.status === CampaignStatus.COMPLETED ? "bg-[var(--blueprint)]" :
+                    "bg-[var(--ink-ghost)]"
             )} />
           </div>
           <p className="text-lg font-semibold text-[var(--ink)] capitalize">
@@ -235,14 +236,14 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center",
-                  move.status === 'completed' ? "bg-[var(--success-light)]/10" :
-                  move.status === 'running' ? "bg-[var(--warning-light)]/10" :
-                  "bg-[var(--surface)]"
+                  move.status === MoveStatus.COMPLETED ? "bg-[var(--success-light)]/10" :
+                    move.status === MoveStatus.RUNNING ? "bg-[var(--warning-light)]/10" :
+                      "bg-[var(--surface)]"
                 )}>
                   <Zap size={16} className={
-                    move.status === 'completed' ? "text-[var(--success)]" :
-                    move.status === 'running' ? "text-[var(--warning)]" :
-                    "text-[var(--ink-ghost)]"
+                    move.status === MoveStatus.COMPLETED ? "text-[var(--success)]" :
+                      move.status === MoveStatus.RUNNING ? "text-[var(--warning)]" :
+                        "text-[var(--ink-ghost)]"
                   } />
                 </div>
                 <div>
@@ -250,20 +251,20 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
                   <p className="text-xs text-[var(--ink-muted)]">
                     {move.execution.completedAt
                       ? `Completed ${formatDistanceToNow(move.execution.completedAt, { addSuffix: true })}`
-                      : move.status === 'running'
-                      ? 'Running now'
-                      : 'Not started'
+                      : move.status === MoveStatus.RUNNING
+                        ? 'Running now'
+                        : 'Not started'
                     }
                   </p>
                 </div>
               </div>
               <BlueprintBadge
-                variant="outline"
+                variant="default"
                 size="sm"
                 className={cn(
-                  move.status === 'completed' ? "border-[var(--success)] text-[var(--success)]" :
-                  move.status === 'running' ? "border-[var(--warning)] text-[var(--warning)]" :
-                  "border-[var(--ink-ghost)] text-[var(--ink-ghost)]"
+                  move.status === MoveStatus.COMPLETED ? "border-[var(--success)] text-[var(--success)]" :
+                    move.status === MoveStatus.RUNNING ? "border-[var(--warning)] text-[var(--warning)]" :
+                      "border-[var(--ink-ghost)] text-[var(--ink-ghost)]"
                 )}
               >
                 {move.status}
@@ -336,16 +337,16 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
                       </div>
                       <div className={cn(
                         "w-10 h-10 rounded-lg flex items-center justify-center",
-                        move.status === 'completed' ? "bg-[var(--success-light)]/10" :
-                        move.status === 'running' ? "bg-[var(--warning-light)]/10" :
-                        move.status === 'failed' ? "bg-[var(--destructive-light)]/10" :
-                        "bg-[var(--surface)]"
+                        move.status === MoveStatus.COMPLETED ? "bg-[var(--success-light)]/10" :
+                          move.status === MoveStatus.RUNNING ? "bg-[var(--warning-light)]/10" :
+                            move.status === MoveStatus.FAILED ? "bg-[var(--destructive-light)]/10" :
+                              "bg-[var(--surface)]"
                       )}>
                         <Target size={20} className={
-                          move.status === 'completed' ? "text-[var(--success)]" :
-                          move.status === 'running' ? "text-[var(--warning)]" :
-                          move.status === 'failed' ? "text-[var(--destructive)]" :
-                          "text-[var(--ink-ghost)]"
+                          move.status === MoveStatus.COMPLETED ? "text-[var(--success)]" :
+                            move.status === MoveStatus.RUNNING ? "text-[var(--warning)]" :
+                              move.status === MoveStatus.FAILED ? "text-[var(--destructive)]" :
+                                "text-[var(--ink-ghost)]"
                         } />
                       </div>
                       <div className="flex-1">
@@ -357,7 +358,7 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {move.status === 'running' && (
+                      {move.status === MoveStatus.RUNNING && (
                         <BlueprintBadge variant="default" size="sm" className="animate-pulse">
                           Running
                         </BlueprintBadge>
@@ -391,7 +392,7 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
                               Duplicate
                             </button>
                             <hr className="my-1 border-[var(--structure-subtle)]" />
-                            {move.status === 'running' ? (
+                            {move.status === MoveStatus.RUNNING ? (
                               <button className="w-full px-3 py-2 text-xs text-left text-[var(--ink)] hover:bg-[var(--surface)] flex items-center gap-2">
                                 <Pause size={12} />
                                 Pause
@@ -424,12 +425,10 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
                             <p className="text-xs text-[var(--ink)]">
                               Type: <span className="text-[var(--ink-muted)]">{move.type}</span>
                             </p>
-                            <p className="text-xs text-[var(--ink)]">
-                              Priority: <span className="text-[var(--ink-muted)]">{move.priority || 'normal'}</span>
-                            </p>
-                            {move.delay && (
+
+                            {move.config.delay && (
                               <p className="text-xs text-[var(--ink)]">
-                                Delay: <span className="text-[var(--ink-muted)]">{move.delay} hours</span>
+                                Delay: <span className="text-[var(--ink-muted)]">{move.config.delay} hours</span>
                               </p>
                             )}
                           </div>

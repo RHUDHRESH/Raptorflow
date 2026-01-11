@@ -31,7 +31,7 @@ export default function Error({
           <span className="font-technical text-[var(--muted)]">SYSTEM_FAILURE</span>
         </div>
 
-        <h1 className="font-editorial text-3xl text-[var(--ink)] mb-4">Critical Alignment Error</h1>
+        <h1 className="font-serif text-3xl text-[var(--ink)] mb-4">Critical Alignment Error</h1>
         <p className="text-[var(--secondary)] mb-8">
           The system encountered an unexpected structural failure. Our engineers have been dispatched.
         </p>

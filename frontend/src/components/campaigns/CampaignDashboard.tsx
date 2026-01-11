@@ -53,7 +53,7 @@ export function CampaignDashboard({
   // Filter campaigns
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         campaign.description.toLowerCase().includes(searchQuery.toLowerCase());
+      campaign.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || campaign.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -70,32 +70,32 @@ export function CampaignDashboard({
   const statusConfig = {
     [CampaignStatus.DRAFT]: {
       label: 'Draft',
-      color: 'bg-gray-100 text-gray-700 border-gray-200',
+      color: 'bg-[var(--surface)] text-[var(--secondary)] border-[var(--border)]',
       icon: Edit
     },
     [CampaignStatus.PLANNING]: {
       label: 'Planning',
-      color: 'bg-blue-100 text-blue-700 border-blue-200',
+      color: 'bg-[var(--blueprint-light)] text-[var(--blueprint)] border-[var(--blueprint)]/20',
       icon: Clock
     },
     [CampaignStatus.ACTIVE]: {
       label: 'Active',
-      color: 'bg-green-100 text-green-700 border-green-200',
+      color: 'bg-[var(--success-light)] text-[var(--success)] border-[var(--success)]/20',
       icon: Play
     },
     [CampaignStatus.PAUSED]: {
       label: 'Paused',
-      color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+      color: 'bg-[var(--warning-light)] text-[var(--warning)] border-[var(--warning)]/20',
       icon: Pause
     },
     [CampaignStatus.COMPLETED]: {
       label: 'Completed',
-      color: 'bg-purple-100 text-purple-700 border-purple-200',
+      color: 'bg-[var(--accent-light)] text-[var(--accent)] border-[var(--accent)]/20',
       icon: CheckCircle
     },
     [CampaignStatus.CANCELLED]: {
       label: 'Cancelled',
-      color: 'bg-red-100 text-red-700 border-red-200',
+      color: 'bg-[var(--error-light)] text-[var(--error)] border-[var(--error)]/20',
       icon: XCircle
     }
   };
@@ -364,7 +364,7 @@ export function CampaignDashboard({
                       </p>
                       <div className="flex items-center gap-2 mt-2">
                         <BlueprintBadge variant="default" size="sm">
-                          {campaign.objective}
+                          {campaign.status}
                         </BlueprintBadge>
                         {campaign.tags.map(tag => (
                           <span key={tag} className="text-[9px] px-1.5 py-0.5 bg-[var(--surface)] text-[var(--ink-muted)] rounded">
@@ -376,7 +376,7 @@ export function CampaignDashboard({
 
                     <div className="w-24">
                       <BlueprintBadge
-                        variant="outline"
+                        variant="default"
                         size="sm"
                         className={cn(statusInfo.color)}
                       >

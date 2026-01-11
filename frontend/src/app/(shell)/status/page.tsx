@@ -39,7 +39,7 @@ export default function StatusPage() {
           <div className="h-px w-8 bg-[var(--blueprint-line)]" />
           <span className="font-technical text-[var(--muted)]">STATUS</span>
         </div>
-        <h1 className="font-editorial text-3xl text-[var(--ink)]">System Status</h1>
+        <h1 className="font-serif text-3xl text-[var(--ink)]">System Status</h1>
       </div>
 
       <BlueprintCard padding="lg" showCorners className="mb-8 border-[var(--success)]/20 bg-[var(--success)]/5" data-anim>

@@ -44,7 +44,7 @@ export function MessagingDetailModal({ messaging, isOpen, onClose, onUpdate }: M
                             <MessageSquare size={24} className="text-[var(--blueprint)]" />
                         </div>
                         <div>
-                            <h2 className="font-editorial text-2xl text-[var(--ink)]">Core Messaging</h2>
+                            <h2 className="font-serif text-2xl text-[var(--ink)]">Core Messaging</h2>
                             <p className="text-sm text-[var(--ink-secondary)]">Your brand's voice and positioning</p>
                         </div>
                     </div>
@@ -76,7 +76,7 @@ export function MessagingDetailModal({ messaging, isOpen, onClose, onUpdate }: M
                         badge="Essential"
                     >
                         <div className="p-6 bg-[var(--ink)] rounded-xl text-center">
-                            <p className="font-editorial text-2xl text-[var(--paper)] leading-relaxed">
+                            <p className="font-serif text-2xl text-[var(--paper)] leading-relaxed">
                                 "{messaging.oneLiner}"
                             </p>
                         </div>
@@ -388,11 +388,11 @@ interface StoryBrandStepProps {
 
 function StoryBrandStep({ number, title, subtitle, content, color, children }: StoryBrandStepProps) {
     const colorStyles = {
-        blue: "bg-blue-100 text-blue-700 border-blue-200",
-        red: "bg-red-100 text-red-700 border-red-200",
-        purple: "bg-purple-100 text-purple-700 border-purple-200",
-        green: "bg-green-100 text-green-700 border-green-200",
-        orange: "bg-orange-100 text-orange-700 border-orange-200",
+        blue: "bg-[var(--blueprint-light)] text-[var(--blueprint)] border-[var(--blueprint)]/30",
+        red: "bg-[var(--error-light)] text-[var(--error)] border-[var(--error)]/30",
+        purple: "bg-[var(--accent-light)] text-[var(--accent)] border-[var(--accent)]/30",
+        green: "bg-[var(--success-light)] text-[var(--success)] border-[var(--success)]/30",
+        orange: "bg-[var(--warning-light)] text-[var(--warning)] border-[var(--warning)]/30",
     };
 
     return (

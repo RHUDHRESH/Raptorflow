@@ -7,29 +7,16 @@ import {
   Plus,
   Search,
   Calendar,
-  Target,
   TrendingUp,
   Play,
   Pause,
-  BarChart3,
-  Users,
-  Zap,
   LayoutGrid,
   List,
   Flag,
-  ArrowRight,
   CheckCircle2,
-  Terminal,
-  Sparkles,
   Layers,
   ArrowUpRight,
-  X,
-  Activity,
-  ArrowLeft,
-  Clock,
-  MoreHorizontal,
-  Archive,
-  Eye
+  ArrowLeft
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -39,6 +26,7 @@ import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { BlueprintEmptyState } from "@/components/ui/BlueprintEmptyState";
 import { useCampaignStore, CampaignMove, MoveStatus } from "@/stores/campaignStore";
 import { PageHeader, PageFooter } from "@/components/ui/PageHeader";
+import { CampaignWizard } from "@/components/campaigns/CampaignWizard";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    CAMPAIGN OS — Strategic Command Center
@@ -131,266 +119,32 @@ export default function CampaignsPage() {
     }
   }, [view]);
 
-  // --- WIZARD COMPONENT ---
-  const CampaignWizard = () => {
-    const [step, setStep] = useState(1);
-    const [formData, setFormData] = useState({
-      objective: "",
-      context: "",
-      duration: "60 Days",
-      intensity: "Marathon",
-      icp: "",
-      channels: [] as string[]
-    });
-
-    const nextStep = () => setStep(step + 1);
-    const prevStep = () => setStep(step - 1);
-
-    const handleChannelToggle = (ch: string) => {
-      setFormData(prev => ({
-        ...prev,
-        channels: prev.channels.includes(ch) ? prev.channels.filter(c => c !== ch) : [...prev.channels, ch]
-      }));
+  // CampaignWizard is now imported from @/components/campaigns/CampaignWizard
+  const handleWizardComplete = (data: {
+    name: string;
+    goal: string;
+    objective: string;
+    duration: string;
+    intensity: string;
+    icp: string;
+    channels: string[];
+  }) => {
+    const newCampaign = {
+      id: `CMP-${Math.floor(Math.random() * 1000)}`,
+      name: data.name,
+      status: "Active" as const,
+      progress: 0,
+      goal: data.goal,
+      moves: [
+        { id: `M-${Date.now()}-1`, title: "Strategy Definition", type: "Positioning", status: "Active" as const, start: "Today", end: "Week 2", items_done: 0, items_total: 3, desc: `Initial strategy alignment based on ${data.objective}` },
+        { id: `M-${Date.now()}-2`, title: "Asset Creation", type: "Production", status: "Planned" as const, start: "Week 3", end: "Week 5", items_done: 0, items_total: 10, desc: `Producing content for ${data.channels.join(", ")}` }
+      ]
     };
-
-    const finishWizard = () => {
-      const newCampaign = {
-        id: `CMP-${Math.floor(Math.random() * 1000)}`,
-        name: `${formData.objective} Campaign`,
-        status: "Active" as const,
-        progress: 0,
-        goal: formData.context || formData.objective,
-        moves: [
-          { id: `M-${Date.now()}-1`, title: "Strategy Definition", type: "Positioning", status: "Active" as const, start: "Today", end: "Week 2", items_done: 0, items_total: 3, desc: `Initial strategy alignment based on ${formData.objective}` },
-          { id: `M-${Date.now()}-2`, title: "Asset Creation", type: "Production", status: "Planned" as const, start: "Week 3", end: "Week 5", items_done: 0, items_total: 10, desc: `Producing content for ${formData.channels.join(", ")}` }
-        ]
-      };
-      addCampaign(newCampaign);
-      setActiveCampaign(newCampaign.id);
-      setView("DETAIL");
-    };
-
-    return (
-      <div className="fixed inset-0 bg-[var(--canvas)]/98 backdrop-blur-md z-50 flex flex-col animate-in fade-in duration-200">
-        {/* Header */}
-        <div className="h-16 border-b border-[var(--structure)] flex items-center justify-between px-8 bg-[var(--canvas)]">
-          <div className="flex items-center gap-4">
-            <span className="font-technical text-[var(--ink-muted)] text-xs">NEW_CAMPAIGN // STEP {step} OF 4</span>
-          </div>
-          <button onClick={() => setView("LIST")} className="text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors">
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 flex items-center justify-center p-8 bg-[var(--surface-subtle)]">
-          <div className="w-full max-w-2xl">
-
-            {/* STEP 1: OBJECTIVE */}
-            {step === 1 && (
-              <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-300">
-                <div>
-                  <h2 className="font-editorial text-3xl text-[var(--ink)] mb-2">What is the Strategic Objective?</h2>
-                  <p className="text-[var(--ink-secondary)]">Define the primary outcome for this campaign.</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  {["Market Entry (Launch)", "Revenue Scaling", "Brand Pivot", "Customer Retention", "Crisis Management", "Product Testing"].map(obj => (
-                    <BlueprintCard
-                      key={obj}
-                      onClick={() => setFormData({ ...formData, objective: obj })}
-                      className={cn(
-                        "cursor-pointer hover:border-[var(--blueprint)] transition-all",
-                        formData.objective === obj ? 'border-[var(--blueprint)] bg-[var(--blueprint-light)]' : ''
-                      )}
-                      padding="md"
-                      showCorners={false}
-                    >
-                      <h3 className="font-bold text-lg mb-1">{obj.split(" (")[0]}</h3>
-                      <span className="text-xs text-[var(--ink-muted)] uppercase tracking-widest">{obj.includes("(") ? obj.split(" (")[1].replace(")", "") : "General"}</span>
-                    </BlueprintCard>
-                  ))}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[var(--ink-muted)] uppercase mb-2">Context (Why now?)</label>
-                  <textarea
-                    value={formData.context}
-                    onChange={(e) => setFormData({ ...formData, context: e.target.value })}
-                    className="rf-input w-full h-24 p-4 text-sm resize-none"
-                    placeholder="e.g. Competitor just raised prices, Q4 budget flush available..."
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* STEP 2: CONSTRAINTS */}
-            {step === 2 && (
-              <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-300">
-                <div>
-                  <h2 className="font-editorial text-3xl text-[var(--ink)] mb-2">Define Operational Constraints</h2>
-                  <p className="text-[var(--ink-secondary)]">How much time and intensity are we committing?</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[var(--ink-muted)] uppercase mb-4">Time Horizon</label>
-                  <div className="flex gap-4">
-                    {["30 Days", "60 Days", "90 Days"].map(d => (
-                      <button
-                        key={d}
-                        onClick={() => setFormData({ ...formData, duration: d })}
-                        className={cn(
-                          "flex-1 py-4 border rounded-[var(--radius)] text-center font-bold transition-all",
-                          formData.duration === d
-                            ? 'bg-[var(--ink)] text-[var(--paper)] border-[var(--ink)]'
-                            : 'bg-[var(--paper)] border-[var(--structure)] text-[var(--ink-secondary)] hover:border-[var(--ink-muted)]'
-                        )}
-                      >
-                        {d}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[var(--ink-muted)] uppercase mb-4">Execution Intensity</label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <BlueprintCard
-                      onClick={() => setFormData({ ...formData, intensity: "Sprint" })}
-                      className={cn("cursor-pointer", formData.intensity === "Sprint" ? 'border-[var(--blueprint)] bg-[var(--blueprint-light)]' : '')}
-                      padding="md"
-                    >
-                      <div className="flex items-center gap-2 mb-2"><Zap size={18} /> <span className="font-bold">Sprint Mode</span></div>
-                      <p className="text-xs text-[var(--ink-muted)]">High volume, short duration. "Break things."</p>
-                    </BlueprintCard>
-                    <BlueprintCard
-                      onClick={() => setFormData({ ...formData, intensity: "Marathon" })}
-                      className={cn("cursor-pointer", formData.intensity === "Marathon" ? 'border-[var(--blueprint)] bg-[var(--blueprint-light)]' : '')}
-                      padding="md"
-                    >
-                      <div className="flex items-center gap-2 mb-2"><Activity size={18} /> <span className="font-bold">Marathon Mode</span></div>
-                      <p className="text-xs text-[var(--ink-muted)]">Steady, compounding growth. "Build systems."</p>
-                    </BlueprintCard>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* STEP 3: TARGETING */}
-            {step === 3 && (
-              <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-300">
-                <div>
-                  <h2 className="font-editorial text-3xl text-[var(--ink)] mb-2">Target Acquisition</h2>
-                  <p className="text-[var(--ink-secondary)]">Who are we reaching and where?</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[var(--ink-muted)] uppercase mb-2">Ideal Customer Profile (ICP)</label>
-                  <select
-                    value={formData.icp}
-                    onChange={(e) => setFormData({ ...formData, icp: e.target.value })}
-                    className="rf-input w-full p-3"
-                  >
-                    <option value="">Select Primary Persona...</option>
-                    <option value="Founders">Founders / CEOs</option>
-                    <option value="CTOs">Technical Leads / CTOs</option>
-                    <option value="Marketers">CMOs / Growth Heads</option>
-                    <option value="Investors">VCs / Angels</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[var(--ink-muted)] uppercase mb-4">Channel Vectors</label>
-                  <div className="flex flex-wrap gap-3">
-                    {["LinkedIn", "X (Twitter)", "Email", "Instagram", "YouTube", "SEO / Blog", "Paid Ads"].map(ch => (
-                      <button
-                        key={ch}
-                        onClick={() => handleChannelToggle(ch)}
-                        className={cn(
-                          "px-4 py-2 border rounded-full text-sm transition-all",
-                          formData.channels.includes(ch)
-                            ? 'bg-[var(--ink)] text-[var(--paper)] border-[var(--ink)]'
-                            : 'bg-[var(--paper)] border-[var(--structure)] text-[var(--ink-secondary)]'
-                        )}
-                      >
-                        {ch}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* STEP 4: REVIEW */}
-            {step === 4 && (
-              <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-300">
-                <div>
-                  <h2 className="font-editorial text-3xl text-[var(--ink)] mb-2">Confirm Strategy</h2>
-                  <p className="text-[var(--ink-secondary)]">Review your campaign configuration.</p>
-                </div>
-
-                <BlueprintCard padding="lg" className="bg-[var(--surface)]">
-                  <div className="flex justify-between items-start mb-6 border-b border-[var(--structure)] pb-4">
-                    <div>
-                      <div className="text-xs text-[var(--ink-muted)] uppercase mb-1">Campaign Archetype</div>
-                      <h3 className="font-editorial text-xl text-[var(--ink)]">{formData.objective}</h3>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-[var(--ink-muted)] uppercase mb-1">Duration</div>
-                      <h3 className="text-xl font-bold text-[var(--ink)]">{formData.duration}</h3>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 relative pl-4">
-                    <div className="absolute left-[15px] top-2 bottom-2 w-px bg-[var(--structure)]" />
-
-                    <div className="flex items-center gap-4 relative">
-                      <div className="w-8 h-8 rounded-full bg-[var(--ink)] flex items-center justify-center font-bold text-sm text-[var(--paper)] z-10">1</div>
-                      <div className="flex-1 p-3 border border-[var(--structure)] rounded bg-[var(--paper)]">
-                        <h4 className="font-bold text-sm text-[var(--ink)]">Phase 1: Positioning</h4>
-                        <p className="text-xs text-[var(--ink-secondary)]">Establish the wedge against competitors.</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 relative">
-                      <div className="w-8 h-8 rounded-full bg-[var(--ink)] flex items-center justify-center font-bold text-sm text-[var(--paper)] z-10">2</div>
-                      <div className="flex-1 p-3 border border-[var(--structure)] rounded bg-[var(--paper)]">
-                        <h4 className="font-bold text-sm text-[var(--ink)]">Phase 2: Validation</h4>
-                        <p className="text-xs text-[var(--ink-secondary)]">Targeting {formData.icp || "Primary ICP"} via {formData.channels[0] || "Selected Channels"}.</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 relative">
-                      <div className="w-8 h-8 rounded-full bg-[var(--ink)] flex items-center justify-center font-bold text-sm text-[var(--paper)] z-10">3</div>
-                      <div className="flex-1 p-3 border border-[var(--structure)] rounded bg-[var(--paper)]">
-                        <h4 className="font-bold text-sm text-[var(--ink)]">Phase 3: Scale</h4>
-                        <p className="text-xs text-[var(--ink-secondary)]">{formData.intensity} execution across all vectors.</p>
-                      </div>
-                    </div>
-                  </div>
-                </BlueprintCard>
-              </div>
-            )}
-
-            {/* Footer Nav */}
-            <div className="flex justify-between mt-8 pt-8 border-t border-[var(--structure-subtle)]">
-              {step > 1 ? (
-                <SecondaryButton onClick={prevStep}>Back</SecondaryButton>
-              ) : (
-                <div></div>
-              )}
-              <BlueprintButton
-                onClick={step === 4 ? finishWizard : nextStep}
-                disabled={step === 1 && !formData.objective}
-                label={step === 4 ? "LAUNCH" : "NEXT"}
-              >
-                {step === 4 ? "Launch Campaign" : "Next Step"}
-                {step !== 4 && <ArrowRight size={14} />}
-              </BlueprintButton>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    addCampaign(newCampaign);
+    setActiveCampaign(newCampaign.id);
+    setView("DETAIL");
   };
+
 
   // --- Progress Ring Component ---
   const ProgressRing = ({ progress, size = 48 }: { progress: number; size?: number }) => {
@@ -449,51 +203,55 @@ export default function CampaignsPage() {
           />
 
           {/* Summary Stats Bar */}
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-[var(--paper)] border border-[var(--structure)] rounded-[var(--radius)] p-4">
+          <div className="grid grid-cols-4 gap-6">
+            <BlueprintCard padding="md" showCorners className="border-[var(--structure)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="label block mb-1">TOTAL</span>
-                  <span className="font-data text-2xl text-[var(--ink)]">{stats.total}</span>
+                  <span className="font-technical text-[10px] text-[var(--muted)] uppercase tracking-wider block mb-1">CAMPAIGNS</span>
+                  <span className="font-serif text-3xl text-[var(--ink)]">{stats.total}</span>
+                  <span className="font-technical text-[9px] text-[var(--secondary)] block mt-1">All time</span>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-[var(--surface)] border border-[var(--structure-subtle)] flex items-center justify-center">
-                  <Flag size={18} className="text-[var(--ink-muted)]" />
+                <div className="w-12 h-12 rounded-xl bg-[var(--surface)] flex items-center justify-center">
+                  <Flag size={20} className="text-[var(--ink)]" />
                 </div>
               </div>
-            </div>
-            <div className="bg-[var(--paper)] border border-[var(--structure)] rounded-[var(--radius)] p-4">
+            </BlueprintCard>
+            <BlueprintCard padding="md" showCorners className="border-[var(--blueprint)]/30 bg-[var(--blueprint-light)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="label block mb-1">ACTIVE</span>
-                  <span className="font-data text-2xl text-[var(--blueprint)]">{stats.active}</span>
+                  <span className="font-technical text-[10px] text-[var(--blueprint)] uppercase tracking-wider block mb-1">ACTIVE</span>
+                  <span className="font-serif text-3xl text-[var(--blueprint)]">{stats.active}</span>
+                  <span className="font-technical text-[9px] text-[var(--secondary)] block mt-1">Running now</span>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-[var(--blueprint-light)] border border-[var(--blueprint)]/20 flex items-center justify-center">
-                  <Play size={18} className="text-[var(--blueprint)]" />
+                <div className="w-12 h-12 rounded-xl bg-[var(--blueprint)] flex items-center justify-center">
+                  <Play size={20} className="text-[var(--paper)]" />
                 </div>
               </div>
-            </div>
-            <div className="bg-[var(--paper)] border border-[var(--structure)] rounded-[var(--radius)] p-4">
+            </BlueprintCard>
+            <BlueprintCard padding="md" showCorners className="border-[var(--structure)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="label block mb-1">TOTAL MOVES</span>
-                  <span className="font-data text-2xl text-[var(--ink)]">{stats.totalMoves}</span>
+                  <span className="font-technical text-[10px] text-[var(--muted)] uppercase tracking-wider block mb-1">TOTAL MOVES</span>
+                  <span className="font-serif text-3xl text-[var(--ink)]">{stats.totalMoves}</span>
+                  <span className="font-technical text-[9px] text-[var(--secondary)] block mt-1">Across all campaigns</span>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-[var(--surface)] border border-[var(--structure-subtle)] flex items-center justify-center">
-                  <Layers size={18} className="text-[var(--ink-muted)]" />
+                <div className="w-12 h-12 rounded-xl bg-[var(--surface)] flex items-center justify-center">
+                  <Layers size={20} className="text-[var(--ink)]" />
                 </div>
               </div>
-            </div>
-            <div className="bg-[var(--paper)] border border-[var(--structure)] rounded-[var(--radius)] p-4">
+            </BlueprintCard>
+            <BlueprintCard padding="md" showCorners className="border-[var(--success)]/30 bg-[var(--success-light)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="label block mb-1">AVG PROGRESS</span>
-                  <span className="font-data text-2xl text-[var(--success)]">{stats.avgProgress}%</span>
+                  <span className="font-technical text-[10px] text-[var(--success)] uppercase tracking-wider block mb-1">AVG PROGRESS</span>
+                  <span className="font-serif text-3xl text-[var(--success)]">{stats.avgProgress}%</span>
+                  <span className="font-technical text-[9px] text-[var(--secondary)] block mt-1">Completion rate</span>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-[var(--success-light)] border border-[var(--success)]/20 flex items-center justify-center">
-                  <TrendingUp size={18} className="text-[var(--success)]" />
+                <div className="w-12 h-12 rounded-xl bg-[var(--success)] flex items-center justify-center">
+                  <TrendingUp size={20} className="text-[var(--paper)]" />
                 </div>
               </div>
-            </div>
+            </BlueprintCard>
           </div>
 
           {/* Filters & View Toggle */}
@@ -577,7 +335,7 @@ export default function CampaignsPage() {
                           {camp.status.toUpperCase()}
                         </BlueprintBadge>
                       </div>
-                      <h3 className="font-editorial text-lg text-[var(--ink)] group-hover:text-[var(--blueprint)] transition-colors truncate">
+                      <h3 className="font-serif text-lg text-[var(--ink)] group-hover:text-[var(--blueprint)] transition-colors truncate">
                         {camp.name}
                       </h3>
                       <p className="text-xs text-[var(--ink-secondary)] line-clamp-1 mt-1">{camp.goal}</p>
@@ -669,7 +427,7 @@ export default function CampaignsPage() {
                   <span className="font-technical text-[var(--ink-muted)]">CONSOLE</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <h2 className="font-editorial text-3xl text-[var(--ink)]">{activeCampaign.name}</h2>
+                  <h2 className="font-serif text-3xl text-[var(--ink)]">{activeCampaign.name}</h2>
                   <BlueprintBadge variant="success">ACTIVE</BlueprintBadge>
                 </div>
               </div>
@@ -762,7 +520,11 @@ export default function CampaignsPage() {
       )}
 
       {/* VIEW: WIZARD OVERLAY */}
-      {view === "WIZARD" && <CampaignWizard />}
+      <CampaignWizard
+        isOpen={view === "WIZARD"}
+        onClose={() => setView("LIST")}
+        onComplete={handleWizardComplete}
+      />
     </div>
   );
 }

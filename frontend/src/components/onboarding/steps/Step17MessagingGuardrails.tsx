@@ -288,8 +288,8 @@ export default function Step17MessagingGuardrails() {
                         <button
                             onClick={() => setNewType("do")}
                             className={`flex-1 px-4 py-3 font-technical text-[10px] rounded-lg transition-all flex items-center justify-center gap-2 ${newType === "do"
-                                    ? "bg-[var(--success)] text-[var(--paper)]"
-                                    : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)]"
+                                ? "bg-[var(--success)] text-[var(--paper)]"
+                                : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)]"
                                 }`}
                         >
                             <Check size={14} />ALWAYS DO
@@ -297,8 +297,8 @@ export default function Step17MessagingGuardrails() {
                         <button
                             onClick={() => setNewType("dont")}
                             className={`flex-1 px-4 py-3 font-technical text-[10px] rounded-lg transition-all flex items-center justify-center gap-2 ${newType === "dont"
-                                    ? "bg-[var(--error)] text-[var(--paper)]"
-                                    : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)]"
+                                ? "bg-[var(--error)] text-[var(--paper)]"
+                                : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)]"
                                 }`}
                         >
                             <X size={14} />NEVER DO
@@ -360,7 +360,7 @@ export default function Step17MessagingGuardrails() {
             )}
 
             <div className="flex justify-center pt-4">
-                <span className="font-technical text-[var(--muted)]">MESSAGING-GUARDRAILS • STEP 17/25</span>
+                <span className="font-technical text-[var(--muted)]">MESSAGING-RULES • STEP 16/24</span>
             </div>
         </div>
     );

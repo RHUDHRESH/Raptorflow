@@ -445,7 +445,7 @@ export default function Step7ResearchBrief() {
 
             <div className="flex justify-center pt-4">
                 <span className="font-technical text-[var(--muted)]">
-                    DOCUMENT: RESEARCH-BRIEF | STEP 07/25 | {insights.length + competitors.length} ITEMS
+                    RESEARCH-BRIEF • STEP 06/24 • {insights.length + competitors.length} ITEMS
                 </span>
             </div>
         </div>

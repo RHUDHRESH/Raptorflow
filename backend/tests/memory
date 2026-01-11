@@ -1,0 +1,402 @@
+"""
+Architecture alignment test for memory systems.
+
+This script verifies that the memory system aligns with:
+1. Routing architecture (3-layer routing pipeline)
+2. Cognitive engine components
+3. Overall Raptorflow backend architecture
+4. Data isolation and workspace management
+5. API integration patterns
+"""
+
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from memory.chunker import ContentChunker
+from memory.embeddings import get_embedding_model
+from memory.graph_models import EntityType, GraphEntity, GraphRelationship, RelationType
+from memory.models import MemoryChunk, MemoryType
+from memory.vector_store import VectorMemory
+
+
+def test_routing_architecture_alignment():
+    """Test alignment with 3-layer routing architecture."""
+    print("Testing routing architecture alignment...")
+
+    # Check that memory types align with routing layers
+    # Semantic Router: Fast, embedding-based, no LLM calls
+    # HLK Router: Lightweight LLM for agent selection
+    # Intent Router: Extracts detailed intent and parameters
+
+    # Memory types should support all three layers
+    routing_memory_types = {
+        "semantic": [MemoryType.FOUNDATION, MemoryType.ICP, MemoryType.RESEARCH],
+        "hlk": [MemoryType.MOVE, MemoryType.CAMPAIGN, MemoryType.CONVERSATION],
+        "intent": [MemoryType.CONVERSATION, MemoryType.FEEDBACK],
+    }
+
+    for layer, types in routing_memory_types.items():
+        for memory_type in types:
+            assert (
+                memory_type in MemoryType
+            ), f"{memory_type} should be available for {layer} routing"
+
+    # Embedding model should support semantic routing
+    embedding_model = get_embedding_model()
+    assert (
+        embedding_model is not None
+    ), "Embedding model should be available for semantic routing"
+    assert hasattr(
+        embedding_model, "encode_single"
+    ), "Should support single text encoding"
+    assert hasattr(embedding_model, "encode"), "Should support batch encoding"
+
+    # Chunker should support content processing for intent extraction
+    chunker = ContentChunker()
+    assert hasattr(chunker, "chunk"), "Should support content chunking"
+    assert hasattr(chunker, "chunk_with_info"), "Should support chunking with metadata"
+
+    print("✓ Routing architecture alignment test passed")
+
+
+def test_cognitive_engine_alignment():
+    """Test alignment with cognitive engine components."""
+    print("Testing cognitive engine alignment...")
+
+    # Cognitive Engine: Perception → Planning → Execution → Reflection → Human-in-the-loop
+
+    # Memory types should support all cognitive modules
+    cognitive_memory_mapping = {
+        "perception": [MemoryType.CONVERSATION, MemoryType.FEEDBACK],
+        "planning": [MemoryType.MOVE, MemoryType.CAMPAIGN],
+        "execution": [MemoryType.CONVERSATION, MemoryType.RESEARCH],
+        "reflection": [MemoryType.FEEDBACK, MemoryType.CONVERSATION],
+        "human_in_the_loop": [MemoryType.FEEDBACK, MemoryType.MOVE],
+    }
+
+    for module, types in cognitive_memory_mapping.items():
+        for memory_type in types:
+            assert (
+                memory_type in MemoryType
+            ), f"{memory_type} should support {module} module"
+
+    # Entity types should support cognitive reasoning
+    reasoning_entity_types = [
+        EntityType.COMPANY,
+        EntityType.ICP,
+        EntityType.COMPETITOR,
+        EntityType.CHANNEL,
+        EntityType.PAIN_POINT,
+        EntityType.USP,
+        EntityType.FEATURE,
+    ]
+
+    for entity_type in reasoning_entity_types:
+        assert (
+            entity_type in EntityType
+        ), f"{entity_type} should support cognitive reasoning"
+
+    # Relationship types should support cognitive connections
+    cognitive_relationships = [
+        RelationType.HAS_ICP,
+        RelationType.COMPETES_WITH,
+        RelationType.USES_CHANNEL,
+        RelationType.SOLVES_PAIN,
+        RelationType.HAS_USP,
+        RelationType.RELATED_TO,
+    ]
+
+    for rel_type in cognitive_relationships:
+        assert (
+            rel_type in RelationType
+        ), f"{rel_type} should support cognitive connections"
+
+    print("✓ Cognitive engine alignment test passed")
+
+
+def test_workspace_isolation_alignment():
+    """Test alignment with workspace isolation requirements."""
+    print("Testing workspace isolation alignment...")
+
+    # All memory components should support workspace_id
+    memory_chunk = MemoryChunk(workspace_id="test-ws")
+    assert (
+        memory_chunk.workspace_id == "test-ws"
+    ), "MemoryChunk should support workspace_id"
+
+    graph_entity = GraphEntity(workspace_id="test-ws")
+    assert (
+        graph_entity.workspace_id == "test-ws"
+    ), "GraphEntity should support workspace_id"
+
+    graph_relationship = GraphRelationship(workspace_id="test-ws")
+    assert (
+        graph_relationship.workspace_id == "test-ws"
+    ), "GraphRelationship should support workspace_id"
+
+    # Vector memory should enforce workspace isolation
+    # (This would require actual database connection to fully test)
+
+    # Memory types should be workspace-scoped
+    for memory_type in MemoryType:
+        assert (
+            memory_type.value in MemoryType.get_all_types()
+        ), f"{memory_type} should be workspace-scoped"
+
+    # Entity types should be workspace-scoped
+    for entity_type in EntityType:
+        assert (
+            entity_type.value in EntityType.get_all_types()
+        ), f"{entity_type} should be workspace-scoped"
+
+    print("✓ Workspace isolation alignment test passed")
+
+
+def test_api_integration_patterns():
+    """Test alignment with API integration patterns."""
+    print("Testing API integration patterns...")
+
+    # Memory components should support serialization for API responses
+    memory_chunk = MemoryChunk(
+        id="test-id",
+        workspace_id="test-ws",
+        memory_type=MemoryType.FOUNDATION,
+        content="Test content",
+    )
+
+    chunk_dict = memory_chunk.to_dict()
+    assert "id" in chunk_dict, "MemoryChunk should serialize to dict"
+    assert "workspace_id" in chunk_dict, "MemoryChunk dict should include workspace_id"
+    assert "memory_type" in chunk_dict, "MemoryChunk dict should include memory_type"
+
+    # Graph components should support serialization
+    graph_entity = GraphEntity(
+        id="test-entity",
+        workspace_id="test-ws",
+        entity_type=EntityType.COMPANY,
+        name="Test Company",
+    )
+
+    entity_dict = graph_entity.to_dict()
+    assert "id" in entity_dict, "GraphEntity should serialize to dict"
+    assert "workspace_id" in entity_dict, "GraphEntity dict should include workspace_id"
+    assert "entity_type" in entity_dict, "GraphEntity dict should include entity_type"
+
+    # Should support deserialization for API requests
+    restored_chunk = MemoryChunk.from_dict(chunk_dict)
+    assert restored_chunk.id == memory_chunk.id, "Should deserialize from dict"
+    assert (
+        restored_chunk.workspace_id == memory_chunk.workspace_id
+    ), "Should preserve workspace_id"
+
+    restored_entity = GraphEntity.from_dict(entity_dict)
+    assert restored_entity.id == graph_entity.id, "Should deserialize from dict"
+    assert (
+        restored_entity.workspace_id == graph_entity.workspace_id
+    ), "Should preserve workspace_id"
+
+    print("✓ API integration patterns test passed")
+
+
+def test_data_flow_consistency():
+    """Test data flow consistency across components."""
+    print("Testing data flow consistency...")
+
+    # Test that data flows correctly through the pipeline
+    # Content → Chunker → Embeddings → Vector Store → Search
+
+    # 1. Content chunking
+    chunker = ContentChunker(chunk_size=100, overlap=20)
+    content = "This is test content for data flow consistency testing. " * 10
+    chunks = chunker.chunk(content)
+    assert len(chunks) > 1, "Content should be chunked"
+
+    # 2. Memory chunk creation
+    memory_chunks = []
+    for i, chunk_text in enumerate(chunks):
+        chunk = MemoryChunk(
+            id=f"chunk-{i}",
+            workspace_id="test-ws",
+            memory_type=MemoryType.RESEARCH,
+            content=chunk_text,
+            metadata={"chunk_index": i},
+        )
+        memory_chunks.append(chunk)
+
+    # 3. Graph entity creation from memory
+    entities = []
+    for i, mem_chunk in enumerate(
+        memory_chunks[:3]
+    ):  # Create entities from first 3 chunks
+        entity = GraphEntity(
+            id=f"entity-{i}",
+            workspace_id="test-ws",
+            entity_type=EntityType.COMPANY,
+            name=f"Entity from chunk {i}",
+            properties={"source_chunk_id": mem_chunk.id},
+        )
+        entities.append(entity)
+
+    # 4. Relationship creation between entities
+    relationships = []
+    for i in range(len(entities) - 1):
+        rel = GraphRelationship(
+            id=f"rel-{i}",
+            workspace_id="test-ws",
+            source_id=entities[i].id,
+            target_id=entities[i + 1].id,
+            relation_type=RelationType.RELATED_TO,
+        )
+        relationships.append(rel)
+
+    # Verify data consistency
+    assert len(memory_chunks) == len(chunks), "All chunks should become memory chunks"
+    assert len(entities) == 3, "Should create 3 entities"
+    assert len(relationships) == 2, "Should create 2 relationships"
+
+    # Verify workspace consistency
+    for chunk in memory_chunks:
+        assert (
+            chunk.workspace_id == "test-ws"
+        ), "All memory chunks should have same workspace"
+
+    for entity in entities:
+        assert (
+            entity.workspace_id == "test-ws"
+        ), "All entities should have same workspace"
+
+    for rel in relationships:
+        assert (
+            rel.workspace_id == "test-ws"
+        ), "All relationships should have same workspace"
+
+    # Verify metadata consistency
+    for i, chunk in enumerate(memory_chunks):
+        assert chunk.get_metadata("chunk_index") == i, "Chunk index should be preserved"
+
+    for i, entity in enumerate(entities):
+        assert (
+            entity.get_property("source_chunk_id") == f"chunk-{i}"
+        ), "Source chunk should be preserved"
+
+    print("✓ Data flow consistency test passed")
+
+
+def test_performance_considerations():
+    """Test performance considerations and optimizations."""
+    print("Testing performance considerations...")
+
+    # Embedding model should have caching
+    embedding_model = get_embedding_model()
+    assert hasattr(embedding_model, "_cache"), "Embedding model should have caching"
+    assert hasattr(embedding_model, "encode_cached"), "Should support cached encoding"
+
+    # Chunker should have configurable parameters
+    chunker = ContentChunker(chunk_size=500, overlap=50)
+    assert chunker.chunk_size == 500, "Chunk size should be configurable"
+    assert chunker.overlap == 50, "Overlap should be configurable"
+
+    # Memory chunks should support token estimation
+    chunk = MemoryChunk(content="Test content for token estimation")
+    token_count = chunk.get_token_count()
+    assert isinstance(token_count, int), "Should return integer token count"
+    assert token_count > 0, "Should estimate positive token count"
+
+    # Graph entities should support similarity computation
+    import numpy as np
+
+    entity1 = GraphEntity()
+    entity2 = GraphEntity()
+
+    # Without embeddings, similarity should be 0
+    similarity = entity1.similarity_score(entity2)
+    assert similarity == 0.0, "Similarity without embeddings should be 0"
+
+    # With embeddings, similarity should be computed
+    entity1.embedding = np.array([1.0, 0.0])
+    entity2.embedding = np.array([1.0, 0.0])
+    similarity = entity1.similarity_score(entity2)
+    assert similarity == 1.0, "Identical embeddings should have similarity 1.0"
+
+    print("✓ Performance considerations test passed")
+
+
+def test_error_handling_and_validation():
+    """Test error handling and validation."""
+    print("Testing error handling and validation...")
+
+    # Memory chunk validation
+    empty_chunk = MemoryChunk(content="")
+    assert empty_chunk.is_empty(), "Empty content should be detected"
+
+    # Graph entity validation
+    invalid_entity = GraphEntity(name="", entity_type=None)
+    assert not invalid_entity.is_valid(), "Invalid entity should be detected"
+
+    valid_entity = GraphEntity(name="Valid Entity", entity_type=EntityType.COMPANY)
+    assert valid_entity.is_valid(), "Valid entity should pass validation"
+
+    # Graph relationship validation
+    invalid_rel = GraphRelationship(
+        source_id="same-id", target_id="same-id", relation_type=RelationType.RELATED_TO
+    )
+    assert not invalid_rel.is_valid(), "Self-referencing relationship should be invalid"
+
+    valid_rel = GraphRelationship(
+        source_id="source-id",
+        target_id="target-id",
+        relation_type=RelationType.RELATED_TO,
+    )
+    assert valid_rel.is_valid(), "Valid relationship should pass validation"
+
+    # Type conversion validation
+    try:
+        MemoryType.from_string("invalid_type")
+        assert False, "Should raise ValueError for invalid type"
+    except ValueError:
+        pass  # Expected
+
+    try:
+        EntityType.from_string("invalid_type")
+        assert False, "Should raise ValueError for invalid type"
+    except ValueError:
+        pass  # Expected
+
+    print("✓ Error handling and validation test passed")
+
+
+def run_alignment_tests():
+    """Run all architecture alignment tests."""
+    print("=" * 70)
+    print("RUNNING ARCHITECTURE ALIGNMENT TESTS")
+    print("=" * 70)
+
+    try:
+        test_routing_architecture_alignment()
+        test_cognitive_engine_alignment()
+        test_workspace_isolation_alignment()
+        test_api_integration_patterns()
+        test_data_flow_consistency()
+        test_performance_considerations()
+        test_error_handling_and_validation()
+
+        print("=" * 70)
+        print("✅ ALL ALIGNMENT TESTS PASSED - MEMORY SYSTEMS ALIGN WITH ARCHITECTURE")
+        print("=" * 70)
+        return True
+
+    except Exception as e:
+        print("=" * 70)
+        print(f"❌ ALIGNMENT TEST FAILED: {e}")
+        print("=" * 70)
+        import traceback
+
+        traceback.print_exc()
+        return False
+
+
+if __name__ == "__main__":
+    success = run_alignment_tests()
+    sys.exit(0 if success else 1)

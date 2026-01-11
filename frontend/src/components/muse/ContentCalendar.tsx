@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import { Calendar, dateFnsLocalizer, View, Views } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay, enUS } from 'date-fns';
+import { format, parse, startOfWeek, getDay } from 'date-fns';
+import { enUS } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, ExternalLink, RefreshCw } from 'lucide-react';
 import { MuseAsset } from '@/stores/museStore';
 import { BlueprintCard } from '@/components/ui/BlueprintCard';
@@ -226,7 +227,7 @@ export function ContentCalendar({ assets, onEventClick, onDateSelect }: ContentC
           components={{
             toolbar: () => null, // Custom toolbar above
             month: {
-              dateHeader: ({ date }) => (
+              dateHeader: ({ date }: { date: Date }) => (
                 <div className="text-xs text-[var(--ink-muted)] uppercase">
                   {format(date, 'EEE')}
                 </div>

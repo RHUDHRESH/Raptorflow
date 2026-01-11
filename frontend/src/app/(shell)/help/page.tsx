@@ -115,7 +115,7 @@ export default function HelpPage() {
 
       {/* Quick Links Grid */}
       <div className="mb-12">
-        <h2 className="font-editorial text-2xl text-[var(--ink)] mb-6">Quick Links</h2>
+        <h2 className="font-serif text-2xl text-[var(--ink)] mb-6">Quick Links</h2>
         <div className="grid grid-cols-3 gap-4">
           <div className="grid grid-cols-3 gap-4">
             {QUICK_LINKS.map((link, i) => {
@@ -153,7 +153,7 @@ export default function HelpPage() {
 
       {/* FAQ Section */}
       <div className="mb-12">
-          <h2 className="font-editorial text-2xl text-[var(--ink)] mb-6">
+          <h2 className="font-serif text-2xl text-[var(--ink)] mb-6">
             Frequently Asked Questions
             {searchQuery && <span className="text-base text-[var(--ink-muted)] font-normal ml-2">({filteredFaqs.length} results)</span>}
           </h2>
@@ -188,7 +188,7 @@ export default function HelpPage() {
         <BlueprintCard showCorners padding="lg" className="bg-gradient-to-br from-[var(--surface)] to-[var(--paper)]">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-editorial text-2xl text-[var(--ink)] mb-2">Still need help?</h3>
+              <h3 className="font-serif text-2xl text-[var(--ink)] mb-2">Still need help?</h3>
               <p className="text-[var(--ink-secondary)]">Our team typically responds within 2 hours during business hours.</p>
             </div>
             <div className="flex gap-4">

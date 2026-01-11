@@ -282,7 +282,7 @@ export default function Step24FinalSynthesis() {
             )}
 
             <div className="flex justify-center pt-4">
-                <span className="font-technical text-[var(--muted)]">FINAL-SYNTHESIS • STEP 24/25</span>
+                <span className="font-technical text-[var(--muted)]">FINAL-SYNTHESIS • STEP 23/24</span>
             </div>
 
             {/* Confetti Animation Styles */}

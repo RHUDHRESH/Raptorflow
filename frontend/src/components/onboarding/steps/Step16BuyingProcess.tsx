@@ -7,6 +7,7 @@ import { useOnboardingStore } from "@/stores/onboardingStore";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
+import { OnboardingStepLayout } from "../OnboardingStepLayout";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    PAPER TERMINAL — Step 16: Buying Process
@@ -149,171 +150,170 @@ export default function Step16BuyingProcess() {
     const StageIcon = stage.icon;
 
     return (
-        <div ref={containerRef} className="space-y-6">
-            {/* Educational Header */}
-            <div data-animate className="text-center py-4">
-                <h2 className="text-2xl font-serif text-[var(--ink)] mb-2">The Buyer's Journey</h2>
-                <p className="text-sm text-[var(--secondary)] max-w-lg mx-auto">
-                    Your customers go through 5 distinct stages before purchasing. Understanding these stages
-                    helps you create the right content and messaging for each moment.
-                </p>
-            </div>
+        <OnboardingStepLayout stepId={16} moduleLabel="BUYING-PROCESS">
+            <div ref={containerRef} className="space-y-6">
+                {/* Educational Header */}
+                <div data-animate className="text-center py-4">
+                    <h2 className="text-2xl font-serif text-[var(--ink)] mb-2">The Buyer's Journey</h2>
+                    <p className="text-sm text-[var(--secondary)] max-w-lg mx-auto">
+                        Your customers go through 5 distinct stages before purchasing. Understanding these stages
+                        helps you create the right content and messaging for each moment.
+                    </p>
+                </div>
 
-            {/* Stage Navigation */}
-            <div data-animate>
-                <JourneyProgress currentStage={activeStage} totalStages={BUYING_STAGES.length} />
-                <div className="flex items-center gap-2 overflow-x-auto py-4 -mx-4 px-4">
-                    {BUYING_STAGES.map((s, i) => {
-                        const SIcon = s.icon;
-                        return (
-                            <button
-                                key={s.id}
-                                onClick={() => setActiveStage(i)}
-                                className={`
+                {/* Stage Navigation */}
+                <div data-animate>
+                    <JourneyProgress currentStage={activeStage} totalStages={BUYING_STAGES.length} />
+                    <div className="flex items-center gap-2 overflow-x-auto py-4 -mx-4 px-4">
+                        {BUYING_STAGES.map((s, i) => {
+                            const SIcon = s.icon;
+                            return (
+                                <button
+                                    key={s.id}
+                                    onClick={() => setActiveStage(i)}
+                                    className={`
                                     flex items-center gap-2 px-4 py-2.5 font-technical text-[10px] rounded-lg
                                     whitespace-nowrap transition-all flex-shrink-0
                                     ${activeStage === i
-                                        ? "bg-[var(--blueprint)] text-[var(--paper)] shadow-lg"
-                                        : i < activeStage
-                                            ? "bg-[var(--blueprint-light)] text-[var(--blueprint)] border border-[var(--blueprint)]/30"
-                                            : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)] hover:border-[var(--blueprint)]"
-                                    }
+                                            ? "bg-[var(--blueprint)] text-[var(--paper)] shadow-lg"
+                                            : i < activeStage
+                                                ? "bg-[var(--blueprint-light)] text-[var(--blueprint)] border border-[var(--blueprint)]/30"
+                                                : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)] hover:border-[var(--blueprint)]"
+                                        }
                                 `}
-                            >
-                                <SIcon size={14} strokeWidth={1.5} />{s.name}
-                            </button>
-                        );
-                    })}
+                                >
+                                    <SIcon size={14} strokeWidth={1.5} />{s.name}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
 
-            {/* Stage Content */}
-            <div ref={stageRef}>
-                <BlueprintCard data-animate figure={`FIG. ${String(activeStage + 1).padStart(2, "0")}`} title={stage.name} code={stage.code} showCorners padding="lg">
-                    {/* Stage Header */}
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-14 h-14 rounded-xl bg-[var(--blueprint)] flex items-center justify-center shadow-lg">
-                            <StageIcon size={24} strokeWidth={1.5} className="text-[var(--paper)]" />
+                {/* Stage Content */}
+                <div ref={stageRef}>
+                    <BlueprintCard data-animate figure={`FIG. ${String(activeStage + 1).padStart(2, "0")}`} title={stage.name} code={stage.code} showCorners padding="lg">
+                        {/* Stage Header */}
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-14 h-14 rounded-xl bg-[var(--blueprint)] flex items-center justify-center shadow-lg">
+                                <StageIcon size={24} strokeWidth={1.5} className="text-[var(--paper)]" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-serif text-[var(--ink)]">{stage.name}</h3>
+                                <p className="text-sm text-[var(--secondary)]">{stage.description}</p>
+                            </div>
+                            <BlueprintBadge variant="blueprint">STAGE {activeStage + 1}/{BUYING_STAGES.length}</BlueprintBadge>
                         </div>
-                        <div className="flex-1">
-                            <h3 className="text-lg font-serif text-[var(--ink)]">{stage.name}</h3>
-                            <p className="text-sm text-[var(--secondary)]">{stage.description}</p>
-                        </div>
-                        <BlueprintBadge variant="blueprint">STAGE {activeStage + 1}/{BUYING_STAGES.length}</BlueprintBadge>
-                    </div>
 
-                    {/* Buyer Mindset */}
-                    <div className="p-4 rounded-lg bg-[var(--canvas)] border border-[var(--border-subtle)] mb-6">
-                        <div className="flex items-center gap-2 mb-2">
-                            <MessageSquare size={12} className="text-[var(--blueprint)]" />
-                            <span className="font-technical text-[9px] text-[var(--muted)]">BUYER MINDSET</span>
+                        {/* Buyer Mindset */}
+                        <div className="p-4 rounded-lg bg-[var(--canvas)] border border-[var(--border-subtle)] mb-6">
+                            <div className="flex items-center gap-2 mb-2">
+                                <MessageSquare size={12} className="text-[var(--blueprint)]" />
+                                <span className="font-technical text-[9px] text-[var(--muted)]">BUYER MINDSET</span>
+                            </div>
+                            <p className="text-base italic text-[var(--ink)]">{stage.mindset}</p>
                         </div>
-                        <p className="text-base italic text-[var(--ink)]">{stage.mindset}</p>
-                    </div>
 
-                    {/* ICP Behavior - The "aha" moment */}
-                    <div className="p-4 rounded-lg bg-[var(--blueprint-light)] border border-[var(--blueprint)]/30 mb-6">
-                        <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-[var(--blueprint)] flex items-center justify-center flex-shrink-0">
-                                <Target size={14} className="text-[var(--paper)]" />
+                        {/* ICP Behavior - The "aha" moment */}
+                        <div className="p-4 rounded-lg bg-[var(--blueprint-light)] border border-[var(--blueprint)]/30 mb-6">
+                            <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-[var(--blueprint)] flex items-center justify-center flex-shrink-0">
+                                    <Target size={14} className="text-[var(--paper)]" />
+                                </div>
+                                <div>
+                                    <span className="font-technical text-[9px] text-[var(--blueprint)] block mb-1">YOUR ICP AT THIS STAGE</span>
+                                    <p className="text-sm text-[var(--ink)]">{stage.icpBehavior}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Three Column Grid */}
+                        <div className="grid md:grid-cols-3 gap-4 mb-6">
+                            <div className="p-4 rounded-lg bg-[var(--canvas)] border border-[var(--border-subtle)]">
+                                <span className="font-technical text-[9px] text-[var(--warning)] block mb-3">QUESTIONS THEY ASK</span>
+                                <ul className="space-y-2">
+                                    {stage.questions.map((q, i) => (
+                                        <li key={i} className="text-sm text-[var(--secondary)] flex items-start gap-2">
+                                            <span className="text-[var(--warning)]">?</span>{q}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div className="p-4 rounded-lg bg-[var(--canvas)] border border-[var(--border-subtle)]">
+                                <span className="font-technical text-[9px] text-[var(--success)] block mb-3">CONTENT THEY NEED</span>
+                                <ul className="space-y-2">
+                                    {stage.content.map((c, i) => (
+                                        <li key={i} className="text-sm text-[var(--secondary)] flex items-start gap-2">
+                                            <Check size={12} className="text-[var(--success)] mt-0.5 flex-shrink-0" />{c}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div className="p-4 rounded-lg bg-[var(--canvas)] border border-[var(--border-subtle)]">
+                                <span className="font-technical text-[9px] text-[var(--error)] block mb-3">WHAT TRIGGERS THEM</span>
+                                <ul className="space-y-2">
+                                    {stage.triggers.map((t, i) => (
+                                        <li key={i} className="text-sm text-[var(--secondary)] flex items-start gap-2">
+                                            <Zap size={12} className="text-[var(--error)] mt-0.5 flex-shrink-0" />{t}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Key Insight */}
+                        <div className="p-4 rounded-lg bg-[var(--warning-light)] border border-[var(--warning)]/30">
+                            <div className="flex items-start gap-3">
+                                <Lightbulb size={18} className="text-[var(--warning)] flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <span className="font-technical text-[9px] text-[var(--warning)] block mb-1">KEY INSIGHT</span>
+                                    <p className="text-sm text-[var(--ink)]">{stage.keyInsight}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Navigation */}
+                        <div className="flex justify-between mt-6 pt-4 border-t border-[var(--border-subtle)]">
+                            <SecondaryButton
+                                size="sm"
+                                onClick={() => setActiveStage(Math.max(0, activeStage - 1))}
+                                disabled={activeStage === 0}
+                            >
+                                <ArrowLeft size={12} strokeWidth={1.5} />Previous Stage
+                            </SecondaryButton>
+                            <SecondaryButton
+                                size="sm"
+                                onClick={() => setActiveStage(Math.min(BUYING_STAGES.length - 1, activeStage + 1))}
+                                disabled={activeStage === BUYING_STAGES.length - 1}
+                            >
+                                Next Stage<ArrowRight size={12} strokeWidth={1.5} />
+                            </SecondaryButton>
+                        </div>
+                    </BlueprintCard>
+                </div>
+
+                {/* Confirm */}
+                {!reviewed && activeStage === BUYING_STAGES.length - 1 && (
+                    <BlueprintButton data-animate size="lg" onClick={handleConfirm} className="w-full" label="BTN-CONFIRM">
+                        <Check size={14} strokeWidth={1.5} />I Understand the Buyer's Journey
+                    </BlueprintButton>
+                )}
+
+                {reviewed && (
+                    <BlueprintCard data-animate showCorners padding="md" className="border-[var(--success)]/30 bg-[var(--success-light)]">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-[var(--success)] flex items-center justify-center">
+                                <Check size={24} strokeWidth={2} className="text-[var(--paper)]" />
                             </div>
                             <div>
-                                <span className="font-technical text-[9px] text-[var(--blueprint)] block mb-1">YOUR ICP AT THIS STAGE</span>
-                                <p className="text-sm text-[var(--ink)]">{stage.icpBehavior}</p>
+                                <span className="text-base font-serif text-[var(--ink)]">Buyer's Journey Mapped</span>
+                                <p className="font-technical text-[10px] text-[var(--secondary)]">5 stages reviewed</p>
                             </div>
+                            <BlueprintBadge variant="success" dot className="ml-auto">COMPLETE</BlueprintBadge>
                         </div>
-                    </div>
+                    </BlueprintCard>
+                )}
 
-                    {/* Three Column Grid */}
-                    <div className="grid md:grid-cols-3 gap-4 mb-6">
-                        <div className="p-4 rounded-lg bg-[var(--canvas)] border border-[var(--border-subtle)]">
-                            <span className="font-technical text-[9px] text-[var(--warning)] block mb-3">QUESTIONS THEY ASK</span>
-                            <ul className="space-y-2">
-                                {stage.questions.map((q, i) => (
-                                    <li key={i} className="text-sm text-[var(--secondary)] flex items-start gap-2">
-                                        <span className="text-[var(--warning)]">?</span>{q}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div className="p-4 rounded-lg bg-[var(--canvas)] border border-[var(--border-subtle)]">
-                            <span className="font-technical text-[9px] text-[var(--success)] block mb-3">CONTENT THEY NEED</span>
-                            <ul className="space-y-2">
-                                {stage.content.map((c, i) => (
-                                    <li key={i} className="text-sm text-[var(--secondary)] flex items-start gap-2">
-                                        <Check size={12} className="text-[var(--success)] mt-0.5 flex-shrink-0" />{c}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div className="p-4 rounded-lg bg-[var(--canvas)] border border-[var(--border-subtle)]">
-                            <span className="font-technical text-[9px] text-[var(--error)] block mb-3">WHAT TRIGGERS THEM</span>
-                            <ul className="space-y-2">
-                                {stage.triggers.map((t, i) => (
-                                    <li key={i} className="text-sm text-[var(--secondary)] flex items-start gap-2">
-                                        <Zap size={12} className="text-[var(--error)] mt-0.5 flex-shrink-0" />{t}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
-
-                    {/* Key Insight */}
-                    <div className="p-4 rounded-lg bg-[var(--warning-light)] border border-[var(--warning)]/30">
-                        <div className="flex items-start gap-3">
-                            <Lightbulb size={18} className="text-[var(--warning)] flex-shrink-0 mt-0.5" />
-                            <div>
-                                <span className="font-technical text-[9px] text-[var(--warning)] block mb-1">KEY INSIGHT</span>
-                                <p className="text-sm text-[var(--ink)]">{stage.keyInsight}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Navigation */}
-                    <div className="flex justify-between mt-6 pt-4 border-t border-[var(--border-subtle)]">
-                        <SecondaryButton
-                            size="sm"
-                            onClick={() => setActiveStage(Math.max(0, activeStage - 1))}
-                            disabled={activeStage === 0}
-                        >
-                            <ArrowLeft size={12} strokeWidth={1.5} />Previous Stage
-                        </SecondaryButton>
-                        <SecondaryButton
-                            size="sm"
-                            onClick={() => setActiveStage(Math.min(BUYING_STAGES.length - 1, activeStage + 1))}
-                            disabled={activeStage === BUYING_STAGES.length - 1}
-                        >
-                            Next Stage<ArrowRight size={12} strokeWidth={1.5} />
-                        </SecondaryButton>
-                    </div>
-                </BlueprintCard>
             </div>
-
-            {/* Confirm */}
-            {!reviewed && activeStage === BUYING_STAGES.length - 1 && (
-                <BlueprintButton data-animate size="lg" onClick={handleConfirm} className="w-full" label="BTN-CONFIRM">
-                    <Check size={14} strokeWidth={1.5} />I Understand the Buyer's Journey
-                </BlueprintButton>
-            )}
-
-            {reviewed && (
-                <BlueprintCard data-animate showCorners padding="md" className="border-[var(--success)]/30 bg-[var(--success-light)]">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-[var(--success)] flex items-center justify-center">
-                            <Check size={24} strokeWidth={2} className="text-[var(--paper)]" />
-                        </div>
-                        <div>
-                            <span className="text-base font-serif text-[var(--ink)]">Buyer's Journey Mapped</span>
-                            <p className="font-technical text-[10px] text-[var(--secondary)]">5 stages reviewed</p>
-                        </div>
-                        <BlueprintBadge variant="success" dot className="ml-auto">COMPLETE</BlueprintBadge>
-                    </div>
-                </BlueprintCard>
-            )}
-
-            <div className="flex justify-center pt-4">
-                <span className="font-technical text-[var(--muted)]">BUYING-PROCESS • STEP 16/25</span>
-            </div>
-        </div>
+        </OnboardingStepLayout>
     );
 }

@@ -44,7 +44,7 @@ export function RICPDetailModal({ ricp, isOpen, onClose, onUpdate }: RICPDetailM
                             {ricp.avatar || "👤"}
                         </div>
                         <div>
-                            <h2 className="font-editorial text-2xl text-[var(--ink)]">{ricp.name}</h2>
+                            <h2 className="font-serif text-2xl text-[var(--ink)]">{ricp.name}</h2>
                             {ricp.personaName && (
                                 <p className="text-sm text-[var(--ink-secondary)]">Persona: {ricp.personaName}</p>
                             )}

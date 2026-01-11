@@ -339,7 +339,7 @@ export default function Step10CategorySelection() {
             )}
 
             <div className="flex justify-center pt-4">
-                <span className="font-technical text-[var(--muted)]">CATEGORY-SELECTION • STEP 10/25</span>
+                <span className="font-technical text-[var(--muted)]">MARKET-CATEGORY • STEP 09/24</span>
             </div>
         </div>
     );

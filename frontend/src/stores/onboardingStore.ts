@@ -163,30 +163,32 @@ export const useOnboardingStore = create<OnboardingState>()(
                 const stepConfig = ONBOARDING_STEPS.find((s) => s.id === stepId);
                 if (!stepConfig) return false;
 
-                // Can always go back
+                // Can always go back to previous steps
                 if (stepId < currentStep) return true;
 
-                // Going to next step (stepId = currentStep + 1)
-                if (stepId === currentStep + 1) {
-                    const currentStepState = steps.find((s) => s.id === currentStep);
-                    const currentStepConfig = ONBOARDING_STEPS.find((s) => s.id === currentStep);
+                // Current step - always allowed
+                if (stepId === currentStep) return true;
 
-                    // If current step is complete, can proceed
-                    if (currentStepState?.status === "complete") return true;
-
-                    // If current step is not required, can skip
-                    if (!currentStepConfig?.required) return true;
-
-                    // If current step has any data, allow proceed (user engaged)
-                    if (currentStepState?.data && Object.keys(currentStepState.data).length > 0) return true;
-                }
-
-                // For jumps of more than 1 step, check required previous steps
+                // Forward navigation requires all previous required steps to be complete
                 const previousRequiredSteps = ONBOARDING_STEPS.filter((s) => s.id < stepId && s.required);
-                return previousRequiredSteps.every((ps) => {
+                const allRequiredComplete = previousRequiredSteps.every((ps) => {
                     const stepState = steps.find((s) => s.id === ps.id);
                     return stepState?.status === "complete";
                 });
+
+                // If all required steps complete, allow forward navigation
+                if (allRequiredComplete) return true;
+
+                // For non-required steps, allow if all prior required steps are complete
+                if (!stepConfig.required) {
+                    const priorRequired = ONBOARDING_STEPS.filter((s) => s.id < stepId && s.required);
+                    return priorRequired.every((ps) => {
+                        const stepState = steps.find((s) => s.id === ps.id);
+                        return stepState?.status === "complete";
+                    });
+                }
+
+                return false;
             },
 
             getProgress: () => {

@@ -69,7 +69,7 @@ export default function PricingPage() {
 
       <div className="relative z-10 py-20 px-4">
         <div className="text-center mb-20" data-anim-hero>
-          <h1 className="font-editorial text-6xl text-[var(--ink)] mb-4">Pricing that scales.</h1>
+          <h1 className="font-serif text-6xl text-[var(--ink)] mb-4">Pricing that scales.</h1>
           <p className="text-xl text-[var(--secondary)] max-w-2xl mx-auto font-light">
             Simple, transparent pricing for serious founders. No hidden fees. Cancel anytime.
           </p>
@@ -90,7 +90,7 @@ export default function PricingPage() {
                 variant={plan.popular ? "elevated" : "default"}
                 className={`h-full ${plan.popular ? 'border-[var(--blueprint)] ring-1 ring-[var(--blueprint)]' : ''}`}
               >
-                <h3 className="font-editorial text-2xl text-[var(--ink)] mb-2">{plan.name}</h3>
+                <h3 className="font-serif text-2xl text-[var(--ink)] mb-2">{plan.name}</h3>
                 <div className="flex items-baseline gap-1 mb-2">
                   <span className="text-4xl font-bold text-[var(--ink)]">{plan.price}</span>
                   <span className="text-sm text-[var(--muted)]">/ month</span>
@@ -121,7 +121,7 @@ export default function PricingPage() {
         </div>
 
         <div className="max-w-3xl mx-auto mt-24 text-center border-t border-[var(--border)] pt-12">
-          <h3 className="font-editorial text-2xl mb-4">Enterprise Custom</h3>
+          <h3 className="font-serif text-2xl mb-4">Enterprise Custom</h3>
           <p className="text-[var(--secondary)] mb-6">Need custom integrations, SLA, or on-premise deployment?</p>
           <SecondaryButton onClick={() => router.push('/help')}>Contact Sales <ArrowRight size={14} /></SecondaryButton>
         </div>

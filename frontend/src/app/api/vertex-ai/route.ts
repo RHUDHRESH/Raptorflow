@@ -8,21 +8,10 @@ const supabase = createClient(
 
 export async function POST(request: Request) {
   try {
-    const { prompt, model = 'gemini-pro', user_id } = await request.json();
+    const { prompt, model = 'gemini-pro', user_id = 'user-bypass' } = await request.json();
 
-    // Check if user has active subscription
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('subscription_plan, subscription_status')
-      .eq('id', user_id)
-      .single();
-
-    if (!profile || profile.subscription_status !== 'active') {
-      return NextResponse.json(
-        { error: 'Active subscription required for AI features' },
-        { status: 403 }
-      );
-    }
+    // Bypass subscription check - always allow access
+    console.log('AI request received (bypass mode):', { prompt_length: prompt.length, model });
 
     // Call Vertex AI backend
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
@@ -34,7 +23,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         prompt,
         model,
-        user_id
+        user_id: user_id || 'user-bypass'
       })
     });
 
@@ -44,16 +33,21 @@ export async function POST(request: Request) {
 
     const result = await response.json();
 
-    // Log usage to Supabase (or BigQuery in production)
-    await supabase
-      .from('ai_usage_logs')
-      .insert({
-        user_id,
-        model,
-        prompt_length: prompt.length,
-        response_length: result.content?.length || 0,
-        timestamp: new Date().toISOString()
-      });
+    // Log usage (optional, for analytics)
+    try {
+      await supabase
+        .from('ai_usage_logs')
+        .insert({
+          user_id: user_id || 'user-bypass',
+          model,
+          prompt_length: prompt.length,
+          response_length: result.content?.length || 0,
+          timestamp: new Date().toISOString()
+        });
+    } catch (logError) {
+      // Ignore logging errors
+      console.log('Logging error (non-critical):', logError);
+    }
 
     return NextResponse.json(result);
 

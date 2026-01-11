@@ -28,7 +28,7 @@ export default function ErrorPage() {
 
         {/* Error Message */}
         <div className="space-y-4">
-          <h1 className="font-editorial text-3xl text-[var(--ink)]">Error</h1>
+          <h1 className="font-serif text-3xl text-[var(--ink)]">Error</h1>
           <p className="text-[var(--ink-secondary)] leading-relaxed">
             The system encountered an unexpected structural failure. Our engineers have been dispatched.
           </p>
