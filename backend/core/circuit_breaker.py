@@ -18,24 +18,27 @@ logger = logging.getLogger(__name__)
 
 class CircuitState(Enum):
     """Circuit breaker states"""
-    CLOSED = "closed"      # Normal operation
-    OPEN = "open"          # Circuit is open, calls fail fast
+
+    CLOSED = "closed"  # Normal operation
+    OPEN = "open"  # Circuit is open, calls fail fast
     HALF_OPEN = "half_open"  # Testing if service has recovered
 
 
 @dataclass
 class CircuitBreakerConfig:
     """Configuration for circuit breaker"""
-    failure_threshold: int = 5          # Number of failures before opening
-    recovery_timeout: int = 60          # Seconds to wait before trying again
+
+    failure_threshold: int = 5  # Number of failures before opening
+    recovery_timeout: int = 60  # Seconds to wait before trying again
     expected_exception: type = Exception  # Exception type to count as failure
-    success_threshold: int = 2          # Successes needed to close circuit
-    timeout: float = 30.0               # Request timeout in seconds
+    success_threshold: int = 2  # Successes needed to close circuit
+    timeout: float = 30.0  # Request timeout in seconds
 
 
 @dataclass
 class CircuitBreakerStats:
     """Circuit breaker statistics"""
+
     failures: int = 0
     successes: int = 0
     total_requests: int = 0
@@ -46,6 +49,7 @@ class CircuitBreakerStats:
 
 class CircuitBreakerError(Exception):
     """Raised when circuit breaker is open"""
+
     pass
 
 
@@ -65,15 +69,15 @@ class CircuitBreaker:
     async def call(self, func: Callable, *args, **kwargs) -> Any:
         """
         Execute function with circuit breaker protection
-        
+
         Args:
             func: Function to call
             *args: Function arguments
             **kwargs: Function keyword arguments
-            
+
         Returns:
             Function result
-            
+
         Raises:
             CircuitBreakerError: If circuit is open
             Exception: If function fails and circuit allows it
@@ -83,7 +87,9 @@ class CircuitBreaker:
                 if self._should_attempt_reset():
                     self.state = CircuitState.HALF_OPEN
                     self.stats.state_changes += 1
-                    logger.info(f"Circuit breaker {self.name} transitioning to HALF_OPEN")
+                    logger.info(
+                        f"Circuit breaker {self.name} transitioning to HALF_OPEN"
+                    )
                 else:
                     self.stats.failures += 1
                     raise CircuitBreakerError(f"Circuit breaker {self.name} is OPEN")
@@ -91,24 +97,26 @@ class CircuitBreaker:
         try:
             # Set timeout for the call
             if asyncio.iscoroutinefunction(func):
-                result = await asyncio.wait_for(func(*args, **kwargs), timeout=self.config.timeout)
+                result = await asyncio.wait_for(
+                    func(*args, **kwargs), timeout=self.config.timeout
+                )
             else:
                 result = await asyncio.wait_for(
-                    asyncio.to_thread(func, *args, **kwargs), 
-                    timeout=self.config.timeout
+                    asyncio.to_thread(func, *args, **kwargs),
+                    timeout=self.config.timeout,
                 )
 
             # Record success
             async with self._lock:
                 self._record_success()
-            
+
             return result
 
         except Exception as e:
             # Record failure
             async with self._lock:
                 self._record_failure(e)
-            
+
             # Re-raise the original exception
             raise e
 
@@ -116,7 +124,7 @@ class CircuitBreaker:
         """Check if enough time has passed to attempt circuit reset"""
         if self._last_failure_time is None:
             return False
-        
+
         return time.time() - self._last_failure_time >= self.config.recovery_timeout
 
     def _record_success(self) -> None:
@@ -130,7 +138,9 @@ class CircuitBreaker:
                 self.state = CircuitState.CLOSED
                 self.stats.state_changes += 1
                 self.stats.failures = 0  # Reset failure count
-                logger.info(f"Circuit breaker {self.name} CLOSED after successful recovery")
+                logger.info(
+                    f"Circuit breaker {self.name} CLOSED after successful recovery"
+                )
 
     def _record_failure(self, exception: Exception) -> None:
         """Record a failed call"""
@@ -151,7 +161,9 @@ class CircuitBreaker:
         elif self.state == CircuitState.HALF_OPEN:
             self.state = CircuitState.OPEN
             self.stats.state_changes += 1
-            logger.warning(f"Circuit breaker {self.name} OPENED again during HALF_OPEN test")
+            logger.warning(
+                f"Circuit breaker {self.name} OPENED again during HALF_OPEN test"
+            )
 
     def get_state(self) -> CircuitState:
         """Get current circuit state"""
@@ -181,54 +193,50 @@ class ResilientHTTPClient:
         self.client = httpx.AsyncClient(timeout=30.0)
 
     def add_circuit_breaker(
-        self, 
-        service_name: str, 
-        config: Optional[CircuitBreakerConfig] = None
+        self, service_name: str, config: Optional[CircuitBreakerConfig] = None
     ) -> CircuitBreaker:
         """Add circuit breaker for a service"""
         if config is None:
             config = CircuitBreakerConfig()
-        
+
         breaker = CircuitBreaker(service_name, config)
         self.circuit_breakers[service_name] = breaker
         return breaker
 
     async def get(
-        self, 
-        service_name: str, 
-        url: str, 
+        self,
+        service_name: str,
+        url: str,
         headers: Optional[Dict[str, str]] = None,
-        **kwargs
+        **kwargs,
     ) -> httpx.Response:
         """Make GET request with circuit breaker protection"""
         return await self._request("GET", service_name, url, headers=headers, **kwargs)
 
     async def post(
-        self, 
-        service_name: str, 
-        url: str, 
+        self,
+        service_name: str,
+        url: str,
         json: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
-        **kwargs
+        **kwargs,
     ) -> httpx.Response:
         """Make POST request with circuit breaker protection"""
-        return await self._request("POST", service_name, url, json=json, headers=headers, **kwargs)
+        return await self._request(
+            "POST", service_name, url, json=json, headers=headers, **kwargs
+        )
 
     async def _request(
-        self, 
-        method: str, 
-        service_name: str, 
-        url: str, 
-        **kwargs
+        self, method: str, service_name: str, url: str, **kwargs
     ) -> httpx.Response:
         """Make HTTP request with circuit breaker protection"""
-        
+
         # Get or create circuit breaker for service
         if service_name not in self.circuit_breakers:
             self.add_circuit_breaker(service_name)
-        
+
         breaker = self.circuit_breakers[service_name]
-        
+
         async def make_request():
             response = await self.client.request(method, url, **kwargs)
             response.raise_for_status()
@@ -252,7 +260,9 @@ class ResilientHTTPClient:
 
     def get_all_stats(self) -> Dict[str, CircuitBreakerStats]:
         """Get statistics for all circuit breakers"""
-        return {name: breaker.get_stats() for name, breaker in self.circuit_breakers.items()}
+        return {
+            name: breaker.get_stats() for name, breaker in self.circuit_breakers.items()
+        }
 
     async def close(self):
         """Close HTTP client"""
@@ -268,7 +278,7 @@ def get_resilient_client() -> ResilientHTTPClient:
     global _resilient_client
     if _resilient_client is None:
         _resilient_client = ResilientHTTPClient()
-        
+
         # Configure circuit breakers for common services
         _resilient_client.add_circuit_breaker(
             "openai",
@@ -276,30 +286,30 @@ def get_resilient_client() -> ResilientHTTPClient:
                 failure_threshold=5,
                 recovery_timeout=60,
                 expected_exception=httpx.HTTPStatusError,
-                timeout=30.0
-            )
+                timeout=30.0,
+            ),
         )
-        
+
         _resilient_client.add_circuit_breaker(
             "serper",
             CircuitBreakerConfig(
                 failure_threshold=3,
                 recovery_timeout=30,
                 expected_exception=httpx.HTTPStatusError,
-                timeout=10.0
-            )
+                timeout=10.0,
+            ),
         )
-        
+
         _resilient_client.add_circuit_breaker(
             "anthropic",
             CircuitBreakerConfig(
                 failure_threshold=5,
                 recovery_timeout=60,
                 expected_exception=httpx.HTTPStatusError,
-                timeout=30.0
-            )
+                timeout=30.0,
+            ),
         )
-    
+
     return _resilient_client
 
 
@@ -316,31 +326,33 @@ def circuit_breaker(
     service_name: str,
     failure_threshold: int = 5,
     recovery_timeout: int = 60,
-    timeout: float = 30.0
+    timeout: float = 30.0,
 ):
     """
     Decorator to add circuit breaker protection to functions
-    
+
     Args:
         service_name: Name of the service for circuit breaker
         failure_threshold: Number of failures before opening circuit
         recovery_timeout: Seconds to wait before recovery attempt
         timeout: Function timeout in seconds
     """
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             client = get_resilient_client()
             breaker = client.get_circuit_breaker(service_name)
-            
+
             if breaker is None:
                 config = CircuitBreakerConfig(
                     failure_threshold=failure_threshold,
                     recovery_timeout=recovery_timeout,
-                    timeout=timeout
+                    timeout=timeout,
                 )
                 breaker = client.add_circuit_breaker(service_name, config)
-            
+
             return await breaker.call(func, *args, **kwargs)
-        
+
         return wrapper
+
     return decorator
