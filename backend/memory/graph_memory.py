@@ -9,11 +9,9 @@ import json
 import logging
 import os
 import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Union
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from ..agents.exceptions import DatabaseError, ValidationError, WorkspaceError
 from .graph_models import (
     EntityType,
     GraphEntity,
@@ -84,7 +82,9 @@ class GraphMemory:
             Entity ID
         """
         if not self.supabase_client:
-            raise DatabaseError("Supabase client required for entity storage - no fallbacks allowed")
+            raise DatabaseError(
+                "Supabase client required for entity storage - no fallbacks allowed"
+            )
 
         try:
             # Generate ID if not provided
@@ -105,7 +105,9 @@ class GraphMemory:
 
         except Exception as e:
             logger.error(f"Failed to store entity in Supabase: {e}")
-            raise DatabaseError(f"Supabase required for entity storage - no fallbacks: {e}")
+            raise DatabaseError(
+                f"Supabase required for entity storage - no fallbacks: {e}"
+            )
 
     async def _store_entity_redis(self, entity: GraphEntity) -> str:
         """Store entity in Redis."""
@@ -138,7 +140,9 @@ class GraphMemory:
             Relationship ID
         """
         if not self.supabase_client:
-            raise DatabaseError("Supabase client required for relationship storage - no fallbacks allowed")
+            raise DatabaseError(
+                "Supabase client required for relationship storage - no fallbacks allowed"
+            )
 
         try:
             # Generate ID if not provided
@@ -161,7 +165,9 @@ class GraphMemory:
 
         except Exception as e:
             logger.error(f"Failed to store relationship in Supabase: {e}")
-            raise DatabaseError(f"Supabase required for relationship storage - no fallbacks: {e}")
+            raise DatabaseError(
+                f"Supabase required for relationship storage - no fallbacks: {e}"
+            )
 
     async def _store_relationship_redis(self, relationship: GraphRelationship) -> str:
         """Store relationship in Redis."""
@@ -200,7 +206,9 @@ class GraphMemory:
             GraphEntity object or None if not found
         """
         if not self.supabase_client:
-            raise DatabaseError("Supabase client required for entity retrieval - no fallbacks allowed")
+            raise DatabaseError(
+                "Supabase client required for entity retrieval - no fallbacks allowed"
+            )
 
         try:
             result = (
@@ -219,7 +227,9 @@ class GraphMemory:
 
         except Exception as e:
             logger.error(f"Failed to retrieve entity from Supabase: {e}")
-            raise DatabaseError(f"Supabase required for entity retrieval - no fallbacks: {e}")
+            raise DatabaseError(
+                f"Supabase required for entity retrieval - no fallbacks: {e}"
+            )
 
     async def _get_entity_redis(
         self, entity_id: str, workspace_id: str
@@ -255,7 +265,9 @@ class GraphMemory:
             GraphRelationship object or None if not found
         """
         if not self.supabase_client:
-            raise DatabaseError("Supabase client required for relationship retrieval - no fallbacks allowed")
+            raise DatabaseError(
+                "Supabase client required for relationship retrieval - no fallbacks allowed"
+            )
 
         try:
             result = (
@@ -274,7 +286,9 @@ class GraphMemory:
 
         except Exception as e:
             logger.error(f"Failed to retrieve relationship from Supabase: {e}")
-            raise DatabaseError(f"Supabase required for relationship retrieval - no fallbacks: {e}")
+            raise DatabaseError(
+                f"Supabase required for relationship retrieval - no fallbacks: {e}"
+            )
 
     async def _get_relationship_redis(
         self, relationship_id: str, workspace_id: str
@@ -335,7 +349,7 @@ class GraphMemory:
                     result = result.or_("description", "ilike", f"%{query}%")
 
                 # Order by created_at desc
-                result = result.order("created_at", desc=desc).limit(limit)
+                result = result.order("created_at", desc=True).limit(limit)
 
                 entities_data = result.execute()
 
@@ -450,7 +464,7 @@ class GraphMemory:
                         result = result.or_("relationship_type", "eq", rel_type)
 
                 # Order by created_at desc
-                result = result.order("created_at", desc=desc).limit(limit)
+                result = result.order("created_at", desc=True).limit(limit)
 
                 relationships_data = result.execute()
 

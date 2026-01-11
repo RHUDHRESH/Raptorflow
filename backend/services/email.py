@@ -2,9 +2,10 @@
 Resend Email Service
 Handles transactional emails
 """
+
 import logging
 import os
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 import resend
 
@@ -16,22 +17,24 @@ class ResendEmailService:
     """
     Email service using Resend
     """
-    
+
     def __init__(self):
         self.api_key = os.getenv("RESEND_API_KEY")
-        self.sender_email = os.getenv("SENDER_EMAIL_ADDRESS", "onboarding@resend.dev") # Default Resend dev email
-        
+        self.sender_email = os.getenv(
+            "SENDER_EMAIL_ADDRESS", "onboarding@resend.dev"
+        )  # Default Resend dev email
+
         if not self.api_key:
             logger.warning("RESEND_API_KEY not set. Email service disabled.")
         else:
             resend.api_key = self.api_key
 
     def send_email(
-        self, 
-        to: Union[str, List[str]], 
-        subject: str, 
+        self,
+        to: Union[str, List[str]],
+        subject: str,
         html_content: str,
-        text_content: Optional[str] = None
+        text_content: Optional[str] = None,
     ) -> bool:
         """
         Send an email
@@ -39,7 +42,7 @@ class ResendEmailService:
         if not self.api_key:
             logger.warning("Attempted to send email without API key")
             return False
-            
+
         try:
             params = {
                 "from": self.sender_email,
@@ -49,7 +52,7 @@ class ResendEmailService:
             }
             if text_content:
                 params["text"] = text_content
-                
+
             r = resend.Emails.send(params)
             logger.info(f"Email sent to {to}: {r}")
             return True
@@ -75,6 +78,7 @@ class ResendEmailService:
         </div>
         """
         return self.send_email(user_email, subject, html_content)
+
 
 # Singleton
 email_service = ResendEmailService()
