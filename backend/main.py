@@ -96,10 +96,104 @@ async def lifespan(app: FastAPI):
 
 # Initialize FastAPI with lifespan
 app = FastAPI(
-    title="RaptorFlow Backend",
-    description="Backend API for RaptorFlow Marketing OS",
+    title="RaptorFlow Backend API",
+    description="""
+    ## RaptorFlow Marketing OS Backend API
+    
+    A comprehensive backend system for marketing operations automation, featuring:
+    
+    ### 🚀 Core Features
+    - **AI-Powered Agents**: Intelligent marketing agents for content creation, research, and campaign management
+    - **ICP Generation**: Automated Ideal Customer Profile creation with AI-driven insights
+    - **Campaign Management**: End-to-end campaign lifecycle management with analytics
+    - **Memory Systems**: Advanced episodic and semantic memory for context-aware interactions
+    - **Real-time Analytics**: Comprehensive tracking and reporting capabilities
+    
+    ### 🔧 Infrastructure
+    - **Background Processing**: Celery-based task queues for scalable operations
+    - **Circuit Breakers**: Resilient external API integration with automatic recovery
+    - **Database Migrations**: Automated schema management and versioning
+    - **Rate Limiting**: Redis-based request throttling and protection
+    - **Error Monitoring**: Sentry integration for comprehensive error tracking
+    
+    ### 📊 Monitoring & Analytics
+    - **Health Checks**: Deep system health monitoring for all components
+    - **Performance Metrics**: Prometheus integration for operational metrics
+    - **User Analytics**: PostHog integration for behavior tracking
+    - **Security Auditing**: Comprehensive authentication and authorization logging
+    
+    ### 🛡️ Security Features
+    - **JWT Authentication**: Supabase-based user authentication with refresh tokens
+    - **Row-Level Security**: Database-level access control via RLS policies
+    - **CORS Protection**: Strict domain whitelisting for API access
+    - **Secret Management**: Google Secret Manager integration for secure credential storage
+    
+    ---
+    
+    **Base URL**: `https://api.raptorflow.com`
+    **API Version**: v1
+    **Documentation**: This interactive API documentation
+    **Health Status**: `/api/v1/health/detailed`
+    
+    **Authentication**: Bearer JWT tokens required for most endpoints
+    **Rate Limits**: 100 requests/minute per user (configurable)
+    
+    ---
+    
+    *For production deployment guides and detailed architecture documentation, 
+    see the project repository README.*
+    """,
     version="1.0.0",
     lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_tags=[
+        {
+            "name": "authentication",
+            "description": "User authentication and authorization operations"
+        },
+        {
+            "name": "users",
+            "description": "User profile and preference management"
+        },
+        {
+            "name": "workspaces",
+            "description": "Workspace management and collaboration features"
+        },
+        {
+            "name": "agents",
+            "description": "AI-powered marketing agents and automation"
+        },
+        {
+            "name": "icps",
+            "description": "Ideal Customer Profile generation and management"
+        },
+        {
+            "name": "campaigns",
+            "description": "Marketing campaign creation and management"
+        },
+        {
+            "name": "analytics",
+            "description": "Performance analytics and reporting"
+        },
+        {
+            "name": "memory",
+            "description": "Memory systems for context-aware interactions"
+        },
+        {
+            "name": "health",
+            "description": "System health monitoring and diagnostics"
+        }
+    ],
+    contact={
+        "name": "RaptorFlow API Support",
+        "email": "api-support@raptorflow.com",
+        "url": "https://raptorflow.com/support"
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://github.com/RHUDHRESH/Raptorflow/blob/main/LICENSE"
+    }
 )
 
 # Initialize Sentry error tracking
