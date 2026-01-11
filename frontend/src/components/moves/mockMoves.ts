@@ -167,6 +167,13 @@ export function generateMockExecution(brief: MoveBriefData): ExecutionDay[] {
     }));
 }
 
+// Helper to get dates relative to today
+function getRelativeDate(daysOffset: number): string {
+    const date = new Date();
+    date.setDate(date.getDate() + daysOffset);
+    return date.toISOString();
+}
+
 // --- Sample Moves for List ---
 export const SAMPLE_MOVES: Move[] = [
     {
@@ -178,9 +185,9 @@ export const SAMPLE_MOVES: Move[] = [
         goal: '20 bookings for next Tuesday',
         tone: 'Premium & Exclusive',
         context: 'I own a steakhouse. Tuesdays are dead. I want to fill tables on Tuesday nights.',
-        createdAt: '2026-01-02T10:00:00Z',
-        startDate: '2026-01-03T00:00:00Z',
-        progress: 43,
+        createdAt: getRelativeDate(-2),
+        startDate: getRelativeDate(-1), // Started yesterday, so Day 2 tasks show today
+        progress: 14,
         execution: generateMockExecution({
             name: 'Tomahawk Tuesday Takeover',
             category: 'capture',
@@ -200,9 +207,9 @@ export const SAMPLE_MOVES: Move[] = [
         goal: 'Establish thought leadership in B2B marketing',
         tone: 'Confident & Knowledgeable',
         context: 'Position myself as an expert in B2B marketing for SaaS founders.',
-        createdAt: '2025-12-20T10:00:00Z',
-        startDate: '2025-12-21T00:00:00Z',
-        endDate: '2025-12-28T00:00:00Z',
+        createdAt: getRelativeDate(-15),
+        startDate: getRelativeDate(-14),
+        endDate: getRelativeDate(-7),
         progress: 100,
         execution: [],
     },
@@ -215,8 +222,16 @@ export const SAMPLE_MOVES: Move[] = [
         goal: 'Generate buzz for 2026 product roadmap',
         tone: 'Electric & Bold',
         context: 'Announce our 2026 product vision and upcoming features.',
-        createdAt: '2026-01-04T10:00:00Z',
+        createdAt: getRelativeDate(-1),
         progress: 0,
-        execution: [],
+        execution: generateMockExecution({
+            name: 'New Year Strategy Launch',
+            category: 'ignite',
+            duration: 7,
+            goal: 'Generate buzz for product launch',
+            tone: 'Electric & Bold',
+            strategy: 'Build anticipation → Reveal → Sustain',
+            metrics: ['Impressions', 'Signups', 'Shares'],
+        }),
     },
 ];

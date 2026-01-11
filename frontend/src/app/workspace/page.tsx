@@ -39,7 +39,7 @@ export default function WorkspacePage() {
 
       <div className="w-full max-w-md" data-anim>
         <div className="text-center mb-8">
-          <h1 className="font-editorial text-3xl text-[var(--ink)] mb-2">Select Workspace</h1>
+          <h1 className="font-serif text-3xl text-[var(--ink)] mb-2">Select Workspace</h1>
           <p className="text-[var(--ink-secondary)] font-technical text-sm">Welcome back, Alex.</p>
         </div>
 

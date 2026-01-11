@@ -22,7 +22,7 @@ export default function NotFound() {
           <span className="font-technical text-[var(--muted)]">NOT_FOUND</span>
         </div>
 
-        <h1 className="font-editorial text-4xl text-[var(--ink)] mb-4">File Missing</h1>
+        <h1 className="font-serif text-4xl text-[var(--ink)] mb-4">File Missing</h1>
         <p className="text-[var(--secondary)] mb-8">
           The document or page you are looking for has been moved, archived, or does not exist in the system.
         </p>

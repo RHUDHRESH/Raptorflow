@@ -43,7 +43,7 @@ export function PageHeader({
                         </>
                     )}
                 </div>
-                <h1 className="font-editorial text-4xl text-[var(--ink)]">{title}</h1>
+                <h1 className="font-serif text-4xl text-[var(--ink)]">{title}</h1>
                 {subtitle && (
                     <p className="text-[var(--ink-secondary)] mt-1">{subtitle}</p>
                 )}

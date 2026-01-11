@@ -1,15 +1,19 @@
-# Use Python 3.11 slim image
+# Use Python 3.11 slim image optimized for Cloud Run
 FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV PORT=8080
+ENV HOST=0.0.0.0
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # Set work directory
 WORKDIR /app
@@ -21,16 +25,18 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create non-root user
-RUN useradd --create-home --shell /bin/bash appuser
+# Create non-root user for security
+RUN useradd --create-home --shell /bin/bash appuser && \
+    chown -R appuser:appuser /app
 USER appuser
 
 # Expose port
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/api/v1/health || exit 1
 
-# Start the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Optimize for Cloud Run
+# Use gunicorn with uvicorn workers for better performance
+CMD ["gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-"]

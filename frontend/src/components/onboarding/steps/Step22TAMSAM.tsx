@@ -7,6 +7,7 @@ import { useOnboardingStore } from "@/stores/onboardingStore";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintButton } from "@/components/ui/BlueprintButton";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
+import { OnboardingStepLayout } from "../OnboardingStepLayout";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    PAPER TERMINAL — Step 22: TAM/SAM/SOM
@@ -43,51 +44,52 @@ export default function Step22TAMSAM() {
     };
 
     return (
-        <div ref={containerRef} className="space-y-6">
-            <BlueprintCard data-animate showCorners padding="md" className="border-[var(--blueprint)]/30 bg-[var(--blueprint-light)]">
-                <p className="text-sm text-[var(--secondary)]">Define your market size pyramid: Total, Serviceable, and Obtainable market.</p>
-            </BlueprintCard>
-
-            <BlueprintCard data-animate figure="FIG. 01" title="Market Pyramid" code="PYR" showCorners padding="lg">
-                <div className="flex flex-col items-center">
-                    {(["tam", "sam", "som"] as const).map((tier) => {
-                        const config = tierConfig[tier];
-                        return (
-                            <div key={tier} className={`flex flex-col items-center w-full z-10`} style={{ width: config.size }}>
-                                <div className={`${config.bg} p-4 w-full rounded-[var(--radius-md)] text-center border-2 border-[var(--paper)] shadow-sm hover:scale-[1.02] transition-transform duration-300`}>
-                                    <span className={`text-xl font-bold ${config.color}`}>{sizes[tier].value}</span>
-                                    <span className={`font-technical ${config.color} ml-2`}>{config.label}</span>
-                                </div>
-                            </div>
-                        );
-                    })}
-                    <div className="flex items-center gap-2 mt-4"><TrendingUp size={12} strokeWidth={1.5} className="text-[var(--muted)]" /><span className="font-technical text-[var(--muted)]">YOUR GROWTH TRAJECTORY</span></div>
-                </div>
-            </BlueprintCard>
-
-            {(["tam", "sam", "som"] as const).map((tier, i) => {
-                const config = tierConfig[tier];
-                return (
-                    <BlueprintCard key={tier} data-animate figure={`FIG. ${String(i + 2).padStart(2, "0")}`} title={config.full} code={config.code} showCorners padding="md">
-                        <div className="flex items-center gap-2 mb-4"><BlueprintBadge variant={tier === "tam" ? "blueprint" : tier === "sam" ? "warning" : "success"}>{config.label}</BlueprintBadge></div>
-                        <div className="grid grid-cols-3 gap-4">
-                            <input type="text" value={sizes[tier].value} onChange={(e) => handleChange(tier, "value", e.target.value)} placeholder="$XXB" className="h-10 px-4 text-center font-mono font-bold text-sm bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius-sm)] text-[var(--ink)] focus:outline-none focus:border-[var(--blueprint)] placeholder:font-sans placeholder:font-normal" />
-                            <input type="text" value={sizes[tier].description} onChange={(e) => handleChange(tier, "description", e.target.value)} placeholder="Description" className="col-span-2 h-10 px-4 text-sm bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius-sm)] text-[var(--ink)] focus:outline-none focus:border-[var(--blueprint)]" />
-                        </div>
-                    </BlueprintCard>
-                );
-            })}
-
-            {!confirmed && (
-                <BlueprintButton data-animate size="lg" onClick={handleConfirm} className="w-full" label="BTN-CONFIRM"><Check size={14} strokeWidth={1.5} />Confirm Market Sizing</BlueprintButton>
-            )}
-            {confirmed && (
-                <BlueprintCard data-animate showCorners padding="md" className="border-[var(--success)]/30 bg-[var(--success-light)]">
-                    <div className="flex items-center gap-3"><Check size={18} strokeWidth={1.5} className="text-[var(--success)]" /><span className="text-sm font-medium text-[var(--ink)]">Market sizing confirmed</span><BlueprintBadge variant="success" dot className="ml-auto">CONFIRMED</BlueprintBadge></div>
+        <OnboardingStepLayout stepId={22} moduleLabel="TAM-SAM-SOM">
+            <div ref={containerRef} className="space-y-6">
+                <BlueprintCard data-animate showCorners padding="md" className="border-[var(--blueprint)]/30 bg-[var(--blueprint-light)]">
+                    <p className="text-sm text-[var(--secondary)]">Define your market size pyramid: Total, Serviceable, and Obtainable market.</p>
                 </BlueprintCard>
-            )}
 
-            <div className="flex justify-center pt-4"><span className="font-technical text-[var(--muted)]">DOCUMENT: TAM-SAM-SOM | STEP 22/25</span></div>
-        </div>
+                <BlueprintCard data-animate figure="FIG. 01" title="Market Pyramid" code="PYR" showCorners padding="lg">
+                    <div className="flex flex-col items-center">
+                        {(["tam", "sam", "som"] as const).map((tier) => {
+                            const config = tierConfig[tier];
+                            return (
+                                <div key={tier} className={`flex flex-col items-center w-full z-10`} style={{ width: config.size }}>
+                                    <div className={`${config.bg} p-4 w-full rounded-[var(--radius-md)] text-center border-2 border-[var(--paper)] shadow-sm hover:scale-[1.02] transition-transform duration-300`}>
+                                        <span className={`text-xl font-bold ${config.color}`}>{sizes[tier].value}</span>
+                                        <span className={`font-technical ${config.color} ml-2`}>{config.label}</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        <div className="flex items-center gap-2 mt-4"><TrendingUp size={12} strokeWidth={1.5} className="text-[var(--muted)]" /><span className="font-technical text-[var(--muted)]">YOUR GROWTH TRAJECTORY</span></div>
+                    </div>
+                </BlueprintCard>
+
+                {(["tam", "sam", "som"] as const).map((tier, i) => {
+                    const config = tierConfig[tier];
+                    return (
+                        <BlueprintCard key={tier} data-animate figure={`FIG. ${String(i + 2).padStart(2, "0")}`} title={config.full} code={config.code} showCorners padding="md">
+                            <div className="flex items-center gap-2 mb-4"><BlueprintBadge variant={tier === "tam" ? "blueprint" : tier === "sam" ? "warning" : "success"}>{config.label}</BlueprintBadge></div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <input type="text" value={sizes[tier].value} onChange={(e) => handleChange(tier, "value", e.target.value)} placeholder="$XXB" className="h-10 px-4 text-center font-mono font-bold text-sm bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius-sm)] text-[var(--ink)] focus:outline-none focus:border-[var(--blueprint)] placeholder:font-sans placeholder:font-normal" />
+                                <input type="text" value={sizes[tier].description} onChange={(e) => handleChange(tier, "description", e.target.value)} placeholder="Description" className="col-span-2 h-10 px-4 text-sm bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius-sm)] text-[var(--ink)] focus:outline-none focus:border-[var(--blueprint)]" />
+                            </div>
+                        </BlueprintCard>
+                    );
+                })}
+
+                {!confirmed && (
+                    <BlueprintButton data-animate size="lg" onClick={handleConfirm} className="w-full" label="BTN-CONFIRM"><Check size={14} strokeWidth={1.5} />Confirm Market Sizing</BlueprintButton>
+                )}
+                {confirmed && (
+                    <BlueprintCard data-animate showCorners padding="md" className="border-[var(--success)]/30 bg-[var(--success-light)]">
+                        <div className="flex items-center gap-3"><Check size={18} strokeWidth={1.5} className="text-[var(--success)]" /><span className="text-sm font-medium text-[var(--ink)]">Market sizing confirmed</span><BlueprintBadge variant="success" dot className="ml-auto">CONFIRMED</BlueprintBadge></div>
+                    </BlueprintCard>
+                )}
+
+            </div>
+        </OnboardingStepLayout>
     );
 }

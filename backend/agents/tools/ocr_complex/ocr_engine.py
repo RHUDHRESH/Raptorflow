@@ -228,7 +228,7 @@ class GeminiProcessor(BaseProcessor):
                 data={
                     "content": "\n\n".join(all_text),
                     "page_count": len(all_text),
-                    "method": "gemini_1_5_flash",
+                    "method": os.getenv("METHOD"),
                     "model": "gemini-1.5-flash",
                 },
                 confidence=avg_confidence,

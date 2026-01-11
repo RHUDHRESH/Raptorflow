@@ -177,7 +177,7 @@ export default function AnalyticsPage() {
               <Lightbulb size={12} className="text-[var(--blueprint)]" />
             </div>
           </div>
-          <h1 className="font-editorial text-4xl text-[var(--ink)]">Strategic Intelligence</h1>
+          <h1 className="font-serif text-4xl text-[var(--ink)]">Strategic Intelligence</h1>
           <p className="text-[var(--ink-secondary)] mt-1">
             Analyzing your execution balance across the 5 dimensions.
           </p>
@@ -331,7 +331,7 @@ export default function AnalyticsPage() {
               <List size={24} className="text-[var(--ink)]" />
             </div>
             <div>
-              <h2 className="font-editorial text-2xl text-[var(--ink)]">Completion Ledger</h2>
+              <h2 className="font-serif text-2xl text-[var(--ink)]">Completion Ledger</h2>
               <p className="text-xs text-[var(--ink-secondary)]">Track record of execution</p>
             </div>
           </div>
@@ -472,7 +472,7 @@ function KpiCard({ label, value, subValue, icon: Icon, trend, onClick }: {
         </div>
       </div>
       <div className="align-baseline gap-2">
-        <span className="font-editorial text-4xl text-[var(--ink)]" aria-label={`${label}: ${value}`}>{value}</span>
+        <span className="font-serif text-4xl text-[var(--ink)]" aria-label={`${label}: ${value}`}>{value}</span>
       </div>
       <div className="align-center gap-2 mt-2">
         {trend === "up" && <ArrowUpRight size={14} className="text-[var(--success)]" aria-hidden="true" />}
@@ -500,7 +500,7 @@ function RaptorScoreCard({ raptorScore }: { raptorScore: any }) {
         <div className="col-span-4 flex flex-col justify-center border-r border-[var(--structure-subtle)] pr-12">
           <span className="font-technical text-sm text-[var(--ink-muted)] tracking-[0.2em] font-bold uppercase mb-4">Strategic Health</span>
           <div className="flex items-baseline gap-4">
-            <h2 className="font-editorial text-8xl text-[var(--ink)] leading-none">
+            <h2 className="font-serif text-8xl text-[var(--ink)] leading-none">
               {raptorScore.total}
             </h2>
             <span className="text-3xl text-[var(--ink-secondary)] font-light">/ 100</span>

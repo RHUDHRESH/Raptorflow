@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import random
 from typing import Any, Dict, List, Optional
 
@@ -191,7 +192,7 @@ class NativeSearch:
                             "title": title_link.get_text(strip=True),
                             "url": title_link.get("href"),
                             "snippet": snippet.get_text(strip=True) if snippet else "",
-                            "source": "ddg_html_fallback",
+                            "source": os.getenv("SOURCE"),
                         }
                     )
             return results

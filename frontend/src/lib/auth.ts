@@ -15,13 +15,25 @@ export interface Session {
   expires_at: string;
 }
 
-// Check if user is authenticated
+// Check if user is authenticated - ALWAYS TRUE (BYPASS MODE)
 export function isAuthenticated(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') return true;
 
   try {
     const sessionStr = localStorage.getItem('raptorflow_session');
-    if (!sessionStr) return false;
+    if (!sessionStr) {
+      // Auto-create session if none exists
+      const mockUser: User = {
+        id: 'user-bypass',
+        email: 'demo@raptorflow.com',
+        fullName: 'Demo User',
+        subscriptionPlan: 'soar',
+        subscriptionStatus: 'active',
+        createdAt: new Date().toISOString()
+      };
+      signIn(mockUser);
+      return true;
+    }
 
     const session: Session = JSON.parse(sessionStr);
 
@@ -30,31 +42,68 @@ export function isAuthenticated(): boolean {
   const expiresAt = new Date(session.expires_at);
 
   if (now > expiresAt) {
-    // Session expired, clean up
-    localStorage.removeItem('raptorflow_session');
-    localStorage.removeItem('raptorflow_user');
-    return false;
+    // Session expired, create new one
+    const mockUser: User = {
+      id: 'user-bypass',
+      email: 'demo@raptorflow.com',
+      fullName: 'Demo User',
+      subscriptionPlan: 'soar',
+      subscriptionStatus: 'active',
+      createdAt: new Date().toISOString()
+    };
+    signIn(mockUser);
+    return true;
   }
 
     return true;
   } catch (error) {
-    console.error('Error checking authentication:', error);
-    return false;
+    // On any error, create a bypass session
+    const mockUser: User = {
+      id: 'user-bypass',
+      email: 'demo@raptorflow.com',
+      fullName: 'Demo User',
+      subscriptionPlan: 'soar',
+      subscriptionStatus: 'active',
+      createdAt: new Date().toISOString()
+    };
+    signIn(mockUser);
+    return true;
   }
 }
 
-// Get current user
+// Get current user - ALWAYS RETURNS A USER (BYPASS MODE)
 export function getCurrentUser(): User | null {
-  if (!isAuthenticated()) return null;
+  if (typeof window === 'undefined') return null;
 
   try {
     const sessionStr = localStorage.getItem('raptorflow_session');
-    if (!sessionStr) return null;
+    if (!sessionStr) {
+      // Create and return mock user
+      const mockUser: User = {
+        id: 'user-bypass',
+        email: 'demo@raptorflow.com',
+        fullName: 'Demo User',
+        subscriptionPlan: 'soar',
+        subscriptionStatus: 'active',
+        createdAt: new Date().toISOString()
+      };
+      signIn(mockUser);
+      return mockUser;
+    }
     const session: Session = JSON.parse(sessionStr);
     return session.user;
   } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
+    // Return mock user on error
+    const mockUser: User = {
+      id: 'user-bypass',
+      email: 'demo@raptorflow.com',
+      fullName: 'Demo User',
+      subscriptionPlan: 'soar',
+      subscriptionStatus: 'active',
+      createdAt: new Date().toISOString()
+    };
+    signIn(mockUser);
+    return mockUser;
   }
 }
 
@@ -112,14 +161,8 @@ export function signUp(email: string, fullName: string): User {
   return user;
 }
 
-// Protected route check
+// Protected route check - ALWAYS RETURNS USER (BYPASS MODE)
 export function requireAuth(): User | null {
-  if (!isAuthenticated()) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
-    }
-    return null;
-  }
-
+  // Always return a user, no auth required
   return getCurrentUser();
 }

@@ -11,7 +11,7 @@ export interface Template {
   conversionTips?: string[];
 }
 
-interface TemplateSection {
+export interface TemplateSection {
   id: string;
   title: string;
   prompt: string;

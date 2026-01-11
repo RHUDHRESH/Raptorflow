@@ -26,7 +26,7 @@ export default function DesignPage() {
     return (
         <div className="max-w-4xl mx-auto space-y-12 pb-24">
             <div>
-                <h1 className="font-editorial text-4xl text-[var(--ink)]">Design System</h1>
+                <h1 className="font-serif text-4xl text-[var(--ink)]">Design System</h1>
                 <p className="text-[var(--ink-secondary)]">Component Verification Laboratory</p>
             </div>
 
@@ -35,7 +35,7 @@ export default function DesignPage() {
                 <h2 className="text-xs font-mono uppercase text-[var(--muted)]">01 // TYPOGRAPHY</h2>
                 <div className="grid grid-cols-2 gap-8">
                     <div className="space-y-2">
-                        <p className="font-editorial text-4xl">H1 Editorial</p>
+                        <p className="font-serif text-4xl">H1 Editorial</p>
                         <p className="font-serif text-2xl">H2 Serif Display</p>
                         <p className="font-sans text-xl font-bold">H3 Sans Bold</p>
                     </div>

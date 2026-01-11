@@ -37,7 +37,7 @@ export function MoveCategorySelector({ selected, onSelect, className }: MoveCate
                         <div className="h-px w-12 bg-[var(--blueprint-line)]" />
                         <span className="font-technical text-[var(--muted)]">SELECTION</span>
                     </div>
-                    <h2 className="font-editorial text-2xl text-[var(--ink)]">Select Tactical Approach</h2>
+                    <h2 className="font-serif text-2xl text-[var(--ink)]">Select Tactical Approach</h2>
                 </div>
                 <span className="text-xs font-mono text-[var(--muted)]">{categories.length} MODULES AVAILABLE</span>
             </div>
@@ -85,7 +85,7 @@ function CategoryTile({ category, isSelected, onClick }: { category: MoveCategor
             <div className="relative z-10">
                 <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300 origin-left">{category.emoji}</div>
 
-                <h3 className={cn("font-editorial text-xl mb-2", isSelected ? "text-[var(--paper)]" : "text-[var(--ink)]")}>
+                <h3 className={cn("font-serif text-xl mb-2", isSelected ? "text-[var(--paper)]" : "text-[var(--ink)]")}>
                     {category.name}
                 </h3>
 

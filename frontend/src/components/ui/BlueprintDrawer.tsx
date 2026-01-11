@@ -66,7 +66,7 @@ export function BlueprintDrawer({ isOpen, onClose, title, code = "PNL-01", child
                             <span className="font-technical text-[var(--blueprint)] tracking-wider">FIG. {code}</span>
                             <div className="h-px w-8 bg-[var(--blueprint-line)]" />
                         </div>
-                        <h2 className="text-xl font-editorial text-[var(--ink)]">{title}</h2>
+                        <h2 className="text-xl font-serif text-[var(--ink)]">{title}</h2>
                     </div>
                     <button
                         onClick={onClose}

@@ -44,6 +44,12 @@
   --error: #8B3A3A;
   --error-light: rgba(139, 58, 58, 0.08);
 
+  /* Additional variables used in components */
+  --secondary: #4A4A4A;
+  --muted: #7A7A7A;
+  --border: #E0DED8;
+  --blueprint-line: rgba(58, 90, 124, 0.3);
+
   /* ─────────────────────────────────────────────────────────────────────────────
      UNIQUENESS PILLAR 1: SHARP SHAPES
      2px radius maximum. No shadows. Borders only.
@@ -800,16 +806,21 @@ body {
   font-family: 'Crimson Pro', Georgia, serif;
 }
 
-/* Old color variables mapped to new */
-:root {
-  --secondary: var(--ink-secondary);
-  --muted: var(--ink-muted);
-  --placeholder: var(--ink-ghost);
-  --border: var(--structure);
-  --border-subtle: var(--structure-subtle);
-  --blueprint-line: var(--structure);
-  --radius-sm: var(--radius);
-  --radius-xs: var(--radius);
+/* Font classes */
+.font-editorial {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 400;
+}
+
+.font-technical {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.font-serif {
+  font-family: 'Crimson Pro', Georgia, serif;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════

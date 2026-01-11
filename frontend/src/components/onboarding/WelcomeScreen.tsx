@@ -46,7 +46,7 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
             </div>
 
             {/* Main Content */}
-            <h1 data-anim className="font-editorial text-5xl md:text-6xl text-[var(--ink)] mb-6 leading-[1.1]">
+            <h1 data-anim className="font-serif text-5xl md:text-6xl text-[var(--ink)] mb-6 leading-[1.1]">
                 Welcome to<br />
                 <span className="italic">RaptorFlow</span>
             </h1>

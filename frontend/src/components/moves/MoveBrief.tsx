@@ -28,7 +28,7 @@ export function MoveBrief({ brief, className }: MoveBriefProps) {
                     <div className="h-px flex-1 bg-[var(--structure-subtle)]" />
                     <span className="font-technical text-[var(--ink-muted)]">STRATEGY LOCK</span>
                 </div>
-                <h2 className="font-editorial text-2xl text-[var(--ink)]">Your Move Brief</h2>
+                <h2 className="font-serif text-2xl text-[var(--ink)]">Your Move Brief</h2>
                 <p className="text-sm text-[var(--ink-secondary)]">
                     Review and confirm your tactical sprint strategy.
                 </p>
@@ -42,7 +42,7 @@ export function MoveBrief({ brief, className }: MoveBriefProps) {
                         <span className="text-2xl">{categoryInfo.emoji}</span>
                         <BlueprintBadge variant="blueprint">{categoryInfo.tagline}</BlueprintBadge>
                     </div>
-                    <h3 className="font-editorial text-xl text-[var(--ink)]">
+                    <h3 className="font-serif text-xl text-[var(--ink)]">
                         {brief.name}
                     </h3>
                 </div>

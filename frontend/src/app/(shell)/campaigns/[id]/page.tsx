@@ -71,7 +71,7 @@ export default function CampaignDetailPage({ params }: { params: { id: string } 
                         <BlueprintBadge variant="blueprint" size="sm" dot>{campaign.status?.toUpperCase() || "ACTIVE"}</BlueprintBadge>
                         <span className="font-mono text-xs text-[var(--muted)]">ID: {campaign.id}</span>
                     </div>
-                    <h1 className="font-editorial text-4xl text-[var(--ink)]">{campaign.title}</h1>
+                    <h1 className="font-serif text-4xl text-[var(--ink)]">{campaign.title}</h1>
                     <p className="text-lg text-[var(--secondary)] max-w-2xl">{campaign.objective || "Dominating the market through strategic content and targeted outreach."}</p>
                 </div>
                 <div className="flex gap-3">

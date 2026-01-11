@@ -102,7 +102,7 @@ export default function CohortsPage() {
       <div className="relative z-10 space-y-8">
         {/* Header */}
         <div data-header className="flex justify-between items-start" style={{ opacity: 0 }}>
-          <div className="space-y-2"><div className="flex items-center gap-4"><span className="font-technical text-[var(--blueprint)]">FIG. 01</span><div className="h-px w-8 bg-[var(--blueprint-line)]" /><span className="font-technical text-[var(--muted)]">COHORTS</span></div><h1 className="font-editorial text-4xl text-[var(--ink)]">Audience Cohorts</h1><p className="text-sm text-[var(--secondary)] max-w-lg">Segment your audience into targeted groups.</p></div>
+          <div className="space-y-2"><div className="flex items-center gap-4"><span className="font-technical text-[var(--blueprint)]">FIG. 01</span><div className="h-px w-8 bg-[var(--blueprint-line)]" /><span className="font-technical text-[var(--muted)]">COHORTS</span></div><h1 className="font-serif text-4xl text-[var(--ink)]">Audience Cohorts</h1><p className="text-sm text-[var(--secondary)] max-w-lg">Segment your audience into targeted groups.</p></div>
           <BlueprintButton label="BTN-NEW"><Plus size={16} strokeWidth={1.5} />New Cohort</BlueprintButton>
         </div>
 

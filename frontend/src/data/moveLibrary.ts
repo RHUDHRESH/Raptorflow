@@ -1,4 +1,4 @@
-import { MoveType, MoveConfig } from '@/types/campaign';
+import { Move, MoveType, MoveConfig } from '@/types/campaign';
 
 // Email Sequence Moves
 export const emailSequenceMoves = [
@@ -76,7 +76,10 @@ export const emailSequenceMoves = [
           content: 'Call to action for demo'
         }
       ],
-      triggers: ['lead-capture'],
+      triggers: [{
+        type: 'event',
+        conditions: [{ field: 'source', operator: 'equals', value: 'lead-capture' }]
+      }],
       scoring: true,
       segmentation: 'behavior-based'
     } as MoveConfig,
@@ -132,10 +135,11 @@ export const socialMediaMoves = [
     config: {
       platforms: ['linkedin', 'twitter', 'facebook', 'instagram'],
       schedule: {
+        scheduleType: 'recurring',
         frequency: 'daily',
         times: ['09:00', '14:00', '18:00'],
         timezone: 'user-timezone'
-      },
+      } as any,
       contentTypes: ['blog-links', 'tips', 'questions', 'behind-scenes'],
       hashtags: ['auto-generate', 'custom'],
       engagement: {
@@ -192,9 +196,10 @@ export const socialMediaMoves = [
     config: {
       contentTypes: ['polls', 'quizzes', 'questions', 'contests'],
       schedule: {
-        frequency: '3x-week',
+        scheduleType: 'recurring',
+        frequency: 'weekly',
         optimalTimes: true
-      },
+      } as any,
       automation: {
         autoRespond: true,
         likeComments: true,
@@ -203,7 +208,7 @@ export const socialMediaMoves = [
       analytics: {
         trackEngagement: true,
         optimizeTiming: true,
-        a/bTest: true
+        'a/bTest': true
       }
     } as MoveConfig,
     icon: '💬',
@@ -611,7 +616,7 @@ export const getPopularMoves = (limit: number = 5) => {
 };
 
 export const getRecommendedMoves = (objective: string, budget: number, teamSize: number) => {
-  let recommended = [];
+  let recommended: any[] = [];
 
   if (objective === 'lead-generation') {
     recommended = [

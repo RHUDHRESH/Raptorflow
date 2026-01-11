@@ -1,0 +1,239 @@
+"""
+Application settings and configuration management.
+"""
+
+import os
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseSettings, Field, validator
+
+
+class Environment(str, Enum):
+    """Application environments."""
+
+    DEV = "dev"
+    STAGING = "staging"
+    PROD = "prod"
+
+
+class Settings(BaseSettings):
+    """Application settings with validation and environment-specific defaults."""
+
+    # Environment
+    ENVIRONMENT: Environment = Field(default=Environment.DEV, env="ENVIRONMENT")
+    DEBUG: bool = Field(default=False, env="DEBUG")
+
+    # Application
+    APP_NAME: str = Field(default="Raptorflow Backend", env="APP_NAME")
+    APP_VERSION: str = Field(default="1.0.0", env="APP_VERSION")
+    API_PREFIX: str = Field(default="/api/v1", env="API_PREFIX")
+    HOST: str = Field(default="0.0.0.0", env="HOST")
+    PORT: int = Field(default=8000, env="PORT")
+
+    # Security
+    SECRET_KEY: str = Field(..., env="SECRET_KEY")
+    JWT_ALGORITHM: str = Field(default="HS256", env="JWT_ALGORITHM")
+    JWT_EXPIRE_MINUTES: int = Field(default=30, env="JWT_EXPIRE_MINUTES")
+
+    # Database
+    DATABASE_URL: str = Field(..., env="DATABASE_URL")
+    DATABASE_POOL_SIZE: int = Field(default=10, env="DATABASE_POOL_SIZE")
+    DATABASE_MAX_OVERFLOW: int = Field(default=20, env="DATABASE_MAX_OVERFLOW")
+
+    # Redis
+    UPSTASH_REDIS_URL: str = Field(..., env="UPSTASH_REDIS_URL")
+    UPSTASH_REDIS_TOKEN: str = Field(..., env="UPSTASH_REDIS_TOKEN")
+    REDIS_KEY_PREFIX: str = Field(default="raptorflow:", env="REDIS_KEY_PREFIX")
+    REDIS_DEFAULT_TTL: int = Field(default=3600, env="REDIS_DEFAULT_TTL")
+    REDIS_MAX_CONNECTIONS: int = Field(default=10, env="REDIS_MAX_CONNECTIONS")
+
+    # AI/ML Services
+    VERTEX_AI_PROJECT_ID: str = Field(..., env="VERTEX_AI_PROJECT_ID")
+    VERTEX_AI_LOCATION: str = Field(default="us-central1", env="VERTEX_AI_LOCATION")
+    VERTEX_AI_CREDENTIALS_PATH: Optional[str] = Field(
+        default=None, env="VERTEX_AI_CREDENTIALS_PATH"
+    )
+
+    # OpenAI (optional)
+    OPENAI_API_KEY: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
+    OPENAI_MODEL: str = Field(default="gpt-4", env="OPENAI_MODEL")
+
+    # Google Cloud Platform
+    GCP_PROJECT_ID: str = Field(..., env="GCP_PROJECT_ID")
+    GCP_REGION: str = Field(default="us-central1", env="GCP_REGION")
+    GCP_CREDENTIALS_PATH: Optional[str] = Field(
+        default=None, env="GCP_CREDENTIALS_PATH"
+    )
+
+    # Cloud Storage
+    EVIDENCE_BUCKET: str = Field(default="raptorflow-evidence", env="EVIDENCE_BUCKET")
+    EXPORTS_BUCKET: str = Field(default="raptorflow-exports", env="EXPORTS_BUCKET")
+    ASSETS_BUCKET: str = Field(default="raptorflow-assets", env="ASSETS_BUCKET")
+
+    # BigQuery
+    BIGQUERY_DATASET: str = Field(
+        default="raptorflow_analytics", env="BIGQUERY_DATASET"
+    )
+
+    # Email
+    SMTP_HOST: Optional[str] = Field(default=None, env="SMTP_HOST")
+    SMTP_PORT: int = Field(default=587, env="SMTP_PORT")
+    SMTP_USERNAME: Optional[str] = Field(default=None, env="SMTP_USERNAME")
+    SMTP_PASSWORD: Optional[str] = Field(default=None, env="SMTP_PASSWORD")
+    SMTP_USE_TLS: bool = Field(default=True, env="SMTP_USE_TLS")
+    EMAIL_FROM: Optional[str] = Field(default=None, env="EMAIL_FROM")
+
+    # Webhooks
+    WEBHOOK_SECRET: str = Field(..., env="WEBHOOK_SECRET")
+    SUPABASE_WEBHOOK_SECRET: Optional[str] = Field(
+        default=None, env="SUPABASE_WEBHOOK_SECRET"
+    )
+    STRIPE_WEBHOOK_SECRET: Optional[str] = Field(
+        default=None, env="STRIPE_WEBHOOK_SECRET"
+    )
+    PHONEPE_WEBHOOK_SECRET: Optional[str] = Field(
+        default=None, env="PHONEPE_WEBHOOK_SECRET"
+    )
+
+    # Rate Limiting
+    RATE_LIMIT_ENABLED: bool = Field(default=True, env="RATE_LIMIT_ENABLED")
+    RATE_LIMIT_REQUESTS_PER_MINUTE: int = Field(
+        default=60, env="RATE_LIMIT_REQUESTS_PER_MINUTE"
+    )
+    RATE_LIMIT_REQUESTS_PER_HOUR: int = Field(
+        default=1000, env="RATE_LIMIT_REQUESTS_PER_HOUR"
+    )
+
+    # Usage Limits
+    DEFAULT_TOKEN_LIMIT: int = Field(default=100000, env="DEFAULT_TOKEN_LIMIT")
+    DEFAULT_COST_LIMIT: float = Field(default=100.0, env="DEFAULT_COST_LIMIT")
+
+    # Monitoring & Logging
+    LOG_LEVEL: str = Field(default="INFO", env="LOG_LEVEL")
+    LOG_FORMAT: str = Field(default="json", env="LOG_FORMAT")  # json or pretty
+    SENTRY_DSN: Optional[str] = Field(default=None, env="SENTRY_DSN")
+
+    # CORS
+    CORS_ORIGINS: List[str] = Field(
+        default=["http://localhost:3000"], env="CORS_ORIGINS"
+    )
+    CORS_ALLOW_CREDENTIALS: bool = Field(default=True, env="CORS_ALLOW_CREDENTIALS")
+    CORS_ALLOW_METHODS: List[str] = Field(
+        default=["GET", "POST", "PUT", "DELETE", "OPTIONS"], env="CORS_ALLOW_METHODS"
+    )
+    CORS_ALLOW_HEADERS: List[str] = Field(default=["*"], env="CORS_ALLOW_HEADERS")
+
+    # Feature Flags
+    FEATURE_FLAGS: Dict[str, bool] = Field(default_factory=dict, env="FEATURE_FLAGS")
+
+    # Cache
+    CACHE_TTL: int = Field(default=3600, env="CACHE_TTL")
+    CACHE_MAX_SIZE: int = Field(default=1000, env="CACHE_MAX_SIZE")
+
+    # Background Jobs
+    JOB_ENABLED: bool = Field(default=True, env="JOB_ENABLED")
+    JOB_CONCURRENCY: int = Field(default=10, env="JOB_CONCURRENCY")
+
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        case_sensitive = True
+
+        @validator("CORS_ORIGINS", pre=True)
+        def assemble_cors_origins(cls, v):
+            """Parse CORS origins from string or list."""
+            if isinstance(v, str):
+                return [origin.strip() for origin in v.split(",")]
+            return v
+
+        @validator("CORS_ALLOW_METHODS", pre=True)
+        def assemble_cors_methods(cls, v):
+            """Parse CORS methods from string or list."""
+            if isinstance(v, str):
+                return [method.strip() for method in v.split(",")]
+            return v
+
+        @validator("CORS_ALLOW_HEADERS", pre=True)
+        def assemble_cors_headers(cls, v):
+            """Parse CORS headers from string or list."""
+            if isinstance(v, str):
+                return [header.strip() for header in v.split(",")]
+            return v
+
+        @validator("FEATURE_FLAGS", pre=True)
+        def assemble_feature_flags(cls, v):
+            """Parse feature flags from JSON string."""
+            if isinstance(v, str):
+                import json
+
+                try:
+                    return json.loads(v)
+                except json.JSONDecodeError:
+                    return {}
+            return v
+
+    @property
+    def is_development(self) -> bool:
+        """Check if running in development environment."""
+        return self.ENVIRONMENT == Environment.DEV
+
+    @property
+    def is_staging(self) -> bool:
+        """Check if running in staging environment."""
+        return self.ENVIRONMENT == Environment.STAGING
+
+    @property
+    def is_production(self) -> bool:
+        """Check if running in production environment."""
+        return self.ENVIRONMENT == Environment.PROD
+
+    @property
+    def database_url_sync(self) -> str:
+        """Get synchronous database URL."""
+        return self.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+
+    def get_cors_origins(self) -> List[str]:
+        """Get CORS origins based on environment."""
+        if self.is_development:
+            return ["http://localhost:3000", "http://localhost:3001"]
+        elif self.is_staging:
+            return ["https://staging.raptorflow.app"]
+        else:
+            return ["https://app.raptorflow.app"]
+
+    def get_log_level(self) -> str:
+        """Get appropriate log level for environment."""
+        if self.is_development:
+            return "DEBUG"
+        elif self.is_staging:
+            return "INFO"
+        else:
+            return "WARNING"
+
+    def get_feature_flag(self, flag_name: str, default: bool = False) -> bool:
+        """Get feature flag value."""
+        return self.FEATURE_FLAGS.get(flag_name, default)
+
+    def set_feature_flag(self, flag_name: str, value: bool) -> None:
+        """Set feature flag value."""
+        self.FEATURE_FLAGS[flag_name] = value
+
+
+# Global settings instance
+_settings: Optional[Settings] = None
+
+
+def get_settings() -> Settings:
+    """Get the global settings instance."""
+    global _settings
+    if _settings is None:
+        _settings = Settings()
+    return _settings
+
+
+def reload_settings() -> Settings:
+    """Reload settings from environment."""
+    global _settings
+    _settings = Settings()
+    return _settings

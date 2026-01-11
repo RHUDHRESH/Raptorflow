@@ -26,7 +26,8 @@ import {
 import { BlueprintCard } from '@/components/ui/BlueprintCard';
 import { BlueprintButton } from '@/components/ui/BlueprintButton';
 import { BlueprintBadge } from '@/components/ui/BlueprintBadge';
-import { useEnhancedCampaignStore, Move, MoveStatus } from '@/stores/enhancedCampaignStore';
+import { useEnhancedCampaignStore } from '@/stores/enhancedCampaignStore';
+import { Move, MoveStatus } from '@/types/campaign';
 import { useExecutionEngine } from '@/stores/executionEngine';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -333,7 +334,7 @@ export function MoveExecutionUI({ campaignId }: MoveExecutionUIProps) {
                         <div className="flex-1">
                           <h3 className="text-sm font-semibold text-[var(--ink)]">{move.name}</h3>
                           <div className="flex items-center gap-3 mt-1">
-                            <BlueprintBadge variant="outline" size="sm">
+                            <BlueprintBadge variant="blueprint" size="sm">
                               {move.type}
                             </BlueprintBadge>
                             <span className="text-xs text-[var(--ink-muted)]">
@@ -356,7 +357,7 @@ export function MoveExecutionUI({ campaignId }: MoveExecutionUIProps) {
                         )}
 
                         {isInQueue && (
-                          <BlueprintBadge variant="outline" size="sm">
+                          <BlueprintBadge variant="blueprint" size="sm">
                             Queued
                           </BlueprintBadge>
                         )}
@@ -513,8 +514,8 @@ export function MoveExecutionUI({ campaignId }: MoveExecutionUIProps) {
                                   className={cn(
                                     "text-xs p-2 rounded font-mono",
                                     log.level === 'error' ? "bg-[var(--destructive-light)]/10 text-[var(--destructive)]" :
-                                    log.level === 'warn' ? "bg-[var(--warning-light)]/10 text-[var(--warning)]" :
-                                    "bg-[var(--surface)] text-[var(--ink-muted)]"
+                                      log.level === 'warn' ? "bg-[var(--warning-light)]/10 text-[var(--warning)]" :
+                                        "bg-[var(--surface)] text-[var(--ink-muted)]"
                                   )}
                                 >
                                   [{format(log.timestamp, 'HH:mm:ss')}] {log.message}

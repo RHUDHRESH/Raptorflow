@@ -8,6 +8,7 @@ import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { BlueprintProgress } from "@/components/ui/BlueprintProgress";
+import { OnboardingStepLayout } from "../OnboardingStepLayout";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    PAPER TERMINAL — Step 23: Validation Todos (OPTIONAL)
@@ -125,148 +126,147 @@ export default function Step23ValidationTodos() {
                     </div>
                 </BlueprintCard>
                 <div className="flex justify-center pt-4">
-                    <span className="font-technical text-[var(--muted)]">VALIDATION • STEP 23/25 • OPTIONAL</span>
+                    <span className="font-technical text-[var(--muted)]">VALIDATION-TASKS • STEP 22/24 • OPTIONAL</span>
                 </div>
             </div>
         );
     }
 
     return (
-        <div ref={containerRef} className="space-y-6">
-            {/* Header with Optional Badge */}
-            <div data-animate className="text-center py-4">
-                <div className="inline-flex items-center gap-2 mb-2">
-                    <h2 className="text-2xl font-serif text-[var(--ink)]">Validation Roadmap</h2>
-                    <BlueprintBadge variant="warning">OPTIONAL</BlueprintBadge>
-                </div>
-                <p className="text-sm text-[var(--secondary)] max-w-lg mx-auto">
-                    These are post-launch tasks to validate your positioning with real prospects.
-                    You can skip this and set it up later, or customize your validation plan now.
-                </p>
-            </div>
-
-            {/* Skip Option */}
-            <BlueprintCard data-animate showCorners padding="md" className="border-[var(--warning)]/30 bg-[var(--warning-light)]">
-                <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-[var(--warning)] flex items-center justify-center">
-                        <SkipForward size={16} className="text-[var(--paper)]" />
+        <OnboardingStepLayout stepId={23} moduleLabel="VALIDATION" itemCount={todos.length}>
+            <div ref={containerRef} className="space-y-6">
+                {/* Header with Optional Badge */}
+                <div data-animate className="text-center py-4">
+                    <div className="inline-flex items-center gap-2 mb-2">
+                        <h2 className="text-2xl font-serif text-[var(--ink)]">Validation Roadmap</h2>
+                        <BlueprintBadge variant="warning">OPTIONAL</BlueprintBadge>
                     </div>
-                    <div className="flex-1">
-                        <span className="text-sm font-medium text-[var(--ink)]">Skip for now?</span>
-                        <p className="text-xs text-[var(--secondary)]">You can set up validation tasks from your dashboard later</p>
-                    </div>
-                    <SecondaryButton size="sm" onClick={handleSkip}>
-                        Skip to Final
-                    </SecondaryButton>
+                    <p className="text-sm text-[var(--secondary)] max-w-lg mx-auto">
+                        These are post-launch tasks to validate your positioning with real prospects.
+                        You can skip this and set it up later, or customize your validation plan now.
+                    </p>
                 </div>
-            </BlueprintCard>
 
-            {/* Progress */}
-            <BlueprintCard data-animate figure="FIG. 01" title="Progress" code="PROG" showCorners padding="md">
-                <div className="flex items-center justify-between mb-3">
+                {/* Skip Option */}
+                <BlueprintCard data-animate showCorners padding="md" className="border-[var(--warning)]/30 bg-[var(--warning-light)]">
                     <div className="flex items-center gap-4">
-                        <span className="text-sm font-medium text-[var(--ink)]">{completedCount} of {todos.length} complete</span>
-                        {highPriorityCount > 0 && (
-                            <span className="flex items-center gap-1 text-xs text-[var(--error)]">
-                                <AlertCircle size={10} />{highPriorityCount} high priority
-                            </span>
-                        )}
+                        <div className="w-10 h-10 rounded-lg bg-[var(--warning)] flex items-center justify-center">
+                            <SkipForward size={16} className="text-[var(--paper)]" />
+                        </div>
+                        <div className="flex-1">
+                            <span className="text-sm font-medium text-[var(--ink)]">Skip for now?</span>
+                            <p className="text-xs text-[var(--secondary)]">You can set up validation tasks from your dashboard later</p>
+                        </div>
+                        <SecondaryButton size="sm" onClick={handleSkip}>
+                            Skip to Final
+                        </SecondaryButton>
                     </div>
-                    <span className="font-technical text-[var(--muted)]">{Math.round((completedCount / todos.length) * 100)}%</span>
-                </div>
-                <BlueprintProgress value={(completedCount / todos.length) * 100} />
-            </BlueprintCard>
+                </BlueprintCard>
 
-            {/* Todo List */}
-            <div data-animate className="space-y-2">
-                {todos.map((todo) => (
-                    <div
-                        key={todo.id}
-                        className={`
+                {/* Progress */}
+                <BlueprintCard data-animate figure="FIG. 01" title="Progress" code="PROG" showCorners padding="md">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-4">
+                            <span className="text-sm font-medium text-[var(--ink)]">{completedCount} of {todos.length} complete</span>
+                            {highPriorityCount > 0 && (
+                                <span className="flex items-center gap-1 text-xs text-[var(--error)]">
+                                    <AlertCircle size={10} />{highPriorityCount} high priority
+                                </span>
+                            )}
+                        </div>
+                        <span className="font-technical text-[var(--muted)]">{Math.round((completedCount / todos.length) * 100)}%</span>
+                    </div>
+                    <BlueprintProgress value={(completedCount / todos.length) * 100} />
+                </BlueprintCard>
+
+                {/* Todo List */}
+                <div data-animate className="space-y-2">
+                    {todos.map((todo) => (
+                        <div
+                            key={todo.id}
+                            className={`
                             flex items-center gap-4 p-4 rounded-xl border transition-all
                             ${todo.completed
-                                ? "bg-[var(--canvas)] border-[var(--border)] opacity-60"
-                                : "bg-[var(--paper)] border-[var(--border)] hover:border-[var(--blueprint)]/50"}
+                                    ? "bg-[var(--canvas)] border-[var(--border)] opacity-60"
+                                    : "bg-[var(--paper)] border-[var(--border)] hover:border-[var(--blueprint)]/50"}
                         `}
-                    >
-                        <button
-                            onClick={() => toggleComplete(todo.id)}
-                            className={`
+                        >
+                            <button
+                                onClick={() => toggleComplete(todo.id)}
+                                className={`
                                 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all
                                 ${todo.completed ? "bg-[var(--success)] border-[var(--success)]" : "border-[var(--border)] hover:border-[var(--success)]"}
                             `}
-                        >
-                            {todo.completed && <Check size={12} strokeWidth={2} className="text-[var(--paper)]" />}
-                        </button>
-                        <div className="flex-1 min-w-0">
-                            <p className={`text-sm ${todo.completed ? "line-through text-[var(--muted)]" : "text-[var(--ink)]"}`}>
-                                {todo.task}
-                            </p>
-                            <span className={`font-technical text-[9px] ${categoryConfig[todo.category].color}`}>
-                                {categoryConfig[todo.category].label}
+                            >
+                                {todo.completed && <Check size={12} strokeWidth={2} className="text-[var(--paper)]" />}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                                <p className={`text-sm ${todo.completed ? "line-through text-[var(--muted)]" : "text-[var(--ink)]"}`}>
+                                    {todo.task}
+                                </p>
+                                <span className={`font-technical text-[9px] ${categoryConfig[todo.category].color}`}>
+                                    {categoryConfig[todo.category].label}
+                                </span>
+                            </div>
+                            <span className={`font-technical text-[8px] px-2 py-0.5 rounded-full ${priorityConfig[todo.priority].bg} ${priorityConfig[todo.priority].color}`}>
+                                {priorityConfig[todo.priority].label}
                             </span>
+                            <button
+                                onClick={() => removeTodo(todo.id)}
+                                className="p-1.5 text-[var(--muted)] hover:text-[var(--error)] hover:bg-[var(--error-light)] rounded-lg transition-all"
+                            >
+                                <Trash2 size={12} strokeWidth={1.5} />
+                            </button>
                         </div>
-                        <span className={`font-technical text-[8px] px-2 py-0.5 rounded-full ${priorityConfig[todo.priority].bg} ${priorityConfig[todo.priority].color}`}>
-                            {priorityConfig[todo.priority].label}
-                        </span>
-                        <button
-                            onClick={() => removeTodo(todo.id)}
-                            className="p-1.5 text-[var(--muted)] hover:text-[var(--error)] hover:bg-[var(--error-light)] rounded-lg transition-all"
-                        >
-                            <Trash2 size={12} strokeWidth={1.5} />
-                        </button>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
 
-            {/* Add New */}
-            {isAdding ? (
-                <BlueprintCard data-animate code="NEW" showCorners padding="md" className="border-[var(--blueprint)]">
-                    <div className="space-y-4">
-                        <input
-                            type="text"
-                            value={newTodo.task}
-                            onChange={(e) => setNewTodo({ ...newTodo, task: e.target.value })}
-                            placeholder="What do you need to validate?"
-                            className="w-full h-10 px-4 text-sm bg-[var(--paper)] border border-[var(--border)] rounded-lg text-[var(--ink)] placeholder:text-[var(--placeholder)] focus:outline-none focus:border-[var(--blueprint)]"
-                            autoFocus
-                        />
-                        <div className="flex gap-2">
-                            {(["high", "medium", "low"] as const).map((p) => (
-                                <button
-                                    key={p}
-                                    onClick={() => setNewTodo({ ...newTodo, priority: p })}
-                                    className={`
+                {/* Add New */}
+                {isAdding ? (
+                    <BlueprintCard data-animate code="NEW" showCorners padding="md" className="border-[var(--blueprint)]">
+                        <div className="space-y-4">
+                            <input
+                                type="text"
+                                value={newTodo.task}
+                                onChange={(e) => setNewTodo({ ...newTodo, task: e.target.value })}
+                                placeholder="What do you need to validate?"
+                                className="w-full h-10 px-4 text-sm bg-[var(--paper)] border border-[var(--border)] rounded-lg text-[var(--ink)] placeholder:text-[var(--placeholder)] focus:outline-none focus:border-[var(--blueprint)]"
+                                autoFocus
+                            />
+                            <div className="flex gap-2">
+                                {(["high", "medium", "low"] as const).map((p) => (
+                                    <button
+                                        key={p}
+                                        onClick={() => setNewTodo({ ...newTodo, priority: p })}
+                                        className={`
                                         flex-1 px-3 py-2 font-technical text-[10px] rounded-lg capitalize transition-all
                                         ${newTodo.priority === p
-                                            ? `${priorityConfig[p].bg} ${priorityConfig[p].color} ring-2 ring-offset-2`
-                                            : "bg-[var(--canvas)] text-[var(--muted)]"}
+                                                ? `${priorityConfig[p].bg} ${priorityConfig[p].color} ring-2 ring-offset-2`
+                                                : "bg-[var(--canvas)] text-[var(--muted)]"}
                                     `}
-                                >
-                                    {p}
-                                </button>
-                            ))}
+                                    >
+                                        {p}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="flex gap-2">
+                                <BlueprintButton size="sm" onClick={addTodo}>Add Task</BlueprintButton>
+                                <SecondaryButton size="sm" onClick={() => setIsAdding(false)}>Cancel</SecondaryButton>
+                            </div>
                         </div>
-                        <div className="flex gap-2">
-                            <BlueprintButton size="sm" onClick={addTodo}>Add Task</BlueprintButton>
-                            <SecondaryButton size="sm" onClick={() => setIsAdding(false)}>Cancel</SecondaryButton>
-                        </div>
-                    </div>
-                </BlueprintCard>
-            ) : (
-                <SecondaryButton data-animate onClick={() => setIsAdding(true)} className="w-full">
-                    <Plus size={12} strokeWidth={1.5} />Add Validation Task
-                </SecondaryButton>
-            )}
+                    </BlueprintCard>
+                ) : (
+                    <SecondaryButton data-animate onClick={() => setIsAdding(true)} className="w-full">
+                        <Plus size={12} strokeWidth={1.5} />Add Validation Task
+                    </SecondaryButton>
+                )}
 
-            {/* Confirm */}
-            <BlueprintButton data-animate size="lg" onClick={handleConfirm} className="w-full" label="BTN-CONFIRM">
-                <Target size={14} strokeWidth={1.5} />Save Validation Plan
-            </BlueprintButton>
+                {/* Confirm */}
+                <BlueprintButton data-animate size="lg" onClick={handleConfirm} className="w-full" label="BTN-CONFIRM">
+                    <Target size={14} strokeWidth={1.5} />Save Validation Plan
+                </BlueprintButton>
 
-            <div className="flex justify-center pt-4">
-                <span className="font-technical text-[var(--muted)]">VALIDATION • STEP 23/25 • OPTIONAL</span>
             </div>
-        </div>
+        </OnboardingStepLayout>
     );
 }

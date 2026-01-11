@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import {
-  Play,
+  Play as PlayIcon,
   Pause,
   Square,
   RotateCcw,
@@ -28,7 +28,8 @@ import {
 import { BlueprintCard } from '@/components/ui/BlueprintCard';
 import { BlueprintButton } from '@/components/ui/BlueprintButton';
 import { BlueprintBadge } from '@/components/ui/BlueprintBadge';
-import { useEnhancedCampaignStore, Play, PlayStatus } from '@/stores/enhancedCampaignStore';
+import { useEnhancedCampaignStore } from '@/stores/enhancedCampaignStore';
+import { Play, PlayStatus, PlayExecutionStatus } from '@/types/campaign';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -39,11 +40,11 @@ interface PlayExecutionUIProps {
 interface PlayStepExecution {
   stepId: string;
   stepName: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
+  status: PlayExecutionStatus;
   moves: {
     moveId: string;
     moveName: string;
-    status: 'pending' | 'running' | 'completed' | 'failed';
+    status: PlayExecutionStatus;
     progress: number;
     startedAt?: Date;
     completedAt?: Date;
@@ -55,12 +56,13 @@ interface PlayStepExecution {
   }[];
   startedAt?: Date;
   completedAt?: Date;
+  parallel?: boolean;
 }
 
 interface PlayExecution {
   playId: string;
   playName: string;
-  status: PlayStatus;
+  status: PlayExecutionStatus;
   currentStep: number;
   totalSteps: number;
   steps: PlayStepExecution[];
@@ -77,6 +79,7 @@ interface PlayExecution {
 export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
   const campaigns = useEnhancedCampaignStore(state => state.campaigns);
   const plays = useEnhancedCampaignStore(state => state.plays);
+  const movesStore = useEnhancedCampaignStore(state => state.moves);
   const updatePlay = useEnhancedCampaignStore(state => state.updatePlay);
   const executePlay = useEnhancedCampaignStore(state => state.executePlay);
   const pausePlay = useEnhancedCampaignStore(state => state.pausePlay);
@@ -96,36 +99,35 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
       mockExecutions[play.id] = {
         playId: play.id,
         playName: play.name,
-        status: play.isActive ? PlayStatus.RUNNING : PlayStatus.DRAFT,
-        currentStep: play.isActive ? Math.floor(Math.random() * play.steps.length) : 0,
-        totalSteps: play.steps.length,
-        steps: play.steps.map((step, index) => ({
-          stepId: step.id,
-          stepName: step.name || `Step ${index + 1}`,
-          status: play.isActive && index < 2 ? 'completed' :
-                  play.isActive && index === 2 ? 'running' :
-                  play.isActive && index === 3 ? 'pending' : 'skipped',
-          moves: step.moves.map(moveId => ({
-            moveId,
-            moveName: `Move ${moveId}`,
-            status: play.isActive && index < 2 ? 'completed' :
-                    play.isActive && index === 2 ? 'running' : 'pending',
-            progress: play.isActive && index < 2 ? 100 :
-                    play.isActive && index === 2 ? 45 : 0,
+        status: play.isActive ? PlayExecutionStatus.RUNNING : PlayExecutionStatus.PENDING,
+        currentStep: play.isActive ? Math.floor(Math.random() * play.moves.length) : 0,
+        totalSteps: play.moves.length,
+        steps: play.moves.map((moveId, index) => {
+          const move = movesStore[moveId];
+          return {
+            stepId: moveId,
+            stepName: move?.name || `Step ${index + 1}`,
+            status: play.isActive && index < 2 ? PlayExecutionStatus.COMPLETED :
+              play.isActive && index === 2 ? PlayExecutionStatus.RUNNING :
+                play.isActive && index === 3 ? PlayExecutionStatus.PENDING : PlayExecutionStatus.SKIPPED,
+            moves: [{
+              moveId,
+              moveName: move?.name || `Move ${moveId}`,
+              status: play.isActive && index < 2 ? PlayExecutionStatus.COMPLETED :
+                play.isActive && index === 2 ? PlayExecutionStatus.RUNNING : PlayExecutionStatus.PENDING,
+              progress: play.isActive && index < 2 ? 100 :
+                play.isActive && index === 2 ? 45 : 0,
+              startedAt: play.isActive && index <= 2 ? new Date(Date.now() - 3600000) : undefined,
+              completedAt: play.isActive && index < 2 ? new Date(Date.now() - 1800000) : undefined
+            }],
+            conditions: [], // No conditions in flat move list for now
             startedAt: play.isActive && index <= 2 ? new Date(Date.now() - 3600000) : undefined,
             completedAt: play.isActive && index < 2 ? new Date(Date.now() - 1800000) : undefined
-          })),
-          conditions: step.conditions?.map(cond => ({
-            type: cond.type,
-            value: cond.value,
-            met: Math.random() > 0.3
-          })),
-          startedAt: play.isActive && index <= 2 ? new Date(Date.now() - 3600000) : undefined,
-          completedAt: play.isActive && index < 2 ? new Date(Date.now() - 1800000) : undefined
-        })),
+          };
+        }),
         startedAt: play.isActive ? new Date(Date.now() - 3600000) : undefined,
         metrics: play.isActive ? {
-          totalMoves: play.steps.reduce((acc, s) => acc + s.moves.length, 0),
+          totalMoves: play.moves.length,
           completedMoves: Math.floor(Math.random() * 10),
           failedMoves: Math.floor(Math.random() * 3),
           duration: 3600
@@ -134,7 +136,7 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
     });
 
     setExecutions(mockExecutions);
-  }, [plays]);
+  }, [plays, movesStore]);
 
   // Get filtered plays
   const allPlays = Object.values(plays);
@@ -144,13 +146,13 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
 
     switch (filter) {
       case 'running':
-        return execution.status === PlayStatus.RUNNING;
+        return execution.status === PlayExecutionStatus.RUNNING;
       case 'completed':
-        return execution.status === PlayStatus.COMPLETED;
+        return execution.status === PlayExecutionStatus.COMPLETED;
       case 'failed':
-        return execution.status === PlayStatus.FAILED;
+        return execution.status === PlayExecutionStatus.FAILED;
       case 'scheduled':
-        return execution.status === PlayStatus.SCHEDULED;
+        return execution.status === PlayExecutionStatus.SCHEDULED;
       default:
         return true;
     }
@@ -181,7 +183,7 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
           ...prev,
           [playId]: {
             ...execution,
-            status: PlayStatus.RUNNING,
+            status: PlayExecutionStatus.RUNNING,
             startedAt: new Date()
           }
         }));
@@ -200,7 +202,7 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
         ...prev,
         [playId]: {
           ...execution,
-          status: PlayStatus.PAUSED
+          status: PlayExecutionStatus.SKIPPED // Using SKIPPED for paused as PAUSED not in ExecutionStatus or add PAUSED
         }
       }));
     }
@@ -215,7 +217,7 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
         ...prev,
         [playId]: {
           ...execution,
-          status: PlayStatus.RUNNING
+          status: PlayExecutionStatus.RUNNING
         }
       }));
     }
@@ -230,7 +232,7 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
         ...prev,
         [playId]: {
           ...execution,
-          status: PlayStatus.COMPLETED,
+          status: PlayExecutionStatus.COMPLETED,
           completedAt: new Date()
         }
       }));
@@ -238,17 +240,17 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
   };
 
   // Get status color
-  const getStatusColor = (status: PlayStatus) => {
+  const getStatusColor = (status: PlayExecutionStatus) => {
     switch (status) {
-      case PlayStatus.RUNNING:
+      case PlayExecutionStatus.RUNNING:
         return 'text-[var(--warning)] bg-[var(--warning-light)]/10';
-      case PlayStatus.COMPLETED:
+      case PlayExecutionStatus.COMPLETED:
         return 'text-[var(--success)] bg-[var(--success-light)]/10';
-      case PlayStatus.FAILED:
+      case PlayExecutionStatus.FAILED:
         return 'text-[var(--destructive)] bg-[var(--destructive-light)]/10';
-      case PlayStatus.PAUSED:
+      case PlayExecutionStatus.SKIPPED:
         return 'text-[var(--ink-muted)] bg-[var(--surface)]';
-      case PlayStatus.SCHEDULED:
+      case PlayExecutionStatus.SCHEDULED:
         return 'text-[var(--blueprint)] bg-[var(--blueprint-light)]/10';
       default:
         return 'text-[var(--ink-muted)] bg-[var(--surface)]';
@@ -256,17 +258,17 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
   };
 
   // Get status icon
-  const getStatusIcon = (status: PlayStatus) => {
+  const getStatusIcon = (status: PlayExecutionStatus) => {
     switch (status) {
-      case PlayStatus.RUNNING:
-        return Play;
-      case PlayStatus.COMPLETED:
+      case PlayExecutionStatus.RUNNING:
+        return PlayIcon;
+      case PlayExecutionStatus.COMPLETED:
         return CheckCircle;
-      case PlayStatus.FAILED:
+      case PlayExecutionStatus.FAILED:
         return AlertCircle;
-      case PlayStatus.PAUSED:
+      case PlayExecutionStatus.SKIPPED:
         return Pause;
-      case PlayStatus.SCHEDULED:
+      case PlayExecutionStatus.SCHEDULED:
         return Clock;
       default:
         return Clock;
@@ -302,28 +304,28 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
         <div className="grid grid-cols-4 gap-4">
           <BlueprintCard className="p-4 text-center">
             <div className="text-2xl font-bold text-[var(--ink)]">
-              {allPlays.filter(p => executions[p.id]?.status === PlayStatus.RUNNING).length}
+              {allPlays.filter(p => executions[p.id]?.status === PlayExecutionStatus.RUNNING).length}
             </div>
             <div className="text-xs text-[var(--ink-muted)]">Running</div>
           </BlueprintCard>
 
           <BlueprintCard className="p-4 text-center">
             <div className="text-2xl font-bold text-[var(--success)]">
-              {allPlays.filter(p => executions[p.id]?.status === PlayStatus.COMPLETED).length}
+              {allPlays.filter(p => executions[p.id]?.status === PlayExecutionStatus.COMPLETED).length}
             </div>
             <div className="text-xs text-[var(--ink-muted)]">Completed</div>
           </BlueprintCard>
 
           <BlueprintCard className="p-4 text-center">
             <div className="text-2xl font-bold text-[var(--destructive)]">
-              {allPlays.filter(p => executions[p.id]?.status === PlayStatus.FAILED).length}
+              {allPlays.filter(p => executions[p.id]?.status === PlayExecutionStatus.FAILED).length}
             </div>
             <div className="text-xs text-[var(--ink-muted)]">Failed</div>
           </BlueprintCard>
 
           <BlueprintCard className="p-4 text-center">
             <div className="text-2xl font-bold text-[var(--blueprint)]">
-              {allPlays.filter(p => executions[p.id]?.status === PlayStatus.SCHEDULED).length}
+              {allPlays.filter(p => executions[p.id]?.status === PlayExecutionStatus.SCHEDULED).length}
             </div>
             <div className="text-xs text-[var(--ink-muted)]">Scheduled</div>
           </BlueprintCard>
@@ -350,7 +352,7 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
 
           <div className="flex items-center gap-2 text-sm text-[var(--ink-muted)]">
             <Activity size={16} />
-            {allPlays.filter(p => executions[p.id]?.status === PlayStatus.RUNNING).length} plays running
+            {allPlays.filter(p => executions[p.id]?.status === PlayExecutionStatus.RUNNING).length} plays running
           </div>
         </div>
       </div>
@@ -370,7 +372,7 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
             {filteredPlays.map((play) => {
               const isExpanded = expandedPlays.has(play.id);
               const execution = executions[play.id];
-              const StatusIcon = getStatusIcon(execution?.status || PlayStatus.DRAFT);
+              const StatusIcon = getStatusIcon(execution?.status || PlayExecutionStatus.PENDING);
 
               return (
                 <BlueprintCard key={play.id} className="overflow-hidden">
@@ -379,7 +381,7 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
                       <div className="flex items-center gap-3">
                         <div className={cn(
                           "w-10 h-10 rounded-lg flex items-center justify-center",
-                          getStatusColor(execution?.status || PlayStatus.DRAFT)
+                          getStatusColor(execution?.status || PlayExecutionStatus.PENDING)
                         )}>
                           <StatusIcon size={20} />
                         </div>
@@ -387,11 +389,11 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
                         <div className="flex-1">
                           <h3 className="text-sm font-semibold text-[var(--ink)]">{play.name}</h3>
                           <div className="flex items-center gap-3 mt-1">
-                            <BlueprintBadge variant="outline" size="sm">
+                            <BlueprintBadge variant="blueprint" size="sm">
                               {play.category}
                             </BlueprintBadge>
                             <span className="text-xs text-[var(--ink-muted)]">
-                              {play.steps.length} steps
+                              {play.moves.length} steps
                             </span>
                             {execution?.startedAt && (
                               <span className="text-xs text-[var(--ink-muted)]">
@@ -403,14 +405,14 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {execution?.status === PlayStatus.RUNNING && (
+                        {execution?.status === PlayExecutionStatus.RUNNING && (
                           <BlueprintBadge variant="default" size="sm" className="animate-pulse">
                             Step {execution.currentStep + 1}/{execution.totalSteps}
                           </BlueprintBadge>
                         )}
 
                         {execution?.metrics && (
-                          <BlueprintBadge variant="outline" size="sm">
+                          <BlueprintBadge variant="default" size="sm">
                             {execution.metrics.completedMoves}/{execution.metrics.totalMoves} moves
                           </BlueprintBadge>
                         )}
@@ -444,16 +446,16 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
                               </button>
                               <hr className="my-1 border-[var(--structure-subtle)]" />
 
-                              {!execution || execution.status === PlayStatus.DRAFT ? (
+                              {!execution || execution.status === PlayExecutionStatus.PENDING ? (
                                 <button
                                   onClick={() => handleExecutePlay(play.id)}
                                   className="w-full px-3 py-2 text-xs text-left text-[var(--ink)] hover:bg-[var(--surface)] flex items-center gap-2"
                                   disabled={isLoading}
                                 >
-                                  <Play size={12} />
+                                  <PlayIcon size={12} />
                                   Execute
                                 </button>
-                              ) : execution.status === PlayStatus.RUNNING ? (
+                              ) : execution.status === PlayExecutionStatus.RUNNING ? (
                                 <button
                                   onClick={() => handlePausePlay(play.id)}
                                   className="w-full px-3 py-2 text-xs text-left text-[var(--ink)] hover:bg-[var(--surface)] flex items-center gap-2"
@@ -461,17 +463,17 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
                                   <Pause size={12} />
                                   Pause
                                 </button>
-                              ) : execution.status === PlayStatus.PAUSED ? (
+                              ) : execution.status === PlayExecutionStatus.SKIPPED ? (
                                 <button
                                   onClick={() => handleResumePlay(play.id)}
                                   className="w-full px-3 py-2 text-xs text-left text-[var(--ink)] hover:bg-[var(--surface)] flex items-center gap-2"
                                 >
-                                  <Play size={12} />
+                                  <PlayIcon size={12} />
                                   Resume
                                 </button>
                               ) : null}
 
-                              {execution?.status === PlayStatus.RUNNING && (
+                              {execution?.status === PlayExecutionStatus.RUNNING && (
                                 <button
                                   onClick={() => handleStopPlay(play.id)}
                                   className="w-full px-3 py-2 text-xs text-left text-[var(--destructive)] hover:bg-[var(--destructive-light)]/10 flex items-center gap-2"
@@ -515,27 +517,27 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
                               <div className="flex-shrink-0">
                                 <div className={cn(
                                   "w-6 h-6 rounded-full flex items-center justify-center text-xs",
-                                  step.status === 'completed' ? "bg-[var(--success)] text-white" :
-                                  step.status === 'running' ? "bg-[var(--warning)] text-white" :
-                                  step.status === 'failed' ? "bg-[var(--destructive)] text-white" :
-                                  step.status === 'pending' ? "bg-[var(--blueprint)] text-white" :
-                                  "bg-[var(--ink-ghost)] text-[var(--ink)]"
+                                  step.status === PlayExecutionStatus.COMPLETED ? "bg-[var(--success)] text-white" :
+                                    step.status === PlayExecutionStatus.RUNNING ? "bg-[var(--warning)] text-white" :
+                                      step.status === PlayExecutionStatus.FAILED ? "bg-[var(--destructive)] text-white" :
+                                        step.status === PlayExecutionStatus.PENDING ? "bg-[var(--blueprint)] text-white" :
+                                          "bg-[var(--ink-ghost)] text-[var(--ink)]"
                                 )}>
-                                  {step.status === 'completed' ? '✓' :
-                                   step.status === 'running' ? '▶' :
-                                   step.status === 'failed' ? '✕' :
-                                   step.status === 'pending' ? '⏸' :
-                                   '○'}
+                                  {step.status === PlayExecutionStatus.COMPLETED ? '✓' :
+                                    step.status === PlayExecutionStatus.RUNNING ? '▶' :
+                                      step.status === PlayExecutionStatus.FAILED ? '✕' :
+                                        step.status === PlayExecutionStatus.PENDING ? '⏸' :
+                                          '○'}
                                 </div>
                               </div>
 
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <p className="text-sm font-medium text-[var(ink)] truncate">
+                                  <p className="text-sm font-medium text-[var(--ink)] truncate">
                                     {step.stepName}
                                   </p>
                                   {step.parallel && (
-                                    <BlueprintBadge variant="outline" size="xs">Parallel</BlueprintBadge>
+                                    <BlueprintBadge variant="blueprint" size="xs">Parallel</BlueprintBadge>
                                   )}
                                 </div>
 
@@ -568,10 +570,10 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
                                             <div
                                               className={cn(
                                                 "h-1 rounded-full",
-                                                move.status === 'completed' ? "bg-[var(--success)]" :
-                                                move.status === 'running' ? "bg-[var(--warning)]" :
-                                                move.status === 'failed' ? "bg-[var(--destructive)]" :
-                                                "bg-[var(--ink-ghost)]"
+                                                move.status === PlayExecutionStatus.COMPLETED ? "bg-[var(--success)]" :
+                                                  move.status === PlayExecutionStatus.RUNNING ? "bg-[var(--warning)]" :
+                                                    move.status === PlayExecutionStatus.FAILED ? "bg-[var(--destructive)]" :
+                                                      "bg-[var(--ink-ghost)]"
                                               )}
                                               style={{ width: `${move.progress}%` }}
                                             />
@@ -589,7 +591,7 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
                                     {step.conditions.map((cond, idx) => (
                                       <BlueprintBadge
                                         key={idx}
-                                        variant={cond.met ? "default" : "outline"}
+                                        variant={cond.met ? "success" : "default"}
                                         size="xs"
                                         className={cond.met ? "bg-[var(--success)]" : ""}
                                       >

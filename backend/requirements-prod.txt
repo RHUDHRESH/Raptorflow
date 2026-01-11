@@ -1,0 +1,61 @@
+# RaptorFlow Backend Production Dependencies
+# Optimized for production deployment with security and performance focus
+
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Database
+supabase==2.3.0
+psycopg2-binary==2.9.9
+
+# Redis and Caching
+redis==5.0.1
+upstash-redis==1.0.0
+
+# Authentication and Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# Google Cloud and AI
+google-cloud-aiplatform==1.38.0
+google-cloud-secret-manager==2.16.1
+google-cloud-storage==2.13.0
+google-cloud-bigquery==3.13.0
+vertexai==1.0.0
+
+# External APIs
+openai==1.6.1
+anthropic==0.8.1
+google-search-results==2.4.2
+
+# Monitoring and Observability
+sentry-sdk[fastapi]==1.40.0
+prometheus-client==0.19.0
+structlog==23.2.0
+
+# Performance and Utilities
+httpx==0.26.0
+tenacity==8.2.3
+numpy==1.24.4
+sentence-transformers==2.2.2
+
+# File Processing
+python-magic==0.4.27
+PyPDF2==3.0.1
+python-docx==1.1.0
+
+# Development and Testing (remove in production if needed)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+black==23.12.1
+isort==5.13.2
+flake8==7.0.0
+
+# Security
+bandit==1.7.5
+safety==2.3.5

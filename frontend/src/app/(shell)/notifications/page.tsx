@@ -41,7 +41,7 @@ export default function NotificationsPage() {
                         <div className="h-px w-8 bg-[var(--blueprint-line)]" />
                         <span className="font-technical text-[var(--muted)]">ALERTS</span>
                     </div>
-                    <h1 className="font-editorial text-3xl text-[var(--ink)]">Activity Feed</h1>
+                    <h1 className="font-serif text-3xl text-[var(--ink)]">Activity Feed</h1>
                 </div>
                 <BlueprintButton size="sm" variant="secondary">Mark All Read</BlueprintButton>
             </div>

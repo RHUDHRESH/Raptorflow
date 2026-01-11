@@ -1,0 +1,362 @@
+name: Backend Deploy
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'backend/**' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  SERVICE_NAME: raptorflow-backend
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio pytest-cov
+
+    - name: Run linting
+      run: |
+        cd backend
+        pip install flake8 black isort
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        black --check .
+        isort --check-only .
+
+    - name: Run unit tests
+      run: |
+        cd backend
+        pytest tests/ -v --cov=. --cov-report=xml --cov-report=html
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: backend/coverage.xml
+        flags: backend
+        name: backend-coverage
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Run Bandit security linter
+      run: |
+        pip install bandit
+        cd backend
+        bandit -r . -f json -o bandit-report.json || true
+
+    - name: Upload Bandit results
+      uses: actions/upload-artifact@v3
+      with:
+        name: bandit-report
+        path: backend/bandit-report.json
+
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [test, security-scan]
+
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+      digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Configure Docker to use gcloud as credential helper
+      run: gcloud auth configure-docker
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/raptorflow/${{ env.SERVICE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: backend
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+
+    - name: Output image
+      id: image
+      run: |
+        echo "image=${{ steps.meta.outputs.tags }}" >> $GITHUB_OUTPUT
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
+    environment: staging
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Deploy to Cloud Run
+      uses: google-github-actions/deploy-cloudrun@v1
+      with:
+        service_name: ${{ env.SERVICE_NAME }}-staging
+        image: ${{ needs.build.outputs.image }}
+        region: ${{ env.REGION }}
+        project_id: ${{ env.PROJECT_ID }}
+
+        env_vars: |
+          ENVIRONMENT=staging
+          DEBUG=true
+          DATABASE_URL=${{ secrets.STAGING_DATABASE_URL }}
+          UPSTASH_REDIS_URL=${{ secrets.STAGING_REDIS_URL }}
+          UPSTASH_REDIS_TOKEN=${{ secrets.STAGING_REDIS_TOKEN }}
+          SECRET_KEY=${{ secrets.STAGING_SECRET_KEY }}
+          VERTEX_AI_PROJECT_ID=${{ env.PROJECT_ID }}
+          GCP_PROJECT_ID=${{ env.PROJECT_ID }}
+          WEBHOOK_SECRET=${{ secrets.STAGING_WEBHOOK_SECRET }}
+
+        flags: |
+          --cpu=1
+          --memory=512Mi
+          --min-instances=0
+          --max-instances=10
+          --allow-unauthenticated
+          --set-cloudsql-instances=${{ secrets.STAGING_CLOUDSQL_INSTANCE }}
+
+    - name: Show deployment URL
+      run: |
+        echo "Staging deployment URL: https://${{ env.SERVICE_NAME }}-staging-${{ github.sha }}.${{ env.REGION }}.run.app"
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event.inputs.environment == 'production'
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Deploy to Cloud Run
+      uses: google-github-actions/deploy-cloudrun@v1
+      with:
+        service_name: ${{ env.SERVICE_NAME }}
+        image: ${{ needs.build.outputs.image }}
+        region: ${{ env.REGION }}
+        project_id: ${{ env.PROJECT_ID }}
+
+        env_vars: |
+          ENVIRONMENT=production
+          DEBUG=false
+          DATABASE_URL=${{ secrets.PRODUCTION_DATABASE_URL }}
+          UPSTASH_REDIS_URL=${{ secrets.PRODUCTION_REDIS_URL }}
+          UPSTASH_REDIS_TOKEN=${{ secrets.PRODUCTION_REDIS_TOKEN }}
+          SECRET_KEY=${{ secrets.PRODUCTION_SECRET_KEY }}
+          VERTEX_AI_PROJECT_ID=${{ env.PROJECT_ID }}
+          GCP_PROJECT_ID=${{ env.PROJECT_ID }}
+          WEBHOOK_SECRET=${{ secrets.PRODUCTION_WEBHOOK_SECRET }}
+          SENTRY_DSN=${{ secrets.PRODUCTION_SENTRY_DSN }}
+
+        flags: |
+          --cpu=2
+          --memory=1Gi
+          --min-instances=1
+          --max-instances=100
+          --no-allow-unauthenticated
+          --set-cloudsql-instances=${{ secrets.PRODUCTION_CLOUDSQL_INSTANCE }}
+
+    - name: Configure IAM
+      run: |
+        gcloud run services add-iam-policy-binding ${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --member=serviceAccount:${{ secrets.PRODUCTION_CLOUDRUN_SA }} \
+          --role=roles/cloudrun.invoker \
+          --project=${{ env.PROJECT_ID }}
+
+    - name: Run smoke tests
+      run: |
+        SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --format='value(status.url)' \
+          --project=${{ env.PROJECT_ID }})
+
+        echo "Testing production deployment at: $SERVICE_URL"
+
+        # Wait for service to be ready
+        sleep 30
+
+        # Run health checks
+        curl -f "$SERVICE_URL/health" || exit 1
+        curl -f "$SERVICE_URL/health/ready" || exit 1
+        curl -f "$SERVICE_URL/health/live" || exit 1
+
+        echo "Production smoke tests passed!"
+
+  post-deploy:
+    name: Post-deploy Tasks
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Run database migrations
+      run: |
+        echo "Running database migrations..."
+        # Add migration commands here
+
+    - name: Warm up caches
+      run: |
+        echo "Warming up caches..."
+        # Add cache warming commands here
+
+    - name: Notify deployment
+      uses: 8398a7/action-slack@v3
+      if: always()
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        text: |
+          Backend deployment ${{ job.status }}!
+          Branch: ${{ github.ref }}
+          Commit: ${{ github.sha }}
+          Environment: ${{ github.event.inputs.environment || 'staging' }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: failure() && (needs.deploy-staging.result == 'failure' || needs.deploy-production.result == 'failure')
+
+    steps:
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Rollback deployment
+      run: |
+        echo "Rolling back deployment..."
+
+        # Get previous successful revision
+        PREVIOUS_REVISION=$(gcloud run services revisions list \
+          --service=${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --project=${{ env.PROJECT_ID }} \
+          --limit=1 \
+          --sort-by=~createTime \
+          --format='value(name)' \
+          --filter='status.servingStatus=SERVING')
+
+        if [ -n "$PREVIOUS_REVISION" ]; then
+          echo "Rolling back to revision: $PREVIOUS_REVISION"
+          gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --to-revisions=$PREVIOUS_REVISION=100
+        else
+          echo "No previous revision found for rollback"
+          exit 1
+        fi
+
+    - name: Notify rollback
+      uses: 8398a7/action-slack@v3
+      with:
+        status: 'failure'
+        channel: '#deployments'
+        text: |
+          Backend deployment rolled back! 🚨
+          Branch: ${{ github.ref }}
+          Commit: ${{ github.sha }}
+          Environment: ${{ github.event.inputs.environment || 'staging' }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

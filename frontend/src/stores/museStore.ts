@@ -13,7 +13,7 @@ export interface MuseAsset {
     type: "Email" | "LinkedIn" | "Blog" | "Campaign" | "Tweet" | "Other" | "Social" | "Script";
     tags: string[];
     createdAt: string;
-    source?: "BlackBox" | "Manual" | "Muse";
+    source?: "BlackBox" | "Manual" | "Muse" | "Template";
     metadata?: Record<string, unknown>;
 }
 
