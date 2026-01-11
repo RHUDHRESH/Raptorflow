@@ -43,7 +43,7 @@ except ImportError:
             )
 
 @dataclass
-    class RefreshTokenResult:
+class RefreshTokenResult:
         """Result of token refresh operation"""
         access_token: str
         refresh_token: str

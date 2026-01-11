@@ -6,7 +6,8 @@ import os
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseSettings, Field, validator
+from pydantic import Field, validator
+from pydantic_settings import BaseSettings
 
 
 class Environment(str, Enum):
