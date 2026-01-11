@@ -34,24 +34,24 @@ log_error() {
 # Check required tools
 check_requirements() {
     log_info "Checking requirements..."
-    
+
     if ! command -v gcloud &> /dev/null; then
         log_error "gcloud CLI is not installed"
         exit 1
     fi
-    
+
     if ! command -v docker &> /dev/null; then
         log_error "Docker is not installed"
         exit 1
     fi
-    
+
     log_info "Requirements check passed"
 }
 
 # Set up GCP project
 setup_project() {
     log_info "Setting up GCP project..."
-    
+
     gcloud config set project "$PROJECT_ID"
     gcloud services enable \
         run.googleapis.com \
@@ -59,36 +59,36 @@ setup_project() {
         artifactregistry.googleapis.com \
         secretmanager.googleapis.com \
         sql-component.googleapis.com
-    
+
     log_info "GCP project setup complete"
 }
 
 # Build and push Docker image
 build_and_push() {
     log_info "Building and pushing Docker image..."
-    
+
     # Configure Docker to use gcloud as a credential helper
     gcloud auth configure-docker "$REGION-docker.pkg.dev"
-    
+
     # Build the image
     docker build -f Dockerfile.production -t "$IMAGE_NAME:$TAG" .
-    
+
     # Tag the image for Artifact Registry
     IMAGE_PATH="$REGION-docker.pkg.dev/$PROJECT_ID/raptorflow/$IMAGE_NAME:$TAG"
     docker tag "$IMAGE_NAME:$TAG" "$IMAGE_PATH"
-    
+
     # Push the image
     docker push "$IMAGE_PATH"
-    
+
     log_info "Docker image pushed: $IMAGE_PATH"
 }
 
 # Deploy to Cloud Run
 deploy_cloud_run() {
     log_info "Deploying to Cloud Run..."
-    
+
     IMAGE_PATH="$REGION-docker.pkg.dev/$PROJECT_ID/raptorflow/$IMAGE_NAME:$TAG"
-    
+
     # Deploy to Cloud Run
     gcloud run deploy "$SERVICE_NAME" \
         --image="$IMAGE_PATH" \
@@ -112,12 +112,12 @@ deploy_cloud_run() {
         --set-env-vars="LOG_LEVEL=INFO" \
         --set-env-vars="ENABLE_METRICS=true" \
         --set-env-vars="ENABLE_HEALTH_CHECKS=true"
-    
+
     # Get the service URL
     SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" \
         --region="$REGION" \
         --format="value(status.url)")
-    
+
     log_info "Deployment complete!"
     log_info "Service URL: $SERVICE_URL"
 }
@@ -125,30 +125,30 @@ deploy_cloud_run() {
 # Update CORS origins
 update_cors() {
     log_info "Updating CORS origins..."
-    
+
     SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" \
         --region="$REGION" \
         --format="value(status.url)")
-    
+
     # Update ALLOWED_ORIGINS environment variable
     gcloud run services update "$SERVICE_NAME" \
         --region="$REGION" \
         --set-env-vars="ALLOWED_ORIGINS=$SERVICE_URL,https://yourdomain.com"
-    
+
     log_info "CORS origins updated"
 }
 
 # Health check
 health_check() {
     log_info "Performing health check..."
-    
+
     SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" \
         --region="$REGION" \
         --format="value(status.url)")
-    
+
     # Wait for deployment to be ready
     sleep 30
-    
+
     # Check health endpoint
     if curl -f "$SERVICE_URL/health" > /dev/null 2>&1; then
         log_info "Health check passed"
@@ -161,14 +161,14 @@ health_check() {
 # Main deployment function
 main() {
     log_info "Starting RaptorFlow Backend deployment..."
-    
+
     check_requirements
     setup_project
     build_and_push
     deploy_cloud_run
     update_cors
     health_check
-    
+
     log_info "Deployment completed successfully! 🚀"
 }
 
