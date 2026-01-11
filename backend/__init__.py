@@ -270,9 +270,11 @@ try:
 
 except Exception as e:
     # Log initialization error
+    import logging
     import sys
-
-    print(f"Failed to initialize Raptorflow backend: {e}", file=sys.stderr)
+    
+    logger = logging.getLogger(__name__)
+    logger.critical(f"Failed to initialize Raptorflow backend: {e}")
     sys.exit(1)
 
 # Export system components for external use
