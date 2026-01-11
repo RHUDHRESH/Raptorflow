@@ -12,6 +12,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
+import { OnboardingStepLayout } from "../OnboardingStepLayout";
 import { BlueprintProgress } from "@/components/ui/BlueprintProgress";
 import { StepLoadingState, StepErrorState } from "../StepStates";
 
@@ -370,259 +371,255 @@ export default function Step1EvidenceVault() {
     }));
 
     return (
-        <div ref={containerRef} className="space-y-6">
-            {/* Progress Card */}
-            {evidence.length > 0 && (
-                <BlueprintCard data-animate code="PROG" showCorners padding="md">
-                    <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-medium text-[var(--ink)]">
-                            {completedCount} of {evidence.length} items processed
-                        </span>
-                        {processingCount > 0 && (
-                            <span className="flex items-center gap-1.5 font-technical text-[var(--blueprint)]">
-                                <Loader2 size={10} className="animate-spin" />PROCESSING
+        <OnboardingStepLayout stepId={1} moduleLabel="EVIDENCE-VAULT" itemCount={evidence.length}>
+            <div ref={containerRef} className="space-y-6">
+                {/* Progress Card */}
+                {evidence.length > 0 && (
+                    <BlueprintCard data-animate code="PROG" showCorners padding="md">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm font-medium text-[var(--ink)]">
+                                {completedCount} of {evidence.length} items processed
                             </span>
-                        )}
-                        {processingCount === 0 && completedCount > 0 && errorCount === 0 && (
-                            <BlueprintBadge variant="success" dot>READY</BlueprintBadge>
-                        )}
-                        {errorCount > 0 && (
-                            <BlueprintBadge variant="error" dot>{errorCount} ERROR{errorCount > 1 ? "S" : ""}</BlueprintBadge>
-                        )}
-                    </div>
-                    <BlueprintProgress value={evidence.length > 0 ? (completedCount / evidence.length) * 100 : 0} />
-                </BlueprintCard>
-            )}
+                            {processingCount > 0 && (
+                                <span className="flex items-center gap-1.5 font-technical text-[var(--blueprint)]">
+                                    <Loader2 size={10} className="animate-spin" />PROCESSING
+                                </span>
+                            )}
+                            {processingCount === 0 && completedCount > 0 && errorCount === 0 && (
+                                <BlueprintBadge variant="success" dot>READY</BlueprintBadge>
+                            )}
+                            {errorCount > 0 && (
+                                <BlueprintBadge variant="error" dot>{errorCount} ERROR{errorCount > 1 ? "S" : ""}</BlueprintBadge>
+                            )}
+                        </div>
+                        <BlueprintProgress value={evidence.length > 0 ? (completedCount / evidence.length) * 100 : 0} />
+                    </BlueprintCard>
+                )}
 
-            {/* Multi-Product Warning */}
-            {productWarning.detected && !productWarning.dismissed && (
-                <BlueprintCard data-animate showCorners padding="md" className="border-[var(--warning)]/30 bg-[var(--warning-light)]">
-                    <div className="flex items-start gap-3">
-                        <Package size={18} className="text-[var(--warning)] mt-0.5" />
-                        <div className="flex-1">
-                            <h4 className="text-sm font-semibold text-[var(--ink)] mb-1">Multiple Products Detected</h4>
-                            <p className="text-sm text-[var(--secondary)] mb-2">
-                                We noticed evidence for potentially different product lines: {productWarning.lines.join(", ")}.
-                                Consider splitting onboarding per product to avoid confusion.
-                            </p>
-                            <div className="flex gap-2">
-                                <SecondaryButton size="sm" onClick={() => setProductWarning(prev => ({ ...prev, dismissed: true }))}>
-                                    Continue Anyway
-                                </SecondaryButton>
+                {/* Multi-Product Warning */}
+                {productWarning.detected && !productWarning.dismissed && (
+                    <BlueprintCard data-animate showCorners padding="md" className="border-[var(--warning)]/30 bg-[var(--warning-light)]">
+                        <div className="flex items-start gap-3">
+                            <Package size={18} className="text-[var(--warning)] mt-0.5" />
+                            <div className="flex-1">
+                                <h4 className="text-sm font-semibold text-[var(--ink)] mb-1">Multiple Products Detected</h4>
+                                <p className="text-sm text-[var(--secondary)] mb-2">
+                                    We noticed evidence for potentially different product lines: {productWarning.lines.join(", ")}.
+                                    Consider splitting onboarding per product to avoid confusion.
+                                </p>
+                                <div className="flex gap-2">
+                                    <SecondaryButton size="sm" onClick={() => setProductWarning(prev => ({ ...prev, dismissed: true }))}>
+                                        Continue Anyway
+                                    </SecondaryButton>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </BlueprintCard>
-            )}
+                    </BlueprintCard>
+                )}
 
-            {/* Error Display */}
-            {uploadError && (
-                <BlueprintCard data-animate showCorners padding="sm" className="border-[var(--error)]/30 bg-[var(--error-light)]">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <AlertCircle size={14} className="text-[var(--error)]" />
-                            <span className="text-sm text-[var(--error)]">{uploadError}</span>
+                {/* Error Display */}
+                {uploadError && (
+                    <BlueprintCard data-animate showCorners padding="sm" className="border-[var(--error)]/30 bg-[var(--error-light)]">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <AlertCircle size={14} className="text-[var(--error)]" />
+                                <span className="text-sm text-[var(--error)]">{uploadError}</span>
+                            </div>
+                            <button onClick={() => setUploadError(null)} className="text-[var(--error)] hover:underline text-sm">
+                                Dismiss
+                            </button>
                         </div>
-                        <button onClick={() => setUploadError(null)} className="text-[var(--error)] hover:underline text-sm">
-                            Dismiss
-                        </button>
-                    </div>
-                </BlueprintCard>
-            )}
+                    </BlueprintCard>
+                )}
 
-            {/* TWO-COLUMN LAYOUT: Upload + URL side by side */}
-            <div data-animate className="grid md:grid-cols-2 gap-4">
-                {/* Left: Upload Zone */}
-                <BlueprintCard
-                    code="UPLOAD"
-                    showCorners
-                    padding="none"
-                    className={`transition-all h-full ${dragOver ? "border-[var(--blueprint)] bg-[var(--blueprint-light)]" : ""}`}
-                >
-                    <div
-                        className={`h-full p-6 border-2 border-dashed rounded-[var(--radius-md)] transition-all text-center flex flex-col items-center justify-center ${dragOver ? "border-[var(--blueprint)]" : "border-[var(--border)] hover:border-[var(--blueprint)]"
-                            }`}
-                        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                        onDragLeave={() => setDragOver(false)}
-                        onDrop={handleDrop}
+                {/* TWO-COLUMN LAYOUT: Upload + URL side by side */}
+                <div data-animate className="grid md:grid-cols-2 gap-4">
+                    {/* Left: Upload Zone */}
+                    <BlueprintCard
+                        code="UPLOAD"
+                        showCorners
+                        padding="none"
+                        className={`transition-all h-full ${dragOver ? "border-[var(--blueprint)] bg-[var(--blueprint-light)]" : ""}`}
                     >
-                        <div className="w-10 h-10 rounded-[var(--radius-sm)] bg-[var(--canvas)] border border-[var(--border)] flex items-center justify-center mb-3">
-                            <Upload size={18} strokeWidth={1.5} className="text-[var(--muted)]" />
-                        </div>
-                        <p className="text-sm font-medium text-[var(--ink)] mb-1">Drop files here</p>
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="font-technical text-[var(--blueprint)] hover:underline mb-2"
+                        <div
+                            className={`h-full p-6 border-2 border-dashed rounded-[var(--radius-md)] transition-all text-center flex flex-col items-center justify-center ${dragOver ? "border-[var(--blueprint)]" : "border-[var(--border)] hover:border-[var(--blueprint)]"
+                                }`}
+                            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                            onDragLeave={() => setDragOver(false)}
+                            onDrop={handleDrop}
                         >
-                            BROWSE
-                        </button>
-                        <p className="font-technical text-[9px] text-[var(--muted)]">PDF, DOC, PPTX, IMAGES • 50MB MAX</p>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            multiple
-                            className="hidden"
-                            onChange={(e) => handleFileUpload(e.target.files)}
-                            accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.mp4,.mov,.csv,.xls,.xlsx"
-                        />
-                    </div>
-                </BlueprintCard>
-
-                {/* Right: Always-visible URL Input */}
-                <BlueprintCard code="URL" showCorners padding="md" className="h-full flex flex-col">
-                    <div className="flex items-center gap-2 mb-3">
-                        <LinkIcon size={14} strokeWidth={1.5} className="text-[var(--blueprint)]" />
-                        <h3 className="text-sm font-semibold text-[var(--ink)]">Add Website URL</h3>
-                        <span className="font-technical text-[8px] text-[var(--muted)] ml-auto">OPTIONAL</span>
-                    </div>
-                    <p className="text-xs text-[var(--secondary)] mb-3">
-                        Add your website, competitor sites, or any relevant pages.
-                    </p>
-                    <div className="flex-1 flex flex-col gap-2">
-                        <div className="relative">
-                            <LinkIcon size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
+                            <div className="w-10 h-10 rounded-[var(--radius-sm)] bg-[var(--canvas)] border border-[var(--border)] flex items-center justify-center mb-3">
+                                <Upload size={18} strokeWidth={1.5} className="text-[var(--muted)]" />
+                            </div>
+                            <p className="text-sm font-medium text-[var(--ink)] mb-1">Drop files here</p>
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="font-technical text-[var(--blueprint)] hover:underline mb-2"
+                            >
+                                BROWSE
+                            </button>
+                            <p className="font-technical text-[9px] text-[var(--muted)]">PDF, DOC, PPTX, IMAGES • 50MB MAX</p>
                             <input
-                                type="url"
-                                value={urlInput}
-                                onChange={(e) => setUrlInput(e.target.value)}
-                                placeholder="https://yoursite.com"
-                                className="w-full h-10 pl-10 pr-4 text-sm bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius-sm)] text-[var(--ink)] placeholder:text-[var(--placeholder)] focus:outline-none focus:border-[var(--blueprint)]"
-                                onKeyDown={(e) => e.key === "Enter" && addUrl()}
+                                ref={fileInputRef}
+                                type="file"
+                                multiple
+                                className="hidden"
+                                onChange={(e) => handleFileUpload(e.target.files)}
+                                accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.mp4,.mov,.csv,.xls,.xlsx"
                             />
                         </div>
-                        <BlueprintButton size="sm" onClick={addUrl} disabled={!urlInput.trim()} className="w-full">
-                            <Plus size={12} strokeWidth={1.5} />Add URL
-                        </BlueprintButton>
-                    </div>
-                    <p className="font-technical text-[8px] text-[var(--muted)] mt-3 text-center">
-                        You can add more URLs later from Settings
-                    </p>
-                </BlueprintCard>
-            </div>
+                    </BlueprintCard>
 
-            {/* Evidence List */}
-            {evidence.length > 0 && (
-                <BlueprintCard data-animate code="LIST" showCorners padding="md">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-semibold text-[var(--ink)]">Your Evidence ({evidence.length})</h3>
-                        <span className="font-technical text-[var(--success)]">{completedCount} READY</span>
-                    </div>
-                    <div className="space-y-2">
-                        {evidence.map((item) => (
-                            <div
-                                key={item.id}
-                                className={`flex items-center gap-3 p-3 rounded-[var(--radius-sm)] bg-[var(--canvas)] border ${item.status === "error" ? "border-[var(--error)]/30" : "border-[var(--border-subtle)]"
-                                    }`}
-                            >
-                                {getFileIcon(item)}
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-[var(--ink)] truncate">{item.name}</p>
+                    {/* Right: Always-visible URL Input */}
+                    <BlueprintCard code="URL" showCorners padding="md" className="h-full flex flex-col">
+                        <div className="flex items-center gap-2 mb-3">
+                            <LinkIcon size={14} strokeWidth={1.5} className="text-[var(--blueprint)]" />
+                            <h3 className="text-sm font-semibold text-[var(--ink)]">Add Website URL</h3>
+                            <span className="font-technical text-[8px] text-[var(--muted)] ml-auto">OPTIONAL</span>
+                        </div>
+                        <p className="text-xs text-[var(--secondary)] mb-3">
+                            Add your website, competitor sites, or any relevant pages.
+                        </p>
+                        <div className="flex-1 flex flex-col gap-2">
+                            <div className="relative">
+                                <LinkIcon size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
+                                <input
+                                    type="url"
+                                    value={urlInput}
+                                    onChange={(e) => setUrlInput(e.target.value)}
+                                    placeholder="https://yoursite.com"
+                                    className="w-full h-10 pl-10 pr-4 text-sm bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius-sm)] text-[var(--ink)] placeholder:text-[var(--placeholder)] focus:outline-none focus:border-[var(--blueprint)]"
+                                    onKeyDown={(e) => e.key === "Enter" && addUrl()}
+                                />
+                            </div>
+                            <BlueprintButton size="sm" onClick={addUrl} disabled={!urlInput.trim()} className="w-full">
+                                <Plus size={12} strokeWidth={1.5} />Add URL
+                            </BlueprintButton>
+                        </div>
+                        <p className="font-technical text-[8px] text-[var(--muted)] mt-3 text-center">
+                            You can add more URLs later from Settings
+                        </p>
+                    </BlueprintCard>
+                </div>
+
+                {/* Evidence List */}
+                {evidence.length > 0 && (
+                    <BlueprintCard data-animate code="LIST" showCorners padding="md">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-sm font-semibold text-[var(--ink)]">Your Evidence ({evidence.length})</h3>
+                            <span className="font-technical text-[var(--success)]">{completedCount} READY</span>
+                        </div>
+                        <div className="space-y-2">
+                            {evidence.map((item) => (
+                                <div
+                                    key={item.id}
+                                    className={`flex items-center gap-3 p-3 rounded-[var(--radius-sm)] bg-[var(--canvas)] border ${item.status === "error" ? "border-[var(--error)]/30" : "border-[var(--border-subtle)]"
+                                        }`}
+                                >
+                                    {getFileIcon(item)}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-[var(--ink)] truncate">{item.name}</p>
+                                        <div className="flex items-center gap-2">
+                                            {item.type === "url" && (
+                                                <a
+                                                    href={item.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="font-technical text-[var(--blueprint)] hover:underline flex items-center gap-1"
+                                                >
+                                                    OPEN <ExternalLink size={8} />
+                                                </a>
+                                            )}
+                                            {item.size && (
+                                                <span className="font-technical text-[var(--muted)]">
+                                                    {(item.size / 1024).toFixed(1)} KB
+                                                </span>
+                                            )}
+                                            {item.ocrProcessed && (
+                                                <span className="font-technical text-[var(--blueprint)] flex items-center gap-1">
+                                                    <Scan size={8} />OCR
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Tags */}
+                                    <div className="flex items-center gap-1">
+                                        {(item.tags || []).slice(0, 2).map(tag => (
+                                            <BlueprintBadge key={tag} variant="default" className="text-[9px]">
+                                                {tag.toUpperCase()}
+                                            </BlueprintBadge>
+                                        ))}
+                                        <button
+                                            onClick={() => setActiveTagEditor(activeTagEditor === item.id ? null : item.id)}
+                                            className="p-1 text-[var(--muted)] hover:text-[var(--blueprint)] rounded-[var(--radius-xs)] transition-colors"
+                                        >
+                                            <Tag size={10} strokeWidth={1.5} />
+                                        </button>
+                                    </div>
+
+                                    {/* Status */}
                                     <div className="flex items-center gap-2">
-                                        {item.type === "url" && (
-                                            <a
-                                                href={item.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="font-technical text-[var(--blueprint)] hover:underline flex items-center gap-1"
-                                            >
-                                                OPEN <ExternalLink size={8} />
-                                            </a>
-                                        )}
-                                        {item.size && (
-                                            <span className="font-technical text-[var(--muted)]">
-                                                {(item.size / 1024).toFixed(1)} KB
+                                        {item.status === "processing" && (
+                                            <span className="flex items-center gap-1 font-technical text-[var(--blueprint)]">
+                                                <Loader2 size={12} className="animate-spin" />ANALYZING
                                             </span>
                                         )}
-                                        {item.ocrProcessed && (
-                                            <span className="font-technical text-[var(--blueprint)] flex items-center gap-1">
-                                                <Scan size={8} />OCR
-                                            </span>
+                                        {item.status === "complete" && (
+                                            <BlueprintBadge variant="success" dot>READY</BlueprintBadge>
                                         )}
+                                        {item.status === "error" && (
+                                            <div className="flex items-center gap-1">
+                                                <BlueprintBadge variant="error" dot>ERROR</BlueprintBadge>
+                                                <button
+                                                    onClick={() => retryUpload(item.id)}
+                                                    className="p-1 text-[var(--error)] hover:bg-[var(--error-light)] rounded-[var(--radius-xs)]"
+                                                >
+                                                    <RefreshCw size={10} strokeWidth={1.5} />
+                                                </button>
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={() => removeEvidence(item.id)}
+                                            className="p-1.5 text-[var(--muted)] hover:text-[var(--error)] hover:bg-[var(--error-light)] rounded-[var(--radius-xs)] transition-colors"
+                                        >
+                                            <X size={12} strokeWidth={1.5} />
+                                        </button>
                                     </div>
                                 </div>
+                            ))}
+                        </div>
+                    </BlueprintCard>
+                )}
 
-                                {/* Tags */}
-                                <div className="flex items-center gap-1">
-                                    {(item.tags || []).slice(0, 2).map(tag => (
-                                        <BlueprintBadge key={tag} variant="default" className="text-[9px]">
-                                            {tag.toUpperCase()}
-                                        </BlueprintBadge>
-                                    ))}
-                                    <button
-                                        onClick={() => setActiveTagEditor(activeTagEditor === item.id ? null : item.id)}
-                                        className="p-1 text-[var(--muted)] hover:text-[var(--blueprint)] rounded-[var(--radius-xs)] transition-colors"
-                                    >
-                                        <Tag size={10} strokeWidth={1.5} />
-                                    </button>
-                                </div>
-
-                                {/* Status */}
-                                <div className="flex items-center gap-2">
-                                    {item.status === "processing" && (
-                                        <span className="flex items-center gap-1 font-technical text-[var(--blueprint)]">
-                                            <Loader2 size={12} className="animate-spin" />ANALYZING
-                                        </span>
-                                    )}
-                                    {item.status === "complete" && (
-                                        <BlueprintBadge variant="success" dot>READY</BlueprintBadge>
-                                    )}
-                                    {item.status === "error" && (
-                                        <div className="flex items-center gap-1">
-                                            <BlueprintBadge variant="error" dot>ERROR</BlueprintBadge>
-                                            <button
-                                                onClick={() => retryUpload(item.id)}
-                                                className="p-1 text-[var(--error)] hover:bg-[var(--error-light)] rounded-[var(--radius-xs)]"
-                                            >
-                                                <RefreshCw size={10} strokeWidth={1.5} />
-                                            </button>
-                                        </div>
-                                    )}
-                                    <button
-                                        onClick={() => removeEvidence(item.id)}
-                                        className="p-1.5 text-[var(--muted)] hover:text-[var(--error)] hover:bg-[var(--error-light)] rounded-[var(--radius-xs)] transition-colors"
-                                    >
-                                        <X size={12} strokeWidth={1.5} />
-                                    </button>
-                                </div>
+                {/* Recommended Checklist - Compact horizontal pills */}
+                <BlueprintCard data-animate figure="FIG. 01" title="Recommended Evidence" code="CHECK" showCorners padding="md">
+                    <div className="flex flex-wrap gap-2">
+                        {checklistStatus.map((item) => (
+                            <div
+                                key={item.id}
+                                className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border transition-all ${item.satisfied
+                                    ? "bg-[var(--success-light)] border-[var(--success)]/30"
+                                    : "bg-[var(--canvas)] border-[var(--border-subtle)]"
+                                    }`}
+                            >
+                                {item.satisfied ? (
+                                    <Check size={12} strokeWidth={1.5} className="text-[var(--success)]" />
+                                ) : (
+                                    <div className="w-3 h-3 rounded-full border-2 border-[var(--border)]" />
+                                )}
+                                <span className={`text-xs ${item.satisfied ? "text-[var(--ink)]" : "text-[var(--secondary)]"}`}>
+                                    {item.label}
+                                </span>
+                                {item.required && !item.satisfied && (
+                                    <span className="font-technical text-[8px] text-[var(--blueprint)]">REQ</span>
+                                )}
                             </div>
                         ))}
                     </div>
                 </BlueprintCard>
-            )}
 
-            {/* Recommended Checklist - Compact horizontal pills */}
-            <BlueprintCard data-animate figure="FIG. 01" title="Recommended Evidence" code="CHECK" showCorners padding="md">
-                <div className="flex flex-wrap gap-2">
-                    {checklistStatus.map((item) => (
-                        <div
-                            key={item.id}
-                            className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border transition-all ${item.satisfied
-                                ? "bg-[var(--success-light)] border-[var(--success)]/30"
-                                : "bg-[var(--canvas)] border-[var(--border-subtle)]"
-                                }`}
-                        >
-                            {item.satisfied ? (
-                                <Check size={12} strokeWidth={1.5} className="text-[var(--success)]" />
-                            ) : (
-                                <div className="w-3 h-3 rounded-full border-2 border-[var(--border)]" />
-                            )}
-                            <span className={`text-xs ${item.satisfied ? "text-[var(--ink)]" : "text-[var(--secondary)]"}`}>
-                                {item.label}
-                            </span>
-                            {item.required && !item.satisfied && (
-                                <span className="font-technical text-[8px] text-[var(--blueprint)]">REQ</span>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </BlueprintCard>
-
-            {/* Document Footer */}
-            <div className="flex justify-center pt-2">
-                <span className="font-technical text-[var(--muted)]">
-                    EVIDENCE-VAULT • STEP 01/25 • {evidence.length} ITEMS
-                </span>
             </div>
-        </div>
+        </OnboardingStepLayout>
     );
 }

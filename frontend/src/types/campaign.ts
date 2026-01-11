@@ -9,10 +9,10 @@ export interface Campaign {
   targetAudience: AudienceSegment;
   budget: CampaignBudget;
   timeline: CampaignTimeline;
-  moves: Move[];
-  plays: Play[];
+  moves: string[];
+  plays: string[];
   analytics: CampaignAnalytics;
-  team: CampaignTeam[];
+  team: CampaignTeam;
   settings: CampaignSettings;
   createdAt: Date;
   updatedAt: Date;
@@ -25,6 +25,7 @@ export interface Move {
   id: string;
   name: string;
   type: MoveType;
+  category?: string;
   description: string;
   config: MoveConfig;
   status: MoveStatus;
@@ -34,6 +35,8 @@ export interface Move {
   templateId?: string;
   createdAt: Date;
   updatedAt: Date;
+  createdBy?: string;
+  icon?: any;
 }
 
 export interface Play {
@@ -42,12 +45,18 @@ export interface Play {
   description: string;
   category: PlayCategory;
   moves: string[]; // Array of move IDs in sequence
-  conditions: PlayCondition[];
+  conditions?: PlayCondition[];
   isActive: boolean;
-  successMetrics: PlaySuccessMetric[];
+  status?: PlayStatus;
+  successMetrics?: PlaySuccessMetric[];
+  config?: PlayConfig;
   templateId?: string;
   createdAt: Date;
   updatedAt: Date;
+  rating?: number;
+  usageCount?: number;
+  tags?: string[];
+  createdBy?: string;
 }
 
 export interface AudienceSegment {
@@ -138,12 +147,39 @@ export enum MoveStatus {
   CANCELLED = 'cancelled'
 }
 
+export enum PlayStatus {
+  DRAFT = 'draft',
+  ACTIVE = 'active',
+  PAUSED = 'paused',
+  ARCHIVED = 'archived'
+}
+
+export enum PlayExecutionStatus {
+  PENDING = 'pending',
+  RUNNING = 'running',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  CANCELLED = 'cancelled',
+  SKIPPED = 'skipped',
+  SCHEDULED = 'scheduled'
+}
+
 export enum PlayCategory {
   ACQUISITION = 'acquisition',
   ACTIVATION = 'activation',
   RETENTION = 'retention',
   REVENUE = 'revenue',
-  REFERRAL = 'referral'
+  REFERRAL = 'referral',
+  ONBOARDING = 'onboarding',
+  CUSTOM = 'custom',
+  NURTURING = 'nurturing',
+  CONVERSION = 'conversion',
+  LAUNCH = 'launch',
+  EVENT = 'event',
+  CONTENT = 'content',
+  REACTIVATION = 'reactivation',
+  SALES = 'sales',
+  FEEDBACK = 'feedback'
 }
 
 // Supporting Types
@@ -319,7 +355,7 @@ export interface FirmographicCriteria {
 }
 
 export interface ScheduleConfig {
-  type: 'immediate' | 'scheduled' | 'recurring';
+  scheduleType: 'immediate' | 'scheduled' | 'recurring';
   datetime?: Date;
   timezone?: string;
   frequency?: RecurrencePattern;
@@ -343,6 +379,7 @@ export interface ExecutionResults {
   metrics: Record<string, number>;
   artifacts?: string[];
   errors?: string[];
+  nextRun?: Date;
 }
 
 // Type aliases and constants
@@ -366,21 +403,7 @@ export type NotificationEvent =
   | 'registration'
   | 'upload';
 
-// Notification events for settings
-export type NotificationEvent =
-  | 'launch'
-  | 'milestone'
-  | 'error'
-  | 'lead'
-  | 'demo'
-  | 'conversion'
-  | 'download'
-  | 'publish'
-  | 'inventory'
-  | 'mention'
-  | 'engagement'
-  | 'registration'
-  | 'upload';
+
 
 // Utility types
 export interface CreateCampaignRequest {
@@ -390,6 +413,7 @@ export interface CreateCampaignRequest {
   targetAudience: Partial<AudienceSegment>;
   budget: Partial<CampaignBudget>;
   timeline: Partial<CampaignTimeline>;
+  settings?: Partial<CampaignSettings>;
 }
 
 export interface UpdateCampaignRequest extends Partial<CreateCampaignRequest> {
@@ -442,5 +466,148 @@ export const isCampaignActive = (campaign: Campaign): boolean => {
 
 export const canEditCampaign = (campaign: Campaign, userId: string): boolean => {
   return campaign.team.ownerId === userId ||
-         campaign.team.members.some(m => m.userId === userId && m.permissions.includes('edit'));
+    campaign.team.members.some(m => m.userId === userId && m.permissions.includes('edit'));
 };
+
+export type TriggerType = 'event' | 'time' | 'condition';
+
+export interface LocationCriteria {
+  country?: string[];
+  region?: string[];
+  city?: string[];
+}
+
+export interface Range {
+  min: number;
+  max: number;
+}
+
+export type EngagementLevel = 'high' | 'medium' | 'low';
+
+export interface WebActivityCriteria {
+  visitedPages?: string[];
+  timeOnSite?: number;
+}
+
+export interface SocialActivityCriteria {
+  platforms?: string[];
+  interactions?: string[];
+}
+
+export type RecurrencePattern = 'daily' | 'weekly' | 'monthly';
+
+export interface TriggerCondition {
+  field: string;
+  operator: string;
+  value: any;
+}
+
+export interface EmailProviderConfig {
+  provider: string;
+  apiKey: string;
+}
+
+export interface CRMConfig {
+  provider: string;
+  apiKey: string;
+}
+
+export interface AnalyticsConfig {
+  provider: string;
+  trackingId: string;
+}
+
+export interface SocialConfig {
+  platforms: Record<string, { accessToken: string }>;
+}
+
+export interface AdsConfig {
+  platform: string;
+  accountId: string;
+}
+
+export interface BrandColors {
+  primary: string;
+  secondary: string;
+}
+
+export interface BrandFonts {
+  heading: string;
+  body: string;
+}
+
+export interface BrandVoice {
+  tone: string;
+  style: string;
+}
+
+export interface PlaySuccessMetric {
+  metric: string;
+  target: number;
+}
+
+export interface PlayCondition {
+  type: string;
+  operator?: string;
+  value: any;
+  moveId?: string;
+  metric?: string;
+}
+
+export type Permission = string;
+
+export type TeamRole = 'owner' | 'admin' | 'editor' | 'viewer';
+
+export interface AdTargeting {
+  locations?: string[];
+  interests?: string[];
+  ageRange?: Range;
+}
+
+export interface ChannelMetrics {
+  impressions: number;
+  clicks: number;
+}
+
+export interface ContentMetrics {
+  views: number;
+  shares: number;
+}
+
+export interface TimeframeMetrics {
+  start: Date;
+  end: Date;
+  data: any;
+}
+
+export interface KPIData {
+  name: string;
+  value: number;
+  trend: number;
+  change?: number;
+}
+
+export interface BenchmarkData {
+  name: string;
+  value: number;
+}
+
+export interface TrendData {
+  date: string;
+  value: number;
+}
+
+export interface PlayConfig {
+  steps: PlayStep[];
+  triggers?: any[];
+  conditions?: any[];
+}
+
+export interface PlayStep {
+  id: string;
+  name: string;
+  moves: string[];
+  conditions?: PlayCondition[];
+  delay?: number;
+  parallel?: boolean;
+}

@@ -103,6 +103,14 @@ resource "google_cloud_run_service" "backend" {
         image = "gcr.io/${var.project_id}/raptorflow-backend:latest"
 
         env_vars {
+          name  = "UPSTASH_REDIS_URL"
+          value = var.upstash_redis_url
+        }
+        env_vars {
+          name  = "UPSTASH_REDIS_TOKEN"
+          value = var.upstash_redis_token
+        }
+        env_vars {
           name  = "SUPABASE_URL"
           value = var.supabase_url
         }
@@ -139,18 +147,22 @@ resource "google_cloud_run_service" "backend" {
   autogenerate_revision_name = true
 }
 
-# Memorystore for Redis
-resource "google_redis_instance" "cache" {
-  name           = "raptorflow-redis"
-  project_id     = var.project_id
-  region         = var.region
-  tier           = "STANDARD_HA"
-  memory_size_gb = 4
+# Upstash Redis Configuration (External Service)
+# Note: Upstash Redis is managed externally, not via Terraform
+# Update these variables with your Upstash configuration
 
-  authorized_network = "default"
+variable "upstash_redis_url" {
+  description = "Upstash Redis URL"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
 
-  redis_version     = "REDIS_7_0"
-  display_name      = "Raptorflow Redis Cache"
+variable "upstash_redis_token" {
+  description = "Upstash Redis REST token"
+  type        = string
+  sensitive   = true
+  default     = ""
 }
 
 # Vertex AI Endpoints for Inference
@@ -251,8 +263,12 @@ output "backend_url" {
   value = google_cloud_run_service.backend.status[0].url
 }
 
-output "redis_host" {
-  value = google_redis_instance.cache.host
+output "redis_config" {
+  value = {
+    url   = var.upstash_redis_url
+    token = var.upstash_redis_token
+  }
+  sensitive = true
 }
 
 output "storage_buckets" {

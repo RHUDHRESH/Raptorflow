@@ -80,7 +80,7 @@ export default function Step13PositioningStatements() {
                 </BlueprintCard>
             )}
 
-            <div className="flex justify-center pt-4"><span className="font-technical text-[var(--muted)]">DOCUMENT: POSITIONING | STEP 13/25</span></div>
+            <div className="flex justify-center pt-4"><span className="font-technical text-[var(--muted)]">POSITIONING-STATEMENTS • STEP 12/24</span></div>
         </div>
     );
 }

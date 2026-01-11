@@ -47,6 +47,8 @@ interface EnhancedCampaignStoreState {
   updatePlay: (playId: string, updates: Partial<Play>) => Promise<void>;
   deletePlay: (playId: string) => Promise<void>;
   executePlay: (playId: string) => Promise<void>;
+  pausePlay: (playId: string) => Promise<void>;
+  resumePlay: (playId: string) => Promise<void>;
 
   // Analytics
   updateCampaignAnalytics: (campaignId: string, analytics: Partial<CampaignAnalytics>) => void;
@@ -202,6 +204,22 @@ export const useEnhancedCampaignStore = create<EnhancedCampaignStoreState>()(
           const updated = {
             ...campaign,
             ...request,
+            targetAudience: request.targetAudience ? {
+              ...campaign.targetAudience,
+              ...request.targetAudience
+            } : campaign.targetAudience,
+            budget: request.budget ? {
+              ...campaign.budget,
+              ...request.budget
+            } : campaign.budget,
+            timeline: request.timeline ? {
+              ...campaign.timeline,
+              ...request.timeline
+            } : campaign.timeline,
+            settings: request.settings ? {
+              ...campaign.settings,
+              ...request.settings
+            } : campaign.settings,
             updatedAt: new Date()
           };
 
@@ -558,6 +576,28 @@ export const useEnhancedCampaignStore = create<EnhancedCampaignStoreState>()(
           set({ loading: false });
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to execute play', loading: false });
+          throw error;
+        }
+      },
+
+      pausePlay: async (playId) => {
+        set({ loading: true, error: null });
+        try {
+          await get().updatePlay(playId, { isActive: false });
+          set({ loading: false });
+        } catch (error) {
+          set({ error: error instanceof Error ? error.message : 'Failed to pause play', loading: false });
+          throw error;
+        }
+      },
+
+      resumePlay: async (playId) => {
+        set({ loading: true, error: null });
+        try {
+          await get().updatePlay(playId, { isActive: true });
+          set({ loading: false });
+        } catch (error) {
+          set({ error: error instanceof Error ? error.message : 'Failed to resume play', loading: false });
           throw error;
         }
       },

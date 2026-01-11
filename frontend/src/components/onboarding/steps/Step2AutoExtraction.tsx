@@ -12,6 +12,7 @@ import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { BlueprintProgress } from "@/components/ui/BlueprintProgress";
+import { OnboardingStepLayout } from "../OnboardingStepLayout";
 import { StepLoadingState, StepErrorState, StepEmptyState } from "../StepStates";
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -418,118 +419,115 @@ export default function Step2AutoExtraction() {
     }
 
     return (
-        <div ref={containerRef} className="space-y-6">
-            {/* Summary Card */}
-            <BlueprintCard data-animate showCorners padding="md" className="border-[var(--success)]/30 bg-[var(--success-light)]">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-[var(--radius-sm)] bg-[var(--success)] flex items-center justify-center ink-bleed-xs">
-                        <Check size={18} strokeWidth={1.5} className="text-[var(--paper)]" />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-[var(--ink)]">Extraction Complete</h3>
-                        <p className="font-technical text-[var(--muted)]">
-                            {facts.length} FACTS / {Object.keys(groupedFacts).length} CATEGORIES
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        {pendingCount > 0 && (
-                            <span className="font-technical text-[var(--warning)]">{pendingCount} TO REVIEW</span>
-                        )}
-                        {lowConfidenceCount > 0 && (
-                            <span className="font-technical text-[var(--error)]">{lowConfidenceCount} LOW CONFIDENCE</span>
-                        )}
-                        <SecondaryButton size="sm" onClick={runExtraction}>
-                            <RefreshCw size={10} strokeWidth={1.5} />
-                            Re-extract
-                        </SecondaryButton>
-                    </div>
-                </div>
-            </BlueprintCard>
-
-            {/* Warnings */}
-            {warnings.length > 0 && (
-                <BlueprintCard data-animate showCorners padding="md" className="border-[var(--warning)]/30 bg-[var(--warning-light)]">
-                    <div className="flex items-start gap-3">
-                        <AlertTriangle size={16} className="text-[var(--warning)] mt-0.5" />
-                        <div>
-                            <h4 className="text-sm font-semibold text-[var(--ink)] mb-1">Extraction Warnings</h4>
-                            <ul className="space-y-1">
-                                {warnings.map((w, i) => (
-                                    <li key={i} className="text-sm text-[var(--secondary)]">• {w}</li>
-                                ))}
-                            </ul>
+        <OnboardingStepLayout stepId={2} moduleLabel="AUTO-EXTRACTION" itemCount={facts.length}>
+            <div ref={containerRef} className="space-y-6">
+                {/* Summary Card */}
+                <BlueprintCard data-animate showCorners padding="md" className="border-[var(--success)]/30 bg-[var(--success-light)]">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-[var(--radius-sm)] bg-[var(--success)] flex items-center justify-center ink-bleed-xs">
+                            <Check size={18} strokeWidth={1.5} className="text-[var(--paper)]" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-sm font-semibold text-[var(--ink)]">Extraction Complete</h3>
+                            <p className="font-technical text-[var(--muted)]">
+                                {facts.length} FACTS / {Object.keys(groupedFacts).length} CATEGORIES
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            {pendingCount > 0 && (
+                                <span className="font-technical text-[var(--warning)]">{pendingCount} TO REVIEW</span>
+                            )}
+                            {lowConfidenceCount > 0 && (
+                                <span className="font-technical text-[var(--error)]">{lowConfidenceCount} LOW CONFIDENCE</span>
+                            )}
+                            <SecondaryButton size="sm" onClick={runExtraction}>
+                                <RefreshCw size={10} strokeWidth={1.5} />
+                                Re-extract
+                            </SecondaryButton>
                         </div>
                     </div>
                 </BlueprintCard>
-            )}
 
-            {/* Search */}
-            <div data-animate className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search extracted facts..."
-                    className="w-full h-10 pl-10 pr-4 text-sm bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius-sm)] text-[var(--ink)] placeholder:text-[var(--placeholder)] focus:outline-none focus:border-[var(--blueprint)]"
-                />
+                {/* Warnings */}
+                {warnings.length > 0 && (
+                    <BlueprintCard data-animate showCorners padding="md" className="border-[var(--warning)]/30 bg-[var(--warning-light)]">
+                        <div className="flex items-start gap-3">
+                            <AlertTriangle size={16} className="text-[var(--warning)] mt-0.5" />
+                            <div>
+                                <h4 className="text-sm font-semibold text-[var(--ink)] mb-1">Extraction Warnings</h4>
+                                <ul className="space-y-1">
+                                    {warnings.map((w, i) => (
+                                        <li key={i} className="text-sm text-[var(--secondary)]">• {w}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    </BlueprintCard>
+                )}
+
+                {/* Search */}
+                <div data-animate className="relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search extracted facts..."
+                        className="w-full h-10 pl-10 pr-4 text-sm bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius-sm)] text-[var(--ink)] placeholder:text-[var(--placeholder)] focus:outline-none focus:border-[var(--blueprint)]"
+                    />
+                </div>
+
+                {/* Facts by Category */}
+                {Object.entries(groupedFacts).map(([category, categoryFacts], i) => (
+                    <div key={category} data-animate>
+                        <div className="flex items-center gap-3 mb-3">
+                            <span className="font-technical text-[var(--blueprint)]">FIG. {String(i + 1).padStart(2, "0")}</span>
+                            <div className="h-px flex-1 bg-[var(--blueprint-line)]" />
+                            <span className="font-technical text-[var(--muted)]">{category.toUpperCase()}</span>
+                            <span className="font-technical text-[var(--muted)]">{categoryFacts.length} ITEMS</span>
+                        </div>
+                        <div className="space-y-3">
+                            {categoryFacts.map((fact) => (
+                                <TruthCard
+                                    key={fact.id}
+                                    fact={fact}
+                                    onEdit={handleEdit}
+                                    onVerify={handleVerify}
+                                    onReject={handleReject}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                ))}
+
+                {/* Business Truth Sheet Preview */}
+                <BlueprintCard data-animate code="TRUTH-v0" showCorners padding="lg" variant="elevated">
+                    <div className="flex items-center gap-3 mb-4">
+                        <Sparkles size={18} className="text-[var(--blueprint)]" />
+                        <h3 className="font-serif text-lg text-[var(--ink)]">Business Truth Sheet v0</h3>
+                        <BlueprintBadge variant="warning">DRAFT</BlueprintBadge>
+                    </div>
+                    <p className="text-sm text-[var(--secondary)] mb-4">
+                        This is your AI-generated first draft. Review each fact above, verify or edit as needed,
+                        then proceed to Step 3 to resolve any contradictions.
+                    </p>
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="p-3 rounded-[var(--radius-sm)] bg-[var(--canvas)] border border-[var(--border-subtle)] text-center">
+                            <span className="block font-serif text-2xl text-[var(--success)]">{verifiedCount}</span>
+                            <span className="font-technical text-[var(--muted)]">VERIFIED</span>
+                        </div>
+                        <div className="p-3 rounded-[var(--radius-sm)] bg-[var(--canvas)] border border-[var(--border-subtle)] text-center">
+                            <span className="block font-serif text-2xl text-[var(--warning)]">{pendingCount}</span>
+                            <span className="font-technical text-[var(--muted)]">PENDING</span>
+                        </div>
+                        <div className="p-3 rounded-[var(--radius-sm)] bg-[var(--canvas)] border border-[var(--border-subtle)] text-center">
+                            <span className="block font-serif text-2xl text-[var(--error)]">{lowConfidenceCount}</span>
+                            <span className="font-technical text-[var(--muted)]">LOW CONF</span>
+                        </div>
+                    </div>
+                </BlueprintCard>
+
             </div>
-
-            {/* Facts by Category */}
-            {Object.entries(groupedFacts).map(([category, categoryFacts], i) => (
-                <div key={category} data-animate>
-                    <div className="flex items-center gap-3 mb-3">
-                        <span className="font-technical text-[var(--blueprint)]">FIG. {String(i + 1).padStart(2, "0")}</span>
-                        <div className="h-px flex-1 bg-[var(--blueprint-line)]" />
-                        <span className="font-technical text-[var(--muted)]">{category.toUpperCase()}</span>
-                        <span className="font-technical text-[var(--muted)]">{categoryFacts.length} ITEMS</span>
-                    </div>
-                    <div className="space-y-3">
-                        {categoryFacts.map((fact) => (
-                            <TruthCard
-                                key={fact.id}
-                                fact={fact}
-                                onEdit={handleEdit}
-                                onVerify={handleVerify}
-                                onReject={handleReject}
-                            />
-                        ))}
-                    </div>
-                </div>
-            ))}
-
-            {/* Business Truth Sheet Preview */}
-            <BlueprintCard data-animate code="TRUTH-v0" showCorners padding="lg" variant="elevated">
-                <div className="flex items-center gap-3 mb-4">
-                    <Sparkles size={18} className="text-[var(--blueprint)]" />
-                    <h3 className="font-serif text-lg text-[var(--ink)]">Business Truth Sheet v0</h3>
-                    <BlueprintBadge variant="warning">DRAFT</BlueprintBadge>
-                </div>
-                <p className="text-sm text-[var(--secondary)] mb-4">
-                    This is your AI-generated first draft. Review each fact above, verify or edit as needed,
-                    then proceed to Step 3 to resolve any contradictions.
-                </p>
-                <div className="grid grid-cols-3 gap-4">
-                    <div className="p-3 rounded-[var(--radius-sm)] bg-[var(--canvas)] border border-[var(--border-subtle)] text-center">
-                        <span className="block font-serif text-2xl text-[var(--success)]">{verifiedCount}</span>
-                        <span className="font-technical text-[var(--muted)]">VERIFIED</span>
-                    </div>
-                    <div className="p-3 rounded-[var(--radius-sm)] bg-[var(--canvas)] border border-[var(--border-subtle)] text-center">
-                        <span className="block font-serif text-2xl text-[var(--warning)]">{pendingCount}</span>
-                        <span className="font-technical text-[var(--muted)]">PENDING</span>
-                    </div>
-                    <div className="p-3 rounded-[var(--radius-sm)] bg-[var(--canvas)] border border-[var(--border-subtle)] text-center">
-                        <span className="block font-serif text-2xl text-[var(--error)]">{lowConfidenceCount}</span>
-                        <span className="font-technical text-[var(--muted)]">LOW CONF</span>
-                    </div>
-                </div>
-            </BlueprintCard>
-
-            <div className="flex justify-center pt-4">
-                <span className="font-technical text-[var(--muted)]">
-                    DOCUMENT: AUTO-EXTRACTION | STEP 02/25 | {facts.length} FACTS
-                </span>
-            </div>
-        </div>
+        </OnboardingStepLayout>
     );
 }

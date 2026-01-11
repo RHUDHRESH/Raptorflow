@@ -161,7 +161,7 @@ export default function DailyWinsPage() {
                             <div className="h-px w-8 bg-[var(--structure)]" />
                             <span className="font-technical text-[var(--ink-muted)]">DAILY</span>
                         </div>
-                        <h1 className="font-editorial text-2xl text-[var(--ink)]">Daily Wins</h1>
+                        <h1 className="font-serif text-2xl text-[var(--ink)]">Daily Wins</h1>
                         <p className="text-sm text-[var(--ink-secondary)]">Quick content wins for busy days</p>
                     </div>
                     <div className="align-center gap-4">
@@ -188,7 +188,7 @@ export default function DailyWinsPage() {
                                 <div className="inline-flex align-center justify-center w-20 h-20 rounded-[var(--radius)] bg-[var(--blueprint-light)] border border-[var(--blueprint)]/20 mb-4">
                                     <MessageSquare size={32} className="text-[var(--blueprint)]" />
                                 </div>
-                                <h2 className="font-editorial text-xl text-[var(--ink)] mb-2">Ready to post something?</h2>
+                                <h2 className="font-serif text-xl text-[var(--ink)] mb-2">Ready to post something?</h2>
                                 <p className="text-[var(--ink-secondary)] max-w-sm mx-auto">
                                     Get a quick content idea you can write and post in 10 minutes or less.
                                 </p>

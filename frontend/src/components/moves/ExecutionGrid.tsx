@@ -19,12 +19,12 @@ interface ExecutionGridProps {
 }
 
 const PHASE_COLORS: Record<string, string> = {
-    'Tease': 'bg-blue-100 text-blue-700 border-blue-200',
-    'Reveal': 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    'Proof': 'bg-amber-100 text-amber-700 border-amber-200',
-    'Urgency': 'bg-rose-100 text-rose-700 border-rose-200',
-    'Close': 'bg-slate-800 text-slate-100 border-slate-700',
-    'Sustain': 'bg-slate-100 text-slate-600 border-slate-200',
+    'Tease': 'bg-[var(--blueprint-light)] text-[var(--blueprint)] border-[var(--blueprint)]/30',
+    'Reveal': 'bg-[var(--success-light)] text-[var(--success)] border-[var(--success)]/30',
+    'Proof': 'bg-[var(--warning-light)] text-[var(--warning)] border-[var(--warning)]/30',
+    'Urgency': 'bg-[var(--error-light)] text-[var(--error)] border-[var(--error)]/30',
+    'Close': 'bg-[var(--ink)] text-[var(--paper)] border-[var(--ink)]',
+    'Sustain': 'bg-[var(--surface)] text-[var(--secondary)] border-[var(--border)]',
 };
 
 export function ExecutionGrid({ days, onTaskStatusChange, className, compact = false }: ExecutionGridProps) {
@@ -39,7 +39,7 @@ export function ExecutionGrid({ days, onTaskStatusChange, className, compact = f
                             <div className="h-px w-12 bg-[var(--blueprint-line)]" />
                             <span className="font-technical text-[var(--muted)]">EXECUTION PLAN</span>
                         </div>
-                        <h2 className="font-editorial text-2xl text-[var(--ink)]">Your 7-Day Plan</h2>
+                        <h2 className="font-serif text-2xl text-[var(--ink)]">Your 7-Day Plan</h2>
                     </div>
                 </div>
             )}
@@ -68,7 +68,7 @@ export function ExecutionGrid({ days, onTaskStatusChange, className, compact = f
                                     </span>
                                 </div>
                                 <div className="p-4 flex items-center justify-center">
-                                    <span className={cn("px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide border", PHASE_COLORS[day.phase] || 'bg-gray-100 text-gray-600 border-gray-200')}>
+                                    <span className={cn("px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide border", PHASE_COLORS[day.phase] || 'bg-[var(--surface)] text-[var(--secondary)] border-[var(--border)]')}>
                                         {day.phase}
                                     </span>
                                 </div>

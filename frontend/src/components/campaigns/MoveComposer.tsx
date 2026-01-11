@@ -5,7 +5,10 @@ import {
   DragDropContext,
   Droppable,
   Draggable,
-  DropResult
+  DropResult,
+  DroppableProvided,
+  DraggableProvided,
+  DraggableStateSnapshot
 } from 'react-beautiful-dnd';
 import {
   Plus,
@@ -62,16 +65,16 @@ const moveTypeIcons = {
 };
 
 const moveTypeColors = {
-  [MoveType.EMAIL]: 'bg-blue-100 text-blue-700 border-blue-200',
-  [MoveType.SOCIAL_MEDIA]: 'bg-purple-100 text-purple-700 border-purple-200',
-  [MoveType.CONTENT]: 'bg-green-100 text-green-700 border-green-200',
-  [MoveType.OUTREACH]: 'bg-orange-100 text-orange-700 border-orange-200',
-  [MoveType.ADS]: 'bg-red-100 text-red-700 border-red-200',
-  [MoveType.WEBINAR]: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-  [MoveType.LANDING_PAGE]: 'bg-pink-100 text-pink-700 border-pink-200',
-  [MoveType.SMS]: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  [MoveType.PUSH]: 'bg-gray-100 text-gray-700 border-gray-200',
-  [MoveType.ANALYTICS]: 'bg-teal-100 text-teal-700 border-teal-200'
+  [MoveType.EMAIL]: 'bg-[var(--blueprint-light)] text-[var(--blueprint)] border-[var(--blueprint)]/30',
+  [MoveType.SOCIAL_MEDIA]: 'bg-[var(--accent-light)] text-[var(--accent)] border-[var(--accent)]/30',
+  [MoveType.CONTENT]: 'bg-[var(--success-light)] text-[var(--success)] border-[var(--success)]/30',
+  [MoveType.OUTREACH]: 'bg-[var(--warning-light)] text-[var(--warning)] border-[var(--warning)]/30',
+  [MoveType.ADS]: 'bg-[var(--error-light)] text-[var(--error)] border-[var(--error)]/30',
+  [MoveType.WEBINAR]: 'bg-[var(--blueprint-light)] text-[var(--blueprint)] border-[var(--blueprint)]/30',
+  [MoveType.LANDING_PAGE]: 'bg-[var(--accent-light)] text-[var(--accent)] border-[var(--accent)]/30',
+  [MoveType.SMS]: 'bg-[var(--warning-light)] text-[var(--warning)] border-[var(--warning)]/30',
+  [MoveType.PUSH]: 'bg-[var(--surface)] text-[var(--secondary)] border-[var(--border)]',
+  [MoveType.ANALYTICS]: 'bg-[var(--success-light)] text-[var(--success)] border-[var(--success)]/30'
 };
 
 export function MoveComposer({ onSave, initialMoves = [], readOnly = false }: MoveComposerProps) {
@@ -237,7 +240,7 @@ export function MoveComposer({ onSave, initialMoves = [], readOnly = false }: Mo
                         {move.description}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
-                        <BlueprintBadge variant="outline" size="sm" className={moveTypeColors[move.type]}>
+                        <BlueprintBadge variant="blueprint" size="sm" className={moveTypeColors[move.type]}>
                           {move.type.replace('_', ' ')}
                         </BlueprintBadge>
                         <span className="text-xs text-[var(--ink-ghost)]">
@@ -271,7 +274,7 @@ export function MoveComposer({ onSave, initialMoves = [], readOnly = false }: Mo
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="moves">
-              {(provided) => (
+              {(provided: DroppableProvided) => (
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
@@ -288,7 +291,7 @@ export function MoveComposer({ onSave, initialMoves = [], readOnly = false }: Mo
                         index={index}
                         isDragDisabled={readOnly}
                       >
-                        {(provided, snapshot) => (
+                        {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
                           <BlueprintCard
                             ref={provided.innerRef}
                             {...provided.draggableProps}
@@ -321,10 +324,11 @@ export function MoveComposer({ onSave, initialMoves = [], readOnly = false }: Mo
                               {/* Move Details */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
+
                                   <h3 className="text-sm font-semibold text-[var(--ink)]">
                                     {move.name}
                                   </h3>
-                                  <BlueprintBadge variant="outline" size="sm">
+                                  <BlueprintBadge variant="blueprint" size="sm">
                                     {move.type.replace('_', ' ')}
                                   </BlueprintBadge>
                                   {move.delay && (

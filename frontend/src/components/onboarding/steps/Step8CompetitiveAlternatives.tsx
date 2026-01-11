@@ -623,7 +623,7 @@ export default function Step8CompetitiveAlternatives() {
 
             <div className="flex justify-center pt-4">
                 <span className="font-technical text-[var(--muted)]">
-                    DOCUMENT: ALTERNATIVES | STEP 08/25 | {alternatives.length} ITEMS
+                    COMPETITIVE-ALTERNATIVES • STEP 07/24 • {alternatives.length} ITEMS
                 </span>
             </div>
         </div>

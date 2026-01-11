@@ -1,4 +1,4 @@
-import { Play } from '@/types/campaign';
+import { Play, PlayCategory } from '@/types/campaign';
 
 // Pre-built Plays
 export const preBuiltPlays: Play[] = [
@@ -6,7 +6,7 @@ export const preBuiltPlays: Play[] = [
     id: 'play-welcome-series',
     name: 'New User Welcome Series',
     description: 'Comprehensive onboarding sequence for new users with educational content and engagement prompts',
-    category: 'onboarding',
+    category: PlayCategory.ONBOARDING,
     moves: [
       'move-welcome-email',
       'move-getting-started-guide',
@@ -73,7 +73,7 @@ export const preBuiltPlays: Play[] = [
     id: 'play-lead-nurturing',
     name: 'B2B Lead Nurturing Sequence',
     description: 'Multi-touch nurturing sequence to convert leads into qualified opportunities',
-    category: 'nurturing',
+    category: PlayCategory.NURTURING,
     moves: [
       'move-lead-confirmation',
       'move-industry-insights',
@@ -155,7 +155,7 @@ export const preBuiltPlays: Play[] = [
     id: 'play-cart-abandonment',
     name: 'E-commerce Cart Recovery',
     description: 'Multi-email sequence to recover abandoned carts with increasing urgency',
-    category: 'conversion',
+    category: PlayCategory.CONVERSION,
     moves: [
       'move-cart-reminder',
       'move-social-proof-email',
@@ -221,7 +221,7 @@ export const preBuiltPlays: Play[] = [
     id: 'play-product-launch',
     name: 'Product Launch Sequence',
     description: 'Comprehensive launch sequence with teaser, announcement, and follow-up phases',
-    category: 'launch',
+    category: PlayCategory.LAUNCH,
     moves: [
       'move-teaser-campaign',
       'move-announcement-blast',
@@ -280,7 +280,7 @@ export const preBuiltPlays: Play[] = [
     id: 'play-customer-retention',
     name: 'Customer Retention Play',
     description: 'Keep customers engaged with value-packed content and check-ins',
-    category: 'retention',
+    category: PlayCategory.RETENTION,
     moves: [
       'move-onboarding-complete',
       'move-value-tips',
@@ -354,7 +354,7 @@ export const preBuiltPlays: Play[] = [
     id: 'play-webinar-sequence',
     name: 'Webinar Promotion & Follow-up',
     description: 'Complete webinar sequence from promotion to post-event follow-up',
-    category: 'event',
+    category: PlayCategory.EVENT,
     moves: [
       'move-webinar-announcement',
       'move-speaker-spotlight',
@@ -435,7 +435,7 @@ export const preBuiltPlays: Play[] = [
     id: 'play-content-distribution',
     name: 'Content Distribution Amplifier',
     description: 'Amplify content reach across multiple channels systematically',
-    category: 'content',
+    category: PlayCategory.CONTENT,
     moves: [
       'move-blog-announcement',
       'move-social-snippets',
@@ -509,7 +509,7 @@ export const preBuiltPlays: Play[] = [
     id: 'play-re-engagement',
     name: 'Dormant User Re-engagement',
     description: 'Win back inactive users with targeted incentives and value',
-    category: 'reactivation',
+    category: PlayCategory.REACTIVATION,
     moves: [
       'move-we-miss-you',
       'move-value-reminder',
@@ -575,7 +575,7 @@ export const preBuiltPlays: Play[] = [
     id: 'play-upsell-sequence',
     name: 'Strategic Upsell Sequence',
     description: 'Identify and execute upsell opportunities at optimal moments',
-    category: 'sales',
+    category: PlayCategory.SALES,
     moves: [
       'move-usage-tracking',
       'move-upsell-identify',
@@ -649,7 +649,7 @@ export const preBuiltPlays: Play[] = [
     id: 'play-feedback-collection',
     name: 'Customer Feedback Loop',
     description: 'Systematically collect and act on customer feedback',
-    category: 'feedback',
+    category: PlayCategory.FEEDBACK,
     moves: [
       'move-nps-survey',
       'move-feedback-request',
@@ -737,18 +737,18 @@ export const getPlaysByCategory = (category: string): Play[] => {
 };
 
 export const getPlaysByTag = (tag: string): Play[] => {
-  return preBuiltPlays.filter(play => play.tags.includes(tag));
+  return preBuiltPlays.filter(play => (play.tags || []).includes(tag));
 };
 
 export const getPopularPlays = (limit: number = 5): Play[] => {
   return preBuiltPlays
-    .sort((a, b) => b.usageCount - a.usageCount)
+    .sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
     .slice(0, limit);
 };
 
 export const getTopRatedPlays = (limit: number = 5): Play[] => {
   return preBuiltPlays
-    .sort((a, b) => b.rating - a.rating)
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
     .slice(0, limit);
 };
 
@@ -773,7 +773,7 @@ export const getRecommendedPlays = (objective: string, industry: string, company
   // Filter by company size
   if (companySize === 'small') {
     recommended = recommended.filter(p =>
-      !p.tags.includes('enterprise')
+      !(p.tags || []).includes('enterprise')
     );
   }
 
@@ -783,8 +783,8 @@ export const getRecommendedPlays = (objective: string, industry: string, company
 // Play statistics
 export const playStats = {
   totalPlays: preBuiltPlays.length,
-  totalUsage: preBuiltPlays.reduce((sum, play) => sum + play.usageCount, 0),
-  averageRating: preBuiltPlays.reduce((sum, play) => sum + play.rating, 0) / preBuiltPlays.length,
+  totalUsage: preBuiltPlays.reduce((sum, play) => sum + (play.usageCount || 0), 0),
+  averageRating: preBuiltPlays.reduce((sum, play) => sum + (play.rating || 0), 0) / preBuiltPlays.length,
   mostUsedCategory: 'conversion',
-  highestRated: preBuiltPlays.reduce((max, play) => play.rating > max.rating ? play : max)
+  highestRated: preBuiltPlays.reduce((max, play) => (play.rating || 0) > (max.rating || 0) ? play : max)
 };

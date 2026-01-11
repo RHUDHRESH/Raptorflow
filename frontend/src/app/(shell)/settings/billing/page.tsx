@@ -27,7 +27,7 @@ export default function BillingSettingsPage() {
                                 <span className="font-technical text-[var(--blueprint)]">CURRENT PLAN</span>
                                 <BlueprintBadge variant="blueprint" size="sm">PRO</BlueprintBadge>
                             </div>
-                            <h3 className="text-2xl font-editorial">RaptorFlow Professional</h3>
+                            <h3 className="text-2xl font-serif">RaptorFlow Professional</h3>
                         </div>
                         <div className="flex flex-col gap-2 pt-2">
                             {["Unlimited Moves", "Using GPT-4o Model", "Advanced Analytics", "Priority Support"].map((feat, i) => (

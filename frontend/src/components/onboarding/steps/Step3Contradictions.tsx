@@ -12,6 +12,7 @@ import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { StepLoadingState, StepEmptyState } from "../StepStates";
+import { OnboardingStepLayout } from "../OnboardingStepLayout";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    PAPER TERMINAL — Step 3: Contradictions
@@ -162,8 +163,8 @@ function IssueCard({
                                     <div
                                         key={i}
                                         className={`p-3 rounded-[var(--radius-sm)] border transition-all cursor-pointer ${selectedSource === i
-                                                ? "bg-[var(--blueprint-light)] border-[var(--blueprint)]"
-                                                : "bg-[var(--canvas)] border-[var(--border-subtle)] hover:border-[var(--blueprint)]"
+                                            ? "bg-[var(--blueprint-light)] border-[var(--blueprint)]"
+                                            : "bg-[var(--canvas)] border-[var(--border-subtle)] hover:border-[var(--blueprint)]"
                                             }`}
                                         onClick={() => issue.type === "contradiction" && setSelectedSource(i)}
                                     >
@@ -196,8 +197,8 @@ function IssueCard({
                                             key={i}
                                             onClick={() => setSelectedSource(i)}
                                             className={`px-4 py-2 font-technical rounded-[var(--radius-sm)] transition-all ${selectedSource === i
-                                                    ? "bg-[var(--blueprint)] text-[var(--paper)]"
-                                                    : "bg-[var(--canvas)] text-[var(--muted)] hover:border-[var(--blueprint)] border border-[var(--border)]"
+                                                ? "bg-[var(--blueprint)] text-[var(--paper)]"
+                                                : "bg-[var(--canvas)] text-[var(--muted)] hover:border-[var(--blueprint)] border border-[var(--border)]"
                                                 }`}
                                         >
                                             SOURCE {i + 1}
@@ -455,79 +456,76 @@ export default function Step3Contradictions() {
     }
 
     return (
-        <div ref={containerRef} className="space-y-6">
-            {/* Status Card */}
-            <BlueprintCard
-                data-animate
-                showCorners
-                padding="md"
-                className={highPriorityUnresolved > 0
-                    ? "border-[var(--error)]/30 bg-[var(--error-light)]"
-                    : "border-[var(--success)]/30 bg-[var(--success-light)]"
-                }
-            >
-                <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-[var(--radius-sm)] flex items-center justify-center ${highPriorityUnresolved > 0 ? "bg-[var(--error)]" : "bg-[var(--success)]"
-                        }`}>
-                        {highPriorityUnresolved > 0
-                            ? <AlertTriangle size={18} strokeWidth={1.5} className="text-[var(--paper)]" />
-                            : <Check size={18} strokeWidth={1.5} className="text-[var(--paper)]" />
-                        }
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-[var(--ink)]">
+        <OnboardingStepLayout stepId={3} moduleLabel="CONTRADICTIONS" itemCount={issues.length}>
+            <div ref={containerRef} className="space-y-6">
+                {/* Status Card */}
+                <BlueprintCard
+                    data-animate
+                    showCorners
+                    padding="md"
+                    className={highPriorityUnresolved > 0
+                        ? "border-[var(--error)]/30 bg-[var(--error-light)]"
+                        : "border-[var(--success)]/30 bg-[var(--success-light)]"
+                    }
+                >
+                    <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-[var(--radius-sm)] flex items-center justify-center ${highPriorityUnresolved > 0 ? "bg-[var(--error)]" : "bg-[var(--success)]"
+                            }`}>
                             {highPriorityUnresolved > 0
-                                ? `${highPriorityUnresolved} high-priority issue${highPriorityUnresolved > 1 ? "s" : ""} to resolve`
-                                : "All high-priority issues resolved"
+                                ? <AlertTriangle size={18} strokeWidth={1.5} className="text-[var(--paper)]" />
+                                : <Check size={18} strokeWidth={1.5} className="text-[var(--paper)]" />
                             }
-                        </h3>
-                        <p className="font-technical text-[var(--muted)]">{resolvedCount}/{issues.length} RESOLVED</p>
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-sm font-semibold text-[var(--ink)]">
+                                {highPriorityUnresolved > 0
+                                    ? `${highPriorityUnresolved} high-priority issue${highPriorityUnresolved > 1 ? "s" : ""} to resolve`
+                                    : "All high-priority issues resolved"
+                                }
+                            </h3>
+                            <p className="font-technical text-[var(--muted)]">{resolvedCount}/{issues.length} RESOLVED</p>
+                        </div>
+                        <SecondaryButton size="sm" onClick={runAnalysis}>
+                            <RefreshCw size={10} strokeWidth={1.5} />
+                            Re-analyze
+                        </SecondaryButton>
                     </div>
-                    <SecondaryButton size="sm" onClick={runAnalysis}>
-                        <RefreshCw size={10} strokeWidth={1.5} />
-                        Re-analyze
-                    </SecondaryButton>
-                </div>
-            </BlueprintCard>
+                </BlueprintCard>
 
-            {/* Filters */}
-            <div data-animate className="flex gap-2 flex-wrap">
-                {(["all", "contradiction", "unproven", "missing", "ambiguous"] as const).map((filter) => (
-                    <button
-                        key={filter}
-                        onClick={() => setActiveFilter(filter)}
-                        className={`px-4 py-2 font-technical text-xs rounded-[var(--radius-sm)] transition-all ${activeFilter === filter
+                {/* Filters */}
+                <div data-animate className="flex gap-2 flex-wrap">
+                    {(["all", "contradiction", "unproven", "missing", "ambiguous"] as const).map((filter) => (
+                        <button
+                            key={filter}
+                            onClick={() => setActiveFilter(filter)}
+                            className={`px-4 py-2 font-technical text-xs rounded-[var(--radius-sm)] transition-all ${activeFilter === filter
                                 ? "bg-[var(--blueprint)] text-[var(--paper)]"
                                 : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)] hover:border-[var(--blueprint)]"
-                            }`}
-                    >
-                        {filter === "all" ? "ALL" : filter.toUpperCase()} ({filterCounts[filter]})
-                    </button>
-                ))}
-            </div>
+                                }`}
+                        >
+                            {filter === "all" ? "ALL" : filter.toUpperCase()} ({filterCounts[filter]})
+                        </button>
+                    ))}
+                </div>
 
-            {/* Issues List */}
-            <div className="space-y-4">
-                {filteredIssues.map((issue) => (
-                    <IssueCard key={issue.id} issue={issue} onResolve={handleResolve} />
-                ))}
-            </div>
+                {/* Issues List */}
+                <div className="space-y-4">
+                    {filteredIssues.map((issue) => (
+                        <IssueCard key={issue.id} issue={issue} onResolve={handleResolve} />
+                    ))}
+                </div>
 
-            {filteredIssues.length === 0 && (
-                <BlueprintCard showCorners padding="lg" className="text-center">
-                    <Check size={28} strokeWidth={1.5} className="mx-auto mb-3 text-[var(--success)]" />
-                    <h3 className="text-sm font-semibold text-[var(--ink)] mb-1">No issues found</h3>
-                    <p className="font-technical text-[var(--muted)]">
-                        {activeFilter === "all" ? "ALL CLEAR" : `NO ${activeFilter.toUpperCase()} ISSUES`}
-                    </p>
-                </BlueprintCard>
-            )}
+                {filteredIssues.length === 0 && (
+                    <BlueprintCard showCorners padding="lg" className="text-center">
+                        <Check size={28} strokeWidth={1.5} className="mx-auto mb-3 text-[var(--success)]" />
+                        <h3 className="text-sm font-semibold text-[var(--ink)] mb-1">No issues found</h3>
+                        <p className="font-technical text-[var(--muted)]">
+                            {activeFilter === "all" ? "ALL CLEAR" : `NO ${activeFilter.toUpperCase()} ISSUES`}
+                        </p>
+                    </BlueprintCard>
+                )}
 
-            <div className="flex justify-center pt-4">
-                <span className="font-technical text-[var(--muted)]">
-                    DOCUMENT: CONTRADICTIONS | STEP 03/25 | {issues.length} ISSUES
-                </span>
             </div>
-        </div>
+        </OnboardingStepLayout>
     );
 }

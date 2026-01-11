@@ -158,7 +158,7 @@ export function CampaignConstitutionWizard({ isOpen, onClose, onComplete }: Camp
     const renderProposal = () => (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
             <div className="text-center mb-8">
-                <h2 className="font-editorial text-3xl text-[var(--ink)]">Strategy Generated</h2>
+                <h2 className="font-serif text-3xl text-[var(--ink)]">Strategy Generated</h2>
                 <p className="text-[var(--muted)] text-sm mt-1">Based on your {duration}-week timeline, here are the viable paths.</p>
             </div>
 
@@ -201,7 +201,7 @@ export function CampaignConstitutionWizard({ isOpen, onClose, onComplete }: Camp
 
                             {isSelected && (
                                 <div className="mt-auto pt-4 border-t border-[var(--border)] animate-in fade-in slide-in-from-bottom-2">
-                                    <p className="text-xs font-editorial italic text-[var(--ink)]">
+                                    <p className="text-xs font-serif italic text-[var(--ink)]">
                                         "{strat.idea}"
                                     </p>
                                 </div>

@@ -305,8 +305,8 @@ export default function Step6OfferPricing() {
                                 key={model.id}
                                 onClick={() => { setPricingModel(model.id); saveData({ pricingModel: model.id }); }}
                                 className={`p-4 rounded-[var(--radius-sm)] border text-left transition-all ${isSelected
-                                        ? "bg-[var(--blueprint)] border-[var(--blueprint)] text-[var(--paper)]"
-                                        : "bg-[var(--canvas)] border-[var(--border)] text-[var(--ink)] hover:border-[var(--blueprint)]"
+                                    ? "bg-[var(--blueprint)] border-[var(--blueprint)] text-[var(--paper)]"
+                                    : "bg-[var(--canvas)] border-[var(--border)] text-[var(--ink)] hover:border-[var(--blueprint)]"
                                     }`}
                             >
                                 <Icon size={18} strokeWidth={1.5} className={isSelected ? "text-[var(--paper)]" : "text-[var(--blueprint)]"} />
@@ -453,7 +453,7 @@ export default function Step6OfferPricing() {
             )}
 
             <div className="flex justify-center pt-4">
-                <span className="font-technical text-[var(--muted)]">OFFER-PRICING • STEP 06/25</span>
+                <span className="font-technical text-[var(--muted)]">YOUR-OFFER • STEP 05/24</span>
             </div>
         </div>
     );

@@ -6,6 +6,7 @@ No graceful failures - explicit success/failure for all operations
 
 import asyncio
 import json
+import os
 import time
 from dataclasses import asdict
 from pathlib import Path
@@ -253,8 +254,8 @@ def process_document(
 if __name__ == "__main__":
     # Example configuration
     config = {
-        "gemini_api_key": "your-gemini-api-key",
-        "google_translate_api_key": "your-google-translate-api-key",
+        "gemini_api_key": os.getenv("GEMINI_API_KEY"),
+        "google_translate_api_key": os.getenv("GOOGLE_TRANSLATE_API_KEY"),
         "confidence_threshold": 0.8,
         "auto_nlp": True,
     }

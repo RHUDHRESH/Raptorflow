@@ -60,7 +60,7 @@ export default function MoveDetailPage({ params }: { params: { id: string } }) {
                         <span className="font-mono text-xs text-[var(--muted)]">MVP-{move.id}</span>
                         <BlueprintBadge variant={move.priority === 'high' ? 'warning' : 'default'} dot>{move.priority?.toUpperCase() || "NORMAL"}</BlueprintBadge>
                     </div>
-                    <h1 className="font-editorial text-3xl text-[var(--ink)]">{move.title}</h1>
+                    <h1 className="font-serif text-3xl text-[var(--ink)]">{move.title}</h1>
                 </div>
                 <div className="flex gap-3">
                     <SecondaryButton>Edit</SecondaryButton>

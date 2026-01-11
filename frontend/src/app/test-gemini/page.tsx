@@ -142,7 +142,7 @@ export default function GeminiTestPage() {
               <p><strong>Universal Model:</strong> {AI_CONFIG.MODEL}</p>
               <p><strong>Cost per Token:</strong> ${AI_CONFIG.COST_PER_TOKEN}</p>
               <p><strong>Context Window:</strong> {AI_CONFIG.MAX_CONTEXT_LENGTH.toLocaleString()} tokens</p>
-              <p><strong>Enforcement:</strong> {AI_CONFIG.ENABLE_GEMINI_1_5_FLASH_ONLY ? '✅ Active' : '❌ Inactive'}</p>
+              <p><strong>Enforcement:</strong> {(AI_CONFIG as any).ENABLE_GEMINI_1_5_FLASH_ONLY ? '✅ Active' : '❌ Inactive'}</p>
             </div>
           </div>
 

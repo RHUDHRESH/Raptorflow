@@ -97,7 +97,7 @@ function DashboardPageContent() {
               <div className="h-px w-8 bg-[var(--structure)]" />
               <span className="font-technical text-[var(--ink-muted)]">TURNKEY</span>
             </div>
-            <h1 className="font-editorial text-4xl text-[var(--ink)]">Marketing Command</h1>
+            <h1 className="font-serif text-4xl text-[var(--ink)]">Marketing Command</h1>
             <p className="text-sm text-[var(--ink-secondary)] max-w-lg">
               System status, active moves, and strategic oversight.
             </p>

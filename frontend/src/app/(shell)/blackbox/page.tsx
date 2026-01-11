@@ -234,7 +234,7 @@ export default function BlackboxPage() {
                         <Terminal size={18} className="text-[var(--ink)]" strokeWidth={1.5} />
                     </div>
                     <div>
-                        <h1 className="font-editorial text-2xl text-[var(--ink)] leading-none mb-1">Black Box Engine</h1>
+                        <h1 className="font-serif text-2xl text-[var(--ink)] leading-none mb-1">Black Box Engine</h1>
                         <div className="font-technical text-[10px] text-[var(--ink-muted)] tracking-widest uppercase">
                             SYS.BLACKBOX // STRATEGY GEN
                         </div>
@@ -269,7 +269,7 @@ export default function BlackboxPage() {
                 {step === "focus" && (
                     <div className="w-full">
                         <div className="text-center mb-12">
-                            <h2 className="font-editorial text-4xl text-[var(--ink)] mb-3">Select Operational Theater</h2>
+                            <h2 className="font-serif text-4xl text-[var(--ink)] mb-3">Select Operational Theater</h2>
                             <p className="text-[var(--ink-secondary)] max-w-md mx-auto">Where will this strategic move be deployed?</p>
                         </div>
                         <div className="grid grid-cols-5 gap-4">
@@ -305,7 +305,7 @@ export default function BlackboxPage() {
                 {step === "outcome" && (
                     <div className="w-full max-w-2xl">
                         <div className="text-center mb-12">
-                            <h2 className="font-editorial text-4xl text-[var(--ink)] mb-3">Define Victory Condition</h2>
+                            <h2 className="font-serif text-4xl text-[var(--ink)] mb-3">Define Victory Condition</h2>
                             <p className="text-[var(--ink-secondary)]">Focus Area: <span className="font-medium text-[var(--ink)] border-b border-[var(--structure)]">{focus}</span></p>
                         </div>
                         <div className="flex flex-col gap-3">
@@ -330,7 +330,7 @@ export default function BlackboxPage() {
                 {step === "volatility" && (
                     <div className="w-full max-w-3xl">
                         <div className="text-center mb-12">
-                            <h2 className="font-editorial text-4xl text-[var(--ink)] mb-3">Calibrate Risk Tolerance</h2>
+                            <h2 className="font-serif text-4xl text-[var(--ink)] mb-3">Calibrate Risk Tolerance</h2>
                             <p className="text-[var(--ink-secondary)]">Higher volatility correlates with asymmetric upside.</p>
                         </div>
 
@@ -353,7 +353,7 @@ export default function BlackboxPage() {
                                     )}>
                                         {volatility}
                                     </div>
-                                    <div className="font-editorial text-2xl mt-2 text-[var(--ink)]">
+                                    <div className="font-serif text-2xl mt-2 text-[var(--ink)]">
                                         {RISK_LEVELS[volatility - 1].label}
                                     </div>
                                     <div className="font-sans text-sm text-[var(--ink-muted)] mt-1">
@@ -424,7 +424,7 @@ export default function BlackboxPage() {
                 {/* STEP 4: PROCESSING (MECHANICAL) */}
                 {step === "processing" && (
                     <div className="w-full max-w-lg text-center">
-                        <h2 className="font-editorial text-2xl text-[var(--ink)] mb-8">
+                        <h2 className="font-serif text-2xl text-[var(--ink)] mb-8">
                             <ScrambleText text="Synthesizing Strategy..." />
                         </h2>
 
@@ -456,7 +456,7 @@ export default function BlackboxPage() {
                                     <div>
                                         {/* Addition #29: Text Scramble */}
                                         <div className="font-technical text-[var(--ink-muted)] mb-2">STRATEGY_ID: X99-ALPHA</div>
-                                        <h2 className="font-editorial text-3xl text-[var(--ink)]">
+                                        <h2 className="font-serif text-3xl text-[var(--ink)]">
                                             The "Pattern Break"
                                         </h2>
                                     </div>

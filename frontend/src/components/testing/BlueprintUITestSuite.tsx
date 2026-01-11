@@ -67,7 +67,7 @@ export function BlueprintUITestSuite() {
   const renderComponents = () => (
     <div className="space-y-8">
       <BlueprintCard figure="COMP" code="TEST-01" padding="lg">
-        <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Button Components</h3>
+        <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Button Components</h3>
         <div className="space-y-4">
           <div className="flex flex-wrap gap-4">
             <BlueprintButton size="sm">Small</BlueprintButton>
@@ -90,7 +90,7 @@ export function BlueprintUITestSuite() {
       </BlueprintCard>
 
       <BlueprintCard figure="CARD" code="TEST-02" padding="lg">
-        <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Card Components</h3>
+        <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Card Components</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <BlueprintCard variant="default" padding="md">
             <h4 className="font-semibold text-[var(--ink)]">Default Card</h4>
@@ -108,7 +108,7 @@ export function BlueprintUITestSuite() {
       </BlueprintCard>
 
       <BlueprintCard figure="BADGE" code="TEST-03" padding="lg">
-        <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Badge Components</h3>
+        <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Badge Components</h3>
         <div className="flex flex-wrap gap-4">
           <BlueprintBadge variant="default">Default</BlueprintBadge>
           <BlueprintBadge variant="blueprint">Blueprint</BlueprintBadge>
@@ -124,7 +124,7 @@ export function BlueprintUITestSuite() {
   const renderForms = () => (
     <div className="space-y-8">
       <BlueprintCard figure="FORM" code="TEST-04" padding="lg">
-        <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Input Components</h3>
+        <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Input Components</h3>
         <div className="space-y-6 max-w-md">
           <BlueprintInput
             label="Name"
@@ -163,7 +163,7 @@ export function BlueprintUITestSuite() {
       </BlueprintCard>
 
       <BlueprintCard figure="FORM" code="TEST-05" padding="lg">
-        <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Form Layouts</h3>
+        <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Form Layouts</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <BlueprintInput
@@ -194,7 +194,7 @@ export function BlueprintUITestSuite() {
   const renderNavigation = () => (
     <div className="space-y-8">
       <BlueprintCard figure="NAV" code="TEST-06" padding="lg">
-        <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Navigation Components</h3>
+        <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Navigation Components</h3>
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
             <BlueprintButton variant="ghost" size="sm">
@@ -222,7 +222,7 @@ export function BlueprintUITestSuite() {
       </BlueprintCard>
 
       <BlueprintCard figure="NAV" code="TEST-07" padding="lg">
-        <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Action Buttons</h3>
+        <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Action Buttons</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <BlueprintButton size="sm">
             <Plus size={14} />
@@ -248,7 +248,7 @@ export function BlueprintUITestSuite() {
   const renderStates = () => (
     <div className="space-y-8">
       <BlueprintCard figure="STATE" code="TEST-08" padding="lg">
-        <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Loading States</h3>
+        <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Loading States</h3>
         <div className="space-y-4">
           <div className="flex items-center gap-4">
             <BlueprintLoader size="sm" />
@@ -270,7 +270,7 @@ export function BlueprintUITestSuite() {
       </BlueprintCard>
 
       <BlueprintCard figure="STATE" code="TEST-09" padding="lg">
-        <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Empty States</h3>
+        <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Empty States</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <BlueprintEmptyState
             title="No Data"
@@ -299,7 +299,7 @@ export function BlueprintUITestSuite() {
   const renderLayout = () => (
     <div className="space-y-8">
       <BlueprintCard figure="LAYOUT" code="TEST-10" padding="lg">
-        <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Grid Layouts</h3>
+        <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Grid Layouts</h3>
         <div className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
@@ -320,7 +320,7 @@ export function BlueprintUITestSuite() {
       </BlueprintCard>
 
       <BlueprintCard figure="LAYOUT" code="TEST-11" padding="lg">
-        <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Responsive Layout</h3>
+        <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Responsive Layout</h3>
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 bg-[var(--canvas)] border border-[var(--border)] rounded-[var(--radius-sm)] p-4">
@@ -356,7 +356,7 @@ export function BlueprintUITestSuite() {
     <div className="min-h-screen bg-[var(--canvas)] p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="font-editorial text-4xl text-[var(--ink)] mb-2">
+          <h1 className="font-serif text-4xl text-[var(--ink)] mb-2">
             Blueprint UI Test Suite
           </h1>
           <p className="text-[var(--ink-secondary)]">

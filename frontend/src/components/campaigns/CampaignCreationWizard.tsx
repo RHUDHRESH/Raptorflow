@@ -17,7 +17,8 @@ import {
 import { BlueprintCard } from '@/components/ui/BlueprintCard';
 import { BlueprintButton } from '@/components/ui/BlueprintButton';
 import { BlueprintBadge } from '@/components/ui/BlueprintBadge';
-import { useEnhancedCampaignStore, CreateCampaignRequest, CampaignObjective } from '@/stores/enhancedCampaignStore';
+import { useEnhancedCampaignStore } from '@/stores/enhancedCampaignStore';
+import { CreateCampaignRequest, CampaignObjective } from '@/types/campaign';
 import { allCampaignTemplates, getTemplateById } from '@/data/campaignTemplates';
 import { cn } from '@/lib/utils';
 
@@ -223,7 +224,7 @@ export function CampaignCreationWizard({ onClose, onSave }: CampaignCreationWiza
                         {template.description}
                       </p>
                       <div className="flex items-center gap-2">
-                        <BlueprintBadge variant="outline" size="sm">
+                        <BlueprintBadge variant="blueprint" size="sm">
                           {template.category}
                         </BlueprintBadge>
                         <span className="text-xs text-[var(--ink-ghost)]">
@@ -281,8 +282,8 @@ export function CampaignCreationWizard({ onClose, onSave }: CampaignCreationWiza
               </label>
               <input
                 type="text"
-                value={campaignData.tags?.join(', ') || ''}
-                onChange={(e) => updateData('tags', e.target.value.split(', ').map(t => t.trim()).filter(Boolean))}
+                value={(campaignData as any).tags?.join(', ') || ''}
+                onChange={(e) => updateData('tags' as any, e.target.value.split(', ').map(t => t.trim()).filter(Boolean))}
                 placeholder="e.g. product-launch, q4-2024, b2b"
                 className="w-full px-3 py-2 text-sm bg-[var(--paper)] border border-[var(--structure-subtle)] rounded-[var(--radius)] focus:outline-none focus:border-[var(--blueprint)]"
               />
@@ -535,8 +536,8 @@ export function CampaignCreationWizard({ onClose, onSave }: CampaignCreationWiza
                   step.id === currentStep
                     ? "text-[var(--ink)] font-medium"
                     : step.id < currentStep
-                    ? "text-[var(--blueprint)]"
-                    : "text-[var(--ink-ghost)]"
+                      ? "text-[var(--blueprint)]"
+                      : "text-[var(--ink-ghost)]"
                 )}
               >
                 {step.title}

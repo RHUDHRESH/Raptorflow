@@ -235,7 +235,7 @@ class RaptorflowTestSuite:
             async with httpx.AsyncClient() as client:
                 payload = {
                     "url": "https://example.com",
-                    "item_id": "cross-validation-test",
+                    "item_id": os.getenv("ITEM_ID"),
                 }
                 response = await client.post(
                     f"{self.base_url}/api/v1/onboarding/{self.session_id}/vault/url",

@@ -260,8 +260,8 @@ export default function Step18SoundbitesLibrary() {
                 <button
                     onClick={() => setActiveCategory("all")}
                     className={`px-4 py-2 font-technical text-[10px] rounded-lg transition-all ${activeCategory === "all"
-                            ? "bg-[var(--blueprint)] text-[var(--paper)]"
-                            : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)] hover:border-[var(--blueprint)]"
+                        ? "bg-[var(--blueprint)] text-[var(--paper)]"
+                        : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)] hover:border-[var(--blueprint)]"
                         }`}
                 >
                     ALL ({soundbites.length})
@@ -271,8 +271,8 @@ export default function Step18SoundbitesLibrary() {
                         key={cat}
                         onClick={() => setActiveCategory(cat)}
                         className={`px-4 py-2 font-technical text-[10px] rounded-lg transition-all ${activeCategory === cat
-                                ? "bg-[var(--blueprint)] text-[var(--paper)]"
-                                : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)] hover:border-[var(--blueprint)]"
+                            ? "bg-[var(--blueprint)] text-[var(--paper)]"
+                            : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)] hover:border-[var(--blueprint)]"
                             }`}
                     >
                         {cat.toUpperCase()} ({soundbites.filter((s) => s.category === cat).length})
@@ -331,7 +331,7 @@ export default function Step18SoundbitesLibrary() {
             )}
 
             <div className="flex justify-center pt-4">
-                <span className="font-technical text-[var(--muted)]">SOUNDBITES • STEP 18/25</span>
+                <span className="font-technical text-[var(--muted)]">SOUNDBITES • STEP 17/24</span>
             </div>
         </div>
     );

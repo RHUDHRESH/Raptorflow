@@ -30,7 +30,7 @@ export default function OnboardingPage() {
         <div className="w-16 h-16 bg-[var(--blueprint)] rounded-[var(--radius-lg)] flex items-center justify-center mx-auto mb-6">
           <Zap size={32} className="text-[var(--paper)]" />
         </div>
-        <h1 className="font-editorial text-3xl text-[var(--ink)] mb-4">Initializing Calibration</h1>
+        <h1 className="font-serif text-3xl text-[var(--ink)] mb-4">Initializing Calibration</h1>
         <div className="flex items-center justify-center gap-3 text-[var(--muted)]">
           <Loader2 size={20} className="animate-spin" />
           <span className="font-technical text-sm">Preparing your workspace...</span>

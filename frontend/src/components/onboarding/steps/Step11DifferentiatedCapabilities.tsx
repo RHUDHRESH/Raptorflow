@@ -105,7 +105,7 @@ export default function Step11DifferentiatedCapabilities() {
                 </BlueprintCard>
             )}
 
-            <div className="flex justify-center pt-4"><span className="font-technical text-[var(--muted)]">DOCUMENT: CAPABILITIES | STEP 11/25</span></div>
+            <div className="flex justify-center pt-4"><span className="font-technical text-[var(--muted)]">WHAT-MAKES-YOU-DIFFERENT • STEP 10/24</span></div>
         </div>
     );
 }

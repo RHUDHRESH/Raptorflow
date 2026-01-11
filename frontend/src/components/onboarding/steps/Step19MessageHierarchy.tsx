@@ -209,8 +209,8 @@ export default function Step19MessageHierarchy() {
                 <button
                     onClick={() => setShowPreview(!showPreview)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-technical text-[10px] transition-all ${showPreview
-                            ? "bg-[var(--blueprint)] text-[var(--paper)]"
-                            : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)]"
+                        ? "bg-[var(--blueprint)] text-[var(--paper)]"
+                        : "bg-[var(--canvas)] text-[var(--muted)] border border-[var(--border)]"
                         }`}
                 >
                     <Eye size={12} />{showPreview ? "HIDE PREVIEW" : "SHOW PREVIEW"}
@@ -274,7 +274,7 @@ export default function Step19MessageHierarchy() {
             )}
 
             <div className="flex justify-center pt-4">
-                <span className="font-technical text-[var(--muted)]">MESSAGE-HIERARCHY • STEP 19/25</span>
+                <span className="font-technical text-[var(--muted)]">MESSAGE-HIERARCHY • STEP 18/24</span>
             </div>
         </div>
     );

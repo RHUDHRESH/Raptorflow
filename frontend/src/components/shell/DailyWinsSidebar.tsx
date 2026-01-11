@@ -186,7 +186,7 @@ export function DailyWinsSidebar() {
                 <div className="flex items-center justify-between mb-3">
                     <div>
                         <span className="label text-[10px] tracking-widest">TACTICAL DECK</span>
-                        <h3 className="font-editorial text-lg text-[var(--ink)] leading-tight">Daily Wins</h3>
+                        <h3 className="font-serif text-lg text-[var(--ink)] leading-tight">Daily Wins</h3>
                     </div>
                     <div className="flex items-center gap-1.5 bg-[var(--paper)] px-2 py-1 rounded-[var(--radius-sm)] border border-[var(--structure)]">
                         <Trophy size={12} className="text-[var(--warning)]" />

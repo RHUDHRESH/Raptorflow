@@ -23,7 +23,14 @@ import {
 import { BlueprintCard } from '@/components/ui/BlueprintCard';
 import { BlueprintButton } from '@/components/ui/BlueprintButton';
 import { BlueprintBadge } from '@/components/ui/BlueprintBadge';
-import { Play as PlayType, MoveConfig, MoveType } from '@/types/campaign';
+import { Play as PlayType, MoveConfig, MoveType, PlayStep, PlayCondition, PlayConfig, PlayCategory } from '@/types/campaign';
+
+interface TestResult {
+  step: string;
+  success: boolean;
+  message: string;
+  metrics?: Record<string, number>;
+}
 import { allMoves } from '@/data/moveLibrary';
 import { useEnhancedCampaignStore } from '@/stores/enhancedCampaignStore';
 import { cn } from '@/lib/utils';
@@ -34,28 +41,7 @@ interface PlayBuilderProps {
   readOnly?: boolean;
 }
 
-interface PlayStep {
-  id: string;
-  name: string;
-  moves: string[];
-  conditions?: PlayCondition[];
-  delay?: number;
-  parallel?: boolean;
-}
 
-interface PlayCondition {
-  type: 'move_status' | 'metric' | 'time' | 'custom';
-  operator: 'equals' | 'greater_than' | 'less_than' | 'contains';
-  value: any;
-  moveId?: string;
-}
-
-interface TestResult {
-  step: string;
-  success: boolean;
-  message: string;
-  metrics?: Record<string, number>;
-}
 
 export function PlayBuilder({ onSave, initialPlay, readOnly = false }: PlayBuilderProps) {
   const createPlay = useEnhancedCampaignStore(state => state.createPlay);
@@ -65,8 +51,11 @@ export function PlayBuilder({ onSave, initialPlay, readOnly = false }: PlayBuild
   const [play, setPlay] = useState<Partial<PlayType>>(initialPlay || {
     name: '',
     description: '',
-    category: 'custom',
+    category: PlayCategory.CUSTOM,
     moves: [],
+    tags: [],
+    rating: 0,
+    usageCount: 0,
     config: {
       steps: [],
       triggers: [],
@@ -181,7 +170,7 @@ export function PlayBuilder({ onSave, initialPlay, readOnly = false }: PlayBuild
       id: initialPlay?.id || '',
       name: play.name || 'Untitled Play',
       description: play.description || '',
-      category: play.category || 'custom',
+      category: play.category || PlayCategory.CUSTOM,
       moves: selectedMoves,
       config: {
         steps,
@@ -277,7 +266,7 @@ export function PlayBuilder({ onSave, initialPlay, readOnly = false }: PlayBuild
             </label>
             <select
               value={play.category || 'custom'}
-              onChange={(e) => setPlay(prev => ({ ...prev, category: e.target.value }))}
+              onChange={(e) => setPlay(prev => ({ ...prev, category: e.target.value as PlayCategory }))}
               className="w-full px-3 py-2 text-sm bg-[var(--paper)] border border-[var(--structure-subtle)] rounded-[var(--radius)] focus:outline-none focus:border-[var(--blueprint)]"
               disabled={readOnly}
             >
@@ -358,7 +347,7 @@ export function PlayBuilder({ onSave, initialPlay, readOnly = false }: PlayBuild
                     )}
 
                     {step.parallel && (
-                      <BlueprintBadge variant="outline" size="sm">
+                      <BlueprintBadge variant="blueprint" size="sm">
                         Parallel
                       </BlueprintBadge>
                     )}
@@ -401,7 +390,7 @@ export function PlayBuilder({ onSave, initialPlay, readOnly = false }: PlayBuild
                       {!readOnly && (
                         <BlueprintButton
                           variant="ghost"
-                          size="xs"
+                          size="sm"
                           onClick={() => setShowMoveLibrary(true)}
                         >
                           <Plus size={12} />
@@ -489,7 +478,7 @@ export function PlayBuilder({ onSave, initialPlay, readOnly = false }: PlayBuild
 
                       <BlueprintButton
                         variant="ghost"
-                        size="xs"
+                        size="sm"
                         onClick={() => addCondition(step.id)}
                       >
                         <Target size={12} />

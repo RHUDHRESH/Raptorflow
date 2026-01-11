@@ -108,7 +108,7 @@ export default function Step20BrandAugmentation() {
             )}
 
             {/* Document Footer */}
-            <div className="flex justify-center pt-4"><span className="font-technical text-[var(--muted)]">DOCUMENT: BRAND-AUGMENTATION | STEP 20/25</span></div>
+            <div className="flex justify-center pt-4"><span className="font-technical text-[var(--muted)]">BRAND-ASSETS • STEP 19/24</span></div>
         </div>
     );
 }

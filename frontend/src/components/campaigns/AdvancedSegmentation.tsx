@@ -47,8 +47,10 @@ import {
   MessageSquare,
   Webhook
 } from 'lucide-react';
-import { BlueprintCard, BlueprintButton, BlueprintBadge } from '@/components/ui/blueprint';
-import { useEnhancedCampaignStore } from '@/lib/enhanced-campaign-store';
+import { BlueprintCard } from '@/components/ui/BlueprintCard';
+import { BlueprintButton } from '@/components/ui/BlueprintButton';
+import { BlueprintBadge } from '@/components/ui/BlueprintBadge';
+import { useEnhancedCampaignStore } from '@/stores/enhancedCampaignStore';
 import { formatDistanceToNow, format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -287,7 +289,7 @@ export default function AdvancedSegmentation() {
 
   const filteredSegments = mockSegments.filter(segment => {
     const matchesSearch = segment.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         segment.description.toLowerCase().includes(searchQuery.toLowerCase());
+      segment.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || segment.type === filterType;
     return matchesSearch && matchesType;
   });
@@ -584,7 +586,7 @@ export default function AdvancedSegmentation() {
                             </p>
                           </div>
                           {criteria.weight && (
-                            <BlueprintBadge variant="outline">
+                            <BlueprintBadge variant="default" size="sm">
                               {Math.round(criteria.weight * 100)}%
                             </BlueprintBadge>
                           )}
@@ -665,8 +667,8 @@ export default function AdvancedSegmentation() {
                   <Activity size={20} className="text-purple-600" />
                   <h3 className="font-semibold text-[var(--ink)]">{pattern.name}</h3>
                 </div>
-                <BlueprintBadge variant="outline">
-                  {pattern.frequency}% users
+                <BlueprintBadge variant="blueprint" size="sm">
+                  Behavioral
                 </BlueprintBadge>
               </div>
 
@@ -726,7 +728,7 @@ export default function AdvancedSegmentation() {
                     <BlueprintBadge variant={rule.active ? 'success' : 'default'}>
                       {rule.active ? 'Active' : 'Inactive'}
                     </BlueprintBadge>
-                    <BlueprintBadge variant="outline">
+                    <BlueprintBadge variant="default" size="sm">
                       Priority {rule.priority}
                     </BlueprintBadge>
                   </div>

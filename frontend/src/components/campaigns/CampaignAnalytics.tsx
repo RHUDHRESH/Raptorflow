@@ -26,7 +26,8 @@ import {
 import { BlueprintCard } from '@/components/ui/BlueprintCard';
 import { BlueprintButton } from '@/components/ui/BlueprintButton';
 import { BlueprintBadge } from '@/components/ui/BlueprintBadge';
-import { useEnhancedCampaignStore, Campaign } from '@/stores/enhancedCampaignStore';
+import { useEnhancedCampaignStore } from '@/stores/enhancedCampaignStore';
+import { Campaign } from '@/types/campaign';
 import { cn } from '@/lib/utils';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 
@@ -285,8 +286,8 @@ export function CampaignAnalytics({ campaignId }: CampaignAnalyticsProps) {
                   <div className={cn(
                     "flex items-center gap-1 text-xs",
                     metric.changeType === 'increase' ? "text-[var(--success)]" :
-                    metric.changeType === 'decrease' ? "text-[var(--destructive)]" :
-                    "text-[var(--ink-muted)]"
+                      metric.changeType === 'decrease' ? "text-[var(--destructive)]" :
+                        "text-[var(--ink-muted)]"
                   )}>
                     {metric.changeType === 'increase' && <ArrowUp size={12} />}
                     {metric.changeType === 'decrease' && <ArrowDown size={12} />}
@@ -416,8 +417,8 @@ export function CampaignAnalytics({ campaignId }: CampaignAnalyticsProps) {
                         <p className={cn(
                           "text-sm font-semibold",
                           rate > 20 ? "text-[var(--success)]" :
-                          rate > 10 ? "text-[var(--warning)]" :
-                          "text-[var(--destructive)]"
+                            rate > 10 ? "text-[var(--warning)]" :
+                              "text-[var(--destructive)]"
                         )}>
                           {rate.toFixed(1)}%
                         </p>
@@ -540,14 +541,14 @@ export function CampaignAnalytics({ campaignId }: CampaignAnalyticsProps) {
                     <div className={cn(
                       "w-2 h-2 rounded-full mt-2",
                       rec.impact === 'High' ? "bg-[var(--success)]" :
-                      rec.impact === 'Medium' ? "bg-[var(--warning)]" :
-                      "bg-[var(--ink-ghost)]"
+                        rec.impact === 'Medium' ? "bg-[var(--warning)]" :
+                          "bg-[var(--ink-ghost)]"
                     )} />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-[var(--ink)]">{rec.title}</p>
                       <p className="text-xs text-[var(--ink-muted)] mt-1">{rec.description}</p>
                     </div>
-                    <BlueprintBadge variant="outline" size="sm">
+                    <BlueprintBadge variant={rec.impact === 'High' ? "success" : "default"} size="sm">
                       {rec.type}
                     </BlueprintBadge>
                   </div>

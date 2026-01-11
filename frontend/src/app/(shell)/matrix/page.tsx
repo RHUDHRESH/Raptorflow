@@ -74,7 +74,7 @@ function MatrixPageContent() {
                             <div className="h-px w-8 bg-[var(--blueprint-line)]" />
                             <span className="font-technical text-[var(--muted)]">SYSTEM MATRIX</span>
                         </div>
-                        <h1 className="font-editorial text-4xl text-[var(--ink)]">Performance Matrix</h1>
+                        <h1 className="font-serif text-4xl text-[var(--ink)]">Performance Matrix</h1>
                     </div>
                     <div className="flex items-center gap-3">
                         <SecondaryButton>

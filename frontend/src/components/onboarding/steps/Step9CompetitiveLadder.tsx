@@ -215,7 +215,7 @@ export default function Step9CompetitiveLadder() {
             {/* Ladder */}
             <BlueprintCard data-animate figure="FIG. 01" title="Competitive Ladder" code="LADDER" showCorners padding="md">
                 <div className="flex items-center justify-between mb-4 pb-4 border-b border-[var(--border-subtle)]">
-                    <span className="font-technical text-[var(--muted)]">DRAG TO REORDER</span>
+                    <span className="font-technical text-[var(--muted)]">USE ARROWS TO REORDER</span>
                     <BlueprintBadge variant="blueprint">YOUR POSITION: #{yourPosition}</BlueprintBadge>
                 </div>
 
@@ -278,8 +278,8 @@ export default function Step9CompetitiveLadder() {
 
                 {/* Visual Scale */}
                 <div className="mt-4 flex justify-between font-technical text-[var(--muted)]">
-                    <span>← PREMIUM</span>
-                    <span>BUDGET →</span>
+                    <span>↑ PREMIUM</span>
+                    <span>BUDGET ↓</span>
                 </div>
             </BlueprintCard>
 
@@ -323,8 +323,8 @@ export default function Step9CompetitiveLadder() {
                                                     <h4 className="text-sm font-semibold text-[var(--ink)]">{angle.title}</h4>
                                                 </div>
                                                 <span className={`font-technical text-[8px] px-2 py-0.5 rounded-full ${angle.viability === "high" ? "bg-[var(--success-light)] text-[var(--success)]" :
-                                                        angle.viability === "medium" ? "bg-[var(--warning-light)] text-[var(--warning)]" :
-                                                            "bg-[var(--canvas)] text-[var(--muted)]"
+                                                    angle.viability === "medium" ? "bg-[var(--warning-light)] text-[var(--warning)]" :
+                                                        "bg-[var(--canvas)] text-[var(--muted)]"
                                                     }`}>
                                                     {config.label}
                                                 </span>
@@ -367,7 +367,7 @@ export default function Step9CompetitiveLadder() {
 
             <div className="flex justify-center pt-4">
                 <span className="font-technical text-[var(--muted)]">
-                    DOCUMENT: COMPETITIVE-LADDER | STEP 09/25
+                    HOW-YOU-COMPARE • STEP 08/24
                 </span>
             </div>
         </div>

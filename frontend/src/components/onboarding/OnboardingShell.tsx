@@ -22,17 +22,17 @@ import { cn } from "@/lib/utils";
 interface OnboardingShellProps { children: React.ReactNode; stepId: number; }
 
 const STEP_TIMES: Record<number, string> = {
-    1: "5m", 2: "3m", 3: "5m", 4: "2m", 5: "3m", 6: "5m", 7: "3m", 8: "3m", 9: "3m", 10: "3m",
-    11: "4m", 12: "4m", 13: "5m", 14: "3m", 15: "4m", 16: "3m", 17: "3m", 18: "4m", 19: "4m", 20: "3m",
-    21: "3m", 22: "4m", 23: "3m", 24: "5m", 25: "2m",
+    1: "5m", 2: "3m", 3: "5m", 4: "2m", 5: "5m", 6: "3m", 7: "3m", 8: "3m", 9: "3m", 10: "4m",
+    11: "4m", 12: "5m", 13: "3m", 14: "4m", 15: "3m", 16: "3m", 17: "4m", 18: "4m", 19: "3m", 20: "3m",
+    21: "4m", 22: "3m", 23: "5m", 24: "2m",
 };
 
 const STEP_UNLOCKS: Record<number, string> = {
-    1: "Intel Vault", 2: "Truth Sheet", 3: "Foundation", 4: "Snapshot", 5: "Health Score",
-    6: "Offer Doc", 7: "Insights", 8: "Comp Intel", 9: "Angles", 10: "Positioning",
-    11: "Differentials", 12: "Value Matrix", 13: "Statements", 14: "Focus Strat", 15: "ICP DNA",
-    16: "Journeys", 17: "Guidelines", 18: "Soundbites", 19: "Hierarchy", 20: "Refresh Plan",
-    21: "Channels", 22: "Sizing", 23: "Roadmap", 24: "Complete", 25: "Exports",
+    1: "Intel Vault", 2: "Truth Sheet", 3: "Foundation", 4: "Snapshot", 5: "Offer Doc",
+    6: "Insights", 7: "Comp Intel", 8: "Angles", 9: "Positioning", 10: "Differentials",
+    11: "Value Matrix", 12: "Statements", 13: "Focus Strat", 14: "ICP DNA", 15: "Journeys",
+    16: "Guidelines", 17: "Soundbites", 18: "Hierarchy", 19: "Refresh Plan", 20: "Channels",
+    21: "Sizing", 22: "Roadmap", 23: "Complete", 24: "Exports",
 };
 
 function StepStatusIcon({ status }: { status: StepStatus }) {
@@ -276,7 +276,7 @@ export function OnboardingShell({ children, stepId }: OnboardingShellProps) {
                                     <BlueprintBadge variant="default">{currentPhase?.name}</BlueprintBadge>
                                     <span className="text-[10px] font-mono text-[var(--muted)]">STEP {String(stepId).padStart(2, '0')}</span>
                                 </div>
-                                <h1 className="font-editorial text-4xl text-[var(--ink)] mb-4">{stepConfig?.name}</h1>
+                                <h1 className="font-serif text-4xl text-[var(--ink)] mb-4">{stepConfig?.name}</h1>
                                 <div className="h-px w-full bg-[var(--border)]" />
                             </div>
 
@@ -299,6 +299,7 @@ export function OnboardingShell({ children, stepId }: OnboardingShellProps) {
                                 onClick={handleNext}
                                 disabled={stepId !== 25 && !canProceedToStep(stepId + 1)}
                                 className="shadow-xl"
+                                title={stepId !== 25 && !canProceedToStep(stepId + 1) ? "Complete this step first" : undefined}
                             >
                                 {stepId === 25 ? "Finish Setup" : "Continue"} <ChevronRight size={16} />
                             </BlueprintButton>

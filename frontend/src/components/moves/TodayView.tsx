@@ -74,7 +74,7 @@ export function TodayView({ moves, onTaskStatusChange, onMoveClick }: TodayViewP
                 <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[var(--surface)] text-[var(--muted)] flex items-center justify-center border border-[var(--border)]">
                     <Calendar size={24} />
                 </div>
-                <h3 className="font-editorial text-2xl text-[var(--ink)] mb-2">Protocol Standby</h3>
+                <h3 className="font-serif text-2xl text-[var(--ink)] mb-2">Protocol Standby</h3>
                 <p className="text-sm text-[var(--secondary)] max-w-sm mx-auto mb-6">
                     No active operations scheduled for today. Launch a new campaign or advance existing timeline.
                 </p>
@@ -94,7 +94,7 @@ export function TodayView({ moves, onTaskStatusChange, onMoveClick }: TodayViewP
                         <div className="w-2 h-2 rounded-full bg-[var(--blueprint)] animate-pulse" />
                         <span className="font-mono text-[10px] text-[var(--blueprint)] uppercase tracking-widest">Live Protocol</span>
                     </div>
-                    <h2 className="font-editorial text-4xl text-[var(--ink)] mb-1">Today's Orders</h2>
+                    <h2 className="font-serif text-4xl text-[var(--ink)] mb-1">Today's Orders</h2>
                     <p className="font-serif italic text-[var(--secondary)]">{dateStr}</p>
                 </div>
 
@@ -160,7 +160,7 @@ function DailyMoveCard({ move, dayInfo, onTaskStatusChange, onMoveClick }: { mov
                     </div>
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <h3 className="font-editorial text-lg text-[var(--ink)] group-hover:text-[var(--blueprint)] transition-colors">{move.name}</h3>
+                            <h3 className="font-serif text-lg text-[var(--ink)] group-hover:text-[var(--blueprint)] transition-colors">{move.name}</h3>
                             <span className="px-2 py-0.5 rounded-full border border-[var(--border)] text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">Day {dayNumber}</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-[var(--secondary)]">

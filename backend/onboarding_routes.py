@@ -99,7 +99,7 @@ async def process_ocr(file_path: str, file_content: bytes) -> Dict[str, Any]:
             "status": "success",
             "extracted_text": f"[OCR Placeholder] File processed: {file_path} ({file_size} bytes, type: {file_type})",
             "page_count": 1,
-            "method": "placeholder_ocr",
+            "method": os.getenv("METHOD"),
             "confidence": 0.5,
         }
     except Exception as e:

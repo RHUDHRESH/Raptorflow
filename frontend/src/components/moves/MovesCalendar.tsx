@@ -72,7 +72,7 @@ export function MovesCalendar({ moves, onMoveClick, onDayClick }: MovesCalendarP
                         <CalendarIcon size={18} />
                     </div>
                     <div>
-                        <h2 className="font-editorial text-xl text-[var(--ink)]">
+                        <h2 className="font-serif text-xl text-[var(--ink)]">
                             {format(currentMonth, 'MMMM yyyy')}
                         </h2>
                         <p className="text-xs text-[var(--muted)]">

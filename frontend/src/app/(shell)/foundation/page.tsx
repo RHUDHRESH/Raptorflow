@@ -55,7 +55,7 @@ export default function FoundationPage() {
               <div className="h-px w-12 bg-[var(--structure)]" />
               <span className="font-technical text-[var(--ink-muted)]">BRAND</span>
             </div>
-            <h1 className="font-editorial text-4xl text-[var(--ink)]">Brand Foundation</h1>
+            <h1 className="font-serif text-4xl text-[var(--ink)]">Brand Foundation</h1>
             <p className="text-sm text-[var(--ink-secondary)] max-w-lg">
               Your marketing fundamentals — positioning, ICPs, messaging, and channels.
             </p>
@@ -78,7 +78,7 @@ export default function FoundationPage() {
               <div className="flex-1">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h2 className="font-editorial text-xl text-[var(--ink)]">Positioning Statement</h2>
+                    <h2 className="font-serif text-xl text-[var(--ink)]">Positioning Statement</h2>
                     <p className="text-sm text-[var(--secondary)]">Your unique market position</p>
                   </div>
                   <BlueprintBadge variant="success" dot>COMPLETE</BlueprintBadge>
@@ -155,7 +155,7 @@ export default function FoundationPage() {
                 <div className="flex-1">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h2 className="font-editorial text-xl text-[var(--ink)]">Core Messaging</h2>
+                      <h2 className="font-serif text-xl text-[var(--ink)]">Core Messaging</h2>
                       <p className="text-sm text-[var(--secondary)]">One-liner, positioning, value props, brand voice, StoryBrand</p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export default function FoundationPage() {
               <div className="flex-1">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h2 className="font-editorial text-xl text-[var(--ink)]">Channel Strategy</h2>
+                    <h2 className="font-serif text-xl text-[var(--ink)]">Channel Strategy</h2>
                     <p className="text-sm text-[var(--secondary)]">Where you show up and why</p>
                   </div>
                   <BlueprintBadge variant="default" dot>DRAFT</BlueprintBadge>

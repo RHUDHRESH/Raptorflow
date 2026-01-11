@@ -1,0 +1,352 @@
+"""
+Authentication API endpoints
+"""
+
+from typing import Any, Dict
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+from ...core.auth import get_auth_context, get_current_user, get_workspace_id
+from ...core.models import AuthContext, User
+from ...core.supabase import get_supabase_client
+
+router = APIRouter(prefix="/auth", tags=["authentication"])
+security = HTTPBearer(auto_error=False)
+
+
+@router.post("/signup", status_code=status.HTTP_201_CREATED)
+async def signup():
+    """
+    Signup endpoint - disabled, use Supabase directly
+    """
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="Signup is handled directly by Supabase. Please use the Supabase client.",
+    )
+
+
+@router.post("/login")
+async def login(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    Login endpoint - returns session info
+    Note: Actual authentication is handled by Supabase JWT
+    """
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No credentials provided",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # This would typically validate with Supabase
+    # For now, return a success message
+    return {
+        "message": "Authentication handled by Supabase JWT",
+        "note": "Include JWT token in Authorization header for subsequent requests",
+    }
+
+
+@router.post("/logout")
+async def logout(current_user: User = Depends(get_current_user)):
+    """
+    Logout endpoint - invalidates session
+    """
+    # In a real implementation, you would invalidate the JWT token
+    # or add it to a blacklist
+    return {"message": "Logged out successfully", "user_id": current_user.id}
+
+
+@router.post("/refresh")
+async def refresh_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    Refresh JWT token
+    Note: Token refresh is handled by Supabase client
+    """
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No credentials provided",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return {
+        "message": "Token refresh handled by Supabase client",
+        "note": "Use Supabase client to refresh tokens",
+    }
+
+
+@router.get("/me")
+async def get_current_user_info(current_user: User = Depends(get_current_user)) -> User:
+    """
+    Get current user information
+    """
+    return current_user
+
+
+@router.get("/me/workspace")
+async def get_user_workspace(auth_context: AuthContext = Depends(get_auth_context)):
+    """
+    Get user's current workspace information
+    """
+    if not auth_context.workspace:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No workspace found for user"
+        )
+
+    return {
+        "workspace": auth_context.workspace,
+        "permissions": auth_context.permissions,
+        "workspace_id": auth_context.workspace_id,
+    }
+
+
+@router.get("/me/usage")
+async def get_user_usage(
+    auth_context: AuthContext = Depends(get_auth_context),
+) -> Dict[str, Any]:
+    """
+    Get current user's usage statistics
+    """
+    supabase = get_supabase_client()
+
+    # Get current usage
+    usage_result = supabase.rpc(
+        "get_current_usage", {"workspace_id": auth_context.workspace_id}
+    ).execute()
+
+    # Get subscription limits
+    limits_result = supabase.rpc(
+        "check_subscription_limits",
+        {
+            "workspace_id": auth_context.workspace_id,
+            "required_tokens": 0,
+            "required_cost": 0,
+        },
+    ).execute()
+
+    usage_data = usage_result.data or [{}][0] if usage_result.data else {}
+    limits_data = limits_result.data or [{}][0] if limits_result.data else {}
+
+    return {
+        "current_usage": {
+            "tokens_used": usage_data.get("tokens_used", 0),
+            "cost_usd": usage_data.get("cost_usd", 0),
+            "period_start": usage_data.get("period_start"),
+            "period_end": usage_data.get("period_end"),
+            "agent_breakdown": usage_data.get("agent_breakdown", {}),
+        },
+        "limits": {
+            "allowed": limits_data.get("allowed", True),
+            "limit_tokens": limits_data.get("limit_tokens", 0),
+            "limit_cost": limits_data.get("limit_cost", 0),
+            "subscription_tier": limits_data.get("subscription_tier", "free"),
+        },
+        "usage_percentage": {
+            "tokens": (
+                (
+                    usage_data.get("tokens_used", 0)
+                    / limits_data.get("limit_tokens", 1)
+                    * 100
+                )
+                if limits_data.get("limit_tokens", 0) > 0
+                else 0
+            ),
+            "cost": (
+                (usage_data.get("cost_usd", 0) / limits_data.get("limit_cost", 1) * 100)
+                if limits_data.get("limit_cost", 0) > 0
+                else 0
+            ),
+        },
+    }
+
+
+@router.get("/me/billing")
+async def get_user_billing(
+    auth_context: AuthContext = Depends(get_auth_context),
+) -> Dict[str, Any]:
+    """
+    Get user's billing information
+    """
+    supabase = get_supabase_client()
+
+    # Get subscription info
+    subscription_result = (
+        supabase.table("subscriptions")
+        .select("*")
+        .eq("workspace_id", auth_context.workspace_id)
+        .eq("status", "active")
+        .single()
+        .execute()
+    )
+
+    # Get recent invoices
+    invoices_result = (
+        supabase.table("invoices")
+        .select("*")
+        .eq("workspace_id", auth_context.workspace_id)
+        .order("created_at", desc=True)
+        .limit(10)
+        .execute()
+    )
+
+    # Get usage history
+    usage_result = (
+        supabase.table("usage_records")
+        .select("*")
+        .eq("workspace_id", auth_context.workspace_id)
+        .order("period_start", desc=True)
+        .limit(12)
+        .execute()
+    )
+
+    subscription = subscription_result.data or {}
+    invoices = invoices_result.data or []
+    usage_history = usage_result.data or []
+
+    return {
+        "subscription": subscription,
+        "recent_invoices": invoices,
+        "usage_history": usage_history,
+        "current_period": {
+            "start": subscription.get("current_period_start"),
+            "end": subscription.get("current_period_end"),
+            "days_remaining": None,  # Would calculate based on current date
+        },
+    }
+
+
+@router.post("/validate")
+async def validate_session(current_user: User = Depends(get_current_user)):
+    """
+    Validate current session/token
+    """
+    return {
+        "valid": True,
+        "user_id": current_user.id,
+        "email": current_user.email,
+        "subscription_tier": current_user.subscription_tier,
+    }
+
+
+@router.get("/permissions")
+async def get_user_permissions(auth_context: AuthContext = Depends(get_auth_context)):
+    """
+    Get user's permissions for current workspace
+    """
+    return {
+        "workspace_id": auth_context.workspace_id,
+        "permissions": auth_context.permissions,
+        "user_id": auth_context.user.id,
+        "subscription_tier": auth_context.user.subscription_tier,
+    }
+
+
+@router.post("/switch-workspace")
+async def switch_workspace(
+    workspace_id: str, current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    Switch to a different workspace
+    """
+    supabase = get_supabase_client()
+
+    # Validate user owns the workspace
+    workspace_result = (
+        supabase.table("workspaces")
+        .select("*")
+        .eq("id", workspace_id)
+        .eq("user_id", current_user.id)
+        .single()
+        .execute()
+    )
+
+    if not workspace_result.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workspace not found or access denied",
+        )
+
+    workspace = workspace_result.data
+
+    return {
+        "message": "Workspace switched successfully",
+        "workspace": workspace,
+        "workspace_id": workspace_id,
+    }
+
+
+@router.get("/workspaces")
+async def list_user_workspaces(current_user: User = Depends(get_current_user)):
+    """
+    List all workspaces for the current user
+    """
+    supabase = get_supabase_client()
+
+    result = (
+        supabase.table("workspaces")
+        .select("*")
+        .eq("user_id", current_user.id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+
+    return {"workspaces": result.data or [], "total": len(result.data or [])}
+
+
+@router.post("/change-password")
+async def change_password(
+    current_password: str,
+    new_password: str,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Change user password
+    Note: This would be handled by Supabase Auth
+    """
+    # In a real implementation, you would use Supabase Auth API
+    return {
+        "message": "Password change handled by Supabase Auth",
+        "note": "Use Supabase client auth.updateUser() method",
+    }
+
+
+@router.post("/reset-password")
+async def reset_password(email: str):
+    """
+    Request password reset
+    Note: This would be handled by Supabase Auth
+    """
+    # In a real implementation, you would use Supabase Auth API
+    return {
+        "message": "Password reset handled by Supabase Auth",
+        "note": "Use Supabase client auth.resetPasswordForEmail() method",
+    }
+
+
+@router.delete("/me")
+async def delete_account(
+    confirmation: str, current_user: User = Depends(get_current_user)
+):
+    """
+    Delete user account and all associated data
+    """
+    if confirmation.lower() != "delete my account":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Confirmation text must be exactly 'delete my account'",
+        )
+
+    supabase = get_supabase_client()
+
+    # In a real implementation, you would:
+    # 1. Delete all workspace data
+    # 2. Delete workspaces
+    # 3. Delete user profile
+    # 4. Delete user from Supabase Auth
+
+    return {
+        "message": "Account deletion initiated",
+        "note": "This would delete all data and cannot be undone",
+        "user_id": current_user.id,
+    }

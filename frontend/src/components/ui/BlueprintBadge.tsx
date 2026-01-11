@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 interface BlueprintBadgeProps {
     children: React.ReactNode;
     variant?: "default" | "success" | "warning" | "error" | "info" | "blueprint" | "blackbox";
-    size?: "sm" | "md";
+    size?: "xs" | "sm" | "md";
     code?: string;
     dot?: boolean;
     className?: string;
@@ -49,6 +49,7 @@ export function BlueprintBadge({
     };
 
     const sizes = {
+        xs: "px-1.5 py-0.5 text-[9px]",
         sm: "px-2 py-0.5 text-[10px]",
         md: "px-3 py-1 text-xs",
     };

@@ -17,10 +17,10 @@ class Config(BaseSettings):
 
     # Basic Configuration
     ENVIRONMENT: str = "development"
-    SECRET_KEY: str = "minimal-secret-placeholder"
+    SECRET_KEY: str = os.getenv("GCP_PROJECT_ID")
 
     # GCP Configuration (minimal)
-    GCP_PROJECT_ID: str = os.getenv("GCP_PROJECT_ID", "raptorflow-481505")
+    GCP_PROJECT_ID: str = os.getenv("GCP_PROJECT_ID")
 
     model_config = SettingsConfigDict(
         env_file=(

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { Move, MoveStatus, MoveExecution, MoveConfig, MoveType } from '@/types/campaign';
+import { Move, MoveStatus, MoveExecution, MoveConfig, MoveType, ExecutionResults } from '@/types/campaign';
 import { useEnhancedCampaignStore } from './enhancedCampaignStore';
 
 // Execution queue item
@@ -25,13 +25,7 @@ interface ExecutionLog {
 }
 
 // Execution result
-interface ExecutionResult {
-  success: boolean;
-  metrics?: Record<string, number>;
-  artifacts?: string[];
-  errors?: string[];
-  nextRun?: Date;
-}
+
 
 // Execution engine state
 interface ExecutionEngineState {
@@ -42,7 +36,7 @@ interface ExecutionEngineState {
 
   // Execution history
   logs: ExecutionLog[];
-  history: Record<string, ExecutionResult>;
+  history: Record<string, ExecutionResults>;
 
   // Settings
   maxConcurrent: number;
@@ -53,7 +47,7 @@ interface ExecutionEngineState {
   enqueueMove: (move: Move, campaignId: string, scheduledAt?: Date) => void;
   dequeueMove: (moveId: string) => void;
   processQueue: () => Promise<void>;
-  executeMove: (move: Move) => Promise<ExecutionResult>;
+  executeMove: (move: Move) => Promise<ExecutionResults>;
   pauseQueue: () => void;
   resumeQueue: () => void;
   clearQueue: () => void;
@@ -66,7 +60,7 @@ interface ExecutionEngineState {
     failed: number;
   };
   getMoveLogs: (moveId: string) => ExecutionLog[];
-  getMoveHistory: (moveId: string) => ExecutionResult | null;
+  getMoveHistory: (moveId: string) => ExecutionResults | null;
 }
 
 // Create execution engine store
@@ -184,7 +178,7 @@ export const useExecutionEngine = create<ExecutionEngineState>()(
                     execution: {
                       ...move.execution,
                       completedAt: new Date(),
-                      lastResult: result
+                      results: result
                     }
                   });
 
@@ -266,7 +260,7 @@ export const useExecutionEngine = create<ExecutionEngineState>()(
       },
 
       // Execute a single move
-      executeMove: async (move): Promise<ExecutionResult> => {
+      executeMove: async (move): Promise<ExecutionResults> => {
         // Update move status to running
         await useEnhancedCampaignStore.getState().updateMove(move.id, {
           status: MoveStatus.RUNNING,
@@ -281,7 +275,7 @@ export const useExecutionEngine = create<ExecutionEngineState>()(
         await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
 
         // Mock execution results based on move type
-        const mockResults: Record<string, ExecutionResult> = {
+        const mockResults: Record<string, ExecutionResults> = {
           [MoveType.EMAIL]: {
             success: Math.random() > 0.1, // 90% success rate
             metrics: {
@@ -425,9 +419,6 @@ export const useExecutionEngine = create<ExecutionEngineState>()(
         return get().history[moveId] || null;
       }
     }),
-    {
-      name: 'execution-engine'
-    }
   )
 );
 

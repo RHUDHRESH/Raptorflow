@@ -57,7 +57,7 @@ function StrategyView({ move }: { move: Move }) {
             {/* Context & Goal */}
             <div className="space-y-6">
                 <BlueprintCard className="p-6 h-full border-l-4 border-l-[var(--blueprint)]">
-                    <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Strategic Context</h3>
+                    <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Strategic Context</h3>
                     <div className="space-y-4">
                         <div>
                             <span className="text-xs font-mono text-[var(--muted)] uppercase tracking-wider block mb-1">core objective</span>
@@ -75,7 +75,7 @@ function StrategyView({ move }: { move: Move }) {
             {/* Intel & Configuration */}
             <div className="space-y-6">
                 <BlueprintCard className="p-6">
-                    <h3 className="font-editorial text-xl text-[var(--ink)] mb-4">Intel & targeting</h3>
+                    <h3 className="font-serif text-xl text-[var(--ink)] mb-4">Intel & targeting</h3>
                     <dl className="grid grid-cols-1 gap-y-5">
                         <div>
                             <dt className="text-xs font-mono text-[var(--muted)] uppercase tracking-wider mb-1">Target Audience (ICP)</dt>
@@ -113,7 +113,7 @@ function StrategyView({ move }: { move: Move }) {
                         <div className="text-[10px] uppercase text-[var(--muted)] font-mono">Days to Execute</div>
                     </div>
                     <div className="p-4 rounded-[var(--radius)] bg-[var(--surface-subtle)] border border-[var(--border)] text-center">
-                        <div className="text-2xl font-bold text-[var(--ink)]">{move.execution.length * 3}+</div>
+                        <div className="text-2xl font-bold text-[var(--ink)]">{(move.execution || []).length * 3}+</div>
                         <div className="text-[10px] uppercase text-[var(--muted)] font-mono">Touchpoints</div>
                     </div>
                 </div>
@@ -126,7 +126,7 @@ function ExecutionView({ move }: { move: Move }) {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="font-editorial text-lg text-[var(--ink)]">7-Day Battle Plan</h3>
+                <h3 className="font-serif text-lg text-[var(--ink)]">7-Day Battle Plan</h3>
                 <div className="flex items-center gap-4 text-[10px] text-[var(--muted)] uppercase tracking-wider font-mono">
                     <span className="flex items-center gap-1.5"><Zap size={10} /> Pillar</span>
                     <span className="flex items-center gap-1.5"><Share2 size={10} /> Cluster</span>
@@ -135,10 +135,10 @@ function ExecutionView({ move }: { move: Move }) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {move.execution.map((day, idx) => (
+                {(move.execution || []).map((day, idx) => (
                     <DayCard key={idx} day={day} index={idx} totalDays={move.duration} />
                 ))}
-                {move.execution.length === 0 && (
+                {(move.execution || []).length === 0 && (
                     <div className="col-span-full w-full text-center py-12 text-[var(--muted)] italic">
                         No execution data generated yet.
                     </div>
