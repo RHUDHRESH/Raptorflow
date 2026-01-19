@@ -149,7 +149,7 @@
 - [x] Task: Implement Caching (if applicable/safe) (SHA: 190126U)
 - [x] Task: Conductor - User Manual Verification 'Performance Optimization' (Protocol in workflow.md) (SHA: 190126U)
 
-## Phase 22: Security & Safety
+## Phase 22: Security & Safety [checkpoint: dcfb61d]
 - [x] Task: Verify Input Sanitization (SHA: 190126V)
 - [x] Task: Verify Output Encoding/Safety (SHA: 190126V)
 - [x] Task: Scan for potential Prompt Injection vulnerabilities (SHA: 190126V)
