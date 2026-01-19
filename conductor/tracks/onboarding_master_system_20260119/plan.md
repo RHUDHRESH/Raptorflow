@@ -8,21 +8,21 @@
 - [x] Task: Implement UCID (Unique Customer ID) generation and mapping.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Project Setup & BCM Foundation' (Protocol in workflow.md)
 
-## Phase 2: Evidence Vault - Upload & AI Classification (Step 1)
-- [ ] Task: Implement GCS upload logic with temporary storage lifecycle.
-- [ ] Task: Create EvidenceClassifier agent to auto-identify document types (Screenshots, Decks, URLs).
-- [ ] Task: Implement Step 1 backend endpoint for vault submission.
-- [ ] Task: Build the "Recommended Evidence" logic that updates based on uploads.
-- [ ] Task: Write TDD tests for auto-classification accuracy.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Evidence Vault - Upload & AI Classification (Step 1)' (Protocol in workflow.md)
+## Phase 2: Evidence Vault - Upload & AI Classification (Step 1) [checkpoint: 987a68c]
+- [x] Task: Implement GCS upload logic with temporary storage lifecycle.
+- [x] Task: Create EvidenceClassifier agent to auto-identify document types (Screenshots, Decks, URLs).
+- [x] Task: Implement Step 1 backend endpoint for vault submission.
+- [x] Task: Build the "Recommended Evidence" logic that updates based on uploads.
+- [x] Task: Write TDD tests for auto-classification accuracy.
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Evidence Vault - Upload & AI Classification (Step 1)' (Protocol in workflow.md)
 
-## Phase 3: Extraction Engine & Intelligence (Step 2)
-- [ ] Task: Implement ExtractionOrchestrator to process multi-format evidence.
-- [ ] Task: Integrate OCR service for document-to-text conversion.
-- [ ] Task: Implement Step 2 backend endpoint for fact extraction summary.
-- [ ] Task: Build citation logic to map every fact back to its source (file/URL).
-- [ ] Task: Write TDD tests for fact extraction from PDFs and images.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Extraction Engine & Intelligence (Step 2)' (Protocol in workflow.md)
+## Phase 3: Extraction Engine & Intelligence (Step 2) [checkpoint: 987a68c]
+- [x] Task: Implement ExtractionOrchestrator to process multi-format evidence.
+- [x] Task: Integrate OCR service for document-to-text conversion.
+- [x] Task: Implement Step 2 backend endpoint for fact extraction summary.
+- [x] Task: Build citation logic to map every fact back to its source (file/URL).
+- [x] Task: Write TDD tests for fact extraction from PDFs and images.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Extraction Engine & Intelligence (Step 2)' (Protocol in workflow.md)
 
 ## Phase 4: Data Purge Protocol & Real-time Sync (Step 1/2)
 - [ ] Task: Implement the "Post-Extraction Purge" to delete GCS blobs after Step 2 verification.
@@ -32,21 +32,21 @@
 - [ ] Task: Write TDD tests for file deletion success and context persistence.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Data Purge Protocol & Real-time Sync (Step 1/2)' (Protocol in workflow.md)
 
-## Phase 5: Red Team Contradiction Detector (Step 3)
-- [ ] Task: Implement ContradictionDetector agent for logical audit.
-- [ ] Task: Build Step 3 backend endpoint for inconsistency reporting.
-- [ ] Task: Implement "Red Team" audit layer to catch hallucinations or weak claims.
-- [ ] Task: Build the clarification/resolution loop for identified contradictions.
-- [ ] Task: Write TDD tests for detecting price-vs-positioning mismatches.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Red Team Contradiction Detector (Step 3)' (Protocol in workflow.md)
+## Phase 5: Red Team Contradiction Detector (Step 3) [checkpoint: 987a68c]
+- [x] Task: Implement ContradictionDetector agent for logical audit.
+- [x] Task: Build Step 3 backend endpoint for inconsistency reporting.
+- [x] Task: Implement "Red Team" audit layer to catch hallucinations or weak claims.
+- [x] Task: Build the clarification/resolution loop for identified contradictions.
+- [x] Task: Write TDD tests for detecting price-vs-positioning mismatches.
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Red Team Contradiction Detector (Step 3)' (Protocol in workflow.md)
 
-## Phase 6: Truth Sheet & Versioning (Step 4)
-- [ ] Task: Implement TruthSheet manager for ratifying and locking facts.
-- [ ] Task: Build versioning system for `business_context.json` snapshots.
-- [ ] Task: Implement Step 4 backend endpoint for truth confirmation.
-- [ ] Task: Build the "Digital Signature" logic for strategic ratification.
-- [ ] Task: Write TDD tests for version rollback and locking.
-- [ ] Task: Conductor - User Manual Verification 'Phase 6: Truth Sheet & Versioning (Step 4)' (Protocol in workflow.md)
+## Phase 6: Truth Sheet & Versioning (Step 4) [checkpoint: 987a68c]
+- [x] Task: Implement TruthSheet manager for ratifying and locking facts.
+- [x] Task: Build versioning system for `business_context.json` snapshots.
+- [x] Task: Implement Step 4 backend endpoint for truth confirmation.
+- [x] Task: Build the "Digital Signature" logic for strategic ratification.
+- [x] Task: Write TDD tests for version rollback and locking.
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Truth Sheet & Versioning (Step 4)' (Protocol in workflow.md)
 
 ## Phase 7: Brand Audit & Web Discovery (Step 5)
 - [ ] Task: Implement BrandAudit agent to assess visual/messaging coherence.
