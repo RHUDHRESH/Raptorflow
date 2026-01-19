@@ -22,14 +22,13 @@ from ..specialists.comparative_angle_agent import ComparativeAngleGenerator
 from ..specialists.category_advisor import CategoryAdvisor
 from ..specialists.capability_rating_agent import CapabilityRatingEngine
 from ..specialists.perceptual_map_generator import PerceptualMapGenerator
-def get_strategic_grid_generator(): # Avoid circular dependency or name collision
-    from ..specialists.strategic_grid_agent import StrategicGridGenerator
-    return StrategicGridGenerator()
+from ..specialists.strategic_grid_agent import StrategicGridGenerator
 from ..specialists.positioning_statement_generator import PositioningStatementGenerator
 from ..specialists.focus_sacrifice_engine import FocusSacrificeEngine
 from ..specialists.icp_deep_generator import ICPDeepGenerator
 from ..specialists.buying_process_agent import BuyingProcessArchitect
 from ..specialists.messaging_rules_engine import MessagingRulesEngine
+from ..specialists.soundbites_generator import SoundbitesGenerator
 from ...infrastructure.storage import delete_file
 
 logger = logging.getLogger(__name__)
@@ -74,13 +73,13 @@ angle_generator = ComparativeAngleGenerator()
 category_advisor = CategoryAdvisor()
 capability_rating_engine = CapabilityRatingEngine()
 perceptual_map_generator = PerceptualMapGenerator()
-from ..specialists.strategic_grid_agent import StrategicGridGenerator
 strategic_grid_generator = StrategicGridGenerator()
 positioning_generator = PositioningStatementGenerator()
 focus_sacrifice_engine = FocusSacrificeEngine()
 icp_generator = ICPDeepGenerator()
 buying_process_architect = BuyingProcessArchitect()
 messaging_rules_engine = MessagingRulesEngine()
+soundbites_generator = SoundbitesGenerator()
 
 async def handle_evidence_vault(state: OnboardingStateV2) -> OnboardingStateV2:
     """Step 1: Process uploaded evidence and auto-classify."""
@@ -339,6 +338,18 @@ async def handle_messaging_guardrails(state: OnboardingStateV2) -> OnboardingSta
     state["onboarding_progress"] = (17 / 23) * 100
     return state
 
+async def handle_soundbites_library(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 18: Generate High-Impact Soundbites & Messaging Library."""
+    logger.info("Handling Soundbites Library (Step 18)")
+    
+    result = await soundbites_generator.execute(state)
+    library_data = result.get("output", {})
+    
+    state["step_data"]["soundbites_library"] = library_data
+    
+    state["onboarding_progress"] = (18 / 23) * 100
+    return state
+
 class OnboardingGraphV2:
     """Updated onboarding workflow graph with 23-step master logic."""
 
@@ -396,9 +407,10 @@ class OnboardingGraphV2:
         workflow.add_node("handle_icp_profiles", handle_icp_profiles)
         workflow.add_node("handle_buying_process", handle_buying_process)
         workflow.add_node("handle_messaging_guardrails", handle_messaging_guardrails)
+        workflow.add_node("handle_soundbites_library", handle_soundbites_library)
         
         # Add remaining nodes as placeholders
-        for step in self.step_order[17:]:
+        for step in self.step_order[18:]:
             workflow.add_node(f"handle_{step}", generic_handler)
 
         # Set entry point
@@ -422,9 +434,10 @@ class OnboardingGraphV2:
         workflow.add_edge("handle_focus_sacrifice", "handle_icp_profiles")
         workflow.add_edge("handle_icp_profiles", "handle_buying_process")
         workflow.add_edge("handle_buying_process", "handle_messaging_guardrails")
+        workflow.add_edge("handle_messaging_guardrails", "handle_soundbites_library")
 
         # Remaining linear routing
-        for i in range(17, len(self.step_order) - 1):
+        for i in range(18, len(self.step_order) - 1):
             workflow.add_edge(f"handle_{self.step_order[i]}", f"handle_{self.step_order[i+1]}")
         
         workflow.add_edge(f"handle_{self.step_order[-1]}", END)
@@ -452,5 +465,6 @@ __all__ = [
     "handle_focus_sacrifice",
     "handle_icp_profiles",
     "handle_buying_process",
-    "handle_messaging_guardrails"
+    "handle_messaging_guardrails",
+    "handle_soundbites_library"
 ]

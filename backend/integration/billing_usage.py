@@ -5,7 +5,7 @@ Tracks all token usage and manages budget enforcement.
 
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from redis.client import Redis
 

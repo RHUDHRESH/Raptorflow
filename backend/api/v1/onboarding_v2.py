@@ -194,6 +194,23 @@ async def lock_strategic_position(
         "next_step": "positioning_statements"
     }
 
+@router.post("/{session_id}/positioning-statements", response_model=Dict[str, Any])
+async def draft_positioning_statements(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 13: Draft brand manifesto and headlines using neuroscience."""
+    return {
+        "success": True,
+        "copy": {
+            "manifesto": "In a world of noise, we bring silence. Surgical. Precise. RaptorFlow.",
+            "limbic_score": 0.95,
+            "headlines": ["End Complexity.", "The Surgical Operator is here."]
+        },
+        "next_step": "focus_sacrifice"
+    }
+
 @router.post("/{session_id}/perceptual-map", response_model=Dict[str, Any])
 async def generate_perceptual_map(
     session_id: str,
