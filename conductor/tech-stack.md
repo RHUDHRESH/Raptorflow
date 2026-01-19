@@ -16,6 +16,9 @@
 - **Compute:** [Cloud Run](https://cloud.google.com/run)
 - **Database & Auth:** [Supabase](https://supabase.com/) (Exclusive Google OAuth + UCID Identity)
 - **Caching & Messaging:** [Upstash](https://upstash.com/) (Redis)
+  - **Caching Logic:** Global `withCache` wrapper with namespaced TTLs.
+  - **Message Bus:** Redis-based state synchronization for real-time AI agent updates.
+  - **Job Queue:** Managed Redis task queue for reliable asynchronous execution.
 - **Stealth Networking:** [Gluetun](https://github.com/qdm12/gluetun) (VPN-based IP rotation for Search Cluster)
 - **Secrets Management:** [GCP Secret Manager](https://cloud.google.com/secret-manager)
 - **Data Warehouse & Analytics:** [BigQuery](https://cloud.google.com/bigquery) (Longitudinal Analysis)

@@ -10,6 +10,7 @@ RaptorFlow sounds like a **Strategic Operator**—calm, surgical, and precise—
 
 ## Interaction Principles
 - **Progressive Disclosure:** Hide complexity until it is required. One primary decision per screen.
+- **Strategic Feedback:** Utilize the Standardized Notification System (`notify` utility) for all user actions to ensure consistent feedback and session-based alert history.
 - **Immersive Exploration:** In deep modules like `Muse` or `Blackbox`, allow for rich data interaction and discovery.
 - **Operator View (Matrix Only):** The dashboard must answer three questions instantly:
   1. What is the situation?
