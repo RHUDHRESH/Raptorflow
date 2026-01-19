@@ -25,7 +25,7 @@
 - **Blob Storage:** [Google Cloud Storage (GCS)](https://cloud.google.com/storage)
 
 ## Payments
-- **Gateway:** [PhonePe](https://www.phonepe.com/business-solutions/payment-gateway/)
+- **Gateway:** [PhonePe SDK v3.2.1](https://www.phonepe.com/business-solutions/payment-gateway/) (Standard Checkout)
 
 ## Styling & Motion
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)

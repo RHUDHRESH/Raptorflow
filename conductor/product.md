@@ -18,6 +18,7 @@ RaptorFlow is the **Founder Marketing Operating System**. It is designed to repl
 
 ## Identity Standard
 - **Auth:** Secure, single-tap Google OAuth.
+- **Payments:** Official PhonePe SDK Integration with Standard Checkout.
 - **ID System:** Unique Customer ID (UCID) in `RF-YYYY-XXXX` format for unified tracking.
 
 ## Core Modules (Cognitive Intelligence Engine Complete)
