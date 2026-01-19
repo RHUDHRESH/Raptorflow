@@ -107,7 +107,7 @@
 - [x] Task: Optimize Prompts for Growth & Risk (SHA: 1801210)
 - [x] Task: Conductor - User Manual Verification 'Prompt Engineering (Context)' (Protocol in workflow.md) (SHA: 190126N)
 
-## Phase 15: Prompt Engineering (Advanced)
+## Phase 15: Prompt Engineering (Advanced) [checkpoint: 3171efe]
 - [x] Task: Optimize Prompts for SWOT & PESTEL (SHA: 1801210)
 - [x] Task: Optimize Prompts for Value Chain & Archetypes (SHA: 1801210)
 - [x] Task: Conductor - User Manual Verification 'Prompt Engineering (Advanced)' (Protocol in workflow.md) (SHA: 190126O)
