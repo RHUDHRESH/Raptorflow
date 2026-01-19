@@ -108,21 +108,21 @@
 - [x] Task: Synthesize all research and truths into a definitive "Master Positioning" object.
 - [x] Task: Conductor - User Manual Verification 'Phase 15: Step 13 Backend - PositioningStatementGenerator (Final Positioning)' (Protocol in workflow.md)
 
-## Phase 16: Neuroscience Copywriting Engine (Step 13)
-- [ ] Task: Implement NeuroscienceCopywriter agent for manifesto drafting.
-- [ ] Task: Build Step 13 backend endpoint for positioning statements.
-- [ ] Task: Implement "Limbic Activation" scoring for brand copy.
-- [ ] Task: Build the 6-principle compliance auditor for every draft.
-- [ ] Task: Write TDD tests for copy score accuracy.
-- [ ] Task: Conductor - User Manual Verification 'Phase 16: Neuroscience Copywriting Engine (Step 13)' (Protocol in workflow.md)
+## Phase 16: Neuroscience Copywriting Engine (Step 13) [checkpoint: f85fe1e]
+- [x] Task: Implement NeuroscienceCopywriter agent for manifesto drafting.
+- [x] Task: Build Step 13 backend endpoint for positioning statements.
+- [x] Task: Implement "Limbic Activation" scoring for brand copy.
+- [x] Task: Build the 6-principle compliance auditor for every draft.
+- [x] Task: Write TDD tests for copy score accuracy.
+- [x] Task: Conductor - User Manual Verification 'Phase 16: Neuroscience Copywriting Engine (Step 13)' (Protocol in workflow.md)
 
-## Phase 17: Focus & Sacrifice Constraint Engine (Step 14)
-- [ ] Task: Implement ConstraintEngine to enforce strategic trade-offs.
-- [ ] Task: Build Step 14 backend endpoint for focus/sacrifice decisions.
-- [ ] Task: Implement "Lightbulb" explanation logic for forced sacrifices.
-- [ ] Task: Build the David vs Goliath logic (e.g., Sacrificing Enterprise).
-- [ ] Task: Write TDD tests for constraint enforcement logic.
-- [ ] Task: Conductor - User Manual Verification 'Phase 17: Focus & Sacrifice Constraint Engine (Step 14)' (Protocol in workflow.md)
+## Phase 17: Focus & Sacrifice Constraint Engine (Step 14) [checkpoint: f85fe1e]
+- [x] Task: Implement ConstraintEngine to enforce strategic trade-offs.
+- [x] Task: Build Step 14 backend endpoint for focus/sacrifice decisions.
+- [x] Task: Implement "Lightbulb" explanation logic for forced sacrifices.
+- [x] Task: Build the David vs Goliath logic (e.g., Sacrificing Enterprise).
+- [x] Task: Write TDD tests for constraint enforcement logic.
+- [x] Task: Conductor - User Manual Verification 'Phase 17: Focus & Sacrifice Constraint Engine (Step 14)' (Protocol in workflow.md)
 
 ## Phase 18: ICP Deep Research & Psychographics (Step 15)
 - [ ] Task: Implement ICPArchitect agent for deep persona building.
