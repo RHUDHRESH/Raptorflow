@@ -80,7 +80,3 @@
 
 - [~] **Track: Onboarding Master System (25-Phase Architecture)**
 *Link: [./tracks/onboarding_master_system_20260119/](./tracks/onboarding_master_system_20260119/)*
----
-
-- [x] **Track: AI-Powered Onboarding Backend (22+ Steps)**
-*Link: [./tracks/ai_onboarding_backend_20260119/](./tracks/ai_onboarding_backend_20260119/)*
