@@ -124,21 +124,17 @@
 - [x] Task: Write TDD tests for constraint enforcement logic.
 - [x] Task: Conductor - User Manual Verification 'Phase 17: Focus & Sacrifice Constraint Engine (Step 14)' (Protocol in workflow.md)
 
-## Phase 18: ICP Deep Research & Psychographics (Step 15)
-- [ ] Task: Implement ICPArchitect agent for deep persona building.
-- [ ] Task: Build Step 15 backend endpoint for rich ICP profiles.
-- [ ] Task: Implement "Who They Want To Become" psychographic mapping.
-- [ ] Task: Build sophistication level (1-5) logic for target segments.
-- [ ] Task: Write TDD tests for behavioral trigger extraction.
-- [ ] Task: Conductor - User Manual Verification 'Phase 18: ICP Deep Research & Psychographics (Step 15)' (Protocol in workflow.md)
+## Phase 18: Step 16 Backend - BuyingProcessArchitect (Sales Cycle) [checkpoint: afad9e1]
+- [x] Task: Implement Step 16 'handle_buying_process' node.
+- [x] Task: Create BuyingProcessArchitect to map the sales cycle and buyer journey.
+- [x] Task: Define "Trust Milestones" for each stage based on ICP psychographics.
+- [x] Task: Conductor - User Manual Verification 'Phase 18: Step 16 Backend - BuyingProcessArchitect (Sales Cycle)' (Protocol in workflow.md)
 
-## Phase 19: Buying Process Logic (Step 16)
-- [ ] Task: Implement BuyerJourney agent to map educational steps.
-- [ ] Task: Build Step 16 backend endpoint for journey mapping data.
-- [ ] Task: Implement "Cognitive Shift" detection for awareness stages.
-- [ ] Task: Build the "Problem Aware to Product Aware" chasm logic.
-- [ ] Task: Write TDD tests for journey stage transitions.
-- [ ] Task: Conductor - User Manual Verification 'Phase 19: Buying Process Logic (Step 16)' (Protocol in workflow.md)
+## Phase 19: Step 17 Backend - MessagingRulesEngine (Messaging Guardrails) [checkpoint: afad9e1]
+- [x] Task: Implement Step 17 'handle_messaging_guardrails' node.
+- [x] Task: Create MessagingRulesEngine to define what we say, how we say it, and what we NEVER say.
+- [x] Task: Automate voice/tone rules based on the Category Path (Safe vs Bold).
+- [x] Task: Conductor - User Manual Verification 'Phase 19: Step 17 Backend - MessagingRulesEngine (Messaging Guardrails)' (Protocol in workflow.md)
 
 ## Phase 20: Messaging Guardrails & Enforcement (Step 17)
 - [ ] Task: Implement GuardrailEnforcer agent for tone/voice rules.
