@@ -112,7 +112,7 @@
 - [x] Task: Optimize Prompts for Value Chain & Archetypes (SHA: 1801210)
 - [x] Task: Conductor - User Manual Verification 'Prompt Engineering (Advanced)' (Protocol in workflow.md) (SHA: 190126O)
 
-## Phase 16: Prompt Engineering (ICP & Messaging)
+## Phase 16: Prompt Engineering (ICP & Messaging) [checkpoint: 13f3f02]
 - [x] Task: Optimize Prompts for ICP Psychographics (SHA: 1801210)
 - [x] Task: Optimize Prompts for Buying Triggers & Objections (SHA: 1801210)
 - [x] Task: Optimize Prompts for Brand Voice & Pillars (SHA: 1801210)
