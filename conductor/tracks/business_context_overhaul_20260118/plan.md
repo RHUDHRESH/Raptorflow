@@ -36,7 +36,7 @@
 - [x] Task: Define `CallToAction` strategy model (SHA: 1801202)
 - [x] Task: Conductor - User Manual Verification 'Messaging Strategy Models' (Protocol in workflow.md) (SHA: 190126D)
 
-## Phase 5: Infrastructure & Base Setup
+## Phase 5: Infrastructure & Base Setup [checkpoint: 6f1791a]
 - [x] Task: Create `backend/services/business_context_graph.py` (SHA: 1801203)
 - [x] Task: Initialize Vertex AI Client with Singleton Pattern (SHA: 1801203)
 - [x] Task: Implement Base Node Class with Error Handling & Logging (SHA: 1801203)
