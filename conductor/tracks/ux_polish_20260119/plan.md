@@ -14,7 +14,7 @@ This phase sets up the local state management for session-based notifications an
     - [x] Implement skeleton loaders for Foundation and Moves dashboards.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Foundation & Notification Infrastructure' (Protocol in workflow.md)
 
-## Phase 2: Navigation & Command Palette
+## Phase 2: Navigation & Command Palette [checkpoint: c7290c45]
 Implementing the "ease of access" features including the Ctrl+K interface.
 
 - [x] Task: Implement the Command Palette (Ctrl+K) using `cmdk` or Shadcn `Command`.
@@ -26,12 +26,12 @@ Implementing the "ease of access" features including the Ctrl+K interface.
 - [x] Task: Implement hover micro-interactions across primary action buttons.
     - [x] Use Framer Motion for subtle scale/fade transitions.
     - [x] Verify animations don't break functional tests.
-- [~] Task: Conductor - User Manual Verification 'Phase 2: Navigation & Command Palette' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Navigation & Command Palette' (Protocol in workflow.md)
 
 ## Phase 3: Notification UI & Contextual Help
 Building the visible notification center and in-app guidance.
 
-- [ ] Task: Create the `NotificationBell` and `NotificationDropdown` components.
+- [~] Task: Create the `NotificationBell` and `NotificationDropdown` components.
     - [ ] Write tests for "new" indicator logic and empty states.
     - [ ] Implement UI and connect to `useNotificationStore`.
 - [ ] Task: Add "Info Bubbles" (Tooltips) for strategic terminology.
