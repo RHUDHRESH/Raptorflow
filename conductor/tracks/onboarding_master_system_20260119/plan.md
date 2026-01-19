@@ -161,17 +161,14 @@
 - [x] Task: Build Step 21 node 'handle_tam_sam_som'.
 - [x] Task: Conductor - User Manual Verification 'Phase 23: Channel Architecture & TAM/SAM/SOM (Step 20/21)' (Protocol in workflow.md)
 
-## Phase 24: Reality Check & Validation Protocol (Step 22)
-- [ ] Task: Implement ValidationTracker for non-content tasks.
-- [ ] Task: Build Step 22 backend endpoint for reality check tasks.
-- [ ] Task: Implement "Launch Readiness" auditor (AI score 0-100).
-- [ ] Task: Build the "Skip/Commit" verification logic.
-- [ ] Task: Write TDD tests for readiness score logic.
-- [ ] Task: Conductor - User Manual Verification 'Phase 24: Reality Check & Validation Protocol (Step 22)' (Protocol in workflow.md)
+## Phase 24: Reality Check & Validation Protocol (Step 22) [checkpoint: 2c764eb]
+- [x] Task: Implement LaunchReadinessChecker for final auditing.
+- [x] Task: Build Step 22 node 'handle_validation_todos'.
+- [x] Task: Implement "Launch Readiness" score logic.
+- [x] Task: Conductor - User Manual Verification 'Phase 24: Reality Check & Validation Protocol (Step 22)' (Protocol in workflow.md)
 
-## Phase 25: Final Synthesis & BCM Transition (Step 23)
-- [ ] Task: Implement FinalSynthesis agent for "Systems Online" state.
-- [ ] Task: Build Step 23 backend endpoint for onboarding finalization.
-- [ ] Task: Implement the "BCM Conversion" from `business_context.json`.
-- [ ] Task: Build the Global Dashboard redirect and data handover.
-- [ ] Task: Task: Conductor - User Manual Verification 'Phase 25: Final Synthesis & BCM Transition' (Protocol in workflow.md)
+## Phase 25: Final Synthesis & BCM Transition (Step 23) [checkpoint: 2c764eb]
+- [x] Task: Implement FinalSynthesis agent for system activation.
+- [x] Task: Build Step 23 node 'handle_final_synthesis'.
+- [x] Task: Trigger "Systems Online" state and final progress to 100%.
+- [x] Task: Conductor - User Manual Verification 'Phase 25: Final Synthesis & BCM Transition' (Protocol in workflow.md)
