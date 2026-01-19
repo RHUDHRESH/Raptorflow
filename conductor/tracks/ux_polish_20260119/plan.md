@@ -1,6 +1,6 @@
 # Implementation Plan: UI/UX & Notification Polish (Track: UX_POLISH_20260119)
 
-## Phase 1: Foundation & Notification Infrastructure
+## Phase 1: Foundation & Notification Infrastructure [checkpoint: c20342c0]
 This phase sets up the local state management for session-based notifications and the base components for feedback.
 
 - [x] Task: Create `useNotificationStore` using Zustand or React Context for session-based alerts.
@@ -12,12 +12,12 @@ This phase sets up the local state management for session-based notifications an
 - [x] Task: Create reusable Skeleton components for core modules.
     - [x] Write tests for rendering states.
     - [x] Implement skeleton loaders for Foundation and Moves dashboards.
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Foundation & Notification Infrastructure' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Foundation & Notification Infrastructure' (Protocol in workflow.md)
 
 ## Phase 2: Navigation & Command Palette
 Implementing the "ease of access" features including the Ctrl+K interface.
 
-- [ ] Task: Implement the Command Palette (Ctrl+K) using `cmdk` or Shadcn `Command`.
+- [~] Task: Implement the Command Palette (Ctrl+K) using `cmdk` or Shadcn `Command`.
     - [ ] Write tests for keyboard trigger and search filtering.
     - [ ] Implement navigation logic to core modules.
 - [ ] Task: Enhance Breadcrumbs and Active Sidebar states.
