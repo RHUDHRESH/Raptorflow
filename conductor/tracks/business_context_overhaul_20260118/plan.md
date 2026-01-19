@@ -44,7 +44,7 @@
 - [x] Task: Implement "Graceful Degradation" Base Logic (SHA: 1801203)
 - [x] Task: Conductor - User Manual Verification 'Infrastructure & Base Setup' (Protocol in workflow.md) (SHA: 190126E)
 
-## Phase 6: Core Context Graph Nodes (Part 1)
+## Phase 6: Core Context Graph Nodes (Part 1) [checkpoint: 5e0b101]
 - [x] Task: Implement `generate_profile` node (SHA: 1801204)
 - [x] Task: Implement `analyze_market` node (SHA: 1801204)
 - [x] Task: Implement `analyze_competitors` node (SHA: 1801204)
