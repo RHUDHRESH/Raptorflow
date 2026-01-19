@@ -95,6 +95,8 @@ class SimplifiedConfig(BaseModel):
     # Core Configuration
     GCP_PROJECT_ID: str = Field(..., min_length=10, description="GCP project ID")
     GCP_REGION: str = "us-central1"
+    environment: str = "production"
+    llm_provider: str = "google"
 
     # Database Configuration
     SUPABASE_URL: Optional[str] = None
@@ -161,6 +163,8 @@ class Config:
         return SimplifiedConfig(
             GCP_PROJECT_ID=os.getenv("GCP_PROJECT_ID", ""),
             GCP_REGION=os.getenv("GCP_REGION", "us-central1"),
+            environment=os.getenv("ENVIRONMENT", "production"),
+            llm_provider=os.getenv("LLM_PROVIDER", "google"),
             SUPABASE_URL=os.getenv("SUPABASE_URL"),
             SUPABASE_KEY=os.getenv("SUPABASE_KEY"),
             REDIS_URL=os.getenv("REDIS_URL"),

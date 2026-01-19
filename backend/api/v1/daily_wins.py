@@ -9,9 +9,9 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from ...agents.specialists.daily_wins import DailyWinsGenerator
-from ...core.auth import get_current_user
-from ...core.database import get_db
+from backend.agents.specialists.daily_wins import DailyWinsGenerator
+from backend.core.auth import get_current_user
+from backend.core.database import get_db
 
 router = APIRouter(prefix="/daily_wins", tags=["daily_wins"])
 
@@ -44,6 +44,25 @@ class DailyWinsResponse(BaseModel):
     estimated_total_time: int
     tokens_used: int
     cost_usd: float
+    error: Optional[str]
+
+
+class DailyWinsLangGraphRequest(BaseModel):
+    """Request model for LangGraph-powered daily wins generation."""
+
+    workspace_id: str
+    user_id: str
+    session_id: Optional[str] = None
+    force_refresh: bool = False
+
+
+class DailyWinsLangGraphResponse(BaseModel):
+    """Response model for LangGraph-powered daily wins generation."""
+
+    success: bool
+    win: Optional[Dict[str, Any]]
+    session_id: str
+    metadata: Dict[str, Any]
     error: Optional[str]
 
 
@@ -212,6 +231,57 @@ async def generate_daily_wins(
         )
 
 
+@router.post("/generate-langgraph", response_model=DailyWinsLangGraphResponse)
+async def generate_daily_wins_langgraph(
+    request: DailyWinsLangGraphRequest,
+    current_user: Dict = Depends(get_current_user),
+    db=Depends(get_db),
+):
+    """
+    Generate today's daily win using the advanced LangGraph Surprise Engine.
+    """
+    try:
+        from backend.agents.graphs.daily_wins import DailyWinsGraph
+
+        graph_engine = DailyWinsGraph()
+        session_id = request.session_id or str(uuid.uuid4())
+
+        result = await graph_engine.generate_win(
+            workspace_id=request.workspace_id,
+            user_id=request.user_id,
+            session_id=session_id,
+        )
+
+        if not result["success"]:
+            raise HTTPException(
+                status_code=500,
+                detail=f"LangGraph generation failed: {result.get('error')}",
+            )
+
+        return DailyWinsLangGraphResponse(
+            success=True,
+            win=result.get("final_win"),
+            session_id=session_id,
+            metadata={
+                "tokens_used": result.get("tokens_used", 0),
+                "cost_usd": result.get("cost_usd", 0.0),
+                "iterations": result.get("iteration_count", 0),
+            },
+            error=None,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        return DailyWinsLangGraphResponse(
+            success=False,
+            win=None,
+            session_id=request.session_id or "",
+            metadata={},
+            error=str(e),
+        )
+
+
 @router.get("/", response_model=DailyWinsListResponse)
 async def list_daily_wins(
     workspace_id: str,
@@ -287,7 +357,7 @@ async def expand_daily_win(
             raise HTTPException(status_code=404, detail="Daily win not found")
 
         # Use content creator to expand the win
-        from ...agents.specialists.content_creator import ContentCreator
+        from agents.specialists.content_creator import ContentCreator
 
         content_creator = ContentCreator()
 
