@@ -292,6 +292,9 @@ async def accept_strategy(
     background_tasks: BackgroundTasks,
     current_user: Dict = Depends(get_current_user),
     db=Depends(get_db),
+    memory_controller: MemoryController = Depends(get_memory_controller),
+    cognitive_engine: CognitiveEngine = Depends(get_cognitive_engine),
+    agent_dispatcher: AgentDispatcher = Depends(get_agent_dispatcher),
 ):
     """
     Accept a Blackbox strategy and optionally convert it to a move.
@@ -300,17 +303,15 @@ async def accept_strategy(
     move for implementation.
     """
     try:
-        # Check if strategy exists
-        strategy = await db.fetchrow(
-            "SELECT * FROM blackbox_strategies WHERE id = $1 AND workspace_id = $2",
-            strategy_id,
-            request.workspace_id,
+        # Initialize workflow
+        workflow = BlackboxWorkflow(
+            db_client=db,
+            memory_controller=memory_controller,
+            cognitive_engine=cognitive_engine,
+            agent_dispatcher=agent_dispatcher
         )
 
-        if not strategy:
-            raise HTTPException(status_code=404, detail="Strategy not found")
-
-        # Update strategy status
+        # Mark as accepted in database
         await db.execute(
             "UPDATE blackbox_strategies SET status = 'accepted', accepted_at = NOW() WHERE id = $1",
             strategy_id,
@@ -320,13 +321,9 @@ async def accept_strategy(
 
         # Convert to move if requested
         if request.convert_to_move:
-            move_id = await convert_strategy_to_move(
-                strategy=dict(strategy),
-                move_name=request.move_name,
-                workspace_id=request.workspace_id,
-                user_id=request.user_id,
-                db=db,
-            )
+            result = await workflow.convert_to_move(strategy_id)
+            if result.get("success"):
+                move_id = result["move_ids"][0] if result["move_ids"] else None
 
         return StrategyAcceptResponse(
             success=True,

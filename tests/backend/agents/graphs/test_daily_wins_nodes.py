@@ -13,7 +13,8 @@ from backend.agents.graphs.daily_wins import (
     synthesizer_node,
     voice_architect_node,
     hook_specialist_node,
-    visualist_node
+    visualist_node,
+    skeptic_node
 )
 
 @pytest.fixture
@@ -132,3 +133,22 @@ class TestDailyWinsNodes:
             mock_llm.return_value = "A cinematic shot of a workspace"
             updated_state = await visualist_node(initial_state)
             assert updated_state["visual_prompt"] is not None
+
+    @pytest.mark.asyncio
+    async def test_skeptic_node(self, initial_state):
+        """Test that skeptic evaluates surprise score"""
+        initial_state["content_draft"] = "Full post content"
+        
+        # Mock LLM returning score and feedback
+        with patch("backend.agents.base.BaseAgent._call_llm", new_callable=AsyncMock) as mock_llm:
+            # First call: generic content -> low score
+            mock_llm.return_value = '{"score": 0.4, "feedback": "Too generic."}'
+            updated_state = await skeptic_node(initial_state)
+            assert updated_state["surprise_score"] == 0.4
+            assert updated_state["reflection_feedback"] == "Too generic."
+            
+            # Second call: high score -> final_win populated
+            mock_llm.return_value = '{"score": 0.9, "feedback": "Exceptional."}'
+            updated_state = await skeptic_node(initial_state)
+            assert updated_state["surprise_score"] == 0.9
+            assert updated_state["final_win"] is not None

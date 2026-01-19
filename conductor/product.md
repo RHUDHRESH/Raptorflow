@@ -28,5 +28,5 @@ RaptorFlow is the **Founder Marketing Operating System**. It is designed to repl
 - **Campaigns:** 90-day strategic arcs managed as hierarchical relational graphs. Orchestrates concurrent and subsequent moves toward a singular agenda. (Consolidated Backend Implemented)
 - **Muse:** An asset factory for content generation and repurposing.
 - **Matrix:** The "Boardroom View" dashboard with actionable operator skills (Throttling, Scaling, Cache Purge). (SOTA Actionable Dashboard Implemented)
-- **Blackbox:** The "Cognitive Spine" with hypothesis-driven experiments, integrated ROI analytics, and growth momentum hooks. (SOTA Hypothesis-Driven Engine Implemented)
+- **Blackbox:** The "Cognitive Spine" of the OS. A fully integrated AI engine that generates experimental, high-risk/high-reward strategic maneuvers ("Black Moves"). Features a 1-10 volatility control and direct conversion into actionable Moves with automated risk assessment and implementation planning. (End-to-End Production Engine Implemented)
 - **Titan:** The "Recursive Research Spine" (SOTA Intelligence Engine). Provides high-precision market intelligence, competitor auditing, and trend discovery via multi-tier research modes (LITE, RESEARCH, DEEP). Powered by a parallel Search Multiplexer and Stealth Scraper Pool. (Implemented)

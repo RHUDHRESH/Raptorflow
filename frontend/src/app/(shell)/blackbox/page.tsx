@@ -20,6 +20,9 @@ import {
 import { cn } from "@/lib/utils";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { useMovesStore } from "@/stores/movesStore";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { supabase } from "@/lib/supabaseClient";
+import { toast } from "sonner";
 
 /* ════════════════════════════════════════════════════════════════════════════
    BLACK BOX ENGINE — Quiet Luxury Redesign
@@ -75,9 +78,12 @@ export default function BlackBoxPage() {
     const [selectedOutcome, setSelectedOutcome] = useState<Outcome | null>(null);
     const [volatility, setVolatility] = useState(5);
     const [generatedStrategy, setGeneratedStrategy] = useState<any>(null);
+    const [strategyId, setStrategyId] = useState<string | null>(null);
     const [createdMoveId, setCreatedMoveId] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    const { createMoveFromBlackBox } = useMovesStore();
+    const { generateStrategy, createMoveFromStrategy } = useMovesStore();
+    const { workspace } = useSettingsStore();
 
     useEffect(() => {
         setMounted(true);
@@ -98,45 +104,68 @@ export default function BlackBoxPage() {
 
     const handleGenerate = async () => {
         setStep("processing");
+        setIsProcessing(true);
 
-        // Simulate AI generation
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        try {
+            const { data: authData } = await supabase.auth.getSession();
+            const userId = authData.session?.user.id;
 
-        setGeneratedStrategy({
-            title: "Quantum Market Penetration",
-            description: "Multi-dimensional approach combining viral mechanics with authority building",
-            risk: volatility > 7 ? "High" : volatility > 4 ? "Medium" : "Low",
-            expectedImpact: "High",
-            timeline: "6-8 weeks",
-            steps: [
-                "Market reconnaissance and positioning",
-                "Initial content deployment",
-                "Engagement amplification",
-                "Conversion optimization",
-                "Scale and iterate"
-            ]
-        });
+            if (!userId) {
+                toast.error("Authentication required");
+                setStep("volatility");
+                return;
+            }
 
-        setStep("output");
+            const result = await generateStrategy({
+                focusArea: selectedOutcome?.label || "capture",
+                volatilityLevel: volatility,
+                workspaceId: workspace.name, // Note: Use real workspace ID if available, using name as fallback
+                userId: userId
+            });
+
+            if (result.success) {
+                setGeneratedStrategy({
+                    title: result.strategy_name,
+                    description: result.potential_downside ? `Risk: ${result.potential_downside}` : "Highly experimental strategic maneuver.",
+                    risk: result.risk_level > 7 ? "High" : result.risk_level > 4 ? "Medium" : "Low",
+                    expectedImpact: result.expected_upside || "High",
+                    timeline: "4-12 weeks",
+                    steps: result.implementation_steps || [],
+                    phases: result.phases || []
+                });
+                setStrategyId(result.strategy_id);
+                setStep("output");
+            } else {
+                toast.error(result.error || "Failed to generate strategy");
+                setStep("volatility");
+            }
+        } catch (error) {
+            console.error("Blackbox Error:", error);
+            toast.error("An unexpected error occurred");
+            setStep("volatility");
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
-    const handleCreateMove = () => {
-        if (!selectedOutcome || !generatedStrategy) return;
+    const handleCreateMove = async () => {
+        if (!selectedOutcome || !generatedStrategy || !strategyId) return;
 
-        // Create move using the store
-        const moveId = createMoveFromBlackBox({
-            focusArea: selectedOutcome.label,
-            desiredOutcome: generatedStrategy.description,
-            volatilityLevel: volatility,
-            name: generatedStrategy.title,
-            steps: generatedStrategy.steps || [
-                "Phase 1: Preparation",
-                "Phase 2: Execution",
-                "Phase 3: Optimization"
-            ]
-        });
+        try {
+            const { data: authData } = await supabase.auth.getSession();
+            const userId = authData.session?.user.id;
 
-        setCreatedMoveId(moveId);
+            const moveId = await createMoveFromStrategy(strategyId, {
+                workspaceId: workspace.name,
+                userId: userId || "system",
+                name: generatedStrategy.title
+            });
+
+            setCreatedMoveId(moveId);
+            toast.success("Move created successfully!");
+        } catch (error) {
+            toast.error("Failed to create move");
+        }
     };
 
     const handleViewMove = () => {

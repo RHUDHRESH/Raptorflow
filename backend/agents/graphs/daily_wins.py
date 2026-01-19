@@ -323,9 +323,55 @@ async def visualist_node(state: DailyWinState) -> DailyWinState:
         return state
 
 
-async def skeptic_editor_node(state: DailyWinState) -> DailyWinState:
-    """Node: Reflection layer to ensure "surprise" and quality."""
-    return state
+async def skeptic_node(state: DailyWinState) -> DailyWinState:
+    """Node: Evaluates the draft for 'Surprise' and 'Editorial Restraint'."""
+    try:
+        from ..specialists.daily_wins import DailyWinsGenerator
+        agent = DailyWinsGenerator()
+        
+        content = state.get("content_draft")
+        hooks = state.get("hooks", [])
+        
+        prompt = f"""
+        You are the 'Skeptic/Editor'. Evaluate this LinkedIn post draft for:
+        1. Surprise: Does it provide a non-obvious insight?
+        2. Editorial Restraint: Is it brief and surgical?
+        3. Decisiveness: Does it sound like a founder?
+        
+        DRAFT: {content}
+        HOOKS: {hooks}
+        
+        Output only a JSON object: {{\"score\": float (0.0-1.0), \"feedback\": \"string\"}}
+        """
+        
+        res = await agent._call_llm(prompt)
+        try:
+            clean_res = res.strip().replace("```json", "").replace("```", "")
+            eval_data = json.loads(clean_res)
+            state["surprise_score"] = float(eval_data.get("score", 0.0))
+            state["reflection_feedback"] = eval_data.get("feedback", "No feedback.")
+        except:
+            state["surprise_score"] = 0.5
+            state["reflection_feedback"] = "Failed to parse score."
+            
+        # Final win logic
+        if state["surprise_score"] >= 0.8:
+            state["final_win"] = {
+                "content": content,
+                "hooks": hooks,
+                "visual_prompt": state.get("visual_prompt"),
+                "score": state["surprise_score"],
+                "generated_at": datetime.now().isoformat()
+            }
+            logger.info(f"Skeptic: Draft APPROVED with score {state['surprise_score']}.")
+        else:
+            logger.info(f"Skeptic: Draft REJECTED with score {state['surprise_score']}. Feedback: {state['reflection_feedback']}")
+            
+        return state
+    except Exception as e:
+        logger.error(f"Skeptic Node Error: {e}")
+        state["surprise_score"] = 0.0
+        return state
 
 
 class DailyWinsGraph:

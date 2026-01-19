@@ -68,7 +68,7 @@
 
 ---
 
-## [~] Track: Blackbox Strategy Engine Resurrection
+## [x] Track: Blackbox Strategy Engine Resurrection
 *Link: [./tracks/blackbox_engine_20260119/](./tracks/blackbox_engine_20260119/)*
 
 ---

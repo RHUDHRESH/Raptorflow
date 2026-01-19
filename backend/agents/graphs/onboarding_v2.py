@@ -15,6 +15,8 @@ from ..specialists.evidence_classifier import EvidenceClassifier, EvidenceType
 from ..specialists.extraction_orchestrator import ExtractionOrchestrator
 from ..specialists.contradiction_detector import ContradictionDetector
 from ..specialists.truth_sheet_generator import TruthSheetGenerator
+from ..specialists.brand_audit_agent import BrandAuditEngine
+from ...infrastructure.storage import delete_file
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +53,7 @@ classifier = EvidenceClassifier()
 extractor = ExtractionOrchestrator()
 contradiction_detector = ContradictionDetector()
 truth_sheet_generator = TruthSheetGenerator()
+brand_audit_engine = BrandAuditEngine()
 
 async def handle_evidence_vault(state: OnboardingStateV2) -> OnboardingStateV2:
     """Step 1: Process uploaded evidence and auto-classify."""
@@ -107,6 +110,20 @@ async def handle_auto_extraction(state: OnboardingStateV2) -> OnboardingStateV2:
     state["onboarding_progress"] = (2 / 23) * 100
     return state
 
+async def handle_data_purge(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Phase 4 Helper: Purge temporary GCS blobs after extraction."""
+    logger.info("Handling Data Purge (Lifecycle Enforcement)")
+    
+    if "evidence" in state and state["evidence"]:
+        for item in state["evidence"]:
+            file_id = item.get("file_id")
+            if file_id:
+                success = await delete_file(file_id)
+                logger.info(f"Purged file {file_id}: {success}")
+                item["purged"] = success
+                
+    return state
+
 async def handle_contradiction_check(state: OnboardingStateV2) -> OnboardingStateV2:
     """Step 3: Adversarial audit for logical consistency."""
     logger.info("Handling Contradiction Check (Step 3)")
@@ -130,6 +147,18 @@ async def handle_truth_sheet(state: OnboardingStateV2) -> OnboardingStateV2:
     state["step_data"]["truth_sheet"] = sheet
     
     state["onboarding_progress"] = (4 / 23) * 100
+    return state
+
+async def handle_brand_audit(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 5: Adversarial Brand Audit."""
+    logger.info("Handling Brand Audit (Step 5)")
+    
+    result = await brand_audit_engine.execute(state)
+    audit = result.get("output", {})
+    
+    state["step_data"]["brand_audit"] = audit
+    
+    state["onboarding_progress"] = (5 / 23) * 100
     return state
 
 class OnboardingGraphV2:
@@ -173,18 +202,27 @@ class OnboardingGraphV2:
         # Add nodes
         workflow.add_node("handle_evidence_vault", handle_evidence_vault)
         workflow.add_node("handle_auto_extraction", handle_auto_extraction)
+        workflow.add_node("handle_data_purge", handle_data_purge)
         workflow.add_node("handle_contradiction_check", handle_contradiction_check)
         workflow.add_node("handle_truth_sheet", handle_truth_sheet)
+        workflow.add_node("handle_brand_audit", handle_brand_audit)
         
         # Add remaining nodes as placeholders
-        for step in self.step_order[4:]:
+        for step in self.step_order[5:]:
             workflow.add_node(f"handle_{step}", generic_handler)
 
         # Set entry point
         workflow.set_entry_point("handle_evidence_vault")
 
-        # Basic linear routing for now
-        for i in range(len(self.step_order) - 1):
+        # Routing with Data Purge after Auto Extraction
+        workflow.add_edge("handle_evidence_vault", "handle_auto_extraction")
+        workflow.add_edge("handle_auto_extraction", "handle_data_purge")
+        workflow.add_edge("handle_data_purge", "handle_contradiction_check")
+        workflow.add_edge("handle_contradiction_check", "handle_truth_sheet")
+        workflow.add_edge("handle_truth_sheet", "handle_brand_audit")
+
+        # Remaining linear routing
+        for i in range(5, len(self.step_order) - 1):
             workflow.add_edge(f"handle_{self.step_order[i]}", f"handle_{self.step_order[i+1]}")
         
         workflow.add_edge(f"handle_{self.step_order[-1]}", END)
@@ -192,4 +230,13 @@ class OnboardingGraphV2:
         memory = MemorySaver()
         return workflow.compile(checkpointer=memory)
 
-__all__ = ["OnboardingGraphV2", "OnboardingStateV2", "handle_evidence_vault", "handle_auto_extraction", "handle_contradiction_check", "handle_truth_sheet"]
+__all__ = [
+    "OnboardingGraphV2", 
+    "OnboardingStateV2", 
+    "handle_evidence_vault", 
+    "handle_auto_extraction", 
+    "handle_contradiction_check", 
+    "handle_truth_sheet", 
+    "handle_data_purge",
+    "handle_brand_audit"
+]

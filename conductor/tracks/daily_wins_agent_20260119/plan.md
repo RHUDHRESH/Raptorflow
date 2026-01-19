@@ -16,10 +16,10 @@
 - [x] Task: Implement Synthesizer & Voice Architect (20260119)
     - [x] **Red:** Write tests for narrative bridging and tone enforcement
     - [x] **Green:** Implement nodes to merge data and apply "Editorial Restraint"
-- [~] Task: Implement Hook Specialist & Visualist
-    - [ ] **Red:** Write tests for headline generation and image prompt formatting
-    - [ ] **Green:** Implement nodes for viral hooks and editorial prompts
-- [ ] Task: Implement Skeptic/Editor (Reflection Node)
+- [x] Task: Implement Hook Specialist & Visualist (20260119)
+    - [x] **Red:** Write tests for headline generation and image prompt formatting
+    - [x] **Green:** Implement nodes for viral hooks and editorial prompts
+- [~] Task: Implement Skeptic/Editor (Reflection Node)
     - [ ] **Red:** Write tests for "surprise" threshold validation and retry logic
     - [ ] **Green:** Implement the final reflection layer to filter generic output
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
