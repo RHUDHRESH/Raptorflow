@@ -96,21 +96,17 @@
 - [x] Task: Write TDD tests for uniqueness verification accuracy.
 - [x] Task: Conductor - User Manual Verification 'Phase 13: Capability Uniqueness Engine (Step 10)' (Protocol in workflow.md)
 
-## Phase 14: Perceptual Map Generation (Step 11)
-- [ ] Task: Implement PerceptualMapGenerator for quadrant analysis.
-- [ ] Task: Build Step 11 backend endpoint for 3 positioning options.
-- [ ] Task: Implement competitor placement logic based on scraped data.
-- [ ] Task: Build "Only You" quadrant validation in 2D space.
-- [ ] Task: Write TDD tests for quadrant positioning logic.
-- [ ] Task: Conductor - User Manual Verification 'Phase 14: Perceptual Map Generation (Step 11)' (Protocol in workflow.md)
+## Phase 14: Step 12 Backend - StrategicGridGenerator (Strategic Grid) [checkpoint: f753b03]
+- [x] Task: Implement Step 12 'handle_strategic_grid' node.
+- [x] Task: Create StrategicGridGenerator to populate the 2x2 grid (Value vs Rarity).
+- [x] Task: Automate asset categorization based on capability ratings from Step 10.
+- [x] Task: Conductor - User Manual Verification 'Phase 14: Step 12 Backend - StrategicGridGenerator (Strategic Grid)' (Protocol in workflow.md)
 
-## Phase 15: Strategic Grid & Milestone Sync (Step 12)
-- [ ] Task: Implement StrategicGrid orchestrator for position selection.
-- [ ] Task: Build Step 12 backend endpoint for strategic grid summary.
-- [ ] Task: Implement the "Milestone Synthesis" to update BCM after Step 12.
-- [ ] Task: Build gap analysis cards for threats/opportunities.
-- [ ] Task: Write TDD tests for BCM sync after grid lock.
-- [ ] Task: Conductor - User Manual Verification 'Phase 15: Strategic Grid & Milestone Sync (Step 12)' (Protocol in workflow.md)
+## Phase 15: Step 13 Backend - PositioningStatementGenerator (Final Positioning) [checkpoint: f753b03]
+- [x] Task: Implement Step 13 'handle_positioning_statements' logic.
+- [x] Task: Generate statements across multiple frameworks (Classic, Challenger, Benefit-Focused).
+- [x] Task: Synthesize all research and truths into a definitive "Master Positioning" object.
+- [x] Task: Conductor - User Manual Verification 'Phase 15: Step 13 Backend - PositioningStatementGenerator (Final Positioning)' (Protocol in workflow.md)
 
 ## Phase 16: Neuroscience Copywriting Engine (Step 13)
 - [ ] Task: Implement NeuroscienceCopywriter agent for manifesto drafting.
