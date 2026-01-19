@@ -29,6 +29,9 @@ from ..specialists.icp_deep_generator import ICPDeepGenerator
 from ..specialists.buying_process_agent import BuyingProcessArchitect
 from ..specialists.messaging_rules_engine import MessagingRulesEngine
 from ..specialists.soundbites_generator import SoundbitesGenerator
+from ..specialists.message_hierarchy_agent import MessageHierarchyArchitect
+from ..specialists.channel_recommender import ChannelRecommender
+from ..specialists.market_size_calculator import MarketSizeCalculator
 from ...infrastructure.storage import delete_file
 
 logger = logging.getLogger(__name__)
@@ -80,6 +83,9 @@ icp_generator = ICPDeepGenerator()
 buying_process_architect = BuyingProcessArchitect()
 messaging_rules_engine = MessagingRulesEngine()
 soundbites_generator = SoundbitesGenerator()
+hierarchy_architect = MessageHierarchyArchitect()
+channel_recommender = ChannelRecommender()
+market_sizer = MarketSizeCalculator()
 
 async def handle_evidence_vault(state: OnboardingStateV2) -> OnboardingStateV2:
     """Step 1: Process uploaded evidence and auto-classify."""
@@ -350,6 +356,42 @@ async def handle_soundbites_library(state: OnboardingStateV2) -> OnboardingState
     state["onboarding_progress"] = (18 / 23) * 100
     return state
 
+async def handle_message_hierarchy(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 19: Architect Message Hierarchy."""
+    logger.info("Handling Message Hierarchy (Step 19)")
+    
+    result = await hierarchy_architect.execute(state)
+    hierarchy_data = result.get("output", {})
+    
+    state["step_data"]["message_hierarchy"] = hierarchy_data
+    
+    state["onboarding_progress"] = (19 / 23) * 100
+    return state
+
+async def handle_channel_mapping(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 20: Map Acquisition Channels."""
+    logger.info("Handling Channel Mapping (Step 20)")
+    
+    result = await channel_recommender.execute(state)
+    channel_data = result.get("output", {})
+    
+    state["step_data"]["channel_mapping"] = channel_data
+    
+    state["onboarding_progress"] = (20 / 23) * 100
+    return state
+
+async def handle_tam_sam_som(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 21: Calculate Market Size (TAM/SAM/SOM)."""
+    logger.info("Handling TAM/SAM/SOM (Step 21)")
+    
+    result = await market_sizer.execute(state)
+    market_data = result.get("output", {})
+    
+    state["step_data"]["tam_sam_som"] = market_data
+    
+    state["onboarding_progress"] = (21 / 23) * 100
+    return state
+
 class OnboardingGraphV2:
     """Updated onboarding workflow graph with 23-step master logic."""
 
@@ -408,9 +450,12 @@ class OnboardingGraphV2:
         workflow.add_node("handle_buying_process", handle_buying_process)
         workflow.add_node("handle_messaging_guardrails", handle_messaging_guardrails)
         workflow.add_node("handle_soundbites_library", handle_soundbites_library)
+        workflow.add_node("handle_message_hierarchy", handle_message_hierarchy)
+        workflow.add_node("handle_channel_mapping", handle_channel_mapping)
+        workflow.add_node("handle_tam_sam_som", handle_tam_sam_som)
         
         # Add remaining nodes as placeholders
-        for step in self.step_order[18:]:
+        for step in self.step_order[21:]:
             workflow.add_node(f"handle_{step}", generic_handler)
 
         # Set entry point
@@ -435,9 +480,12 @@ class OnboardingGraphV2:
         workflow.add_edge("handle_icp_profiles", "handle_buying_process")
         workflow.add_edge("handle_buying_process", "handle_messaging_guardrails")
         workflow.add_edge("handle_messaging_guardrails", "handle_soundbites_library")
+        workflow.add_edge("handle_soundbites_library", "handle_message_hierarchy")
+        workflow.add_edge("handle_message_hierarchy", "handle_channel_mapping")
+        workflow.add_edge("handle_channel_mapping", "handle_tam_sam_som")
 
         # Remaining linear routing
-        for i in range(18, len(self.step_order) - 1):
+        for i in range(21, len(self.step_order) - 1):
             workflow.add_edge(f"handle_{self.step_order[i]}", f"handle_{self.step_order[i+1]}")
         
         workflow.add_edge(f"handle_{self.step_order[-1]}", END)
@@ -466,5 +514,8 @@ __all__ = [
     "handle_icp_profiles",
     "handle_buying_process",
     "handle_messaging_guardrails",
-    "handle_soundbites_library"
+    "handle_soundbites_library",
+    "handle_message_hierarchy",
+    "handle_channel_mapping",
+    "handle_tam_sam_som"
 ]

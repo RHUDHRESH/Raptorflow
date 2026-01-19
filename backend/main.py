@@ -34,7 +34,7 @@ from backend.api.v1 import (
     daily_wins,
     database_automation,
     database_health,
-    episodes,
+    # episodes,
     foundation,
     graph,
     health_simple,
@@ -355,7 +355,7 @@ app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytic
 app.include_router(memory.router, prefix="/api/v1/memory", tags=["memory"])
 app.include_router(graph.router, prefix="/api/v1/graph", tags=["graph"])
 app.include_router(sessions.router, prefix="/api/v1/sessions", tags=["sessions"])
-app.include_router(episodes.router, prefix="/api/v1/episodes", tags=["episodes"])
+# app.include_router(episodes.router, prefix="/api/v1/episodes", tags=["episodes"])
 app.include_router(approvals.router, prefix="/api/v1/approvals", tags=["approvals"])
 app.include_router(metrics.router, prefix="/api/v1/metrics", tags=["metrics"])
 app.include_router(

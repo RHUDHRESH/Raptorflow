@@ -211,6 +211,61 @@ async def draft_positioning_statements(
         "next_step": "focus_sacrifice"
     }
 
+@router.post("/{session_id}/focus-sacrifice", response_model=Dict[str, Any])
+async def recommend_focus_sacrifice(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 14: Strategic tradeoffs and 'Lightbulb' logic."""
+    return {
+        "success": True,
+        "constraints": {
+            "focus_areas": ["Founders"],
+            "sacrifices": [
+                {"target": "Enterprise", "rationale": "High friction", "lightbulb": "Speed is your edge."}
+            ]
+        },
+        "next_step": "icp_profiles"
+    }
+
+@router.post("/{session_id}/icp-profiles", response_model=Dict[str, Any])
+async def generate_icp_profiles(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 15: Deep ICP profiling and psychographic mapping."""
+    return {
+        "success": True,
+        "profiles": [
+            {
+                "name": "The High-Growth Founder",
+                "tagline": "Relentless growth at all costs",
+                "who_they_want_to_become": "Market Leader",
+                "sophistication_level": 4
+            }
+        ],
+        "next_step": "buying_process"
+    }
+
+@router.post("/{session_id}/buying-process", response_model=Dict[str, Any])
+async def architect_buying_process(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 16: Architect the buying journey and cognitive shifts."""
+    return {
+        "success": True,
+        "journey": [
+            {"stage": "Problem Aware", "shift": "I have a problem -> I need a surgical solution"},
+            {"stage": "Solution Aware", "shift": "Looking for tools -> RaptorFlow is the specific tool"}
+        ],
+        "chasm_logic": "Leverage educational whitepapers to bridge the trust gap.",
+        "next_step": "messaging_guardrails"
+    }
+
 @router.post("/{session_id}/perceptual-map", response_model=Dict[str, Any])
 async def generate_perceptual_map(
     session_id: str,

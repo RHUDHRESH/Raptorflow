@@ -1,18 +1,10 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-from backend.agents.specialists.constraint_engine.py import ConstraintEngine
+from backend.agents.specialists.constraint_engine import ConstraintEngine
 
 @pytest.mark.asyncio
 async def test_constraint_engine_execution():
     """Test ConstraintEngine agent execution."""
-    # Note: the file path in import has .py, which is wrong. 
-    # I'll fix it in implementation.
-    pass
-
-from backend.agents.specialists.constraint_engine import ConstraintEngine
-
-@pytest.mark.asyncio
-async def test_constraint_engine_real():
     agent = ConstraintEngine()
     
     state = {
