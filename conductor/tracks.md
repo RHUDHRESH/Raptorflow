@@ -1,4 +1,4 @@
----
+﻿---
 
 ## [x] Track: moves and campaigns built end to end (Production Engine)
 *Link: [./conductor/tracks/moves_campaigns_production_20251223/](./conductor/tracks/moves_campaigns_production_20251223/)*
@@ -57,3 +57,8 @@
 
 ## [~] Track: Expert Council Agentic System (Ultra-Premium Agentic OS)
 *Link: [./conductor/tracks/expert_council_os_20251227/](./conductor/tracks/expert_council_os_20251227/)*
+
+---
+
+## [ ] Track: Service Integrity & API Key Audit
+*Link: [./conductor/tracks/service_audit_20260119/](./conductor/tracks/service_audit_20260119/)*
