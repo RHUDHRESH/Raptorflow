@@ -86,7 +86,7 @@
 - [x] Task: Implement Global Error Handling & Retry Policies (SHA: 1801208)
 - [x] Task: Conductor - User Manual Verification 'Graph Orchestration' (Protocol in workflow.md) (SHA: 190126K)
 
-## Phase 12: Fallback Implementation
+## Phase 12: Fallback Implementation [checkpoint: 4b1d8c2]
 - [x] Task: Implement `_generate_fallback_context` with new structure (SHA: 1801209)
 - [x] Task: Implement `_generate_fallback_messaging` with new structure (SHA: 1801209)
 - [x] Task: Implement `_generate_fallback_icp` with new structure (SHA: 1801209)
