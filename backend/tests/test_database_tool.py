@@ -9,8 +9,8 @@ import sys
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from agents.tools.database import DatabaseTool
-from agents.tools.registry import get_tool_registry
+from backend.agents.tools.database import DatabaseTool
+from backend.agents.tools.registry import get_tool_registry
 
 
 async def test_database_tool_workspace_isolation():

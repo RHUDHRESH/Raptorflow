@@ -29,7 +29,7 @@ import structlog
 
 # Local imports
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..state import AgentState
 
 logger = structlog.get_logger(__name__)

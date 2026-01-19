@@ -1,191 +1,116 @@
 """
-Web search tool for Raptorflow agents.
+SOTA Web Search Tool for Raptorflow
+===================================
+
+This tool utilizes the self-hosted native search cluster (SearXNG aggregator + IP rotation)
+as the sole source of web intelligence. No external paid APIs (Brave, Google, Serper) are used.
 """
 
 import asyncio
 import logging
+import time
 from typing import Any, Dict, List, Optional
 
-import httpx
 from pydantic import BaseModel
-
-from .base import RaptorflowTool, ToolError, ToolResult
+from .base import RaptorflowTool, ToolResult
+from backend.services.search.orchestrator import SOTASearchOrchestrator
 
 logger = logging.getLogger(__name__)
 
-
-class WebSearchInput(BaseModel):
-    """Input schema for web search."""
-
-    query: str
-    max_results: int = 10
-    engines: List[str] = ["google", "bing"]
-
-
 class SearchResult(BaseModel):
-    """Individual search result."""
-
+    """Individual search result from the native cluster."""
     title: str
     url: str
     snippet: str
-    engine: str
-    relevance_score: float = 0.0
-
-
-class WebSearchOutput(BaseModel):
-    """Output schema for web search."""
-
-    query: str
-    results: List[SearchResult]
-    total_results: int
-    search_time_ms: int
-
+    source: str
+    relevance_score: float = 0.8
+    position: int
 
 class WebSearchTool(RaptorflowTool):
-    """Web search tool using FreeWebSearchEngine."""
+    """
+    Industrial-grade Web Search tool powered by the Raptorflow Native Search Machine.
+    Aggregates results from 70+ engines through a self-hosted cluster.
+    """
 
     def __init__(self):
         super().__init__(
             name="web_search",
-            description="Search the web for information using multiple search engines",
+            description="Perform high-accuracy web search using the Raptorflow native cluster.",
         )
-        self.search_engines = {
-            "google": "https://www.google.com/search",
-            "bing": "https://www.bing.com/search",
-            "duckduckgo": "https://duckduckgo.com/html",
+        self._orchestrator = None
+        self.metrics = {
+            "total_searches": 0,
+            "failed_searches": 0,
+            "total_latency_ms": 0,
+            "avg_latency_ms": 0
         }
 
-    async def _arun(
-        self, query: str, max_results: int = 10, engines: List[str] = None
-    ) -> ToolResult:
-        """Execute web search."""
-        if engines is None:
-            engines = ["google"]
+    def _get_orchestrator(self) -> SOTASearchOrchestrator:
+        """Lazy initialization of the SOTA orchestrator."""
+        if self._orchestrator is None:
+            self._orchestrator = SOTASearchOrchestrator()
+        return self._orchestrator
 
+    async def _arun(
+        self, query: str, max_results: int = 10, **kwargs
+    ) -> ToolResult:
+        """Execute search via the SOTA orchestrator machine."""
+        start_time = time.time()
+        self.metrics["total_searches"] += 1
+        
         try:
-            # Validate inputs
+            # 1. Validation
             if not query or len(query.strip()) < 3:
                 return ToolResult(
-                    success=False, error="Query must be at least 3 characters long"
+                    success=False, 
+                    error="Search query too short. Minimum 3 characters."
                 )
 
-            # Search across engines
-            all_results = []
-            search_start = asyncio.get_event_loop().time()
+            # 2. Native Cluster Execution
+            orchestrator = self._get_orchestrator()
+            raw_results = await orchestrator.query(query, limit=max_results)
+            
+            # 3. Processing and Normalization
+            results = []
+            for idx, res in enumerate(raw_results):
+                results.append({
+                    "title": res.get("title", "Untitled"),
+                    "url": res.get("url", ""),
+                    "snippet": res.get("snippet", ""),
+                    "source": res.get("source", "native_cluster"),
+                    "relevance_score": res.get("confidence", 0.85),
+                    "position": idx + 1
+                })
 
-            for engine in engines:
-                if engine in self.search_engines:
-                    results = await self._search_engine(
-                        engine, query, max_results // len(engines)
-                    )
-                    all_results.extend(results)
+            latency_ms = int((time.time() - start_time) * 1000)
+            self.metrics["total_latency_ms"] += latency_ms
+            self.metrics["avg_latency_ms"] = self.metrics["total_latency_ms"] // self.metrics["total_searches"]
 
-            # Sort by relevance and limit
-            all_results.sort(key=lambda x: x.relevance_score, reverse=True)
-            final_results = all_results[:max_results]
+            output = {
+                "query": query,
+                "results": results,
+                "total_results": len(results),
+                "latency_ms": latency_ms,
+                "engine": "Raptorflow SOTA Native Cluster"
+            }
 
-            # Create output
-            output = WebSearchOutput(
-                query=query,
-                results=final_results,
-                total_results=len(final_results),
-                search_time_ms=int(
-                    (asyncio.get_event_loop().time() - search_start) * 1000
-                ),
+            logger.info(f"Native Search Machine: '{query}' returned {len(results)} results in {latency_ms}ms")
+
+            return ToolResult(
+                success=True,
+                data=output,
+                latency_ms=latency_ms
             )
-
-            return ToolResult(success=True, data=output.model_dump())
 
         except Exception as e:
-            return ToolResult(success=False, error=str(e))
-
-    async def _search_engine(
-        self, engine: str, query: str, max_results: int
-    ) -> List[SearchResult]:
-        """Search a specific engine."""
-        try:
-            if engine == "google":
-                return await self._search_google(query, max_results)
-            elif engine == "bing":
-                return await self._search_bing(query, max_results)
-            elif engine == "duckduckgo":
-                return await self._search_duckduckgo(query, max_results)
-            else:
-                logger.warning(f"Unknown search engine: {engine}")
-                return []
-        except Exception as e:
-            logger.error(f"Error searching {engine}: {e}")
-            return []
-
-    async def _search_google(self, query: str, max_results: int) -> List[SearchResult]:
-        """Search Google (mock implementation for now)."""
-        # In a real implementation, this would use Google Custom Search API
-        # For now, return mock results to demonstrate the structure
-
-        mock_results = [
-            SearchResult(
-                title=f"Google result for: {query}",
-                url="https://example.com/google-result",
-                snippet=f"This is a mock search result for the query: {query}",
-                engine="google",
-                relevance_score=0.9,
-            ),
-            SearchResult(
-                title=f"Another Google result for: {query}",
-                url="https://example.com/another-google-result",
-                snippet=f"Additional information about {query}",
-                engine="google",
-                relevance_score=0.8,
-            ),
-        ]
-
-        return mock_results[:max_results]
-
-    async def _search_bing(self, query: str, max_results: int) -> List[SearchResult]:
-        """Search Bing (mock implementation for now)."""
-        mock_results = [
-            SearchResult(
-                title=f"Bing result for: {query}",
-                url="https://example.com/bing-result",
-                snippet=f"Bing search result for: {query}",
-                engine="bing",
-                relevance_score=0.85,
+            self.metrics["failed_searches"] += 1
+            logger.error(f"Native Search Machine Failure: {str(e)}")
+            return ToolResult(
+                success=False,
+                error=f"Search machine error: {str(e)}",
+                latency_ms=int((time.time() - start_time) * 1000)
             )
-        ]
 
-        return mock_results[:max_results]
-
-    async def _search_duckduckgo(
-        self, query: str, max_results: int
-    ) -> List[SearchResult]:
-        """Search DuckDuckGo (mock implementation for now)."""
-        mock_results = [
-            SearchResult(
-                title=f"DuckDuckGo result for: {query}",
-                url="https://example.com/ddg-result",
-                snippet=f"Privacy-focused search result for: {query}",
-                engine="duckduckgo",
-                relevance_score=0.75,
-            )
-        ]
-
-        return mock_results[:max_results]
-
-    def get_available_engines(self) -> List[str]:
-        """Get list of available search engines."""
-        return list(self.search_engines.keys())
-
-    async def validate_query(self, query: str) -> bool:
-        """Validate search query."""
-        if not query or len(query.strip()) < 3:
-            return False
-
-        # Check for potentially problematic queries
-        problematic_terms = ["site:", "inurl:", "filetype:", "intitle:"]
-        query_lower = query.lower()
-
-        for term in problematic_terms:
-            if term in query_lower:
-                logger.warning(f"Advanced search operator detected: {term}")
-
-        return True
+    def get_performance_metrics(self) -> Dict[str, Any]:
+        """Get machine performance metrics."""
+        return self.metrics

@@ -13,7 +13,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..exceptions import OrchestrationError, ValidationError
 from ..state import AgentState
 from .dispatcher import AgentDispatcher, DispatchRequest, DispatchResult

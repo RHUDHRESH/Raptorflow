@@ -119,7 +119,7 @@ class CloudTasksClient:
         self.client = self.gcp_client.get_cloud_tasks_client()
 
         if not self.client:
-            raise RuntimeError("Cloud Tasks client not available")
+            self.logger.warning("Cloud Tasks client not available")
 
         # Project and region
         self.project_id = self.gcp_client.get_project_id()

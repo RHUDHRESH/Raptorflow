@@ -1,0 +1,51 @@
+# SearXNG Production Settings for RaptorFlow (2026)
+use_default_settings: true
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  secret_key: "raptorflow_industrial_secret_key" # Replace in production with ENV
+  limiter: true # Enable bot detection
+  image_proxy: false # Reduce overhead
+  method: "POST" # More secure for API queries
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  formats:
+    - html
+    - json # REQUIRED for backend API usage
+
+engines:
+  - name: google
+    engine: google
+    shortcut: g
+    timeout: 3.0
+    use_papis: false # Use native scraping
+  - name: bing
+    engine: bing
+    shortcut: b
+    timeout: 3.0
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+    timeout: 3.0
+  - name: wikipedia
+    engine: wikipedia
+    shortcut: w
+    timeout: 2.0
+
+# Bot detection and rate limiting (requires Redis)
+bot_detection:
+  ip_limit:
+    window: 3600
+    limit: 500 # Allow 500 requests per hour per IP
+  link_token: true
+
+# Outgoing request tuning
+outgoing:
+  request_timeout: 5.0
+  max_retry_count: 2
+  pool_connections: 100
+  pool_maxsize: 20
+  enable_http2: true

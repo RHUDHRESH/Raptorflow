@@ -99,75 +99,75 @@ class Event:
 class FoundationUpdatedEvent(Event):
     """Event fired when foundation data is updated."""
 
-    workspace_id: str
-    user_id: str
-    changes: Dict[str, Any]
+    workspace_id: str = ""
+    user_id: str = ""
+    changes: Dict[str, Any] = None
 
 
 @dataclass
 class ICPCreatedEvent(Event):
     """Event fired when a new ICP is created."""
 
-    workspace_id: str
-    user_id: str
-    icp_id: str
-    icp_name: str
-    generation_method: str  # "manual", "ai_generated", "template"
+    workspace_id: str = ""
+    user_id: str = ""
+    icp_id: str = ""
+    icp_name: str = ""
+    generation_method: str = "manual"  # "manual", "ai_generated", "template"
 
 
 @dataclass
 class MoveStartedEvent(Event):
     """Event fired when a new move is initiated."""
 
-    workspace_id: str
-    user_id: str
-    move_id: str
-    move_type: str
-    agent: str
+    workspace_id: str = ""
+    user_id: str = ""
+    move_id: str = ""
+    move_type: str = ""
+    agent: str = ""
 
 
 @dataclass
 class ContentGeneratedEvent(Event):
     """Event fired when content is generated."""
 
-    workspace_id: str
-    user_id: str
-    content_type: str
-    tokens_used: int
-    cost: float
+    workspace_id: str = ""
+    user_id: str = ""
+    content_type: str = ""
+    tokens_used: int = 0
+    cost: float = 0.0
 
 
 @dataclass
 class ApprovalRequestedEvent(Event):
     """Event fired when content approval is requested."""
 
-    workspace_id: str
-    user_id: str
-    approver_id: str
-    content_id: str
-    content_type: str
+    workspace_id: str = ""
+    user_id: str = ""
+    approver_id: str = ""
+    content_id: str = ""
+    content_type: str = ""
 
 
 @dataclass
 class UsageLimitReachedEvent(Event):
     """Event fired when usage limit is reached."""
 
-    workspace_id: str
-    limit_type: str  # "tokens", "cost", "requests"
-    current_usage: float
-    limit: float
-    percentage_used: float
+    workspace_id: str = ""
+    limit_type: str = ""  # "tokens", "cost", "requests"
+    current_usage: float = 0.0
+    limit: float = 0.0
+    percentage_used: float = 0.0
 
 
 @dataclass
 class AgentExecutionEvent(Event):
     """Event fired for agent execution lifecycle."""
 
-    workspace_id: str
-    user_id: str
-    agent_name: str
-    execution_id: str
-    input_data: Dict[str, Any]
+    workspace_id: str = ""
+    user_id: str = ""
+    agent_name: str = ""
+    execution_id: str = ""
+    input_data: Dict[str, Any] = None
     output_data: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
     execution_time: Optional[float] = None

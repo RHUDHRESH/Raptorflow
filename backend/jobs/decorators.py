@@ -9,10 +9,11 @@ import asyncio
 import functools
 import inspect
 import logging
+from contextlib import contextmanager
 from datetime import datetime
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
-from .models import JobResult, JobStatus
+from .models import JobConfig, JobResult, JobStatus
 from .scheduler import get_job_scheduler
 
 logger = logging.getLogger(__name__)
@@ -895,6 +896,7 @@ def retry(
                 except Exception as e:
                     if attempt == max_attempts - 1:
                         # Last attempt failed, raise
+                        raise e
 
                     # Calculate delay with jitter
                     delay = base_delay * (backoff_factor ** attempt)
@@ -1039,7 +1041,7 @@ class JobRegistry:
         """Disable a job."""
         self.scheduler.disable_job(name)
 
-    def execute(self, name: str, *args, **kwargs) -> JobResult:
+    async def execute(self, name: str, *args, **kwargs) -> JobResult:
         """Execute a job manually."""
         return await self.scheduler.run_job_now(name, *args, **kwargs)
 
@@ -1071,9 +1073,9 @@ def unregister_job(name: str):
     _job_registry.unregister_job(name)
 
 
-def execute_job(name: str, *args, **kwargs) -> JobResult:
+async def execute_job(name: str, *args, **kwargs) -> JobResult:
     """Execute a job using the global registry."""
-    return _job_registry.execute(name, *args, **kwargs)
+    return await _job_registry.execute(name, *args, **kwargs)
 
 
 def list_jobs() -> List[str]:

@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from .embeddings import get_embedding_model
 from .models import MemoryChunk, MemoryType
+import hashlib
 
 logger = logging.getLogger(__name__)
 
@@ -555,6 +556,193 @@ class VectorMemory:
                 "estimated_storage_bytes": 0,
                 "workspace_id": workspace_id,
             }
+
+    async def get_section_content(self, workspace_id: str, section: str) -> Optional[str]:
+        """
+        Get text content for a BCM section
+        
+        Args:
+            workspace_id: Workspace UUID
+            section: Section identifier
+            
+        Returns:
+            Text content or None if not found
+        """
+        query = f"""
+            SELECT content FROM memory_vectors
+            WHERE workspace_id = '{workspace_id}'
+            AND memory_type = 'bcm'
+            AND metadata->>'section' = '{section}'
+            ORDER BY created_at DESC
+            LIMIT 1
+        """
+        
+        result = await self.supabase_client.rpc("query", {"query": query})
+        if result and result.data:
+            return result.data[0].get("content")
+        return None
+
+    async def embed_text(self, text: str) -> List[float]:
+        """
+        Generate embedding for text using configured model
+        
+        Args:
+            text: Text to embed
+            
+        Returns:
+            Embedding vector
+        """
+        return await self.embedding_model.embed(text)
+
+    async def mark_section_dirty(self, workspace_id: str, section: str) -> bool:
+        """Mark a BCM section as dirty (needs update)."""
+        try:
+            # Store in dirty_sections tracking table
+            result = await self.supabase_client.table("dirty_sections").upsert({
+                "workspace_id": workspace_id,
+                "section": section,
+                "marked_at": datetime.now().isoformat(),
+                "processed": False
+            }, on_conflict="workspace_id,section").execute()
+            
+            return bool(result.data)
+        except Exception as e:
+            logger.error(f"Failed to mark section {section} as dirty: {e}")
+            return False
+
+    async def get_dirty_sections(self, workspace_id: str) -> List[str]:
+        """Get list of dirty sections needing update."""
+        try:
+            result = await self.supabase_client.table("dirty_sections") \
+                .select("section") \
+                .eq("workspace_id", workspace_id) \
+                .eq("processed", False) \
+                .execute()
+                
+            return [item["section"] for item in result.data] if result.data else []
+        except Exception as e:
+            logger.error(f"Failed to get dirty sections: {e}")
+            return []
+
+    async def clear_dirty_sections(self, workspace_id: str, sections: List[str]) -> bool:
+        """Mark sections as processed/clean."""
+        try:
+            result = await self.supabase_client.table("dirty_sections") \
+                .update({"processed": True}) \
+                .eq("workspace_id", workspace_id) \
+                .in_("section", sections) \
+                .execute()
+                
+            return bool(result.data)
+        except Exception as e:
+            logger.error(f"Failed to clear dirty sections: {e}")
+            return False
+
+    async def upsert_section(
+        self,
+        workspace_id: str,
+        section: str,
+        content: str,
+        version: int,
+        previous_version: Optional[int] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """Versioned upsert of a BCM section."""
+        try:
+            # Get previous content if versioning needed
+            old_content = None
+            if previous_version:
+                result = await self.supabase_client.table("memory_vectors") \
+                    .select("content") \
+                    .eq("workspace_id", workspace_id) \
+                    .eq("metadata->>section", section) \
+                    .eq("metadata->>version", str(previous_version)) \
+                    .single() \
+                    .execute()
+                    
+                if result.data:
+                    old_content = result.data["content"]
+
+            # Generate embedding
+            embedding = await self.embedding_model.encode_single(content)
+
+            # Prepare metadata
+            section_metadata = {
+                "section": section,
+                "version": version,
+                "previous_version": previous_version,
+                "content_hash": hashlib.sha256(content.encode()).hexdigest(),
+                **(metadata or {})
+            }
+
+            # Calculate diff if previous version exists
+            if old_content:
+                diff = self._calculate_content_diff(old_content, content)
+                section_metadata["diff"] = diff
+
+            # Upsert the section
+            result = await self.supabase_client.table("memory_vectors").upsert({
+                "id": str(uuid.uuid4()),
+                "workspace_id": workspace_id,
+                "memory_type": "bcm_section",
+                "content": content,
+                "metadata": section_metadata,
+                "embedding": embedding.tolist(),
+                "created_at": datetime.now().isoformat(),
+                "updated_at": datetime.now().isoformat()
+            }, on_conflict="workspace_id,metadata->>section,metadata->>version").execute()
+
+            return bool(result.data)
+        except Exception as e:
+            logger.error(f"Failed to upsert section {section}: {e}")
+            return False
+
+    async def get_section_versions(
+        self,
+        workspace_id: str,
+        section: str,
+        limit: int = 5
+    ) -> List[Dict[str, Any]]:
+        """Get version history for a section."""
+        try:
+            result = await self.supabase_client.table("memory_vectors") \
+                .select("*") \
+                .eq("workspace_id", workspace_id) \
+                .eq("metadata->>section", section) \
+                .order("created_at", desc=True) \
+                .limit(limit) \
+                .execute()
+                
+            return [
+                {
+                    "content": item["content"],
+                    "version": item["metadata"].get("version"),
+                    "created_at": item["created_at"],
+                    "diff": item["metadata"].get("diff")
+                }
+                for item in result.data
+            ] if result.data else []
+        except Exception as e:
+            logger.error(f"Failed to get section versions: {e}")
+            return []
+
+    def _calculate_content_diff(self, old_content: str, new_content: str) -> Dict[str, Any]:
+        """Calculate diff between old and new content."""
+        # Using simple line-based diff for example
+        # In production, you might use a more sophisticated diff algorithm
+        old_lines = old_content.splitlines()
+        new_lines = new_content.splitlines()
+        
+        added = [line for line in new_lines if line not in old_lines]
+        removed = [line for line in old_lines if line not in new_lines]
+        
+        return {
+            "added": added,
+            "removed": removed,
+            "added_count": len(added),
+            "removed_count": len(removed),
+            "total_lines": len(new_lines)
+        }
 
     def _dict_to_memory_chunk(self, data: Dict[str, Any]) -> MemoryChunk:
         """Convert dictionary to MemoryChunk object."""

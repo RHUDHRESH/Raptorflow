@@ -17,7 +17,7 @@ from typing import Any, Callable, Dict, List
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config.settings import get_settings
+from backend.config.settings import get_settings
 from redis.cache import CacheService
 from redis.client import RedisClient
 from redis.locks import DistributedLock

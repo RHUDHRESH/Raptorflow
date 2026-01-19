@@ -10,13 +10,17 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from ..config.settings import get_settings
+from backend.config.settings import get_settings
 from .handler import WebhookHandler
 from .models import WebhookEvent
 from .verification import verify_webhook
+from backend.services.phonepe_webhook_service import PhonePeWebhookService
+from backend.services.phonepe_auth import get_phonepe_auth_client
 
 logger = logging.getLogger(__name__)
 
+auth_client = get_phonepe_auth_client()
+webhook_service = PhonePeWebhookService(auth_client)
 
 class PhonePeWebhookHandler:
     """Handler for PhonePe webhooks."""
@@ -80,7 +84,7 @@ class PhonePeWebhookHandler:
             event = self._create_webhook_event(payload)
 
             # Handle the event
-            result = await self.webhook_handler.handle(event)
+            result = await webhook_service.process_webhook(payload, {"X-VERIFY": signature})
 
             logger.info(f"PhonePe webhook handled successfully: {event.event_id}")
             return {
@@ -461,39 +465,42 @@ class PhonePeWebhookHandler:
         metadata: dict = None,
     ):
         """Update payment status in database."""
-        # This would integrate with your payment/database service
         logger.info(f"Updating payment status: {transaction_id} -> {status}")
-        pass
-
-    async def _update_refund_status(
-        self,
-        refund_id: str,
-        transaction_id: str,
-        status: str,
-        amount: int = None,
-        failure_reason: str = None,
-        metadata: dict = None,
-    ):
-        """Update refund status in database."""
-        # This would integrate with your refund/database service
-        logger.info(f"Updating refund status: {refund_id} -> {status}")
-        pass
-
-    async def _update_settlement_status(
-        self, settlement_id: str, status: str, amount: int = None, metadata: dict = None
-    ):
-        """Update settlement status in database."""
-        # This would integrate with your settlement/database service
-        logger.info(f"Updating settlement status: {settlement_id} -> {status}")
-        pass
+        try:
+            from db.repositories.payment import PaymentRepository
+            repo = PaymentRepository()
+            await repo.update_status(
+                transaction_id=transaction_id,
+                status=status.upper(),
+                payment_instrument=metadata.get("paymentInstrument") if metadata else None
+            )
+        except Exception as e:
+            logger.error(f"Failed to update payment status in DB: {e}")
 
     async def _grant_access(
         self, user_id: str, workspace_id: str, transaction_id: str, amount: int
     ):
         """Grant access to user/workspace after successful payment."""
-        # This would integrate with your access control service
         logger.info(f"Granting access to user {user_id} for workspace {workspace_id}")
-        pass
+        try:
+            from backend.core.supabase_mgr import get_supabase_client
+            supabase = get_supabase_client()
+            
+            # 1. Update user onboarding status
+            # Check both 'users' and 'profiles' tables for redundancy safety
+            if user_id:
+                supabase.table("users").update({"onboarding_status": "active"}).eq("id", user_id).execute()
+                supabase.table("profiles").update({"onboarding_status": "active"}).eq("id", user_id).execute()
+            
+            # 2. Update subscription status
+            if user_id:
+                supabase.table("subscriptions").update({
+                    "status": "active",
+                    "current_period_start": datetime.utcnow().isoformat()
+                }).eq("user_id", user_id).execute()
+                
+        except Exception as e:
+            logger.error(f"Failed to grant access in DB: {e}")
 
     async def _revoke_access_if_needed(
         self, user_id: str, workspace_id: str, transaction_id: str

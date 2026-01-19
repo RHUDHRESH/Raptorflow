@@ -19,6 +19,7 @@ import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButto
 import { useFoundationStore } from "@/stores/foundationStore";
 import { RICPDetailModal } from "@/components/foundation/RICPDetailModal";
 import { MessagingDetailModal } from "@/components/foundation/MessagingDetailModal";
+import { DeriveCohortModal } from "@/components/foundation/DeriveCohortModal";
 import { RICP, CoreMessaging, MARKET_SOPHISTICATION_LABELS } from "@/types/foundation";
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -28,23 +29,27 @@ import { RICP, CoreMessaging, MARKET_SOPHISTICATION_LABELS } from "@/types/found
 
 export default function FoundationPage() {
   const pageRef = useRef<HTMLDivElement>(null);
-  const { ricps, messaging, channels, updateRICP, updateMessaging } = useFoundationStore();
+  const { ricps, messaging, channels, addRICP, updateRICP, updateMessaging, fetchFoundation } = useFoundationStore();
 
   // Modal state
   const [selectedRICP, setSelectedRICP] = useState<RICP | null>(null);
   const [isMessagingOpen, setIsMessagingOpen] = useState(false);
+  const [isDeriveModalOpen, setIsDeriveModalOpen] = useState(false);
 
   useEffect(() => {
+    fetchFoundation();
+    
     if (!pageRef.current) return;
     const header = pageRef.current.querySelector("[data-header]");
     if (header) gsap.fromTo(header, { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.5 });
-  }, []);
+  }, [fetchFoundation]);
 
   return (
     <div ref={pageRef} className="relative max-w-7xl mx-auto pb-12">
       {/* Background textures */}
       <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundImage: "url('/textures/paper-grain.png')", backgroundRepeat: "repeat", backgroundSize: "256px 256px", opacity: 0.04, mixBlendMode: "multiply" }} />
-      <div className="fixed inset-0 blueprint-grid pointer-events-none z-0 opacity-30" />
+      {/* Grid removed for cleaner "Quiet Luxury" look */}
+      {/* <div className="fixed inset-0 blueprint-grid pointer-events-none z-0 opacity-30" /> */}
 
       <div className="relative z-10 space-y-10">
         {/* Header */}
@@ -73,7 +78,7 @@ export default function FoundationPage() {
           <BlueprintCard showCorners padding="lg" className="group cursor-pointer hover:border-[var(--blueprint)] transition-colors">
             <div className="flex items-start gap-6">
               <div className="w-14 h-14 rounded-[var(--radius)] bg-[var(--blueprint-light)] border border-[var(--blueprint)]/30 flex items-center justify-center shrink-0">
-                <Target size={24} className="text-[var(--blueprint)]" />
+                <Target className="text-[var(--blueprint)]" size={24} strokeWidth={1.5} />
               </div>
               <div className="flex-1">
                 <div className="flex items-start justify-between mb-3">
@@ -101,8 +106,11 @@ export default function FoundationPage() {
               <div className="h-px w-12 bg-[var(--structure)]" />
               <span className="font-technical text-[var(--ink-muted)]">ICP</span>
             </div>
-            <SecondaryButton className="h-9 text-xs">
-              <Plus size={14} />
+            <SecondaryButton 
+              className="h-9 text-xs"
+              onClick={() => setIsDeriveModalOpen(true)}
+            >
+              <span>+</span>
               Add Cohort
             </SecondaryButton>
           </div>
@@ -120,11 +128,11 @@ export default function FoundationPage() {
             {/* Empty state if no RICPs */}
             {ricps.length === 0 && (
               <div className="col-span-full p-12 border-2 border-dashed border-[var(--structure)] rounded-[var(--radius)] text-center">
-                <Users size={32} className="mx-auto text-[var(--ink-muted)] mb-4" />
+                <Users className="mx-auto text-[var(--ink-muted)] mb-4" size={32} strokeWidth={1.5} />
                 <h3 className="font-medium text-[var(--ink)] mb-2">No ICPs defined yet</h3>
                 <p className="text-sm text-[var(--ink-muted)] mb-4">Create your first Rich ICP to start targeting</p>
-                <BlueprintButton>
-                  <Plus size={16} />
+                <BlueprintButton onClick={() => setIsDeriveModalOpen(true)}>
+                  <span>+</span>
                   Create First ICP
                 </BlueprintButton>
               </div>
@@ -150,7 +158,7 @@ export default function FoundationPage() {
             >
               <div className="flex items-start gap-6">
                 <div className="w-14 h-14 rounded-[var(--radius)] bg-[var(--surface)] border border-[var(--structure)] flex items-center justify-center shrink-0 group-hover:bg-[var(--blueprint-light)] group-hover:border-[var(--blueprint)]/30 transition-colors">
-                  <MessageSquare size={24} className="text-[var(--ink-muted)] group-hover:text-[var(--blueprint)]" />
+                  <MessageSquare className="text-[var(--ink-muted)] group-hover:text-[var(--blueprint)]" size={24} strokeWidth={1.5} />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-start justify-between mb-4">
@@ -160,7 +168,10 @@ export default function FoundationPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <BlueprintBadge variant="blueprint">StoryBrand</BlueprintBadge>
-                      <BlueprintProgress value={messaging.confidence || 0} size="sm" showValue className="w-24" />
+                      <div className="flex items-center gap-1">
+                        <BlueprintProgress value={messaging.confidence || 0} size="sm" className="w-20" />
+                        <span className="text-xs text-[var(--ink-muted)]">{messaging.confidence || 0}%</span>
+                      </div>
                     </div>
                   </div>
 
@@ -180,7 +191,7 @@ export default function FoundationPage() {
                     </div>
                   </div>
                 </div>
-                <ChevronRight size={20} className="text-[var(--ink-muted)] group-hover:text-[var(--blueprint)] group-hover:translate-x-1 transition-all mt-2" />
+                <span className="text-[var(--ink-muted)] group-hover:text-[var(--blueprint)] group-hover:translate-x-1 transition-all mt-2 text-xl">→</span>
               </div>
             </BlueprintCard>
           )}
@@ -198,7 +209,7 @@ export default function FoundationPage() {
           <BlueprintCard showCorners padding="lg">
             <div className="flex items-start gap-6">
               <div className="w-14 h-14 rounded-[var(--radius)] bg-[var(--surface)] border border-[var(--structure)] flex items-center justify-center shrink-0">
-                <Layers size={24} className="text-[var(--ink-muted)]" />
+                <Layers className="text-[var(--ink-muted)]" size={24} strokeWidth={1.5} />
               </div>
               <div className="flex-1">
                 <div className="flex items-start justify-between mb-4">
@@ -257,6 +268,16 @@ export default function FoundationPage() {
           onUpdate={updateMessaging}
         />
       )}
+
+      {/* Derive Cohort Modal */}
+      <DeriveCohortModal
+        isOpen={isDeriveModalOpen}
+        onClose={() => setIsDeriveModalOpen(false)}
+        onDerived={(ricp) => {
+          addRICP(ricp);
+          setSelectedRICP(ricp); // Open detail modal immediately
+        }}
+      />
     </div>
   );
 }
@@ -331,9 +352,9 @@ function RICPCard({ ricp, index, onClick }: RICPCardProps) {
 
       {/* View indicator */}
       <div className="flex items-center justify-center gap-1 mt-4 pt-3 border-t border-[var(--structure-subtle)] text-[var(--ink-muted)] group-hover:text-[var(--blueprint)] transition-colors">
-        <Eye size={14} />
+        <Eye size={16} strokeWidth={1.5} />
         <span className="text-xs font-medium">View Full RICP</span>
-        <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+        <span className="group-hover:translate-x-1 transition-transform text-xs">→</span>
       </div>
     </div>
   );

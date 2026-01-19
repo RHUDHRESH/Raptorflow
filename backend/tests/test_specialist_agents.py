@@ -7,15 +7,15 @@ import logging
 from datetime import datetime
 
 # Import base classes for testing
-from agents.base import BaseAgent
-from agents.specialists.analytics_agent import AnalyticsAgent
-from agents.specialists.blackbox_strategist import BlackboxStrategist
+from backend.agents.base import BaseAgent
+from backend.agents.specialists.analytics_agent import AnalyticsAgent
+from backend.agents.specialists.blackbox_strategist import BlackboxStrategist
 
 # Import all specialist agents
-from agents.specialists.content_creator import ContentCreator
-from agents.specialists.market_research import MarketResearch
-from agents.specialists.move_strategist import MoveStrategist
-from agents.state import AgentState
+from backend.agents.specialists.content_creator import ContentCreator
+from backend.agents.specialists.market_research import MarketResearch
+from backend.agents.specialists.move_strategist import MoveStrategist
+from backend.agents.state import AgentState
 
 logger = logging.getLogger(__name__)
 

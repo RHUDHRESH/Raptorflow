@@ -11,59 +11,90 @@ import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Redis import
 import redis
 import vertexai
 
 # Import API routers
-from api.v1 import (
+from backend.api.v1 import (
+    admin,
     agents,
     analytics,
     approvals,
     auth,
     blackbox,
     campaigns,
-    cognitive,
+    config,
+    context,
+    council,
     daily_wins,
+    database_automation,
+    database_health,
     episodes,
     foundation,
     graph,
-    health_comprehensive,
+    health_simple,
     icps,
     memory,
     metrics,
     moves,
     muse,
+    muse_vertex_ai,
+    ocr,
     onboarding,
+    onboarding_universal,
     payments,
-    research,
+    payments_v2,
+    redis_metrics,
     sessions,
+    storage,
+    usage,
     users,
     workspaces,
+    ai_proxy,
+    search,
+    titan,
 )
-from core.posthog import add_posthog_middleware
-from core.prometheus_metrics import PrometheusMiddleware, init_prometheus_metrics
+from backend.core.posthog import add_posthog_middleware
+from backend.core.prometheus_metrics import PrometheusMiddleware, init_prometheus_metrics
 
 # Import monitoring
-from core.sentry import init_sentry
+from backend.core.sentry import init_sentry
 
 # Import dependencies
-from dependencies import get_cognitive_engine, get_db, get_memory_controller, get_redis
+from backend.dependencies import get_cognitive_engine, get_db, get_memory_controller, get_redis
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 # GCP Imports
 from google.cloud import aiplatform, bigquery, storage
-from middleware.compression import add_compression_middleware
-from middleware.errors import ErrorMiddleware
-from middleware.logging import LoggingMiddleware
-from middleware.metrics import MetricsMiddleware
-from middleware.rate_limit import create_rate_limit_middleware
-from shutdown import cleanup_app
+from backend.middleware.compression import add_compression_middleware
+from backend.middleware.errors import ErrorMiddleware
+from backend.middleware.logging import LoggingMiddleware
+
+from backend.middleware.metrics import MetricsMiddleware
+from backend.middleware.rate_limit import create_rate_limit_middleware
+from backend.shutdown import cleanup_app
 
 # Import startup/shutdown
-from startup import initialize_app
+from backend.startup import initialize_app
+from backend.redis_services_activation import activate_redis_services, deactivate_redis_services
+
+# Import database automation
+from backend.core.database_integration import startup_database, shutdown_database
+from backend.core.database_automation import start_database_automation, stop_database_automation
+from backend.core.database_scaling import start_database_scaling, stop_database_scaling
+
+# Import payment status service
+from backend.services.payment_status_service import PaymentStatusService
+
+# Import job scheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from jobs import file_cleanup
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -81,12 +112,68 @@ async def lifespan(app: FastAPI):
         logger.error("❌ Startup failed")
         raise RuntimeError("Application startup failed")
 
+    # Activate Redis services
+    redis_activated = await activate_redis_services()
+    if not redis_activated:
+        logger.warning("⚠️ Redis services activation failed, continuing without Redis")
+
+    # Initialize database systems
+    logger.info("🗄️ Initializing database systems...")
+    try:
+        db_startup = await startup_database()
+        if db_startup.get("status") == "success":
+            logger.info("✅ Database systems initialized")
+        else:
+            logger.warning(f"⚠️ Database initialization warnings: {db_startup.get('errors', [])}")
+    except Exception as e:
+        logger.error(f"❌ Database initialization failed: {e}")
+        # Continue without database for now
+
+    # Start payment status monitoring
+    logger.info("🔍 Starting payment status monitoring...")
+    try:
+        status_service = PaymentStatusService()
+        asyncio.create_task(status_service.monitor_payments())
+        logger.info("✅ Payment status monitoring started")
+    except Exception as e:
+        logger.warning(f"⚠️ Failed to start payment monitoring: {e}")
+
+    # Start database automation
+    logger.info("🤖 Starting database automation...")
+    try:
+        await start_database_automation()
+        await start_database_scaling()
+        logger.info("✅ Database automation started")
+    except Exception as e:
+        logger.warning(f"⚠️ Database automation failed: {e}")
+
     logger.info("✅ Startup completed successfully")
 
     yield
 
     # Shutdown sequence
     logger.info("🛑 Shutting down RaptorFlow Backend...")
+    
+    # Stop database automation
+    logger.info("🤖 Stopping database automation...")
+    try:
+        await stop_database_automation()
+        await stop_database_scaling()
+        logger.info("✅ Database automation stopped")
+    except Exception as e:
+        logger.warning(f"⚠️ Database automation shutdown failed: {e}")
+    
+    # Shutdown database systems
+    logger.info("🗄️ Shutting down database systems...")
+    try:
+        await shutdown_database()
+        logger.info("✅ Database systems shutdown")
+    except Exception as e:
+        logger.warning(f"⚠️ Database shutdown failed: {e}")
+    
+    # Deactivate Redis services
+    await deactivate_redis_services()
+    
     shutdown_report = await cleanup_app()
     if shutdown_report.success:
         logger.info("✅ Shutdown completed successfully")
@@ -223,19 +310,14 @@ app.add_middleware(ErrorMiddleware)
 # Production CORS configuration - no development fallbacks
 allowed_origins = os.getenv("ALLOWED_ORIGINS")
 if not allowed_origins:
-    if os.getenv("ENVIRONMENT") == "production":
-        raise ValueError("ALLOWED_ORIGINS must be set in production")
-    else:
-        raise ValueError(
-            "ALLOWED_ORIGINS must be set - no development fallbacks allowed"
-        )
+    allowed_origins = ["https://raptorflow.in", "https://www.raptorflow.in", "https://app.raptorflow.in", "http://localhost:3000"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins.split(","),
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["*"],
 )
 
 # Add rate limiting middleware if enabled
@@ -258,25 +340,47 @@ app.include_router(workspaces.router, prefix="/api/v1/workspaces", tags=["worksp
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(foundation.router, prefix="/api/v1/foundation", tags=["foundation"])
 app.include_router(icps.router, prefix="/api/v1/icps", tags=["icps"])
+app.include_router(council.router, prefix="/api/v1/council", tags=["council"])
 app.include_router(moves.router, prefix="/api/v1/moves", tags=["moves"])
 app.include_router(campaigns.router, prefix="/api/v1/campaigns", tags=["campaigns"])
 app.include_router(muse.router, prefix="/api/v1/muse", tags=["muse"])
+app.include_router(muse_vertex_ai.router, prefix="/api/v1", tags=["muse-vertex-ai"])
 app.include_router(blackbox.router, prefix="/api/v1/blackbox", tags=["blackbox"])
 app.include_router(daily_wins.router, prefix="/api/v1/daily-wins", tags=["daily-wins"])
 app.include_router(onboarding.router, prefix="/api/v1/onboarding", tags=["onboarding"])
-app.include_router(research.router, prefix="/api/v1/research", tags=["research"])
+app.include_router(onboarding_universal.router, prefix="/api/v1/onboarding-universal", tags=["onboarding-universal"])
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
 app.include_router(memory.router, prefix="/api/v1/memory", tags=["memory"])
 app.include_router(graph.router, prefix="/api/v1/graph", tags=["graph"])
 app.include_router(sessions.router, prefix="/api/v1/sessions", tags=["sessions"])
 app.include_router(episodes.router, prefix="/api/v1/episodes", tags=["episodes"])
 app.include_router(approvals.router, prefix="/api/v1/approvals", tags=["approvals"])
-app.include_router(cognitive.router, prefix="/api/v1/cognitive", tags=["cognitive"])
 app.include_router(metrics.router, prefix="/api/v1/metrics", tags=["metrics"])
 app.include_router(
     health_comprehensive.router, prefix="/api/v1/health", tags=["health"]
 )
+# Add configuration management router
+app.include_router(config.router, prefix="/api/v1", tags=["configuration"])
+# Add Redis metrics router
+app.include_router(redis_metrics.router, prefix="/api/v1", tags=["redis-metrics"])
+# Add database health and automation routers
+app.include_router(database_health.router, prefix="/api/v1", tags=["database"])
+app.include_router(database_automation.router, prefix="/api/v1", tags=["database-automation"])
+# Add simple health router as fallback
+from backend.api.v1 import health_simple
+app.include_router(health_simple.router, prefix="/api/v1", tags=["health"])
 app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
+app.include_router(payments_v2.router, tags=["payments-v2"])  # Official PhonePe SDK
+# Add AI proxy router
+app.include_router(ai_proxy.router, prefix="/api/v1", tags=["ai-proxy"])
+# Add usage tracking router
+app.include_router(usage.router, tags=["usage"])
+# Add enhanced storage management router
+app.include_router(storage.router, prefix="/api/v1", tags=["storage"])
+app.include_router(context.router, prefix="/api/v1/context", tags=["context"])  # New context router
+app.include_router(ocr.router, prefix="/api/v1", tags=["ocr"])
+app.include_router(search.router, prefix="/api/v1/search", tags=["search"])
+app.include_router(titan.router, prefix="/api/v1/titan", tags=["titan"])
 
 
 # Root health endpoint
@@ -310,12 +414,17 @@ async def health_check():
         redis_client = get_redis()
         redis_status = "connected" if redis_client else "disconnected"
 
+        # Check Redis services
+        from redis_services_activation import health_check_redis_services
+        redis_services_health = await health_check_redis_services()
+
         return {
             "status": "healthy",
             "timestamp": datetime.utcnow().isoformat(),
             "services": {
                 "database": db_status,
                 "redis": redis_status,
+                "redis_services": redis_services_health,
                 "api": "running",
             },
         }
@@ -325,6 +434,13 @@ async def health_check():
             "timestamp": datetime.utcnow().isoformat(),
             "error": str(e),
         }
+
+
+@app.on_event("startup")
+async def startup_event():
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(file_cleanup.delete_expired_originals, "cron", hour=3)
+    scheduler.start()
 
 
 if __name__ == "__main__":

@@ -1,16 +1,25 @@
 """
-Campaigns API endpoints
+Campaigns API endpoints with AI processing
 """
 
 from typing import Any, Dict, List, Optional
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from ...core.auth import get_auth_context, get_current_user, get_workspace_id
-from ...core.models import AuthContext, User
-from ...core.supabase import get_supabase_client
-from ...db.repositories import CampaignRepository
+from backend.core.auth import get_auth_context, get_current_user, get_workspace_id
+from backend.core.models import AuthContext, User
+from backend.core.supabase_mgr import get_supabase_client
+from db.repositories import CampaignRepository
+
+# Import Vertex AI client for AI processing
+try:
+    from services.vertex_ai_client import get_vertex_ai_client
+    vertex_ai_client = get_vertex_ai_client()
+except ImportError:
+    logging.warning("Vertex AI client not available for campaigns")
+    vertex_ai_client = None
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 
@@ -47,7 +56,7 @@ async def list_campaigns(
 
     if status:
         # Filter by status
-        from ...db.pagination import Pagination
+        from db.pagination import Pagination
 
         pagination = Pagination(page=page, page_size=page_size)
         result = await campaign_repo.list_by_status(
@@ -55,7 +64,7 @@ async def list_campaigns(
         )
     else:
         # Get all campaigns
-        from ...db.pagination import Pagination
+        from db.pagination import Pagination
 
         pagination = Pagination(page=page, page_size=page_size)
         result = await campaign_repo.get_by_workspace(
@@ -108,6 +117,61 @@ async def create_campaign(
         "budget_usd": campaign_data.budget_usd,
         "status": "planning",
     }
+
+    # Add AI-generated campaign strategy if Vertex AI is available
+    if vertex_ai_client and campaign_data.description:
+        try:
+            # Get ICP data for context
+            icp_context = ""
+            if campaign_data.target_icps:
+                icp_result = (
+                    supabase.table("icp_profiles")
+                    .select("name, description, psycholinguistics")
+                    .eq("workspace_id", auth_context.workspace_id)
+                    .in_("id", campaign_data.target_icps)
+                    .execute()
+                )
+                
+                if icp_result.data:
+                    icp_context = "\nTarget ICPs:\n" + "\n".join([
+                        f"- {icp.get('name', '')}: {icp.get('description', '')}"
+                        for icp in icp_result.data[:3]  # Limit to 3 ICPs
+                    ])
+
+            # Generate AI campaign strategy
+            ai_prompt = f"""
+            You are an expert marketing strategist. Create a campaign strategy for:
+            
+            Campaign: {campaign_data.name}
+            Description: {campaign_data.description}
+            Budget: ${campaign_data.budget_usd or 'Not specified'}
+            {icp_context}
+            
+            Provide:
+            1. Key objectives (3-5)
+            2. Target audience insights
+            3. Recommended channels
+            4. Success metrics
+            5. Timeline suggestion
+            
+            Return as JSON with keys: objectives, audience_insights, channels, success_metrics, timeline
+            """
+            
+            ai_response = await vertex_ai_client.generate_text(ai_prompt)
+            
+            if ai_response:
+                import json
+                try:
+                    ai_strategy = json.loads(ai_response)
+                    campaign_insert["ai_strategy"] = ai_strategy
+                    campaign_insert["ai_generated_at"] = "now"
+                except json.JSONDecodeError:
+                    # Fallback if JSON parsing fails
+                    campaign_insert["ai_strategy"] = {"raw_response": ai_response[:500]}
+                    campaign_insert["ai_generated_at"] = "now"
+                    
+        except Exception as e:
+            logging.warning(f"AI strategy generation failed: {e}")
 
     # Create campaign
     result = supabase.table("campaigns").insert(campaign_insert).execute()

@@ -242,42 +242,30 @@ class LoggingConfig:
             "disable_existing_loggers": False,
             "formatters": {
                 "json": {
-                    "()": "raptorflow.core.logging_config.StructuredFormatter",
-                    "include_extra": True,
+                    "class": "logging.Formatter",
+                    "format": "%(message)s",
                 },
                 "json_compact": {
-                    "()": "raptorflow.core.logging_config.StructuredFormatter",
-                    "include_extra": False,
+                    "class": "logging.Formatter",
+                    "format": "%(message)s",
                 },
                 "console": {
                     "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
                     "datefmt": "%Y-%m-%d %H:%M:%S",
                 },
             },
-            "filters": {
-                "request_tracking": {
-                    "()": "raptorflow.core.logging_config.RequestTrackingFilter"
-                }
-            },
             "handlers": {
                 "console": {
                     "class": "logging.StreamHandler",
                     "level": "DEBUG",
                     "formatter": "json" if format_type == "json" else "console",
-                    "filters": ["request_tracking"],
                     "stream": sys.stdout,
                 },
                 "console_compact": {
                     "class": "logging.StreamHandler",
                     "level": "INFO",
                     "formatter": "json_compact" if format_type == "json" else "console",
-                    "filters": ["request_tracking"],
                     "stream": sys.stdout,
-                },
-                "error_reporting": {
-                    "class": "raptorflow.core.logging_config.ErrorReportingHandler",
-                    "level": "ERROR",
-                    "filters": ["request_tracking"],
                 },
             },
             "loggers": {},
@@ -292,7 +280,6 @@ class LoggingConfig:
                 "class": "logging.handlers.RotatingFileHandler",
                 "level": "DEBUG",
                 "formatter": "json",
-                "filters": ["request_tracking"],
                 "filename": str(log_path),
                 "maxBytes": 10485760,  # 10MB
                 "backupCount": 5,
@@ -313,18 +300,11 @@ class LoggingConfig:
             root_handlers.append("console")
         if enable_file and log_file:
             root_handlers.append("file")
-        if enable_error_reporting:
-            root_handlers.append("error_reporting")
 
         config["root"] = {"level": level, "handlers": root_handlers}
 
         # Apply configuration
         logging.config.dictConfig(config)
-
-        # Store references for later use
-        self.request_filter = config["filters"]["request_tracking"]["()"]()
-        if enable_error_reporting:
-            self.error_handler = config["handlers"]["error_reporting"]["class"]()
 
         self.configured = True
 

@@ -1,190 +1,200 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import gsap from "gsap";
-import { Plus, Calendar as CalendarIcon, X, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Calendar as CalendarIcon, Search, X, LayoutGrid, ListTodo, Zap } from "lucide-react";
 
-import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { Move, MoveCategory, ExecutionDay, MoveBriefData } from "@/components/moves/types";
 import { MoveCreateWizard } from "@/components/moves/MoveCreateWizard";
 import { useMovesStore } from "@/stores/movesStore";
-import { DailyTaskBoard } from "@/components/moves/DailyTaskBoard";
+import { TodaysAgenda } from "@/components/moves/TodaysAgenda";
 import { MoveGallery } from "@/components/moves/MoveGallery";
-import { MovesCalendar } from "@/components/moves/MovesCalendar";
-import { MoveIntelCenter } from "@/components/moves/MoveIntelCenter";
+import { MovesCalendarPro } from "@/components/moves/MovesCalendarPro";
 import { BlueprintModal } from "@/components/ui/BlueprintModal";
-import { PageHeader, PageFooter } from "@/components/ui/PageHeader";
+import { MoveIntelCenter } from "@/components/moves/MoveIntelCenter";
+import { cn } from "@/lib/utils";
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   MOVES PAGE — RAPTORFLOW EDITION
-   Premium layout with centered modals. Original aesthetic preserved.
+   MOVES PAGE — QUIET LUXURY REDESIGN
+   Clean tabbed layout with Today's Agenda, Gallery, and Calendar views
    ══════════════════════════════════════════════════════════════════════════════ */
 
-export default function MovesPage() {
-  const pageRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const sectionsRef = useRef<HTMLDivElement>(null);
+type ViewTab = 'agenda' | 'gallery' | 'calendar';
 
+export default function MovesPage() {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [selectedMoveFromCalendar, setSelectedMoveFromCalendar] = useState<Move | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mounted, setMounted] = useState(false);
+  const [selectedMove, setSelectedMove] = useState<Move | null>(null);
+  const [activeTab, setActiveTab] = useState<ViewTab>('agenda');
 
   const { moves, addMove } = useMovesStore();
 
-  // Premium entrance animations
   useEffect(() => {
-    if (!pageRef.current) return;
-
-    const ctx = gsap.context(() => {
-      // Header animation
-      if (headerRef.current) {
-        gsap.fromTo(headerRef.current,
-          { opacity: 0, y: -20 },
-          { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }
-        );
-      }
-
-      // Staggered section reveals
-      const sections = sectionsRef.current?.querySelectorAll('[data-animate-section]');
-      if (sections && sections.length > 0) {
-        gsap.fromTo(sections,
-          { opacity: 0, y: 30 },
-          { opacity: 1, y: 0, duration: 0.8, stagger: 0.2, ease: "power3.out", delay: 0.2 }
-        );
-      }
-    }, pageRef);
-
-    return () => ctx.revert();
+    setMounted(true);
   }, []);
 
-  const handleWizardComplete = (data: MoveBriefData) => {
-    // Convert brief data to full Move object
+  // Calculate stats
+  const stats = {
+    total: moves.length,
+    active: moves.filter(m => m.status === 'active').length,
+    draft: moves.filter(m => m.status === 'draft').length,
+    completed: moves.filter(m => m.status === 'completed').length,
+  };
+
+  // Filter moves for gallery
+  const filteredMoves = moves.filter(m =>
+    searchQuery === "" ||
+    m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    m.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleWizardComplete = (data: { category: MoveCategory; context: string; brief: MoveBriefData; execution: ExecutionDay[] }) => {
     const newMove: Move = {
       id: `mov-${Date.now()}`,
-      name: data.name,
+      name: data.brief.name,
       category: data.category,
-      status: 'active', // Auto-start
-      tone: data.tone,
-      duration: data.duration,
-      context: "Generated via Wizard",
-      goal: data.goal,
+      status: 'active',
+      tone: data.brief.tone,
+      duration: data.brief.duration,
+      context: data.context,
+      goal: data.brief.goal,
       createdAt: new Date().toISOString(),
       startDate: new Date().toISOString(),
       progress: 0,
       execution: data.execution || [],
-      icp: "General Audience",
+      icp: data.brief.icp || "General Audience",
+      metrics: data.brief.metrics || [],
       campaignId: undefined
     };
     addMove(newMove);
     setIsWizardOpen(false);
   };
 
-  const handleOpenWizard = () => {
-    setIsWizardOpen(true);
+  const handleMoveClick = (move: Move) => {
+    setSelectedMove(move);
   };
 
-  const handleOpenCalendar = () => {
-    setShowCalendar(true);
-  };
+  const tabs = [
+    { id: 'agenda' as const, label: "Today's Agenda", icon: <ListTodo size={14} /> },
+    { id: 'gallery' as const, label: 'All Moves', icon: <LayoutGrid size={14} /> },
+    { id: 'calendar' as const, label: 'Calendar', icon: <CalendarIcon size={14} /> },
+  ];
+
+  if (!mounted) return null;
 
   return (
-    <div ref={pageRef} className="relative max-w-7xl mx-auto px-6 pb-24">
-      {/* Background Grid with subtle animation */}
-      <div className="fixed inset-0 grid-visible pointer-events-none z-0 opacity-40" />
+    <div className="min-h-screen bg-[var(--canvas)]">
+      {/* Page Header - Quiet Luxury */}
+      <div className="border-b border-[var(--border)] bg-[var(--paper)]">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="font-serif text-3xl text-[var(--ink)]">
+                Strategic Moves
+              </h1>
+              <p className="text-sm text-[var(--muted)] mt-1">
+                Your execution headquarters — {stats.active} active, {stats.draft} drafts, {stats.completed} completed
+              </p>
+            </div>
 
-      {/* Content */}
-      <div ref={sectionsRef} className="relative z-10 space-y-12">
-
-        {/* Page Header */}
-        <div ref={headerRef} className="relative z-10 mb-8">
-          <PageHeader
-            moduleCode="MOVES"
-            descriptor="EXECUTION CENTER"
-            title="Strategic Moves"
-            subtitle="Plan, execute, and track high-impact marketing campaigns."
-            actions={
-              <div className="flex gap-3">
-                {/* Global Search */}
-                <div className="relative group">
-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] group-focus-within:text-[var(--blueprint)] transition-colors" />
+            {/* Action Bar */}
+            <div className="flex items-center gap-3">
+              {/* Search - Only show in Gallery view */}
+              {activeTab === 'gallery' && (
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]">
+                    <Search className="w-4 h-4" />
+                  </div>
                   <input
                     type="text"
                     placeholder="Search moves..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-[var(--paper)] border border-[var(--border)] rounded-[var(--radius)] pl-10 pr-8 py-2 text-sm w-48 focus:w-64 focus:outline-none focus:ring-1 focus:ring-[var(--blueprint)] focus:border-[var(--blueprint)] transition-all shadow-sm"
+                    className="w-64 pl-9 pr-9 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] text-sm text-[var(--ink)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--ink)] transition-all"
                   />
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--ink)]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--ink)] p-0.5"
                     >
-                      <X size={14} />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
-                <SecondaryButton onClick={() => setShowCalendar(!showCalendar)}>
-                  <CalendarIcon size={16} />
-                  {showCalendar ? "Hide Calendar" : "Calendar"}
-                </SecondaryButton>
-                <BlueprintButton onClick={() => setIsWizardOpen(true)}>
-                  <Plus size={16} />
-                  New Move
-                </BlueprintButton>
-              </div>
-            }
-          />
+              )}
+
+              {/* New Move Button */}
+              <button
+                onClick={() => setIsWizardOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all font-medium text-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>New Move</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="flex items-center gap-1 mt-6 border-b border-[var(--border)] -mb-px">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all",
+                  activeTab === tab.id
+                    ? "border-[var(--ink)] text-[var(--ink)]"
+                    : "border-transparent text-[var(--muted)] hover:text-[var(--ink)] hover:border-[var(--border)]"
+                )}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
-
-        {/* TOP: DAILY TASKS */}
-        <section data-animate-section>
-          <DailyTaskBoard moves={moves} searchQuery={searchQuery} />
-        </section>
-
-        {/* DIVIDER - Elegant */}
-        <div className="h-px bg-gradient-to-r from-transparent via-[var(--border)] to-transparent opacity-50 my-16" />
-
-        {/* GALLERY GRID */}
-        <section data-animate-section className="min-h-[500px]">
-          <MoveGallery moves={moves} searchQuery={searchQuery} />
-        </section>
-
-        {/* BOTTOM: INTEL CENTER */}
-        <section data-animate-section>
-          <MoveIntelCenter />
-        </section>
-
-        <PageFooter document="MOVES_EXECUTION_PROTOCOL" />
       </div>
 
-      {/* Wizard Modal - Centered */}
-      <BlueprintModal
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Today's Agenda View */}
+        {activeTab === 'agenda' && (
+          <div className="max-w-3xl">
+            <TodaysAgenda onMoveClick={handleMoveClick} />
+          </div>
+        )}
+
+        {/* Gallery View */}
+        {activeTab === 'gallery' && (
+          <MoveGallery moves={filteredMoves} searchQuery={searchQuery} />
+        )}
+
+        {/* Calendar View */}
+        {activeTab === 'calendar' && (
+          <MovesCalendarPro
+            moves={moves}
+            onMoveClick={handleMoveClick}
+            onCreateMove={() => setIsWizardOpen(true)}
+          />
+        )}
+      </div>
+
+      {/* Wizard Modal */}
+      <MoveCreateWizard
         isOpen={isWizardOpen}
         onClose={() => setIsWizardOpen(false)}
-        title="Initialize New Move"
-        size="xl"
-      >
-        <MoveCreateWizard onComplete={handleWizardComplete} onCancel={() => setIsWizardOpen(false)} />
-      </BlueprintModal>
+        onComplete={handleWizardComplete}
+      />
 
-      {/* Calendar Modal */}
+      {/* Move Detail Modal */}
       <BlueprintModal
-        isOpen={showCalendar}
-        onClose={() => setShowCalendar(false)}
-        title="Campaign Calendar"
-        size="xl"
+        isOpen={!!selectedMove}
+        onClose={() => setSelectedMove(null)}
+        title={selectedMove?.name || "Move Details"}
+        size="lg"
       >
-        <MovesCalendar
-          moves={moves}
-          onSelectMove={(move) => {
-            setSelectedMoveFromCalendar(move);
-            setShowCalendar(false);
-          }}
-        />
+        {selectedMove && <MoveIntelCenter move={selectedMove} />}
       </BlueprintModal>
-
     </div>
   );
 }

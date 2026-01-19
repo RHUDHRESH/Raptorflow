@@ -34,7 +34,7 @@ from pydantic import BaseModel, ValidationError
 
 # Local imports
 from ..base import BaseComponent, ComponentConfig, ExecutionContext, ExecutionResult
-from ..config import settings
+from backend.config import settings
 
 logger = structlog.get_logger(__name__)
 
@@ -449,10 +449,10 @@ class BaseTool(ABC):
             timeout = self.config.get("timeout", self.tool_config.timeout)
             if timeout:
                 result.data = await asyncio.wait_for(
-                    self._execute_with_monitoring(**kwargs), timeout=timeout
+                    self._execute(**kwargs), timeout=timeout
                 )
             else:
-                result.data = await self._execute_with_monitoring(**kwargs)
+                result.data = await self._execute(**kwargs)
 
             # Mark as successful
             result.status = ToolStatus.COMPLETED
@@ -490,11 +490,6 @@ class BaseTool(ABC):
             result.duration = (result.end_time - result.start_time).total_seconds()
 
             return result
-
-    @tool_performance_monitor(performance_monitor)
-    async def _execute_with_monitoring(self, **kwargs) -> Dict[str, Any]:
-        """Execute tool with performance monitoring."""
-        return await self._execute(**kwargs)
 
     @abstractmethod
     async def _execute(self, **kwargs) -> Dict[str, Any]:

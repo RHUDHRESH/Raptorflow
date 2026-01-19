@@ -11,8 +11,8 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-from .models import User
-from .supabase import get_supabase_client
+from backend.core.models import User
+from backend.core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 

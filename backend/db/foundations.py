@@ -6,17 +6,20 @@ Handles CRUD operations for foundation data
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..core.models import ValidationError
-from ..core.supabase import get_supabase_client
-from .base import Repository
+from backend.core.models import ValidationError
+from backend.core.supabase_mgr import get_supabase_client
+from backend.db.base import Repository
 
 
 class FoundationRepository(Repository):
     """Repository for foundation operations"""
 
     def __init__(self):
-        super().__init__(get_supabase_client())
-        self.table_name = "foundations"
+        super().__init__("foundations")
+
+    def _map_to_model(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Map database record to dict."""
+        return data
 
     async def get_by_workspace(self, workspace_id: str) -> Optional[Dict[str, Any]]:
         """

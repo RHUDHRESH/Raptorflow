@@ -8,9 +8,9 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from agents.dispatcher import AgentDispatcher
-from cognitive import CognitiveEngine
-from memory.controller import MemoryController
+from backend.agents.dispatcher import AgentDispatcher
+from backend.cognitive import CognitiveEngine
+from backend.memory.controller import MemoryController
 
 from supabase import Client
 
@@ -403,7 +403,7 @@ async def _test_cross_module_integration(
 
         # Test agent with cognitive engine
         try:
-            from agents.state import AgentState
+            from backend.agents.state import AgentState
 
             from .agents_cognitive import execute_with_cognition
 
@@ -493,7 +493,7 @@ async def _test_redis_integration(redis_client) -> Dict[str, Any]:
 
         # Test session management
         try:
-            from agents.state import AgentState
+            from backend.agents.state import AgentState
 
             from .redis_sessions import persist_agent_state, restore_agent_state
 

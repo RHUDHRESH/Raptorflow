@@ -6,8 +6,8 @@ Handles CRUD operations for marketing moves
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..core.models import ValidationError
-from ..core.supabase import get_supabase_client
+from backend.core.models import ValidationError
+from backend.core.supabase_mgr import get_supabase_client
 from .base import Repository
 
 

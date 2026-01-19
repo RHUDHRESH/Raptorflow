@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..exceptions import DatabaseError, ValidationError
 from ..state import AgentState, add_message, update_state
 
@@ -570,6 +570,27 @@ Always focus on creating authentic, engaging content that resonates with the tar
         state: AgentState,
     ) -> str:
         """Generate platform-optimized caption."""
+        # [SWARM INTEGRATION]
+        # 1. Trend Spotting with SocialPulseSkill
+        trending_topics = []
+        if request.content_pillar in ["entertaining", "inspirational"]:
+            pulse_skill = self.skills_registry.get_skill("social_pulse")
+            if pulse_skill:
+                try:
+                    logger.info("Swarm: Checking SocialPulse for trends...")
+                    pulse_res = await pulse_skill.execute({
+                        "agent": self,
+                        "platform": request.platform,
+                        "category": request.content_pillar
+                    })
+                    if "trending_topics" in pulse_res:
+                        trending_topics = pulse_res.get("trending_topics", [])[:3]
+                except Exception as e:
+                    logger.warning(f"SocialPulse failed: {e}")
+
+        # 2. Add Swarm context to prompt
+        trend_context = f"TRENDING TOPICS: {', '.join(trending_topics)}" if trending_topics else ""
+
         # Build caption generation prompt
         prompt = f"""
 Create engaging social media content with the following specifications:
@@ -582,6 +603,7 @@ BRAND VOICE: {request.brand_voice}
 CONTENT PILLAR: {request.content_pillar}
 URGENCY: {request.urgency}
 KEYWORDS: {", ".join(request.keywords)}
+{trend_context}
 
 PLATFORM REQUIREMENTS:
 - Character limit: {platform_config["character_limit"]}
@@ -601,7 +623,28 @@ Create content that:
 The content should be authentic, engaging, and optimized for {request.platform} platform.
 """
 
-        # Generate caption
+        # [SWARM INTEGRATION]
+        # 3. Use ViralHookSkill for caption generation if avail
+        hook_skill = self.skills_registry.get_skill("viral_hook")
+        
+        caption = ""
+        if hook_skill:
+             try:
+                 logger.info("Swarm: Generating viral caption via ViralHookSkill...")
+                 hook_res = await hook_skill.execute({
+                     "agent": self,
+                     "topic": f"{request.content_pillar} content about {' '.join(request.keywords)}",
+                     "platform": request.platform
+                 })
+                 # If skill returns "viral_hooks", pick the best one + expand
+                 if "viral_hooks" in hook_res and hook_res["viral_hooks"]:
+                      caption = hook_res["viral_hooks"][0] 
+                      # We might need to expand it if it's just a hook
+                      prompt += f"\n\nSTART THE CAPTION WITH THIS HOOK: {caption}"
+             except Exception:
+                 pass
+
+        # Generate final caption (or expand on hook)
         caption = await self.llm.generate(prompt)
 
         # Ensure caption length constraints

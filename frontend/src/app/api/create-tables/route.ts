@@ -1,10 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// Note: This route doesn't actually use the Supabase client,
+// it just generates SQL for manual execution. Removed unused import.
 
 export async function POST() {
   const results: any = { success: false, steps: [] }
@@ -63,16 +60,12 @@ export async function POST() {
         FOR SELECT USING (auth.uid() = user_id);
     `
 
-    // Execute the SQL using Supabase's SQL editor endpoint
-    // Since we can't execute arbitrary SQL directly, we'll use a workaround
-    // by creating the tables through the Supabase dashboard
-
-    results.steps.push('✅ SQL generated for user_profiles table')
-    results.steps.push('✅ SQL generated for payments table')
+    results.steps.push('SQL generated for user_profiles table')
+    results.steps.push('SQL generated for payments table')
     results.profiles_sql = createProfilesSQL
     results.payments_sql = createPaymentsSQL
     results.instructions = `
-      1. Go to https://supabase.com/dashboard/project/vpwwzsanuyhpkvgorcnc/sql
+      1. Go to Supabase SQL Editor
       2. Copy and paste the SQL from the profiles_sql field
       3. Click "Run" to execute
       4. Copy and paste the SQL from the payments_sql field

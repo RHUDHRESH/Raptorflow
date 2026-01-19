@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-from .supabase import get_supabase_client
+from .supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 

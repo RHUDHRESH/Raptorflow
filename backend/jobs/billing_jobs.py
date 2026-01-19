@@ -393,7 +393,7 @@ class BillingJobs:
                 recommendations = []
 
                 # Get all workspaces
-                from ..core.workspace import get_workspace_service
+                from backend.core.workspace import get_workspace_service
 
                 workspace_service = get_workspace_service()
                 workspaces = await workspace_service.get_all_workspaces()
@@ -748,7 +748,7 @@ _billing_jobs = BillingJobs()
 async def calculate_usage_job() -> Dict[str, Any]:
     """Calculate usage job for all workspaces."""
     # Get all workspaces and calculate usage for each
-    from ..core.workspace import get_workspace_service
+    from backend.core.workspace import get_workspace_service
 
     workspace_service = get_workspace_service()
     workspaces = await workspace_service.get_all_workspaces()
@@ -775,7 +775,7 @@ async def calculate_usage_job() -> Dict[str, Any]:
 async def generate_invoice_job() -> Dict[str, Any]:
     """Generate invoice job for all workspaces."""
     # Get all workspaces and generate invoices for each
-    from ..core.workspace import get_workspace_service
+    from backend.core.workspace import get_workspace_service
 
     workspace_service = get_workspace_service()
     workspaces = await workspace_service.get_all_workspaces()

@@ -12,13 +12,29 @@ import pytest_asyncio
 from ..events.bus import EventBus
 from ..infrastructure.storage import CloudStorage
 from ..jobs.scheduler import JobScheduler
-from ..redis.cache import CacheService
-from ..redis.client import RedisClient
-from ..redis.queue import QueueService
-from ..redis.rate_limit import RateLimitService
-from ..redis.session_models import SessionData
-from ..redis.usage import UsageTracker
+from ..redis_core.cache import CacheService
+from ..redis_core.client import RedisClient
+from ..redis_core.queue import QueueService
+from ..redis_core.rate_limit import RateLimitService
+from ..redis_core.session import SessionService
+from ..redis_core.session_models import SessionData
+from ..redis_core.usage import UsageTracker
 from ..webhooks.handler import WebhookHandler
+from fastapi import UploadFile
+from io import BytesIO
+
+
+@pytest.fixture
+def sample_upload_file():
+    """Create a sample UploadFile for testing."""
+    def _create_file(filename="test.pdf", content=b"fake pdf content", content_type="application/pdf"):
+        file_obj = BytesIO(content)
+        return UploadFile(
+            filename=filename,
+            file=file_obj,
+            headers={"content-type": content_type}
+        )
+    return _create_file
 
 
 @pytest.fixture(scope="session")
@@ -93,8 +109,6 @@ def test_cache_data() -> dict:
 @pytest_asyncio.fixture
 async def session_service(redis_client: RedisClient) -> SessionService:
     """Session service fixture."""
-    from ..redis.session import SessionService
-
     return SessionService(redis_client)
 
 

@@ -8,7 +8,7 @@ from typing import Optional
 from fastapi import Depends, Header, HTTPException, Request
 
 from .jwt import JWTValidator, get_jwt_validator
-from .supabase import get_supabase_client
+from .supabase_mgr import get_supabase_client
 
 # Import models with fallback to avoid circular imports
 try:
@@ -158,13 +158,13 @@ async def get_current_user(request: Request, authorization: str = Header(None)) 
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Get user from database
+    # Get user from database using auth_user_id (JWT sub is Supabase auth user ID)
     supabase = get_supabase_client()
     try:
         result = (
             supabase.table("users")
             .select("*")
-            .eq("id", jwt_payload.sub)
+            .eq("auth_user_id", jwt_payload.sub)
             .single()
             .execute()
         )

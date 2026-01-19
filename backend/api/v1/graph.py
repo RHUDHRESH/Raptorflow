@@ -15,8 +15,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from ...core.auth import get_current_user, get_workspace_id
-from ...core.models import User
+from backend.core.auth import get_current_user, get_workspace_id
+from backend.core.models import User
 from ...memory.graph_memory import GraphMemory
 from ...memory.graph_models import (
     EntityType,
@@ -128,7 +128,7 @@ async def get_entities(
         entities = await graph_memory.find_entities(
             workspace_id=workspace_id,
             entity_type=target_type,
-            name_pattern=name_pattern,
+            name_regex=name_pattern,
             limit=limit,
         )
 
@@ -544,7 +544,7 @@ async def query_graph(
         # Query graph
         subgraph = await graph_memory.query_pattern(
             workspace_id=request.workspace_id,
-            pattern=request.pattern,
+            regex=request.pattern,
             limit=request.limit,
         )
 

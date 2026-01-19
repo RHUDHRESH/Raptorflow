@@ -82,6 +82,15 @@ Build your marketing strategy with four key pillars:
 - **Messaging** - Craft compelling messages
 - **Channel Strategy** - Choose the right channels
 
+### 🧠 Cognitive Engine (Advanced Business Context)
+The core of RaptorFlow's intelligence is a stateful LangGraph-based analysis engine:
+- **Stateful Workflows** - Multi-node graph orchestration for deep business analysis.
+- **Gemini 1.5 Pro** - Powered by Google's latest long-context LLM via Vertex AI.
+- **Strict Validation** - All AI outputs are validated against 20+ Pydantic models.
+- **Iterative Refinement** - Analysis nodes for SWOT, PESTEL, Value Chain, and Brand Archetypes.
+- **Enhanced ICPs** - Automatic enhancement of Ideal Customer Profiles with psychographic insights.
+- **Messaging Strategy** - AI-generated core messaging and objection handling frameworks.
+
 ### 👥 Customer Cohorts
 Manage customer segments with detailed analytics:
 - **Segment definitions** - Detailed customer profiles

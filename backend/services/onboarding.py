@@ -3,14 +3,14 @@ Onboarding service for business logic operations
 Handles onboarding-related business logic and validation
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from ..core.models import ValidationError
-from ..core.supabase import get_supabase_client
-from ..db.evidence import EvidenceRepository
-from ..db.foundations import FoundationRepository
-from ..db.onboarding import OnboardingRepository
+from backend.core.models import ValidationError
+from backend.core.supabase_mgr import get_supabase_client
+from backend.db.evidence import EvidenceRepository
+from backend.db.foundations import FoundationRepository
+from backend.db.repositories.onboarding import OnboardingRepository
 
 
 class OnboardingService:
@@ -305,6 +305,13 @@ class OnboardingService:
             "processing_status": "processed",
             "processed_at": datetime.utcnow().isoformat(),
         }
+
+        # Set retention date for OCR-processed files
+        if evidence.get("content_type") == "ocr":
+            file_record = await self.evidence_repository.get_file_record(evidence_id)
+            if file_record:
+                file_record['retention_date'] = datetime.utcnow() + timedelta(days=7)
+                await self.evidence_repository.update_file_record(file_record)
 
         return await self.evidence_repository.mark_processed(evidence_id, key_topics)
 

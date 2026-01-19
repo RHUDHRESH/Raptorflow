@@ -6,10 +6,10 @@ Vectorizes database records and invalidates memory on changes.
 import logging
 from typing import Any, Dict, List, Optional
 
-from memory.controller import MemoryController
-from memory.vectorizers.foundation import FoundationVectorizer
-from memory.vectorizers.icp import ICPVectorizer
-from memory.vectorizers.move import MoveVectorizer
+from backend.memory.controller import MemoryController
+from backend.memory.vectorizers.foundation import FoundationVectorizer
+from backend.memory.vectorizers.icp import ICPVectorizer
+from backend.memory.vectorizers.move import MoveVectorizer
 
 from supabase import Client
 
@@ -20,7 +20,7 @@ async def sync_database_to_memory(
     workspace_id: str, db: Client, memory_controller: MemoryController
 ) -> Dict[str, Any]:
     """
-    Synchronize database records to memory system.
+    Synchronize database records to memory system with connection pooling.
 
     Args:
         workspace_id: Workspace ID
@@ -32,6 +32,21 @@ async def sync_database_to_memory(
     """
     try:
         logger.info(f"Starting database to memory sync for workspace: {workspace_id}")
+
+        # Try to use connection pooling first
+        try:
+            from backend.core.database import get_database_service
+            
+            db_service = await get_database_service()
+            if db_service:
+                # Use new database service with connection pooling
+                return await _sync_with_new_database_service(
+                    workspace_id, db_service, memory_controller
+                )
+            
+        except ImportError:
+            # Fall back to direct database client
+            pass
 
         results = {
             "foundation": await _sync_foundation(workspace_id, db, memory_controller),
@@ -49,6 +64,107 @@ async def sync_database_to_memory(
 
     except Exception as e:
         logger.error(f"Error in database to memory sync: {e}")
+        return {"error": str(e)}
+
+
+async def _sync_with_new_database_service(
+    workspace_id: str, db_service, memory_controller: MemoryController
+) -> Dict[str, Any]:
+    """Sync using new database service with connection pooling."""
+    try:
+        # Get connection from database service
+        connection = await db_service.get_connection()
+        
+        results = {}
+        
+        # Sync foundation data
+        foundation_query = "SELECT * FROM foundations WHERE workspace_id = $1"
+        foundation_results = await connection.fetch(foundation_query, workspace_id)
+        
+        if foundation_results:
+            vectorizer = FoundationVectorizer(memory_controller)
+            for foundation_data in foundation_results:
+                await vectorizer.vectorize_foundation(workspace_id, foundation_data)
+            
+            results["foundation"] = {
+                "records_processed": len(foundation_results),
+                "status": "success",
+            }
+        
+        # Sync ICP data
+        icp_query = "SELECT * FROM icp_profiles WHERE workspace_id = $1"
+        icp_results = await connection.fetch(icp_query, workspace_id)
+        
+        if icp_results:
+            vectorizer = ICPVectorizer(memory_controller)
+            records_processed = 0
+            
+            for icp_data in icp_results:
+                await vectorizer.vectorize_icp(workspace_id, icp_data)
+                records_processed += 1
+            
+            results["icps"] = {
+                "records_processed": records_processed,
+                "status": "success",
+            }
+        
+        # Sync move data
+        move_query = "SELECT * FROM moves WHERE workspace_id = $1"
+        move_results = await connection.fetch(move_query, workspace_id)
+        
+        if move_results:
+            vectorizer = MoveVectorizer(memory_controller)
+            records_processed = 0
+            
+            for move_data in move_results:
+                await vectorizer.vectorize_move(workspace_id, move_data)
+                records_processed += 1
+            
+            results["moves"] = {
+                "records_processed": records_processed,
+                "status": "success",
+            }
+        
+        # Sync campaign data
+        campaign_query = "SELECT * FROM campaigns WHERE workspace_id = $1"
+        campaign_results = await connection.fetch(campaign_query, workspace_id)
+        
+        if campaign_results:
+            records_processed = 0
+            
+            for campaign_data in campaign_results:
+                # Store campaign as memory
+                content = f"""
+                Campaign: {campaign_data['name']}
+                Description: {campaign_data.get('description', '')}
+                Target ICPs: {campaign_data.get('target_icps', [])}
+                Status: {campaign_data['status']}
+                """
+
+                await memory_controller.store(
+                    workspace_id=workspace_id,
+                    memory_type="campaign",
+                    content=content,
+                    metadata={
+                        "campaign_id": campaign_data["id"],
+                        "name": campaign_data["name"],
+                        "status": campaign_data["status"],
+                    },
+                )
+                records_processed += 1
+
+            results["campaigns"] = {
+                "records_processed": records_processed,
+                "status": "success",
+            }
+        
+        # Release connection
+        await db_service.release_connection(connection)
+        
+        return results
+        
+    except Exception as e:
+        logger.error(f"Error in new database service sync: {e}")
         return {"error": str(e)}
 
 

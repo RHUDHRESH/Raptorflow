@@ -8,9 +8,9 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from ...agents.specialists.blackbox_strategist import BlackBoxStrategist
-from ...core.auth import get_current_user
-from ...core.database import get_db
+from backend.agents.specialists.blackbox_strategist import BlackBoxStrategist
+from backend.core.auth import get_current_user
+from backend.core.database import get_db
 
 router = APIRouter(prefix="/blackbox", tags=["blackbox"])
 
@@ -214,7 +214,7 @@ async def generate_strategy(
 @router.get("/strategies", response_model=StrategyListResponse)
 async def list_strategies(
     workspace_id: str,
-    limit: int = 50,
+    limit: int = Query(default=50, description="Maximum strategies to return"),
     offset: int = 0,
     focus_area: Optional[str] = None,
     status: Optional[str] = None,

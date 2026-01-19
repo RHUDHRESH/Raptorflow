@@ -21,7 +21,7 @@ from google.api_core import exceptions
 from google.cloud import logging as cloud_logging
 from google.cloud.logging import Client as LoggingClient
 from google.cloud.logging import handlers as cloud_handlers
-from google.cloud.logging.entries import LogEntry
+from google.cloud.logging import LogEntry
 
 from .gcp import get_gcp_client
 
@@ -106,7 +106,7 @@ class CloudLogging:
         self.client = self.gcp_client.get_logging_client()
 
         if not self.client:
-            raise RuntimeError("Cloud Logging client not available")
+            self.logger.warning("Cloud Logging client not available, using standard logging")
 
         # Project ID
         self.project_id = self.gcp_client.get_project_id()
@@ -144,7 +144,7 @@ class CloudLogging:
                 self.root_logger.addHandler(console_handler)
 
             # Add Cloud Logging handler
-            if enable_cloud_logging:
+            if enable_cloud_logging and self.client:
                 cloud_handler = self._create_cloud_handler()
                 self.root_logger.addHandler(cloud_handler)
 

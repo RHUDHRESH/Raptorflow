@@ -11,7 +11,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from pydantic import BaseModel, EmailStr
-from services.phonepe_gateway import phonepe_gateway
+from backend.services.phonepe_gateway import phonepe_gateway
 
 # Configure logging
 logger = logging.getLogger(__name__)

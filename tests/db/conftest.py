@@ -8,9 +8,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ...core.auth import get_current_user
-from ...core.models import AuthContext, User, Workspace
-from ...core.supabase import get_supabase_client
+from backend.core.auth import get_current_user
+from backend.core.models import AuthContext, User, Workspace
+from backend.core.supabase import get_supabase_client
 
 
 @pytest.fixture

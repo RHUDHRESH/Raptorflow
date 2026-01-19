@@ -1,16 +1,24 @@
 """
-Performance tests for RaptorFlow backend.
-Tests system performance under load and stress conditions.
+Enhanced performance tests for RaptorFlow backend.
+Tests session management, performance optimization, and resource pooling under load.
 """
 
 import asyncio
 import statistics
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List
-from unittest.mock import AsyncMock, Mock
-
+from unittest.mock import AsyncMock, Mock, patch
+from datetime import datetime, timedelta
 import pytest
+import psutil
+import gc
+
+from backend.core.sessions import RedisSessionManager, SessionType
+from backend.core.performance import PerformanceOptimizer, ResourceMonitor
+from backend.core.resource_pool import ConnectionPool, MemoryBufferPool
+from backend.core.metrics import MetricsCollector, MetricType
 
 # Performance test configuration
 PERFORMANCE_CONFIG = {
@@ -22,32 +30,346 @@ PERFORMANCE_CONFIG = {
 }
 
 
-class TestPerformance:
-    """Test suite for performance benchmarks."""
 
-    @pytest.fixture
-    def mock_performance_dependencies(self):
-        """Mock performance test dependencies."""
-        db_client = Mock()
-        redis_client = AsyncMock()
-        memory_controller = AsyncMock()
-        cognitive_engine = AsyncMock()
-        agent_dispatcher = AsyncMock()
+class TestSessionPerformance:
+    """Test session management performance."""
+    
+    @pytest.mark.asyncio
+    async def test_concurrent_session_creation(self):
+        """Test concurrent session creation performance."""
+        with patch('core.sessions.redis.from_url') as mock_redis:
+            mock_client = AsyncMock()
+            mock_client.ping.return_value = True
+            mock_client.setex.return_value = True
+            mock_redis.return_value = mock_client
+            
+            session_manager = RedisSessionManager(
+                redis_url="redis://localhost:6379",
+                secret_key="test-secret"
+            )
+            await session_manager.initialize()
+            
+            # Create many sessions concurrently
+            start_time = time.time()
+            
+            tasks = []
+            for i in range(100):
+                task = asyncio.create_task(
+                    session_manager.create_session(
+                        user_id=f"user-{i}",
+                        workspace_id="test-workspace"
+                    )
+                )
+                tasks.append(task)
+            
+            session_ids = await asyncio.gather(*tasks)
+            end_time = time.time()
+            
+            # Verify all sessions were created
+            assert len([sid for sid in session_ids if sid is not None]) == 100
+            
+            # Check performance (should be under 5 seconds for 100 sessions)
+            creation_time = end_time - start_time
+            assert creation_time < 5.0
+            
+            await session_manager.stop()
+    
+    @pytest.mark.asyncio
+    async def test_session_memory_efficiency(self):
+        """Test session memory usage under load."""
+        with patch('core.sessions.redis.from_url') as mock_redis:
+            mock_client = AsyncMock()
+            mock_client.ping.return_value = True
+            mock_redis.return_value = mock_client
+            
+            session_manager = RedisSessionManager(
+                redis_url="redis://localhost:6379",
+                secret_key="test-secret"
+            )
+            await session_manager.initialize()
+            
+            # Get initial memory
+            process = psutil.Process()
+            initial_memory = process.memory_info().rss / 1024 / 1024  # MB
+            
+            # Create many sessions
+            for i in range(1000):
+                await session_manager.create_session(
+                    user_id=f"user-{i}",
+                    workspace_id="test-workspace"
+                )
+                
+                if i % 100 == 0:
+                    gc.collect()  # Force garbage collection
+            
+            # Get final memory
+            final_memory = process.memory_info().rss / 1024 / 1024  # MB
+            memory_increase = final_memory - initial_memory
+            
+            # Memory increase should be reasonable (< 100MB for 1000 sessions)
+            assert memory_increase < 100
+            
+            await session_manager.stop()
 
-        # Mock fast responses
-        db_client.table.return_value.select.return_value.execute.return_value.data = [
-            {"id": "test"}
-        ] * 10
-        redis_client.get.return_value = '{"test": "data"}'
-        redis_client.setex.return_value = True
-        memory_controller.search.return_value = [{"content": "test", "score": 0.9}] * 5
-        cognitive_engine.perception.perceive.return_value = Mock(
-            intent="test", confidence=0.9
+
+class TestResourcePoolingPerformance:
+    """Test resource pooling performance."""
+    
+    @pytest.mark.asyncio
+    async def test_pool_performance_under_load(self):
+        """Test pool performance under high load."""
+        pool = ConnectionPool(
+            pool_name="load-test-pool",
+            connection_factory=lambda: {"id": str(uuid.uuid4())},
+            max_size=20
         )
-        agent_dispatcher.get_agent.return_value.execute.return_value = {
-            "success": True,
-            "output": "test",
-        }
+        
+        await pool.start()
+        
+        # Acquire and release many connections concurrently
+        async def acquire_release_cycle():
+            conn = pool.acquire(timeout=1.0)
+            await asyncio.sleep(0.01)  # Simulate work
+            pool.release(conn)
+        
+        # Run many cycles concurrently
+        tasks = [acquire_release_cycle() for _ in range(100)]
+        start_time = time.time()
+        
+        await asyncio.gather(*tasks)
+        end_time = time.time()
+        
+        # Check performance
+        execution_time = end_time - start_time
+        assert execution_time < 5.0  # Should complete quickly
+        
+        # Check pool statistics
+        stats = pool.get_statistics()
+        assert stats.total_acquisitions == 100
+        assert stats.total_releases == 100
+        assert stats.peak_usage <= pool.max_size
+        
+        await pool.stop()
+    
+    @pytest.mark.asyncio
+    async def test_memory_pool_efficiency(self):
+        """Test memory pool efficiency."""
+        pool = MemoryBufferPool(
+            pool_name="memory-efficiency-test",
+            buffer_size=1024,
+            max_size=10
+        )
+        
+        await pool.start()
+        
+        # Get initial memory
+        process = psutil.Process()
+            initial_memory = process.memory_info().rss / 1024 / 1024  # MB
+        
+        # Perform many acquire/release cycles
+        for i in range(500):
+            buffer = pool.acquire()
+            # Use buffer
+            buffer[0:100] = bytes(range(100))
+            
+            pooled_buffer = pool._in_use.pop()
+            pool.release(pooled_buffer)
+            
+            if i % 50 == 0:
+                gc.collect()
+        
+        # Check memory efficiency
+        final_memory = process.memory_info().rss / 1024 / 1024  # MB
+        memory_increase = final_memory - initial_memory
+        
+        # Memory increase should be minimal for efficient pooling
+        assert memory_increase < 20  # Less than 20MB for 500 cycles
+        
+        await pool.stop()
+
+
+class TestPerformanceOptimization:
+    """Test performance optimization under load."""
+    
+    @pytest.mark.asyncio
+    async def test_concurrent_optimization(self):
+        """Test concurrent optimization requests."""
+        optimizer = PerformanceOptimizer()
+        
+        async def mock_execution(agent_id):
+            await asyncio.sleep(0.1)
+            return {"agent_id": agent_id, "tokens_used": 50}
+        
+        # Run many optimizations concurrently
+        tasks = []
+        start_time = time.time()
+        
+        for i in range(50):
+            task = optimizer.optimize_agent_execution(
+                f"agent-{i}", mock_execution, i
+            )
+            tasks.append(task)
+        
+        results = await asyncio.gather(*tasks)
+        end_time = time.time()
+        
+        # Verify all executions completed
+        assert len(results) == 50
+        assert all(r["agent_id"] == f"agent-{i}" for i, r in enumerate(results))
+        
+        # Check performance (should be reasonable)
+        execution_time = end_time - start_time
+        assert execution_time < 10.0  # Should complete in under 10 seconds
+        
+        # Check metrics were collected
+        assert len(optimizer.metrics_history) == 50
+    
+    @pytest.mark.asyncio
+    async def test_adaptive_optimization(self):
+        """Test adaptive optimization level adjustment."""
+        optimizer = PerformanceOptimizer()
+        
+        # Simulate poor performance metrics
+        for i in range(20):
+            from core.performance import PerformanceMetrics, OptimizationLevel
+            
+            # Poor performance metrics
+            poor_metrics = PerformanceMetrics(
+                agent_name="test-agent",
+                execution_time=10.0 + i,  # Slow
+                memory_usage_mb=800.0,  # High memory
+                cpu_usage_percent=90.0,  # High CPU
+                tokens_used=50,
+                cache_hits=10,  # Poor cache
+                cache_misses=90,
+                tool_calls=5,
+                skill_calls=3,
+                error_count=i % 3,  # Some errors
+                timestamp=datetime.utcnow(),
+                optimization_level=OptimizationLevel.BALANCED
+            )
+            optimizer.metrics_history.append(poor_metrics)
+        
+        # Trigger adaptive optimization
+        await optimizer._analyze_and_adjust()
+        
+        # Should upgrade optimization level due to poor performance
+        assert optimizer.optimization_level == OptimizationLevel.MAXIMUM
+
+
+class TestResourceMonitoring:
+    """Test resource monitoring performance."""
+    
+    @pytest.mark.asyncio
+    async def test_monitor_overhead(self):
+        """Test resource monitoring overhead."""
+        monitor = ResourceMonitor(update_interval=0.01)  # Very fast updates
+        
+        # Get initial CPU usage
+        initial_cpu = psutil.cpu_percent(interval=0.1)
+        
+        monitor.start()
+        
+        # Let monitor run for a short period
+        await asyncio.sleep(0.1)
+        
+        # Get monitoring overhead
+        final_cpu = psutil.cpu_percent(interval=0.1)
+        monitor.stop()
+        
+        # Monitor overhead should be minimal
+        cpu_overhead = abs(final_cpu - initial_cpu)
+        assert cpu_overhead < 5.0  # Less than 5% CPU overhead
+    
+    @pytest.mark.asyncio
+    async def test_monitor_accuracy(self):
+        """Test resource monitoring accuracy."""
+        monitor = ResourceMonitor(update_interval=0.05)
+        
+        monitor.start()
+        
+        # Wait for multiple updates
+        await asyncio.sleep(0.2)
+        
+        # Get monitored values
+        monitored_metrics = monitor.get_current_metrics()
+        
+        # Get actual system metrics
+        actual_cpu = psutil.cpu_percent()
+        actual_memory = psutil.virtual_memory().percent
+        
+        monitor.stop()
+        
+        # Monitored values should be close to actual values
+        assert abs(monitored_metrics["cpu_percent"] - actual_cpu) < 10.0
+        assert abs(monitored_metrics["memory_percent"] - actual_memory) < 10.0
+
+
+class TestIntegrationPerformance:
+    """Test integration performance between components."""
+    
+    @pytest.mark.asyncio
+    async def test_session_performance_integration(self):
+        """Test session and performance system integration."""
+        with patch('core.sessions.redis.from_url') as mock_redis:
+            mock_client = AsyncMock()
+            mock_client.ping.return_value = True
+            mock_redis.return_value = mock_client
+            
+            # Create components
+            session_manager = RedisSessionManager(
+                redis_url="redis://localhost:6379",
+                secret_key="test-secret"
+            )
+            optimizer = PerformanceOptimizer()
+            metrics_collector = MetricsCollector()
+            
+            await session_manager.initialize()
+            
+            # Simulate integrated workflow
+            start_time = time.time()
+            
+            tasks = []
+            for i in range(20):
+                # Create session
+                session_id = await session_manager.create_session(
+                    user_id=f"user-{i}",
+                    workspace_id="test-workspace"
+                )
+                
+                # Start performance tracking
+                execution_id = optimizer.start_tracking(
+                    f"execution-{i}", f"agent-{i}", session_id
+                )
+                
+                # Record metrics
+                await metrics_collector.record_metric(
+                    MetricType.PERFORMANCE,
+                    "response_time",
+                    0.1 + (i * 0.01),
+                    "seconds",
+                    agent_name=f"agent-{i}"
+                )
+                
+                # End tracking
+                await optimizer.end_tracking(
+                    execution_id, f"agent-{i}", session_id
+                )
+                
+                tasks.append(session_id)
+            
+            await asyncio.gather(*tasks)
+            end_time = time.time()
+            
+            # Verify integration performance
+            integration_time = end_time - start_time
+            assert integration_time < 5.0  # Should complete quickly
+            
+            # Verify all components have data
+            assert len(optimizer.metrics_history) == 20
+            assert len(metrics_collector.metrics_buffer) == 20
+            
+            await session_manager.stop()
 
         return {
             "db_client": db_client,

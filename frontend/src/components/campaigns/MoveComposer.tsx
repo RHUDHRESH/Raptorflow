@@ -9,7 +9,7 @@ import {
   DroppableProvided,
   DraggableProvided,
   DraggableStateSnapshot
-} from 'react-beautiful-dnd';
+} from '@hello-pangea/dnd';
 import {
   Plus,
   Settings,

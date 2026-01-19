@@ -7,73 +7,11 @@ from typing import Any, Dict
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from ...core.auth import get_auth_context, get_current_user, get_workspace_id
-from ...core.models import AuthContext, User
-from ...core.supabase import get_supabase_client
+from backend.core.auth import get_auth_context, get_current_user, get_workspace_id
+from backend.core.models import AuthContext, User
+from backend.core.supabase_mgr import get_supabase_client
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
-security = HTTPBearer(auto_error=False)
-
-
-@router.post("/signup", status_code=status.HTTP_201_CREATED)
-async def signup():
-    """
-    Signup endpoint - disabled, use Supabase directly
-    """
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Signup is handled directly by Supabase. Please use the Supabase client.",
-    )
-
-
-@router.post("/login")
-async def login(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """
-    Login endpoint - returns session info
-    Note: Actual authentication is handled by Supabase JWT
-    """
-    if not credentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No credentials provided",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # This would typically validate with Supabase
-    # For now, return a success message
-    return {
-        "message": "Authentication handled by Supabase JWT",
-        "note": "Include JWT token in Authorization header for subsequent requests",
-    }
-
-
-@router.post("/logout")
-async def logout(current_user: User = Depends(get_current_user)):
-    """
-    Logout endpoint - invalidates session
-    """
-    # In a real implementation, you would invalidate the JWT token
-    # or add it to a blacklist
-    return {"message": "Logged out successfully", "user_id": current_user.id}
-
-
-@router.post("/refresh")
-async def refresh_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """
-    Refresh JWT token
-    Note: Token refresh is handled by Supabase client
-    """
-    if not credentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No credentials provided",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    return {
-        "message": "Token refresh handled by Supabase client",
-        "note": "Use Supabase client to refresh tokens",
-    }
 
 
 @router.get("/me")
@@ -292,36 +230,6 @@ async def list_user_workspaces(current_user: User = Depends(get_current_user)):
     )
 
     return {"workspaces": result.data or [], "total": len(result.data or [])}
-
-
-@router.post("/change-password")
-async def change_password(
-    current_password: str,
-    new_password: str,
-    current_user: User = Depends(get_current_user),
-):
-    """
-    Change user password
-    Note: This would be handled by Supabase Auth
-    """
-    # In a real implementation, you would use Supabase Auth API
-    return {
-        "message": "Password change handled by Supabase Auth",
-        "note": "Use Supabase client auth.updateUser() method",
-    }
-
-
-@router.post("/reset-password")
-async def reset_password(email: str):
-    """
-    Request password reset
-    Note: This would be handled by Supabase Auth
-    """
-    # In a real implementation, you would use Supabase Auth API
-    return {
-        "message": "Password reset handled by Supabase Auth",
-        "note": "Use Supabase client auth.resetPasswordForEmail() method",
-    }
 
 
 @router.delete("/me")

@@ -7,8 +7,8 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from core.celery_manager import celery_app
-from core.circuit_breaker import get_resilient_client
+from backend.core.celery_manager import celery_app
+from backend.core.circuit_breaker import get_resilient_client
 
 logger = logging.getLogger(__name__)
 

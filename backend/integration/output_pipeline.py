@@ -7,8 +7,8 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from cognitive.quality import QualityChecker
-from memory.controller import MemoryController
+from backend.cognitive.quality import QualityChecker
+from backend.memory.controller import MemoryController
 
 from supabase import Client
 
@@ -295,17 +295,17 @@ async def _update_graph_memory(
     """Update graph memory with entities."""
     try:
         if output_type == "icp":
-            from memory.graph_builders.icp import ICPEntityBuilder
+            from backend.memory.graph_builders.icp import ICPEntityBuilder
 
             builder = ICPEntityBuilder()
             await builder.build_icp_entity(workspace_id, metadata)
         elif output_type == "move":
-            from memory.graph_builders.move import MoveEntityBuilder
+            from backend.memory.graph_builders.move import MoveEntityBuilder
 
             builder = MoveEntityBuilder()
             await builder.build_move_entity(workspace_id, metadata)
         elif output_type == "campaign":
-            from memory.graph_builders.campaign import CampaignEntityBuilder
+            from backend.memory.graph_builders.campaign import CampaignEntityBuilder
 
             builder = CampaignEntityBuilder()
             await builder.build_campaign_entity(workspace_id, metadata)

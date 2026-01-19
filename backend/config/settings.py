@@ -3,7 +3,7 @@ Application settings and configuration management.
 """
 
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import Field, validator
 from pydantic_settings import BaseSettings
@@ -23,6 +23,16 @@ class ModelTier(str, Enum):
     FLASH_LITE = "gemini-2.0-flash-lite"
     FLASH = "gemini-2.0-flash"
     PRO = "gemini-1.5-pro"
+
+
+class LLMProvider(str, Enum):
+    """Supported LLM providers."""
+
+    OPENAI = "openai"
+    GOOGLE = "google"
+    ANTHROPIC = "anthropic"
+    HUGGINGFACE = "huggingface"
+    CUSTOM = "custom"
 
 
 class Settings(BaseSettings):
@@ -254,6 +264,28 @@ class Settings(BaseSettings):
     def set_feature_flag(self, flag_name: str, value: bool) -> None:
         """Set feature flag value."""
         self.FEATURE_FLAGS[flag_name] = value
+
+    def get_llm_config(self) -> Dict[str, Any]:
+        """Get LLM provider configuration."""
+        import os
+        
+        provider = os.getenv("LLM_PROVIDER", "google")
+        
+        if provider == "openai":
+            return {
+                "provider": "openai",
+                "api_key": self.OPENAI_API_KEY,
+                "model": self.OPENAI_MODEL
+            }
+        else:
+            # Default to Google Vertex AI
+            return {
+                "provider": "google",
+                "api_key": os.getenv("VERTEX_AI_API_KEY") or os.getenv("GOOGLE_API_KEY"),
+                "project_id": self.VERTEX_AI_PROJECT_ID,
+                "location": self.VERTEX_AI_LOCATION,
+                "model": self.VERTEX_AI_MODEL
+            }
 
 
 # Global settings instance

@@ -13,8 +13,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from .audit import get_audit_logger
 from .jwt import get_jwt_validator
-from .rate_limiting import get_rate_limiter
-from .supabase import get_supabase_client
+from .rate_limiter import get_rate_limiter
+from .supabase_mgr import get_supabase_client
 
 # Import models with fallback
 try:

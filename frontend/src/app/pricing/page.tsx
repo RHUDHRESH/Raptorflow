@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
-import { Check, Compass, ArrowRight } from "lucide-react";
+import { Check, Compass, ArrowRight, ShieldCheck, Zap, BarChart3, BrainCircuit, Users, Globe } from "lucide-react";
 import dynamic from 'next/dynamic';
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
@@ -15,27 +15,56 @@ export const runtime = 'edge';
 
 const PLANS = [
   {
-    name: "Founder",
-    price: "$29",
-    desc: "For solo founders shipping fast.",
-    features: ["5 Campaigns / Qtr", "Unlimited Moves", "Basic Muse AI", "Community Support"],
-    code: "PLN-01",
+    name: "Ascent",
+    price: "₹5,000",
+    priceValue: 500000, // in paise
+    desc: "Foundation for high-growth founders.",
+    features: [
+      "Full Brand Identity Audit",
+      "Weekly 'Moves' Execution Plan",
+      "Basic Muse AI Access",
+      "3 Active Campaigns",
+      "Market Intelligence Reports (Monthly)",
+      "Single User Seat"
+    ],
+    code: "PLN-ASC",
+    icon: Zap,
     popular: false
   },
   {
-    name: "Growth",
-    price: "$79",
-    desc: "For lean teams at scale.",
-    features: ["Unlimited Campaigns", "Advanced Muse (GPT-4)", "Team Seats (5)", "Priority Support", "Matrix Analytics"],
-    code: "PLN-02",
+    name: "Glide",
+    price: "₹7,000",
+    priceValue: 700000, // in paise
+    desc: "Scale operations with AI precision.",
+    features: [
+      "Everything in Ascent",
+      "Unlimited Campaigns",
+      "Advanced Muse AI (GPT-4o)",
+      "Competitor Radar Tracking",
+      "Multi-Channel Attribution",
+      "5 Team Seats",
+      "Priority Support Channel"
+    ],
+    code: "PLN-GLD",
+    icon: BarChart3,
     popular: true
   },
   {
-    name: "Agency",
-    price: "$299",
-    desc: "For managing multiple brands.",
-    features: ["Unlimited Workspaces", "Custom AI Models", "White Label Reports", "Dedicated Account Mgr"],
-    code: "PLN-03",
+    name: "Soar",
+    price: "₹10,000",
+    priceValue: 1000000, // in paise
+    desc: "Dominance for category leaders.",
+    features: [
+      "Everything in Glide",
+      "Dedicated Growth Strategist",
+      "Custom AI Model Fine-tuning",
+      "White-label Reporting",
+      "API Access & Integrations",
+      "Unlimited Team Seats",
+      "24/7 Concierge Support"
+    ],
+    code: "PLN-SOA",
+    icon: BrainCircuit,
     popular: false
   }
 ];
@@ -54,7 +83,7 @@ export default function PricingPage() {
   return (
     <div ref={pageRef} className="min-h-screen bg-[var(--canvas)] relative overflow-hidden">
       <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundImage: "url('/textures/paper-grain.png')", opacity: 0.05, mixBlendMode: "multiply" }} />
-      <div className="fixed inset-0 blueprint-grid pointer-events-none z-0 opacity-30" />
+      <div className="fixed inset-0 blueprint-grid pointer-events-none z-0 opacity-10" />
 
       {/* Nav */}
       <div className="relative z-10 flex justify-between items-center px-8 py-6 max-w-7xl mx-auto">
@@ -63,24 +92,27 @@ export default function PricingPage() {
         </div>
         <div className="flex gap-4">
           <button onClick={() => router.push('/login')} className="text-sm font-technical text-[var(--muted)] hover:text-[var(--ink)]">LOG IN</button>
-          <BlueprintButton size="sm" onClick={() => router.push('/signup-bypass')}>GET STARTED</BlueprintButton>
         </div>
       </div>
 
       <div className="relative z-10 py-20 px-4">
-        <div className="text-center mb-20" data-anim-hero>
-          <h1 className="font-serif text-6xl text-[var(--ink)] mb-4">Pricing that scales.</h1>
-          <p className="text-xl text-[var(--secondary)] max-w-2xl mx-auto font-light">
-            Simple, transparent pricing for serious founders. No hidden fees. Cancel anytime.
+        <div className="text-center mb-24" data-anim-hero>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border)] bg-[var(--paper)] text-xs font-medium text-[var(--ink-secondary)] mb-6">
+            <ShieldCheck size={12} />
+            <span>HIGH-TICKET PARTNERSHIP</span>
+          </div>
+          <h1 className="font-serif text-6xl text-[var(--ink)] mb-6">Invest in Dominance.</h1>
+          <p className="text-xl text-[var(--secondary)] max-w-2xl mx-auto font-light leading-relaxed">
+            RaptorFlow isn&apos;t a tool. It&apos;s a strategic operating system designed to replace your agency.
           </p>
         </div>
 
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           {PLANS.map((plan, i) => (
-            <div key={i} data-anim-card className={`relative ${plan.popular ? '-mt-4' : ''}`}>
+            <div key={i} data-anim-card className={`relative ${plan.popular ? '-mt-6' : ''}`}>
               {plan.popular && (
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-                  <BlueprintBadge variant="blueprint">MOST POPULAR</BlueprintBadge>
+                  <BlueprintBadge variant="blackbox">RECOMMENDED</BlueprintBadge>
                 </div>
               )}
               <BlueprintCard
@@ -88,42 +120,59 @@ export default function PricingPage() {
                 showCorners
                 padding="lg"
                 variant={plan.popular ? "elevated" : "default"}
-                className={`h-full ${plan.popular ? 'border-[var(--blueprint)] ring-1 ring-[var(--blueprint)]' : ''}`}
+                className={`h-full flex flex-col ${plan.popular ? 'border-[var(--ink)] ring-1 ring-[var(--ink)] shadow-2xl' : 'border-[var(--border)]'}`}
               >
-                <h3 className="font-serif text-2xl text-[var(--ink)] mb-2">{plan.name}</h3>
-                <div className="flex items-baseline gap-1 mb-2">
-                  <span className="text-4xl font-bold text-[var(--ink)]">{plan.price}</span>
-                  <span className="text-sm text-[var(--muted)]">/ month</span>
+                <div className="mb-6">
+                  <div className={`w-12 h-12 rounded-[var(--radius-md)] flex items-center justify-center mb-4 ${plan.popular ? 'bg-[var(--ink)] text-[var(--paper)]' : 'bg-[var(--surface)] text-[var(--ink)]'}`}>
+                    <plan.icon size={24} strokeWidth={1.5} />
+                  </div>
+                  <h3 className="font-serif text-3xl text-[var(--ink)] mb-2">{plan.name}</h3>
+                  <p className="text-sm text-[var(--secondary)]">{plan.desc}</p>
                 </div>
-                <p className="text-sm text-[var(--secondary)] mb-8 min-h-[40px]">{plan.desc}</p>
 
-                <BlueprintButton
-                  variant={plan.popular ? "primary" : "secondary"}
-                  className="w-full mb-8"
-                  onClick={() => router.push('/signup-bypass')}
-                >
-                  Choose {plan.name}
-                </BlueprintButton>
+                <div className="flex items-baseline gap-1 mb-8 pb-8 border-b border-[var(--border-subtle)]">
+                  <span className="text-4xl font-bold text-[var(--ink)]">{plan.price}</span>
+                  <span className="text-sm text-[var(--muted)]">/ year</span>
+                </div>
 
-                <div className="space-y-3">
+                <div className="flex-1 space-y-4 mb-8">
                   {plan.features.map((feat, j) => (
                     <div key={j} className="flex items-start gap-3 text-sm text-[var(--ink)]">
-                      <div className="mt-0.5 p-0.5 rounded-full bg-[var(--success-light)] text-[var(--success)]">
-                        <Check size={10} strokeWidth={3} />
+                      <div className="mt-0.5 min-w-[16px]">
+                        <Check size={16} strokeWidth={2} className="text-[var(--ink)]" />
                       </div>
-                      {feat}
+                      <span className="leading-relaxed">{feat}</span>
                     </div>
                   ))}
+                </div>
+
+                <div className="mt-auto">
+                  <BlueprintButton
+                    variant={plan.popular ? "default" : "outline"}
+                    className="w-full h-12 text-sm font-medium tracking-wide"
+                    onClick={() => router.push('/signup')}
+                  >
+                    Select {plan.name}
+                  </BlueprintButton>
                 </div>
               </BlueprintCard>
             </div>
           ))}
         </div>
 
-        <div className="max-w-3xl mx-auto mt-24 text-center border-t border-[var(--border)] pt-12">
-          <h3 className="font-serif text-2xl mb-4">Enterprise Custom</h3>
-          <p className="text-[var(--secondary)] mb-6">Need custom integrations, SLA, or on-premise deployment?</p>
-          <SecondaryButton onClick={() => router.push('/help')}>Contact Sales <ArrowRight size={14} /></SecondaryButton>
+        <div className="max-w-4xl mx-auto mt-32 grid md:grid-cols-3 gap-8 text-center border-t border-[var(--border)] pt-16">
+          <div>
+            <h4 className="font-serif text-lg mb-2">Enterprise Grade</h4>
+            <p className="text-sm text-[var(--secondary)]">SOC2 Compliant Security</p>
+          </div>
+          <div>
+            <h4 className="font-serif text-lg mb-2">Dedicated Success</h4>
+            <p className="text-sm text-[var(--secondary)]">Real human strategy support</p>
+          </div>
+          <div>
+            <h4 className="font-serif text-lg mb-2">Data Sovereignty</h4>
+            <p className="text-sm text-[var(--secondary)]">Your intelligence stays yours</p>
+          </div>
         </div>
       </div>
     </div>

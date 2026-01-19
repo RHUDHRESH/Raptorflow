@@ -10,9 +10,9 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from ..config.settings import get_settings
-from ..redis.client import RedisClient
-from ..redis.health import RedisHealthChecker
+from backend.config.settings import get_settings
+from ..redis_core.client import RedisClient
+from ..redis_core.health import RedisHealthChecker
 
 logger = logging.getLogger(__name__)
 
@@ -162,14 +162,47 @@ class DatabaseHealthChecker(HealthChecker):
         self.settings = get_settings()
 
     async def check(self) -> HealthCheckResult:
-        """Check database health."""
+        """Check database health using new database service."""
         start_time = datetime.utcnow()
-
+        
         try:
+            # Try new database service first
+            try:
+                from backend.core.database import get_database_service
+                
+                database_service = await get_database_service()
+                if database_service:
+                    # Use new database service for health check
+                    health_result = await database_service.health_check()
+                    
+                    # Convert to health check result format
+                    status = HealthStatus.HEALTHY
+                    message = "Database is healthy"
+                    
+                    if health_result.get("status") != "healthy":
+                        status = HealthStatus.DEGRADED
+                        message = f"Database issues: {health_result.get('message', 'Unknown issues')}"
+                    
+                    response_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+                    
+                    return HealthCheckResult(
+                        component=self.name,
+                        status=status,
+                        message=message,
+                        timestamp=start_time,
+                        response_time_ms=response_time,
+                        details=health_result,
+                    )
+                
+            except ImportError:
+                # Fall back to legacy implementation
+                pass
+            
+            # Legacy database health check as fallback
             if not self.settings.DATABASE_URL:
                 return HealthCheckResult(
                     component=self.name,
-                    status=HealthStatus.HEALTHY,
+                    status=HealthStatus.UNHEALTHY,
                     message="Database not configured",
                     timestamp=start_time,
                     response_time_ms=0,

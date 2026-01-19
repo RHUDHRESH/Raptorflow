@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..exceptions import DatabaseError, ValidationError
 from ..state import AgentState, add_message, update_state
 

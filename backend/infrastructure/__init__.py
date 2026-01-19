@@ -8,7 +8,7 @@ and other infrastructure components.
 from .bigquery import BigQueryClient
 from .cloud_tasks import CloudTasksClient
 from .gcp import GCPClient
-from .pubsub import PubSubClient
+from .pubsub_client import PubSubClient
 from .storage import CloudStorage
 
 __all__ = [

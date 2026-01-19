@@ -403,7 +403,7 @@ class WebhookHandler:
             user_data = event.data.get("record", {})
 
             # Process user creation
-            from ..core.user import get_user_service
+            from backend.core.user import get_user_service
 
             user_service = get_user_service()
 
@@ -423,7 +423,7 @@ class WebhookHandler:
             user_data = event.data.get("record", {})
 
             # Process user update
-            from ..core.user import get_user_service
+            from backend.core.user import get_user_service
 
             user_service = get_user_service()
 
@@ -443,7 +443,7 @@ class WebhookHandler:
             user_data = event.data.get("record", {})
 
             # Process user deletion
-            from ..core.user import get_user_service
+            from backend.core.user import get_user_service
 
             user_service = get_user_service()
 
@@ -461,7 +461,7 @@ class WebhookHandler:
             auth_data = event.data.get("user", {})
 
             # Process login
-            from ..core.auth import get_auth_service
+            from backend.core.auth import get_auth_service
 
             auth_service = get_auth_service()
 
@@ -479,7 +479,7 @@ class WebhookHandler:
             auth_data = event.data.get("user", {})
 
             # Process logout
-            from ..core.auth import get_auth_service
+            from backend.core.auth import get_auth_service
 
             auth_service = get_auth_service()
 

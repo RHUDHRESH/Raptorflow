@@ -50,9 +50,20 @@ class ToolRegistry:
             "integration": [],
         }
 
-        # Register default tools
-        self.register(WebSearchTool(), "search")
+        # Register Database Tool
         self.register(DatabaseTool(), "database")
+        
+        # Register Titan as the primary web_search tool
+        try:
+            from backend.services.titan.tool import TitanIntelligenceTool
+            titan = TitanIntelligenceTool()
+            titan.name = "web_search" # Alias Titan as 'web_search' for agents
+            self.register(titan, "search")
+            logger.info("Titan SOTA Engine registered as primary 'web_search' tool.")
+        except Exception as e:
+            logger.error(f"Failed to register Titan tool as web_search: {e}")
+            # Fallback to legacy search only if Titan fails
+            self.register(WebSearchTool(), "search")
 
     def register(self, tool: RaptorflowTool, category: str = "utility"):
         """Register a tool in the registry (thread-safe)."""

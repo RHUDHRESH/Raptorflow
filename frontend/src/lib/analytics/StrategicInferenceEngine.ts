@@ -1,5 +1,5 @@
 import { Move, MoveCategory } from "@/components/moves/types";
-import { differenceInDays, isAfter, subDays, parseISO } from "date-fns";
+import { differenceInDays, isAfter, subDays, parse } from "date-fns";
 
 export interface StrategicGap {
     type: "critical" | "warning" | "opportunity";
@@ -38,8 +38,8 @@ export class StrategicInferenceEngine {
     private getMovesInRange(): Move[] {
         const cutoff = subDays(this.now, this.daysInRange);
         return this.moves.filter(m =>
-            (m.status === "completed" && m.endDate && isAfter(parseISO(m.endDate), cutoff)) ||
-            (m.status === "active" && isAfter(parseISO(m.createdAt), cutoff))
+            (m.status === "completed" && m.endDate && isAfter(parse(m.endDate), cutoff)) ||
+            (m.status === "active" && isAfter(parse(m.createdAt), cutoff))
         );
     }
 
@@ -63,7 +63,7 @@ export class StrategicInferenceEngine {
                 // Better Proxy: Check move status.
 
                 // If move is ancient, ignore.
-                const moveDate = m.endDate ? parseISO(m.endDate) : parseISO(m.createdAt);
+                const moveDate = m.endDate ? parse(m.endDate) : parse(m.createdAt);
                 if (!isAfter(moveDate, cutoff)) return;
 
                 if (day.pillarTask.status === "done") count++;
@@ -89,7 +89,7 @@ export class StrategicInferenceEngine {
 
         let totalTasksInRange = 0;
         this.moves.forEach(m => {
-            const moveDate = m.endDate ? parseISO(m.endDate) : parseISO(m.createdAt);
+            const moveDate = m.endDate ? parse(m.endDate) : parse(m.createdAt);
             const cutoff = subDays(this.now, this.daysInRange);
             if (isAfter(moveDate, cutoff)) {
                 m.execution.forEach(day => {
@@ -191,7 +191,7 @@ export class StrategicInferenceEngine {
             .sort((a, b) => new Date(b.endDate!).getTime() - new Date(a.endDate!).getTime());
 
         if (movesInCat.length === 0) return 999;
-        return differenceInDays(this.now, parseISO(movesInCat[0].endDate!));
+        return differenceInDays(this.now, parse(movesInCat[0].endDate!));
     }
 
 

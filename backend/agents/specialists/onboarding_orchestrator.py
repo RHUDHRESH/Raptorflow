@@ -30,8 +30,11 @@ import structlog
 
 # Local imports
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..state import AgentState
+
+# Import Vertex AI service
+from backend.services.vertex_ai_service import vertex_ai_service
 
 logger = structlog.get_logger(__name__)
 
@@ -199,8 +202,13 @@ Your responsibilities:
 Always be supportive, organized, and customer-focused in your onboarding guidance."""
 
     async def execute(self, state: AgentState) -> AgentState:
-        """Execute onboarding orchestration."""
+        """Execute onboarding step with real AI processing"""
+        
         try:
+            # Get workspace and user from state
+            workspace_id = state.get("workspace_id", "default")
+            user_id = state.get("user_id", "system")
+            
             # Extract user input
             user_input = self._extract_user_input(state)
             if not user_input:
@@ -209,15 +217,45 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
             # Parse onboarding action
             action = self._parse_onboarding_action(user_input)
 
-            # Execute action
-            if action == "start_onboarding":
-                result = await self._start_onboarding(state)
-            elif action == "check_progress":
-                result = await self._check_progress(state)
-            elif action == "next_steps":
-                result = await self._get_next_steps(state)
+            # Prepare prompt based on current step and action
+            prompt = self._prepare_prompt_for_step(action, state, user_input)
+
+            # Use real Vertex AI instead of mock responses
+            if vertex_ai_service:
+                ai_response = await vertex_ai_service.generate_text(
+                    prompt=prompt,
+                    workspace_id=workspace_id,
+                    user_id=user_id,
+                    max_tokens=2000,
+                    temperature=0.7
+                )
+                
+                if ai_response["status"] == "success":
+                    # Process AI response based on action
+                    if action == "start_onboarding":
+                        result = await self._process_start_onboarding_response(ai_response["text"], state)
+                    elif action == "check_progress":
+                        result = await self._process_progress_response(ai_response["text"], state)
+                    elif action == "next_steps":
+                        result = await self._process_next_steps_response(ai_response["text"], state)
+                    else:
+                        result = await self._process_general_guidance_response(ai_response["text"], state)
+                    
+                    # Add AI metadata to result
+                    result["ai_metadata"] = {
+                        "tokens_used": ai_response["total_tokens"],
+                        "cost": ai_response["cost_usd"],
+                        "model": ai_response["model"],
+                        "generation_time": ai_response["generation_time_seconds"]
+                    }
+                else:
+                    # Fallback to mock if AI fails
+                    logger.warning(f"Vertex AI failed: {ai_response.get('error')}, using fallback")
+                    result = await self._get_fallback_response(action, state)
             else:
-                result = await self._provide_general_guidance(state)
+                # Fallback if Vertex AI not available
+                logger.warning("Vertex AI service not available, using fallback responses")
+                result = await self._get_fallback_response(action, state)
 
             # Format response
             response = self._format_onboarding_response(result)
@@ -229,7 +267,7 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
             return self._set_output(state, result)
 
         except Exception as e:
-            logger.error(f"Onboarding orchestration failed: {e}")
+            logger.error(f"Onboarding orchestration error: {e}")
             return self._set_error(state, f"Onboarding orchestration failed: {str(e)}")
 
     def _parse_onboarding_action(self, user_input: str) -> str:
@@ -308,6 +346,11 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
 
     def _format_onboarding_response(self, result: Dict[str, Any]) -> str:
         """Format onboarding response for user."""
+        # If we have an AI response, use it directly
+        if "ai_response" in result:
+            return result["ai_response"]
+        
+        # Otherwise, use the original formatting logic
         response = f"**Onboarding Guidance**\n\n"
 
         if result["action"] == "start_onboarding":
@@ -534,7 +577,7 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
                 id="progress_update",
                 name="Send Progress Update",
                 description="Send regular progress updates to customer",
-                stage=OnboardingStage.IN_PROGRESS,
+                stage=OnboardingStatus.IN_PROGRESS,
                 action_type="communication",
                 automated=True,
                 estimated_duration=5,
@@ -548,7 +591,7 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
                 id="milestone_celebration",
                 name="Celebrate Milestone",
                 description="Send milestone celebration message",
-                stage=OnboardingStage.IN_PROGRESS,
+                stage=OnboardingStatus.IN_PROGRESS,
                 action_type="communication",
                 automated=True,
                 estimated_duration=5,
@@ -562,7 +605,7 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
                 id="support_check",
                 name="Support Check-in",
                 description="Check in with customer for support needs",
-                stage=OnboardingStage.IN_PROGRESS,
+                stage=OnboardingStatus.IN_PROGRESS,
                 action_type="support",
                 automated=False,
                 estimated_duration=15,
@@ -643,6 +686,126 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
     def _calculate_estimated_improvement(self, recommendations: List[str]) -> str:
         """Calculate estimated improvement from optimizations."""
         return "25% faster completion"  # Simplified
+
+    def _prepare_prompt_for_step(self, action: str, state: AgentState, user_input: str) -> str:
+        """Prepare prompt for Vertex AI based on action and state."""
+        base_prompt = f"""You are an expert onboarding specialist for Raptorflow, a marketing automation platform.
+        
+User request: {user_input}
+Action type: {action}
+
+"""
+        
+        if action == "start_onboarding":
+            base_prompt += """Generate a comprehensive onboarding plan that includes:
+1. Welcome message and timeline
+2. Key milestones and their descriptions
+3. Estimated duration
+4. Next immediate steps
+5. What the user should prepare
+
+Be encouraging and specific. Format as a helpful response."""
+        
+        elif action == "check_progress":
+            base_prompt += """Provide a progress update that includes:
+1. Current stage assessment
+2. Progress percentage
+3. Completed milestones
+4. Next milestone details
+5. Any recommendations
+
+Be informative and motivating."""
+        
+        elif action == "next_steps":
+            base_prompt += """Generate next steps guidance that includes:
+1. Immediate actions to take
+2. Upcoming milestones
+3. Preparation needed
+4. Resources available
+5. Timeline expectations
+
+Be actionable and clear."""
+        
+        else:
+            base_prompt += """Provide helpful onboarding guidance that addresses:
+1. The user's specific question
+2. Available onboarding actions
+3. How to get started
+4. Support options
+5. Best practices
+
+Be supportive and comprehensive."""
+        
+        return base_prompt
+
+    async def _process_start_onboarding_response(self, ai_text: str, state: AgentState) -> Dict[str, Any]:
+        """Process AI response for start onboarding."""
+        return {
+            "action": "start_onboarding",
+            "status": "ready",
+            "ai_response": ai_text,
+            "next_steps": [
+                "Complete account setup",
+                "Provide business information", 
+                "Create ICP profiles",
+                "Configure workflows",
+            ],
+            "estimated_duration": "2-4 weeks",
+            "milestones": len(self.milestones),
+        }
+
+    async def _process_progress_response(self, ai_text: str, state: AgentState) -> Dict[str, Any]:
+        """Process AI response for progress check."""
+        return {
+            "action": "check_progress",
+            "ai_response": ai_text,
+            "current_stage": "foundation_data",
+            "completed_milestones": 1,
+            "total_milestones": len(self.milestones),
+            "progress_percentage": 12.5,
+            "next_milestone": "ICP Development",
+        }
+
+    async def _process_next_steps_response(self, ai_text: str, state: AgentState) -> Dict[str, Any]:
+        """Process AI response for next steps."""
+        return {
+            "action": "next_steps",
+            "ai_response": ai_text,
+            "immediate_actions": [
+                "Complete foundation data collection",
+                "Review and refine business goals",
+                "Prepare for ICP development",
+            ],
+            "upcoming_milestones": [
+                "ICP Development",
+                "Workflow Configuration", 
+                "Team Training",
+            ],
+        }
+
+    async def _process_general_guidance_response(self, ai_text: str, state: AgentState) -> Dict[str, Any]:
+        """Process AI response for general guidance."""
+        return {
+            "action": "general_guidance",
+            "ai_response": ai_text,
+            "available_actions": [
+                "Start onboarding process",
+                "Check current progress",
+                "Get next steps",
+                "Learn about specific milestones",
+            ],
+        }
+
+    async def _get_fallback_response(self, action: str, state: AgentState) -> Dict[str, Any]:
+        """Get fallback response when AI is unavailable."""
+        if action == "start_onboarding":
+            return await self._start_onboarding(state)
+        elif action == "check_progress":
+            return await self._check_progress(state)
+        elif action == "next_steps":
+            return await self._get_next_steps(state)
+        else:
+            return await self._provide_general_guidance(state)
 
 
 # Export the specialist

@@ -1,41 +1,58 @@
-# Raptorflow Backend - Search Module Only
+# RaptorFlow Backend
 
-This is a minimal backend containing only the working search functionality.
+The intelligent core of the RaptorFlow Marketing Operating System.
 
-## What's Included
+## 🏗️ Architecture
 
-- **Search Module**: `core/search_native.py` - Functional search using Brave Search API and DuckDuckGo fallbacks
-- **Configuration**: `core/config.py` - Minimal configuration for search
-- **Secrets**: `core/secrets.py` - GCP Secret Manager integration
+The backend is built with **FastAPI** and orchestrates complex AI workflows using **LangGraph** and **Vertex AI**.
 
-## What Was Removed
+### Key Components
 
-All fake/non-functional backend modules have been removed:
-- Agent systems
-- Onboarding modules
-- Skills systems
-- Vector databases
-- ML pipelines
-- Complex orchestrators
-- Mock APIs
+- **Cognitive Engine**: Stateful LangGraph application for generating comprehensive business context.
+  - Located in `backend/services/business_context_graph.py`.
+  - Uses **Gemini 1.5 Pro** for deep analysis.
+  - Implements nodes for Profile, Market, Competitors, SWOT, PESTEL, Value Chain, Brand Archetypes, and Messaging.
+- **Service Layer**: Coordinates between the API and the cognitive engine.
+- **Infrastructure**:
+  - **Redis (Upstash)**: Used for connection pooling, rate limiting, and state management.
+  - **Google Cloud Storage**: For document storage and evidence vault.
+  - **Vertex AI**: Main AI provider.
 
-## Usage
+## 🚀 Getting Started
 
-```python
-from core.search_native import NativeSearch
+### Prerequisites
 
-search = NativeSearch()
-results = await search.query("ice cream", limit=5)
-await search.close()
-```
+- Python 3.12+
+- GCP Project with Vertex AI enabled
+- Upstash Redis account
 
-## Installation
+### Installation
 
+1. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Environment Variables
+2. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your credentials
+```
 
-- `BRAVE_SEARCH_API_KEY`: Optional Brave Search API key
-- `GCP_PROJECT_ID`: GCP project ID for Secret Manager
+### Running Tests
+
+```bash
+pytest backend/tests/unit
+```
+
+### 🧠 Cognitive Engine (LangGraph)
+- **Stateful Workflows**: Multi-node business analysis using LangGraph.
+- **Deep Insights**: Automated SWOT, PESTEL, Value Chain, and Brand Archetype analysis.
+- **Enhanced ICPs**: AI-generated behavioral architecture for target segments.
+- **Safe Generation**: Strict Pydantic validation with safe fallbacks and retry logic.
+- **Model**: Gemini 1.5 Pro via Vertex AI.
+
+### 📁 Document Service
+- **Secure Storage**: Integrated with Google Cloud Storage.
+- **Safe Processing**: libmagic-based validation and virus scanning (optional).
+- **Asynchronous**: Fully async/await implementation for high performance.

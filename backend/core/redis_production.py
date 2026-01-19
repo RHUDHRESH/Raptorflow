@@ -10,7 +10,7 @@ import os
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from core.redis import get_redis_client
+from backend.core.redis import get_redis_client
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,8 @@ class RedisProductionManager:
         try:
             if self.config.upstash_url and self.config.upstash_token:
                 # Use Upstash Redis
-                self.client = get_redis_client()
+                redis_wrapper = await get_redis_client()
+                self.client = redis_wrapper.get_client()
                 logger.info("Initialized Upstash Redis client")
             else:
                 # Use standard Redis
@@ -118,11 +119,19 @@ class RedisProductionManager:
                 logger.info("Initialized standard Redis client")
 
             # Test connection
-            await self.client.ping()
-
-            # Start monitoring tasks
-            asyncio.create_task(self._monitoring_loop())
-            asyncio.create_task(self._health_check_loop())
+            # Check if client is async or sync
+            import inspect
+            is_async = inspect.iscoroutinefunction(self.client.ping)
+            
+            if is_async:
+                # For async clients
+                await self.client.ping()
+                # Start monitoring tasks
+                asyncio.create_task(self._monitoring_loop())
+                asyncio.create_task(self._health_check_loop())
+            else:
+                # For sync clients (Upstash)
+                self.client.ping()
 
             logger.info("Redis production manager initialized successfully")
             return True
@@ -139,20 +148,34 @@ class RedisProductionManager:
 
             # Basic connectivity test
             start_time = datetime.utcnow()
-            await self.client.ping()
+            if hasattr(self.client, 'ping'):
+                # Async client
+                await self.client.ping()
+            else:
+                # Sync client (Upstash)
+                self.client.ping()
             ping_time = (datetime.utcnow() - start_time).total_seconds() * 1000
 
             # Performance test
             start_time = datetime.utcnow()
             test_key = "health_check_test"
-            await self.client.set(test_key, "test_value", ex=10)
-            value = await self.client.get(test_key)
-            await self.client.delete(test_key)
+            if hasattr(self.client, 'set'):
+                # Async client
+                await self.client.set(test_key, "test_value", ex=10)
+                value = await self.client.get(test_key)
+                await self.client.delete(test_key)
+            else:
+                # Sync client (Upstash)
+                self.client.set(test_key, "test_value", ex=10)
+                value = self.client.get(test_key)
+                self.client.delete(test_key)
             operation_time = (datetime.utcnow() - start_time).total_seconds() * 1000
 
-            # Memory info
-            info = await self.client.info()
-            memory_usage = info.get("used_memory_human", "unknown")
+            # Memory info (only available with standard Redis)
+            memory_usage = "unknown"
+            if hasattr(self.client, 'info'):
+                info = await self.client.info()
+                memory_usage = info.get("used_memory_human", "unknown")
 
             return {
                 "status": "healthy",
@@ -308,18 +331,16 @@ class RedisProductionManager:
 
                 # Update metrics
                 if self.client:
-                    info = await self.client.info()
-                    self.metrics["connected_clients"] = info.get("connected_clients", 0)
-                    self.metrics["memory_usage"] = info.get("used_memory", 0)
-                    self.metrics["uptime"] = info.get("uptime_in_seconds", 0)
-
-                    # Check for memory pressure
-                    max_memory = info.get("maxmemory", 0)
-                    used_memory = info.get("used_memory", 0)
-                    if max_memory > 0 and used_memory / max_memory > 0.9:
-                        logger.warning(
-                            f"Redis memory usage high: {used_memory}/{max_memory}"
-                        )
+                    # Only update basic metrics for Upstash (no info command)
+                    if hasattr(self.client, 'info'):
+                        # Standard Redis
+                        info = await self.client.info()
+                        self.metrics["connected_clients"] = info.get("connected_clients", 0)
+                        self.metrics["memory_usage"] = info.get("used_memory", 0)
+                        self.metrics["uptime"] = info.get("uptime_in_seconds", 0)
+                    else:
+                        # Upstash Redis - basic metrics only
+                        self.metrics["connections"] += 1
 
             except Exception as e:
                 logger.error(f"Redis monitoring error: {e}")
@@ -333,7 +354,12 @@ class RedisProductionManager:
 
                 if self.client:
                     # Ping Redis
-                    await self.client.ping()
+                    if hasattr(self.client, 'ping'):
+                        # Async client
+                        await self.client.ping()
+                    else:
+                        # Sync client (Upstash)
+                        self.client.ping()
                     self.metrics["last_health_check"] = datetime.utcnow().isoformat()
 
             except Exception as e:
@@ -343,7 +369,12 @@ class RedisProductionManager:
     async def close(self) -> None:
         """Close Redis connection"""
         if self.client:
-            await self.client.close()
+            if hasattr(self.client, 'close'):
+                # Async client
+                await self.client.close()
+            else:
+                # Sync client (Upstash) - no explicit close needed
+                pass
             logger.info("Redis connection closed")
 
 
@@ -378,7 +409,7 @@ async def get_redis_metrics() -> Dict[str, Any]:
 
 
 # Redis utility functions for production
-async def redis_cache_with_ttl(key: str, value: Any, ttl: int = 3600) -> bool:
+def redis_cache_with_ttl(key: str, value: Any, ttl: int = 3600) -> bool:
     """Cache value with TTL in Redis"""
     try:
         manager = get_redis_production_manager()
@@ -388,19 +419,19 @@ async def redis_cache_with_ttl(key: str, value: Any, ttl: int = 3600) -> bool:
             serialized_value = (
                 json.dumps(value) if not isinstance(value, str) else value
             )
-            await manager.client.setex(key, ttl, serialized_value)
+            manager.client.setex(key, ttl, serialized_value)
             return True
     except Exception as e:
         logger.error(f"Redis cache error: {e}")
     return False
 
 
-async def redis_get_cached(key: str) -> Optional[Any]:
+def redis_get_cached(key: str) -> Optional[Any]:
     """Get cached value from Redis"""
     try:
         manager = get_redis_production_manager()
         if manager.client:
-            value = await manager.client.get(key)
+            value = manager.client.get(key)
             if value:
                 try:
                     return json.loads(value)
@@ -411,16 +442,16 @@ async def redis_get_cached(key: str) -> Optional[Any]:
     return None
 
 
-async def redis_increment_counter(
+def redis_increment_counter(
     key: str, amount: int = 1, ttl: Optional[int] = None
 ) -> int:
     """Increment counter in Redis"""
     try:
         manager = get_redis_production_manager()
         if manager.client:
-            result = await manager.client.incrby(key, amount)
+            result = manager.client.incrby(key, amount)
             if ttl:
-                await manager.client.expire(key, ttl)
+                manager.client.expire(key, ttl)
             return result
     except Exception as e:
         logger.error(f"Redis increment error: {e}")

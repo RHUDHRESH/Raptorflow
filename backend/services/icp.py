@@ -6,10 +6,14 @@ Handles ICP-related business logic and validation
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..core.models import ValidationError
-from ..core.supabase import get_supabase_client
-from ..db.foundations import FoundationRepository
-from ..db.icps import ICPRepository
+from backend.core.models import ValidationError
+from backend.core.supabase_mgr import get_supabase_client
+from backend.db.foundations import FoundationRepository
+from backend.db.icps import ICPRepository
+from backend.db.moves import MoveRepository
+from backend.services.business_context_generator import get_business_context_generator
+from backend.services.business_context_graph import get_business_context_graph, create_initial_workflow_state
+from backend.schemas import RICP
 
 
 class ICPService:
@@ -19,6 +23,73 @@ class ICPService:
         self.repository = ICPRepository()
         self.foundation_repository = FoundationRepository()
         self.supabase = get_supabase_client()
+        self.graph = get_business_context_graph()
+
+    async def derive_trinity(
+        self, workspace_id: str, cohort_name: str, context_override: Optional[str] = None
+    ) -> RICP:
+        """
+        Derive the Trinity (Cohort, ICP, Persona) for a specific cohort.
+        """
+        # 1. Get foundation context
+        foundation = await self.foundation_repository.get_by_workspace(workspace_id)
+        if not foundation:
+            raise ValidationError("Foundation data must be established before deriving cohorts")
+
+        # 2. Prepare state for graph
+        # We simulate an icp_list with just the desired cohort name
+        icp_input = {
+            "name": cohort_name,
+            "description": context_override or f"A target segment named {cohort_name} for {foundation.get('company_name')}"
+        }
+        
+        state = create_initial_workflow_state(
+            workspace_id=workspace_id,
+            user_id="system", # Derived by system
+            foundation_data=foundation,
+            icp_list=[icp_input]
+        )
+
+        # 3. Run the RICP/ICP enhancement node directly or run full graph
+        # Since we only want the RICP for this cohort, we'll use the enhance_icp_node
+        result = await self.graph.enhance_icp_node(state)
+        
+        if not result["context_data"].ricps:
+            return self.graph.get_fallback_icp(icp_input)
+
+        ricp = result["context_data"].ricps[0]
+        
+        # 4. Save to database
+        db_data = {
+            "name": ricp.name,
+            "persona_name": ricp.persona_name,
+            "avatar": ricp.avatar,
+            "demographics": ricp.demographics.model_dump(),
+            "psychographics": ricp.psychographics.model_dump(),
+            "market_sophistication": {
+                "stage": ricp.market_sophistication,
+                "stage_name": self._get_sophistication_name(ricp.market_sophistication)
+            },
+            "confidence": ricp.confidence,
+            "fit_score": ricp.confidence, # Map confidence to fit score for legacy
+            "summary": f"{ricp.name}: {ricp.psychographics.identity}"
+        }
+        
+        created = await self.repository.create(workspace_id, db_data)
+        
+        # Update ricp ID with database ID
+        ricp.id = created.get("id", ricp.id)
+        
+        return ricp
+
+    def _get_sophistication_name(self, stage: int) -> str:
+        return {
+            1: "Unaware",
+            2: "Problem Aware",
+            3: "Solution Aware",
+            4: "Product Aware",
+            5: "Most Aware"
+        }.get(stage, "Unknown")
 
     async def create_icp(
         self, workspace_id: str, data: Dict[str, Any]

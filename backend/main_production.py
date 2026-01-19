@@ -23,13 +23,13 @@ from agents import (
     get_llm,
     validate_config,
 )
-from agents.dispatcher import AgentDispatcher
-from agents.exceptions import ConfigurationError, RaptorflowError
-from agents.graphs.main import create_raptorflow_graph, execute_workflow
-from agents.preprocessing import RequestPreprocessor
-from agents.routing.pipeline import RoutingPipeline
-from agents.specialists.quality_checker import QualityChecker
-from agents.tools.registry import get_tool_registry
+from backend.agents.dispatcher import AgentDispatcher
+from backend.agents.exceptions import ConfigurationError, RaptorflowError
+from backend.agents.graphs.main import create_raptorflow_graph, execute_workflow
+from backend.agents.preprocessing import RequestPreprocessor
+from backend.agents.routing.pipeline import RoutingPipeline
+from backend.agents.specialists.quality_checker import QualityChecker
+from backend.agents.tools.registry import get_tool_registry
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse

@@ -176,24 +176,21 @@ class TestOCRComplex:
         assert len(nlp["entities"]["entities"]) > 0
         assert len(nlp["summary"]["summary"]) > 20
 
-    def test_confidence_threshold(self, ocr_complex):
+    def test_confidence_threshold(self, ocr_complex, tmp_path):
         """Test confidence threshold enforcement"""
         # Create a file with potentially low confidence content
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        low_conf_file = tmp_path / "low_conf_file.txt"
+        with low_conf_file.open("w") as f:
             f.write("~!@#$%^&*()")  # Mostly symbols
-            low_conf_file = f.name
 
-        try:
-            result = ocr_complex.process_document(low_conf_file)
+        result = ocr_complex.process_document(str(low_conf_file))
 
-            # Should fail due to low confidence
-            assert result["success"] is False
-            assert (
-                "confidence" in result["error"].lower()
-                or "verification" in result["error"].lower()
-            )
-        finally:
-            os.unlink(low_conf_file)
+        # Should fail due to low confidence
+        assert result["success"] is False
+        assert (
+            "confidence" in result["error"].lower()
+            or "verification" in result["error"].lower()
+        )
 
     def test_supported_formats(self, ocr_complex):
         """Test supported formats list"""

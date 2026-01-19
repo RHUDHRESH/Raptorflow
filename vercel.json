@@ -1,0 +1,148 @@
+{
+  "version": 2,
+  "name": "raptorflow",
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_API_URL": "@api-url",
+      "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key",
+      "NEXT_PUBLIC_GCS_BUCKET": "@gcs-bucket",
+      "NEXT_PUBLIC_VERCEL_URL": "@vercel-url",
+      "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-role-key",
+      "GOOGLE_CLIENT_ID": "@google-client-id",
+      "GOOGLE_CLIENT_SECRET": "@google-client-secret",
+      "VERTEX_AI_PROJECT_ID": "@vertex-ai-project-id",
+      "VERTEX_AI_LOCATION": "@vertex-ai-location",
+      "VERTEX_AI_MODEL": "@vertex-ai-model",
+      "GCP_PROJECT_ID": "@gcp-project-id",
+      "GCP_BUCKET_NAME": "@gcp-bucket-name",
+      "GCP_SERVICE_ACCOUNT_KEY": "@gcp-service-account-key",
+      "UPSTASH_REDIS_REST_URL": "@upstash-redis-url",
+      "UPSTASH_REDIS_REST_TOKEN": "@upstash-redis-token",
+      "RESEND_API_KEY": "@resend-api-key",
+      "RESEND_FROM_EMAIL": "@resend-from-email",
+      "RESEND_DOMAIN": "@resend-domain",
+      "NEXTAUTH_SECRET": "@nextauth-secret",
+      "NEXTAUTH_URL": "@nextauth-url",
+      "SENTRY_DSN": "@sentry-dsn",
+      "SENTRY_AUTH_TOKEN": "@sentry-auth-token"
+    }
+  },
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/proxy/(.*)",
+      "dest": "/api/proxy/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "X-DNS-Prefetch-Control",
+          "value": "on"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/admin/:path*",
+      "destination": "/admin/:path*"
+    },
+    {
+      "source": "/api/admin/:path*",
+      "destination": "/api/admin/:path*"
+    }
+  ],
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/payments/**/*.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/gdpr/data-export/route.ts": {
+      "maxDuration": 300
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/billing/dunning",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/subscriptions/change-plan",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cleanup/sessions",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cleanup/exports",
+      "schedule": "0 2 * * *"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "regions": ["iad1"],
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "ignoreCommand": "echo 'No ignore command set'"
+}

@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Redis for App & Search Caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - raptorflow-network
+
+  # Nginx Load Balancer for Search Cluster
+  nginx-lb:
+    image: nginx:alpine
+    container_name: search-lb
+    volumes:
+      - ./nginx/search_lb.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - searxng-1
+      - searxng-2
+    networks:
+      - raptorflow-network
+
+  # SearXNG Instance 1
+  searxng-1:
+    image: searxng/searxng:latest
+    container_name: searxng-1
+    environment:
+      - SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml
+    volumes:
+      - ./config/searxng:/etc/searxng:rw
+    networks:
+      - raptorflow-network
+
+  # SearXNG Instance 2
+  searxng-2:
+    image: searxng/searxng:latest
+    container_name: searxng-2
+    environment:
+      - SEARXNG_SETTINGS_PATH=/etc/searxng/settings.yml
+    volumes:
+      - ./config/searxng:/etc/searxng:rw
+    networks:
+      - raptorflow-network
+
+networks:
+  raptorflow-network:
+    driver: bridge

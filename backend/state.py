@@ -302,7 +302,8 @@ class RedisStateStorage(StateStorage):
     """Redis-based state storage."""
 
     def __init__(self, redis_url: str = None):
-        self.redis_url = redis_url or settings.get_redis_url()
+        import os
+        self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/0")
         self.redis_client: Optional[redis.Redis] = None
         self._connected = False
 

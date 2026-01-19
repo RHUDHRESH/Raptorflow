@@ -55,29 +55,24 @@ export function TopNav() {
                 <div className="absolute top-0 left-6 h-2 w-px bg-[var(--blueprint)]" />
 
                 {/* ═══════════════════════════════════════════════════════════════════
-              BREADCRUMB — Technical callout style
+              BREADCRUMB — Clean path
               ═══════════════════════════════════════════════════════════════════ */}
                 <div className="flex-1 flex items-center gap-4 relative z-10">
                     {/* Section indicator */}
                     <div className="flex items-center gap-2">
-                        <span className="font-technical text-[var(--muted)]">WORKSPACE</span>
-                        <div className="w-6 h-px bg-[var(--blueprint-line)]" />
+                        <span className="text-xs font-semibold tracking-wider text-[var(--ink-muted)] uppercase">WORKSPACE</span>
+                        <div className="w-4 h-px bg-[var(--border)]" />
                     </div>
 
                     {/* Current page dropdown - now functional-ish */}
-                    <button className="flex items-center gap-2 text-sm font-medium text-[var(--ink)] hover:text-[var(--blueprint)] transition-colors group">
-                        <span>Marketing Operations</span>
+                    <button className="flex items-center gap-2 text-sm font-medium text-[var(--ink)] hover:text-[var(--ink-secondary)] transition-colors group">
+                        <span className="font-serif text-lg">Marketing Operations</span>
                         <ChevronDown
                             size={14}
                             strokeWidth={1.5}
-                            className="text-[var(--muted)] group-hover:text-[var(--blueprint)] transition-colors"
+                            className="text-[var(--ink-muted)] group-hover:text-[var(--ink)] transition-colors"
                         />
                     </button>
-
-                    {/* Page code */}
-                    <span className="font-technical text-[var(--blueprint)] bg-[var(--blueprint-light)] px-2 py-0.5 rounded-[var(--radius-xs)]">
-                        MKT-OPS
-                    </span>
                 </div>
 
                 {/* ═══════════════════════════════════════════════════════════════════

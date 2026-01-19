@@ -50,6 +50,27 @@ from .revision_agent import RevisionAgent
 from .social_media_agent import SocialMediaAgent
 from .trend_analyzer import TrendAnalyzer
 
+# 23-step onboarding specialist agents
+from .evidence_classifier import EvidenceClassifier
+from .extraction_orchestrator import ExtractionOrchestrator
+from .contradiction_detector import ContradictionDetector
+from .reddit_researcher import RedditResearcher
+from .perceptual_map_generator import PerceptualMapGenerator
+from .neuroscience_copywriter import NeuroscienceCopywriter
+from .channel_recommender import ChannelRecommender
+from .category_advisor import CategoryAdvisor
+from .market_size_calculator import MarketSizeCalculator
+from .competitor_analyzer import CompetitorAnalyzer
+from .focus_sacrifice_engine import FocusSacrificeEngine
+from .proof_point_validator import ProofPointValidator
+from .truth_sheet_generator import TruthSheetGenerator
+from .messaging_rules_engine import MessagingRulesEngine
+from .soundbites_generator import SoundbitesGenerator
+from .icp_deep_generator import ICPDeepGenerator
+from .positioning_statement_generator import PositioningStatementGenerator
+from .launch_readiness_checker import LaunchReadinessChecker
+from .channel_strategy_optimizer import ChannelStrategyOptimizer
+
 # Specialist registry
 SPECIALIST_REGISTRY: Dict[str, Type] = {
     "OnboardingOrchestrator": OnboardingOrchestrator,
@@ -71,6 +92,26 @@ SPECIALIST_REGISTRY: Dict[str, Type] = {
     "CompetitorIntel": CompetitorIntelAgent,
     "TrendAnalyzer": TrendAnalyzer,
     "PersonaSimulator": PersonaSimulator,
+    # 23-step onboarding agents
+    "EvidenceClassifier": EvidenceClassifier,
+    "ExtractionOrchestrator": ExtractionOrchestrator,
+    "ContradictionDetector": ContradictionDetector,
+    "RedditResearcher": RedditResearcher,
+    "PerceptualMapGenerator": PerceptualMapGenerator,
+    "NeuroscienceCopywriter": NeuroscienceCopywriter,
+    "ChannelRecommender": ChannelRecommender,
+    "CategoryAdvisor": CategoryAdvisor,
+    "MarketSizeCalculator": MarketSizeCalculator,
+    "CompetitorAnalyzer": CompetitorAnalyzer,
+    "FocusSacrificeEngine": FocusSacrificeEngine,
+    "ProofPointValidator": ProofPointValidator,
+    "TruthSheetGenerator": TruthSheetGenerator,
+    "MessagingRulesEngine": MessagingRulesEngine,
+    "SoundbitesGenerator": SoundbitesGenerator,
+    "ICPDeepGenerator": ICPDeepGenerator,
+    "PositioningStatementGenerator": PositioningStatementGenerator,
+    "LaunchReadinessChecker": LaunchReadinessChecker,
+    "ChannelStrategyOptimizer": ChannelStrategyOptimizer,
 }
 
 # Specialist categories
@@ -79,22 +120,35 @@ SPECIALIST_CATEGORIES = {
         "OnboardingOrchestrator",
         "EvidenceProcessor",
         "FactExtractor",
+        "EvidenceClassifier",
+        "ExtractionOrchestrator",
+        "ContradictionDetector",
+        "CategoryAdvisor",
+        "ProofPointValidator",
+        "TruthSheetGenerator",
+        "MessagingRulesEngine",
+        "SoundbitesGenerator",
     ],
     "strategy": [
         "ICPArchitect",
         "MoveStrategist",
         "BlackboxStrategist",
+        "ChannelRecommender",
     ],
     "content": [
         "ContentCreator",
         "CampaignPlanner",
         "BlogWriter",
+        "NeuroscienceCopywriter",
     ],
     "intelligence": [
         "MarketResearch",
         "AnalyticsAgent",
         "CompetitorIntelAgent",
         "TrendAnalyzer",
+        "RedditResearcher",
+        "PerceptualMapGenerator",
+        "MarketSizeCalculator",
     ],
     "communication": [
         "DailyWinsGenerator",
@@ -252,6 +306,26 @@ __all__ = [
     "CompetitorIntelAgent",
     "TrendAnalyzer",
     "PersonaSimulator",
+    # 23-step onboarding agents
+    "EvidenceClassifier",
+    "ExtractionOrchestrator",
+    "ContradictionDetector",
+    "RedditResearcher",
+    "PerceptualMapGenerator",
+    "NeuroscienceCopywriter",
+    "ChannelRecommender",
+    "CategoryAdvisor",
+    "MarketSizeCalculator",
+    "CompetitorAnalyzer",
+    "FocusSacrificeEngine",
+    "ProofPointValidator",
+    "TruthSheetGenerator",
+    "MessagingRulesEngine",
+    "SoundbitesGenerator",
+    "ICPDeepGenerator",
+    "PositioningStatementGenerator",
+    "LaunchReadinessChecker",
+    "ChannelStrategyOptimizer",
     # Registry and management
     "SPECIALIST_REGISTRY",
     "SPECIALIST_CATEGORIES",

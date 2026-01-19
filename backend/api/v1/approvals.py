@@ -9,9 +9,9 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from ...agents.graphs.hitl import HITLGraph
-from ...core.auth import get_current_user
-from ...core.database import get_db
+from backend.agents.graphs.hitl import HITLGraph
+from backend.core.auth import get_current_user
+from backend.core.database import get_db
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
 
@@ -101,7 +101,7 @@ async def list_pending_approvals(
     workspace_id: str,
     risk_level: Optional[str] = None,
     approval_type: Optional[str] = None,
-    limit: int = 50,
+    limit: int = Query(default=50, description="Maximum approvals to return"),
     offset: int = 0,
     current_user: Dict = Depends(get_current_user),
     db=Depends(get_db),

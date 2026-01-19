@@ -9,7 +9,19 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 # Import test fixtures from submodules
-from .db.conftest import (
+# from tests.db.conftest import (
+#     db,
+#     test_db,
+#     clear_test_db,
+#     create_test_user,
+#     create_test_workspace
+# )
+# from tests.api.conftest import (
+#     client,
+#     auth_headers,
+#     get_test_token
+# )
+from tests.db.conftest import (
     assert_valid_asset_type,
     assert_valid_email,
     assert_valid_platform,
@@ -70,15 +82,15 @@ __all__ = [
 # Test configuration
 def pytest_configure(config):
     """Configure pytest settings"""
-    config.addinivalue_line(
-        "markers",
-        "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-        "integration: marks tests as integration tests",
-        "unit: marks tests as unit tests",
-    )
+    config.addinivalue_line("markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')")
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line("markers", "unit: marks tests as unit tests")
     config.addinivalue_line(
         "filterwarnings",
         "ignore::DeprecationWarning",
+    )
+    config.addinivalue_line(
+        "filterwarnings",
         "ignore::PendingDeprecationWarning",
     )
 

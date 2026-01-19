@@ -8,9 +8,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from ...core.auth import get_current_user, get_workspace_id
-from ...core.models import User
-from ...services.move import MoveService
+from backend.core.auth import get_current_user, get_workspace_id
+from backend.core.models import User
+from backend.services.move import MoveService
 
 router = APIRouter(prefix="/moves", tags=["moves"])
 

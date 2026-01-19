@@ -12,10 +12,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from ...auth.dependencies import get_current_user, get_workspace_access
-from ...memory.controller import MemoryController
-from ...memory.models import MemoryChunk, MemoryType
-from ...models import User, Workspace
+from backend.auth.dependencies import get_current_user, get_workspace_access
+from backend.memory.controller import MemoryController
+from backend.memory.models import MemoryChunk, MemoryType
+from backend.models import User, Workspace
 
 logger = logging.getLogger(__name__)
 

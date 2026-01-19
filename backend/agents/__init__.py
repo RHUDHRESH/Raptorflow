@@ -3,10 +3,11 @@ Package initialization for Raptorflow agents.
 """
 
 from .base import BaseAgent
-from .config import AgentConfig, ModelTier, estimate_cost, get_config
+from .config import SimplifiedConfig, ModelTier, estimate_cost, get_config
+from backend.config.agent_config import AgentConfig
 
 # Import core components
-from .dispatcher import AgentDispatcher
+from .dispatcher import AgentDispatcher, AgentRegistry
 from .exceptions import (
     AuthenticationError,
     ConfigurationError,
@@ -37,28 +38,35 @@ from .skills.registry import (
     list_skills,
 )
 
-# Import specialist agents
-from .specialists import (
-    AnalyticsAgent,
-    BlackboxStrategist,
-    BlogWriter,
-    CampaignPlanner,
-    CompetitorIntelAgent,
-    ContentCreator,
-    DailyWinsGenerator,
-    EmailSpecialist,
-    EvidenceProcessor,
-    FactExtractor,
-    ICPArchitect,
-    MarketResearch,
-    MoveStrategist,
-    OnboardingOrchestrator,
-    PersonaSimulator,
-    QualityChecker,
-    RevisionAgent,
-    SocialMediaAgent,
-    TrendAnalyzer,
-)
+import os
+
+# Import specialist agents only if not skipping init
+if os.getenv("RAPTORFLOW_SKIP_INIT", "false").lower() != "true":
+    from .specialists import (
+        AnalyticsAgent,
+        BlackboxStrategist,
+        BlogWriter,
+        CampaignPlanner,
+        CompetitorIntelAgent,
+        ContentCreator,
+        DailyWinsGenerator,
+        EmailSpecialist,
+        EvidenceProcessor,
+        FactExtractor,
+        ICPArchitect,
+        MarketResearch,
+        MoveStrategist,
+        OnboardingOrchestrator,
+        PersonaSimulator,
+        QualityChecker,
+        RevisionAgent,
+        SocialMediaAgent,
+        TrendAnalyzer,
+    )
+else:
+    # define dummy or None for these if needed, or just relying on direct imports for tests
+    pass
+
 from .state import (
     AgentState,
     add_message,
@@ -149,6 +157,7 @@ __all__ = [
     "SocialMediaAgent",
     # Core Components
     "AgentDispatcher",
+    "AgentRegistry",
     "RoutingPipeline",
     "RoutingDecision",
     "RequestPreprocessor",

@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from ..core.supabase import get_supabase_client
+from backend.core.supabase_mgr import get_supabase_client
 from .base import BaseModel, Repository
 
 
@@ -188,3 +188,181 @@ class OnboardingRepository(Repository[OnboardingSession]):
             .execute()
         )
         return True  # logic check needed? Supabase returns count usually.
+
+    async def get_by_id(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Get session by ID"""
+        result = (
+            self._get_supabase_client()
+            .table(self.table_name)
+            .select("*")
+            .eq("id", session_id)
+            .maybe_single()
+            .execute()
+        )
+        return result.data if result.data else None
+
+    async def store_evidence_classification(self, session_id: str, classification: Dict[str, Any]) -> bool:
+        """Store evidence classification result"""
+        return await self._store_step_data(session_id, "evidence_classification", classification)
+
+    async def store_extracted_facts(self, session_id: str, facts: List[Dict[str, Any]]) -> bool:
+        """Store extracted facts"""
+        return await self._store_step_data(session_id, "extracted_facts", {"facts": facts})
+
+    async def store_contradictions(self, session_id: str, contradictions: List[Dict[str, Any]]) -> bool:
+        """Store detected contradictions"""
+        return await self._store_step_data(session_id, "contradictions", {"contradictions": contradictions})
+
+    async def store_reddit_research(self, session_id: str, research: Dict[str, Any]) -> bool:
+        """Store Reddit research results"""
+        return await self._store_step_data(session_id, "reddit_research", research)
+
+    async def store_perceptual_map(self, session_id: str, map_data: Dict[str, Any]) -> bool:
+        """Store perceptual map"""
+        return await self._store_step_data(session_id, "perceptual_map", map_data)
+
+    async def store_copy_variants(self, session_id: str, variants: List[Dict[str, Any]]) -> bool:
+        """Store neuroscience copy variants"""
+        return await self._store_step_data(session_id, "copy_variants", {"variants": variants})
+
+    async def store_channel_strategy(self, session_id: str, strategy: Dict[str, Any]) -> bool:
+        """Store channel strategy"""
+        return await self._store_step_data(session_id, "channel_strategy", strategy)
+
+    async def store_category_paths(self, session_id: str, paths: Dict[str, Any]) -> bool:
+        """Store category paths analysis"""
+        return await self._store_step_data(session_id, "category_paths", paths)
+
+    async def store_market_size(self, session_id: str, market_size: Dict[str, Any]) -> bool:
+        """Store TAM/SAM/SOM market size data"""
+        return await self._store_step_data(session_id, "market_size", market_size)
+
+    async def store_competitor_analysis(self, session_id: str, analysis: Dict[str, Any]) -> bool:
+        """Store competitor analysis results"""
+        return await self._store_step_data(session_id, "competitor_analysis", analysis)
+
+    async def store_focus_sacrifice(self, session_id: str, data: Dict[str, Any]) -> bool:
+        """Store focus/sacrifice analysis"""
+        return await self._store_step_data(session_id, "focus_sacrifice", data)
+
+    async def store_truth_sheet(self, session_id: str, data: Dict[str, Any]) -> bool:
+        """Store truth sheet entries"""
+        return await self._store_step_data(session_id, "truth_sheet", data)
+
+    async def store_proof_points(self, session_id: str, data: Dict[str, Any]) -> bool:
+        """Store proof point validations"""
+        return await self._store_step_data(session_id, "proof_points", data)
+
+    async def store_messaging_rules(self, session_id: str, data: Dict[str, Any]) -> bool:
+        """Store messaging rules"""
+        return await self._store_step_data(session_id, "messaging_rules", data)
+
+    async def store_soundbites(self, session_id: str, data: Dict[str, Any]) -> bool:
+        """Store soundbites library"""
+        return await self._store_step_data(session_id, "soundbites", data)
+
+    async def store_icp_deep(self, session_id: str, data: Dict[str, Any]) -> bool:
+        """Store comprehensive ICP profiles"""
+        return await self._store_step_data(session_id, "icp_deep", data)
+
+    async def store_positioning(self, session_id: str, data: Dict[str, Any]) -> bool:
+        """Store positioning statements"""
+        return await self._store_step_data(session_id, "positioning", data)
+
+    async def store_launch_readiness(self, session_id: str, data: Dict[str, Any]) -> bool:
+        """Store launch readiness checklist"""
+        return await self._store_step_data(session_id, "launch_readiness", data)
+
+    async def store_channel_strategy(self, session_id: str, data: Dict[str, Any]) -> bool:
+        """Store channel strategy"""
+        return await self._store_step_data(session_id, "channel_strategy", data)
+
+    async def _store_step_data(self, session_id: str, key: str, data: Any) -> bool:
+        """Helper to store data in step_data JSONB"""
+        result = (
+            self._get_supabase_client()
+            .table(self.table_name)
+            .select("step_data")
+            .eq("id", session_id)
+            .single()
+            .execute()
+        )
+        if not result.data:
+            return False
+
+        current_data = result.data.get("step_data") or {}
+        current_data[key] = {
+            "data": data,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+
+        res = (
+            self._get_supabase_client()
+            .table(self.table_name)
+            .update({"step_data": current_data})
+            .eq("id", session_id)
+            .execute()
+        )
+        return res.data is not None
+
+    async def get_session_progress(self, session_id: str) -> Dict[str, Any]:
+        """Get comprehensive session progress"""
+        result = (
+            self._get_supabase_client()
+            .table(self.table_name)
+            .select("*")
+            .eq("id", session_id)
+            .single()
+            .execute()
+        )
+        if not result.data:
+            return {"error": "Session not found"}
+
+        session = result.data
+        step_data = session.get("step_data", {})
+        completed_steps = session.get("completed_steps", [])
+
+        return {
+            "session_id": session_id,
+            "current_step": session.get("current_step", 1),
+            "completed_steps": completed_steps,
+            "total_steps": 23,
+            "progress_percentage": (len(completed_steps) / 23) * 100,
+            "status": session.get("status", "in_progress"),
+            "has_evidence": "evidence_classification" in step_data,
+            "has_facts": "extracted_facts" in step_data,
+            "has_contradictions": "contradictions" in step_data,
+            "has_research": "reddit_research" in step_data,
+            "has_positioning": "perceptual_map" in step_data,
+        }
+
+    async def advance_step(self, session_id: str) -> bool:
+        """Advance to next step"""
+        result = (
+            self._get_supabase_client()
+            .table(self.table_name)
+            .select("current_step, completed_steps")
+            .eq("id", session_id)
+            .single()
+            .execute()
+        )
+        if not result.data:
+            return False
+
+        current = result.data.get("current_step", 1)
+        completed = result.data.get("completed_steps", [])
+
+        if current not in completed:
+            completed.append(current)
+
+        res = (
+            self._get_supabase_client()
+            .table(self.table_name)
+            .update({
+                "current_step": current + 1,
+                "completed_steps": completed
+            })
+            .eq("id", session_id)
+            .execute()
+        )
+        return res.data is not None

@@ -9,8 +9,8 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from ...core.auth import get_current_user
-from ...core.database import get_supabase_client
+from backend.core.auth import get_current_user
+from backend.core.database import get_supabase_client, get_database_service
 from ..memory import (
     EpisodicMemory,
     GraphMemory,
@@ -95,8 +95,18 @@ async def store_memory(
         embedding = model.encode_single(content)
         chunk.embedding = embedding
 
-        # Store using vector memory
-        vector_memory = VectorMemory(supabase_client=supabase)
+        # Try to use new database service first
+        try:
+            database_service = await get_database_service()
+            if database_service:
+                # Use new database service for memory operations
+                vector_memory = VectorMemory(supabase_client=supabase, database_service=database_service)
+            else:
+                # Fall back to direct Supabase client
+                vector_memory = VectorMemory(supabase_client=supabase)
+        except ImportError:
+            # Fall back to direct Supabase client
+            vector_memory = VectorMemory(supabase_client=supabase)
         chunk_id = await vector_memory.store(
             workspace_id=workspace_id,
             memory_type=memory_type_enum,
@@ -139,8 +149,18 @@ async def search_memory(
                         status_code=400, detail=f"Invalid memory type: {mt}"
                     )
 
-        # Search using vector memory
-        vector_memory = VectorMemory(supabase_client=supabase)
+        # Search using vector memory with new database service
+        try:
+            database_service = await get_database_service()
+            if database_service:
+                # Use new database service for memory operations
+                vector_memory = VectorMemory(supabase_client=supabase, database_service=database_service)
+            else:
+                # Fall back to direct Supabase client
+                vector_memory = VectorMemory(supabase_client=supabase)
+        except ImportError:
+            # Fall back to direct Supabase client
+            vector_memory = VectorMemory(supabase_client=supabase)
         results = await vector_memory.search(
             workspace_id=workspace_id,
             query=query,
@@ -187,8 +207,18 @@ async def get_memory_stats(
 ):
     """Get memory statistics for workspace."""
     try:
-        # Get stats from vector memory
-        vector_memory = VectorMemory(supabase_client=supabase)
+        # Get stats from vector memory with new database service
+        try:
+            database_service = await get_database_service()
+            if database_service:
+                # Use new database service for memory operations
+                vector_memory = VectorMemory(supabase_client=supabase, database_service=database_service)
+            else:
+                # Fall back to direct Supabase client
+                vector_memory = VectorMemory(supabase_client=supabase)
+        except ImportError:
+            # Fall back to direct Supabase client
+            vector_memory = VectorMemory(supabase_client=supabase)
 
         # This would need to be implemented in VectorMemory
         # For now, return basic structure
@@ -213,9 +243,15 @@ async def delete_memory(
     current_user: Dict = Depends(get_current_user),
     supabase=Depends(get_supabase_client),
 ):
-    """Delete memory chunk."""
+    """Delete memory chunk using new database service"""
     try:
-        vector_memory = VectorMemory(supabase_client=supabase)
+        database_service = await get_database_service()
+        if database_service:
+            # Use new database service for memory operations
+            vector_memory = VectorMemory(supabase_client=supabase, database_service=database_service)
+        else:
+            # Fall back to direct Supabase client
+            vector_memory = VectorMemory(supabase_client=supabase)
         success = await vector_memory.delete(chunk_id)
 
         if not success:

@@ -10,7 +10,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..exceptions import ValidationError
 from ..state import AgentState, add_message, update_state
 
@@ -374,33 +374,81 @@ Always base your ICPs on real market research and psychological principles. Be s
         for i in range(num_icps):
             personality = personality_types[i]
 
-            # Create demographics
-            demographics = self._create_demographics(business_context, personality, i)
+            # Create items - either via Swarm Skill or internal logic
+            # [SWARM INTEGRATION]
+            persona_skill = self.skills_registry.get_skill("persona_builder")
+            icp = None
+            
+            if persona_skill:
+                try:
+                    logger.info("Swarm: Building Persona...")
+                    # We pass the personality context to guide the swarms generation
+                    model = self.personality_models[personality] 
+                    persona_res = await persona_skill.execute({
+                        "agent": self,
+                        "base_profile": business_context,
+                        "personality_trait": personality.value
+                    })
+                    
+                    if "persona" in persona_res:
+                        p_data = persona_res["persona"]
+                        # Map skill result to IdealCustomerProfile
+                        
+                        # Use demographic helper to get defaults, then override with skill data
+                        demos = self._create_demographics(business_context, personality, i)
+                        if "demographics" in p_data:
+                            d_in = p_data["demographics"]
+                            if "age_range" in d_in: demos.age_range = d_in["age_range"] # simplified mapping
+                            if "title" in d_in: demos.job_title = d_in["title"]
 
-            # Create psychographics
-            psychographics = self._create_psychographics(personality, business_context)
+                        # Use psychographic helper to get defaults, then override
+                        psychos = self._create_psychographics(personality, business_context)
+                        if "motivations" in p_data: psychos.motivations = p_data["motivations"]
+                        if "frustrations" in p_data: psychos.fears = p_data["frustrations"]
 
-            # Create behavior profile
-            behavior = self._create_behavior_profile(
-                personality, business_context, demographics
-            )
+                        # Create behavior profile
+                        behaviors = self._create_behavior_profile(personality, business_context, demos)
+                        if "goals" in p_data: behaviors.success_metrics = p_data["goals"]
 
-            # Create ICP
-            icp = IdealCustomerProfile(
-                name=self._generate_icp_name(business_context, personality, i),
-                tagline=self._generate_icp_tagline(business_context, personality, i),
-                icp_type=business_context["icp_type"],
-                is_primary=(i == 0),  # First ICP is primary
-                demographics=demographics,
-                psychographics=psychographics,
-                behavior=behavior,
-                created_at=datetime.now(),
-                metadata={
-                    "generation_method": "cognitive_psychology_model",
-                    "personality_type": personality.value,
-                    "business_context": business_context,
-                },
-            )
+                        icp = IdealCustomerProfile(
+                            name=p_data.get("name", self._generate_icp_name(business_context, personality, i)),
+                            tagline=p_data.get("role_description", self._generate_icp_tagline(business_context, personality, i)),
+                            icp_type=business_context["icp_type"],
+                            is_primary=(i == 0),
+                            demographics=demos,
+                            psychographics=psychos,
+                            behavior=behaviors,
+                            created_at=datetime.now(),
+                            metadata={
+                                "generation_method": "swarm_persona_builder",
+                                "personality_type": personality.value,
+                                "swarm_enhanced": True
+                            }
+                        )
+                except Exception as e:
+                    logger.warning(f"PersonaBuilderSkill failed: {e}")
+
+            # Fallback to internal logic
+            if not icp:
+                demographics = self._create_demographics(business_context, personality, i)
+                psychographics = self._create_psychographics(personality, business_context)
+                behavior = self._create_behavior_profile(personality, business_context, demographics)
+
+                icp = IdealCustomerProfile(
+                    name=self._generate_icp_name(business_context, personality, i),
+                    tagline=self._generate_icp_tagline(business_context, personality, i),
+                    icp_type=business_context["icp_type"],
+                    is_primary=(i == 0),
+                    demographics=demographics,
+                    psychographics=psychographics,
+                    behavior=behavior,
+                    created_at=datetime.now(),
+                    metadata={
+                        "generation_method": "cognitive_psychology_model",
+                        "personality_type": personality.value,
+                        "business_context": business_context,
+                    }
+                )
 
             icps.append(icp)
 

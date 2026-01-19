@@ -1,0 +1,216 @@
+# Docker Compose for GCP Deployment
+# Multi-service orchestration for SOTA OCR System
+
+version: '3.8'
+
+services:
+  # OCR API Service
+  ocr-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - CUDA_VISIBLE_DEVICES=0
+      - TORCH_CUDA_ARCH_LIST=8.0
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgresql://ocr_user:ocr_password@postgres:5432/ocr_db
+      - STORAGE_BUCKET=raptorflow-ocr-storage
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./cache:/app/cache
+      - ./models:/app/models
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # OCR Worker Service
+  ocr-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    environment:
+      - NODE_ENV=production
+      - CUDA_VISIBLE_DEVICES=0
+      - TORCH_CUDA_ARCH_LIST=8.0
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgresql://ocr_user:ocr_password@postgres:5432/ocr_db
+      - STORAGE_BUCKET=raptorflow-ocr-storage
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./cache:/app/cache
+      - ./models:/app/models
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    scale: 2
+
+  # OCR Monitor Service
+  ocr-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: monitor
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgresql://ocr_user:ocr_password@postgres:5432/ocr_db
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_DB=ocr_db
+      - POSTGRES_USER=ocr_user
+      - POSTGRES_PASSWORD=ocr_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ocr_user -d ocr_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - ocr-api
+    restart: unless-stopped
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Node Exporter (for system metrics)
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+
+  # cAdvisor (for container metrics)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    driver: bridge

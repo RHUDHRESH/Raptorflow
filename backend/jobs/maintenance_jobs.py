@@ -98,7 +98,7 @@ class MaintenanceJobs:
             )
 
             # Get session service
-            from ..redis.session import get_session_service
+            from ..redis_core.session import get_session_service
 
             session_service = get_session_service()
 
@@ -204,7 +204,7 @@ class MaintenanceJobs:
             )
 
             # Get execution service
-            from ..agents.core.execution import get_execution_service
+            from backend.agents.core.execution import get_execution_service
 
             execution_service = get_execution_service()
 
@@ -313,102 +313,107 @@ class MaintenanceJobs:
             )
 
             # Get database service
-            from ..core.database import get_database_service
-
-            database_service = get_database_service()
-
-            # Get database statistics before vacuum
-            before_stats = await database_service.get_database_statistics()
-
-            # Vacuum database
-            vacuum_result = await database_service.vacuum_database()
-
-            # Optimize tables
-            tables_optimized = []
-            tables = await database_service.get_table_list()
-
-            for table in tables:
-                try:
-                    await database_service.optimize_table(table)
-                    tables_optimized.append(table)
-                except Exception as e:
-                    errors.append(f"Failed to optimize table {table}: {str(e)}")
-
-            # Rebuild indexes
-            indexes_rebuilt = []
-            indexes = await database_service.get_index_list()
-
-            for index in indexes:
-                try:
-                    await database_service.rebuild_index(index)
-                    indexes_rebuilt.append(index)
-                except Exception as e:
-                    errors.append(f"Failed to rebuild index {index}: {str(e)}")
-
-            # Update statistics
-            statistics_updated = []
-            for table in tables:
-                try:
-                    await database_service.update_table_statistics(table)
-                    statistics_updated.append(table)
-                except Exception as e:
-                    errors.append(
-                        f"Failed to update statistics for table {table}: {str(e)}"
+            try:
+                from backend.core.database import get_database_service
+                
+                database_service = await get_database_service()
+                if database_service:
+                    # Get database statistics before vacuum
+                    before_stats = await database_service.get_database_statistics()
+                    
+                    # Vacuum database
+                    vacuum_result = await database_service.vacuum_database()
+                    
+                    # Optimize tables
+                    tables_optimized = []
+                    tables = await database_service.get_table_list()
+                    
+                    for table in tables:
+                        try:
+                            await database_service.optimize_table(table)
+                            tables_optimized.append(table)
+                        except Exception as e:
+                            errors.append(f"Failed to optimize table {table}: {str(e)}")
+                    
+                    # Rebuild indexes
+                    indexes_rebuilt = []
+                    indexes = await database_service.get_index_list()
+                    
+                    for index in indexes:
+                        try:
+                            await database_service.rebuild_index(index)
+                            indexes_rebuilt.append(index)
+                        except Exception as e:
+                            errors.append(f"Failed to rebuild index {index}: {str(e)}")
+                    
+                    # Update statistics
+                    statistics_updated = []
+                    for table in tables:
+                        try:
+                            await database_service.update_table_statistics(table)
+                            statistics_updated.append(table)
+                        except Exception as e:
+                            errors.append(
+                                f"Failed to update statistics for table {table}: {str(e)}"
+                            )
+                    
+                    # Get database statistics after vacuum
+                    after_stats = await database_service.get_database_statistics()
+                    
+                    # Calculate improvements
+                    space_freed_mb = before_stats.get("total_size_mb", 0) - after_stats.get(
+                        "total_size_mb", 0
                     )
-
-            # Get database statistics after vacuum
-            after_stats = await database_service.get_database_statistics()
-
-            # Calculate improvements
-            space_freed_mb = before_stats.get("total_size_mb", 0) - after_stats.get(
-                "total_size_mb", 0
-            )
-            performance_improvement = vacuum_result.get("performance_improvement", 0.0)
-
-            processing_time = (datetime.utcnow() - start_time).total_seconds()
-
-            # Record metrics
-            await self.monitoring.record_metric(
-                "database_vacuum_space_freed", space_freed_mb, {"operation": "vacuum"}
-            )
-
-            await self.monitoring.record_metric(
-                "database_vacuum_performance_improvement",
-                performance_improvement,
-                {"operation": "vacuum"},
-            )
-
-            await self.monitoring.record_metric(
-                "database_vacuum_processing_time",
-                processing_time,
-                {"operation": "vacuum"},
-            )
-
-            result = DatabaseMaintenanceResult(
-                tables_optimized=tables_optimized,
-                indexes_rebuilt=indexes_rebuilt,
-                statistics_updated=statistics_updated,
-                space_freed_mb=space_freed_mb,
-                performance_improvement=performance_improvement,
-                processing_time_seconds=processing_time,
-                errors=errors,
-            )
-
-            # Log completion
-            await self.logging.log_structured(
-                "INFO",
-                "Database vacuum completed",
-                {
-                    "tables_optimized": len(tables_optimized),
-                    "indexes_rebuilt": len(indexes_rebuilt),
-                    "statistics_updated": len(statistics_updated),
-                    "space_freed_mb": space_freed_mb,
-                    "performance_improvement": performance_improvement,
-                    "processing_time_seconds": processing_time,
-                },
-            )
-
-            return result
+                    performance_improvement = vacuum_result.get("performance_improvement", 0.0)
+                    
+                    processing_time = (datetime.utcnow() - start_time).total_seconds()
+                    
+                    # Record metrics
+                    await self.monitoring.record_metric(
+                        "database_vacuum_space_freed", space_freed_mb, {"operation": "vacuum"}
+                    )
+                    
+                    await self.monitoring.record_metric(
+                        "database_vacuum_performance_improvement",
+                        performance_improvement,
+                        {"operation": "vacuum"},
+                    )
+                    
+                    await self.monitoring.record_metric(
+                        "database_vacuum_processing_time",
+                        processing_time,
+                        {"operation": "vacuum"},
+                    )
+                    
+                    result = DatabaseMaintenanceResult(
+                        tables_optimized=tables_optimized,
+                        indexes_rebuilt=indexes_rebuilt,
+                        statistics_updated=statistics_updated,
+                        space_freed_mb=space_freed_mb,
+                        performance_improvement=performance_improvement,
+                        processing_time_seconds=processing_time,
+                        errors=errors,
+                    )
+                    
+                    # Log completion
+                    await self.logging.log_structured(
+                        "INFO",
+                        "Database vacuum completed",
+                        {
+                            "tables_optimized": len(tables_optimized),
+                            "indexes_rebuilt": len(indexes_rebuilt),
+                            "statistics_updated": len(statistics_updated),
+                            "space_freed_mb": space_freed_mb,
+                            "performance_improvement": performance_improvement,
+                            "processing_time_seconds": processing_time,
+                        },
+                    )
+                    
+                    return result
+                    
+            except ImportError:
+                # Fall back to legacy implementation
+                pass
 
         except Exception as e:
             processing_time = (datetime.utcnow() - start_time).total_seconds()
@@ -446,7 +451,7 @@ class MaintenanceJobs:
 
             # Clear caches
             try:
-                from ..redis.cache import get_cache_service
+                from ..redis_core.cache import get_cache_service
 
                 cache_service = get_cache_service()
                 await cache_service.clear_all_caches()
@@ -466,7 +471,7 @@ class MaintenanceJobs:
 
             # Clean temporary files
             try:
-                from ..core.file_service import get_file_service
+                from backend.core.file_service import get_file_service
 
                 file_service = get_file_service()
                 cleanup_result = await file_service.cleanup_temp_files()
@@ -563,17 +568,18 @@ class MaintenanceJobs:
 
             # Backup database
             try:
-                from ..core.database import get_database_service
-
-                database_service = get_database_service()
-                db_backup = await database_service.create_backup()
-                backup_results["database"] = db_backup
+                from backend.core.database import get_database_service
+                
+                database_service = await get_database_service()
+                if database_service:
+                    db_backup = await database_service.create_backup()
+                    backup_results["database"] = db_backup
             except Exception as e:
                 errors.append(f"Failed to backup database: {str(e)}")
 
             # Backup Redis data
             try:
-                from ..redis.client import get_redis_client
+                from ..redis_core.client import get_redis_client
 
                 redis_client = get_redis_client()
                 redis_backup = await redis_client.create_backup()
@@ -648,18 +654,19 @@ class MaintenanceJobs:
 
             # Check database health
             try:
-                from ..core.database import get_database_service
-
-                database_service = get_database_service()
-                db_health = await database_service.health_check()
-                health_results["database"] = db_health
+                from backend.core.database import get_database_service
+                
+                database_service = await get_database_service()
+                if database_service:
+                    db_health = await database_service.health_check()
+                    health_results["database"] = db_health
             except Exception as e:
                 errors.append(f"Database health check failed: {str(e)}")
                 health_results["database"] = {"status": "unhealthy", "error": str(e)}
 
             # Check Redis health
             try:
-                from ..redis.client import get_redis_client
+                from ..redis_core.client import get_redis_client
 
                 redis_client = get_redis_client()
                 redis_health = await redis_client.health_check()
@@ -681,7 +688,7 @@ class MaintenanceJobs:
 
             # Check agent system health
             try:
-                from ..agents.core.registry import get_agent_registry
+                from backend.agents.core.registry import get_agent_registry
 
                 agent_registry = get_agent_registry()
                 agent_health = await agent_registry.health_check()

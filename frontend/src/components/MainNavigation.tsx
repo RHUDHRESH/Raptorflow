@@ -82,6 +82,13 @@ export default function MainNavigation() {
       badge: 5
     },
     {
+      id: 'council',
+      label: 'Expert Council',
+      href: '/council',
+      icon: <Users className="w-4 h-4" />,
+      badge: 1
+    },
+    {
       id: 'workflows',
       label: 'Workflows',
       href: '/workflows',
@@ -103,6 +110,7 @@ export default function MainNavigation() {
   ]
 
   const isActive = (href: string) => {
+    if (!pathname) return false
     if (href === '/dashboard') return pathname === '/'
     return pathname.startsWith(href)
   }
@@ -117,11 +125,11 @@ export default function MainNavigation() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--paper)]">
+    <div className="min-h-screen bg-[#FFFEF9]">
       {/* Mobile Header */}
       <div className="lg:hidden">
-        <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between p-4 border-b border-[#C0C1BE]">
+          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
@@ -129,17 +137,19 @@ export default function MainNavigation() {
             >
               <Menu className="w-5 h-5" />
             </Button>
-            <h1 className="text-lg font-semibold text-[var(--ink)]">Raptorflow</h1>
+            <h1 className="text-lg font-semibold text-[#2D3538]">Raptorflow</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
-              <Bell className="w-4 h-4" />
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Button variant="ghost" size="sm">
+                <Bell className="w-4 h-4" />
+              </Button>
               {notifications > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center p-0">
                   {notifications}
                 </Badge>
               )}
-            </Button>
+            </div>
             <Button variant="ghost" size="sm">
               <Settings className="w-4 h-4" />
             </Button>
@@ -148,19 +158,18 @@ export default function MainNavigation() {
       </div>
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-[var(--paper)] border-r border-[var(--border)] transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#FFFEF9] border-r border-[#C0C1BE] transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
-          <div className="flex items-center justify-between p-6 border-b border-[var(--border)]">
+          <div className="flex items-center justify-between p-6 border-b border-[#C0C1BE]">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-[var(--ink)] text-[var(--paper)] rounded-lg flex items-center justify-center font-bold">
+              <div className="w-8 h-8 bg-[#2D3538] text-[#FFFEF9] rounded-lg flex items-center justify-center font-bold">
                 R
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-[var(--ink)]">Raptorflow</h1>
-                <p className="text-xs text-[var(--muted)]">AI Agent System</p>
+                <h1 className="text-lg font-semibold text-[#2D3538]">Raptorflow</h1>
+                <p className="text-xs text-[#9D9F9F]">AI Agent System</p>
               </div>
             </div>
             <Button
@@ -180,17 +189,16 @@ export default function MainNavigation() {
                 <Link
                   key={item.id}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-[var(--ink)] text-[var(--paper)]'
-                      : 'text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--accent)]'
-                  }`}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive(item.href)
+                      ? 'bg-[#2D3538] text-[#FFFEF9]'
+                      : 'text-[#9D9F9F] hover:text-[#2D3538] hover:bg-[#FDFCFA]'
+                    }`}
                   onClick={() => setIsSidebarOpen(false)}
                 >
                   {item.icon}
                   <span className="flex-1">{item.label}</span>
                   {item.badge && (
-                    <Badge className="bg-[var(--accent)] text-[var(--ink)] text-xs">
+                    <Badge className="bg-[#FDFCFA] text-[#2D3538] text-xs">
                       {item.badge}
                     </Badge>
                   )}
@@ -200,17 +208,17 @@ export default function MainNavigation() {
           </nav>
 
           {/* User Section */}
-          <div className="border-t border-[var(--border)] p-4">
+          <div className="border-t border-[#C0C1BE] p-4">
             {user ? (
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-[var(--ink)] text-[var(--paper)] rounded-full flex items-center justify-center font-semibold">
+                <div className="w-8 h-8 bg-[#2D3538] text-[#FFFEF9] rounded-full flex items-center justify-center font-semibold">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[var(--ink)] truncate">
+                  <p className="text-sm font-medium text-[#2D3538] truncate">
                     {user.name}
                   </p>
-                  <p className="text-xs text-[var(--muted)] truncate">
+                  <p className="text-xs text-[#9D9F9F] truncate">
                     {user.role}
                   </p>
                 </div>
@@ -248,18 +256,18 @@ export default function MainNavigation() {
       {/* Main Content */}
       <div className="lg:pl-64">
         {/* Desktop Header */}
-        <div className="hidden lg:flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--paper)]">
+        <div className="hidden lg:flex items-center justify-between p-4 border-b border-[#C0C1BE] bg-[#FFFEF9]">
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-[var(--ink)] text-[var(--paper)] rounded-lg flex items-center justify-center font-bold">
+            <div className="w-8 h-8 bg-[#2D3538] text-[#FFFEF9] rounded-lg flex items-center justify-center font-bold">
               R
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-[var(--ink)]">Raptorflow</h1>
-              <p className="text-xs text-[var(--muted)]">AI Agent System</p>
+              <h1 className="text-lg font-semibold text-[#2D3538]">Raptorflow</h1>
+              <p className="text-xs text-[#9D9F9F]">AI Agent System</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="relative">
               <Button variant="ghost" size="sm">
                 <Search className="w-4 h-4" />
@@ -268,19 +276,19 @@ export default function MainNavigation() {
             <div className="relative">
               <Button variant="ghost" size="sm">
                 <Bell className="w-4 h-4" />
-                {notifications > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {notifications}
-                  </Badge>
-                )}
               </Button>
+              {notifications > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center p-0">
+                  {notifications}
+                </Badge>
+              )}
             </div>
             <Button variant="ghost" size="sm">
               <Settings className="w-4 h-4" />
             </Button>
             {user && (
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-[var(--ink)] text-[var(--paper)] rounded-full flex items-center justify-center font-semibold">
+                <div className="w-8 h-8 bg-[#2D3538] text-[#FFFEF9] rounded-full flex items-center justify-center font-semibold">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
                 <Button variant="ghost" size="sm">
@@ -296,11 +304,11 @@ export default function MainNavigation() {
           {/* This is where the page content will be rendered */}
           <div className="p-6">
             <div className="text-center py-12">
-              <Brain className="w-16 h-16 mx-auto mb-4 text-[var(--muted)]" />
-              <h2 className="text-2xl font-semibold text-[var(--ink)] mb-2">
+              <Brain className="w-16 h-16 mx-auto mb-4 text-[#9D9F9F]" />
+              <h2 className="text-2xl font-semibold text-[#2D3538] mb-2">
                 Welcome to Raptorflow
               </h2>
-              <p className="text-[var(--muted)] mb-6">
+              <p className="text-[#9D9F9F] mb-6">
                 Select a section from the navigation to get started
               </p>
               <div className="flex justify-center gap-4">

@@ -6,12 +6,13 @@ Handles alert generation, routing, and notification.
 import asyncio
 import json
 import logging
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from ..agents.exceptions import DatabaseError, ValidationError
+from backend.agents.exceptions import DatabaseError, ValidationError
 from .health_checks import HealthStatus, get_health_checker
 from .metrics import MetricCategory, get_metrics_collector
 

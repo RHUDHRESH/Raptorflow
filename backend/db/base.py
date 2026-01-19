@@ -9,9 +9,9 @@ from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
-from ..core.supabase import get_supabase_client
-from .filters import Filter, build_query, workspace_filter
-from .pagination import PaginatedResult, Pagination
+from backend.core.supabase_mgr import get_supabase_client
+from backend.db.filters import Filter, build_query, workspace_filter
+from backend.db.pagination import PaginatedResult, Pagination
 
 logger = logging.getLogger(__name__)
 

@@ -16,10 +16,10 @@ from typing import Any, Dict, List
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config.settings import get_settings
+from backend.config.settings import get_settings
 from monitoring.health_checks import HealthAggregator
-from redis.client import RedisClient
-from redis.health import RedisHealthChecker
+from backend.redis_core.client import RedisClient
+from backend.redis_core.health import RedisHealthChecker
 
 # Configure logging
 logging.basicConfig(

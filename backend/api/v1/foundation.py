@@ -8,9 +8,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from ...core.auth import get_current_user, get_workspace_id
-from ...core.models import User
-from ...services.foundation import FoundationService
+from backend.core.auth import get_current_user, get_workspace_id
+from backend.core.models import User
+from backend.services.foundation import FoundationService
+from backend.schemas import RICP, MessagingStrategy
 
 router = APIRouter(prefix="/foundation", tags=["foundation"])
 
@@ -44,17 +45,19 @@ class FoundationResponse(BaseModel):
     id: str
     workspace_id: str
     company_name: str
-    mission: Optional[str]
-    vision: Optional[str]
+    mission: Optional[str] = None
+    vision: Optional[str] = None
     values: List[str]
-    industry: Optional[str]
-    target_market: Optional[str]
-    positioning: Optional[str]
-    brand_voice: Optional[str]
+    industry: Optional[str] = None
+    target_market: Optional[str] = None
+    positioning: Optional[str] = None
+    brand_voice: Optional[str] = None
     messaging_guardrails: List[str]
     summary: Optional[str]
     created_at: str
     updated_at: str
+    ricps: List[RICP] = []
+    messaging: Optional[MessagingStrategy] = None
     icp_count: int
     move_count: int
     campaign_count: int

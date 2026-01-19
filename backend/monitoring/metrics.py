@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from ..agents.exceptions import DatabaseError, ValidationError
+from backend.agents.exceptions import DatabaseError, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -265,7 +265,7 @@ class MetricsCollector:
             ),
             MetricDefinition(
                 name="error_rate",
-                metricType=MetricType.GAUGE,
+                metric_type=MetricType.GAUGE,
                 category=MetricCategory.ERROR,
                 description="Error rate",
                 unit="percent",

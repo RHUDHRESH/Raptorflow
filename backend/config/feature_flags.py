@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
 
-from ..redis.client import RedisClient
+from backend.redis_core.client import RedisClient
 from .settings import get_settings
 
 logger = logging.getLogger(__name__)

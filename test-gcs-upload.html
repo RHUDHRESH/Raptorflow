@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GCS Upload Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 8px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .progress { margin: 10px 0; }
+        .result { margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 4px; }
+        .error { background: #f8d7da; color: #721c24; }
+        .success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GCS Upload Test</h1>
+        
+        <div class="form-group">
+            <label for="file">Choose File:</label>
+            <input type="file" id="file" accept="image/*,.pdf,.txt,.csv">
+        </div>
+        
+        <div class="form-group">
+            <label for="fileType">File Type:</label>
+            <select id="fileType">
+                <option value="avatar">Avatar</option>
+                <option value="document">Document</option>
+                <option value="workspace">Workspace</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="userId">User ID:</label>
+            <input type="text" id="userId" value="test-user">
+        </div>
+        
+        <button onclick="uploadFile()">Upload File</button>
+        
+        <div id="progress" class="progress" style="display: none;">
+            <div>Progress: <span id="progressPercent">0</span>%</div>
+        </div>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function uploadFile() {
+            const fileInput = document.getElementById('file');
+            const fileType = document.getElementById('fileType').value;
+            const userId = document.getElementById('userId').value;
+            const progressDiv = document.getElementById('progress');
+            const resultDiv = document.getElementById('result');
+            const progressPercent = document.getElementById('progressPercent');
+            
+            if (!fileInput.files[0]) {
+                alert('Please select a file');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
+            // Show progress
+            progressDiv.style.display = 'block';
+            resultDiv.style.display = 'none';
+            
+            try {
+                // Step 1: Get upload URL
+                const uploadResponse = await fetch('/api/storage/upload-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        file_name: file.name,
+                        file_type: fileType,
+                        file_size: file.size
+                    })
+                });
+                
+                if (!uploadResponse.ok) {
+                    const error = await uploadResponse.json();
+                    throw new Error(error.error || 'Failed to get upload URL');
+                }
+                
+                const { upload_url, file_path } = await uploadResponse.json();
+                
+                // Step 2: Upload file
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', (event) => {
+                    if (event.lengthComputable) {
+                        const progress = Math.round((event.loaded / event.total) * 100);
+                        progressPercent.textContent = progress;
+                    }
+                });
+                
+                xhr.addEventListener('load', async () => {
+                    if (xhr.status === 200 || xhr.status === 201) {
+                        // Step 3: Get download URL
+                        const downloadResponse = await fetch('/api/storage/download-url', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                user_id: userId,
+                                file_path: file_path
+                            })
+                        });
+                        
+                        if (downloadResponse.ok) {
+                            const { download_url } = await downloadResponse.json();
+                            
+                            resultDiv.className = 'result success';
+                            resultDiv.innerHTML = `
+                                <h3>✅ Upload Successful!</h3>
+                                <p><strong>File:</strong> ${file.name}</p>
+                                <p><strong>Size:</strong> ${(file.size / 1024).toFixed(2)} KB</p>
+                                <p><strong>Type:</strong> ${file.type}</p>
+                                <p><strong>Path:</strong> ${file_path}</p>
+                                <p><strong>Download URL:</strong> <a href="${download_url}" target="_blank">${download_url}</a></p>
+                                <p><strong>Direct URL:</strong> <a href="https://storage.googleapis.com/raptorflow-uploads/${file_path}" target="_blank">View File</a></p>
+                            `;
+                        } else {
+                            throw new Error('Failed to get download URL');
+                        }
+                    } else {
+                        throw new Error(`Upload failed with status ${xhr.status}`);
+                    }
+                });
+                
+                xhr.addEventListener('error', () => {
+                    throw new Error('Upload error');
+                });
+                
+                xhr.open('POST', upload_url);
+                xhr.setRequestHeader('Content-Type', file.type);
+                xhr.send(file);
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Upload Failed</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

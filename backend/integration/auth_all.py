@@ -6,9 +6,9 @@ Injects auth context into agent state and verifies workspace access.
 import logging
 from typing import Any, Dict, Optional
 
-from agents.state import AgentState
-from core.auth import get_current_user
-from core.workspace import get_workspace_id
+from backend.agents.state import AgentState
+from backend.core.auth import get_current_user
+from backend.core.workspace import get_workspace_id
 
 logger = logging.getLogger(__name__)
 

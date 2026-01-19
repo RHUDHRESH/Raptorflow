@@ -12,10 +12,10 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from ...agents.dispatcher import AgentDispatcher
-from ...agents.routing.pipeline import RoutingPipeline
-from ...core.auth import get_current_user
-from ...core.database import get_db
+from backend.agents.dispatcher import AgentDispatcher
+from backend.agents.routing.pipeline import RoutingPipeline
+from backend.core.auth import get_current_user
+from backend.core.database import get_db
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
@@ -294,7 +294,7 @@ async def get_session_status(
 @router.get("/sessions", response_model=Dict[str, Any])
 async def list_sessions(
     workspace_id: str,
-    limit: int = 50,
+    limit: int = Query(default=50, description="Maximum sessions to return"),
     status: Optional[str] = None,
     agent: Optional[str] = None,
     current_user: Dict = Depends(get_current_user),

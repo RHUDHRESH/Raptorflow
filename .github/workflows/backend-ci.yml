@@ -1,0 +1,331 @@
+name: RaptorFlow Backend CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "18"
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # =============================================
+  # TESTING PHASE
+  # =============================================
+  
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_raptorflow
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          npm install
+          
+      - name: Set up environment variables
+        run: |
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_raptorflow" >> $GITHUB_ENV
+          echo "REDIS_URL=redis://localhost:6379/0" >> $GITHUB_ENV
+          echo "ENVIRONMENT=testing" >> $GITHUB_ENV
+          echo "SECRET_KEY=test-secret-key" >> $GITHUB_ENV
+          echo "SUPABASE_URL=http://localhost:8000" >> $GITHUB_ENV
+          echo "SUPABASE_KEY=test-key" >> $GITHUB_ENV
+          echo "GCP_PROJECT_ID=test-project" >> $GITHUB_ENV
+          echo "GCS_BUCKET_NAME=test-bucket" >> $GITHUB_ENV
+          echo "OPENAI_API_KEY=test-key" >> $GITHUB_ENV
+          
+      - name: Run linting
+        run: |
+          cd backend
+          python -m flake8 services/ --max-line-length=88 --ignore=E203,W503
+          python -m mypy services/ --ignore-missing-imports
+          
+      - name: Run security scan
+        run: |
+          cd backend
+          python -m bandit -r services/ -f json -o security-report.json
+          python -m safety check --json --output safety-report.json
+          
+      - name: Run unit tests
+        run: |
+          cd backend
+          python -m pytest tests/unit/ -v --cov=services --cov-report=xml --cov-report=html
+          
+      - name: Run integration tests
+        run: |
+          cd backend
+          python -m pytest tests/integration/ -v --cov=services --cov-append --cov-report=xml
+          
+      - name: Run API tests
+        run: |
+          cd backend
+          python -m pytest tests/api/ -v --cov=services --cov-append
+          
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            backend/security-report.json
+            backend/safety-report.json
+          
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results
+          path: |
+            backend/htmlcov/
+            backend/coverage.xml
+
+  # =============================================
+  # BUILD PHASE
+  # =============================================
+  
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Extract metadata
+        id: meta
+        run: |
+          echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "sha_short=${{ github.sha }}" >> $GITHUB_OUTPUT
+          
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.sha_short }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # =============================================
+  # SECURITY SCANNING PHASE
+  # =============================================
+  
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # =============================================
+  # DEPLOYMENT PHASE
+  # =============================================
+  
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment..."
+          # Add your staging deployment commands here
+          # Example: kubectl apply -f k8s/staging/
+          
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests against staging..."
+          # Add smoke test commands here
+          # Example: python -m pytest tests/smoke/ --base-url=https://staging.raptorflow.com
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [test, build, security-scan]
+    if: github.event_name == 'release'
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production environment..."
+          # Add your production deployment commands here
+          # Example: kubectl apply -f k8s/production/
+          
+      - name: Run health checks
+        run: |
+          echo "Running health checks against production..."
+          # Add health check commands here
+          # Example: curl -f https://api.raptorflow.com/health
+          
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          text: |
+            Deployment ${{ job.status }}: ${{ github.event.release.tag_name }} to production
+            Commit: ${{ github.sha }}
+            By: ${{ github.actor }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # =============================================
+  # PERFORMANCE TESTING PHASE
+  # =============================================
+  
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/develop'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          
+      - name: Install performance testing tools
+        run: |
+          pip install locust
+          
+      - name: Run performance tests
+        run: |
+          cd backend
+          python -m locust -f tests/performance/locustfile.py \
+            --headless \
+            --users 10 \
+            --spawn-rate 2 \
+            --run-time 60s \
+            --host https://staging.raptorflow.com \
+            --html performance-report.html
+            
+      - name: Upload performance report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-report
+          path: backend/performance-report.html
+
+  # =============================================
+  # NOTIFICATION PHASE
+  # =============================================
+  
+  notify:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: always()
+    
+    steps:
+      - name: Notify on success
+        if: needs.test.result == 'success' && needs.build.result == 'success'
+        run: |
+          echo "✅ All checks passed!"
+          # Add notification logic here
+          
+      - name: Notify on failure
+        if: needs.test.result == 'failure' || needs.build.result == 'failure'
+        run: |
+          echo "❌ Some checks failed!"
+          # Add failure notification logic here

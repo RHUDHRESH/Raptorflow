@@ -8,6 +8,28 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from .base import Skill, SkillAssessment, SkillCategory, SkillLevel, SkillPath
+# Import specific skill implementations
+from .implementations.content import ContentGenerationSkill, SEOAnalysisSkill
+from .implementations.strategy import (
+    StrategyEvaluationSkill, PersonaBuilderSkill, GapAnalysisSkill, 
+    PricingArchitectSkill, FunnelBlueprintSkill, BrandVoiceGuardSkill
+)
+from .implementations.research import (
+    WebDeepDiveSkill, CompetitorScoutSkill, TrendSpotterSkill, 
+    KeywordDominanceSkill, SentimentGaugeSkill
+)
+from .implementations.marketing import (
+    SocialPulseSkill, ViralHookSkill, EmailSequenceSkill, 
+    AdCreativeSkill, VisualPromptSkill
+)
+from .implementations.operations import (
+    CopyPolisherSkill, DataSynthesizerSkill, ReportArchitectSkill, 
+    ForecastOracleSkill, ConversionAuditSkill
+)
+from .implementations import (
+    NeuroscienceCopywritingSkill, NarrativeContinuitySkill, MultiChannelAdaptationSkill,
+    ConflictResolverSkill
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,141 +58,45 @@ class SkillsRegistry:
 
     def _register_default_skills(self):
         """Register default skills."""
-        # Content skills
-        self.register_skill(
-            Skill(
-                name="content_generation",
-                category=SkillCategory.CONTENT,
-                level=SkillLevel.INTERMEDIATE,
-                description="Generate various types of content including blog posts, social media, emails",
-                tools_required=["web_search", "database"],
-                capabilities=[
-                    "Create blog posts",
-                    "Write social media content",
-                    "Generate email campaigns",
-                    "Produce ad copy",
-                    "Write newsletters",
-                ],
-                examples=[
-                    "Wrote a 1000-word blog post about digital marketing trends",
-                    "Created 5 social media posts for product launch",
-                    "Generated email sequence for onboarding",
-                ],
-            )
-        )
+        # --- BATCH 1: Research & Analytics ---
+        self.register_skill(WebDeepDiveSkill())
+        self.register_skill(CompetitorScoutSkill())
+        self.register_skill(TrendSpotterSkill())
+        self.register_skill(KeywordDominanceSkill())
+        self.register_skill(SentimentGaugeSkill())
 
-        self.register_skill(
-            Skill(
-                name="seo_optimization",
-                category=SkillCategory.CONTENT,
-                level=SkillLevel.ADVANCED,
-                description="Optimize content for search engines and improve visibility",
-                tools_required=["web_search"],
-                capabilities=[
-                    "Keyword research",
-                    "On-page optimization",
-                    "Meta tag creation",
-                    "Content structure optimization",
-                    "SEO performance analysis",
-                ],
-                examples=[
-                    "Optimized blog post for 'digital marketing trends' keyword",
-                    "Created meta descriptions for 10 pages",
-                    "Improved content structure for better rankings",
-                ],
-            )
-        )
+        # --- BATCH 2: Strategy & Planning ---
+        self.register_skill(StrategyEvaluationSkill()) # Already existed
+        self.register_skill(PersonaBuilderSkill())
+        self.register_skill(GapAnalysisSkill())
+        self.register_skill(PricingArchitectSkill())
+        self.register_skill(FunnelBlueprintSkill())
+        self.register_skill(BrandVoiceGuardSkill())
 
-        # Research skills
-        self.register_skill(
-            Skill(
-                name="competitor_analysis",
-                category=SkillCategory.RESEARCH,
-                level=SkillLevel.ADVANCED,
-                description="Analyze competitors' strategies, positioning, and performance",
-                tools_required=["web_search", "database"],
-                capabilities=[
-                    "Competitor identification",
-                    "SWOT analysis",
-                    "Market positioning analysis",
-                    "Competitive benchmarking",
-                    "Strategy gap analysis",
-                ],
-                examples=[
-                    "Analyzed top 5 competitors in SaaS market",
-                    "Created SWOT analysis for main competitor",
-                    "Identified positioning opportunities",
-                ],
-            )
-        )
+        # --- BATCH 3: Marketing & Content ---
+        self.register_skill(ContentGenerationSkill()) # Already existed
+        self.register_skill(SEOAnalysisSkill()) # Already existed
+        self.register_skill(SocialPulseSkill())
+        self.register_skill(ViralHookSkill())
+        self.register_skill(EmailSequenceSkill())
+        self.register_skill(AdCreativeSkill())
+        self.register_skill(VisualPromptSkill())
 
-        self.register_skill(
-            Skill(
-                name="market_sizing",
-                category=SkillCategory.RESEARCH,
-                level=SkillLevel.EXPERT,
-                description="Calculate market size, TAM, SAM, SOM and growth projections",
-                tools_required=["web_search", "database"],
-                capabilities=[
-                    "TAM/SAM/SOM calculation",
-                    "Market growth projections",
-                    "Segment sizing",
-                    "Revenue forecasting",
-                    "Market opportunity assessment",
-                ],
-                examples=[
-                    "Calculated $50M TAM for B2B SaaS market",
-                    "Projected 25% CAGR for next 5 years",
-                    "Identified $10M serviceable market",
-                ],
-            )
-        )
+        # --- BATCH 4: Operations & Optimization ---
+        self.register_skill(CopyPolisherSkill())
+        self.register_skill(DataSynthesizerSkill())
+        self.register_skill(ReportArchitectSkill())
+        self.register_skill(ForecastOracleSkill())
+        self.register_skill(ConversionAuditSkill())
 
-        # Strategy skills
-        self.register_skill(
-            Skill(
-                name="strategic_planning",
-                category=SkillCategory.STRATEGY,
-                level=SkillLevel.EXPERT,
-                description="Develop comprehensive strategic plans and roadmaps",
-                tools_required=["web_search", "database"],
-                capabilities=[
-                    "Strategic roadmap creation",
-                    "Goal setting and KPI definition",
-                    "Resource allocation planning",
-                    "Risk assessment",
-                    "Strategic initiative prioritization",
-                ],
-                examples=[
-                    "Created 3-year strategic plan for startup",
-                    "Defined OKRs for marketing team",
-                    "Prioritized strategic initiatives based on ROI",
-                ],
-            )
-        )
+        # --- BATCH 5: Expert Strategic Skills ---
+        self.register_skill(NeuroscienceCopywritingSkill())
+        self.register_skill(NarrativeContinuitySkill())
+        self.register_skill(MultiChannelAdaptationSkill())
 
-        # Analytics skills
-        self.register_skill(
-            Skill(
-                name="data_analysis",
-                category=SkillCategory.ANALYTICS,
-                level=SkillLevel.ADVANCED,
-                description="Analyze data to extract insights and support decision making",
-                tools_required=["database"],
-                capabilities=[
-                    "Data visualization",
-                    "Statistical analysis",
-                    "Trend identification",
-                    "Performance reporting",
-                    "Insight generation",
-                ],
-                examples=[
-                    "Analyzed campaign performance data",
-                    "Created monthly performance dashboard",
-                    "Identified key trends in customer behavior",
-                ],
-            )
-        )
+        # Legacy placeholders removed - all skills now have proper implementations
+
+        # All analytics skills are now properly implemented above
 
         logger.info(f"Initialized skills registry with {len(self._skills)} skills")
 
@@ -208,6 +134,46 @@ class SkillsRegistry:
                     categorized[skill.category] = []
                 categorized[skill.category].append(skill)
             return categorized
+
+    def find_skills_for_task(self, task_description: str) -> List[Skill]:
+        """
+        Find skills suitable for a specific task.
+        
+        Args:
+            task_description: A natural language description of the task.
+            
+        Returns:
+            List of matching Skill objects, ordered by relevance (heuristic).
+        """
+        task_tokens = set(task_description.lower().split())
+        matches = []
+        
+        for skill in self._skills.values():
+            score = 0
+            
+            # Check name (high weight)
+            if skill.name in task_description.lower():
+                score += 5
+            
+            # Check capabilities (medium weight)
+            if skill.capabilities:
+                for cap in skill.capabilities:
+                    cap_tokens = set(cap.lower().split())
+                    if task_tokens & cap_tokens:
+                        score += 2
+            
+            # Check description (low weight)
+            desc_tokens = set(skill.description.lower().split())
+            common = len(task_tokens & desc_tokens)
+            score += common * 0.5
+            
+            if score > 0:
+                matches.append((score, skill))
+        
+        # Sort by score descending
+        matches.sort(key=lambda x: x[0], reverse=True)
+        
+        return [m[1] for m in matches]
 
     def assess_agent_skills(
         self, agent_name: str, agent_skills: List[str], agent_tools: List[str]

@@ -8,12 +8,37 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from ...core.auth import get_current_user, get_workspace_id
-from ...core.models import User
-from ...services.icp import ICPService
+from backend.core.auth import get_current_user, get_workspace_id
+from backend.core.models import User
+from backend.services.icp import ICPService
+from backend.schemas import RICP
 
 router = APIRouter(prefix="/icps", tags=["icps"])
 
+class CohortDerivationRequest(BaseModel):
+    cohort_name: str
+    context_override: Optional[str] = None
+
+@router.post("/derive-trinity", response_model=RICP)
+async def derive_cohort_trinity(
+    request: CohortDerivationRequest,
+    user: User = Depends(get_current_user),
+    workspace_id: str = Depends(get_workspace_id),
+    icp_service: ICPService = Depends(get_icp_service),
+):
+    """
+    Derive the 'Trinity' (Cohort, ICP, and Persona) from a cohort name.
+    This uses the advanced BusinessContextGraph.
+    """
+    try:
+        ricp = await icp_service.derive_trinity(
+            workspace_id=workspace_id,
+            cohort_name=request.cohort_name,
+            context_override=request.context_override
+        )
+        return ricp
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to derive cohort trinity: {str(e)}")
 
 # Pydantic models for request/response
 class ICPCreate(BaseModel):

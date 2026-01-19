@@ -16,6 +16,7 @@ import google.cloud.resourcemanager_v3 as resource_manager
 from google.auth import default
 from google.auth.exceptions import DefaultCredentialsError
 from google.cloud import bigquery, pubsub_v1, storage, tasks_v2
+from google.cloud import logging as cloud_logging
 from google.oauth2 import service_account
 
 logger = logging.getLogger(__name__)
@@ -113,6 +114,7 @@ class GCPClient:
         self.bigquery_client: Optional[bigquery.Client] = None
         self.pubsub_client: Optional[pubsub_v1.PublisherClient] = None
         self.cloud_tasks_client: Optional[tasks_v2.CloudTasksClient] = None
+        self.logging_client: Optional[cloud_logging.Client] = None
         self.resource_manager_client: Optional[resource_manager.ProjectsClient] = None
 
         # Service status
@@ -321,6 +323,22 @@ class GCPClient:
         """Get Cloud Tasks client."""
         if self.is_service_available("cloud_tasks"):
             return self.cloud_tasks_client
+        return None
+
+    def get_logging_client(self) -> Optional[cloud_logging.Client]:
+        """Get Cloud Logging client."""
+        if self.logging_client:
+            return self.logging_client
+        
+        if self.is_authenticated():
+            try:
+                self.logging_client = cloud_logging.Client(
+                    project=self.config.project_id,
+                    credentials=self.config.credentials
+                )
+                return self.logging_client
+            except Exception as e:
+                self.logger.error(f"Failed to create logging client: {e}")
         return None
 
     def get_resource_manager_client(self) -> Optional[resource_manager.ProjectsClient]:

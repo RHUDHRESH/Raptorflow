@@ -25,8 +25,8 @@ export default function PaymentSuccessPage() {
     refreshAndRedirect();
   }, [refreshProfile]);
 
-  const handleGoToWorkspace = () => {
-    router.push('/workspace');
+  const handleStartOnboarding = () => {
+    router.push('/onboarding');
   };
 
   return (
@@ -70,14 +70,14 @@ export default function PaymentSuccessPage() {
           <BlueprintButton
             size="lg"
             className="w-full"
-            onClick={handleGoToWorkspace}
+            onClick={handleStartOnboarding}
             disabled={loading}
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-[var(--paper)] border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                Go to Workspace
+                Start Onboarding
                 <ArrowRight size={18} />
               </>
             )}

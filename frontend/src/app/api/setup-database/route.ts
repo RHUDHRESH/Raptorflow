@@ -1,16 +1,24 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-// Use service role key for admin operations
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Lazy client creation to avoid build-time errors
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    throw new Error('Missing Supabase configuration');
+  }
+
+  return createClient(url, key);
+}
 
 export async function POST() {
   const results: any = { success: false, steps: [], error: null }
 
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     // SQL to create user_profiles table
     const createProfilesSQL = `
       CREATE TABLE IF NOT EXISTS public.user_profiles (
@@ -86,9 +94,6 @@ export async function POST() {
         FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
     `
 
-    // Execute SQL using Supabase admin client
-    // Note: We'll use the REST API directly since the JS client doesn't support raw SQL
-
     const executeSQL = async (sql: string) => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/rpc/exec`, {
         method: 'POST',
@@ -108,39 +113,38 @@ export async function POST() {
       return await response.json()
     }
 
-    // Try to execute the SQL
     try {
-      results.steps.push('🔧 Executing user_profiles table creation...')
+      results.steps.push('Executing user_profiles table creation...')
       await executeSQL(createProfilesSQL)
-      results.steps.push('✅ user_profiles table created successfully')
+      results.steps.push('user_profiles table created successfully')
     } catch (error: any) {
-      results.steps.push(`⚠️ user_profiles table creation failed: ${error.message}`)
+      results.steps.push(`user_profiles table creation failed: ${error.message}`)
     }
 
     try {
-      results.steps.push('🔧 Executing payments table creation...')
+      results.steps.push('Executing payments table creation...')
       await executeSQL(createPaymentsSQL)
-      results.steps.push('✅ payments table created successfully')
+      results.steps.push('payments table created successfully')
     } catch (error: any) {
-      results.steps.push(`⚠️ payments table creation failed: ${error.message}`)
+      results.steps.push(`payments table creation failed: ${error.message}`)
     }
 
     try {
-      results.steps.push('🔧 Creating trigger function...')
+      results.steps.push('Creating trigger function...')
       await executeSQL(createTriggerSQL)
-      results.steps.push('✅ Trigger function created successfully')
+      results.steps.push('Trigger function created successfully')
     } catch (error: any) {
-      results.steps.push(`⚠️ Trigger creation failed: ${error.message}`)
+      results.steps.push(`Trigger creation failed: ${error.message}`)
     }
 
     results.success = true
-    results.steps.push('🎉 Database setup completed!')
+    results.steps.push('Database setup completed!')
 
     return NextResponse.json(results)
 
   } catch (error: any) {
     results.error = error.message
-    results.steps.push(`❌ Setup failed: ${error.message}`)
+    results.steps.push(`Setup failed: ${error.message}`)
     return NextResponse.json(results, { status: 500 })
   }
 }

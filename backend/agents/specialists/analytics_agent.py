@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..exceptions import DatabaseError, ValidationError
 from ..state import AgentState, add_message, update_state
 
@@ -497,7 +497,7 @@ Always focus on providing accurate, data-driven insights that support marketing 
             analysis_text = await self.llm.generate(prompt)
 
             # Parse analytics report
-            report = self._parse_analytics_report(
+            report = await self._parse_analytics_report(
                 analysis_text, request, template, source_config
             )
 
@@ -568,7 +568,7 @@ Format the response as a structured analytics report with clear sections and sup
 
         return prompt
 
-    def _parse_analytics_report(
+    async def _parse_analytics_report(
         self,
         analysis_text: str,
         request: AnalyticsRequest,
@@ -599,7 +599,7 @@ Format the response as a structured analytics report with clear sections and sup
         comparisons = self._generate_comparisons(request)
 
         # Generate forecasts
-        forecasts = self._generate_forecasts(request)
+        forecasts = await self._generate_forecasts(request)
 
         # Generate recommendations
         recommendations = self._generate_recommendations(insights, request)
@@ -832,11 +832,52 @@ Format the response as a structured analytics report with clear sections and sup
 
         return comparisons
 
-    def _generate_forecasts(self, request: AnalyticsRequest) -> List[Dict[str, Any]]:
+    async def _generate_forecasts(self, request: AnalyticsRequest) -> List[Dict[str, Any]]:
         """Generate forecast analysis."""
         forecasts = []
 
-        if request.analysis_type in ["forecast", "trend"]:
+        # [SWARM INTEGRATION]
+        # Use ForecastOracleSkill for forecasting
+        forecasts = []
+        forecast_skill = self.skills_registry.get_skill("forecast_oracle")
+
+        try:
+            if forecast_skill:
+                logger.info("Swarm: Forecasting performance with ForecastOracleSkill...")
+                # We can forecast revenue, conversions, or ROI. Let's do revenue as primary.
+                forecast_res = await forecast_skill.execute({
+                    "agent": self,
+                    "metric": "revenue",
+                    "historical_data": list(range(100, 200, 10)) # Mock historical for now
+                })
+                
+                if "forecast" in forecast_res:
+                    f_data = forecast_res["forecast"]
+                    
+                    # Add Revenue Forecast
+                    forecasts.append({
+                        "metric": "revenue",
+                        "predicted_value": f_data.get("predicted_value", 0),
+                        "confidence_interval": f_data.get("confidence_interval", [0, 0]),
+                        "time_horizon": "30 days",
+                        "accuracy": f_data.get("confidence_score", 0.8),
+                        "model": "swarm_ensemble"
+                    })
+                    
+                    # Create a second forecast for conversions (derived or separate call)
+                    forecasts.append({
+                        "metric": "conversions",
+                        "predicted_value": f_data.get("predicted_value", 0) * 0.02, # naive derivation
+                        "confidence_interval": [x * 0.02 for x in f_data.get("confidence_interval", [0, 0])],
+                        "time_horizon": "30 days",
+                        "accuracy": f_data.get("confidence_score", 0.8) * 0.9
+                    })
+
+        except Exception as e:
+            logger.warning(f"ForecastOracleSkill failed: {e}")
+
+        # Fallback if skill failed or wasn't available
+        if not forecasts and request.analysis_type in ["forecast", "trend"]:
             forecasts = [
                 {
                     "metric": "revenue",

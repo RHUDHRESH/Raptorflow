@@ -1,4 +1,4 @@
-import { CampaignTemplate, CampaignObjective, CampaignStructure, MoveType } from '@/types/campaign';
+import { CampaignTemplate, CampaignObjective, MoveType } from '@/types/campaign';
 
 // Product Launch Templates
 export const productLaunchTemplates: CampaignTemplate[] = [

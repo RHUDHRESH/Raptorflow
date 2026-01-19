@@ -5,7 +5,7 @@ Handles transactional emails
 
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import resend
 
@@ -20,7 +20,7 @@ class ResendEmailService:
 
     def __init__(self):
         self.api_key = os.getenv("RESEND_API_KEY")
-        self.sender_email = os.getenv(
+        self.sender_email = os.getenv("RESEND_FROM_EMAIL") or os.getenv(
             "SENDER_EMAIL_ADDRESS", "onboarding@resend.dev"
         )  # Default Resend dev email
 

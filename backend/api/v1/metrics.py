@@ -1,587 +1,617 @@
 """
-Metrics endpoints for monitoring and analytics.
+Enhanced metrics API endpoints for Raptorflow agents.
+Includes resource analytics, quota management, and comprehensive monitoring.
 """
 
+from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
+from fastapi.responses import JSONResponse
+from typing import Dict, List, Optional
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query, status
-from pydantic import BaseModel
+from backend.core.metrics import (
+    get_metrics_collector,
+    MetricType,
+    AgentMetrics,
+    MetricData
+)
+from backend.core.metrics_collector import (
+    get_metrics_collector as get_enhanced_collector,
+    MetricsCollector,
+    MetricDefinition,
+    MetricCategory,
+    OptimizationRecommendation,
+    AlertRule
+)
+from backend.core.resources import (
+    get_resource_manager,
+    ResourceManager,
+    ResourceType,
+    ResourceLeak
+)
+from backend.core.resource_analytics import (
+    get_resource_analyzer,
+    ResourceAnalyzer,
+    OptimizationType,
+    OptimizationPriority
+)
+from backend.core.quota_manager import (
+    get_quota_manager,
+    QuotaManager,
+    QuotaDefinition,
+    QuotaType,
+    QuotaPeriod,
+    QuotaAction
+)
+from backend.core.cleanup_scheduler import (
+    get_cleanup_scheduler,
+    CleanupScheduler,
+    CleanupTask,
+    CleanupPriority
 
-from ...config.settings import get_settings
-from ...infrastructure.bigquery import BigQueryClient
-from ...monitoring.metrics import MetricsCollector
-from ...redis.metrics import RedisMetrics
-from ...redis.usage import UsageTracker
+)
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+
+router = APIRouter(prefix="/api/v1/metrics", tags=["metrics"])
 
 
-class MetricsResponse(BaseModel):
-    """Basic metrics response."""
-
-    timestamp: datetime
-    metrics: Dict[str, Any]
-
-
-class SystemMetricsResponse(BaseModel):
-    """System metrics response."""
-
-    timestamp: datetime
-    cpu: Dict[str, float]
-    memory: Dict[str, Any]
-    disk: Dict[str, Any]
-    network: Dict[str, Any]
-
-
-class AgentMetricsResponse(BaseModel):
-    """Agent metrics response."""
-
-    timestamp: datetime
-    agents: Dict[str, Dict[str, Any]]
-    total_executions: int
-    success_rate: float
-    average_execution_time: float
-
-
-class UsageMetricsResponse(BaseModel):
-    """Usage metrics response."""
-
-    timestamp: datetime
-    period: str
-    total_tokens: int
-    total_cost: float
-    active_users: int
-    active_workspaces: int
-
-
-@router.get("/metrics", response_model=MetricsResponse)
-async def get_prometheus_metrics():
-    """
-    Get metrics in Prometheus format.
-    """
+@router.get("/global")
+async def get_global_metrics():
+    """Get global metrics summary."""
     try:
-        metrics_collector = MetricsCollector()
-        prometheus_metrics = await metrics_collector.get_prometheus_metrics()
-
-        return MetricsResponse(
-            timestamp=datetime.utcnow(),
-            metrics={"prometheus": prometheus_metrics},
-        )
-
-    except Exception as e:
-        logger.error(f"Failed to get Prometheus metrics: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get metrics",
-        )
-
-
-@router.get("/metrics/system", response_model=SystemMetricsResponse)
-async def get_system_metrics():
-    """
-    Get system performance metrics.
-    """
-    try:
-        import psutil
-
-        # CPU metrics
-        cpu_percent = psutil.cpu_percent(interval=1)
-        cpu_count = psutil.cpu_count()
-        cpu_freq = psutil.cpu_freq()
-
-        cpu_metrics = {
-            "usage_percent": cpu_percent,
-            "count": cpu_count,
-            "frequency_current": cpu_freq.current if cpu_freq else None,
-            "frequency_min": cpu_freq.min if cpu_freq else None,
-            "frequency_max": cpu_freq.max if cpu_freq else None,
-        }
-
-        # Memory metrics
-        memory = psutil.virtual_memory()
-        swap = psutil.swap_memory()
-
-        memory_metrics = {
-            "total": memory.total,
-            "available": memory.available,
-            "used": memory.used,
-            "free": memory.free,
-            "percent": memory.percent,
-            "swap_total": swap.total,
-            "swap_used": swap.used,
-            "swap_free": swap.free,
-            "swap_percent": swap.percent,
-        }
-
-        # Disk metrics
-        disk = psutil.disk_usage("/")
-        disk_io = psutil.disk_io_counters()
-
-        disk_metrics = {
-            "total": disk.total,
-            "used": disk.used,
-            "free": disk.free,
-            "percent": (disk.used / disk.total) * 100,
-            "read_count": disk_io.read_count if disk_io else 0,
-            "write_count": disk_io.write_count if disk_io else 0,
-            "read_bytes": disk_io.read_bytes if disk_io else 0,
-            "write_bytes": disk_io.write_bytes if disk_io else 0,
-        }
-
-        # Network metrics
-        network_io = psutil.net_io_counters()
-        network_metrics = {
-            "bytes_sent": network_io.bytes_sent,
-            "bytes_recv": network_io.bytes_recv,
-            "packets_sent": network_io.packets_sent,
-            "packets_recv": network_io.packets_recv,
-            "errin": network_io.errin,
-            "errout": network_io.errout,
-            "dropin": network_io.dropin,
-            "dropout": network_io.dropout,
-        }
-
-        return SystemMetricsResponse(
-            timestamp=datetime.utcnow(),
-            cpu=cpu_metrics,
-            memory=memory_metrics,
-            disk=disk_metrics,
-            network=network_metrics,
-        )
-
-    except Exception as e:
-        logger.error(f"Failed to get system metrics: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get system metrics",
-        )
-
-
-@router.get("/metrics/redis")
-async def get_redis_metrics():
-    """
-    Get Redis performance metrics.
-    """
-    try:
-        redis_metrics = RedisMetrics()
-        metrics_report = await redis_metrics.get_metrics()
-
+        collector = get_metrics_collector()
+        enhanced_collector = get_enhanced_collector()
+        resource_manager = get_resource_manager()
+        quota_manager = get_quota_manager()
+        
+        # Combine metrics from all systems
+        basic_metrics = collector.get_global_metrics()
+        enhanced_summary = enhanced_collector.get_metrics_summary()
+        resource_summary = resource_manager.get_resource_summary()
+        quota_status = quota_manager.get_quota_status()
+        
         return {
-            "timestamp": datetime.utcnow(),
-            "redis": metrics_report,
+            "status": "success",
+            "data": {
+                "basic_metrics": basic_metrics,
+                "enhanced_metrics": enhanced_summary,
+                "resource_summary": resource_summary,
+                "quota_status": quota_status,
+                "system_health": {
+                    "timestamp": datetime.now().isoformat(),
+                    "overall_status": "healthy" if _check_system_health() else "degraded"
+                }
+            },
+            "message": "Global metrics retrieved successfully"
         }
-
     except Exception as e:
-        logger.error(f"Failed to get Redis metrics: {e}")
+        logger.error(f"Failed to get global metrics: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get Redis metrics",
+            status_code=500,
+            detail="Failed to retrieve global metrics"
         )
 
 
-@router.get("/metrics/agents", response_model=AgentMetricsResponse)
-async def get_agent_metrics(
-    period: str = Query(default="24h", description="Time period (1h, 24h, 7d, 30d)"),
-    agent_name: Optional[str] = Query(default=None, description="Specific agent name"),
-):
-    """
-    Get agent execution metrics.
-    """
+def _check_system_health() -> bool:
+    """Check overall system health based on metrics."""
     try:
-        bigquery = BigQueryClient()
+        resource_manager = get_resource_manager()
+        quota_manager = get_quota_manager()
+        
+        # Check resource leaks
+        leaked_resources = resource_manager.get_leaked_resources()
+        if len(leaked_resources) > 10:  # Too many leaks
+            return False
+        
+        # Check quota violations
+        quota_violations = quota_manager.quota_violations
+        recent_violations = [
+            v for v in quota_violations
+            if (datetime.now() - v.violation_time).total_seconds() < 3600  # Last hour
+        ]
+        if len(recent_violations) > 5:  # Too many violations
+            return False
+        
+        return True
+    except Exception:
+        return False
 
-        # Parse period
-        period_mapping = {
-            "1h": timedelta(hours=1),
-            "24h": timedelta(days=1),
-            "7d": timedelta(days=7),
-            "30d": timedelta(days=30),
-        }
 
-        if period not in period_mapping:
+@router.get("/agents/{agent_id}")
+async def get_agent_metrics(agent_id: str):
+    """Get metrics for a specific agent."""
+    try:
+        collector = get_metrics_collector()
+        agent_metrics = collector.get_agent_metrics(agent_id)
+        
+        if not agent_metrics:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid period. Use: 1h, 24h, 7d, 30d",
+                status_code=404,
+                detail=f"Agent {agent_id} not found"
             )
-
-        time_delta = period_mapping[period]
-        start_time = datetime.utcnow() - time_delta
-
-        # Build query
-        query = f"""
-        SELECT
-            agent_name,
-            COUNT(*) as total_executions,
-            COUNTIF(status = 'completed') as successful_executions,
-            COUNTIF(status = 'failed') as failed_executions,
-            AVG(execution_time) as avg_execution_time,
-            SUM(tokens_used) as total_tokens,
-            SUM(cost) as total_cost
-        FROM `raptorflow_analytics.agent_executions`
-        WHERE created_at >= TIMESTAMP('{start_time.isoformat()}')
-        """
-
-        if agent_name:
-            query += f" AND agent_name = '{agent_name}'"
-
-        query += " GROUP BY agent_name ORDER BY total_executions DESC"
-
-        results = await bigquery.execute_query(query)
-
-        # Calculate overall metrics
-        total_executions = sum(row["total_executions"] for row in results)
-        total_successful = sum(row["successful_executions"] for row in results)
-        success_rate = (
-            (total_successful / total_executions * 100) if total_executions > 0 else 0
-        )
-        avg_execution_time = (
-            sum(row["avg_execution_time"] for row in results) / len(results)
-            if results
-            else 0
-        )
-
-        # Format agent metrics
-        agents = {}
-        for row in results:
-            agents[row["agent_name"]] = {
-                "total_executions": row["total_executions"],
-                "successful_executions": row["successful_executions"],
-                "failed_executions": row["failed_executions"],
-                "success_rate": (
-                    (row["successful_executions"] / row["total_executions"] * 100)
-                    if row["total_executions"] > 0
-                    else 0
-                ),
-                "avg_execution_time": row["avg_execution_time"],
-                "total_tokens": row["total_tokens"],
-                "total_cost": row["total_cost"],
-            }
-
-        return AgentMetricsResponse(
-            timestamp=datetime.utcnow(),
-            agents=agents,
-            total_executions=total_executions,
-            success_rate=success_rate,
-            average_execution_time=avg_execution_time,
-        )
-
+        
+        return {
+            "status": "success",
+            "data": agent_metrics.to_dict(),
+            "message": f"Metrics retrieved for agent {agent_id}"
+        }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to get agent metrics: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get agent metrics",
+            status_code=500,
+            detail="Failed to retrieve agent metrics"
         )
 
 
-@router.get("/metrics/usage", response_model=UsageMetricsResponse)
-async def get_usage_metrics(
-    period: str = Query(default="current_month", description="Time period"),
-    workspace_id: Optional[str] = Query(
-        default=None, description="Specific workspace ID"
-    ),
+@router.get("/history")
+async def get_metrics_history(
+    metric_type: Optional[str] = Query(None, description="Filter by metric type"),
+    agent_id: Optional[str] = Query(None, description="Filter by agent ID"),
+    workspace_id: Optional[str] = Query(None, description="Filter by workspace ID"),
+    limit: int = Query(1000, description="Maximum number of metrics to return", le=1000),
+    offset: int = Query(0, description="Number of metrics to skip", ge=0)
 ):
-    """
-    Get usage metrics.
-    """
+    """Get metrics history with optional filtering."""
     try:
-        usage_tracker = UsageTracker()
-
-        if workspace_id:
-            # Get usage for specific workspace
-            usage_stats = await usage_tracker.get_usage(workspace_id, period)
-
-            return UsageMetricsResponse(
-                timestamp=datetime.utcnow(),
-                period=period,
-                total_tokens=usage_stats.total_tokens,
-                total_cost=usage_stats.total_cost,
-                active_users=1,  # Would need to query user activity
-                active_workspaces=1,
-            )
-        else:
-            # Get aggregate usage across all workspaces
-            # This would require a more complex query
-            return UsageMetricsResponse(
-                timestamp=datetime.utcnow(),
-                period=period,
-                total_tokens=0,
-                total_cost=0.0,
-                active_users=0,
-                active_workspaces=0,
-            )
-
-    except Exception as e:
-        logger.error(f"Failed to get usage metrics: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get usage metrics",
-        )
-
-
-@router.get("/metrics/performance")
-async def get_performance_metrics():
-    """
-    Get application performance metrics.
-    """
-    try:
-        metrics_collector = MetricsCollector()
-
-        # Get various performance metrics
-        response_times = await metrics_collector.get_response_times()
-        error_rates = await metrics_collector.get_error_rates()
-        throughput = await metrics_collector.get_throughput()
-
-        return {
-            "timestamp": datetime.utcnow(),
-            "performance": {
-                "response_times": response_times,
-                "error_rates": error_rates,
-                "throughput": throughput,
-            },
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to get performance metrics: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get performance metrics",
-        )
-
-
-@router.get("/metrics/business")
-async def get_business_metrics(
-    period: str = Query(default="30d", description="Time period")
-):
-    """
-    Get business metrics.
-    """
-    try:
-        bigquery = BigQueryClient()
-
-        # Parse period
-        period_mapping = {
-            "7d": timedelta(days=7),
-            "30d": timedelta(days=30),
-            "90d": timedelta(days=90),
-        }
-
-        if period not in period_mapping:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid period. Use: 7d, 30d, 90d",
-            )
-
-        time_delta = period_mapping[period]
-        start_time = datetime.utcnow() - time_delta
-
-        # Get business metrics
-        queries = {
-            "new_users": f"""
-            SELECT COUNT(DISTINCT user_id) as count
-            FROM `raptorflow_analytics.user_events`
-            WHERE event_type = 'user_registered'
-            AND created_at >= TIMESTAMP('{start_time.isoformat()}')
-            """,
-            "active_workspaces": f"""
-            SELECT COUNT(DISTINCT workspace_id) as count
-            FROM `raptorflow_analytics.agent_executions`
-            WHERE created_at >= TIMESTAMP('{start_time.isoformat()}')
-            """,
-            "revenue": f"""
-            SELECT SUM(amount) as total
-            FROM `raptorflow_analytics.billing_events`
-            WHERE event_type = 'payment_completed'
-            AND created_at >= TIMESTAMP('{start_time.isoformat()}')
-            """,
-            "feature_usage": f"""
-            SELECT
-                agent_name,
-                COUNT(*) as usage_count
-            FROM `raptorflow_analytics.agent_executions`
-            WHERE created_at >= TIMESTAMP('{start_time.isoformat()}')
-            GROUP BY agent_name
-            ORDER BY usage_count DESC
-            LIMIT 10
-            """,
-        }
-
-        results = {}
-        for metric_name, query in queries.items():
+        collector = get_metrics_collector()
+        
+        # Convert string to enum
+        metric_type_enum = None
+        if metric_type:
             try:
-                if metric_name == "feature_usage":
-                    results[metric_name] = await bigquery.execute_query(query)
-                else:
-                    result = await bigquery.execute_query(query)
-                    results[metric_name] = result[0]["count"] if result else 0
-            except Exception as e:
-                logger.error(f"Failed to get {metric_name} metric: {e}")
-                results[metric_name] = 0 if metric_name != "feature_usage" else []
-
-        return {
-            "timestamp": datetime.utcnow(),
-            "period": period,
-            "metrics": results,
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to get business metrics: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get business metrics",
+                metric_type_enum = MetricType(metric_type)
+            except ValueError:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid metric type: {metric_type}"
+                )
+        
+        history = collector.get_metrics_history(
+            metric_type=metric_type_enum,
+            agent_id=agent_id,
+            workspace_id=workspace_id,
+            limit=limit,
+            offset=offset
         )
-
-
-@router.get("/metrics/alerts")
-async def get_alerting_metrics():
-    """
-    Get alerting and monitoring metrics.
-    """
-    try:
-        metrics_collector = MetricsCollector()
-
-        # Get alert status
-        active_alerts = await metrics_collector.get_active_alerts()
-        alert_history = await metrics_collector.get_alert_history(limit=100)
-
-        return {
-            "timestamp": datetime.utcnow(),
-            "alerts": {
-                "active_count": len(active_alerts),
-                "active_alerts": active_alerts,
-                "recent_history": alert_history,
-            },
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to get alerting metrics: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get alerting metrics",
-        )
-
-
-@router.post("/metrics/collect")
-async def trigger_metrics_collection():
-    """
-    Trigger manual metrics collection.
-    """
-    try:
-        metrics_collector = MetricsCollector()
-
-        # Collect all metrics
-        await metrics_collector.collect_all_metrics()
-
+        
         return {
             "status": "success",
-            "timestamp": datetime.utcnow(),
-            "message": "Metrics collection triggered",
+            "data": history,
+            "pagination": {
+                "limit": limit,
+                "offset": offset,
+                "total": len(history),
+            },
+            "message": "Metrics history retrieved successfully"
         }
-
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Failed to trigger metrics collection: {e}")
+        logger.error(f"Failed to get metrics history: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to trigger metrics collection",
+            status_code=500,
+            detail="Failed to retrieve metrics history"
         )
 
 
-@router.get("/metrics/export")
-async def export_metrics(
-    format: str = Query(default="json", description="Export format (json, csv)"),
-    start_date: Optional[str] = Query(
-        default=None, description="Start date (ISO format)"
-    ),
-    end_date: Optional[str] = Query(default=None, description="End date (ISO format)"),
+@router.get("/performance")
+async def get_performance_summary(
+    time_window_minutes: int = Query(60, description="Time window in minutes", ge=1, le=1440)
 ):
-    """
-    Export metrics data.
-    """
+    """Get performance summary for the last N minutes."""
     try:
-        # Parse dates
-        if start_date:
-            start_dt = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
-        else:
-            start_dt = datetime.utcnow() - timedelta(days=30)
-
-        if end_date:
-            end_dt = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
-        else:
-            end_dt = datetime.utcnow()
-
-        # Get metrics data
-        bigquery = BigQueryClient()
-
-        query = f"""
-        SELECT
-            DATE(created_at) as date,
-            agent_name,
-            COUNT(*) as executions,
-            COUNTIF(status = 'completed') as successful,
-            AVG(execution_time) as avg_time,
-            SUM(tokens_used) as tokens,
-            SUM(cost) as cost
-        FROM `raptorflow_analytics.agent_executions`
-        WHERE created_at >= TIMESTAMP('{start_dt.isoformat()}')
-        AND created_at <= TIMESTAMP('{end_dt.isoformat()}')
-        GROUP BY DATE(created_at), agent_name
-        ORDER BY date DESC, agent_name
-        """
-
-        results = await bigquery.execute_query(query)
-
-        if format == "csv":
-            # Convert to CSV format
-            import csv
-            import io
-
-            output = io.StringIO()
-            writer = csv.writer(output)
-
-            # Write header
-            writer.writerow(
-                [
-                    "date",
-                    "agent_name",
-                    "executions",
-                    "successful",
-                    "avg_time",
-                    "tokens",
-                    "cost",
-                ]
-            )
-
-            # Write data
-            for row in results:
-                writer.writerow(
-                    [
-                        row["date"],
-                        row["agent_name"],
-                        row["executions"],
-                        row["successful"],
-                        row["avg_time"],
-                        row["tokens"],
-                        row["cost"],
-                    ]
-                )
-
-            return {
-                "format": "csv",
-                "data": output.getvalue(),
-                "timestamp": datetime.utcnow(),
-            }
-        else:
-            return {
-                "format": "json",
-                "data": results,
-                "timestamp": datetime.utcnow(),
-            }
-
+        collector = get_metrics_collector()
+        summary = collector.get_performance_summary(time_window_minutes)
+        
+        return {
+            "status": "success",
+            "data": summary,
+            "message": f"Performance summary for last {time_window_minutes} minutes"
+        }
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Failed to export metrics: {e}")
+        logger.error(f"Failed to get performance summary: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to export metrics",
+            status_code=500,
+            detail="Failed to retrieve performance summary"
+        )
+
+
+@router.get("/types")
+async def get_metric_types():
+    """Get available metric types."""
+    try:
+        return {
+            "status": "success",
+            "data": [metric_type.value for metric_type in MetricType],
+            "message": "Metric types retrieved successfully"
+        }
+    except Exception as e:
+        logger.error(f"Failed to get metric types: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve metric types"
+        )
+
+
+@router.delete("/reset")
+async def reset_metrics():
+    """Reset all metrics (admin endpoint)."""
+    try:
+        collector = get_metrics_collector()
+        
+        # Clear all metrics
+        collector.metrics_history.clear()
+        collector.agent_metrics.clear()
+        collector.global_counters.clear()
+        
+        return {
+            "status": "success",
+            "message": "All metrics have been reset"
+        }
+    except Exception as e:
+        logger.error(f"Failed to reset metrics: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to reset metrics"
+        )
+
+
+@router.delete("/reset/{agent_id}")
+async def reset_agent_metrics(agent_id: str):
+    """Reset metrics for a specific agent."""
+    try:
+        collector = get_metrics_collector()
+        
+        if agent_id in collector.agent_metrics:
+            del collector.agent_metrics[agent_id]
+            return {
+                "status": "success",
+                "message": f"Metrics reset for agent {agent_id}"
+            }
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Agent {agent_id} not found"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to reset agent metrics: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to reset agent metrics"
+        )
+
+
+# Resource Management Endpoints
+
+@router.get("/resources/summary")
+async def get_resource_summary():
+    """Get comprehensive resource summary."""
+    try:
+        resource_manager = get_resource_manager()
+        summary = resource_manager.get_resource_summary()
+        
+        return {
+            "status": "success",
+            "data": summary,
+            "message": "Resource summary retrieved successfully"
+        }
+    except Exception as e:
+        logger.error(f"Failed to get resource summary: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve resource summary"
+        )
+
+
+@router.get("/resources/leaks")
+async def get_resource_leaks(
+    severity: Optional[str] = Query(None, description="Filter by severity"),
+    limit: int = Query(50, description="Maximum number of leaks to return", le=100)
+):
+    """Get detected resource leaks."""
+    try:
+        resource_manager = get_resource_manager()
+        leaks = resource_manager.get_leaked_resources(severity)
+        
+        return {
+            "status": "success",
+            "data": leaks[:limit],
+            "total": len(leaks),
+            "message": "Resource leaks retrieved successfully"
+        }
+    except Exception as e:
+        logger.error(f"Failed to get resource leaks: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve resource leaks"
+        )
+
+
+@router.post("/resources/cleanup/{resource_type}")
+async def trigger_resource_cleanup(
+    resource_type: str,
+    background_tasks: BackgroundTasks
+):
+    """Trigger cleanup for a specific resource type."""
+    try:
+        resource_manager = get_resource_manager()
+        resource_enum = ResourceType(resource_type)
+        
+        # Schedule cleanup in background
+        background_tasks.add_task(
+            resource_manager.cleanup_resources_by_type(resource_enum)
+        )
+        
+        return {
+            "status": "success",
+            "message": f"Cleanup triggered for {resource_type} resources"
+        }
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid resource type: {resource_type}"
+        )
+    except Exception as e:
+        logger.error(f"Failed to trigger resource cleanup: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to trigger resource cleanup"
+        )
+
+
+# Resource Analytics Endpoints
+
+@router.get("/analytics/profiles")
+async def get_resource_usage_profiles():
+    """Get resource usage profiles and patterns."""
+    try:
+        analyzer = get_resource_analyzer()
+        profiles = analyzer.get_usage_profiles()
+        
+        return {
+            "status": "success",
+            "data": profiles,
+            "message": "Resource usage profiles retrieved successfully"
+        }
+    except Exception as e:
+        logger.error(f"Failed to get resource usage profiles: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve resource usage profiles"
+        )
+
+
+@router.get("/analytics/patterns")
+async def get_resource_patterns(
+    resource_type: Optional[str] = Query(None, description="Filter by resource type"),
+    pattern_type: Optional[str] = Query(None, description="Filter by pattern type"),
+    limit: int = Query(50, description="Maximum number of patterns to return", le=100)
+):
+    """Get detected resource usage patterns."""
+    try:
+        analyzer = get_resource_analyzer()
+        
+        # Convert resource type string to enum if provided
+        resource_enum = None
+        if resource_type:
+            resource_enum = ResourceType(resource_type)
+        
+        patterns = analyzer.get_detected_patterns(resource_enum, pattern_type, limit)
+        
+        return {
+            "status": "success",
+            "data": patterns,
+            "total": len(patterns),
+            "message": "Resource patterns retrieved successfully"
+        }
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid resource type: {resource_type}"
+        )
+    except Exception as e:
+        logger.error(f"Failed to get resource patterns: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve resource patterns"
+        )
+
+
+@router.get("/analytics/recommendations")
+async def get_optimization_recommendations(
+    priority: Optional[str] = Query(None, description="Filter by priority"),
+    optimization_type: Optional[str] = Query(None, description="Filter by optimization type"),
+    resource_type: Optional[str] = Query(None, description="Filter by resource type"),
+    limit: int = Query(50, description="Maximum number of recommendations to return", le=100)
+):
+    """Get optimization recommendations."""
+    try:
+        analyzer = get_resource_analyzer()
+        
+        # Convert filters to enums if provided
+        priority_enum = None
+        if priority:
+            priority_enum = OptimizationPriority(priority)
+        
+        opt_type_enum = None
+        if optimization_type:
+            opt_type_enum = OptimizationType(optimization_type)
+        
+        resource_enum = None
+        if resource_type:
+            resource_enum = ResourceType(resource_type)
+        
+        recommendations = analyzer.get_recommendations(
+            priority_enum, opt_type_enum, resource_enum, limit
+        )
+        
+        return {
+            "status": "success",
+            "data": recommendations,
+            "total": len(recommendations),
+            "message": "Optimization recommendations retrieved successfully"
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid filter parameter: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Failed to get optimization recommendations: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve optimization recommendations"
+        )
+
+
+# Quota Management Endpoints
+
+@router.get("/quotas")
+async def get_quota_status(
+    quota_id: Optional[str] = Query(None, description="Filter by quota ID"),
+    user_id: Optional[str] = Query(None, description="Filter by user ID"),
+    workspace_id: Optional[str] = Query(None, description="Filter by workspace ID")
+):
+    """Get quota status and usage."""
+    try:
+        quota_manager = get_quota_manager()
+        status = quota_manager.get_quota_status(quota_id, user_id, workspace_id)
+        
+        return {
+            "status": "success",
+            "data": status,
+            "message": "Quota status retrieved successfully"
+        }
+    except Exception as e:
+        logger.error(f"Failed to get quota status: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve quota status"
+        )
+
+
+@router.get("/quotas/violations")
+async def get_quota_violations(
+    quota_id: Optional[str] = Query(None, description="Filter by quota ID"),
+    resolved: Optional[bool] = Query(None, description="Filter by resolution status"),
+    limit: int = Query(100, description="Maximum number of violations to return", le=200)
+):
+    """Get quota violations."""
+    try:
+        quota_manager = get_quota_manager()
+        violations = quota_manager.get_quota_violations(quota_id, resolved, limit)
+        
+        return {
+            "status": "success",
+            "data": violations,
+            "total": len(violations),
+            "message": "Quota violations retrieved successfully"
+        }
+    except Exception as e:
+        logger.error(f"Failed to get quota violations: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve quota violations"
+        )
+
+
+@router.post("/quotas/{quota_id}/reset")
+async def reset_quota_usage(quota_id: str):
+    """Reset quota usage for a specific quota."""
+    try:
+        quota_manager = get_quota_manager()
+        quota_manager._reset_quota_usage(quota_id)
+        
+        return {
+            "status": "success",
+            "message": f"Quota usage reset for {quota_id}"
+        }
+    except Exception as e:
+        logger.error(f"Failed to reset quota usage: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to reset quota usage"
+        )
+
+
+# Cleanup Scheduler Endpoints
+
+@router.get("/cleanup/tasks")
+async def get_cleanup_tasks():
+    """Get all cleanup tasks."""
+    try:
+        scheduler = get_cleanup_scheduler()
+        tasks = scheduler.get_all_tasks()
+        
+        return {
+            "status": "success",
+            "data": tasks,
+            "message": "Cleanup tasks retrieved successfully"
+        }
+    except Exception as e:
+        logger.error(f"Failed to get cleanup tasks: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve cleanup tasks"
+        )
+
+
+@router.post("/cleanup/tasks/{task_id}/run")
+async def run_cleanup_task(
+    task_id: str,
+    background_tasks: BackgroundTasks
+):
+    """Run a cleanup task immediately."""
+    try:
+        scheduler = get_cleanup_scheduler()
+        success = await scheduler.run_task_now(task_id)
+        
+        if not success:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Cleanup task {task_id} not found"
+            )
+        
+        return {
+            "status": "success",
+            "message": f"Cleanup task {task_id} queued for execution"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to run cleanup task: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to run cleanup task"
+        )
+
+
+@router.get("/cleanup/history")
+async def get_cleanup_history(
+    task_id: Optional[str] = Query(None, description="Filter by task ID"),
+    limit: int = Query(100, description="Maximum number of results to return", le=200)
+):
+    """Get cleanup execution history."""
+    try:
+        scheduler = get_cleanup_scheduler()
+        history = scheduler.get_execution_history(task_id, limit)
+        
+        return {
+            "status": "success",
+            "data": history,
+            "total": len(history),
+            "message": "Cleanup history retrieved successfully"
+        }
+    except Exception as e:
+        logger.error(f"Failed to get cleanup history: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve cleanup history"
         )

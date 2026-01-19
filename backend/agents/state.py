@@ -1,11 +1,17 @@
 """
-Agent state management and context classes.
+Agent state management and context classes with persistence.
 """
 
+import json
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, TypedDict
+
+try:
+    import redis
+except ImportError:
+    redis = None
 
 
 class AgentState(TypedDict):
@@ -200,3 +206,126 @@ def get_agent_summary(state: AgentState) -> Dict[str, Any]:
         "cost_usd": state["cost_usd"],
         "duration_minutes": (datetime.now() - state["created_at"]).total_seconds() / 60,
     }
+
+
+# State persistence functions
+def get_redis_client():
+    """Get Redis client for state persistence."""
+    if not redis:
+        return None
+    
+    try:
+        # Try to get Redis URL from environment
+        import os
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        client = redis.from_url(redis_url, decode_responses=True)
+        # Test connection
+        client.ping()
+        return client
+    except Exception:
+        return None
+
+
+def persist_state(state: AgentState, ttl: int = 3600) -> bool:
+    """Persist agent state to Redis."""
+    try:
+        client = get_redis_client()
+        if not client:
+            return False
+        
+        key = f"agent_state:{state['workspace_id']}:{state['user_id']}:{state['session_id']}"
+        
+        # Convert datetime objects to strings for JSON serialization
+        state_copy = state.copy()
+        state_copy['created_at'] = state['created_at'].isoformat()
+        state_copy['updated_at'] = state['updated_at'].isoformat()
+        
+        # Store as JSON
+        client.setex(key, ttl, json.dumps(state_copy))
+        return True
+    except Exception:
+        return False
+
+
+def retrieve_state(workspace_id: str, user_id: str, session_id: str) -> Optional[AgentState]:
+    """Retrieve agent state from Redis."""
+    try:
+        client = get_redis_client()
+        if not client:
+            return None
+        
+        key = f"agent_state:{workspace_id}:{user_id}:{session_id}"
+        data = client.get(key)
+        
+        if not data:
+            return None
+        
+        state = json.loads(data)
+        
+        # Convert string timestamps back to datetime objects
+        state['created_at'] = datetime.fromisoformat(state['created_at'])
+        state['updated_at'] = datetime.fromisoformat(state['updated_at'])
+        
+        return state
+    except Exception:
+        return None
+
+
+def clear_state(workspace_id: str, user_id: str, session_id: str) -> bool:
+    """Clear agent state from Redis."""
+    try:
+        client = get_redis_client()
+        if not client:
+            return False
+        
+        key = f"agent_state:{workspace_id}:{user_id}:{session_id}"
+        client.delete(key)
+        return True
+    except Exception:
+        return False
+
+
+def get_user_sessions(workspace_id: str, user_id: str) -> List[str]:
+    """Get all session IDs for a user."""
+    try:
+        client = get_redis_client()
+        if not client:
+            return []
+        
+        pattern = f"agent_state:{workspace_id}:{user_id}:*"
+        keys = client.keys(pattern)
+        
+        # Extract session IDs from keys
+        sessions = []
+        for key in keys:
+            parts = key.split(":")
+            if len(parts) >= 4:
+                sessions.append(parts[3])
+        
+        return sessions
+    except Exception:
+        return []
+
+
+def cleanup_expired_states() -> int:
+    """Clean up expired states (called by background job)."""
+    try:
+        client = get_redis_client()
+        if not client:
+            return 0
+        
+        # Redis automatically handles TTL expiration
+        # This function can be used for manual cleanup if needed
+        pattern = "agent_state:*"
+        keys = client.keys(pattern)
+        
+        expired_count = 0
+        for key in keys:
+            ttl = client.ttl(key)
+            if ttl == -1:  # No TTL set, set one
+                client.expire(key, 3600)  # 1 hour default
+                expired_count += 1
+        
+        return expired_count
+    except Exception:
+        return 0

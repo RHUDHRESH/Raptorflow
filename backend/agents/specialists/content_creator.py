@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..exceptions import DatabaseError, ValidationError
 from ..state import AgentState, add_message, update_state
 
@@ -402,15 +402,60 @@ Always maintain brand consistency and follow content marketing best practices. F
                 request, template, research_data, existing_content, state
             )
 
-            # Step 4: Generate content
-            content = await self.llm.generate(prompt)
+            # [REFACTORED]: Use ContentGenerationSkill if available
+            content = ""
+            skill_name = "content_generation"
+            skill = self.skills_registry.get_skill(skill_name)
+            
+            if skill and hasattr(skill, 'execute'):
+                logger.info(f"Delegating generation to skill: {skill_name}")
+                result = await skill.execute({
+                    "prompt": prompt,
+                    "system_prompt": self.get_system_prompt(),
+                    "agent": self
+                })
+                content = result.get("content", "")
+            else:
+                # Fallback to old method if skill not found or not executable
+                logger.warning(f"Skill {skill_name} not executable, falling back to direct LLM call")
+                content = await self.llm.generate(prompt)
+
+            # Step 4.5: Polish Content (Swarm Skill)
+            polisher = self.skills_registry.get_skill("copy_polisher")
+            if polisher and hasattr(polisher, 'execute'):
+                logger.info("Swarm: Polishing content...")
+                try:
+                    polish_res = await polisher.execute({
+                        "agent": self,
+                        "text": content,
+                        "tone": request.tone
+                    })
+                    if "polished_text" in polish_res:
+                         content = polish_res["polished_text"]
+                except Exception as e:
+                    logger.warning(f"Polisher failed: {e}")
+
+            # Step 4.6: Generate Viral Hooks (Swarm Skill) - only for social
+            viral_hooks = []
+            if request.content_type in ["social_post", "tweet", "linkedin_post"]:
+                hook_skill = self.skills_registry.get_skill("viral_hook")
+                if hook_skill:
+                    logger.info("Swarm: Generating viral hooks...")
+                    try:
+                        hook_res = await hook_skill.execute({
+                            "agent": self,
+                            "topic": request.topic
+                        })
+                        viral_hooks = hook_res.get("viral_hooks", [])
+                    except Exception:
+                        pass
 
             # Step 5: Calculate metrics
             word_count = len(content.split())
             estimated_read_time = max(1, word_count // 200)  # 200 words per minute
 
-            # Step 6: Calculate SEO score
-            seo_score = self._calculate_seo_score(content, request.keywords)
+            # Step 6: Calculate SEO score [REFACTORED: Use SEO Skill]
+            seo_score = await self._calculate_seo_score_with_skill(content, request.keywords)
 
             # Step 7: Calculate engagement prediction
             engagement_prediction = self._calculate_engagement_prediction(
@@ -419,6 +464,8 @@ Always maintain brand consistency and follow content marketing best practices. F
 
             # Step 8: Generate suggestions
             suggestions = self._generate_suggestions(content, request)
+            if viral_hooks:
+                suggestions.append(f"Consider these viral hooks: {viral_hooks}")
 
             # Create result
             result = ContentResult(
@@ -613,8 +660,28 @@ Generate the content in {request.format} format.
 
         return prompt
 
-    def _calculate_seo_score(self, content: str, keywords: List[str]) -> float:
-        """Calculate SEO score for content."""
+    async def _calculate_seo_score_with_skill(self, content: str, keywords: List[str]) -> float:
+        """Calculate SEO score using executable skill."""
+        skill_name = "seo_optimization"
+        skill = self.skills_registry.get_skill(skill_name)
+        
+        if skill and hasattr(skill, 'execute'):
+            try:
+                result = await skill.execute({
+                    "content": content,
+                    "keywords": keywords,
+                    "agent": self
+                })
+                return result.get("score", 0.5)
+            except Exception as e:
+                logger.error(f"SEO skill execution failed: {e}")
+                return 0.5
+        
+        # Fallback to legacy method if needed
+        return self._calculate_seo_score_legacy(content, keywords)
+
+    def _calculate_seo_score_legacy(self, content: str, keywords: List[str]) -> float:
+        """Calculate SEO score for content (Legacy Method)."""
         if not keywords:
             return 0.5  # Default score
 

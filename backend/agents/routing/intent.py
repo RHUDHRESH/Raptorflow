@@ -77,7 +77,7 @@ Analyze the user's request and extract:
 - clarification_question: What to ask if clarification is needed
 
 Available intents: onboarding, content_creation, strategy_planning, research, analytics, general
-Available tools: web_search, database, content_gen, template_tool, feedback_tool
+Available tools: titan_intelligence_engine, web_search, database, content_gen, template_tool, feedback_tool
 Complexity levels: simple, moderate, complex
 
 Examples:
@@ -199,6 +199,7 @@ Respond with valid JSON only:
     def get_supported_tools(self) -> List[str]:
         """Get list of supported tools."""
         return [
+            "titan_intelligence_engine",
             "web_search",
             "database",
             "content_gen",

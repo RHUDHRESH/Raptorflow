@@ -16,7 +16,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from config import ModelTier
 from ..exceptions import ExecutionError, ValidationError
 from ..state import AgentState
 from .memory import AgentMemoryManager

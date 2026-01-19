@@ -1,16 +1,24 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-// Use service role key for admin operations
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// Lazy client creation to avoid build-time errors
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) {
+    throw new Error('Missing Supabase configuration');
+  }
+
+  return createClient(url, key);
+}
 
 export async function GET() {
   const results: any = {}
 
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     // Direct table check with service role key
     const { data: profiles, error: profilesError } = await supabaseAdmin
       .from('user_profiles')
@@ -50,6 +58,6 @@ export async function GET() {
 
     return NextResponse.json(results)
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 })
   }
 }

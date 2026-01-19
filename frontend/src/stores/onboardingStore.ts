@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { ONBOARDING_STEPS, type StepStatus, type StepState } from "@/lib/onboarding-tokens";
 import { supabase } from "@/lib/supabaseClient";
+import { useContextStore } from './contextStore'
 
 // --- Types ---
 export interface OnboardingSession {
@@ -27,6 +28,7 @@ export interface OnboardingState {
 
     // Actions
     initSession: (sessionId: string, clientName?: string) => void;
+    createSession: (workspaceId: string, clientName?: string) => Promise<void>;
     setCurrentStep: (stepId: number) => void;
     updateStepStatus: (stepId: number, status: StepStatus) => void;
     updateStepData: (stepId: number, data: Record<string, unknown>) => void;
@@ -72,6 +74,45 @@ export const useOnboardingStore = create<OnboardingState>()(
                     saveStatus: "idle",
                     lastSyncedAt: null,
                 });
+            },
+            createSession: async (workspaceId, clientName = "New Client") => {
+                if (!workspaceId) {
+                    console.error("Cannot create onboarding session without workspace ID.");
+                    return;
+                }
+
+                try {
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                    const response = await fetch(`${apiUrl}/api/v1/onboarding/session?workspace_id=${workspaceId}`, {
+                        method: "POST",
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Session creation failed: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    const sessionId = data?.id || data?.session_id;
+                    if (!sessionId) {
+                        throw new Error("Session creation response missing session id.");
+                    }
+
+                    set({
+                        session: {
+                            sessionId,
+                            clientName,
+                            createdAt: new Date(),
+                            updatedAt: new Date(),
+                        },
+                        currentStep: 1,
+                        steps: createInitialSteps(),
+                        saveStatus: "idle",
+                        lastSyncedAt: null,
+                    });
+                } catch (error) {
+                    console.error("Failed to create onboarding session:", error);
+                    set({ saveStatus: "error" });
+                }
             },
 
             setCurrentStep: (stepId) => {
@@ -132,8 +173,9 @@ export const useOnboardingStore = create<OnboardingState>()(
                         headers["Authorization"] = `Bearer ${token}`;
                     }
 
-                    const response = await fetch(`http://localhost:8000/api/v1/onboarding/${session.sessionId}/steps/${stepId}`, {
-                        method: "PATCH",
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                    const response = await fetch(`${apiUrl}/api/v1/onboarding/${session.sessionId}/steps/${stepId}`, {
+                        method: "POST",
                         headers,
                         body: JSON.stringify({
                             data: { ...get().steps.find(s => s.id === stepId)?.data, ...data }, // Merge with existing to be safe
@@ -144,6 +186,69 @@ export const useOnboardingStore = create<OnboardingState>()(
                     if (!response.ok) {
                         throw new Error(`Backend sync failed: ${response.statusText}`);
                     }
+
+                    // Success
+                    set({ saveStatus: "saved", lastSyncedAt: new Date() });
+                } catch (error) {
+                    console.error("Failed to sync step to backend:", error);
+                    set({ saveStatus: "error" });
+                }
+            },
+
+            completeStep: async (stepId: number) => {
+                set({ saveStatus: "saving" })
+                try {
+                    const { session } = get();
+                    if (!session?.sessionId) {
+                        // No session yet (or local demo), just finish
+                        set({ saveStatus: "saved", lastSyncedAt: new Date() });
+                        return;
+                    }
+
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                    const response = await fetch(`${apiUrl}/api/v1/onboarding/${session.sessionId}/steps/${stepId}/complete`, {
+                        method: "POST",
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Backend sync failed: ${response.statusText}`);
+                    }
+
+                    // Trigger BCM rebuild after step completion
+                    const context = useContextStore()
+                    await context.triggerRebuild(session.sessionId)
+
+                    // Success
+                    set({ saveStatus: "saved", lastSyncedAt: new Date() });
+                } catch (error) {
+                    console.error("Failed to sync step to backend:", error);
+                    set({ saveStatus: "error" });
+                }
+            },
+
+            updateStep: async (stepId: number, data: any) => {
+                set({ saveStatus: "saving" })
+                try {
+                    const { session } = get();
+                    if (!session?.sessionId) {
+                        // No session yet (or local demo), just finish
+                        set({ saveStatus: "saved", lastSyncedAt: new Date() });
+                        return;
+                    }
+
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                    const response = await fetch(`${apiUrl}/api/v1/onboarding/${session.sessionId}/steps/${stepId}`, {
+                        method: "PATCH",
+                        body: JSON.stringify(data),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Backend sync failed: ${response.statusText}`);
+                    }
+
+                    // Trigger BCM rebuild after step update
+                    const context = useContextStore()
+                    await context.triggerRebuild(session.sessionId)
 
                     // Success
                     set({ saveStatus: "saved", lastSyncedAt: new Date() });

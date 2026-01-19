@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional
 
-from ..state import AgentState
+from backend.agents.state import AgentState
 
 
 @dataclass
@@ -543,3 +543,8 @@ def calculate_agent_efficiency(collector: MetricsCollector) -> Dict[str, Any]:
 # Register custom metrics
 metrics_collector.register_custom_metric("cost_per_success", calculate_cost_per_success)
 metrics_collector.register_custom_metric("agent_efficiency", calculate_agent_efficiency)
+
+
+def get_metrics_collector() -> MetricsCollector:
+    """Get the global metrics collector instance."""
+    return metrics_collector

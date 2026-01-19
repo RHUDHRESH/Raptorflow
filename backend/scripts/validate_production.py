@@ -15,7 +15,7 @@ from typing import Any, Dict, List
 # Add backend to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config.settings import get_settings
+from backend.config.settings import get_settings
 from infrastructure.gcp import GCPClient
 from infrastructure.secrets import SecretsManager
 from infrastructure.storage import CloudStorage

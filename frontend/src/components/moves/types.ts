@@ -10,7 +10,6 @@ export type MoveCategory = 'ignite' | 'capture' | 'authority' | 'repair' | 'rall
 export interface MoveCategoryInfo {
     id: MoveCategory;
     name: string;
-    emoji: string;
     tagline: string;
     description: string;
     useFor: string[];
@@ -21,7 +20,6 @@ export const MOVE_CATEGORIES: Record<MoveCategory, MoveCategoryInfo> = {
     ignite: {
         id: 'ignite',
         name: 'Ignite',
-        emoji: '🌊',
         tagline: 'Launch & Hype',
         description: 'Maximum noise in a short window',
         useFor: ['New product drops', 'Store openings', 'Feature releases', 'Major announcements'],
@@ -30,7 +28,6 @@ export const MOVE_CATEGORIES: Record<MoveCategory, MoveCategoryInfo> = {
     capture: {
         id: 'capture',
         name: 'Capture',
-        emoji: '🧲',
         tagline: 'Acquisition & Sales',
         description: 'Direct revenue or qualified leads',
         useFor: ['Increasing footfall', 'Getting B2B leads', 'Closing end-of-quarter sales'],
@@ -39,7 +36,6 @@ export const MOVE_CATEGORIES: Record<MoveCategory, MoveCategoryInfo> = {
     authority: {
         id: 'authority',
         name: 'Authority',
-        emoji: '👑',
         tagline: 'Brand & Reputation',
         description: 'Mindshare and credibility',
         useFor: ['Thought leadership', 'Personal branding', 'Building trust'],
@@ -48,7 +44,6 @@ export const MOVE_CATEGORIES: Record<MoveCategory, MoveCategoryInfo> = {
     repair: {
         id: 'repair',
         name: 'Repair',
-        emoji: '🛡️',
         tagline: 'PR & Crisis',
         description: 'Damage control and sentiment shift',
         useFor: ['Handling bad reviews', 'Addressing controversy', 'Fixing public mistakes'],
@@ -57,7 +52,6 @@ export const MOVE_CATEGORIES: Record<MoveCategory, MoveCategoryInfo> = {
     rally: {
         id: 'rally',
         name: 'Rally',
-        emoji: '🤝',
         tagline: 'Community & Loyalty',
         description: 'Deepen relationships with existing users',
         useFor: ['Reactivating old customers', 'Increasing LTV', 'Driving referrals/UGC'],
@@ -72,7 +66,7 @@ export type TaskStatus = 'pending' | 'in-progress' | 'done' | 'blocked';
 export interface TaskItem {
     id: string;
     title: string;
-    description: string;
+    description?: string;
     status: TaskStatus;
     channel?: string;
     note?: string;  // Optional note added on completion
@@ -111,6 +105,7 @@ export interface Move {
     progress?: number; // 0-100
     icp?: string;
     campaignId?: string;
+    metrics?: string[];
 }
 
 // --- Move Brief (Strategy Lock) ---
@@ -122,6 +117,7 @@ export interface MoveBriefData {
     tone: string;
     strategy: string;
     metrics: string[];
+    icp?: string;
 }
 
 // --- Wizard State ---

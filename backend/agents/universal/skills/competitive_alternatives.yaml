@@ -1,0 +1,26 @@
+metadata:
+  name: "competitive_alternatives"
+  description: "Identifies and analyzes competitive alternatives to the product."
+  required_tools: ["market_search"]
+  output_format: "JSON"
+  version: "1.0.0"
+  category: "Strategy"
+
+parameters:
+  temperature: 0.1
+  max_tokens: 1500
+
+prompt: |
+  You are the Competitive Intelligence Specialist. Your task is to identify and analyze direct and indirect competitive alternatives for {company_name}.
+  
+  Product Context: {product_context}
+  Market: {market}
+  
+  For each competitor/alternative, provide:
+  - name: Name of the alternative
+  - type: "Direct Competitor", "Indirect Competitor", or "Status Quo"
+  - strengths: What they do well
+  - weaknesses: Where they fall short
+  - displacement_strategy: How {company_name} can win against them
+  
+  Return a JSON array of alternatives.

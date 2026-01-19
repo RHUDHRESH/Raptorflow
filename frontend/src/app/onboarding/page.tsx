@@ -3,26 +3,47 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useOnboardingStore } from "@/stores/onboardingStore";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Loader2, Zap } from "lucide-react";
 import { BlueprintButton } from "@/components/ui/BlueprintButton";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { session, initSession } = useOnboardingStore();
+  const { session, createSession } = useOnboardingStore();
+  const { workspace, isLoading } = useAuth();
 
   useEffect(() => {
+    if (isLoading) return;
+
+    const workspaceId = workspace?.workspaceId;
+    if (!workspaceId) {
+      return;
+    }
+
     // Initialize session if not exists and redirect to first step
     if (!session?.sessionId) {
-      initSession(`session-${Date.now()}`, "New Client");
+      createSession(workspaceId, workspace?.workspaceName || "New Client");
     }
 
     // Small delay to ensure session is initialized
     const timer = setTimeout(() => {
       router.push("/onboarding/session/step/1");
-    }, 100);
+    }, 150);
 
     return () => clearTimeout(timer);
-  }, [session, initSession, router]);
+  }, [session, createSession, router, workspace, isLoading]);
+
+  if (!isLoading && !workspace?.workspaceId) {
+    return (
+      <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h1 className="font-serif text-3xl text-[var(--ink)]">Workspace Required</h1>
+          <p className="text-[var(--muted)] text-sm">Create a workspace before starting onboarding.</p>
+          <BlueprintButton onClick={() => router.push("/workspace-setup")}>Go to Workspace Setup</BlueprintButton>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center">

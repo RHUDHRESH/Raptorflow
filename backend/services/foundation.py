@@ -4,11 +4,17 @@ Handles foundation-related business logic and validation
 """
 
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
-from ..core.models import ValidationError
-from ..core.supabase import get_supabase_client
-from ..db.foundations import FoundationRepository
+from backend.core.models import User
+from backend.core.supabase_mgr import get_supabase_client
+from backend.db.foundations import FoundationRepository
+from backend.db.icps import ICPRepository
+from backend.db.moves import MoveRepository
+from backend.db.campaigns import CampaignRepository
+from backend.db.messaging import MessagingRepository
+from backend.services.business_context_generator import get_business_context_generator
+from backend.schemas import RICP, MessagingStrategy
 
 
 class FoundationService:
@@ -16,6 +22,8 @@ class FoundationService:
 
     def __init__(self):
         self.repository = FoundationRepository()
+        self.icp_repository = ICPRepository()
+        self.messaging_repository = MessagingRepository()
         self.supabase = get_supabase_client()
 
     async def get_foundation(self, workspace_id: str) -> Optional[Dict[str, Any]]:
@@ -29,100 +37,55 @@ class FoundationService:
             Foundation data or None if not found
         """
         return await self.repository.get_by_workspace(workspace_id)
-
-    async def update_foundation(
-        self, workspace_id: str, data: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Update foundation with validation
-
-        Args:
-            workspace_id: Workspace ID
-            data: Foundation data to update
-
-        Returns:
-            Updated foundation data
-        """
-        # Validate required fields
-        if not data.get("company_name"):
-            raise ValidationError("Company name is required")
-
-        # Validate industry if provided
-        valid_industries = [
-            "technology",
-            "healthcare",
-            "finance",
-            "retail",
-            "manufacturing",
-            "education",
-            "government",
-            "nonprofit",
-            "consulting",
-            "other",
-        ]
-        if "industry" in data and data["industry"] not in valid_industries:
-            raise ValidationError(f"Invalid industry: {data['industry']}")
-
-        # Validate company stage if provided
-        valid_stages = ["startup", "growth", "mature", "enterprise"]
-        if "company_stage" in data and data["company_stage"] not in valid_stages:
-            raise ValidationError(f"Invalid company stage: {data['company_stage']}")
-
-        return await self.repository.upsert(workspace_id, data)
-
-    async def generate_summary(self, workspace_id: str) -> Optional[str]:
-        """
-        Generate AI-powered summary for foundation
-
-        Args:
-            workspace_id: Workspace ID
-
-        Returns:
-            Generated summary or None if failed
-        """
-        foundation = await self.get_foundation(workspace_id)
-        if not foundation:
-            return None
-
-        # For now, create a simple summary
-        # In a real implementation, this would call an AI service
-        company_name = foundation.get("company_name", "Unknown Company")
-        industry = foundation.get("industry", "Unknown Industry")
-        mission = foundation.get("mission", "")
-
-        summary = f"{company_name} is a {industry} company"
-        if mission:
-            summary += f" focused on {mission.lower()}"
-
-        # Update foundation with summary
-        await self.update_foundation(workspace_id, {"summary": summary})
-
-        return summary
-
     async def get_foundation_with_metrics(
         self, workspace_id: str
     ) -> Optional[Dict[str, Any]]:
         """
-        Get foundation with additional metrics
+        Get foundation with additional metrics and RICPs
 
         Args:
             workspace_id: Workspace ID
 
         Returns:
-            Foundation data with metrics
+            Foundation data with metrics and RICPs
         """
         foundation = await self.get_foundation(workspace_id)
         if not foundation:
             return None
 
-        # Get related metrics
-        icp_count = (
-            await self.supabase.table("icp_profiles")
-            .select("id", count="exact")
-            .eq("workspace_id", workspace_id)
-            .execute()
-        )
-        foundation["icp_count"] = icp_count.count if icp_count.count else 0
+        # Get RICPs/ICPs
+        icp_data = await self.icp_repository.list_by_workspace(workspace_id)
+        ricps = []
+        for item in icp_data:
+            # Map database item back to RICP schema
+            market_soph = item.get("market_sophistication", {})
+            if isinstance(market_soph, dict):
+                stage = market_soph.get("stage", 3)
+            else:
+                stage = 3
+                
+            ricps.append(RICP(
+                id=str(item.get("id")),
+                name=item.get("name", "Unknown"),
+                persona_name=item.get("persona_name"),
+                avatar=item.get("avatar", "👤"),
+                demographics=item.get("demographics", {}),
+                psychographics=item.get("psychographics", {}),
+                market_sophistication=stage,
+                confidence=item.get("confidence", 0),
+                created_at=item.get("created_at"),
+                updated_at=item.get("updated_at")
+            ))
+        
+        foundation["ricps"] = ricps
+        foundation["icp_count"] = len(ricps)
+
+        # Get Messaging Strategy
+        msg_data = await self.messaging_repository.get_by_workspace(workspace_id)
+        if msg_data:
+            foundation["messaging"] = MessagingStrategy(**msg_data)
+        else:
+            foundation["messaging"] = None
 
         move_count = (
             await self.supabase.table("moves")

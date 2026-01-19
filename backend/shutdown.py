@@ -9,8 +9,8 @@ import time
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from core.redis import get_redis_client
-from core.supabase import get_supabase_client
+from backend.core.redis import get_redis_client
+from backend.core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 

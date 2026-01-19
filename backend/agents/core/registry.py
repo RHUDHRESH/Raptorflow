@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..exceptions import RegistryError, ValidationError
 
 logger = logging.getLogger(__name__)

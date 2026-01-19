@@ -9,8 +9,8 @@ import signal
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from ..agents.core.metrics import AgentMetricsCollector
-from ..agents.core.monitor import AgentMonitor
+from backend.agents.core.metrics import AgentMetricsCollector
+from backend.agents.core.monitor import AgentMonitor
 from .startup import get_startup_manager
 
 logger = logging.getLogger(__name__)

@@ -6,8 +6,8 @@ Handles CRUD operations for ICP data
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..core.models import ValidationError
-from ..core.supabase import get_supabase_client
+from backend.core.models import ValidationError
+from backend.core.supabase_mgr import get_supabase_client
 from .base import Repository
 
 
@@ -15,8 +15,11 @@ class ICPRepository(Repository):
     """Repository for ICP operations"""
 
     def __init__(self):
-        super().__init__(get_supabase_client())
-        self.table_name = "icp_profiles"
+        super().__init__("icp_profiles")
+
+    def _map_to_model(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Map database record to dict (matching legacy expectations for now)."""
+        return data
 
     async def list_by_workspace(
         self, workspace_id: str, filters: Optional[Dict[str, Any]] = None

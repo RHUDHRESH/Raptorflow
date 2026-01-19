@@ -1,0 +1,96 @@
+{
+  "timestamp": "2026-01-16T08:16:44.079939",
+  "total_downloads": 10,
+  "files": [
+    {
+      "filename": "business_meeting_20260116_081623_business_meeting.jpg",
+      "filepath": "business_images_test\\business_meeting_20260116_081623_business_meeting.jpg",
+      "size": 160815,
+      "category": "business_meeting",
+      "description": "Business Meeting in Office",
+      "url": "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&h=600&fit=crop",
+      "success": true
+    },
+    {
+      "filename": "data_analysis_20260116_081625_data_dashboard.jpg",
+      "filepath": "business_images_test\\data_analysis_20260116_081625_data_dashboard.jpg",
+      "size": 81193,
+      "category": "data_analysis",
+      "description": "Data Analysis Dashboard",
+      "url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop",
+      "success": true
+    },
+    {
+      "filename": "office_workspace_20260116_081628_office_workspace.jpg",
+      "filepath": "business_images_test\\office_workspace_20260116_081628_office_workspace.jpg",
+      "size": 75953,
+      "category": "office_workspace",
+      "description": "Modern Office Workspace",
+      "url": "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop",
+      "success": true
+    },
+    {
+      "filename": "business_strategy_20260116_081629_strategy_session.jpg",
+      "filepath": "business_images_test\\business_strategy_20260116_081629_strategy_session.jpg",
+      "size": 71910,
+      "category": "business_strategy",
+      "description": "Business Strategy Session",
+      "url": "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop",
+      "success": true
+    },
+    {
+      "filename": "finance_trading_20260116_081632_trading_floor.jpg",
+      "filepath": "business_images_test\\finance_trading_20260116_081632_trading_floor.jpg",
+      "size": 144402,
+      "category": "finance_trading",
+      "description": "Financial Trading Floor",
+      "url": "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop",
+      "success": true
+    },
+    {
+      "filename": "technology_office_20260116_081634_tech_office.jpg",
+      "filepath": "business_images_test\\technology_office_20260116_081634_tech_office.jpg",
+      "size": 61379,
+      "category": "technology_office",
+      "description": "Technology Office Environment",
+      "url": "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=800&h=600&fit=crop",
+      "success": true
+    },
+    {
+      "filename": "corporate_headquarters_20260116_081636_corporate_hq.jpg",
+      "filepath": "business_images_test\\corporate_headquarters_20260116_081636_corporate_hq.jpg",
+      "size": 97133,
+      "category": "corporate_headquarters",
+      "description": "Corporate Headquarters Building",
+      "url": "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&h=600&fit=crop",
+      "success": true
+    },
+    {
+      "filename": "business_presentation_20260116_081638_presentation.jpg",
+      "filepath": "business_images_test\\business_presentation_20260116_081638_presentation.jpg",
+      "size": 113192,
+      "category": "business_presentation",
+      "description": "Business Presentation",
+      "url": "https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&h=600&fit=crop",
+      "success": true
+    },
+    {
+      "filename": "retail_store_20260116_081640_retail_store.jpg",
+      "filepath": "business_images_test\\retail_store_20260116_081640_retail_store.jpg",
+      "size": 75375,
+      "category": "retail_store",
+      "description": "Modern Retail Store",
+      "url": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
+      "success": true
+    },
+    {
+      "filename": "manufacturing_20260116_081643_manufacturing.jpg",
+      "filepath": "business_images_test\\manufacturing_20260116_081643_manufacturing.jpg",
+      "size": 71910,
+      "category": "manufacturing",
+      "description": "Manufacturing Facility",
+      "url": "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop",
+      "success": true
+    }
+  ]
+}

@@ -14,10 +14,16 @@ class Config(BaseSettings):
 
     # Search Configuration
     BRAVE_SEARCH_API_KEY: Optional[str] = None
+    SERPER_API_KEY: Optional[str] = None
+    SEARXNG_URL: str = os.getenv("SEARXNG_URL", "http://localhost:8080")
+
+    # Redis Configuration
+    UPSTASH_REDIS_URL: Optional[str] = None
+    UPSTASH_REDIS_TOKEN: Optional[str] = None
 
     # Basic Configuration
     ENVIRONMENT: str = "development"
-    SECRET_KEY: str = os.getenv("GCP_PROJECT_ID")
+    SECRET_KEY: str = os.getenv("GCP_PROJECT_ID", "raptorflow-secret-key")
 
     # GCP Configuration (minimal)
     GCP_PROJECT_ID: str = os.getenv("GCP_PROJECT_ID")
@@ -34,4 +40,4 @@ class Config(BaseSettings):
 
 def get_settings() -> Config:
     """Helper function to get settings instance."""
-    return Config
+    return Config()

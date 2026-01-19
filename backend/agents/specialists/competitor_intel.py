@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..exceptions import DatabaseError, ValidationError
 from ..state import AgentState, add_message, update_state
 
@@ -572,10 +572,50 @@ Always focus on providing strategic, actionable intelligence that helps improve 
             # Generate report ID
             report_id = f"intel_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
-            # Create competitor profiles
+            # Create competitor profiles (Enhanced with Swarm CompetitorScoutSkill)
             competitors = []
+            scout_skill = self.skills_registry.get_skill("competitor_scout")
+            
             for competitor_name in request.competitors:
-                profile = self._create_competitor_profile(competitor_name, request)
+                profile = None
+                
+                # Try to use Swarm Skill
+                if scout_skill:
+                    try:
+                        logger.info(f"Swarm: Scouting {competitor_name}...")
+                        scout_res = await scout_skill.execute({
+                            "agent": self,
+                            "competitor_name": competitor_name,
+                            "competitor_url": "unknown" 
+                        })
+                        # Convert skill result to profile if successful
+                        if "profile" in scout_res:
+                            # Map dict to CompetitorProfile object - simplified mapping
+                            p_data = scout_res["profile"]
+                            profile = CompetitorProfile(
+                                competitor_id=f"comp_{competitor_name.lower().replace(' ', '_')}",
+                                name=competitor_name,
+                                domain=p_data.get("url", ""),
+                                company_size=p_data.get("size", "Unknown"),
+                                market_position=p_data.get("position", "Challenger"),
+                                strengths=p_data.get("strengths", []),
+                                weaknesses=p_data.get("weaknesses", []),
+                                market_share=0.0, # detailed data hard to get
+                                estimated_revenue="Unknown", 
+                                founding_year=2020,
+                                headquarters="Unknown",
+                                employee_count="Unknown",
+                                key_products=p_data.get("products", []),
+                                target_audience=p_data.get("audience", ""),
+                                brand_positioning=p_data.get("usp", "")
+                            )
+                    except Exception as e:
+                        logger.warning(f"CompetitorScoutSkill failed for {competitor_name}: {e}")
+
+                # Fallback to internal simulation if skill failed or wasn't used
+                if not profile:
+                     profile = self._create_competitor_profile(competitor_name, request)
+                
                 competitors.append(profile)
 
             # Perform analysis based on type

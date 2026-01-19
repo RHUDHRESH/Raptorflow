@@ -1,0 +1,585 @@
+{
+  "business_meeting_20260116_081623_business_meeting.jpg": {
+    "file_path": "business_images_test\\business_meeting_20260116_081623_business_meeting.jpg",
+    "timestamp": "2026-01-16T08:16:46.125497",
+    "metadata": "ImageMetadata(width=800, height=600, channels=3, file_size=160815, format='JPEG', dpi=72, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.20727708333333333,
+      "average_color": [
+        117.73363333333333,
+        135.68770208333333,
+        155.16173125
+      ],
+      "color_variance": [
+        4018.950757132482,
+        3397.1169554278767,
+        3948.2435534186184
+      ],
+      "texture_complexity": 1465.8393422463148,
+      "num_shapes": 1611,
+      "image_type": "photo",
+      "quality_metrics": {
+        "sharpness": 1465.8393422463148,
+        "brightness": 139.4725625,
+        "contrast": 57.5741671065846,
+        "noise_level": 7.208297467125368,
+        "overall_quality": 81.6634431143438
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation",
+        "ecommerce"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management",
+        "product_catalog"
+      ],
+      "content_type": "product",
+      "industry_relevance": 0.9
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "cool",
+      "complexity_score": 1.4658393422463147,
+      "semantic_tags": [
+        "complex",
+        "calm"
+      ]
+    }
+  },
+  "data_analysis_20260116_081625_data_dashboard.jpg": {
+    "file_path": "business_images_test\\data_analysis_20260116_081625_data_dashboard.jpg",
+    "timestamp": "2026-01-16T08:16:49.449743",
+    "metadata": "ImageMetadata(width=800, height=600, channels=3, file_size=81193, format='JPEG', dpi=72, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.04964791666666667,
+      "average_color": [
+        56.52188125,
+        57.42154791666667,
+        45.14235625
+      ],
+      "color_variance": [
+        7805.663750397382,
+        7535.5741494422955,
+        7672.542324337086
+      ],
+      "texture_complexity": 1456.0928797646484,
+      "num_shapes": 402,
+      "image_type": "diagram",
+      "quality_metrics": {
+        "sharpness": 1456.0928797646484,
+        "brightness": 53.59341666666667,
+        "contrast": 85.8403175863556,
+        "noise_level": 8.586898616536537,
+        "overall_quality": 78.47947375656561
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management"
+      ],
+      "content_type": "document",
+      "industry_relevance": 0.7
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "neutral",
+      "complexity_score": 1.4560928797646484,
+      "semantic_tags": [
+        "complex"
+      ]
+    }
+  },
+  "office_workspace_20260116_081628_office_workspace.jpg": {
+    "file_path": "business_images_test\\office_workspace_20260116_081628_office_workspace.jpg",
+    "timestamp": "2026-01-16T08:16:50.101276",
+    "metadata": "ImageMetadata(width=800, height=600, channels=3, file_size=75953, format='JPEG', dpi=72, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.050091666666666666,
+      "average_color": [
+        149.43368333333333,
+        157.98368541666667,
+        171.51602916666667
+      ],
+      "color_variance": [
+        3843.97773959944,
+        3482.1128442511554,
+        3037.9830472301337
+      ],
+      "texture_complexity": 222.64301155555557,
+      "num_shapes": 385,
+      "image_type": "diagram",
+      "quality_metrics": {
+        "sharpness": 222.64301155555557,
+        "brightness": 161.05479375,
+        "contrast": 57.723037823399665,
+        "noise_level": 2.8873747455990944,
+        "overall_quality": 55.09209459368719
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation",
+        "branding"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management",
+        "marketing"
+      ],
+      "content_type": "logo",
+      "industry_relevance": 0.6
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "cool",
+      "complexity_score": 0.22264301155555558,
+      "semantic_tags": [
+        "simple",
+        "calm"
+      ]
+    }
+  },
+  "business_strategy_20260116_081629_strategy_session.jpg": {
+    "file_path": "business_images_test\\business_strategy_20260116_081629_strategy_session.jpg",
+    "timestamp": "2026-01-16T08:16:51.245918",
+    "metadata": "ImageMetadata(width=800, height=600, channels=3, file_size=71910, format='JPEG', dpi=72, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.04616875,
+      "average_color": [
+        195.09250833333334,
+        184.17469166666666,
+        166.36400208333333
+      ],
+      "color_variance": [
+        1613.7686672085727,
+        2822.2403869892823,
+        6781.343525403517
+      ],
+      "texture_complexity": 455.75884093706594,
+      "num_shapes": 204,
+      "image_type": "diagram",
+      "quality_metrics": {
+        "sharpness": 455.75884093706594,
+        "brightness": 180.10275416666667,
+        "contrast": 57.92570018205419,
+        "noise_level": 4.599915948129572,
+        "overall_quality": 59.12294783408508
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management"
+      ],
+      "content_type": "document",
+      "industry_relevance": 0.7
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "warm",
+      "complexity_score": 0.4557588409370659,
+      "semantic_tags": [
+        "simple",
+        "energetic"
+      ]
+    }
+  },
+  "finance_trading_20260116_081632_trading_floor.jpg": {
+    "file_path": "business_images_test\\finance_trading_20260116_081632_trading_floor.jpg",
+    "timestamp": "2026-01-16T08:16:52.377226",
+    "metadata": "ImageMetadata(width=800, height=600, channels=3, file_size=144402, format='JPEG', dpi=72, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.1597375,
+      "average_color": [
+        146.97661666666667,
+        150.49401875,
+        154.88887291666666
+      ],
+      "color_variance": [
+        3262.436653220339,
+        3250.2150475582152,
+        5013.628586188252
+      ],
+      "texture_complexity": 943.644540116211,
+      "num_shapes": 1523,
+      "image_type": "photo",
+      "quality_metrics": {
+        "sharpness": 943.644540116211,
+        "brightness": 151.40986666666666,
+        "contrast": 58.11769126937359,
+        "noise_level": 5.769421960501414,
+        "overall_quality": 78.26474458643806
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation",
+        "branding",
+        "ecommerce"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management",
+        "marketing",
+        "product_catalog"
+      ],
+      "content_type": "product",
+      "industry_relevance": 0.9
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "cool",
+      "complexity_score": 0.943644540116211,
+      "semantic_tags": [
+        "complex",
+        "calm"
+      ]
+    }
+  },
+  "technology_office_20260116_081634_tech_office.jpg": {
+    "file_path": "business_images_test\\technology_office_20260116_081634_tech_office.jpg",
+    "timestamp": "2026-01-16T08:16:53.881747",
+    "metadata": "ImageMetadata(width=800, height=600, channels=3, file_size=61379, format='JPEG', dpi=72, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.019552083333333335,
+      "average_color": [
+        81.39197291666666,
+        78.57190625,
+        128.95509375
+      ],
+      "color_variance": [
+        6019.842121830177,
+        5569.4400919784175,
+        4996.536868843856
+      ],
+      "texture_complexity": 128.516720553316,
+      "num_shapes": 63,
+      "image_type": "diagram",
+      "quality_metrics": {
+        "sharpness": 128.516720553316,
+        "brightness": 93.94262083333334,
+        "contrast": 64.22062531589495,
+        "noise_level": 2.564485023730906,
+        "overall_quality": 53.652972873906805
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management"
+      ],
+      "content_type": "document",
+      "industry_relevance": 0.7
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "cool",
+      "complexity_score": 0.128516720553316,
+      "semantic_tags": [
+        "simple",
+        "calm"
+      ]
+    }
+  },
+  "corporate_headquarters_20260116_081636_corporate_hq.jpg": {
+    "file_path": "business_images_test\\corporate_headquarters_20260116_081636_corporate_hq.jpg",
+    "timestamp": "2026-01-16T08:16:55.252342",
+    "metadata": "ImageMetadata(width=800, height=600, channels=3, file_size=97133, format='JPEG', dpi=72, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.074525,
+      "average_color": [
+        167.09592291666667,
+        172.8140375,
+        182.19215208333333
+      ],
+      "color_variance": [
+        4159.486530043546,
+        4135.998867948966,
+        3982.187158825656
+      ],
+      "texture_complexity": 268.70552253895397,
+      "num_shapes": 536,
+      "image_type": "diagram",
+      "quality_metrics": {
+        "sharpness": 268.70552253895397,
+        "brightness": 174.98748333333333,
+        "contrast": 62.47434441432516,
+        "noise_level": 3.4927573624652997,
+        "overall_quality": 55.407235411076186
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation",
+        "branding"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management",
+        "marketing"
+      ],
+      "content_type": "logo",
+      "industry_relevance": 0.6
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "cool",
+      "complexity_score": 0.26870552253895397,
+      "semantic_tags": [
+        "simple",
+        "calm"
+      ]
+    }
+  },
+  "business_presentation_20260116_081638_presentation.jpg": {
+    "file_path": "business_images_test\\business_presentation_20260116_081638_presentation.jpg",
+    "timestamp": "2026-01-16T08:16:56.865981",
+    "metadata": "ImageMetadata(width=800, height=600, channels=3, file_size=113192, format='JPEG', dpi=72, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.13289791666666667,
+      "average_color": [
+        160.2691875,
+        168.73502916666666,
+        175.01355416666667
+      ],
+      "color_variance": [
+        6442.985763090812,
+        5724.302944624344,
+        6120.416232953168
+      ],
+      "texture_complexity": 744.7882510721834,
+      "num_shapes": 1008,
+      "image_type": "screenshot",
+      "quality_metrics": {
+        "sharpness": 744.7882510721834,
+        "brightness": 169.65090416666666,
+        "contrast": 76.09056171496665,
+        "noise_level": 5.377270798665728,
+        "overall_quality": 73.70229677675681
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation",
+        "branding",
+        "ecommerce"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management",
+        "marketing",
+        "product_catalog"
+      ],
+      "content_type": "product",
+      "industry_relevance": 0.9
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "cool",
+      "complexity_score": 0.7447882510721834,
+      "semantic_tags": [
+        "complex",
+        "calm"
+      ]
+    }
+  },
+  "retail_store_20260116_081640_retail_store.jpg": {
+    "file_path": "business_images_test\\retail_store_20260116_081640_retail_store.jpg",
+    "timestamp": "2026-01-16T08:16:57.979997",
+    "metadata": "ImageMetadata(width=800, height=600, channels=3, file_size=75375, format='JPEG', dpi=72, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.04671458333333333,
+      "average_color": [
+        112.24367291666667,
+        108.31472916666667,
+        111.03504166666667
+      ],
+      "color_variance": [
+        4017.5382630942954,
+        3651.8735372177944,
+        3197.592047081367
+      ],
+      "texture_complexity": 206.5690825965973,
+      "num_shapes": 190,
+      "image_type": "diagram",
+      "quality_metrics": {
+        "sharpness": 206.5690825965973,
+        "brightness": 109.57438333333333,
+        "contrast": 58.91073088116507,
+        "noise_level": 3.1609957647860996,
+        "overall_quality": 57.17077063902571
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management"
+      ],
+      "content_type": "document",
+      "industry_relevance": 0.7
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "warm",
+      "complexity_score": 0.2065690825965973,
+      "semantic_tags": [
+        "simple",
+        "energetic"
+      ]
+    }
+  },
+  "manufacturing_20260116_081643_manufacturing.jpg": {
+    "file_path": "business_images_test\\manufacturing_20260116_081643_manufacturing.jpg",
+    "timestamp": "2026-01-16T08:16:59.265237",
+    "metadata": "ImageMetadata(width=800, height=600, channels=3, file_size=71910, format='JPEG', dpi=72, color_space='RGB')",
+    "image_analysis": {
+      "edge_density": 0.04616875,
+      "average_color": [
+        195.09250833333334,
+        184.17469166666666,
+        166.36400208333333
+      ],
+      "color_variance": [
+        1613.7686672085727,
+        2822.2403869892823,
+        6781.343525403517
+      ],
+      "texture_complexity": 455.75884093706594,
+      "num_shapes": 204,
+      "image_type": "diagram",
+      "quality_metrics": {
+        "sharpness": 455.75884093706594,
+        "brightness": 180.10275416666667,
+        "contrast": 57.92570018205419,
+        "noise_level": 4.599915948129572,
+        "overall_quality": 59.12294783408508
+      }
+    },
+    "text_analysis": {
+      "extracted_texts": [],
+      "text_regions": [],
+      "total_text_length": 0,
+      "languages_detected": [],
+      "text_density": 0.0
+    },
+    "business_context": {
+      "business_categories": [
+        "analytics",
+        "documentation"
+      ],
+      "use_cases": [
+        "business_intelligence",
+        "content_management"
+      ],
+      "content_type": "document",
+      "industry_relevance": 0.7
+    },
+    "semantic_understanding": {
+      "objects_detected": [],
+      "scene_understanding": "unknown",
+      "emotional_tone": "warm",
+      "complexity_score": 0.4557588409370659,
+      "semantic_tags": [
+        "simple",
+        "energetic"
+      ]
+    }
+  }
+}

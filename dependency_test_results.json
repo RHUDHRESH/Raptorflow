@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-01-15T11:24:34.300135",
+  "results": {
+    "supabase": {
+      "status": "\u274c FAIL",
+      "details": {},
+      "error": "'list' object has no attribute 'data'"
+    },
+    "redis": {
+      "status": "\u2705 PASS",
+      "details": {
+        "url": "https://selected-lemming-36956.upstash.io",
+        "connection_time": "2.16s",
+        "set_success": true,
+        "get_success": true,
+        "del_success": false,
+        "test_value": "raptorflow_test_value"
+      },
+      "error": null
+    },
+    "google_cloud": {
+      "status": "\u274c FAIL",
+      "details": {},
+      "error": "403 GET https://storage.googleapis.com/storage/v1/b?project=raptorflow-481505&projection=noAcl&prettyPrint=false: raptorflow-muse-storage@raptorflow-481505.iam.gserviceaccount.com does not have storage.buckets.list access to the Google Cloud project. Permission 'storage.buckets.list' denied on resource (or it may not exist)."
+    },
+    "vertex_ai": {
+      "status": "\u274c FAIL",
+      "details": {},
+      "error": "API returned status 401: {\n  \"error\": {\n    \"code\": 401,\n    \"message\": \"API keys are not supported by this API. Expected OAuth2 access token or other authentication credentials that assert a principal. See https://cloud.google.com/docs/authentication\",\n    \"status\": \"UNAUTHENTICATED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.ErrorInfo\",\n        \"reason\": \"CREDENTIALS_MISSING\",\n        \"domain\": \"googleapis.com\",\n        \"metadata\": {\n          \"method\": \"google.ai.generativelanguage.v1beta.ModelService.ListModels\",\n          \"service\": \"generativelanguage.googleapis.com\"\n        }\n      }\n    ]\n  }\n}\n"
+    },
+    "phonepe": {
+      "status": "\u274c FAIL",
+      "details": {},
+      "error": "PhonePe API returned 400: {\"message\":\"Bad Request - Api Mapping Not Found\"}"
+    },
+    "email_service": {
+      "status": "\u274c FAIL",
+      "details": {},
+      "error": "Resend API returned 400: {\"statusCode\":400,\"message\":\"API key is invalid\",\"name\":\"validation_error\"}"
+    },
+    "storage": {
+      "status": "\u274c FAIL",
+      "details": {},
+      "error": "403 POST https://storage.googleapis.com/storage/v1/b?project=raptorflow-481505&prettyPrint=false: raptorflow-muse-storage@raptorflow-481505.iam.gserviceaccount.com does not have storage.buckets.create access to the Google Cloud project. Permission 'storage.buckets.create' denied on resource (or it may not exist)."
+    },
+    "inference": {
+      "status": "\u274c FAIL",
+      "details": {},
+      "error": "'charmap' codec can't encode character '\\U0001f534' in position 0: character maps to <undefined>"
+    }
+  }
+}

@@ -15,7 +15,7 @@ from typing import Any, Callable, Dict, List, Optional
 import psutil
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..exceptions import MonitoringError
 from ..state import AgentState
 from .metrics import AgentMetricsCollector

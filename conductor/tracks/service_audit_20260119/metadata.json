@@ -1,0 +1,8 @@
+{
+  "track_id": "service_audit_20260119",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-01-19T08:12:00Z",
+  "updated_at": "2026-01-19T08:12:00Z",
+  "description": "Check for all services inference from Vertex AI, Redis, Supabase, Resend, and verify all API keys."
+}

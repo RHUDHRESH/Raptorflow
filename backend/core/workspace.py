@@ -8,7 +8,7 @@ from typing import Optional
 from fastapi import HTTPException
 
 from .models import Workspace
-from .supabase import get_supabase_client
+from .supabase_mgr import get_supabase_client
 
 
 async def get_workspace_for_user(

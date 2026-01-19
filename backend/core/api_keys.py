@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from .security import hash_api_key, verify_api_key
-from .supabase import get_supabase_client
+from .supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 

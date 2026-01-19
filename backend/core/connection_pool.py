@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from weakref import WeakSet
 
+from .database_config import DB_CONFIG
 from supabase import Client, create_client
 
 logger = logging.getLogger(__name__)
@@ -288,14 +289,15 @@ class DatabaseConnectionManager:
         if self._initialized:
             return
 
-        # Initialize Supabase pool
+        # Initialize Supabase pool with production configuration
+        pool_settings = DB_CONFIG.get_pool_settings()
         supabase_pool = SupabaseConnectionPool(
-            min_connections=int(os.getenv("DB_MIN_CONNECTIONS", "2")),
-            max_connections=int(os.getenv("DB_MAX_CONNECTIONS", "20")),
-            connection_timeout=float(os.getenv("DB_CONNECTION_TIMEOUT", "30.0")),
-            idle_timeout=float(os.getenv("DB_IDLE_TIMEOUT", "300.0")),
-            max_lifetime=float(os.getenv("DB_MAX_LIFETIME", "3600.0")),
-            health_check_interval=float(os.getenv("DB_HEALTH_CHECK_INTERVAL", "60.0")),
+            min_connections=pool_settings["min_connections"],
+            max_connections=pool_settings["max_connections"],
+            connection_timeout=pool_settings["connection_timeout"],
+            idle_timeout=pool_settings["idle_timeout"],
+            max_lifetime=pool_settings["max_lifetime"],
+            health_check_interval=pool_settings["health_check_interval"],
         )
 
         await supabase_pool.initialize()

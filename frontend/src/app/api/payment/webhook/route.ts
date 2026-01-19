@@ -2,17 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
-const SALT_KEY = process.env.NEXT_PUBLIC_PHONEPE_SALT_KEY || '099eb0cd-02cf-4e2a-8aca-3e6c6aff0399';
 const SALT_INDEX = '1';
 
-// Initialize Supabase
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy client creation to avoid build-time errors
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    throw new Error('Missing Supabase configuration');
+  }
+
+  return createClient(url, key);
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const SALT_KEY = process.env.NEXT_PUBLIC_PHONEPE_SALT_KEY || '099eb0cd-02cf-4e2a-8aca-3e6c6aff0399';
+    const supabase = getSupabase();
+
     const body = await request.text();
     const headers = request.headers;
 

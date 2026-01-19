@@ -5,6 +5,7 @@ import { X, ArrowRight, Zap, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
+import { useBCMStore } from "@/stores/bcmStore";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    CAMPAIGN WIZARD — RaptorFlow Quiet Luxury
@@ -63,6 +64,7 @@ const ICP_OPTIONS = [
 ];
 
 export function CampaignWizard({ isOpen, onClose, onComplete }: CampaignWizardProps) {
+    const { bcm } = useBCMStore();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<FormData>({
         objective: "",
@@ -72,6 +74,23 @@ export function CampaignWizard({ isOpen, onClose, onComplete }: CampaignWizardPr
         icp: "",
         channels: []
     });
+
+    // Get ICP options from BCM or fallback to defaults
+    const getICPOptions = () => {
+        if (bcm?.icps && bcm.icps.length > 0) {
+            return bcm.icps.map((icp: any, index: number) => ({
+                value: icp.id || `icp-${index}`,
+                label: icp.name || `ICP ${index + 1}`
+            }));
+        }
+        return ICP_OPTIONS;
+    };
+
+    // Get suggested channels from BCM competitive data
+    const getSuggestedChannels = () => {
+        // Could be enhanced with BCM competitive analysis
+        return CHANNELS;
+    };
 
     if (!isOpen) return null;
 
@@ -88,9 +107,14 @@ export function CampaignWizard({ isOpen, onClose, onComplete }: CampaignWizardPr
     };
 
     const handleComplete = () => {
+        // Enhance campaign data with BCM insights
+        const companyName = bcm?.foundation?.company || "Your Company";
+        const brandVoice = bcm?.messaging?.brand_voice?.tone?.join(', ') || "Professional";
+        const valueProps = bcm?.messaging?.value_props || [];
+        
         onComplete({
-            name: `${formData.objective} Campaign`,
-            goal: formData.context || formData.objective,
+            name: `${companyName}: ${formData.objective} Campaign`,
+            goal: formData.context || `${formData.objective} for ${companyName}`,
             objective: formData.objective,
             duration: formData.duration,
             intensity: formData.intensity,
@@ -259,7 +283,7 @@ export function CampaignWizard({ isOpen, onClose, onComplete }: CampaignWizardPr
                                     className="w-full p-3 bg-[var(--paper)] border border-[var(--structure)] rounded-[var(--radius)] focus:outline-none focus:border-[var(--blueprint)]"
                                 >
                                     <option value="">Select Primary Persona...</option>
-                                    {ICP_OPTIONS.map(opt => (
+                                    {getICPOptions().map(opt => (
                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
                                     ))}
                                 </select>

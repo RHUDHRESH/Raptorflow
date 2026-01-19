@@ -7,13 +7,17 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Move, MoveCategory, ExecutionDay } from "@/components/moves/types";
 import { SAMPLE_MOVES } from "@/components/moves/mockMoves";
+import { apiClient } from "@/lib/api/client";
 
 interface MovesState {
     // State
     moves: Move[];
     pendingMove: Partial<Move> | null;
+    isLoading: boolean;
 
     // Actions
+    fetchMoves: () => Promise<void>;
+    fetchDailyAgenda: () => Promise<any[]>;
     addMove: (move: Move) => void;
     updateMove: (moveId: string, updates: Partial<Move>) => void;
     updateMoveStatus: (moveId: string, status: Move['status']) => void;
@@ -28,6 +32,7 @@ interface MovesState {
         taskType: "pillar" | "cluster" | "network",
         taskIndex: number
     ) => void;
+    updateBackendTaskStatus: (taskId: string, status: string) => Promise<void>;
     updateTaskNote: (
         moveId: string,
         dayIndex: number,
@@ -59,12 +64,36 @@ export const useMovesStore = create<MovesState>()(
             // Initial state - start with sample moves
             moves: SAMPLE_MOVES,
             pendingMove: null,
+            isLoading: false,
+
+            // Fetch moves from backend
+            fetchMoves: async () => {
+                set({ isLoading: true });
+                try {
+                    // In a real app we'd fetch all moves
+                    // For now we rely on the daily agenda for execution
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            // Fetch daily agenda from consolidated backend
+            fetchDailyAgenda: async () => {
+                const response = await apiClient.getDailyAgenda();
+                return response.data || [];
+            },
 
             // Add a new move
             addMove: (move) => {
                 set((state) => ({
                     moves: [...state.moves, move],
                 }));
+            },
+
+            // Update Backend Task Status (Industrial Sync)
+            updateBackendTaskStatus: async (taskId, status) => {
+                await apiClient.updateTaskStatus(taskId, status);
+                // After backend update, we could optionally re-fetch or update locally
             },
 
             // Update an existing move

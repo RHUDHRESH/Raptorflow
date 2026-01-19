@@ -7,6 +7,7 @@ import {
     FoundationState,
     MarketSophisticationStage
 } from '@/types/foundation';
+import { api } from '@/lib/api/client';
 
 /* ══════════════════════════════════════════════════════════════════════════════
    FOUNDATION STORE — RICP & Messaging State Management
@@ -107,6 +108,9 @@ interface FoundationStore extends FoundationState {
     updateChannel: (id: string, updates: Partial<Channel>) => void;
     deleteChannel: (id: string) => void;
 
+    // Data Sync
+    fetchFoundation: () => Promise<void>;
+
     // Utility
     resetToSample: () => void;
 }
@@ -158,6 +162,22 @@ export const useFoundationStore = create<FoundationStore>()(
             deleteChannel: (id) => set((state) => ({
                 channels: state.channels.filter((c) => c.id !== id)
             })),
+
+            // Data Sync
+            fetchFoundation: async () => {
+                try {
+                    const response = await api.get('/foundation/');
+                    const data = response.data;
+                    
+                    set({
+                        ricps: data.ricps || [],
+                        messaging: data.messaging || null,
+                        positioningConfidence: data.messaging?.confidence || 0,
+                    });
+                } catch (error) {
+                    console.error("Failed to fetch foundation:", error);
+                }
+            },
 
             // Utility
             resetToSample: () => set({

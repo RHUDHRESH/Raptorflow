@@ -33,12 +33,14 @@ __description__ = "AI Agent System for Workflow Automation"
 __url__ = "https://raptorflow.ai"
 __license__ = "MIT"
 
-from .agents import AgentDispatcher, AgentRegistry
+# NOTE: AgentDispatcher and AgentRegistry are NOT imported at module level
+# to prevent blocking during heavy SDK initialization (VertexAI, LangChain).
+# Import them directly where needed: from backend.agents.dispatcher import AgentDispatcher
 
-# Core imports
-from .config import settings
-from .monitoring import AlertManager, HealthChecker, MetricsCollector
-from .workflows import WorkflowManager
+# Core imports (lightweight)
+from .config import get_settings
+
+settings = get_settings()
 
 # Public API
 __all__ = [
@@ -73,6 +75,7 @@ def get_settings():
 def setup_logging():
     """Setup application logging."""
     import logging
+    import sys
 
     import structlog
 
@@ -259,23 +262,27 @@ def health_check():
 
 # Package initialization
 try:
-    # Initialize system on import
-    system_components = initialize_system()
+    import os
+    import logging
+    if os.getenv("RAPTORFLOW_SKIP_INIT", "false").lower() == "true":
+        logger = logging.getLogger(__name__)
+        logger.info("Skipping Raptorflow system initialization (RAPTORFLOW_SKIP_INIT=true)")
+        system_components = None
+    else:
+        # Initialize system on import
+        system_components = initialize_system()
 
-    # Log successful initialization
-    import structlog
+        # Log successful initialization
+        import structlog
 
-    logger = structlog.get_logger(__name__)
-    logger.info("Raptorflow backend initialized successfully", version=__version__)
+        logger = structlog.get_logger(__name__)
+        logger.info("Raptorflow backend initialized successfully", version=__version__)
 
 except Exception as e:
     # Log initialization error
     import logging
-    import sys
-    
     logger = logging.getLogger(__name__)
     logger.critical(f"Failed to initialize Raptorflow backend: {e}")
-    sys.exit(1)
 
 # Export system components for external use
 system_components = system_components if "system_components" in locals() else None

@@ -1,353 +1,590 @@
 """
-Production-ready security utilities for RaptorFlow
-Input sanitization, validation, and security helpers
+Comprehensive security validation system for agent operations.
+Provides security checks, threat detection, and protection mechanisms.
 """
 
 import hashlib
-import html
 import logging
 import re
-import secrets
+import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Set
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
 
+class SecurityLevel(Enum):
+    """Security levels for agent operations."""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
+class ThreatType(Enum):
+    """Types of security threats."""
+    INJECTION = "injection"
+    PRIVILEGE_ESCALATION = "privilege_escalation"
+    DATA_EXFILTRATION = "data_exfiltration"
+    DENIAL_OF_SERVICE = "denial_of_service"
+    MALICIOUS_CONTENT = "malicious_content"
+    UNAUTHORIZED_ACCESS = "unauthorized_access"
+    RESOURCE_ABUSE = "resource_abuse"
+
+
 @dataclass
-class SecurityConfig:
-    """Security configuration settings"""
+class SecurityEvent:
+    """Security event record."""
+    
+    timestamp: datetime
+    threat_type: ThreatType
+    severity: SecurityLevel
+    description: str
+    source: str
+    user_id: Optional[str]
+    workspace_id: Optional[str]
+    details: Dict[str, Any]
+    blocked: bool = False
+    action_taken: Optional[str] = None
 
-    max_password_length: int = 128
-    min_password_length: int = 8
-    max_email_length: int = 254
-    max_name_length: int = 100
-    allowed_mime_types: List[str] = None
 
+@dataclass
+class SecurityPolicy:
+    """Security policy configuration."""
+    
+    max_requests_per_minute: int = 60
+    max_requests_per_hour: int = 1000
+    max_concurrent_requests: int = 10
+    max_input_length: int = 50000
+    max_output_length: int = 100000
+    blocked_ips: Set[str] = None
+    blocked_users: Set[str] = None
+    allowed_domains: Set[str] = None
+    require_authentication: bool = True
+    enable_content_filtering: bool = True
+    enable_rate_limiting: bool = True
+    enable_monitoring: bool = True
+    
     def __post_init__(self):
-        if self.allowed_mime_types is None:
-            self.allowed_mime_types = [
-                "text/plain",
-                "text/html",
-                "text/css",
-                "text/javascript",
-                "application/json",
-                "application/pdf",
-                "image/jpeg",
-                "image/png",
-                "image/gif",
-                "image/webp",
-            ]
+        if self.blocked_ips is None:
+            self.blocked_ips = set()
+        if self.blocked_users is None:
+            self.blocked_users = set()
+        if self.allowed_domains is None:
+            self.allowed_domains = set()
 
 
 class SecurityValidator:
-    """Production-ready input validation and sanitization"""
-
-    def __init__(self, config: SecurityConfig = None):
-        self.config = config or SecurityConfig()
-
-        # Pre-compiled regex patterns for performance
-        self.email_pattern = re.compile(
-            r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        )
-        self.uuid_pattern = re.compile(
-            r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-            re.IGNORECASE,
-        )
-        self.slug_pattern = re.compile(r"^[a-z0-9-]+$")
-        self.dangerous_chars_pattern = re.compile(r'[<>"\'\x00-\x1f\x7f-\x9f]')
-
-    def sanitize_input(self, text: str, allow_html: bool = False) -> str:
-        """
-        Sanitize user input to prevent XSS
-
-        Args:
-            text: Input text to sanitize
-            allow_html: Whether to allow certain HTML tags
-
-        Returns:
-            Sanitized text
-        """
-        if not text or not isinstance(text, str):
-            return ""
-
-        # Remove null bytes and control characters
-        text = "".join(char for char in text if ord(char) >= 32 or char in "\n\r\t")
-
-        if not allow_html:
-            # Escape HTML entities
-            text = html.escape(text)
-
-        # Remove dangerous patterns
-        text = self.dangerous_chars_pattern.sub("", text)
-
-        # Normalize whitespace
-        text = " ".join(text.split())
-
-        return text.strip()
-
-    def validate_email(self, email: str) -> bool:
-        """
-        Validate email format with comprehensive checks
-
-        Args:
-            email: Email address to validate
-
-        Returns:
-            True if valid, False otherwise
-        """
-        if not email or not isinstance(email, str):
-            return False
-
-        # Length check
-        if len(email) > self.config.max_email_length:
-            return False
-
-        # Regex validation
-        if not self.email_pattern.match(email):
-            return False
-
-        # Additional validation
-        local, domain = email.rsplit("@", 1)
-
-        # Local part validation
-        if len(local) == 0 or len(local) > 64:
-            return False
-
-        # Domain validation
-        if len(domain) == 0 or len(domain) > 253:
-            return False
-
-        # No consecutive dots
-        if ".." in email:
-            return False
-
-        # No leading/trailing dots or hyphens
-        if email.startswith(".") or email.endswith("."):
-            return False
-        if email.startswith("-") or email.endswith("-"):
-            return False
-
-        return True
-
-    def validate_uuid(self, uuid_str: str) -> bool:
-        """
-        Validate UUID format
-
-        Args:
-            uuid_str: UUID string to validate
-
-        Returns:
-            True if valid, False otherwise
-        """
-        if not uuid_str or not isinstance(uuid_str, str):
-            return False
-
-        return bool(self.uuid_pattern.match(uuid_str))
-
-    def validate_slug(self, slug: str) -> bool:
-        """
-        Validate slug format (URL-safe identifier)
-
-        Args:
-            slug: Slug string to validate
-
-        Returns:
-            True if valid, False otherwise
-        """
-        if not slug or not isinstance(slug, str):
-            return False
-
-        if len(slug) < 1 or len(slug) > 100:
-            return False
-
-        return bool(self.slug_pattern.match(slug))
-
-    def validate_name(self, name: str) -> bool:
-        """
-        Validate person/organization name
-
-        Args:
-            name: Name string to validate
-
-        Returns:
-            True if valid, False otherwise
-        """
-        if not name or not isinstance(name, str):
-            return False
-
-        # Length check
-        if len(name.strip()) < 1 or len(name) > self.config.max_name_length:
-            return False
-
-        # Check for dangerous characters
-        if self.dangerous_chars_pattern.search(name):
-            return False
-
-        return True
-
-    def sanitize_json_input(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Recursively sanitize JSON input
-
-        Args:
-            data: Dictionary to sanitize
-
-        Returns:
-            Sanitized dictionary
-        """
-        if not isinstance(data, dict):
-            return {}
-
-        sanitized = {}
-        for key, value in data.items():
-            # Sanitize keys
-            clean_key = self.sanitize_input(str(key))
-
-            if isinstance(value, str):
-                sanitized[clean_key] = self.sanitize_input(value)
-            elif isinstance(value, dict):
-                sanitized[clean_key] = self.sanitize_json_input(value)
-            elif isinstance(value, list):
-                sanitized[clean_key] = [
-                    self.sanitize_input(item) if isinstance(item, str) else item
-                    for item in value
+    """Comprehensive security validation system."""
+    
+    def __init__(self, policy: Optional[SecurityPolicy] = None):
+        self.policy = policy or SecurityPolicy()
+        self.security_events: List[SecurityEvent] = []
+        self.blocked_entities: Dict[str, Set[str]] = {
+            "ips": set(),
+            "users": set(),
+            "workspaces": set(),
+        }
+        self.request_counts: Dict[str, List[datetime]] = {}
+        self.concurrent_requests: Dict[str, int] = {}
+        
+        # Security patterns
+        self.injection_patterns = [
+            r'<script[^>]*>.*?</script>',
+            r'javascript:',
+            r'on\w+\s*=',
+            r'eval\s*\(',
+            r'document\.',
+            r'window\.',
+            r'localStorage',
+            r'sessionStorage',
+            r'__import__',
+            r'exec\s*\(',
+            r'import\s+',
+            r'from\s+\w+\s+import',
+            r'base64',
+            r'data:text/html',
+            r'file://',
+            r'ftp://',
+        ]
+        
+        self.privilege_escalation_patterns = [
+            r'admin',
+            r'root',
+            r'sudo',
+            r'privilege',
+            r'escalate',
+            r'system',
+            r'config',
+            r'password',
+            r'token',
+            r'secret',
+            r'key',
+            r'auth',
+            r'credential',
+        ]
+        
+        self.data_exfiltration_patterns = [
+            r'export',
+            r'download',
+            r'extract',
+            r'dump',
+            r'backup',
+            r'copy.*all',
+            r'select.*\*',
+            r'cat.*etc',
+            r'ls.*-la',
+        ]
+    
+    async def validate_request(
+        self,
+        request_data: Dict[str, Any],
+        client_ip: Optional[str] = None,
+        user_id: Optional[str] = None,
+        workspace_id: Optional[str] = None,
+    ) -> tuple[bool, Optional[str]]:
+        """Validate a request for security threats."""
+        try:
+            # Check blocked entities
+            if client_ip and client_ip in self.policy.blocked_ips:
+                return False, "IP address blocked"
+            
+            if user_id and user_id in self.policy.blocked_users:
+                return False, "User blocked"
+            
+            # Rate limiting check
+            if self.policy.enable_rate_limiting:
+                rate_ok, rate_error = await self._check_rate_limits(
+                    client_ip, user_id, workspace_id
+                )
+                if not rate_ok:
+                    return False, rate_error
+            
+            # Input validation
+            input_ok, input_error = self._validate_input(request_data)
+            if not input_ok:
+                return False, input_error
+            
+            # Content filtering
+            if self.policy.enable_content_filtering:
+                content_ok, content_error = self._filter_content(request_data)
+                if not content_ok:
+                    return False, content_error
+            
+            # Resource abuse check
+            resource_ok, resource_error = self._check_resource_abuse(
+                client_ip, user_id, workspace_id
+            )
+            if not resource_ok:
+                return False, resource_error
+            
+            # Authorization check
+            if self.policy.require_authentication:
+                auth_ok, auth_error = self._check_authorization(request_data)
+                if not auth_ok:
+                    return False, auth_error
+            
+            return True, None
+            
+        except Exception as e:
+            logger.error(f"Security validation error: {e}")
+            return False, f"Security validation failed: {str(e)}"
+    
+    async def _check_rate_limits(
+        self,
+        client_ip: Optional[str],
+        user_id: Optional[str],
+        workspace_id: Optional[str],
+    ) -> tuple[bool, Optional[str]]:
+        """Check rate limiting constraints."""
+        now = datetime.now()
+        
+        # Check per-minute limits
+        for entity_id, limit in [
+            (f"ip:{client_ip}", self.policy.max_requests_per_minute),
+            (f"user:{user_id}", self.policy.max_requests_per_minute),
+            (f"workspace:{workspace_id}", self.policy.max_requests_per_minute),
+        ]:
+            if not entity_id or entity_id.endswith(":"):
+                continue
+            
+            # Clean old requests
+            if entity_id in self.request_counts:
+                self.request_counts[entity_id] = [
+                    req_time for req_time in self.request_counts[entity_id]
+                    if (now - req_time).total_seconds() < 60
                 ]
             else:
-                sanitized[clean_key] = value
-
-        return sanitized
-
-    def hash_api_key(self, api_key: str) -> str:
-        """
-        Hash API key for secure storage
-
-        Args:
-            api_key: API key to hash
-
-        Returns:
-            Hashed API key
-        """
-        if not api_key:
-            raise ValueError("API key cannot be empty")
-
-        # Use SHA-256 with salt
-        salt = secrets.token_hex(32)
-        hashed = hashlib.sha256((salt + api_key).encode()).hexdigest()
-
-        return f"{salt}:{hashed}"
-
-    def verify_api_key(self, api_key: str, hashed_key: str) -> bool:
-        """
-        Verify API key against stored hash
-
-        Args:
-            api_key: API key to verify
-            hashed_key: Stored hashed key
-
-        Returns:
-            True if valid, False otherwise
-        """
-        if not api_key or not hashed_key or ":" not in hashed_key:
-            return False
-
-        try:
-            salt, stored_hash = hashed_key.split(":", 1)
-            computed_hash = hashlib.sha256((salt + api_key).encode()).hexdigest()
-
-            return secrets.compare_digest(computed_hash, stored_hash)
-        except Exception as e:
-            logger.error(f"Error verifying API key: {e}")
-            return False
-
-    def generate_secure_token(self, length: int = 32) -> str:
-        """
-        Generate cryptographically secure token
-
-        Args:
-            length: Token length in bytes
-
-        Returns:
-            Secure token string
-        """
-        return secrets.token_urlsafe(length)
-
-    def validate_file_upload(self, filename: str, content_type: str, size: int) -> bool:
-        """
-        Validate file upload for security
-
-        Args:
-            filename: Original filename
-            content_type: MIME type
-            size: File size in bytes
-
-        Returns:
-            True if valid, False otherwise
-        """
-        # Check filename
-        if not filename or ".." in filename or "/" in filename:
-            return False
-
-        # Check file extension
-        allowed_extensions = {
-            ".txt",
-            ".pdf",
-            ".doc",
-            ".docx",
-            ".jpg",
-            ".jpeg",
-            ".png",
-            ".gif",
+                self.request_counts[entity_id] = []
+            
+            # Check limit
+            if len(self.request_counts[entity_id]) >= limit:
+                self._log_security_event(
+                    ThreatType.DENIAL_OF_SERVICE,
+                    SecurityLevel.HIGH,
+                    f"Rate limit exceeded: {len(self.request_counts[entity_id])}/{limit}",
+                    entity_id,
+                    user_id,
+                    workspace_id,
+                    {"limit": limit, "current": len(self.request_counts[entity_id])}
+                )
+                return False, f"Rate limit exceeded: {limit} requests per minute"
+            
+            # Add current request
+            self.request_counts[entity_id].append(now)
+        
+        # Check per-hour limits
+        for entity_id, limit in [
+            (f"user:{user_id}", self.policy.max_requests_per_hour),
+            (f"workspace:{workspace_id}", self.policy.max_requests_per_hour),
+        ]:
+            if not entity_id or entity_id.endswith(":"):
+                continue
+            
+            # Count requests in last hour
+            if entity_id in self.request_counts:
+                hour_count = len([
+                    req_time for req_time in self.request_counts[entity_id]
+                    if (now - req_time).total_seconds() < 3600
+                ])
+                
+                if hour_count >= limit:
+                    self._log_security_event(
+                        ThreatType.DENIAL_OF_SERVICE,
+                        SecurityLevel.MEDIUM,
+                        f"Hourly rate limit exceeded: {hour_count}/{limit}",
+                        entity_id,
+                        user_id,
+                        workspace_id,
+                        {"limit": limit, "current": hour_count}
+                    )
+                    return False, f"Hourly rate limit exceeded: {limit} requests per hour"
+        
+        return True, None
+    
+    def _validate_input(self, request_data: Dict[str, Any]) -> tuple[bool, Optional[str]]:
+        """Validate input data for security threats."""
+        # Check input length
+        request_str = str(request_data)
+        if len(request_str) > self.policy.max_input_length:
+            return False, f"Input too large: {len(request_str)} > {self.policy.max_input_length}"
+        
+        # Check for injection attacks
+        for pattern in self.injection_patterns:
+            if re.search(pattern, request_str, re.IGNORECASE | re.DOTALL):
+                self._log_security_event(
+                    ThreatType.INJECTION,
+                    SecurityLevel.CRITICAL,
+                    f"Injection pattern detected: {pattern}",
+                    "input_validation",
+                    request_data.get("user_id"),
+                    request_data.get("workspace_id"),
+                    {"pattern": pattern}
+                )
+                return False, f"Potentially malicious content detected"
+        
+        # Check for privilege escalation attempts
+        for pattern in self.privilege_escalation_patterns:
+            if re.search(pattern, request_str, re.IGNORECASE):
+                self._log_security_event(
+                    ThreatType.PRIVILEGE_ESCALATION,
+                    SecurityLevel.HIGH,
+                    f"Privilege escalation attempt: {pattern}",
+                    "input_validation",
+                    request_data.get("user_id"),
+                    request_data.get("workspace_id"),
+                    {"pattern": pattern}
+                )
+                return False, f"Unauthorized operation attempted"
+        
+        # Check for data exfiltration attempts
+        for pattern in self.data_exfiltration_patterns:
+            if re.search(pattern, request_str, re.IGNORECASE):
+                self._log_security_event(
+                    ThreatType.DATA_EXFILTRATION,
+                    SecurityLevel.HIGH,
+                    f"Data exfiltration attempt: {pattern}",
+                    "input_validation",
+                    request_data.get("user_id"),
+                    request_data.get("workspace_id"),
+                    {"pattern": pattern}
+                )
+                return False, f"Data access violation detected"
+        
+        return True, None
+    
+    def _filter_content(self, request_data: Dict[str, Any]) -> tuple[bool, Optional[str]]:
+        """Filter content for malicious patterns."""
+        content_fields = ["request", "prompt", "message", "text"]
+        
+        for field in content_fields:
+            if field in request_data:
+                content = str(request_data[field])
+                
+                # Check for suspicious keywords
+                suspicious_keywords = [
+                    "hack", "crack", "exploit", "payload", "shell",
+                    "backdoor", "malware", "virus", "trojan"
+                ]
+                
+                for keyword in suspicious_keywords:
+                    if keyword.lower() in content.lower():
+                        self._log_security_event(
+                            ThreatType.MALICIOUS_CONTENT,
+                            SecurityLevel.MEDIUM,
+                            f"Suspicious keyword detected: {keyword}",
+                            "content_filtering",
+                            request_data.get("user_id"),
+                            request_data.get("workspace_id"),
+                            {"keyword": keyword, "field": field}
+                        )
+                        # Don't block, just log for monitoring
+        
+        return True, None
+    
+    def _check_resource_abuse(
+        self,
+        client_ip: Optional[str],
+        user_id: Optional[str],
+        workspace_id: Optional[str],
+    ) -> tuple[bool, Optional[str]]:
+        """Check for resource abuse patterns."""
+        # Check concurrent requests
+        for entity_id in [f"user:{user_id}", f"workspace:{workspace_id}"]:
+            if not entity_id or entity_id.endswith(":"):
+                continue
+            
+            current_count = self.concurrent_requests.get(entity_id, 0)
+            if current_count >= self.policy.max_concurrent_requests:
+                self._log_security_event(
+                    ThreatType.DENIAL_OF_SERVICE,
+                    SecurityLevel.MEDIUM,
+                    f"Concurrent request limit exceeded: {current_count}",
+                    entity_id,
+                    user_id,
+                    workspace_id,
+                    {"limit": self.policy.max_concurrent_requests}
+                )
+                return False, f"Too many concurrent requests"
+        
+        return True, None
+    
+    def _check_authorization(self, request_data: Dict[str, Any]) -> tuple[bool, Optional[str]]:
+        """Check authorization for the request."""
+        # Check if user_id is present
+        if not request_data.get("user_id"):
+            return False, "Authentication required"
+        
+        # Check workspace access
+        if not request_data.get("workspace_id"):
+            return False, "Workspace ID required"
+        
+        # Additional authorization checks can be added here
+        # For now, just basic validation
+        return True, None
+    
+    def _log_security_event(
+        self,
+        threat_type: ThreatType,
+        severity: SecurityLevel,
+        description: str,
+        source: str,
+        user_id: Optional[str],
+        workspace_id: Optional[str],
+        details: Dict[str, Any],
+    ):
+        """Log a security event."""
+        event = SecurityEvent(
+            timestamp=datetime.now(),
+            threat_type=threat_type,
+            severity=severity,
+            description=description,
+            source=source,
+            user_id=user_id,
+            workspace_id=workspace_id,
+            details=details,
+        )
+        
+        self.security_events.append(event)
+        
+        # Log to system logger
+        log_level = {
+            SecurityLevel.LOW: logging.INFO,
+            SecurityLevel.MEDIUM: logging.WARNING,
+            SecurityLevel.HIGH: logging.ERROR,
+            SecurityLevel.CRITICAL: logging.CRITICAL,
+        }.get(severity, logging.INFO)
+        
+        logger.log(
+            log_level,
+            f"Security Event [{severity.value.upper()}] {threat_type.value}: {description}"
+        )
+        
+        # Auto-block for critical threats
+        if severity == SecurityLevel.CRITICAL:
+            self._auto_block(source, user_id, workspace_id)
+    
+    def _auto_block(self, source: str, user_id: Optional[str], workspace_id: Optional[str]):
+        """Automatically block entities for critical threats."""
+        if user_id:
+            self.policy.blocked_users.add(user_id)
+            self.blocked_entities["users"].add(user_id)
+            logger.warning(f"Auto-blocked user: {user_id}")
+        
+        if workspace_id:
+            self.blocked_entities["workspaces"].add(workspace_id)
+            logger.warning(f"Auto-blocked workspace: {workspace_id}")
+    
+    def increment_concurrent_request(
+        self,
+        client_ip: Optional[str],
+        user_id: Optional[str],
+        workspace_id: Optional[str],
+    ):
+        """Increment concurrent request count."""
+        for entity_id in [f"user:{user_id}", f"workspace:{workspace_id}"]:
+            if entity_id and not entity_id.endswith(":"):
+                self.concurrent_requests[entity_id] = self.concurrent_requests.get(entity_id, 0) + 1
+    
+    def decrement_concurrent_request(
+        self,
+        client_ip: Optional[str],
+        user_id: Optional[str],
+        workspace_id: Optional[str],
+    ):
+        """Decrement concurrent request count."""
+        for entity_id in [f"user:{user_id}", f"workspace:{workspace_id}"]:
+            if entity_id and not entity_id.endswith(":"):
+                self.concurrent_requests[entity_id] = max(
+                    self.concurrent_requests.get(entity_id, 0) - 1, 0
+                )
+    
+    def get_security_stats(self) -> Dict[str, Any]:
+        """Get security statistics."""
+        now = datetime.now()
+        recent_events = [
+            event for event in self.security_events
+            if (now - event.timestamp).total_seconds() < 3600  # Last hour
+        ]
+        
+        threat_counts = {}
+        for event in recent_events:
+            threat_counts[event.threat_type.value] = threat_counts.get(event.threat_type.value, 0) + 1
+        
+        return {
+            "total_events": len(self.security_events),
+            "recent_events": len(recent_events),
+            "blocked_ips": len(self.policy.blocked_ips),
+            "blocked_users": len(self.policy.blocked_users),
+            "blocked_workspaces": len(self.blocked_entities["workspaces"]),
+            "concurrent_requests": dict(self.concurrent_requests),
+            "threat_distribution": threat_counts,
+            "policy": {
+                "max_requests_per_minute": self.policy.max_requests_per_minute,
+                "max_requests_per_hour": self.policy.max_requests_per_hour,
+                "max_concurrent_requests": self.policy.max_concurrent_requests,
+            }
         }
-        file_ext = "." + filename.split(".")[-1].lower() if "." in filename else ""
+    
+    def get_recent_events(
+        self,
+        hours: int = 24,
+        threat_type: Optional[ThreatType] = None,
+        severity: Optional[SecurityLevel] = None,
+    ) -> List[SecurityEvent]:
+        """Get recent security events with optional filtering."""
+        cutoff = datetime.now() - timedelta(hours=hours)
+        
+        events = [
+            event for event in self.security_events
+            if event.timestamp >= cutoff
+        ]
+        
+        if threat_type:
+            events = [event for event in events if event.threat_type == threat_type]
+        
+        if severity:
+            events = [event for event in events if event.severity == severity]
+        
+        return sorted(events, key=lambda x: x.timestamp, reverse=True)
+    
+    def clear_old_events(self, days: int = 30):
+        """Clear old security events."""
+        cutoff = datetime.now() - timedelta(days=days)
+        old_count = len(self.security_events)
+        self.security_events = [
+            event for event in self.security_events
+            if event.timestamp >= cutoff
+        ]
+        logger.info(f"Cleared {old_count - len(self.security_events)} old security events")
 
-        if file_ext not in allowed_extensions:
-            return False
 
-        # Check MIME type
-        if content_type not in self.config.allowed_mime_types:
-            return False
-
-        # Check file size (10MB limit)
-        if size > 10 * 1024 * 1024:
-            return False
-
-        return True
-
-
-# Global validator instance
+# Global security validator instance
 _security_validator: Optional[SecurityValidator] = None
 
 
 def get_security_validator() -> SecurityValidator:
-    """Get global security validator singleton"""
+    """Get the global security validator instance."""
     global _security_validator
     if _security_validator is None:
         _security_validator = SecurityValidator()
     return _security_validator
 
 
-# Convenience functions
-def sanitize_input(text: str, allow_html: bool = False) -> str:
-    """Sanitize user input"""
-    return get_security_validator().sanitize_input(text, allow_html)
+async def validate_agent_request(
+    request_data: Dict[str, Any],
+    client_ip: Optional[str] = None,
+    user_id: Optional[str] = None,
+    workspace_id: Optional[str] = None,
+) -> tuple[bool, Optional[str]]:
+    """Validate agent request for security (convenience function)."""
+    validator = get_security_validator()
+    return await validator.validate_request(request_data, client_ip, user_id, workspace_id)
 
 
-def validate_email(email: str) -> bool:
-    """Validate email format"""
-    return get_security_validator().validate_email(email)
+def get_security_stats() -> Dict[str, Any]:
+    """Get security statistics (convenience function)."""
+    validator = get_security_validator()
+    return validator.get_security_stats()
 
 
-def validate_uuid(uuid_str: str) -> bool:
-    """Validate UUID format"""
-    return get_security_validator().validate_uuid(uuid_str)
+def get_recent_security_events(
+    hours: int = 24,
+    threat_type: Optional[ThreatType] = None,
+    severity: Optional[SecurityLevel] = None,
+) -> List[Dict[str, Any]]:
+    """Get recent security events (convenience function)."""
+    validator = get_security_validator()
+    events = validator.get_recent_events(hours, threat_type, severity)
+    return [
+        {
+            "timestamp": event.timestamp.isoformat(),
+            "threat_type": event.threat_type.value,
+            "severity": event.severity.value,
+            "description": event.description,
+            "source": event.source,
+            "user_id": event.user_id,
+            "workspace_id": event.workspace_id,
+            "details": event.details,
+            "blocked": event.blocked,
+            "action_taken": event.action_taken,
+        }
+        for event in events
+    ]
 
 
-def hash_api_key(api_key: str) -> str:
-    """Hash API key"""
-    return get_security_validator().hash_api_key(api_key)
-
-
-def generate_secure_token(length: int = 32) -> str:
-    """Generate secure token"""
-    return get_security_validator().generate_secure_token(length)
+# Security middleware for FastAPI
+class SecurityMiddleware:
+    """FastAPI middleware for security validation."""
+    
+    def __init__(self, app):
+        self.app = app
+        self.validator = get_security_validator()
+    
+    async def __call__(self, scope, receive, send):
+        """Middleware implementation."""
+        # This would be implemented as proper FastAPI middleware
+        # For now, it's a placeholder
+        await self.app(scope, receive, send)

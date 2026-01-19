@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..exceptions import DatabaseError, ValidationError
 from ..state import AgentState, add_message, update_state
 
@@ -508,6 +508,12 @@ Always think systemically, consider multiple perspectives, and challenge convent
             template = self.challenge_templates[challenge.challenge_type]
             complexity_config = self.complexity_matrix[challenge.complexity]
 
+            # Gather enhanced intelligence using Swarm Skills
+            intelligence = await self._gather_intelligence(challenge)
+            
+            # Add intelligence to context
+            challenge.context["swarm_intelligence"] = intelligence
+
             # Build strategic analysis prompt
             prompt = self._build_strategic_prompt(
                 challenge, template, complexity_config, state
@@ -517,7 +523,7 @@ Always think systemically, consider multiple perspectives, and challenge convent
             strategic_text = await self.llm.generate(prompt)
 
             # Parse strategic recommendation
-            recommendation = self._parse_strategic_recommendation(
+            recommendation = await self._parse_strategic_recommendation(
                 strategic_text, challenge, template, complexity_config
             )
 
@@ -526,6 +532,49 @@ Always think systemically, consider multiple perspectives, and challenge convent
         except Exception as e:
             logger.error(f"Strategic recommendation generation failed: {e}")
             raise DatabaseError(f"Strategic recommendation generation failed: {str(e)}")
+
+    async def _gather_intelligence(self, challenge: StrategicChallenge) -> Dict[str, Any]:
+        """Gather intelligence using Swarm Skills."""
+        intelligence = {}
+        
+        # 1. Trend Spotting (if industry/market context exists)
+        market_context = challenge.context.get("market") or challenge.context.get("industry")
+        if market_context:
+            trend_skill = self.skills_registry.get_skill("trend_spotter")
+            if trend_skill:
+                try:
+                    logger.info("Swarm: Deploying TrendSpotter...")
+                    trends = await trend_skill.execute({
+                        "agent": self,
+                        "industry": market_context
+                    })
+                    intelligence["trends"] = trends
+                except Exception as e:
+                    logger.warning(f"TrendSpotter failed: {e}")
+
+        # 2. Competitor Analysis (if competitors mentioned)
+        competitors = challenge.context.get("competitors", [])
+        if competitors and isinstance(competitors, list):
+            comp_skill = self.skills_registry.get_skill("competitor_scout")
+            if comp_skill:
+                comp_data = []
+                for comp in competitors[:2]: # Limit to 2 for speed
+                    try:
+                        logger.info(f"Swarm: Deploying CompetitorScout for {comp}...")
+                        res = await comp_skill.execute({
+                            "agent": self,
+                            "competitor_name": comp,
+                            "competitor_url": "unknown" # simplified
+                        })
+                        comp_data.append(res)
+                    except Exception:
+                        pass
+                if comp_data:
+                    intelligence["competitor_intel"] = comp_data
+
+        return intelligence
+
+
 
     def _build_strategic_prompt(
         self,
@@ -585,7 +634,7 @@ Format the response as a structured strategic recommendation with clear sections
 
         return prompt
 
-    def _parse_strategic_recommendation(
+    async def _parse_strategic_recommendation(
         self,
         strategic_text: str,
         challenge: StrategicChallenge,
@@ -606,8 +655,8 @@ Format the response as a structured strategic recommendation with clear sections
         if not executive_summary:
             executive_summary = f"Comprehensive strategic approach to address {challenge.challenge_type} challenges"
 
-        # Generate strategic options
-        primary_option, secondary_options = self._generate_strategic_options(
+        # Generate strategic options (Dynamic Evaluation)
+        primary_option, secondary_options = await self._generate_strategic_options(
             challenge, template
         )
 
@@ -679,28 +728,59 @@ Format the response as a structured strategic recommendation with clear sections
                             return line
         return ""
 
-    def _generate_strategic_options(
+    async def _generate_strategic_options(
         self, challenge: StrategicChallenge, template: Dict[str, Any]
     ) -> Tuple[StrategicOption, List[StrategicOption]]:
-        """Generate strategic options."""
+        """Generate strategic options using dynamic evaluation."""
         approaches = ["conventional", "innovative", "disruptive"]
         options = []
 
+        # Get the evaluation skill
+        eval_skill = self.skills_registry.get_skill("strategy_evaluation")
+
         for i, approach in enumerate(approaches):
             framework = self.strategic_frameworks[approach]
+            
+            # Create preliminary option dict for evaluation
+            option_desc = f"Strategic option using {approach} approach"
+            temp_option = {
+                "name": f"{approach.title()} Approach",
+                "approach": approach,
+                "description": option_desc
+            }
+
+            # Evaluate using skill (Critic Agent)
+            evaluation = {
+                "feasibility": 0.5, "impact": 0.5, "risk": 0.5, "confidence": 0.5
+            }
+            if eval_skill and hasattr(eval_skill, 'execute'):
+                try:
+                    evaluation = await eval_skill.execute({
+                        "option": temp_option,
+                        "challenge_context": {
+                            "type": challenge.challenge_type,
+                            "complexity": challenge.complexity,
+                            "urgency": challenge.urgency,
+                            "constraints": challenge.constraints
+                        },
+                        "agent": self
+                    })
+                except Exception as e:
+                    logger.warning(f"Evaluation skill failed for {approach}: {e}")
+                    # Fallback to defaults
+            
+            # Map risk score to low/medium/high for profile? 
+            # Or keep framework profile but use dynamic score?
+            # We'll use the dynamic score for mathematical "risk" field.
 
             option = StrategicOption(
                 option_id=f"option_{approach}_{i}",
                 name=f"{approach.title()} Approach",
-                description=f"Strategic option using {approach} approach",
+                description=option_desc,
                 approach=approach,
-                feasibility=self._calculate_feasibility(approach, challenge.complexity),
-                impact=self._calculate_impact(approach, challenge.urgency),
-                risk=framework["risk_profile"] == "high"
-                and 0.8
-                or framework["risk_profile"] == "medium"
-                and 0.5
-                or 0.2,
+                feasibility=evaluation.get("feasibility", 0.5),
+                impact=evaluation.get("impact", 0.5),
+                risk=evaluation.get("risk", 0.5),
                 resources_required=self._generate_resource_requirements(approach),
                 timeline_months=self._calculate_timeline(approach, challenge.scope),
                 success_factors=self._generate_success_factors(
@@ -709,7 +789,7 @@ Format the response as a structured strategic recommendation with clear sections
                 potential_barriers=self._generate_potential_barriers(
                     approach, challenge.constraints
                 ),
-                confidence_score=framework["success_probability"],
+                confidence_score=framework["success_probability"], # Could also be dynamic
             )
             options.append(option)
 
@@ -719,21 +799,8 @@ Format the response as a structured strategic recommendation with clear sections
 
         return primary_option, secondary_options
 
-    def _calculate_feasibility(self, approach: str, complexity: str) -> float:
-        """Calculate feasibility score."""
-        base_feasibility = {"conventional": 0.8, "innovative": 0.6, "disruptive": 0.4}
+    # Deprecated hardcoded methods removed
 
-        complexity_modifier = {"simple": 1.2, "complex": 1.0, "wicked": 0.8}
-
-        return base_feasibility[approach] * complexity_modifier[complexity]
-
-    def _calculate_impact(self, approach: str, urgency: str) -> float:
-        """Calculate impact score."""
-        base_impact = {"conventional": 0.5, "innovative": 0.7, "disruptive": 0.9}
-
-        urgency_modifier = {"low": 0.8, "medium": 1.0, "high": 1.2, "critical": 1.4}
-
-        return base_impact[approach] * urgency_modifier[urgency]
 
     def _generate_resource_requirements(self, approach: str) -> Dict[str, Any]:
         """Generate resource requirements."""

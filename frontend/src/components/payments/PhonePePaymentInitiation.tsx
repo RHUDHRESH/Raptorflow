@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { BlueprintButton } from "@/components/ui/BlueprintButton";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
@@ -8,17 +8,31 @@ import { BlueprintInput } from "@/components/ui/BlueprintInput";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { BlueprintProgress } from "@/components/ui/BlueprintProgress";
 
+// TypeScript declarations for PhonePe SDK
+declare global {
+  interface Window {
+    PhonePe?: {
+      PhonePe: new (config: any) => {
+        open: (paymentRequest: any) => Promise<any>;
+      };
+    };
+  }
+}
+
 /* ══════════════════════════════════════════════════════════════════════════════
    PHONEPE PAYMENT INITIATION — Raptorflow Payment Gateway Component
    Features:
    - Blueprint paper terminal aesthetic
    - Real-time payment status tracking
-   - PhonePe integration with proper error handling
+   - PhonePe SDK integration with proper error handling
    - Technical annotation and registration marks
+   - UPI and Card payment methods
    ══════════════════════════════════════════════════════════════════════════════ */
 
 interface PaymentInitiationProps {
     amount: number;
+    planSlug: string;
+    billingCycle: 'monthly' | 'annual';
     onSuccess?: (transactionId: string) => void;
     onFailure?: (error: string) => void;
     className?: string;
@@ -30,10 +44,22 @@ interface PaymentState {
     checkoutUrl?: string;
     error?: string;
     orderId?: string;
+    paymentMethod?: 'upi' | 'card' | 'netbanking';
 }
+
+// PhonePe SDK configuration
+const PHONEPE_CONFIG = {
+    environment: process.env.NODE_ENV === 'production' ? 'PRODUCTION' : 'UAT',
+    merchantId: process.env.NEXT_PUBLIC_PHONEPE_MERCHANT_ID || '',
+    appId: process.env.NEXT_PUBLIC_PHONEPE_APP_ID || '',
+    enableInstrument: true,
+    instrumentList: ['UPI', 'CARD', 'NETBANKING']
+};
 
 export function PhonePePaymentInitiation({
     amount,
+    planSlug,
+    billingCycle,
     onSuccess,
     onFailure,
     className
@@ -44,7 +70,46 @@ export function PhonePePaymentInitiation({
         email: '',
         mobile: ''
     });
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'upi' | 'card'>('upi');
+    const [cardInfo, setCardInfo] = useState({
+        number: '',
+        expiry: '',
+        cvv: '',
+        name: ''
+    });
     const [isProcessing, setIsProcessing] = useState(false);
+    const [phonePeSDK, setPhonePeSDK] = useState<any>(null);
+
+    // Initialize PhonePe SDK
+    useEffect(() => {
+        const initializeSDK = async () => {
+            try {
+                // Load PhonePe SDK script
+                const script = document.createElement('script');
+                script.src = 'https://mercury.phonepe.com/web/bundle/merchant/1.0.0/phonepe.merchant.bundle.js';
+                script.async = true;
+                script.onload = () => {
+                    if (window.PhonePe) {
+                        const sdk = new window.PhonePe.PhonePe(PHONEPE_CONFIG);
+                        setPhonePeSDK(sdk);
+                        console.log('PhonePe SDK initialized successfully');
+                    }
+                };
+                script.onerror = () => {
+                    console.error('Failed to load PhonePe SDK');
+                };
+                document.body.appendChild(script);
+
+                return () => {
+                    document.body.removeChild(script);
+                };
+            } catch (error) {
+                console.error('Error initializing PhonePe SDK:', error);
+            }
+        };
+
+        initializeSDK();
+    }, []);
 
     // Generate unique order ID
     const generateOrderId = () => {
@@ -53,10 +118,15 @@ export function PhonePePaymentInitiation({
         return `RF${timestamp}${random}`.toUpperCase();
     };
 
-    // Initiate payment
+    // Initiate payment with PhonePe SDK
     const initiatePayment = async () => {
         if (!customerInfo.name || !customerInfo.email || !customerInfo.mobile) {
             setPaymentState(prev => ({ ...prev, error: 'Please fill all customer details' }));
+            return;
+        }
+
+        if (selectedPaymentMethod === 'card' && (!cardInfo.number || !cardInfo.expiry || !cardInfo.cvv)) {
+            setPaymentState(prev => ({ ...prev, error: 'Please fill complete card details' }));
             return;
         }
 
@@ -66,46 +136,95 @@ export function PhonePePaymentInitiation({
         try {
             const orderId = generateOrderId();
 
-            // Call your backend API to initiate payment
-            const response = await fetch('/api/payments/initiate', {
+            // Create payment order via backend API
+            const response = await fetch('/api/payments/create-order', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    amount: amount * 100, // Convert to paise
-                    merchant_order_id: orderId,
-                    redirect_url: `${window.location.origin}/payment/success`,
-                    callback_url: `${window.location.origin}/api/payments/webhook`,
-                    customer_info: {
-                        id: customerInfo.email,
+                    planSlug,
+                    billingCycle,
+                    userEmail: customerInfo.email,
+                    userId: customerInfo.email, // Will be replaced with actual user ID
+                    paymentMethod: selectedPaymentMethod,
+                    customerInfo: {
                         name: customerInfo.name,
                         email: customerInfo.email,
                         mobile: customerInfo.mobile
                     },
-                    metadata: {
-                        source: 'raptorflow_web',
-                        timestamp: new Date().toISOString()
-                    }
+                    cardInfo: selectedPaymentMethod === 'card' ? {
+                        number: cardInfo.number.replace(/\s/g, ''),
+                        expiry: cardInfo.expiry,
+                        cvv: cardInfo.cvv,
+                        name: cardInfo.name
+                    } : undefined
                 })
             });
 
             const data = await response.json();
 
-            if (data.success) {
+            if (data.success && phonePeSDK) {
                 setPaymentState({
                     status: 'pending',
-                    transactionId: data.transaction_id,
-                    checkoutUrl: data.checkout_url,
-                    orderId: orderId
+                    transactionId: data.transactionId,
+                    checkoutUrl: data.checkoutUrl,
+                    orderId: orderId,
+                    paymentMethod: selectedPaymentMethod
                 });
 
-                onSuccess?.(data.transaction_id);
+                // Initiate payment with PhonePe SDK
+                const paymentRequest = {
+                    merchantId: PHONEPE_CONFIG.merchantId,
+                    merchantTransactionId: data.transactionId,
+                    amount: amount * 100, // Convert to paise
+                    redirectUrl: `${window.location.origin}/payment/success`,
+                    redirectMode: 'REDIRECT',
+                    callbackUrl: `${window.location.origin}/api/payments/webhook`,
+                    paymentInstrument: {
+                        type: selectedPaymentMethod === 'upi' ? 'UPI_INTENT' : 'CARD',
+                        targetApp: selectedPaymentMethod === 'upi' ? 'PHONEPE' : undefined,
+                        cardInfo: selectedPaymentMethod === 'card' ? {
+                            cardNumber: cardInfo.number.replace(/\s/g, ''),
+                            cardExpiry: cardInfo.expiry,
+                            cardCvv: cardInfo.cvv,
+                            cardHolder: cardInfo.name
+                        } : undefined
+                    },
+                    userInfo: {
+                        customerName: customerInfo.name,
+                        customerEmail: customerInfo.email,
+                        customerMobile: customerInfo.mobile
+                    }
+                };
 
-                // Redirect to PhonePe checkout
-                window.location.href = data.checkout_url;
+                // Open PhonePe payment window
+                phonePeSDK.open(paymentRequest)
+                    .then((result: any) => {
+                        if (result.status === 'SUCCESS') {
+                            setPaymentState(prev => ({ ...prev, status: 'completed' }));
+                            onSuccess?.(data.transactionId);
+                        } else {
+                            setPaymentState(prev => ({
+                                ...prev,
+                                status: 'failed',
+                                error: result.message || 'Payment failed'
+                            }));
+                            onFailure?.(result.message || 'Payment failed');
+                        }
+                    })
+                    .catch((error: any) => {
+                        console.error('PhonePe payment error:', error);
+                        setPaymentState(prev => ({
+                            ...prev,
+                            status: 'failed',
+                            error: error.message || 'Payment processing failed'
+                        }));
+                        onFailure?.(error.message || 'Payment processing failed');
+                    });
+
             } else {
-                throw new Error(data.error || 'Payment initiation failed');
+                throw new Error(data.error || 'Failed to create payment order');
             }
 
         } catch (error) {
@@ -125,6 +244,32 @@ export function PhonePePaymentInitiation({
     const resetPayment = () => {
         setPaymentState({ status: 'idle' });
         setCustomerInfo({ name: '', email: '', mobile: '' });
+        setCardInfo({ number: '', expiry: '', cvv: '', name: '' });
+    };
+
+    // Format card number
+    const formatCardNumber = (value: string) => {
+        const v = value.replace(/\s/g, '');
+        const matches = v.match(/\d{4,16}/g);
+        const match = matches && matches[0] || '';
+        const parts = [];
+        for (let i = 0, len = match.length; i < len; i += 4) {
+            parts.push(match.substring(i, i + 4));
+        }
+        if (parts.length) {
+            return parts.join(' ');
+        } else {
+            return v;
+        }
+    };
+
+    // Format expiry date
+    const formatExpiry = (value: string) => {
+        const v = value.replace(/\s/g, '').replace(/[^0-9]/g, '');
+        if (v.length >= 2) {
+            return v.slice(0, 2) + '/' + v.slice(2, 4);
+        }
+        return v;
     };
 
     // Status badge configuration
@@ -190,6 +335,12 @@ export function PhonePePaymentInitiation({
                                 ₹{amount.toLocaleString('en-IN')}
                             </span>
                         </div>
+                        <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs font-technical text-[var(--ink)]/60">PLAN</span>
+                            <span className="text-sm font-mono text-[var(--ink)]">
+                                {planSlug.toUpperCase()} - {billingCycle.toUpperCase()}
+                            </span>
+                        </div>
                     </div>
 
                     {/* Customer Information */}
@@ -222,6 +373,76 @@ export function PhonePePaymentInitiation({
                         />
                     </div>
 
+                    {/* Payment Method Selection */}
+                    <div className="space-y-4">
+                        <h4 className="font-technical text-sm text-[var(--ink)]/80 mb-3">
+                            PAYMENT METHOD
+                        </h4>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedPaymentMethod('upi')}
+                                className={cn(
+                                    "p-3 border rounded-lg font-mono text-sm transition-all",
+                                    selectedPaymentMethod === 'upi'
+                                        ? "border-[var(--blueprint)] bg-[var(--canvas)] text-[var(--ink)]"
+                                        : "border-[var(--border)] text-[var(--ink)]/60"
+                                )}
+                            >
+                                UPI
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedPaymentMethod('card')}
+                                className={cn(
+                                    "p-3 border rounded-lg font-mono text-sm transition-all",
+                                    selectedPaymentMethod === 'card'
+                                        ? "border-[var(--blueprint)] bg-[var(--canvas)] text-[var(--ink)]"
+                                        : "border-[var(--border)] text-[var(--ink)]/60"
+                                )}
+                            >
+                                CARD
+                            </button>
+                        </div>
+
+                        {/* Card Details */}
+                        {selectedPaymentMethod === 'card' && (
+                            <div className="space-y-3 p-4 bg-[var(--canvas)] rounded-lg border border-[var(--ink)]/20">
+                                <BlueprintInput
+                                    placeholder="Card Number"
+                                    value={cardInfo.number}
+                                    onChange={(e) => setCardInfo(prev => ({ ...prev, number: formatCardNumber(e.target.value) }))}
+                                    maxLength={19}
+                                    className="font-mono"
+                                />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <BlueprintInput
+                                        placeholder="MM/YY"
+                                        value={cardInfo.expiry}
+                                        onChange={(e) => setCardInfo(prev => ({ ...prev, expiry: formatExpiry(e.target.value) }))}
+                                        maxLength={5}
+                                        className="font-mono"
+                                    />
+                                    <BlueprintInput
+                                        placeholder="CVV"
+                                        value={cardInfo.cvv}
+                                        onChange={(e) => setCardInfo(prev => ({ ...prev, cvv: e.target.value.replace(/\D/g, '') }))}
+                                        maxLength={3}
+                                        type="password"
+                                        className="font-mono"
+                                    />
+                                </div>
+                                <BlueprintInput
+                                    placeholder="Cardholder Name"
+                                    value={cardInfo.name}
+                                    onChange={(e) => setCardInfo(prev => ({ ...prev, name: e.target.value }))}
+                                    className="font-mono"
+                                />
+                            </div>
+                        )}
+                    </div>
+
                     {/* Error Display */}
                     {paymentState.error && (
                         <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -232,11 +453,11 @@ export function PhonePePaymentInitiation({
                     {/* Action Button */}
                     <BlueprintButton
                         onClick={initiatePayment}
-                        disabled={isProcessing}
+                        disabled={isProcessing || !phonePeSDK}
                         className="w-full"
                         label="PAY-001"
                     >
-                        {isProcessing ? 'Processing...' : 'Pay with PhonePe'}
+                        {isProcessing ? 'Processing...' : `Pay ₹${amount.toLocaleString('en-IN')} with PhonePe`}
                     </BlueprintButton>
                 </div>
             )}
@@ -248,7 +469,7 @@ export function PhonePePaymentInitiation({
                         <div className="animate-spin w-8 h-8 border-2 border-[var(--blueprint)] border-t-transparent rounded-full"></div>
                     </div>
                     <p className="font-technical text-[var(--ink)] mb-2">
-                        {paymentState.status === 'initiating' ? 'Initiating Payment...' : 'Redirecting to PhonePe...'}
+                        {paymentState.status === 'initiating' ? 'Initiating Payment...' : 'Opening PhonePe...'}
                     </p>
                     <p className="text-sm text-[var(--ink)]/60 font-mono">
                         Transaction ID: {paymentState.transactionId}

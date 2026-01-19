@@ -14,7 +14,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from config import ModelTier
 from ..exceptions import AuthenticationError, AuthorizationError, ValidationError
 from ..state import AgentState
 from .dispatcher import AgentDispatcher, DispatchRequest, DispatchResult

@@ -5,9 +5,12 @@ Gathers context from memory, database, and session data.
 
 import logging
 from typing import Any, Dict, List, Optional
+import datetime
+import hashlib
+import json
 
-from agents.state import AgentState
-from memory.controller import MemoryController
+from backend.agents.state import AgentState
+from backend.memory.controller import MemoryController
 
 from supabase import Client
 
@@ -40,7 +43,7 @@ async def build_full_context(
         context = {
             "workspace_id": workspace_id,
             "query": query,
-            "timestamp": time.time(),
+            "timestamp": datetime.datetime.now().timestamp(),
         }
 
         # Gather database context
@@ -316,6 +319,108 @@ def _unify_context(context: Dict[str, Any]) -> Dict[str, Any]:
         }
 
 
+async def build_business_context_manifest(
+    workspace_id: str,
+    db_client: Client,
+    memory_controller: MemoryController,
+    version_major: int = 1,
+    version_minor: int = 0,
+    version_patch: int = 0
+) -> Dict[str, Any]:
+    """
+    Build Business Context Manifest (BCM) JSON from workspace data.
+    
+    Args:
+        workspace_id: Workspace ID
+        db_client: Supabase client
+        memory_controller: Memory controller
+        version_major: Major version
+        version_minor: Minor version
+        version_patch: Patch version
+        
+    Returns:
+        Dictionary with manifest data ready for Supabase storage
+    """
+    try:
+        # Build comprehensive context
+        context = await build_full_context(
+            workspace_id=workspace_id,
+            query="build_business_context_manifest",
+            db_client=db_client,
+            memory_controller=memory_controller
+        )
+        
+        # Extract and compress key components
+        foundation = context.get("database", {}).get("foundation", {})
+        icps = context.get("database", {}).get("icps", [])
+        moves = context.get("database", {}).get("moves", [])
+        campaigns = context.get("database", {}).get("campaigns", [])
+        
+        # Build manifest structure
+        manifest = {
+            "version": {
+                "major": version_major,
+                "minor": version_minor,
+                "patch": version_patch
+            },
+            "workspace_id": workspace_id,
+            "foundation": {
+                "business_name": foundation.get("business_name"),
+                "industry": foundation.get("industry"),
+                "description": foundation.get("business_description"),
+                "key_attributes": foundation.get("key_attributes", [])
+            },
+            "icps": [
+                {
+                    "id": icp.get("id"),
+                    "name": icp.get("name"),
+                    "key_attributes": icp.get("key_attributes", []),
+                    "pain_points": icp.get("pain_points", [])
+                }
+                for icp in icps[:3]  # Max 3 ICPs as per business rules
+            ],
+            "current_moves": [
+                {
+                    "id": move.get("id"),
+                    "title": move.get("title"),
+                    "status": move.get("status"),
+                    "key_actions": move.get("key_actions", [])
+                }
+                for move in moves[:5]  # Last 5 moves
+            ],
+            "active_campaigns": [
+                {
+                    "id": campaign.get("id"),
+                    "name": campaign.get("name"),
+                    "status": campaign.get("status"),
+                    "key_metrics": campaign.get("key_metrics", {})
+                }
+                for campaign in campaigns
+            ],
+            "metadata": {
+                "created_at": datetime.datetime.now().isoformat(),
+                "source": "context_builder",
+                "context_hash": context.get("metadata", {}).get("query_processed")
+            }
+        }
+        
+        # Calculate checksum
+        manifest_str = json.dumps(manifest, sort_keys=True)
+        checksum = hashlib.sha256(manifest_str.encode()).hexdigest()
+        
+        return {
+            "version_major": version_major,
+            "version_minor": version_minor,
+            "version_patch": version_patch,
+            "checksum": checksum,
+            "content": manifest
+        }
+        
+    except Exception as e:
+        logger.error(f"Error building business context manifest: {e}")
+        raise
+
+
 class ContextBuilder:
     """
     Advanced context builder with caching and optimization.
@@ -351,7 +456,7 @@ class ContextBuilder:
         # Check cache
         if use_cache and cache_key in self.context_cache:
             cache_entry = self.context_cache[cache_key]
-            if time.time() - cache_entry["timestamp"] < 600:  # 10 minute cache
+            if datetime.datetime.now().timestamp() - cache_entry["timestamp"] < 600:  # 10 minute cache
                 cached_context = cache_entry["context"]
                 # Update with current session data
                 if session_data:
@@ -367,7 +472,7 @@ class ContextBuilder:
         if use_cache:
             self.context_cache[cache_key] = {
                 "context": context,
-                "timestamp": time.time(),
+                "timestamp": datetime.datetime.now().timestamp(),
             }
 
         return context
@@ -453,3 +558,54 @@ class ContextBuilder:
             self.context_cache.clear()
 
         logger.info(f"Cleared context cache for {workspace_id or 'all workspaces'}")
+
+    async def build_and_store_manifest(
+        self,
+        workspace_id: str,
+        version_major: int = 1,
+        version_minor: int = 0,
+        version_patch: int = 0
+    ) -> Dict[str, Any]:
+        """
+        Build and store business context manifest in Supabase.
+        
+        Args:
+            workspace_id: Workspace ID
+            version_major: Major version
+            version_minor: Minor version
+            version_patch: Patch version
+            
+        Returns:
+            Dictionary with manifest data and storage result
+        """
+        try:
+            # Build manifest
+            manifest_data = await build_business_context_manifest(
+                workspace_id=workspace_id,
+                db_client=self.db_client,
+                memory_controller=self.memory_controller,
+                version_major=version_major,
+                version_minor=version_minor,
+                version_patch=version_patch
+            )
+            
+            # Store in Supabase
+            result = self.db_client.table("business_context_manifests").insert(
+                {
+                    "workspace_id": workspace_id,
+                    "version_major": manifest_data["version_major"],
+                    "version_minor": manifest_data["version_minor"],
+                    "version_patch": manifest_data["version_patch"],
+                    "checksum": manifest_data["checksum"],
+                    "content": manifest_data["content"]
+                }
+            ).execute()
+            
+            return {
+                "manifest": manifest_data,
+                "storage_result": result.data[0] if result.data else None
+            }
+            
+        except Exception as e:
+            logger.error(f"Error building/storing manifest: {e}")
+            raise

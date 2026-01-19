@@ -1,15 +1,24 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// Lazy client creation to avoid build-time errors
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) {
+    throw new Error('Missing Supabase configuration');
+  }
+
+  return createClient(url, key);
+}
 
 export async function POST() {
   const results: any = { success: false, steps: [] }
 
   try {
+    const supabase = getSupabase();
+
     // Step 1: Create user_profiles table
     try {
       const { error: profilesError } = await supabase
@@ -18,9 +27,8 @@ export async function POST() {
         .limit(1)
 
       if (profilesError && !profilesError.message.includes('does not exist')) {
-        results.steps.push('✅ user_profiles table exists')
+        results.steps.push('user_profiles table exists')
       } else {
-        // Create table with direct SQL
         const { error: createError } = await supabase
           .from('user_profiles')
           .insert([
@@ -40,13 +48,13 @@ export async function POST() {
           ])
 
         if (createError) {
-          results.steps.push('❌ Failed to create user_profiles: ' + createError.message)
+          results.steps.push('Failed to create user_profiles: ' + createError.message)
         } else {
-          results.steps.push('✅ Created user_profiles table')
+          results.steps.push('Created user_profiles table')
         }
       }
     } catch (e: any) {
-      results.steps.push('❌ Failed to create user_profiles: ' + e.message)
+      results.steps.push('Failed to create user_profiles: ' + e.message)
     }
 
     // Step 2: Create payments table
@@ -57,9 +65,8 @@ export async function POST() {
         .limit(1)
 
       if (paymentsError && !paymentsError.message.includes('does not exist')) {
-        results.steps.push('✅ payments table exists')
+        results.steps.push('payments table exists')
       } else {
-        // Create table with direct SQL
         const { error: createError } = await supabase
           .from('payments')
           .insert([
@@ -79,20 +86,20 @@ export async function POST() {
           ])
 
         if (createError) {
-          results.steps.push('❌ Failed to create payments: ' + createError.message)
+          results.steps.push('Failed to create payments: ' + createError.message)
         } else {
-          results.steps.push('✅ Created payments table')
+          results.steps.push('Created payments table')
         }
       }
     } catch (e: any) {
-      results.steps.push('❌ Failed to create payments: ' + e.message)
+      results.steps.push('Failed to create payments: ' + e.message)
     }
 
     // Step 3: Create storage buckets
     const buckets = [
-      { name: 'avatars', public: true, fileSizeLimit: 1024 * 1024 }, // 1MB
-      { name: 'documents', public: false, fileSizeLimit: 10 * 1024 * 1024 }, // 10MB
-      { name: 'exports', public: false, fileSizeLimit: 50 * 1024 * 1024 }, // 50MB
+      { name: 'avatars', public: true, fileSizeLimit: 1024 * 1024 },
+      { name: 'documents', public: false, fileSizeLimit: 10 * 1024 * 1024 },
+      { name: 'exports', public: false, fileSizeLimit: 50 * 1024 * 1024 },
     ]
 
     for (const bucket of buckets) {
@@ -103,9 +110,9 @@ export async function POST() {
       })
 
       if (bucketError && !bucketError.message.includes('already exists')) {
-        results.steps.push(`❌ Failed to create ${bucket.name} bucket: ${bucketError.message}`)
+        results.steps.push(`Failed to create ${bucket.name} bucket: ${bucketError.message}`)
       } else {
-        results.steps.push(`✅ Created ${bucket.name} bucket`)
+        results.steps.push(`Created ${bucket.name} bucket`)
       }
     }
 
@@ -134,45 +141,9 @@ export async function POST() {
     })
 
     if (triggerError) {
-      results.steps.push('⚠️ Trigger may already exist or needs manual creation')
+      results.steps.push('Trigger may already exist or needs manual creation')
     } else {
-      results.steps.push('✅ Created user profile trigger')
-    }
-
-    // Step 5: Create storage policies
-    const storagePolicies = [
-      {
-        bucket: 'avatars',
-        policy: `
-          CREATE POLICY "Users can upload their own avatar" ON storage.objects
-            FOR INSERT WITH CHECK (
-              bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]
-            );
-
-          CREATE POLICY "Users can view their own avatar" ON storage.objects
-            FOR SELECT USING (
-              bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]
-            );
-        `
-      },
-      {
-        bucket: 'documents',
-        policy: `
-          CREATE POLICY "Users can manage their documents" ON storage.objects
-            FOR ALL USING (
-              bucket_id = 'documents' AND auth.uid()::text = (storage.foldername(name))[1]
-            );
-        `
-      }
-    ]
-
-    for (const policy of storagePolicies) {
-      const { error: policyError } = await supabase.rpc('exec_sql', { sql: policy.policy })
-      if (policyError) {
-        results.steps.push(`⚠️ Storage policy for ${policy.bucket}: ${policyError.message}`)
-      } else {
-        results.steps.push(`✅ Created storage policies for ${policy.bucket}`)
-      }
+      results.steps.push('Created user profile trigger')
     }
 
     results.success = true

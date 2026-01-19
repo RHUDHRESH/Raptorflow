@@ -4,12 +4,12 @@ Users API endpoints
 
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr
 
-from ...core.auth import get_auth_context, get_current_user
-from ...core.models import AuthContext, User
-from ...core.supabase import get_supabase_client
+from backend.core.auth import get_auth_context, get_current_user
+from backend.core.models import AuthContext, User
+from backend.core.supabase_mgr import get_supabase_client
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -378,7 +378,7 @@ async def complete_onboarding(current_user: User = Depends(get_current_user)):
 
 @router.get("/me/notifications")
 async def get_user_notifications(
-    current_user: User = Depends(get_current_user), limit: int = 20
+    current_user: User = Depends(get_current_user), limit: int = Query(default=20, description="Maximum notifications to return")
 ):
     """
     Get user notifications

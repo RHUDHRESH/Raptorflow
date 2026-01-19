@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..exceptions import DatabaseError, ValidationError
 from ..state import AgentState, add_message, update_state
 
@@ -76,8 +76,8 @@ class MarketResearch(BaseAgent):
         super().__init__(
             name="MarketResearch",
             description="Conducts comprehensive market research and analysis",
-            model_tier=ModelTier.FLASH,
-            tools=["web_search", "database"],
+            model_tier=ModelTier.FLASH_LITE,
+            tools=["web_search", "database", "titan_intelligence_engine"],
             skills=[
                 "competitor_analysis",
                 "market_sizing",

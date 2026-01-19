@@ -1,16 +1,12 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// Note: This route doesn't actually use the Supabase client,
+// it just generates SQL for manual execution. Removed unused import.
 
 export async function POST() {
   const results: any = { success: false, steps: [] }
 
   try {
-    // Since we can't use storage API without proper auth, let's create the SQL for manual execution
     const sqlCommands = `
 -- Create storage buckets (run this in Supabase SQL Editor)
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -53,10 +49,10 @@ CREATE POLICY "Users can manage their workspace files" ON storage.objects
   );
 `
 
-    results.steps.push('✅ Generated SQL for storage creation')
+    results.steps.push('Generated SQL for storage creation')
     results.sql = sqlCommands
     results.instructions = `
-      1. Go to https://supabase.com/dashboard/project/vpwwzsanuyhpkvgorcnc/sql
+      1. Go to Supabase SQL Editor
       2. Copy and paste the SQL from the sql field
       3. Click "Run" to execute
       4. Storage buckets will be created with proper policies

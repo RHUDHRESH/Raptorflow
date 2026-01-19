@@ -252,6 +252,43 @@ class ApiClient {
   async getMonitoringStatus() {
     return this.request('/monitoring');
   }
+
+  // Strategic Command endpoints (Consolidated Backend)
+  async getDailyAgenda(): Promise<ApiResponse<any[]>> {
+    return this.request('/api/v1/strategic/agenda/daily');
+  }
+
+  async createBlueprint(goal: string, campaignId?: string, sessionId?: string): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/strategic/blueprint', {
+      method: 'POST',
+      body: JSON.stringify({ goal, campaign_id: campaignId, session_id: sessionId }),
+    });
+  }
+
+  async updateTaskStatus(taskId: string, status: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/v1/strategic/tasks/${taskId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async getExpertReasoning(entityId: string): Promise<ApiResponse<any[]>> {
+    return this.request(`/api/v1/strategic/reasoning/${entityId}`);
+  }
+
+  async concludeMove(moveId: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/v1/strategic/moves/${moveId}/conclude`, {
+      method: 'POST',
+    });
+  }
+
+  // Foundation/ICP endpoints
+  async deriveTrinity(cohortName: string): Promise<any> {
+    return this.request('/v1/icps/derive-trinity', {
+      method: 'POST',
+      body: JSON.stringify({ cohort_name: cohortName }),
+    });
+  }
 }
 
 // Create singleton instance

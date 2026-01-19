@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import {
     Sparkles,
@@ -12,15 +13,17 @@ import {
     Trophy,
     Clock,
     ArrowRight,
-    MessageSquare
+    Zap,
+    Plus,
+    Wand2
 } from "lucide-react";
-import { BlueprintButton } from "@/components/ui/BlueprintButton";
+import { BlueprintCard } from "@/components/ui/BlueprintCard";
+import { cn } from "@/lib/utils";
 import { openPlatform } from "@/lib/external-links";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    DAILY WINS — Quick Content Wins
-   For when you've had a long day but still want to post something meaningful.
-   Calm, focused, satisfying. One-click content inspiration.
+   Quiet Luxury Redesign — Matches Moves page styling
    ══════════════════════════════════════════════════════════════════════════════ */
 
 interface ContentWin {
@@ -81,6 +84,7 @@ const CONTENT_IDEAS = [
 ];
 
 export default function DailyWinsPage() {
+    const router = useRouter();
     const pageRef = useRef<HTMLDivElement>(null);
     const cardRef = useRef<HTMLDivElement>(null);
     const [contentWin, setContentWin] = useState<ContentWin | null>(null);
@@ -88,8 +92,10 @@ export default function DailyWinsPage() {
     const [copied, setCopied] = useState(false);
     const [streak, setStreak] = useState(0);
     const [totalWins, setTotalWins] = useState(0);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         const savedStreak = localStorage.getItem("daily_wins_streak");
         const savedTotal = localStorage.getItem("daily_wins_total");
         if (savedStreak) setStreak(parseInt(savedStreak, 10));
@@ -97,9 +103,9 @@ export default function DailyWinsPage() {
     }, []);
 
     useEffect(() => {
-        if (!pageRef.current) return;
-        gsap.fromTo(pageRef.current, { opacity: 0 }, { opacity: 1, duration: 0.4 });
-    }, []);
+        if (!pageRef.current || !mounted) return;
+        gsap.fromTo(pageRef.current, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" });
+    }, [mounted]);
 
     const generateWin = () => {
         setIsGenerating(true);
@@ -126,7 +132,7 @@ export default function DailyWinsPage() {
     useEffect(() => {
         if (contentWin && !isGenerating && cardRef.current) {
             gsap.fromTo(cardRef.current,
-                { opacity: 0, y: 20, scale: 0.98 },
+                { opacity: 0, y: 16, scale: 0.98 },
                 { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "power2.out" }
             );
         }
@@ -150,59 +156,74 @@ export default function DailyWinsPage() {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const expandInMuse = () => {
+        if (!contentWin) return;
+        const context = encodeURIComponent(JSON.stringify({
+            topic: contentWin.topic,
+            angle: contentWin.angle,
+            hook: contentWin.hook,
+            outline: contentWin.outline,
+            platform: contentWin.platform
+        }));
+        router.push(`/muse?context=${context}`);
+    };
+
+    if (!mounted) return null;
+
     return (
-        <div ref={pageRef} className="min-h-[calc(100vh-80px)] flex flex-col" style={{ opacity: 0 }}>
-            {/* Header */}
-            <div className="px-8 py-6 border-b border-[var(--structure)]">
-                <div className="max-w-2xl mx-auto align-between gap-4">
-                    <div>
-                        <div className="align-start gap-3 mb-1">
-                            <span className="font-technical text-[var(--blueprint)]">SYS.WINS</span>
-                            <div className="h-px w-8 bg-[var(--structure)]" />
-                            <span className="font-technical text-[var(--ink-muted)]">DAILY</span>
+        <div ref={pageRef} className="min-h-screen bg-[var(--canvas)]" style={{ opacity: 0 }}>
+            {/* Page Header - Quiet Luxury */}
+            <div className="border-b border-[var(--border)] bg-[var(--paper)]">
+                <div className="max-w-3xl mx-auto px-6 py-6">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h1 className="font-serif text-3xl text-[var(--ink)]">
+                                Daily Wins
+                            </h1>
+                            <p className="text-sm text-[var(--muted)] mt-1">
+                                Quick content inspiration for busy days
+                            </p>
                         </div>
-                        <h1 className="font-serif text-2xl text-[var(--ink)]">Daily Wins</h1>
-                        <p className="text-sm text-[var(--ink-secondary)]">Quick content wins for busy days</p>
-                    </div>
-                    <div className="align-center gap-4">
-                        <div className="align-center gap-2 px-3 py-1.5 bg-[var(--warning-light)] border border-[var(--warning)]/30 rounded-[var(--radius-sm)]">
-                            <Flame size={14} className="text-[var(--warning)]" />
-                            <span className="text-sm font-medium text-[var(--warning)]">{streak} day streak</span>
-                        </div>
-                        <div className="align-center gap-2 px-3 py-1.5 bg-[var(--surface)] border border-[var(--structure)] rounded-[var(--radius-sm)]">
-                            <Trophy size={14} className="text-[var(--blueprint)]" />
-                            <span className="text-sm font-medium text-[var(--ink)]">{totalWins} wins</span>
+
+                        {/* Stats Badges */}
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)]">
+                                <Flame size={14} className="text-orange-500" />
+                                <span className="text-sm font-medium text-[var(--ink)]">{streak} streak</span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)]">
+                                <Trophy size={14} className="text-amber-500" />
+                                <span className="text-sm font-medium text-[var(--ink)]">{totalWins} wins</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 align-center p-8">
-                <div className="w-full max-w-xl">
+            <div className="max-w-3xl mx-auto px-6 py-8">
+                <div className="max-w-xl mx-auto">
 
                     {/* Empty State - Generate Button */}
                     {!contentWin && !isGenerating && (
-                        <div className="text-center">
-                            <div className="mb-6">
-                                <div className="inline-flex align-center justify-center w-20 h-20 rounded-[var(--radius)] bg-[var(--blueprint-light)] border border-[var(--blueprint)]/20 mb-4">
-                                    <MessageSquare size={32} className="text-[var(--blueprint)]" />
-                                </div>
-                                <h2 className="font-serif text-xl text-[var(--ink)] mb-2">Ready to post something?</h2>
-                                <p className="text-[var(--ink-secondary)] max-w-sm mx-auto">
-                                    Get a quick content idea you can write and post in 10 minutes or less.
-                                </p>
+                        <div className="text-center py-16">
+                            <div className="w-16 h-16 mx-auto mb-6 rounded-[var(--radius)] bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center">
+                                <Sparkles size={24} className="text-[var(--muted)]" />
                             </div>
+                            <h2 className="font-serif text-xl text-[var(--ink)] mb-2">Ready to post something?</h2>
+                            <p className="text-[var(--muted)] max-w-sm mx-auto mb-8">
+                                Get a quick content idea you can write and post in 10 minutes or less.
+                            </p>
 
-                            <BlueprintButton
-                                size="lg"
+                            <button
                                 onClick={generateWin}
+                                className="flex items-center gap-2 px-6 py-3 mx-auto bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all font-medium"
                             >
-                                <Sparkles size={20} />
+                                <Zap size={16} />
                                 Get Today's Win
-                            </BlueprintButton>
+                            </button>
 
-                            <p className="mt-4 text-xs text-[var(--ink-muted)]">
+                            <p className="mt-4 text-xs text-[var(--muted)]">
                                 Quick, focused, satisfying.
                             </p>
                         </div>
@@ -210,88 +231,95 @@ export default function DailyWinsPage() {
 
                     {/* Loading State */}
                     {isGenerating && (
-                        <div className="text-center py-12">
-                            <div className="inline-flex align-center justify-center w-16 h-16 rounded-full bg-[var(--surface)] border border-[var(--structure)] mb-4">
-                                <RefreshCw size={24} className="text-[var(--blueprint)] animate-spin" />
+                        <div className="text-center py-16">
+                            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center">
+                                <RefreshCw size={18} className="text-[var(--muted)] animate-spin" />
                             </div>
-                            <p className="text-[var(--ink-secondary)]">Finding your win...</p>
+                            <p className="text-[var(--muted)]">Finding your win...</p>
                         </div>
                     )}
 
                     {/* Content Win Card */}
                     {contentWin && !isGenerating && (
                         <div ref={cardRef} className="space-y-4" style={{ opacity: 0 }}>
-                            {/* Topic Badge */}
-                            <div className="align-between gap-2">
-                                <div className="align-center gap-2">
-                                    <span className="px-3 py-1 bg-[var(--blueprint-light)] text-[var(--blueprint)] text-xs font-bold rounded-full">
+                            {/* Topic Badge Row */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="px-3 py-1 bg-[var(--ink)] text-white text-xs font-medium rounded-full">
                                         {contentWin.topic}
                                     </span>
-                                    <span className="px-3 py-1 bg-[var(--surface)] text-[var(--ink-secondary)] text-xs rounded-full">
+                                    <span className="px-3 py-1 bg-[var(--surface)] text-[var(--muted)] text-xs rounded-full border border-[var(--border)]">
                                         {contentWin.platform}
                                     </span>
                                 </div>
-                                <div className="align-center gap-1 text-xs text-[var(--ink-muted)]">
+                                <div className="flex items-center gap-1 text-xs text-[var(--muted)]">
                                     <Clock size={12} />
                                     {contentWin.timeToPost}
                                 </div>
                             </div>
 
                             {/* Main Card */}
-                            <div className="bg-[var(--paper)] border border-[var(--structure)] rounded-[var(--radius)] overflow-hidden shadow-sm">
+                            <BlueprintCard showCorners padding="none">
                                 {/* Hook */}
-                                <div className="p-6 border-b border-[var(--structure-subtle)]">
-                                    <p className="text-xs text-[var(--ink-muted)] uppercase tracking-wide mb-2">{contentWin.angle}</p>
+                                <div className="p-6 border-b border-[var(--border)]">
+                                    <p className="text-xs text-[var(--muted)] uppercase tracking-wide mb-2 font-medium">{contentWin.angle}</p>
                                     <p className="text-lg text-[var(--ink)] leading-relaxed font-medium">
                                         "{contentWin.hook}"
                                     </p>
                                 </div>
 
                                 {/* Outline */}
-                                <div className="p-6 bg-[var(--surface)]/50">
-                                    <p className="text-xs text-[var(--ink-muted)] uppercase tracking-wide mb-3">Structure</p>
-                                    <div className="space-y-2">
+                                <div className="p-6 bg-[var(--surface)]">
+                                    <p className="text-xs text-[var(--muted)] uppercase tracking-wide mb-4 font-medium">Structure</p>
+                                    <div className="space-y-3">
                                         {contentWin.outline.map((step, i) => (
-                                            <div key={i} className="justify-start gap-3">
-                                                <div className="w-6 h-6 rounded-full bg-[var(--ink)] text-[var(--paper)] text-xs font-bold flex items-center justify-center shrink-0">
+                                            <div key={i} className="flex items-center gap-3">
+                                                <div className="w-6 h-6 rounded-full bg-[var(--ink)] text-white text-xs font-bold flex items-center justify-center shrink-0">
                                                     {i + 1}
                                                 </div>
-                                                <span className="text-sm text-[var(--ink-secondary)]">{step}</span>
+                                                <span className="text-sm text-[var(--ink)]">{step}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex border-t border-[var(--structure)]">
+                                <div className="flex border-t border-[var(--border)]">
                                     <button
                                         onClick={copyToClipboard}
-                                        className="flex-1 align-center justify-center gap-2 py-3 text-sm text-[var(--ink-secondary)] hover:bg-[var(--surface)] transition-colors border-r border-[var(--structure)]"
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 text-sm text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)] transition-colors border-r border-[var(--border)]"
                                     >
-                                        {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+                                        {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
                                         {copied ? "Copied" : "Copy"}
                                     </button>
                                     <button
-                                        onClick={() => openPlatform(contentWin.platform)}
-                                        className="flex-1 align-center justify-center gap-2 py-3 text-sm text-[var(--ink-secondary)] hover:bg-[var(--surface)] transition-colors border-r border-[var(--structure)]"
+                                        onClick={expandInMuse}
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 text-sm text-[var(--blueprint)] hover:bg-[var(--blueprint)]/10 hover:text-[var(--blueprint)] transition-colors border-r border-[var(--border)] font-medium"
                                     >
-                                        <ExternalLink size={16} />
-                                        Open {contentWin.platform}
+                                        <Wand2 size={14} />
+                                        Expand in Muse
+                                    </button>
+                                    <button
+                                        onClick={() => openPlatform(contentWin.platform)}
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 text-sm text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)] transition-colors border-r border-[var(--border)]"
+                                    >
+                                        <ExternalLink size={14} />
+                                        {contentWin.platform}
                                     </button>
                                     <button
                                         onClick={markAsDone}
-                                        className="flex-1 align-center justify-center gap-2 py-3 text-sm font-medium text-green-600 hover:bg-green-50 transition-colors"
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium text-green-600 hover:bg-green-50 transition-colors"
                                     >
-                                        <Check size={16} />
+                                        <Check size={14} />
                                         Posted!
                                     </button>
                                 </div>
-                            </div>
+                            </BlueprintCard>
 
                             {/* Try Another */}
                             <button
                                 onClick={generateWin}
-                                className="w-full align-center justify-center gap-2 py-3 text-sm text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors"
+                                className="w-full flex items-center justify-center gap-2 py-3 text-sm text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
                             >
                                 <RefreshCw size={14} />
                                 Get another idea

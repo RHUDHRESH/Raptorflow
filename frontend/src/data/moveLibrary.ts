@@ -1,4 +1,28 @@
-import { Move, MoveType, MoveConfig } from '@/types/campaign';
+import { MoveType, MoveConfig, ScheduleConfig } from '@/types/campaign';
+
+interface SocialAutomationConfig {
+  autoRespond: boolean;
+  likeComments: boolean;
+  followBack: boolean;
+}
+
+interface SocialAnalyticsConfig {
+  trackEngagement: boolean;
+  optimizeTiming: boolean;
+  'a/bTest': boolean;
+}
+
+interface RecommendedMove {
+  id: string;
+  name: string;
+  type: MoveType;
+  description: string;
+  category: string;
+  config: MoveConfig;
+  icon: string;
+  difficulty: string;
+  estimatedTime: string;
+}
 
 // Email Sequence Moves
 export const emailSequenceMoves = [
@@ -135,11 +159,11 @@ export const socialMediaMoves = [
     config: {
       platforms: ['linkedin', 'twitter', 'facebook', 'instagram'],
       schedule: {
-        scheduleType: 'recurring',
-        frequency: 'daily',
-        times: ['09:00', '14:00', '18:00'],
-        timezone: 'user-timezone'
-      } as any,
+        scheduleType: 'recurring' as const,
+        frequency: 'daily' as any,
+        timezone: 'user-timezone',
+        times: ['09:00', '14:00', '18:00']
+      } as ScheduleConfig,
       contentTypes: ['blog-links', 'tips', 'questions', 'behind-scenes'],
       hashtags: ['auto-generate', 'custom'],
       engagement: {
@@ -196,10 +220,10 @@ export const socialMediaMoves = [
     config: {
       contentTypes: ['polls', 'quizzes', 'questions', 'contests'],
       schedule: {
-        scheduleType: 'recurring',
-        frequency: 'weekly',
+        scheduleType: 'recurring' as const,
+        frequency: 'weekly' as any,
         optimalTimes: true
-      } as any,
+      } as ScheduleConfig,
       automation: {
         autoRespond: true,
         likeComments: true,
@@ -615,8 +639,8 @@ export const getPopularMoves = (limit: number = 5) => {
   ].slice(0, limit);
 };
 
-export const getRecommendedMoves = (objective: string, budget: number, teamSize: number) => {
-  let recommended: any[] = [];
+export const getRecommendedMoves = (objective: string, budget: number, teamSize: number): RecommendedMove[] => {
+  let recommended: RecommendedMove[] = [];
 
   if (objective === 'lead-generation') {
     recommended = [

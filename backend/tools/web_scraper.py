@@ -18,6 +18,7 @@ Features:
 """
 
 import asyncio
+from enum import Enum
 import json
 import re
 import time
@@ -32,17 +33,24 @@ from urllib.parse import urljoin, urlparse
 import httpx
 import structlog
 from bs4 import BeautifulSoup, SoupStrainer
-from selenium import webdriver
-from selenium.common.exceptions import TimeoutException, WebDriverException
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 
-from ..config import settings
+try:
+    from selenium import webdriver
+    from selenium.common.exceptions import TimeoutException, WebDriverException
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver.support.ui import WebDriverWait
+    SELENIUM_AVAILABLE = True
+except ImportError:
+    SELENIUM_AVAILABLE = False
+    class WebDriverException(Exception): pass
+    class TimeoutException(Exception): pass
+
+from backend.config import settings
 
 # Local imports
-from .base import ToolError, ToolResult, ToolStatus, ToolTimeoutError, WebTool
+from .base import ToolCategory, ToolError, ToolResult, ToolStatus, ToolTimeoutError, WebTool
 
 logger = structlog.get_logger(__name__)
 

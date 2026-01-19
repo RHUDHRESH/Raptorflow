@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from ..core.supabase import get_supabase_client
+from backend.core.supabase_mgr import get_supabase_client
 from .base import BaseModel, Repository
 from .filters import Filter, build_query
 from .pagination import PaginatedResult, Pagination

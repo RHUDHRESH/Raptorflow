@@ -1,0 +1,263 @@
+{
+  "test_summary": {
+    "total_files_tested": 15,
+    "successful_downloads": 10,
+    "successful_parses": 10,
+    "ocr_required_files": 2,
+    "specialized_parser_required": 1,
+    "test_timestamp": "2026-01-16T07:37:32.273286"
+  },
+  "file_type_breakdown": {
+    "application/pdf": {
+      "files_tested": 1,
+      "successful_processing": 1,
+      "success_rate": 1.0
+    },
+    "PDF Document": {
+      "files_tested": 1,
+      "successful_processing": 0,
+      "success_rate": 0.0
+    },
+    "image/png": {
+      "files_tested": 1,
+      "successful_processing": 1,
+      "success_rate": 1.0
+    },
+    "PNG Image": {
+      "files_tested": 1,
+      "successful_processing": 0,
+      "success_rate": 0.0
+    },
+    "text/csv": {
+      "files_tested": 1,
+      "successful_processing": 1,
+      "success_rate": 1.0
+    },
+    "text/plain": {
+      "files_tested": 2,
+      "successful_processing": 2,
+      "success_rate": 1.0
+    },
+    "application/json": {
+      "files_tested": 2,
+      "successful_processing": 2,
+      "success_rate": 1.0
+    },
+    "application/octet-stream": {
+      "files_tested": 1,
+      "successful_processing": 1,
+      "success_rate": 1.0
+    },
+    "PowerPoint": {
+      "files_tested": 1,
+      "successful_processing": 0,
+      "success_rate": 0.0
+    },
+    "Word Document": {
+      "files_tested": 1,
+      "successful_processing": 0,
+      "success_rate": 0.0
+    },
+    "text/html": {
+      "files_tested": 2,
+      "successful_processing": 2,
+      "success_rate": 1.0
+    },
+    "Markdown": {
+      "files_tested": 1,
+      "successful_processing": 0,
+      "success_rate": 0.0
+    }
+  },
+  "ocr_candidates": [
+    {
+      "filename": "dummy.pdf",
+      "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      "size": 13264
+    },
+    {
+      "filename": "googlelogo_color_272x92dp.png",
+      "url": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
+      "size": 5969
+    }
+  ],
+  "specialized_parser_candidates": [
+    {
+      "filename": "go_microsoft_com_file.bin",
+      "format": "binary",
+      "url": "https://go.microsoft.com/fwlink/?LinkID=521962",
+      "size": 83418
+    }
+  ],
+  "detailed_results": [
+    {
+      "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      "filename": "dummy.pdf",
+      "file_type": "application/pdf",
+      "size_bytes": 13264,
+      "download_success": true,
+      "parse_success": true,
+      "requires_ocr": true,
+      "requires_specialized_parser": false,
+      "error": null
+    },
+    {
+      "url": "https://www.adobe.com/support/products/enterprise/knowledgecenter/media/c4611_sample_explain.pdf",
+      "filename": "",
+      "file_type": "PDF Document",
+      "size_bytes": 0,
+      "download_success": false,
+      "parse_success": false,
+      "requires_ocr": false,
+      "requires_specialized_parser": false,
+      "error": "Failed to download https://www.adobe.com/support/products/enterprise/knowledgecenter/media/c4611_sample_explain.pdf: "
+    },
+    {
+      "url": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
+      "filename": "googlelogo_color_272x92dp.png",
+      "file_type": "image/png",
+      "size_bytes": 5969,
+      "download_success": true,
+      "parse_success": true,
+      "requires_ocr": true,
+      "requires_specialized_parser": false,
+      "error": null
+    },
+    {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/300px-PNG_transparency_demonstration_1.png",
+      "filename": "",
+      "file_type": "PNG Image",
+      "size_bytes": 0,
+      "download_success": false,
+      "parse_success": false,
+      "requires_ocr": false,
+      "requires_specialized_parser": false,
+      "error": "Failed to download https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/300px-PNG_transparency_demonstration_1.png: HTTP 403: Forbidden"
+    },
+    {
+      "url": "https://people.sc.fsu.edu/~jburkardt/data/csv/homes.csv",
+      "filename": "homes.csv",
+      "file_type": "text/csv",
+      "size_bytes": 2128,
+      "download_success": true,
+      "parse_success": true,
+      "requires_ocr": false,
+      "requires_specialized_parser": false,
+      "error": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/datasets/covid-19/main/data/time-series-19-covid-combined.csv",
+      "filename": "time-series-19-covid-combined.csv",
+      "file_type": "text/plain",
+      "size_bytes": 8578215,
+      "download_success": true,
+      "parse_success": true,
+      "requires_ocr": false,
+      "requires_specialized_parser": false,
+      "error": null
+    },
+    {
+      "url": "https://jsonplaceholder.typicode.com/posts/1",
+      "filename": "jsonplaceholder_typicode_com_file.json",
+      "file_type": "application/json",
+      "size_bytes": 292,
+      "download_success": true,
+      "parse_success": true,
+      "requires_ocr": false,
+      "requires_specialized_parser": false,
+      "error": null
+    },
+    {
+      "url": "https://api.github.com/users/octocat",
+      "filename": "api_github_com_file.json",
+      "file_type": "application/json",
+      "size_bytes": 1216,
+      "download_success": true,
+      "parse_success": true,
+      "requires_ocr": false,
+      "requires_specialized_parser": false,
+      "error": null
+    },
+    {
+      "url": "https://go.microsoft.com/fwlink/?LinkID=521962",
+      "filename": "go_microsoft_com_file.bin",
+      "file_type": "application/octet-stream",
+      "size_bytes": 83418,
+      "download_success": true,
+      "parse_success": true,
+      "requires_ocr": false,
+      "requires_specialized_parser": true,
+      "error": null
+    },
+    {
+      "url": "https://www.microsoft.com/en-us/download/confirmation.aspx?id=53519",
+      "filename": "",
+      "file_type": "PowerPoint",
+      "size_bytes": 0,
+      "download_success": false,
+      "parse_success": false,
+      "requires_ocr": false,
+      "requires_specialized_parser": false,
+      "error": "Failed to download https://www.microsoft.com/en-us/download/confirmation.aspx?id=53519: HTTP 403: Forbidden"
+    },
+    {
+      "url": "https://www.microsoft.com/en-us/download/confirmation.aspx?id=53519",
+      "filename": "",
+      "file_type": "Word Document",
+      "size_bytes": 0,
+      "download_success": false,
+      "parse_success": false,
+      "requires_ocr": false,
+      "requires_specialized_parser": false,
+      "error": "Failed to download https://www.microsoft.com/en-us/download/confirmation.aspx?id=53519: HTTP 403: Forbidden"
+    },
+    {
+      "url": "https://www.w3.org/standards/xml/core",
+      "filename": "www_w3_org_file.html",
+      "file_type": "text/html",
+      "size_bytes": 28117,
+      "download_success": true,
+      "parse_success": true,
+      "requires_ocr": false,
+      "requires_specialized_parser": false,
+      "error": null
+    },
+    {
+      "url": "https://example.com",
+      "filename": "example_com_file.html",
+      "file_type": "text/html",
+      "size_bytes": 513,
+      "download_success": true,
+      "parse_success": true,
+      "requires_ocr": false,
+      "requires_specialized_parser": false,
+      "error": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/github/gitignore/main/README.md",
+      "filename": "README.md",
+      "file_type": "text/plain",
+      "size_bytes": 7031,
+      "download_success": true,
+      "parse_success": true,
+      "requires_ocr": false,
+      "requires_specialized_parser": false,
+      "error": null
+    },
+    {
+      "url": "https://raw.githubusercontent.com/karpathy/char-rnn/master/README.md",
+      "filename": "",
+      "file_type": "Markdown",
+      "size_bytes": 0,
+      "download_success": false,
+      "parse_success": false,
+      "requires_ocr": false,
+      "requires_specialized_parser": false,
+      "error": "Failed to download https://raw.githubusercontent.com/karpathy/char-rnn/master/README.md: HTTP 404: Not Found"
+    }
+  ],
+  "recommendations": [
+    "Set up OCR service for 2 image/PDF files",
+    "Install specialized parsers for 1 Office documents"
+  ]
+}

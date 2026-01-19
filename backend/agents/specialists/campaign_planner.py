@@ -11,7 +11,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from ..base import BaseAgent
-from ..config import ModelTier
+from backend.agents.config import ModelTier
 from ..exceptions import DatabaseError, ValidationError
 from ..state import AgentState, add_message, update_state
 
@@ -589,8 +589,8 @@ Always focus on creating practical, executable campaigns that align with busines
                 request["channels"], template, budget
             )
 
-            # Create content strategy
-            content_strategy = self._create_content_strategy(campaign_type, request)
+            # Create content strategy (Enhanced with Swarm FunnelBlueprint)
+            content_strategy = await self._create_content_strategy_with_swarm(campaign_type, request)
 
             # Create measurement plan
             measurement_plan = self._create_measurement_plan(template, objective)
@@ -615,12 +615,11 @@ Always focus on creating practical, executable campaigns that align with busines
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
                 metadata={
-                    "generated_by": "CampaignPlanner",
+                    "generated_by": "CampaignPlanner (Swarm Intelligence)",
                     "template_used": template,
                     "request_context": request,
                 },
             )
-
             return campaign_plan
 
         except Exception as e:
@@ -838,6 +837,17 @@ Always focus on creating practical, executable campaigns that align with busines
                 "social_posts",
             ],
         }
+
+        return {
+            "content_types": content_types.get(
+                campaign_type, ["blog_posts", "social_content"]
+            ),
+            "content_frequency": "weekly",
+            "content_tone": request.get("brand_voice", "professional"),
+            "content_distribution": ["social", "email", "website"],
+            "content_calendar": "to_be_developed",
+        }
+
 
         return {
             "content_types": content_types.get(
