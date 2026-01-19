@@ -1,6 +1,6 @@
 # Implementation Plan: Onboarding Master System (25-Phase Architecture)
 
-## Phase 1: Project Setup & BCM Foundation
+## Phase 1: Project Setup & BCM Foundation [checkpoint: 47c09ec]
 - [x] Task: Initialize backend repository and LangGraph structure.
 - [x] Task: Define the `business_context.json` schema for universal state.
 - [x] Task: Implement the BCM (Business Context Map) base model and sync logic.
