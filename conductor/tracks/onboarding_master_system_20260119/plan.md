@@ -24,37 +24,29 @@
 - [x] Task: Write TDD tests for fact extraction from PDFs and images.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Extraction Engine & Intelligence (Step 2)' (Protocol in workflow.md)
 
-## Phase 4: Data Purge Protocol & Real-time Sync (Step 1/2)
-- [ ] Task: Implement the "Post-Extraction Purge" to delete GCS blobs after Step 2 verification.
-- [ ] Task: Build the real-time trigger for partial `business_context.json` updates.
-- [ ] Task: Implement BCM state recalculation hook for every context change.
-- [ ] Task: Build validation for context integrity after file deletion.
-- [ ] Task: Write TDD tests for file deletion success and context persistence.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Data Purge Protocol & Real-time Sync (Step 1/2)' (Protocol in workflow.md)
+## Phase 4: Data Purge Protocol & Real-time BCM Recalculation [checkpoint: bee1a1d]
+- [x] Task: Implement 'handle_data_purge' node to delete GCS blobs after extraction.
+- [x] Task: Implement BCM recalculation trigger on every state update.
+- [x] Task: Ensure BCM nodes/edges update in real-time based on extracted facts.
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Data Purge Protocol & Real-time BCM Recalculation' (Protocol in workflow.md)
 
-## Phase 5: Red Team Contradiction Detector (Step 3) [checkpoint: 987a68c]
-- [x] Task: Implement ContradictionDetector agent for logical audit.
-- [x] Task: Build Step 3 backend endpoint for inconsistency reporting.
-- [x] Task: Implement "Red Team" audit layer to catch hallucinations or weak claims.
-- [x] Task: Build the clarification/resolution loop for identified contradictions.
-- [x] Task: Write TDD tests for detecting price-vs-positioning mismatches.
-- [x] Task: Conductor - User Manual Verification 'Phase 5: Red Team Contradiction Detector (Step 3)' (Protocol in workflow.md)
+## Phase 5: Adversarial Red Team - Contradiction Detector (Step 3) [checkpoint: 987a68c]
+- [x] Task: Implement Step 3 'handle_contradiction_check' node.
+- [x] Task: Integrate RedTeam agent to find logical inconsistencies in extracted data.
+- [x] Task: Build the UI data structure for the "Adversarial Logic Audit" view.
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Adversarial Red Team - Contradiction Detector (Step 3)' (Protocol in workflow.md)
 
-## Phase 6: Truth Sheet & Versioning (Step 4) [checkpoint: 987a68c]
-- [x] Task: Implement TruthSheet manager for ratifying and locking facts.
-- [x] Task: Build versioning system for `business_context.json` snapshots.
-- [x] Task: Implement Step 4 backend endpoint for truth confirmation.
-- [x] Task: Build the "Digital Signature" logic for strategic ratification.
-- [x] Task: Write TDD tests for version rollback and locking.
-- [x] Task: Conductor - User Manual Verification 'Phase 6: Truth Sheet & Versioning (Step 4)' (Protocol in workflow.md)
+## Phase 6: Step 4 Backend - TruthSheetGenerator & Verified Facts [checkpoint: 987a68c]
+- [x] Task: Implement Step 4 'handle_truth_sheet' logic.
+- [x] Task: Consolidate all extracted and non-contradictory facts into a Truth Sheet.
+- [x] Task: Add verification flags to state (User must confirm truths in UI).
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Step 4 Backend - TruthSheetGenerator & Verified Facts' (Protocol in workflow.md)
 
-## Phase 7: Brand Audit & Web Discovery (Step 5)
-- [ ] Task: Implement BrandAudit agent to assess visual/messaging coherence.
-- [ ] Task: Build Step 5 backend endpoint for brand diagnostic results.
-- [ ] Task: Integrate Titan Sorter for external brand footprint discovery.
-- [ ] Task: Build the "Anchor vs Accelerator" assessment logic.
-- [ ] Task: Write TDD tests for brand health scoring accuracy.
-- [ ] Task: Conductor - User Manual Verification 'Phase 7: Brand Audit & Web Discovery (Step 5)' (Protocol in workflow.md)
+## Phase 7: Step 5 Backend - BrandAuditEngine (Adversarial Brand Audit) [checkpoint: bee1a1d]
+- [x] Task: Create 'BrandAuditEngine' agent to look for gaps between evidence and truth.
+- [x] Task: Implement Step 5 'handle_brand_audit' node logic.
+- [x] Task: Store "Brand Gap Report" in state for UI rendering.
+- [x] Task: Conductor - User Manual Verification 'Phase 7: Step 5 Backend - BrandAuditEngine (Adversarial Brand Audit)' (Protocol in workflow.md)
 
 ## Phase 8: Offer Architecture & Model Logic (Step 6)
 - [ ] Task: Implement OfferArchitect agent for revenue model definition.
