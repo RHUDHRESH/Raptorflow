@@ -125,10 +125,10 @@
 - [x] Task: Conductor - User Manual Verification 'Testing - Unit (Models)' (Protocol in workflow.md) (SHA: 190126Q)
 
 ## Phase 18: Testing - Unit (Nodes)
-- [ ] Task: Test Context Nodes (Real AI)
-- [ ] Task: Test Advanced Nodes (Real AI)
-- [ ] Task: Test ICP/Messaging Nodes (Real AI)
-- [ ] Task: Conductor - User Manual Verification 'Testing - Unit (Nodes)' (Protocol in workflow.md)
+- [x] Task: Test Context Nodes (Real AI) (SHA: 190126R)
+- [x] Task: Test Advanced Nodes (Real AI) (SHA: 190126R)
+- [x] Task: Test ICP/Messaging Nodes (Real AI) (SHA: 190126R)
+- [x] Task: Conductor - User Manual Verification 'Testing - Unit (Nodes)' (Protocol in workflow.md) (SHA: 190126R)
 
 ## Phase 19: Testing - Integration
 - [ ] Task: Test Full Graph Execution (Success Path - Real AI)
