@@ -8,14 +8,15 @@
 
 ## AI & LLM
 - **Platform:** [Google Vertex AI](https://cloud.google.com/vertex-ai) (Gemini models)
-- **Search & Intelligence:** [Native Zero-Cost Engine](./backend/core/search_native.py) (Brave/DDG), replaces Tavily/Perplexity
+- **Search & Intelligence:** SOTA Native Cluster (Self-hosted [SearXNG](https://searxng.org/) + Reddit .json backdoor), 100% free at SaaS scale.
 - **Orchestration:** [LangGraph](https://langchain-ai.github.io/langgraph/)
 
 ## Backend & Infrastructure
 - **Cloud Provider:** [Google Cloud Platform (GCP)](https://cloud.google.com/)
 - **Compute:** [Cloud Run](https://cloud.google.com/run)
-- **Database & Auth:** [Supabase](https://supabase.com/) (PostgreSQL + pgvector)
+- **Database & Auth:** [Supabase](https://supabase.com/) (Exclusive Google OAuth + UCID Identity)
 - **Caching & Messaging:** [Upstash](https://upstash.com/) (Redis)
+- **Stealth Networking:** [Gluetun](https://github.com/qdm12/gluetun) (VPN-based IP rotation for Search Cluster)
 - **Secrets Management:** [GCP Secret Manager](https://cloud.google.com/secret-manager)
 - **Data Warehouse & Analytics:** [BigQuery](https://cloud.google.com/bigquery) (Longitudinal Analysis)
 - **Blob Storage:** [Google Cloud Storage (GCS)](https://cloud.google.com/storage)
