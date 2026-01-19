@@ -58,7 +58,7 @@
 - [x] Task: Implement `assess_risk_factors` node (SHA: 1801205)
 - [x] Task: Conductor - User Manual Verification 'Core Context Graph Nodes (Part 2)' (Protocol in workflow.md) (SHA: 190126G)
 
-## Phase 8: Advanced Analysis Graph Nodes
+## Phase 8: Advanced Analysis Graph Nodes [checkpoint: 4665379]
 - [x] Task: Implement `generate_swot` node (SHA: 1801206)
 - [x] Task: Implement `generate_pestel` node (SHA: 1801206)
 - [x] Task: Implement `analyze_value_chain` node (SHA: 1801206)
