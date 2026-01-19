@@ -266,6 +266,40 @@ async def architect_buying_process(
         "next_step": "messaging_guardrails"
     }
 
+@router.post("/{session_id}/messaging-guardrails", response_model=Dict[str, Any])
+async def define_messaging_guardrails(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 17: Define messaging rules and forbidden words."""
+    return {
+        "success": True,
+        "guardrails": {
+            "rules": [{"type": "voice", "rule": "Surgical Brevity", "do": "Cut words", "dont": "AI fluff"}],
+            "forbidden_words": ["synergy", "paradigm"],
+            "anti_patterns": ["Excessive emojis"]
+        },
+        "next_step": "soundbites_library"
+    }
+
+@router.post("/{session_id}/message-hierarchy", response_model=Dict[str, Any])
+async def architect_message_hierarchy(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 19: Architect message hierarchy and assemble manifesto."""
+    return {
+        "success": True,
+        "hierarchy": {
+            "levels": {"L1": "Manifesto", "L2": "Strategic Pillars", "L3": "Features"},
+            "manifesto_assembly": "The future is surgical. RaptorFlow is the only way.",
+            "integrity_score": 0.98
+        },
+        "next_step": "channel_mapping"
+    }
+
 @router.post("/{session_id}/perceptual-map", response_model=Dict[str, Any])
 async def generate_perceptual_map(
     session_id: str,

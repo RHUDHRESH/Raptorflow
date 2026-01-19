@@ -32,6 +32,8 @@ from ..specialists.soundbites_generator import SoundbitesGenerator
 from ..specialists.message_hierarchy_agent import MessageHierarchyArchitect
 from ..specialists.channel_recommender import ChannelRecommender
 from ..specialists.market_size_calculator import MarketSizeCalculator
+from ..specialists.launch_readiness_checker import LaunchReadinessChecker
+from ..specialists.final_synthesis_agent import FinalSynthesis
 from ...infrastructure.storage import delete_file
 
 logger = logging.getLogger(__name__)
@@ -86,6 +88,8 @@ soundbites_generator = SoundbitesGenerator()
 hierarchy_architect = MessageHierarchyArchitect()
 channel_recommender = ChannelRecommender()
 market_sizer = MarketSizeCalculator()
+readiness_checker = LaunchReadinessChecker()
+final_synthesis_agent = FinalSynthesis()
 
 async def handle_evidence_vault(state: OnboardingStateV2) -> OnboardingStateV2:
     """Step 1: Process uploaded evidence and auto-classify."""
@@ -392,6 +396,33 @@ async def handle_tam_sam_som(state: OnboardingStateV2) -> OnboardingStateV2:
     state["onboarding_progress"] = (21 / 23) * 100
     return state
 
+async def handle_validation_todos(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 22: Reality Check & Validation Protocol."""
+    logger.info("Handling Validation Todos (Step 22)")
+    
+    result = await readiness_checker.execute(state)
+    readiness_data = result.get("output", {})
+    
+    state["step_data"]["validation_todos"] = readiness_data
+    
+    state["onboarding_progress"] = (22 / 23) * 100
+    return state
+
+async def handle_final_synthesis(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 23: Final Synthesis & BCM Transition."""
+    logger.info("Handling Final Synthesis (Step 23)")
+    
+    result = await final_synthesis_agent.execute(state)
+    synthesis_data = result.get("output", {})
+    
+    state["step_data"]["final_synthesis"] = synthesis_data
+    
+    # Trigger final BCM recalculation
+    state = await orchestrator.update_universal_state(state, {"onboarding_status": "COMPLETED"})
+    
+    state["onboarding_progress"] = 100.0
+    return state
+
 class OnboardingGraphV2:
     """Updated onboarding workflow graph with 23-step master logic."""
 
@@ -453,10 +484,8 @@ class OnboardingGraphV2:
         workflow.add_node("handle_message_hierarchy", handle_message_hierarchy)
         workflow.add_node("handle_channel_mapping", handle_channel_mapping)
         workflow.add_node("handle_tam_sam_som", handle_tam_sam_som)
-        
-        # Add remaining nodes as placeholders
-        for step in self.step_order[21:]:
-            workflow.add_node(f"handle_{step}", generic_handler)
+        workflow.add_node("handle_validation_todos", handle_validation_todos)
+        workflow.add_node("handle_final_synthesis", handle_final_synthesis)
 
         # Set entry point
         workflow.set_entry_point("handle_evidence_vault")
@@ -483,12 +512,9 @@ class OnboardingGraphV2:
         workflow.add_edge("handle_soundbites_library", "handle_message_hierarchy")
         workflow.add_edge("handle_message_hierarchy", "handle_channel_mapping")
         workflow.add_edge("handle_channel_mapping", "handle_tam_sam_som")
-
-        # Remaining linear routing
-        for i in range(21, len(self.step_order) - 1):
-            workflow.add_edge(f"handle_{self.step_order[i]}", f"handle_{self.step_order[i+1]}")
-        
-        workflow.add_edge(f"handle_{self.step_order[-1]}", END)
+        workflow.add_edge("handle_tam_sam_som", "handle_validation_todos")
+        workflow.add_edge("handle_validation_todos", "handle_final_synthesis")
+        workflow.add_edge("handle_final_synthesis", END)
 
         memory = MemorySaver()
         return workflow.compile(checkpointer=memory)
@@ -517,5 +543,7 @@ __all__ = [
     "handle_soundbites_library",
     "handle_message_hierarchy",
     "handle_channel_mapping",
-    "handle_tam_sam_som"
+    "handle_tam_sam_som",
+    "handle_validation_todos",
+    "handle_final_synthesis"
 ]

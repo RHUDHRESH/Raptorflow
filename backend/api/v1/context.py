@@ -15,7 +15,7 @@ import json
 from backend.core.auth import get_current_user
 from backend.integration.context_builder import build_business_context_manifest
 from backend.memory.controller import MemoryController
-from backend.db.supabase import get_supabase_client
+from backend.core.supabase_mgr import get_supabase_client
 
 router = APIRouter(
     prefix="/context",
