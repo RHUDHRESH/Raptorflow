@@ -2,9 +2,8 @@
 Application settings and configuration management.
 """
 
-import os
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import Field, validator
 from pydantic_settings import BaseSettings
@@ -16,6 +15,14 @@ class Environment(str, Enum):
     DEV = "dev"
     STAGING = "staging"
     PROD = "prod"
+
+
+class ModelTier(str, Enum):
+    """Available Vertex AI model tiers."""
+
+    FLASH_LITE = "gemini-2.0-flash-lite"
+    FLASH = "gemini-2.0-flash"
+    PRO = "gemini-1.5-pro"
 
 
 class Settings(BaseSettings):
@@ -52,9 +59,18 @@ class Settings(BaseSettings):
     # AI/ML Services
     VERTEX_AI_PROJECT_ID: str = Field(..., env="VERTEX_AI_PROJECT_ID")
     VERTEX_AI_LOCATION: str = Field(default="us-central1", env="VERTEX_AI_LOCATION")
+    VERTEX_AI_MODEL: str = Field(default="gemini-2.0-flash-exp", env="VERTEX_AI_MODEL")
     VERTEX_AI_CREDENTIALS_PATH: Optional[str] = Field(
         default=None, env="VERTEX_AI_CREDENTIALS_PATH"
     )
+
+    # AI Rate Limiting
+    AI_REQUESTS_PER_MINUTE: int = Field(default=60, env="AI_REQUESTS_PER_MINUTE")
+    AI_REQUESTS_PER_HOUR: int = Field(default=1000, env="AI_REQUESTS_PER_HOUR")
+
+    # Budget Controls
+    DAILY_AI_BUDGET: float = Field(default=10.0, env="DAILY_AI_BUDGET")
+    MONTHLY_AI_BUDGET: float = Field(default=100.0, env="MONTHLY_AI_BUDGET")
 
     # OpenAI (optional)
     OPENAI_API_KEY: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
@@ -117,7 +133,12 @@ class Settings(BaseSettings):
 
     # CORS
     CORS_ORIGINS: List[str] = Field(
-        default=["http://localhost:3000"], env="CORS_ORIGINS"
+        default_factory=lambda: [
+            "https://raptorflow.com",
+            "https://www.raptorflow.com",
+            "https://app.raptorflow.com",
+        ],
+        env="CORS_ORIGINS",
     )
     CORS_ALLOW_CREDENTIALS: bool = Field(default=True, env="CORS_ALLOW_CREDENTIALS")
     CORS_ALLOW_METHODS: List[str] = Field(
@@ -136,43 +157,57 @@ class Settings(BaseSettings):
     JOB_ENABLED: bool = Field(default=True, env="JOB_ENABLED")
     JOB_CONCURRENCY: int = Field(default=10, env="JOB_CONCURRENCY")
 
+    # Search Cluster
+    SEARXNG_URL: str = Field(default="http://localhost:8080", env="SEARXNG_URL")
+
+    # Document Service
+    MAX_FILE_SIZE: int = Field(default=100 * 1024 * 1024, env="MAX_FILE_SIZE")  # 100MB
+    DOCUMENT_UPLOAD_PATH: str = Field(
+        default="uploads/documents", env="DOCUMENT_UPLOAD_PATH"
+    )
+    VIRUS_SCAN_ENABLED: bool = Field(default=False, env="VIRUS_SCAN_ENABLED")
+    VIRUS_SCAN_PROVIDER: str = Field(default="gcp", env="VIRUS_SCAN_PROVIDER")
+    CLAMAV_URL: str = Field(default="http://localhost:3310", env="CLAMAV_URL")
+
+    # Validators (on the class, not inside Config)
+    @validator("CORS_ORIGINS", pre=True)
+    def assemble_cors_origins(cls, v):
+        """Parse CORS origins from string or list."""
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(",")]
+        return v
+
+    @validator("CORS_ALLOW_METHODS", pre=True)
+    def assemble_cors_methods(cls, v):
+        """Parse CORS methods from string or list."""
+        if isinstance(v, str):
+            return [method.strip() for method in v.split(",")]
+        return v
+
+    @validator("CORS_ALLOW_HEADERS", pre=True)
+    def assemble_cors_headers(cls, v):
+        """Parse CORS headers from string or list."""
+        if isinstance(v, str):
+            return [header.strip() for header in v.split(",")]
+        return v
+
+    @validator("FEATURE_FLAGS", pre=True)
+    def assemble_feature_flags(cls, v):
+        """Parse feature flags from JSON string."""
+        if isinstance(v, str):
+            import json
+
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return {}
+        return v
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True
-
-        @validator("CORS_ORIGINS", pre=True)
-        def assemble_cors_origins(cls, v):
-            """Parse CORS origins from string or list."""
-            if isinstance(v, str):
-                return [origin.strip() for origin in v.split(",")]
-            return v
-
-        @validator("CORS_ALLOW_METHODS", pre=True)
-        def assemble_cors_methods(cls, v):
-            """Parse CORS methods from string or list."""
-            if isinstance(v, str):
-                return [method.strip() for method in v.split(",")]
-            return v
-
-        @validator("CORS_ALLOW_HEADERS", pre=True)
-        def assemble_cors_headers(cls, v):
-            """Parse CORS headers from string or list."""
-            if isinstance(v, str):
-                return [header.strip() for header in v.split(",")]
-            return v
-
-        @validator("FEATURE_FLAGS", pre=True)
-        def assemble_feature_flags(cls, v):
-            """Parse feature flags from JSON string."""
-            if isinstance(v, str):
-                import json
-
-                try:
-                    return json.loads(v)
-                except json.JSONDecodeError:
-                    return {}
-            return v
+        extra = "ignore"
 
     @property
     def is_development(self) -> bool:
