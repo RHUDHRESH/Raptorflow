@@ -124,7 +124,7 @@
 - [x] Task: Test ICP & Messaging Pydantic Models (SHA: 190126Q)
 - [x] Task: Conductor - User Manual Verification 'Testing - Unit (Models)' (Protocol in workflow.md) (SHA: 190126Q)
 
-## Phase 18: Testing - Unit (Nodes)
+## Phase 18: Testing - Unit (Nodes) [checkpoint: e62331d]
 - [x] Task: Test Context Nodes (Real AI) (SHA: 190126R)
 - [x] Task: Test Advanced Nodes (Real AI) (SHA: 190126R)
 - [x] Task: Test ICP/Messaging Nodes (Real AI) (SHA: 190126R)
