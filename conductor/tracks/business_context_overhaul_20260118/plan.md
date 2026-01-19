@@ -12,7 +12,7 @@
 - [x] Task: Define `RiskFactors` Pydantic model (Risks, Challenges, Mitigation) (SHA: 1801202)
 - [x] Task: Conductor - User Manual Verification 'Core Architecture & Data Models' (Protocol in workflow.md) (SHA: 190126A)
 
-## Phase 2: Advanced Analysis Models
+## Phase 2: Advanced Analysis Models [checkpoint: 241d426]
 - [x] Task: Define `SWOTAnalysis` Pydantic model (SHA: 1801202)
 - [x] Task: Define `PESTELAnalysis` Pydantic model (SHA: 1801202)
 - [x] Task: Define `ValueChainAnalysis` Pydantic model (SHA: 1801202)
