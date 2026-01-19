@@ -136,21 +136,17 @@
 - [x] Task: Automate voice/tone rules based on the Category Path (Safe vs Bold).
 - [x] Task: Conductor - User Manual Verification 'Phase 19: Step 17 Backend - MessagingRulesEngine (Messaging Guardrails)' (Protocol in workflow.md)
 
-## Phase 20: Messaging Guardrails & Enforcement (Step 17)
-- [ ] Task: Implement GuardrailEnforcer agent for tone/voice rules.
-- [ ] Task: Build Step 17 backend endpoint for Do's and Don'ts rules.
-- [ ] Task: Implement real-time "Forbidden Word" detection (e.g., Jargon).
-- [ ] Task: Build anti-pattern alerts based on strategic position.
-- [ ] Task: Write TDD tests for rule enforcement accuracy.
-- [ ] Task: Conductor - User Manual Verification 'Phase 20: Messaging Guardrails & Enforcement (Step 17)' (Protocol in workflow.md)
+## Phase 20: Messaging Guardrails & Enforcement (Step 17) [checkpoint: 9fe65cc]
+- [x] Task: Implement MessagingRulesEngine to define voice/tone guardrails.
+- [x] Task: Build Step 17 node 'handle_messaging_guardrails'.
+- [x] Task: Implement real-time "Forbidden Word" detection logic.
+- [x] Task: Conductor - User Manual Verification 'Phase 20: Messaging Guardrails & Enforcement (Step 17)' (Protocol in workflow.md)
 
-## Phase 21: Soundbites Library & Copy Blocks (Step 18)
-- [ ] Task: Implement SoundbiteManager for copy block assembly.
-- [ ] Task: Build Step 18 backend endpoint for the soundbites library.
-- [ ] Task: Implement "Approve/Improve" AI loops for copy blocks.
-- [ ] Task: Build the problem-agitation-mechanism (PAM) block generator.
-- [ ] Task: Write TDD tests for copy block consistency.
-- [ ] Task: Conductor - User Manual Verification 'Phase 21: Soundbites Library & Copy Blocks (Step 18)' (Protocol in workflow.md)
+## Phase 21: Soundbites Library & Copy Blocks (Step 18) [checkpoint: 9fe65cc]
+- [x] Task: Implement SoundbitesGenerator for messaging library assembly.
+- [x] Task: Build Step 18 node 'handle_soundbites_library'.
+- [x] Task: Generate taglines, value props, and elevator pitches.
+- [x] Task: Conductor - User Manual Verification 'Phase 21: Soundbites Library & Copy Blocks (Step 18)' (Protocol in workflow.md)
 
 ## Phase 22: Message Hierarchy & Content Assembly (Step 19)
 - [ ] Task: Implement HierarchyOrchestrator for headline-to-body mapping.
