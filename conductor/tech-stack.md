@@ -8,6 +8,7 @@
 
 ## AI & LLM
 - **Platform:** [Google Vertex AI](https://cloud.google.com/vertex-ai) (Gemini models)
+- **Universal Agent Architecture:** Single-agent orchestration for complex onboarding workflows (22+ steps). Uses YAML-defined dynamic skills with tunable prompts and automated retry logic.
 - **Titan SOTA Intelligence Engine:**
   - **Modes:** LITE (snippet search), RESEARCH (parallel scraping), DEEP (recursive traversal).
   - **Discovery:** Parallel Search Multiplexing (Native Bing + Reddit .json + SearXNG).

@@ -22,7 +22,7 @@ RaptorFlow is the **Founder Marketing Operating System**. It is designed to repl
 - **ID System:** Unique Customer ID (UCID) in `RF-YYYY-XXXX` format for unified tracking.
 
 ## Core Modules (Cognitive Intelligence Engine Complete)
-- **Foundation:** The source of truth for Brand Kit and positioning. Implements the **Precision Soundbite Framework 3.0** across four strategic phases: JTBD & Jobs, Brand Hierarchy, Mechanism Audit, and Soundbite Studio. Powered by a SOTA **LangGraph** engine for deep business context, SWOT, PESTEL, and Value Chain analysis. (Universal State Sync Implemented)
+- **Foundation:** The source of truth for Brand Kit and positioning. Implements the **Precision Soundbite Framework 3.0** across four strategic phases: JTBD & Jobs, Brand Hierarchy, Mechanism Audit, and Soundbite Studio. Powered by a high-performance **Universal Agent** architecture for multi-step data ingestion and strategic synthesis. (Universal State Sync Implemented)
 - **Cohorts:** ICP and segmentation intelligence. Enhanced with behavioral science markers, psychographics, and market sophistication scoring via the **Rich ICP (RICP)** model. (Implemented)
 - **Moves:** Dynamic execution packets powered by the **Absolute Infinity** engine. Features fluid rescheduling (Breathing Arcs) and multi-vector context (DCM + MacM). (Consolidated Backend Implemented)
 - **Campaigns:** 90-day strategic arcs managed as hierarchical relational graphs. Orchestrates concurrent and subsequent moves toward a singular agenda. (Consolidated Backend Implemented)
