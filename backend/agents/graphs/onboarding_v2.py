@@ -19,6 +19,9 @@ from ..specialists.brand_audit_agent import BrandAuditEngine
 from ..specialists.pricing_optimization_agent import PricingOptimizationAgent
 from ...services.titan.orchestrator import TitanOrchestrator
 from ..specialists.comparative_angle_agent import ComparativeAngleGenerator
+from ..specialists.category_advisor import CategoryAdvisor
+from ..specialists.capability_rating_agent import CapabilityRatingEngine
+from ..specialists.perceptual_map_generator import PerceptualMapGenerator
 from ...infrastructure.storage import delete_file
 
 logger = logging.getLogger(__name__)
@@ -60,6 +63,9 @@ brand_audit_engine = BrandAuditEngine()
 pricing_agent = PricingOptimizationAgent()
 titan_sorter = TitanOrchestrator()
 angle_generator = ComparativeAngleGenerator()
+category_advisor = CategoryAdvisor()
+capability_rating_engine = CapabilityRatingEngine()
+perceptual_map_generator = PerceptualMapGenerator()
 
 async def handle_evidence_vault(state: OnboardingStateV2) -> OnboardingStateV2:
     """Step 1: Process uploaded evidence and auto-classify."""
@@ -208,6 +214,42 @@ async def handle_comparative_angle(state: OnboardingStateV2) -> OnboardingStateV
     state["onboarding_progress"] = (8 / 23) * 100
     return state
 
+async def handle_category_paths(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 9: Recommend Safe/Clever/Bold Category Paths."""
+    logger.info("Handling Category Paths (Step 9)")
+    
+    result = await category_advisor.execute(state)
+    paths = result.get("output", {})
+    
+    state["step_data"]["category_paths"] = paths
+    
+    state["onboarding_progress"] = (9 / 23) * 100
+    return state
+
+async def handle_capability_rating(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 10: Rate Differentiated Capabilities."""
+    logger.info("Handling Capability Rating (Step 10)")
+    
+    result = await capability_rating_engine.execute(state)
+    ratings = result.get("output", {})
+    
+    state["step_data"]["capability_rating"] = ratings
+    
+    state["onboarding_progress"] = (10 / 23) * 100
+    return state
+
+async def handle_perceptual_map(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 11: Generate Strategic Perceptual Map."""
+    logger.info("Handling Perceptual Map (Step 11)")
+    
+    result = await perceptual_map_generator.execute(state)
+    map_data = result.get("output", {})
+    
+    state["step_data"]["perceptual_map"] = map_data
+    
+    state["onboarding_progress"] = (11 / 23) * 100
+    return state
+
 class OnboardingGraphV2:
     """Updated onboarding workflow graph with 23-step master logic."""
 
@@ -256,9 +298,12 @@ class OnboardingGraphV2:
         workflow.add_node("handle_offer_pricing", handle_offer_pricing)
         workflow.add_node("handle_market_intelligence", handle_market_intelligence)
         workflow.add_node("handle_comparative_angle", handle_comparative_angle)
+        workflow.add_node("handle_category_paths", handle_category_paths)
+        workflow.add_node("handle_capability_rating", handle_capability_rating)
+        workflow.add_node("handle_perceptual_map", handle_perceptual_map)
         
         # Add remaining nodes as placeholders
-        for step in self.step_order[8:]:
+        for step in self.step_order[11:]:
             workflow.add_node(f"handle_{step}", generic_handler)
 
         # Set entry point
@@ -273,9 +318,12 @@ class OnboardingGraphV2:
         workflow.add_edge("handle_brand_audit", "handle_offer_pricing")
         workflow.add_edge("handle_offer_pricing", "handle_market_intelligence")
         workflow.add_edge("handle_market_intelligence", "handle_comparative_angle")
+        workflow.add_edge("handle_comparative_angle", "handle_category_paths")
+        workflow.add_edge("handle_category_paths", "handle_capability_rating")
+        workflow.add_edge("handle_capability_rating", "handle_perceptual_map")
 
         # Remaining linear routing
-        for i in range(8, len(self.step_order) - 1):
+        for i in range(11, len(self.step_order) - 1):
             workflow.add_edge(f"handle_{self.step_order[i]}", f"handle_{self.step_order[i+1]}")
         
         workflow.add_edge(f"handle_{self.step_order[-1]}", END)
@@ -294,5 +342,8 @@ __all__ = [
     "handle_brand_audit",
     "handle_offer_pricing",
     "handle_market_intelligence",
-    "handle_comparative_angle"
+    "handle_comparative_angle",
+    "handle_category_paths",
+    "handle_capability_rating",
+    "handle_perceptual_map"
 ]

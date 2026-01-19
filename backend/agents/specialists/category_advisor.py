@@ -5,10 +5,14 @@ Generates Safe/Clever/Bold category path recommendations for market positioning
 
 import logging
 from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass
+from dataclasses import dataclass, field, asdict
 from enum import Enum
 import json
 from datetime import datetime
+
+from ..base import BaseAgent
+from ..config import ModelTier
+from ..state import AgentState
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +59,13 @@ class CategoryPathOption:
     confidence_score: float
     rationale: str
 
+    def to_dict(self):
+        d = asdict(self)
+        d["path"] = self.path.value
+        d["effort_level"] = self.effort_level.value
+        d["education_required"] = self.education_required.value
+        return d
+
 
 @dataclass
 class CategoryAdvisorResult:
@@ -67,15 +78,52 @@ class CategoryAdvisorResult:
     market_context: Dict[str, Any]
     decision_factors: List[str]
 
+    def to_dict(self):
+        return {
+            "safe_path": self.safe_path.to_dict(),
+            "clever_path": self.clever_path.to_dict(),
+            "bold_path": self.bold_path.to_dict(),
+            "recommended_path": self.recommended_path.value,
+            "recommendation_rationale": self.recommendation_rationale,
+            "market_context": self.market_context,
+            "decision_factors": self.decision_factors
+        }
 
-class CategoryAdvisor:
+
+class CategoryAdvisor(BaseAgent):
     """AI-powered category path advisor for market positioning"""
     
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
+        super().__init__(
+            name="CategoryAdvisor",
+            description="Generates Safe/Clever/Bold category path recommendations",
+            model_tier=ModelTier.FLASH,
+            tools=["database"],
+            skills=["category_design", "market_positioning", "strategic_planning"]
+        )
         self.path_templates = self._load_path_templates()
         self.industry_mappings = self._load_industry_mappings()
         self.option_counter = 0
+
+    def get_system_prompt(self) -> str:
+        return """You are the CategoryAdvisor.
+        Your goal is to recommend three distinct strategic paths for market entry:
+        1. SAFE: Compete in an established category (High demand, High competition).
+        2. CLEVER: Reframe an existing category (Unique angle, Lower competition).
+        3. BOLD: Create a new category (Maximum differentiation, High education required)."""
+
+    async def execute(self, state: Any) -> Dict[str, Any]:
+        """Execute category analysis using current state."""
+        company_info = state.get("business_context", {}).get("identity", {})
+        # Merge with truth sheet data if available
+        truth_sheet = state.get("step_data", {}).get("truth_sheet", {}).get("entries", [])
+        for entry in truth_sheet:
+            company_info[entry["field_name"]] = entry["value"]
+            
+        competitors = state.get("step_data", {}).get("market_intelligence", {}).get("results", [])
+        
+        result = await self.analyze_category_paths(company_info, competitors)
+        return {"output": result.to_dict()}
     
     def _load_path_templates(self) -> Dict[CategoryPath, Dict[str, Any]]:
         """Load templates for each category path"""
@@ -294,11 +342,11 @@ class CategoryAdvisor:
     def _determine_recommendation(self, company_info: Dict[str, Any], safe: CategoryPathOption, clever: CategoryPathOption, bold: CategoryPathOption) -> Tuple[CategoryPath, str]:
         """Determine recommended path based on company context"""
         # Factors to consider
-        funding_stage = company_info.get("funding_stage", "").lower()
+        funding_stage = str(company_info.get("funding_stage", "")).lower()
         team_size = company_info.get("team_size", 0)
         runway = company_info.get("runway_months", 0)
-        market_maturity = company_info.get("market_maturity", "").lower()
-        risk_tolerance = company_info.get("risk_tolerance", "medium").lower()
+        market_maturity = str(company_info.get("market_maturity", "")).lower()
+        risk_tolerance = str(company_info.get("risk_tolerance", "medium")).lower()
         
         # Scoring
         scores = {
@@ -308,19 +356,19 @@ class CategoryAdvisor:
         }
         
         # Early stage / limited resources -> Safe
-        if funding_stage in ["pre-seed", "bootstrapped", "seed"] or team_size < 10:
+        if funding_stage in ["pre-seed", "bootstrapped", "seed"] or (isinstance(team_size, int) and team_size < 10):
             scores[CategoryPath.SAFE] += 2
             scores[CategoryPath.CLEVER] += 1
         
         # Well-funded -> Bold is viable
-        if funding_stage in ["series a", "series b", "series c"] or team_size > 50:
+        if funding_stage in ["series a", "series b", "series c"] or (isinstance(team_size, int) and team_size > 50):
             scores[CategoryPath.BOLD] += 2
             scores[CategoryPath.CLEVER] += 1
         
         # Short runway -> Safe
-        if runway and runway < 12:
+        if isinstance(runway, int) and runway < 12:
             scores[CategoryPath.SAFE] += 2
-        elif runway and runway > 24:
+        elif isinstance(runway, int) and runway > 24:
             scores[CategoryPath.BOLD] += 1
         
         # Market maturity
@@ -353,13 +401,6 @@ class CategoryAdvisor:
     async def analyze_category_paths(self, company_info: Dict[str, Any], competitors: List[Dict[str, Any]] = None) -> CategoryAdvisorResult:
         """
         Analyze and recommend category positioning paths
-        
-        Args:
-            company_info: Company information including product, market, resources
-            competitors: List of competitor information
-        
-        Returns:
-            CategoryAdvisorResult with all three paths and recommendation
         """
         competitors = competitors or []
         
@@ -402,39 +443,3 @@ class CategoryAdvisor:
             market_context=market_context,
             decision_factors=decision_factors
         )
-    
-    def get_path_comparison(self, result: CategoryAdvisorResult) -> Dict[str, Any]:
-        """Get comparison table of all paths"""
-        return {
-            "paths": [
-                {
-                    "name": result.safe_path.path.value,
-                    "category": result.safe_path.category_name,
-                    "effort": result.safe_path.effort_level.value,
-                    "education": result.safe_path.education_required.value,
-                    "time_to_traction": result.safe_path.time_to_traction,
-                    "confidence": result.safe_path.confidence_score,
-                    "recommended": result.recommended_path == CategoryPath.SAFE
-                },
-                {
-                    "name": result.clever_path.path.value,
-                    "category": result.clever_path.category_name,
-                    "effort": result.clever_path.effort_level.value,
-                    "education": result.clever_path.education_required.value,
-                    "time_to_traction": result.clever_path.time_to_traction,
-                    "confidence": result.clever_path.confidence_score,
-                    "recommended": result.recommended_path == CategoryPath.CLEVER
-                },
-                {
-                    "name": result.bold_path.path.value,
-                    "category": result.bold_path.category_name,
-                    "effort": result.bold_path.effort_level.value,
-                    "education": result.bold_path.education_required.value,
-                    "time_to_traction": result.bold_path.time_to_traction,
-                    "confidence": result.bold_path.confidence_score,
-                    "recommended": result.recommended_path == CategoryPath.BOLD
-                }
-            ],
-            "recommendation": result.recommended_path.value,
-            "rationale": result.recommendation_rationale
-        }

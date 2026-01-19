@@ -12,7 +12,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 from backend.agents.exceptions import AuthenticationError, ValidationError, WorkspaceError
-from config import validate_config
+from backend.config import validate_config
 from backend.core.validation import validate_agent_request
 
 logger = logging.getLogger(__name__)

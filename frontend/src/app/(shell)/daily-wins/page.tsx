@@ -20,6 +20,10 @@ import {
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { cn } from "@/lib/utils";
 import { openPlatform } from "@/lib/external-links";
+import { apiClient } from "@/lib/api/client";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { supabase } from "@/lib/supabaseClient";
+import { toast } from "sonner";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    DAILY WINS — Quick Content Wins
@@ -31,9 +35,11 @@ interface ContentWin {
     topic: string;
     angle: string;
     hook: string;
-    outline: string[];
+    body: string;
+    visual_prompt: string;
     platform: string;
     timeToPost: string;
+    score: number;
 }
 
 const CONTENT_IDEAS = [
@@ -107,26 +113,52 @@ export default function DailyWinsPage() {
         gsap.fromTo(pageRef.current, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" });
     }, [mounted]);
 
-    const generateWin = () => {
+    const generateWin = async () => {
         setIsGenerating(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                toast.error("You must be logged in to generate a win.");
+                setIsGenerating(false);
+                return;
+            }
 
-        setTimeout(() => {
-            const category = CONTENT_IDEAS[Math.floor(Math.random() * CONTENT_IDEAS.length)];
-            const hook = category.hooks[Math.floor(Math.random() * category.hooks.length)];
-            const platform = category.platforms[Math.floor(Math.random() * category.platforms.length)];
+            const currentWorkspace = useSettingsStore.getState().currentWorkspace;
+            if (!currentWorkspace?.id) {
+                toast.error("No active workspace found.");
+                setIsGenerating(false);
+                return;
+            }
 
-            setContentWin({
-                id: `WIN-${Date.now()}`,
-                topic: category.topic,
-                angle: category.angle,
-                hook,
-                outline: category.outline,
-                platform,
-                timeToPost: "~10 min"
+            const response = await apiClient.generateDailyWin({
+                workspace_id: currentWorkspace.id,
+                user_id: user.id,
+                platform: "LinkedIn"
             });
 
+            if (response.success && response.data?.final_win) {
+                const win = response.data.final_win;
+                setContentWin({
+                    id: `WIN-${Date.now()}`,
+                    topic: "SOTA Insight",
+                    angle: "MasterClass Polish",
+                    hook: win.hooks?.[0] || "No hook generated.",
+                    body: win.content,
+                    visual_prompt: win.visual_prompt,
+                    platform: "LinkedIn",
+                    timeToPost: "~5 min",
+                    score: win.score
+                });
+                toast.success("Intelligence Brief ready.");
+            } else {
+                toast.error(response.error || "Failed to generate win. The editor rejected the quality.");
+            }
+        } catch (error) {
+            console.error("Failed to generate win:", error);
+            toast.error("An unexpected error occurred.");
+        } finally {
             setIsGenerating(false);
-        }, 800);
+        }
     };
 
     useEffect(() => {
@@ -150,7 +182,7 @@ export default function DailyWinsPage() {
 
     const copyToClipboard = async () => {
         if (!contentWin) return;
-        const text = `${contentWin.hook}\n\n${contentWin.outline.map((s, i) => `${i + 1}. ${s}`).join("\n")}`;
+        const text = `${contentWin.hook}\n\n${contentWin.body}`;
         await navigator.clipboard.writeText(text);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -162,7 +194,8 @@ export default function DailyWinsPage() {
             topic: contentWin.topic,
             angle: contentWin.angle,
             hook: contentWin.hook,
-            outline: contentWin.outline,
+            body: contentWin.body,
+            visual_prompt: contentWin.visual_prompt,
             platform: contentWin.platform
         }));
         router.push(`/muse?context=${context}`);
@@ -253,8 +286,8 @@ export default function DailyWinsPage() {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-1 text-xs text-[var(--muted)]">
-                                    <Clock size={12} />
-                                    {contentWin.timeToPost}
+                                    <Zap size={12} className="text-amber-500" />
+                                    {contentWin.score * 100}% Surprise
                                 </div>
                             </div>
 
@@ -268,19 +301,23 @@ export default function DailyWinsPage() {
                                     </p>
                                 </div>
 
-                                {/* Outline */}
-                                <div className="p-6 bg-[var(--surface)]">
-                                    <p className="text-xs text-[var(--muted)] uppercase tracking-wide mb-4 font-medium">Structure</p>
-                                    <div className="space-y-3">
-                                        {contentWin.outline.map((step, i) => (
-                                            <div key={i} className="flex items-center gap-3">
-                                                <div className="w-6 h-6 rounded-full bg-[var(--ink)] text-white text-xs font-bold flex items-center justify-center shrink-0">
-                                                    {i + 1}
-                                                </div>
-                                                <span className="text-sm text-[var(--ink)]">{step}</span>
-                                            </div>
-                                        ))}
+                                {/* Body */}
+                                <div className="p-6 bg-[var(--surface)] border-b border-[var(--border)]">
+                                    <p className="text-xs text-[var(--muted)] uppercase tracking-wide mb-4 font-medium">Editorial Brief</p>
+                                    <div className="prose prose-sm text-[var(--ink)] leading-relaxed whitespace-pre-wrap">
+                                        {contentWin.body}
                                     </div>
+                                </div>
+
+                                {/* Visual Prompt */}
+                                <div className="p-6 bg-[var(--canvas)]">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Sparkles size={14} className="text-[var(--blueprint)]" />
+                                        <p className="text-xs text-[var(--muted)] uppercase tracking-wide font-medium">Visual Direction</p>
+                                    </div>
+                                    <p className="text-sm text-[var(--muted)] italic">
+                                        "{contentWin.visual_prompt}"
+                                    </p>
                                 </div>
 
                                 {/* Actions */}

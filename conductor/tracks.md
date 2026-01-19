@@ -73,7 +73,7 @@
 
 ---
 
-- [ ] **Track: LangGraph Daily Wins Agent (The Surprise Engine)**
+- [x] **Track: LangGraph Daily Wins Agent (The Surprise Engine)**
 *Link: [./tracks/daily_wins_agent_20260119/](./tracks/daily_wins_agent_20260119/)*
 
 ---

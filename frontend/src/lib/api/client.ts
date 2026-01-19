@@ -315,6 +315,18 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  // Daily Wins endpoints
+  async generateDailyWin(data: {
+    workspace_id: string;
+    user_id: string;
+    platform: string;
+  }): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/daily_wins/generate-langgraph', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 // Create singleton instance

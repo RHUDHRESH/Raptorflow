@@ -67,12 +67,12 @@ class CleanupResult:
 @dataclass
 class CleanupStats:
     """Cleanup statistics."""
-    total_tasks_run: int
-    total_items_processed: int
-    total_items_deleted: int
-    total_errors: int
-    total_warnings: int
-    total_memory_freed_bytes: int
+    total_tasks_run: int = 0
+    total_items_processed: int = 0
+    total_items_deleted: int = 0
+    total_errors: int = 0
+    total_warnings: int = 0
+    total_memory_freed_bytes: int = 0
     last_cleanup: Optional[datetime] = None
     task_stats: Dict[str, Dict[str, Any]] = field(default_factory=dict)
 
@@ -150,7 +150,7 @@ class RedisCleanup:
 
         # Rate limit data cleanup
         self.cleanup_tasks[CleanupTaskType.RATE_LIMIT_DATA] = CleanupTask(
-            task_type=CleanupTask.RATE_LIMIT_DATA,
+            task_type=CleanupTaskType.RATE_LIMIT_DATA,
             name="Rate Limit Data Cleanup",
             description="Clean up old rate limit data",
             schedule_interval_seconds=3600,  # 1 hour
@@ -162,7 +162,7 @@ class RedisCleanup:
 
         # Queue cleanup
         self.cleanup_tasks[CleanupTaskType.QUEUE_CLEANUP] = CleanupTask(
-            task_type=CleanupTask.QUEUE_CLEANUP,
+            task_type=CleanupTaskType.QUEUE_CLEANUP,
             name="Queue Cleanup",
             description="Clean up old queue data",
             schedule_interval_seconds=1800,  # 30 minutes
@@ -174,7 +174,7 @@ class RedisCleanup:
 
         # Metrics cleanup
         self.cleanup_tasks[CleanupTaskType.METRICS_CLEANUP] = CleanupTask(
-            task_type=CleanupTask.METRICS_CLEANUP,
+            task_type=CleanupTaskType.METRICS_CLEANUP,
             name="Metrics Cleanup",
             description="Clean up old metrics data",
             schedule_interval_seconds=86400,  # 24 hours
@@ -189,7 +189,7 @@ class RedisCleanup:
         self.cleanup_tasks[task.task_type] = task
         logger.info(f"Added cleanup task: {task.name}")
 
-    def remove_cleanup_task(self, task_type: CleanupTask):
+    def remove_cleanup_task(self, task_type: CleanupTaskType):
         """Remove a cleanup task."""
         if task_type in self.cleanup_tasks:
             del self.cleanup_tasks[task_type]
@@ -201,7 +201,7 @@ class RedisCleanup:
             self.cleanup_tasks[task_type].enabled = True
             logger.info(f"Enabled cleanup task: {task_type.value}")
 
-    def disable_task(self, task_type: CleanupTask):
+    def disable_task(self, task_type: CleanupTaskType):
         """Disable a cleanup task."""
         if task_type in self.cleanup_tasks:
             self.cleanup_tasks[task_type].enabled = False
@@ -227,7 +227,7 @@ class RedisCleanup:
             logger.info("Stopped Redis cleanup scheduler")
 
     async def stop_cleanup_scheduler(self):
-        """Stop the cleanup scheduler."""
+        """Stop the scheduler."""
         if self._cleanup_task:
             self._cleanup_task.cancel()
             self._cleanup_task = None
@@ -240,7 +240,7 @@ class RedisCleanup:
         while self._running:
             try:
                 # Run all enabled cleanup tasks
-                for task in self.cleanup_tasks.values():
+                for task in list(self.cleanup_tasks.values()):
                     if task.enabled:
                         await self._run_cleanup_task(task)
 
@@ -268,13 +268,13 @@ class RedisCleanup:
                 result = await self._cleanup_expired_sessions(task)
             elif task.task_type == CleanupTaskType.OLD_CACHE:
                 result = await self._cleanup_old_cache(task)
-            elif task.task_type == CleanupTask.STALE_LOCKS:
+            elif task.task_type == CleanupTaskType.STALE_LOCKS:
                 result = await self._cleanup_stale_locks(task)
-            elif task.type == CleanupTaskType.ORPHANED_TTL:
+            elif task.task_type == CleanupTaskType.ORPHANED_TTL:
                 result = await self._cleanup_orphaned_ttl(task)
             elif task.task_type == CleanupTaskType.RATE_LIMIT_DATA:
                 result = await self._cleanup_rate_limit_data(task)
-            elif task.task_type == CleanupTask.QUEUE_CLEANUP:
+            elif task.task_type == CleanupTaskType.QUEUE_CLEANUP:
                 result = await self._cleanup_queue_data(task)
             elif task.task_type == CleanupTaskType.METRICS_CLEANUP:
                 result = await self._cleanup_metrics_data(task)
@@ -354,7 +354,7 @@ class RedisCleanup:
             expired_entries = await ttl_manager.get_expired_keys("session")
 
             # Filter by age
-            cutoff_time = datetime.now() - timedelta(hours=max_age)
+            cutoff_time = datetime.now() - timedelta(hours=max_age_hours)
             recent_expired = [
                 entry for entry in expired_entries
                 if entry.expires_at > cutoff_time
@@ -482,19 +482,10 @@ class RedisCleanup:
         lock_prefix = task.cleanup_threshold.get("lock_prefix", "lock:")
 
         try:
-            # Get all lock keys
-            pattern = f"{lock_prefix}*"
-
-            # Note: Upstash Redis doesn't support KEYS command
-            # This is a placeholder implementation
-            # In production, would maintain a lock index
-
             deleted_count = 0
             processed_count = 0
             errors = []
 
-            # For now, we'll use a simple approach with known lock keys
-            # In production, this would be more sophisticated
             known_locks = [
                 "lock:agent_execution",
                 "lock:queue_processing",
@@ -504,15 +495,12 @@ class RedisCleanup:
 
             for lock_key in known_locks:
                 try:
-                    # Check if lock exists and is stale
                     exists = await self.redis.exists(lock_key)
 
                     if exists:
-                        # Get lock data to check age
                         lock_data = await self.redis.get(lock_key)
 
                         if lock_data:
-                            # Parse lock timestamp
                             parts = lock_data.split(":")
                             if len(parts) >= 3:
                                 try:
@@ -522,7 +510,6 @@ class RedisCleanup:
                                     age_minutes = (current_time - lock_timestamp) / 60
 
                                     if age_minutes > max_age_minutes:
-                                        # Delete stale lock
                                         await self.redis.delete(lock_key)
                                         deleted_count += 1
 
@@ -534,7 +521,6 @@ class RedisCleanup:
                 except Exception as e:
                     errors.append(f"Failed to process lock {lock_key}: {e}")
 
-                # Small delay between locks
                 await asyncio.sleep(0.01)
 
             return CleanupResult(
@@ -558,13 +544,8 @@ class RedisCleanup:
 
     async def _cleanup_orphaned_ttl(self, task: CleanupTask) -> CleanupResult:
         """Clean up orphaned TTL entries."""
-        batch_size = task.cleanup_threshold.get("batch_size", 1000)
-
         try:
-            # Get TTL manager
             ttl_manager = get_ttl_manager()
-
-            # Get orphaned TTL entries
             orphaned_count = await ttl_manager.cleanup_orphaned_ttl_entries()
 
             return CleanupResult(
@@ -592,17 +573,10 @@ class RedisCleanup:
         rate_limit_prefix = task.cleanup_threshold.get("rate_limit_prefix", "rl:")
 
         try:
-            # Get all rate limit keys
-            pattern = f"{rate_limit_prefix}*"
-
-            # Note: Upstash Redis doesn't support KEYS command
-            # This is a placeholder implementation
             deleted_count = 0
             processed_count = 0
             errors = []
 
-            # For now, we'll use a simple approach with known rate limit keys
-            # In production, this would be more sophisticated
             known_rate_limit_keys = [
                 "rl:user:api",
                 "rl:user:agents",
@@ -613,15 +587,12 @@ class RedisCleanup:
 
             for key in known_rate_limit_keys:
                 try:
-                    # Check if key exists and get its data
                     exists = await self.redis.exists(key)
 
                     if exists:
-                        # Get rate limit data
                         data = await self.redis.get_json(key)
 
                         if data:
-                            # Check age of data
                             if "timestamps" in data and data["timestamps"]:
                                 oldest_timestamp = min(data["timestamps"])
                                 current_time = datetime.now().timestamp()
@@ -629,16 +600,14 @@ class RedisCleanup:
                                 age_hours = (current_time - oldest_timestamp) / 3600
 
                                 if age_hours > max_age_hours:
-                                    # Delete old rate limit data
                                     await self.redis.delete(key)
                                     deleted_count += 1
 
                         processed_count += 1
 
-                    except Exception as e:
-                        errors.append(f"Failed to process rate limit key {key}: {e}")
+                except Exception as e:
+                    errors.append(f"Failed to process rate limit key {key}: {e}")
 
-                # Small delay between rate limit keys
                 await asyncio.sleep(0.01)
 
             return CleanupResult(
@@ -663,20 +632,12 @@ class RedisCleanup:
     async def _cleanup_queue_data(self, task: CleanupTask) -> CleanupResult:
         """Clean up old queue data."""
         max_age_hours = task.cleanup_threshold.get("max_age_hours", 24)
-        queue_prefix = task.cleanup_threshold.get("queue_prefix", "queue:")
 
         try:
-            # Get all queue keys
-            pattern = f"{queue_prefix}*"
-
-            # Note: Upstash Redis doesn't support KEYS command
-            # This is a placeholder implementation
             deleted_count = 0
             processed_count = 0
             errors = []
 
-            # For now, we'll use a simple approach with known queue keys
-            # In production, this would be more sophisticated
             known_queue_keys = [
                 "queue:default",
                 "queue:priority",
@@ -686,45 +647,38 @@ class RedisCleanup:
 
             for queue_key in known_queue_keys:
                 try:
-                    # Check if queue exists and get its length
                     exists = await self.redis.exists(queue_key)
 
                     if exists:
-                        # Get queue length
                         length = await self.redis.llen(queue_key)
 
                         if length > 0:
-                            # Check age of oldest item (simplified)
-                            try:
-                                oldest_item = await self.redis.lindex(queue_key, -1)
-                                if oldest_item:
-                                    # Parse timestamp from item data
-                                    parts = oldest_item.split("|")
-                                    if len(parts) >= 3:
-                                        try:
-                                            timestamp = float(parts[2])
-                                            current_time = datetime.now().timestamp()
+                            oldest_item = await self.redis.lindex(queue_key, -1)
+                            if oldest_item:
+                                parts = oldest_item.split("|")
+                                if len(parts) >= 3:
+                                    try:
+                                        timestamp = float(parts[2])
+                                        current_time = datetime.now().timestamp()
 
-                                            age_hours = (current_time - timestamp) / 3600
+                                        age_hours = (current_time - timestamp) / 3600
 
-                                            if age_hours > max_age_hours:
-                                                # Remove old items
-                                                removed = await self.redis.ltrim(queue_key, 1, 0)
-                                                deleted_count += length
-                                                length = 0
+                                        if age_hours > max_age_hours:
+                                            await self.redis.ltrim(queue_key, 1, 0)
+                                            deleted_count += length
+                                            length = 0
 
                                     except (ValueError, IndexError):
                                         pass
 
-                                processed_count += 1
+                            processed_count += 1
 
-                            except Exception as e:
-                                errors.append(f"Failed to process queue {queue_key}: {e}")
-
-                    elif length == 0:
+                    elif not exists:
                         processed_count += 1
 
-                # Small delay between queues
+                except Exception as e:
+                    errors.append(f"Failed to process queue {queue_key}: {e}")
+
                 await asyncio.sleep(0.01)
 
             return CleanupResult(
@@ -749,20 +703,12 @@ class RedisCleanup:
     async def _cleanup_metrics_data(self, task: CleanupTask) -> CleanupResult:
         """Clean up old metrics data."""
         max_age_days = task.cleanup_threshold.get("max_age_days", 7)
-        metrics_prefix = task.cleanup_threshold.get("metrics_prefix", "metrics:")
 
         try:
-            # Get all metrics keys
-            pattern = f"{metrics_prefix}*"
-
-            # Note: Upstash Redis doesn't support KEYS command
-            # This is a placeholder implementation
             deleted_count = 0
             processed_count = 0
             errors = []
 
-            # For now, we'll use a simple approach with known metrics keys
-            # In production, this would be more sophisticated
             known_metrics_keys = [
                 "metrics:ops_per_sec",
                 "metrics:memory_usage",
@@ -772,15 +718,12 @@ class RedisCleanup:
 
             for metrics_key in known_metrics_keys:
                 try:
-                    # Check if metrics key exists
                     exists = await self.redis.exists(metrics_key)
 
                     if exists:
-                        # Get metrics data
                         data = await self.redis.get_json(metrics_key)
 
                         if data:
-                            # Check age of metrics
                             if "timestamp" in data:
                                 timestamp = data["timestamp"]
                                 current_time = datetime.now().timestamp()
@@ -788,7 +731,6 @@ class RedisCleanup:
                                 age_days = (current_time - timestamp) / (24 * 3600)
 
                                 if age_days > max_age_days:
-                                    # Delete old metrics
                                     await self.redis.delete(metrics_key)
                                     deleted_count += 1
 
@@ -797,7 +739,9 @@ class RedisCleanup:
                     elif not exists:
                         processed_count += 1
 
-                # Small delay between metrics keys
+                except Exception as e:
+                    errors.append(f"Failed to process metrics key {metrics_key}: {e}")
+
                 await asyncio.sleep(0.01)
 
             return CleanupResult(
