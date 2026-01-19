@@ -31,16 +31,16 @@ Implementing the "ease of access" features including the Ctrl+K interface.
 ## Phase 3: Notification UI & Contextual Help
 Building the visible notification center and in-app guidance.
 
-- [~] Task: Create the `NotificationBell` and `NotificationDropdown` components.
-    - [ ] Write tests for "new" indicator logic and empty states.
-    - [ ] Implement UI and connect to `useNotificationStore`.
-- [ ] Task: Add "Info Bubbles" (Tooltips) for strategic terminology.
-    - [ ] Create a glossary of terms (RICP, Soundbite Studio, etc.).
-    - [ ] Implement Shadcn `Tooltip` components in the Foundation module.
-- [ ] Task: Implement Module Empty States.
-    - [ ] Design and implement guiding UI for modules with no data.
-    - [ ] Verify "Call to Action" buttons lead to the correct flows.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Notification UI & Contextual Help' (Protocol in workflow.md)
+- [x] Task: Create the `NotificationBell` and `NotificationDropdown` components.
+    - [x] Write tests for "new" indicator logic and empty states.
+    - [x] Implement UI and connect to `useNotificationStore`.
+- [x] Task: Add "Info Bubbles" (Tooltips) for strategic terminology.
+    - [x] Create a glossary of terms (RICP, Soundbite Studio, etc.).
+    - [x] Implement Shadcn `Tooltip` components in the Foundation module.
+- [x] Task: Implement Module Empty States.
+    - [x] Design and implement guiding UI for modules with no data.
+    - [x] Verify "Call to Action" buttons lead to the correct flows.
+- [~] Task: Conductor - User Manual Verification 'Phase 3: Notification UI & Contextual Help' (Protocol in workflow.md)
 
 ## Phase 4: Mobile Audit & Final Polish
 Ensuring the "MasterClass" feel extends to all devices.

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CommandPalette } from "./CommandPalette";
 import { Breadcrumbs } from "./Breadcrumbs";
+import { NotificationBell } from "./NotificationCenter";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    PAPER TERMINAL — Top Navigation
@@ -112,20 +113,7 @@ export function TopNav() {
                     </div>
 
                     {/* Notifications */}
-                    <button
-                        onClick={() => toast.info("No new notifications", { description: "You're all caught up!" })}
-                        className="relative p-2 rounded-[var(--radius-sm)] hover:bg-[var(--canvas)] transition-colors group"
-                    >
-                        <Bell
-                            size={16}
-                            strokeWidth={1.5}
-                            className="text-[var(--muted)] group-hover:text-[var(--ink)] transition-colors"
-                        />
-                        {/* Notification dot */}
-                        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[var(--blueprint)] rounded-full flex items-center justify-center">
-                            <span className="w-1 h-1 bg-[var(--paper)] rounded-full" />
-                        </span>
-                    </button>
+                    <NotificationBell />
 
                     {/* Settings */}
                     <button

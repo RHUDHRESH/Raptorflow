@@ -21,6 +21,8 @@ import { useFoundationStore } from "@/stores/foundationStore";
 import { useAuth } from "@/components/auth/AuthProvider"; // IMPORT AUTH
 import { RICPDetailModal } from "@/components/foundation/RICPDetailModal";
 import { MessagingDetailModal } from "@/components/foundation/MessagingDetailModal";
+import { GlossaryTerm } from "@/components/foundation/StrategicGlossary";
+import { BlueprintEmptyState } from "@/components/ui/BlueprintEmptyState";
 import { RICP, CoreMessaging, MARKET_SOPHISTICATION_LABELS } from "@/types/foundation";
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -138,14 +140,16 @@ export default function FoundationPage() {
 
             {/* Empty state if no RICPs */}
             {ricps.length === 0 && (
-              <div className="col-span-full p-12 border-2 border-dashed border-[var(--structure)] rounded-[var(--radius)] text-center">
-                <Users className="mx-auto text-[var(--ink-muted)] mb-4" size={32} strokeWidth={1.5} />
-                <h3 className="font-medium text-[var(--ink)] mb-2">No ICPs defined yet</h3>
-                <p className="text-sm text-[var(--ink-muted)] mb-4">Create your first Rich ICP to start targeting</p>
-                <BlueprintButton>
-                  <span>+</span>
-                  Create First ICP
-                </BlueprintButton>
+              <div className="col-span-full">
+                <BlueprintEmptyState
+                  title="No ICPs defined yet"
+                  description="Create your first Rich ICP to start targeting. This serves as the foundation for all AI content generation."
+                  code="FNDN-RICP-00"
+                  action={{
+                    label: "Create First ICP",
+                    onClick: () => {} // TODO: Wire up
+                  }}
+                />
               </div>
             )}
           </div>
@@ -178,7 +182,7 @@ export default function FoundationPage() {
                       <p className="text-sm text-[var(--secondary)]">One-liner, positioning, value props, brand voice, StoryBrand</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <BlueprintBadge variant="blueprint">StoryBrand</BlueprintBadge>
+                      <GlossaryTerm termKey="STORYBRAND" />
                       <div className="flex items-center gap-1">
                         <BlueprintProgress value={messaging.confidence || 0} size="sm" className="w-20" />
                         <span className="text-xs text-[var(--ink-muted)]">{messaging.confidence || 0}%</span>
