@@ -150,10 +150,10 @@
 - [x] Task: Conductor - User Manual Verification 'Performance Optimization' (Protocol in workflow.md) (SHA: 190126U)
 
 ## Phase 22: Security & Safety
-- [ ] Task: Verify Input Sanitization
-- [ ] Task: Verify Output Encoding/Safety
-- [ ] Task: Scan for potential Prompt Injection vulnerabilities
-- [ ] Task: Conductor - User Manual Verification 'Security & Safety' (Protocol in workflow.md)
+- [x] Task: Verify Input Sanitization (SHA: 190126V)
+- [x] Task: Verify Output Encoding/Safety (SHA: 190126V)
+- [x] Task: Scan for potential Prompt Injection vulnerabilities (SHA: 190126V)
+- [x] Task: Conductor - User Manual Verification 'Security & Safety' (Protocol in workflow.md) (SHA: 190126V)
 
 ## Phase 23: Final Review & Polish
 - [ ] Task: Code Style Audit (Linting/Formatting)
