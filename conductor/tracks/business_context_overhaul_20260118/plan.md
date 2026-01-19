@@ -130,7 +130,7 @@
 - [x] Task: Test ICP/Messaging Nodes (Real AI) (SHA: 190126R)
 - [x] Task: Conductor - User Manual Verification 'Testing - Unit (Nodes)' (Protocol in workflow.md) (SHA: 190126R)
 
-## Phase 19: Testing - Integration
+## Phase 19: Testing - Integration [checkpoint: 1750771]
 - [x] Task: Test Full Graph Execution (Success Path - Real AI) (SHA: 190126S)
 - [x] Task: Test Graph Error Handling & Retries (Real AI) (SHA: 190126S)
 - [x] Task: Test Fallback Mechanisms (Forced Failures) (SHA: 190126S)
