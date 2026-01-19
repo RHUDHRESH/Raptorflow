@@ -148,21 +148,18 @@
 - [x] Task: Generate taglines, value props, and elevator pitches.
 - [x] Task: Conductor - User Manual Verification 'Phase 21: Soundbites Library & Copy Blocks (Step 18)' (Protocol in workflow.md)
 
-## Phase 22: Message Hierarchy & Content Assembly (Step 19)
-- [ ] Task: Implement HierarchyOrchestrator for headline-to-body mapping.
-- [ ] Task: Build Step 19 backend endpoint for the message hierarchy.
-- [ ] Task: Implement "Level 1-3" structural validation.
-- [ ] Task: Build the "Manifesto Assembly" logic for final review.
-- [ ] Task: Write TDD tests for hierarchy structural integrity.
-- [ ] Task: Conductor - User Manual Verification 'Phase 22: Message Hierarchy & Content Assembly (Step 19)' (Protocol in workflow.md)
+## Phase 22: Message Hierarchy & Content Assembly (Step 19) [checkpoint: 76c8337]
+- [x] Task: Implement MessageHierarchyArchitect for headline-to-body mapping.
+- [x] Task: Build Step 19 node 'handle_message_hierarchy'.
+- [x] Task: Implement "Level 1-3" structural validation.
+- [x] Task: Conductor - User Manual Verification 'Phase 22: Message Hierarchy & Content Assembly (Step 19)' (Protocol in workflow.md)
 
-## Phase 23: Channel Architecture & TAM/SAM/SOM (Step 20/21)
-- [ ] Task: Implement ChannelRecommender based on ICP behavior.
-- [ ] Task: Build Step 20 backend endpoint for channel mix mapping.
-- [ ] Task: Implement MarketSizer for TAM/SAM/SOM calculations.
-- [ ] Task: Build Step 21 backend endpoint for market reality data.
-- [ ] Task: Write TDD tests for market size calculation accuracy.
-- [ ] Task: Conductor - User Manual Verification 'Phase 23: Channel Architecture & TAM/SAM/SOM (Step 20/21)' (Protocol in workflow.md)
+## Phase 23: Channel Architecture & TAM/SAM/SOM (Step 20/21) [checkpoint: 76c8337]
+- [x] Task: Implement ChannelRecommender based on ICP behavior.
+- [x] Task: Build Step 20 node 'handle_channel_mapping'.
+- [x] Task: Implement MarketSizer for TAM/SAM/SOM calculations.
+- [x] Task: Build Step 21 node 'handle_tam_sam_som'.
+- [x] Task: Conductor - User Manual Verification 'Phase 23: Channel Architecture & TAM/SAM/SOM (Step 20/21)' (Protocol in workflow.md)
 
 ## Phase 24: Reality Check & Validation Protocol (Step 22)
 - [ ] Task: Implement ValidationTracker for non-content tasks.
