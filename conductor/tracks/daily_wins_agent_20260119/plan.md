@@ -1,6 +1,6 @@
 # Implementation Plan: LangGraph Daily Wins Engine
 
-## Phase 1: Engine Architecture & State Definition
+## Phase 1: Engine Architecture & State Definition [checkpoint: 4d1b5ee]
 - [x] Task: Define LangGraph State and Schema (20260119)
     - [x] Define the `DailyWinState` TypedDict for LangGraph
     - [x] Create schemas for the 7 skills' inputs and outputs
