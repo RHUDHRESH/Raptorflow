@@ -16,23 +16,24 @@ from ..specialists.extraction_orchestrator import ExtractionOrchestrator
 from ..specialists.contradiction_detector import ContradictionDetector
 from ..specialists.truth_sheet_generator import TruthSheetGenerator
 from ..specialists.brand_audit_agent import BrandAuditEngine
-from ..specialists.pricing_optimization_agent import PricingOptimizationAgent
+from ..specialists.offer_architect import OfferArchitect
 from ...services.titan.orchestrator import TitanOrchestrator
+from ..specialists.insight_extractor import InsightExtractor
 from ..specialists.comparative_angle_agent import ComparativeAngleGenerator
 from ..specialists.category_advisor import CategoryAdvisor
 from ..specialists.capability_rating_agent import CapabilityRatingEngine
 from ..specialists.perceptual_map_generator import PerceptualMapGenerator
 from ..specialists.strategic_grid_agent import StrategicGridGenerator
-from ..specialists.positioning_statement_generator import PositioningStatementGenerator
-from ..specialists.focus_sacrifice_engine import FocusSacrificeEngine
-from ..specialists.icp_deep_generator import ICPDeepGenerator
+from ..specialists.neuroscience_copywriter import NeuroscienceCopywriter
+from ..specialists.constraint_engine import ConstraintEngine
+from ..specialists.icp_architect import ICPArchitect
 from ..specialists.buying_process_agent import BuyingProcessArchitect
 from ..specialists.messaging_rules_engine import MessagingRulesEngine
 from ..specialists.soundbites_generator import SoundbitesGenerator
 from ..specialists.message_hierarchy_agent import MessageHierarchyArchitect
 from ..specialists.channel_recommender import ChannelRecommender
-from ..specialists.market_size_calculator import MarketSizeCalculator
-from ..specialists.launch_readiness_checker import LaunchReadinessChecker
+from ..specialists.market_sizer import MarketSizer
+from ..specialists.validation_tracker import ValidationTracker
 from ..specialists.final_synthesis_agent import FinalSynthesis
 from ...infrastructure.storage import delete_file
 
@@ -72,23 +73,24 @@ extractor = ExtractionOrchestrator()
 contradiction_detector = ContradictionDetector()
 truth_sheet_generator = TruthSheetGenerator()
 brand_audit_engine = BrandAuditEngine()
-pricing_agent = PricingOptimizationAgent()
+offer_architect = OfferArchitect()
 titan_sorter = TitanOrchestrator()
+insight_extractor = InsightExtractor()
 angle_generator = ComparativeAngleGenerator()
 category_advisor = CategoryAdvisor()
 capability_rating_engine = CapabilityRatingEngine()
 perceptual_map_generator = PerceptualMapGenerator()
 strategic_grid_generator = StrategicGridGenerator()
-positioning_generator = PositioningStatementGenerator()
-focus_sacrifice_engine = FocusSacrificeEngine()
-icp_generator = ICPDeepGenerator()
+neuroscience_copywriter = NeuroscienceCopywriter()
+constraint_engine = ConstraintEngine()
+icp_architect = ICPArchitect()
 buying_process_architect = BuyingProcessArchitect()
 messaging_rules_engine = MessagingRulesEngine()
 soundbites_generator = SoundbitesGenerator()
 hierarchy_architect = MessageHierarchyArchitect()
 channel_recommender = ChannelRecommender()
-market_sizer = MarketSizeCalculator()
-readiness_checker = LaunchReadinessChecker()
+market_sizer = MarketSizer()
+validation_tracker = ValidationTracker()
 final_synthesis_agent = FinalSynthesis()
 
 async def handle_evidence_vault(state: OnboardingStateV2) -> OnboardingStateV2:
@@ -290,7 +292,7 @@ async def handle_positioning_statements(state: OnboardingStateV2) -> OnboardingS
     """Step 13: Generate Final Positioning Statements."""
     logger.info("Handling Positioning Statements (Step 13)")
     
-    result = await positioning_generator.execute(state)
+    result = await neuroscience_copywriter.execute(state)
     positioning_data = result.get("output", {})
     
     state["positioning"] = positioning_data
@@ -303,7 +305,7 @@ async def handle_focus_sacrifice(state: OnboardingStateV2) -> OnboardingStateV2:
     """Step 14: Recommend Strategic Tradeoffs (Focus vs Sacrifice)."""
     logger.info("Handling Focus & Sacrifice (Step 14)")
     
-    result = await focus_sacrifice_engine.execute(state)
+    result = await constraint_engine.execute(state)
     tradeoff_data = result.get("output", {})
     
     state["step_data"]["focus_sacrifice"] = tradeoff_data
@@ -315,7 +317,7 @@ async def handle_icp_profiles(state: OnboardingStateV2) -> OnboardingStateV2:
     """Step 15: Generate Comprehensive ICP Profiles."""
     logger.info("Handling ICP Profiles (Step 15)")
     
-    result = await icp_generator.execute(state)
+    result = await icp_architect.execute(state)
     icp_data = result.get("output", {})
     
     state["icp_profiles"] = icp_data.get("profiles", [])
@@ -400,7 +402,7 @@ async def handle_validation_todos(state: OnboardingStateV2) -> OnboardingStateV2
     """Step 22: Reality Check & Validation Protocol."""
     logger.info("Handling Validation Todos (Step 22)")
     
-    result = await readiness_checker.execute(state)
+    result = await validation_tracker.execute(state)
     readiness_data = result.get("output", {})
     
     state["step_data"]["validation_todos"] = readiness_data

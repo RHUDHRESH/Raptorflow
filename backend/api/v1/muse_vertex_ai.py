@@ -427,3 +427,291 @@ def generate_chat_suggestions(ai_response: str, user_message: str) -> List[str]:
         suggestions.append("Create SEO content strategy")
     
     return suggestions[:3]  # Return top 3 suggestions
+
+from services.crm_service import crm_service, CRMProvider
+
+@router.get("/prospects")
+async def get_crm_prospects(
+    provider: str = "hubspot",
+    current_user = Depends(get_current_user)
+):
+    """Fetch prospects from connected CRM"""
+    try:
+        crm_provider = CRMProvider(provider.lower())
+        prospects = await crm_service.get_prospects(crm_provider)
+        return {"success": True, "prospects": prospects}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+class SyncProspectRequest(BaseModel):
+    prospect_id: str
+    asset_id: str
+    provider: str = "hubspot"
+
+@router.post("/sync-prospect")
+async def sync_asset_to_crm(
+    request: SyncProspectRequest,
+    current_user = Depends(get_current_user)
+):
+    """Sync a generated asset to a CRM prospect's timeline"""
+    try:
+        crm_provider = CRMProvider(request.provider.lower())
+        result = await crm_service.sync_content_to_prospect(
+            request.prospect_id, 
+            request.asset_id, 
+            crm_provider
+        )
+        return {"success": True, "result": result}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+from services.repurposing_service import repurposing_service, PlatformType
+
+class RepurposeRequest(BaseModel):
+    content: str
+    target_platform: str
+    tone: str = "professional"
+    additional_instructions: str = ""
+
+@router.post("/repurpose")
+async def repurpose_content(
+    request: RepurposeRequest,
+    current_user = Depends(get_current_user)
+):
+    """Repurpose content for a different platform"""
+    try:
+        platform = PlatformType(request.target_platform.lower())
+        result = await repurposing_service.repurpose_content(
+            request.content,
+            platform,
+            request.tone,
+            request.additional_instructions
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+from services.collaboration_service import collaboration_service, ApprovalStatus
+
+class CommentRequest(BaseModel):
+    asset_id: str
+    text: str
+
+@router.post("/comment")
+async def add_comment(
+    request: CommentRequest,
+    current_user = Depends(get_current_user)
+):
+    """Add a comment to an asset"""
+    return await collaboration_service.add_comment(
+        request.asset_id,
+        current_user["id"],
+        request.text
+    )
+
+@router.get("/comments/{asset_id}")
+async def get_comments(
+    asset_id: str,
+    current_user = Depends(get_current_user)
+):
+    """Get all comments for an asset"""
+    comments = await collaboration_service.get_comments(asset_id)
+    return {"success": True, "comments": comments}
+
+class ApprovalRequest(BaseModel):
+    asset_id: str
+    status: str
+
+@router.post("/approve")
+async def update_approval(
+    request: ApprovalRequest,
+    current_user = Depends(get_current_user)
+):
+    """Update asset approval status"""
+    try:
+        status = ApprovalStatus(request.status.lower())
+        return await collaboration_service.update_approval_status(
+            request.asset_id,
+            status,
+            current_user["id"]
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+from services.brand_voice_service import brand_voice_service
+
+class VoiceAnalysisRequest(BaseModel):
+    samples: List[str]
+
+@router.post("/analyze-voice")
+async def analyze_voice(
+    request: VoiceAnalysisRequest,
+    current_user = Depends(get_current_user)
+):
+    """Analyze content samples to extract brand voice profile"""
+    return await brand_voice_service.analyze_brand_voice(
+        request.samples,
+        current_user["id"]
+    )
+
+@router.get("/brand-voice")
+async def get_brand_voice(
+    current_user = Depends(get_current_user)
+):
+    """Get user's brand voice profile"""
+    profile = await brand_voice_service.get_profile(current_user["id"])
+    if not profile:
+        return {"success": False, "error": "No profile found"}
+    return {"success": True, "profile": profile}
+
+from services.distribution_service import distribution_service, DistributionPlatform
+
+class DistributionRequest(BaseModel):
+    content: str
+    platform: str
+    scheduled_at: Optional[datetime] = None
+
+@router.post("/distribute")
+async def distribute_content(
+    request: DistributionRequest,
+    current_user = Depends(get_current_user)
+):
+    """Post or schedule content to a social platform"""
+    try:
+        platform = DistributionPlatform(request.platform.lower())
+        return await distribution_service.post_to_platform(
+            request.content,
+            platform,
+            request.scheduled_at
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/distribution-plan")
+async def get_distribution_plan(
+    content: str,
+    current_user = Depends(get_current_user)
+):
+    """Get a multi-platform distribution plan for content"""
+    plan = await distribution_service.get_multi_platform_plan(content)
+    return {"success": True, "plan": plan}
+
+from services.audit_service import audit_service
+
+class AuditRequest(BaseModel):
+    assets: List[Dict[str, Any]]
+    gtm_goals: List[str]
+
+@router.post("/audit")
+async def audit_content(
+    request: AuditRequest,
+    current_user = Depends(get_current_user)
+):
+    """Audit content library for strategic gaps"""
+    return await audit_service.audit_content_library(
+        request.assets,
+        request.gtm_goals
+    )
+
+from services.seo_service import seo_service
+
+class SEORequest(BaseModel):
+    content: str
+    target_keywords: List[str]
+
+@router.post("/seo-optimize")
+async def optimize_content_seo(
+    request: SEORequest,
+    current_user = Depends(get_current_user)
+):
+    """Audit and optimize content for SEO"""
+    return await seo_service.optimize_content(
+        request.content,
+        request.target_keywords
+    )
+
+from services.brief_service import brief_service
+
+class BriefRequest(BaseModel):
+    topic: str
+    icp_context: Dict[str, Any]
+    platform: str = "blog"
+
+from services.advanced_analytics_service import advanced_analytics_service
+
+@router.get("/roi-report")
+async def get_roi_report(
+    timeframe: int = 30,
+    current_user = Depends(get_current_user)
+):
+    """Get advanced ROI and performance metrics"""
+    return await advanced_analytics_service.get_roi_report(timeframe)
+
+from services.automation_service import automation_service
+
+class SequenceRequest(BaseModel):
+    goal: str
+    steps: int = 5
+    tone: str = "professional"
+
+from services.coaching_service import coaching_service
+
+class CoachingRequest(BaseModel):
+    content: str
+    bcm_context: Dict[str, Any]
+
+from services.marketplace_service import marketplace_service
+
+class ProjectRequest(BaseModel):
+    title: str
+    description: str
+    budget_range: str
+
+@router.post("/marketplace/project")
+async def post_project(
+    request: ProjectRequest,
+    current_user = Depends(get_current_user)
+):
+    """Post a content project to the marketplace"""
+    return await marketplace_service.post_project(
+        request.title,
+        request.description,
+        request.budget_range,
+        current_user["id"]
+    )
+
+from services.onboarding_service import muse_onboarding_service
+
+@router.get("/onboarding/status")
+async def get_onboarding_status(
+    current_user = Depends(get_current_user)
+):
+    """Get Muse-specific onboarding progress"""
+    return await muse_onboarding_service.get_onboarding_status(current_user["id"])
+
+@router.post("/onboarding/complete/{step_id}")
+async def complete_onboarding_step(
+    step_id: str,
+    current_user = Depends(get_current_user)
+):
+    """Mark an onboarding step as completed"""
+    return await muse_onboarding_service.complete_step(current_user["id"], step_id)
+
+from services.premium_service import premium_service
+
+@router.get("/premium/analytics")
+async def get_enterprise_metrics(
+    workspace_id: str,
+    current_user = Depends(get_current_user)
+):
+    """Fetch advanced enterprise-level analytics"""
+    is_premium = await premium_service.check_premium_eligibility(current_user["id"])
+    if not is_premium:
+        raise HTTPException(status_code=403, detail="Premium subscription required")
+    return await premium_service.get_enterprise_analytics(workspace_id)
+
+@router.get("/premium/roadmap")
+async def get_premium_roadmap():
+    """Get the upcoming premium feature roadmap"""
+    roadmap = await premium_service.get_premium_roadmap()
+    return {"success": True, "roadmap": roadmap}

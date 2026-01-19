@@ -6,7 +6,7 @@
 - [x] Task: Implement the BCM (Business Context Map) base model and sync logic.
 - [x] Task: Configure Supabase checkpointer for LangGraph state persistence.
 - [x] Task: Implement UCID (Unique Customer ID) generation and mapping.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Project Setup & BCM Foundation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Project Setup & BCM Foundation' (Protocol in workflow.md)
 
 ## Phase 2: Evidence Vault - Upload & AI Classification (Step 1) [checkpoint: 987a68c]
 - [x] Task: Implement GCS upload logic with temporary storage lifecycle.
@@ -49,30 +49,30 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 7: Step 5 Backend - BrandAuditEngine (Adversarial Brand Audit)' (Protocol in workflow.md)
 
 ## Phase 8: Offer Architecture & Model Logic (Step 6)
-- [ ] Task: Implement OfferArchitect agent for revenue model definition.
-- [ ] Task: Build Step 6 backend endpoint for pricing and outcome logic.
-- [ ] Task: Implement "Risk Reversal" validator for guarantee strength.
-- [ ] Task: Build outcome-to-deliverable mapping in the BCM.
-- [ ] Task: Write TDD tests for financial model calculations (Recurring vs One-time).
-- [ ] Task: Conductor - User Manual Verification 'Phase 8: Offer Architecture & Model Logic (Step 6)' (Protocol in workflow.md)
+- [x] Task: Implement OfferArchitect agent for revenue model definition.
+- [x] Task: Build Step 6 backend endpoint for pricing and outcome logic.
+- [x] Task: Implement "Risk Reversal" validator for guarantee strength.
+- [x] Task: Build outcome-to-deliverable mapping in the BCM.
+- [x] Task: Write TDD tests for financial model calculations (Recurring vs One-time).
+- [x] Task: Conductor - User Manual Verification 'Phase 8: Offer Architecture & Model Logic (Step 6)' (Protocol in workflow.md)
 
 ## Phase 9: Market Intelligence - Reddit Scraper (Step 7)
-- [ ] Task: Implement RedditScraper tool using Titan Sorter multiplexer.
-- [ ] Task: Build subreddit discovery logic based on ICP keywords.
-- [ ] Task: Implement high-speed parallel scraping for verbatims.
-- [ ] Task: Build the "Stealth Scraper" pool rotation for Reddit.
-- [ ] Task: Write TDD tests for Reddit data retrieval and rate-limiting.
-- [ ] Task: Conductor - User Manual Verification 'Phase 9: Market Intelligence - Reddit Scraper (Step 7)' (Protocol in workflow.md)
+- [x] Task: Implement RedditScraper tool using Titan Sorter multiplexer.
+- [x] Task: Build subreddit discovery logic based on ICP keywords.
+- [x] Task: Implement high-speed parallel scraping for verbatims.
+- [x] Task: Build the "Stealth Scraper" pool rotation for Reddit.
+- [x] Task: Write TDD tests for Reddit data retrieval and rate-limiting.
+- [x] Task: Conductor - User Manual Verification 'Phase 9: Market Intelligence - Reddit Scraper (Step 7)' (Protocol in workflow.md)
 
 ## Phase 10: Market Intelligence - Insight Extraction (Step 7)
-- [ ] Task: Implement InsightExtractor agent for Pain/Desire/Objection mapping.
-- [ ] Task: Build Step 7 backend endpoint for market intelligence dossier.
-- [ ] Task: Implement sentiment scoring for customer verbatims.
-- [ ] Task: Build the auto-discovery logic for competitors from research data.
-- [ ] Task: Write TDD tests for pain point categorization accuracy.
-- [ ] Task: Conductor - User Manual Verification 'Phase 10: Market Intelligence - Insight Extraction (Step 7)' (Protocol in workflow.md)
+- [x] Task: Implement InsightExtractor agent for Pain/Desire/Objection mapping.
+- [x] Task: Build Step 7 backend endpoint for market intelligence dossier.
+- [x] Task: Implement sentiment scoring for customer verbatims.
+- [x] Task: Build the auto-discovery logic for competitors from research data.
+- [x] Task: Write TDD tests for pain point categorization accuracy.
+- [x] Task: Conductor - User Manual Verification 'Phase 10: Market Intelligence - Insight Extraction (Step 7)' (Protocol in workflow.md)
 
-## Phase 11: Competitive Landscape Mapping (Step 8) [checkpoint: 53f106c]
+## Phase 11: Competitive Landscape Mapping (Step 8)
 - [x] Task: Implement CompetitorAnalyzer agent for deep rival research.
 - [x] Task: Build Step 8 backend endpoint for comparative angle results.
 - [x] Task: Implement "Vantage Point" logic to identify leverage (Your Leverage).
@@ -80,7 +80,7 @@
 - [x] Task: Write TDD tests for competitor weakness detection.
 - [x] Task: Conductor - User Manual Verification 'Phase 11: Competitive Landscape Mapping (Step 8)' (Protocol in workflow.md)
 
-## Phase 12: Market Category Selection Logic (Step 9) [checkpoint: 53f106c]
+## Phase 12: Market Category Selection Logic (Step 9)
 - [x] Task: Implement CategoryAdvisor agent for Safe/Clever/Bold pathing.
 - [x] Task: Build Step 9 backend endpoint for category path selection.
 - [x] Task: Implement pros/cons generation for each strategic path.
@@ -88,7 +88,7 @@
 - [x] Task: Write TDD tests for strategic path recommendation logic.
 - [x] Task: Conductor - User Manual Verification 'Phase 12: Market Category Selection Logic (Step 9)' (Protocol in workflow.md)
 
-## Phase 13: Capability Uniqueness Engine (Step 10) [checkpoint: 53f106c]
+## Phase 13: Capability Uniqueness Engine (Step 10)
 - [x] Task: Implement CapabilityAuditor agent for 4-tier rating.
 - [x] Task: Build Step 10 backend endpoint for capability ratings.
 - [x] Task: Implement "Verification" tool to audit "Only You" claims via Titan Sorter.
@@ -96,19 +96,23 @@
 - [x] Task: Write TDD tests for uniqueness verification accuracy.
 - [x] Task: Conductor - User Manual Verification 'Phase 13: Capability Uniqueness Engine (Step 10)' (Protocol in workflow.md)
 
-## Phase 14: Step 12 Backend - StrategicGridGenerator (Strategic Grid) [checkpoint: f753b03]
-- [x] Task: Implement Step 12 'handle_strategic_grid' node.
-- [x] Task: Create StrategicGridGenerator to populate the 2x2 grid (Value vs Rarity).
-- [x] Task: Automate asset categorization based on capability ratings from Step 10.
-- [x] Task: Conductor - User Manual Verification 'Phase 14: Step 12 Backend - StrategicGridGenerator (Strategic Grid)' (Protocol in workflow.md)
+## Phase 14: Perceptual Map Generation (Step 11)
+- [x] Task: Implement PerceptualMapGenerator for quadrant analysis.
+- [x] Task: Build Step 11 backend endpoint for 3 positioning options.
+- [x] Task: Implement competitor placement logic based on scraped data.
+- [x] Task: Build "Only You" quadrant validation in 2D space.
+- [x] Task: Write TDD tests for quadrant positioning logic.
+- [x] Task: Conductor - User Manual Verification 'Phase 14: Perceptual Map Generation (Step 11)' (Protocol in workflow.md)
 
-## Phase 15: Step 13 Backend - PositioningStatementGenerator (Final Positioning) [checkpoint: f753b03]
-- [x] Task: Implement Step 13 'handle_positioning_statements' logic.
-- [x] Task: Generate statements across multiple frameworks (Classic, Challenger, Benefit-Focused).
-- [x] Task: Synthesize all research and truths into a definitive "Master Positioning" object.
-- [x] Task: Conductor - User Manual Verification 'Phase 15: Step 13 Backend - PositioningStatementGenerator (Final Positioning)' (Protocol in workflow.md)
+## Phase 15: Strategic Grid & Milestone Sync (Step 12)
+- [x] Task: Implement StrategicGrid orchestrator for position selection.
+- [x] Task: Build Step 12 backend endpoint for strategic grid summary.
+- [x] Task: Implement the "Milestone Synthesis" to update BCM after Step 12.
+- [x] Task: Build gap analysis cards for threats/opportunities.
+- [x] Task: Write TDD tests for BCM sync after grid lock.
+- [x] Task: Conductor - User Manual Verification 'Phase 15: Strategic Grid & Milestone Sync (Step 12)' (Protocol in workflow.md)
 
-## Phase 16: Neuroscience Copywriting Engine (Step 13) [checkpoint: f85fe1e]
+## Phase 16: Neuroscience Copywriting Engine (Step 13)
 - [x] Task: Implement NeuroscienceCopywriter agent for manifesto drafting.
 - [x] Task: Build Step 13 backend endpoint for positioning statements.
 - [x] Task: Implement "Limbic Activation" scoring for brand copy.
@@ -116,7 +120,7 @@
 - [x] Task: Write TDD tests for copy score accuracy.
 - [x] Task: Conductor - User Manual Verification 'Phase 16: Neuroscience Copywriting Engine (Step 13)' (Protocol in workflow.md)
 
-## Phase 17: Focus & Sacrifice Constraint Engine (Step 14) [checkpoint: f85fe1e]
+## Phase 17: Focus & Sacrifice Constraint Engine (Step 14)
 - [x] Task: Implement ConstraintEngine to enforce strategic trade-offs.
 - [x] Task: Build Step 14 backend endpoint for focus/sacrifice decisions.
 - [x] Task: Implement "Lightbulb" explanation logic for forced sacrifices.
@@ -124,51 +128,65 @@
 - [x] Task: Write TDD tests for constraint enforcement logic.
 - [x] Task: Conductor - User Manual Verification 'Phase 17: Focus & Sacrifice Constraint Engine (Step 14)' (Protocol in workflow.md)
 
-## Phase 18: Step 16 Backend - BuyingProcessArchitect (Sales Cycle) [checkpoint: afad9e1]
-- [x] Task: Implement Step 16 'handle_buying_process' node.
-- [x] Task: Create BuyingProcessArchitect to map the sales cycle and buyer journey.
-- [x] Task: Define "Trust Milestones" for each stage based on ICP psychographics.
-- [x] Task: Conductor - User Manual Verification 'Phase 18: Step 16 Backend - BuyingProcessArchitect (Sales Cycle)' (Protocol in workflow.md)
+## Phase 18: ICP Deep Research & Psychographics (Step 15)
+- [x] Task: Implement ICPArchitect agent for deep persona building.
+- [x] Task: Build Step 15 backend endpoint for rich ICP profiles.
+- [x] Task: Implement "Who They Want To Become" psychographic mapping.
+- [x] Task: Build sophistication level (1-5) logic for target segments.
+- [x] Task: Write TDD tests for behavioral trigger extraction.
+- [x] Task: Conductor - User Manual Verification 'Phase 18: ICP Deep Research & Psychographics (Step 15)' (Protocol in workflow.md)
 
-## Phase 19: Step 17 Backend - MessagingRulesEngine (Messaging Guardrails) [checkpoint: afad9e1]
-- [x] Task: Implement Step 17 'handle_messaging_guardrails' node.
-- [x] Task: Create MessagingRulesEngine to define what we say, how we say it, and what we NEVER say.
-- [x] Task: Automate voice/tone rules based on the Category Path (Safe vs Bold).
-- [x] Task: Conductor - User Manual Verification 'Phase 19: Step 17 Backend - MessagingRulesEngine (Messaging Guardrails)' (Protocol in workflow.md)
+## Phase 19: Buying Process Logic (Step 16)
+- [x] Task: Implement BuyerJourney agent to map educational steps.
+- [x] Task: Build Step 16 backend endpoint for journey mapping data.
+- [x] Task: Implement "Cognitive Shift" detection for awareness stages.
+- [x] Task: Build the "Problem Aware to Product Aware" chasm logic.
+- [x] Task: Write TDD tests for journey stage transitions.
+- [x] Task: Conductor - User Manual Verification 'Phase 19: Buying Process Logic (Step 16)' (Protocol in workflow.md)
 
-## Phase 20: Messaging Guardrails & Enforcement (Step 17) [checkpoint: 9fe65cc]
-- [x] Task: Implement MessagingRulesEngine to define voice/tone guardrails.
-- [x] Task: Build Step 17 node 'handle_messaging_guardrails'.
-- [x] Task: Implement real-time "Forbidden Word" detection logic.
+## Phase 20: Messaging Guardrails & Enforcement (Step 17)
+- [x] Task: Implement GuardrailEnforcer agent for tone/voice rules.
+- [x] Task: Build Step 17 backend endpoint for Do's and Don'ts rules.
+- [x] Task: Implement real-time "Forbidden Word" detection (e.g., Jargon).
+- [x] Task: Build anti-pattern alerts based on strategic position.
+- [x] Task: Write TDD tests for rule enforcement accuracy.
 - [x] Task: Conductor - User Manual Verification 'Phase 20: Messaging Guardrails & Enforcement (Step 17)' (Protocol in workflow.md)
 
-## Phase 21: Soundbites Library & Copy Blocks (Step 18) [checkpoint: 9fe65cc]
-- [x] Task: Implement SoundbitesGenerator for messaging library assembly.
-- [x] Task: Build Step 18 node 'handle_soundbites_library'.
-- [x] Task: Generate taglines, value props, and elevator pitches.
+## Phase 21: Soundbites Library & Copy Blocks (Step 18)
+- [x] Task: Implement SoundbiteManager for copy block assembly.
+- [x] Task: Build Step 18 backend endpoint for the soundbites library.
+- [x] Task: Implement "Approve/Improve" AI loops for copy blocks.
+- [x] Task: Build the problem-agitation-mechanism (PAM) block generator.
+- [x] Task: Write TDD tests for copy block consistency.
 - [x] Task: Conductor - User Manual Verification 'Phase 21: Soundbites Library & Copy Blocks (Step 18)' (Protocol in workflow.md)
 
-## Phase 22: Message Hierarchy & Content Assembly (Step 19) [checkpoint: 76c8337]
-- [x] Task: Implement MessageHierarchyArchitect for headline-to-body mapping.
-- [x] Task: Build Step 19 node 'handle_message_hierarchy'.
+## Phase 22: Message Hierarchy & Content Assembly (Step 19)
+- [x] Task: Implement HierarchyOrchestrator for headline-to-body mapping.
+- [x] Task: Build Step 19 backend endpoint for the message hierarchy.
 - [x] Task: Implement "Level 1-3" structural validation.
+- [x] Task: Build the "Manifesto Assembly" logic for final review.
+- [x] Task: Write TDD tests for hierarchy structural integrity.
 - [x] Task: Conductor - User Manual Verification 'Phase 22: Message Hierarchy & Content Assembly (Step 19)' (Protocol in workflow.md)
 
-## Phase 23: Channel Architecture & TAM/SAM/SOM (Step 20/21) [checkpoint: 76c8337]
+## Phase 23: Channel Architecture & TAM/SAM/SOM (Step 20/21)
 - [x] Task: Implement ChannelRecommender based on ICP behavior.
-- [x] Task: Build Step 20 node 'handle_channel_mapping'.
+- [x] Task: Build Step 20 backend endpoint for channel mix mapping.
 - [x] Task: Implement MarketSizer for TAM/SAM/SOM calculations.
-- [x] Task: Build Step 21 node 'handle_tam_sam_som'.
+- [x] Task: Build Step 21 backend endpoint for market reality data.
+- [x] Task: Write TDD tests for market size calculation accuracy.
 - [x] Task: Conductor - User Manual Verification 'Phase 23: Channel Architecture & TAM/SAM/SOM (Step 20/21)' (Protocol in workflow.md)
 
-## Phase 24: Reality Check & Validation Protocol (Step 22) [checkpoint: 2c764eb]
-- [x] Task: Implement LaunchReadinessChecker for final auditing.
-- [x] Task: Build Step 22 node 'handle_validation_todos'.
-- [x] Task: Implement "Launch Readiness" score logic.
+## Phase 24: Reality Check & Validation Protocol (Step 22)
+- [x] Task: Implement ValidationTracker for non-content tasks.
+- [x] Task: Build Step 22 backend endpoint for reality check tasks.
+- [x] Task: Implement "Launch Readiness" auditor (AI score 0-100).
+- [x] Task: Build the "Skip/Commit" verification logic.
+- [x] Task: Write TDD tests for readiness score logic.
 - [x] Task: Conductor - User Manual Verification 'Phase 24: Reality Check & Validation Protocol (Step 22)' (Protocol in workflow.md)
 
-## Phase 25: Final Synthesis & BCM Transition (Step 23) [checkpoint: 2c764eb]
-- [x] Task: Implement FinalSynthesis agent for system activation.
-- [x] Task: Build Step 23 node 'handle_final_synthesis'.
-- [x] Task: Trigger "Systems Online" state and final progress to 100%.
-- [x] Task: Conductor - User Manual Verification 'Phase 25: Final Synthesis & BCM Transition' (Protocol in workflow.md)
+## Phase 25: Final Synthesis & BCM Transition (Step 23)
+- [x] Task: Implement FinalSynthesis agent for "Systems Online" state.
+- [x] Task: Build Step 23 backend endpoint for onboarding finalization.
+- [x] Task: Implement the "BCM Conversion" from `business_context.json`.
+- [x] Task: Build the Global Dashboard redirect and data handover.
+- [x] Task: Task: Conductor - User Manual Verification 'Phase 25: Final Synthesis & BCM Transition' (Protocol in workflow.md)

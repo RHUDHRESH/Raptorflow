@@ -1,47 +1,48 @@
+"""
+Muse Onboarding Service
+Manages interactive tutorials and the Quick Start experience
+"""
+
 import logging
 from typing import Any, Dict, List, Optional
-from backend.agents.universal.agent import UniversalAgent
-from db.repositories.onboarding import OnboardingRepository
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-class OnboardingUniversalService:
-    """
-    Service layer for AI-powered universal onboarding.
-    Coordinates between the Universal Agent and the Repository.
-    """
-    
-    def __init__(self, repo: Optional[OnboardingRepository] = None, agent: Optional[UniversalAgent] = None):
-        self.repo = repo or OnboardingRepository()
-        self.agent = agent or UniversalAgent()
-        
-    async def process_step(self, session_id: str, step_id: str, data: Dict[str, Any], workspace_id: str) -> Dict[str, Any]:
-        """
-        Processes an onboarding step and persists the results.
-        """
-        # 1. Execute agent logic
-        result = await self.agent.run_step(step_id, data)
-        
-        if not result["success"]:
-            return result
-            
-        # 2. Persist results
-        # Store in named slot
-        await self.repo._store_step_data(session_id, step_id, result["output"])
-        
-        # Update numeric step if applicable
-        try:
-            step_int = int(step_id)
-            await self.repo.update_step(session_id, step_int, result["output"])
-            # Advance step automatically if it's a numeric progression
-            await self.repo.advance_step(session_id)
-        except ValueError:
-            pass
-            
-        return result
+class MuseOnboardingService:
+    """Service for managing the Muse-specific onboarding journey."""
 
-    async def get_status(self, session_id: str) -> Dict[str, Any]:
-        """
-        Retrieves the current onboarding status and progress.
-        """
-        return await self.repo.get_session_progress(session_id)
+    def __init__(self):
+        # Mock storage
+        self.user_progress = {}
+
+    async def get_onboarding_status(self, user_id: str) -> Dict[str, Any]:
+        """Get the user's progress through the Muse tutorial."""
+        return self.user_progress.get(user_id, {
+            "completed_steps": [],
+            "current_lesson": "MSC-01: Chat Basics",
+            "percent_complete": 0
+        })
+
+    async def complete_step(self, user_id: str, step_id: str) -> Dict[str, Any]:
+        """Mark an onboarding step as complete."""
+        if user_id not in self.user_progress:
+            self.user_progress[user_id] = {"completed_steps": [], "percent_complete": 0}
+        
+        if step_id not in self.user_progress[user_id]["completed_steps"]:
+            self.user_progress[user_id]["completed_steps"].append(step_id)
+            self.user_progress[user_id]["percent_complete"] = (len(self.user_progress[user_id]["completed_steps"]) / 5) * 100
+            
+        return self.user_progress[user_id]
+
+    async def get_quick_start_guide(self) -> List[Dict[str, str]]:
+        """Return the prioritized Quick Start roadmap."""
+        return [
+            {"step": 1, "task": "Connect your CRM", "benefit": "Enable personalized content"},
+            {"step": 2, "task": "Upload 3 samples", "benefit": "Learn your brand voice"},
+            {"step": 3, "task": "Create first template", "benefit": "High-integrity structural drafts"},
+            {"step": 4, "task": "Audit your library", "benefit": "Identify strategic content gaps"},
+            {"step": 5, "task": "Schedule one post", "benefit": "Activate your content calendar"}
+        ]
+
+muse_onboarding_service = MuseOnboardingService()

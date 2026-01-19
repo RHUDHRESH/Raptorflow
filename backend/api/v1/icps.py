@@ -15,6 +15,10 @@ from backend.schemas import RICP
 
 router = APIRouter(prefix="/icps", tags=["icps"])
 
+def get_icp_service():
+    """Dependency provider for ICPService."""
+    return ICPService()
+
 class CohortDerivationRequest(BaseModel):
     cohort_name: str
     context_override: Optional[str] = None

@@ -16,7 +16,22 @@ from backend.db.council import CouncilRepository
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/council", tags=["council"])
-# ...
+
+class CouncilRequest(BaseModel):
+    """Request for council swarm execution."""
+    mission: str
+    context_override: Optional[Dict[str, Any]] = None
+
+class CouncilResponse(BaseModel):
+    """Response for council swarm execution."""
+    session_id: str
+    mission: str
+    contributions: List[Dict[str, Any]]
+    final_output: Optional[str]
+    consensus_reached: bool
+    swarm_status: str
+    skills_loaded: List[str]
+
 @router.post("/execute", response_model=CouncilResponse)
 async def execute_council(
     request: CouncilRequest,
