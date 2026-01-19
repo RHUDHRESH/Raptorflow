@@ -17,16 +17,16 @@ This phase sets up the local state management for session-based notifications an
 ## Phase 2: Navigation & Command Palette
 Implementing the "ease of access" features including the Ctrl+K interface.
 
-- [~] Task: Implement the Command Palette (Ctrl+K) using `cmdk` or Shadcn `Command`.
-    - [ ] Write tests for keyboard trigger and search filtering.
-    - [ ] Implement navigation logic to core modules.
-- [ ] Task: Enhance Breadcrumbs and Active Sidebar states.
-    - [ ] Write tests for path-matching logic.
-    - [ ] Update `Sidebar` and `Header` components with visual active states.
-- [ ] Task: Implement hover micro-interactions across primary action buttons.
-    - [ ] Use Framer Motion for subtle scale/fade transitions.
-    - [ ] Verify animations don't break functional tests.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Navigation & Command Palette' (Protocol in workflow.md)
+- [x] Task: Implement the Command Palette (Ctrl+K) using `cmdk` or Shadcn `Command`.
+    - [x] Write tests for keyboard trigger and search filtering.
+    - [x] Implement navigation logic to core modules.
+- [x] Task: Enhance Breadcrumbs and Active Sidebar states.
+    - [x] Write tests for path-matching logic.
+    - [x] Update `Sidebar` and `Header` components with visual active states.
+- [x] Task: Implement hover micro-interactions across primary action buttons.
+    - [x] Use Framer Motion for subtle scale/fade transitions.
+    - [x] Verify animations don't break functional tests.
+- [~] Task: Conductor - User Manual Verification 'Phase 2: Navigation & Command Palette' (Protocol in workflow.md)
 
 ## Phase 3: Notification UI & Contextual Help
 Building the visible notification center and in-app guidance.
