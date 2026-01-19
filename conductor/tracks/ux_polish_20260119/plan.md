@@ -28,7 +28,7 @@ Implementing the "ease of access" features including the Ctrl+K interface.
     - [x] Verify animations don't break functional tests.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Navigation & Command Palette' (Protocol in workflow.md)
 
-## Phase 3: Notification UI & Contextual Help
+## Phase 3: Notification UI & Contextual Help [checkpoint: 29fd6e04]
 Building the visible notification center and in-app guidance.
 
 - [x] Task: Create the `NotificationBell` and `NotificationDropdown` components.
@@ -40,12 +40,12 @@ Building the visible notification center and in-app guidance.
 - [x] Task: Implement Module Empty States.
     - [x] Design and implement guiding UI for modules with no data.
     - [x] Verify "Call to Action" buttons lead to the correct flows.
-- [~] Task: Conductor - User Manual Verification 'Phase 3: Notification UI & Contextual Help' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Notification UI & Contextual Help' (Protocol in workflow.md)
 
 ## Phase 4: Mobile Audit & Final Polish
 Ensuring the "MasterClass" feel extends to all devices.
 
-- [ ] Task: Conduct a Mobile UI Audit and fix responsiveness issues.
+- [~] Task: Conduct a Mobile UI Audit and fix responsiveness issues.
     - [ ] Fix layout shifts on small screens.
     - [ ] Ensure all touch targets are at least 44x44px.
 - [ ] Task: Final visual consistency check and performance verification.
