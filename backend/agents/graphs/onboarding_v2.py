@@ -16,6 +16,9 @@ from ..specialists.extraction_orchestrator import ExtractionOrchestrator
 from ..specialists.contradiction_detector import ContradictionDetector
 from ..specialists.truth_sheet_generator import TruthSheetGenerator
 from ..specialists.brand_audit_agent import BrandAuditEngine
+from ..specialists.pricing_optimization_agent import PricingOptimizationAgent
+from ...services.titan.orchestrator import TitanOrchestrator
+from ..specialists.comparative_angle_agent import ComparativeAngleGenerator
 from ...infrastructure.storage import delete_file
 
 logger = logging.getLogger(__name__)
@@ -54,6 +57,9 @@ extractor = ExtractionOrchestrator()
 contradiction_detector = ContradictionDetector()
 truth_sheet_generator = TruthSheetGenerator()
 brand_audit_engine = BrandAuditEngine()
+pricing_agent = PricingOptimizationAgent()
+titan_sorter = TitanOrchestrator()
+angle_generator = ComparativeAngleGenerator()
 
 async def handle_evidence_vault(state: OnboardingStateV2) -> OnboardingStateV2:
     """Step 1: Process uploaded evidence and auto-classify."""
@@ -161,6 +167,47 @@ async def handle_brand_audit(state: OnboardingStateV2) -> OnboardingStateV2:
     state["onboarding_progress"] = (5 / 23) * 100
     return state
 
+async def handle_offer_pricing(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 6: Offer & Pricing Analysis."""
+    logger.info("Handling Offer & Pricing (Step 6)")
+    
+    result = await pricing_agent.execute(state)
+    analysis = result.get("output", {})
+    
+    state["step_data"]["offer_pricing"] = analysis
+    
+    state["onboarding_progress"] = (6 / 23) * 100
+    return state
+
+async def handle_market_intelligence(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 7: Autonomous Market Research via Titan Sorter."""
+    logger.info("Handling Market Intelligence (Step 7)")
+    
+    # Seed query from Business Context
+    company_name = state.get("business_context", {}).get("identity", {}).get("company_name", "AI Marketing Automation")
+    query = f"Competitors and market landscape for {company_name}"
+    
+    # Run Titan research (Lite mode for onboarding speed)
+    result = await titan_sorter.execute(query, mode="LITE")
+    
+    state["market_insights"] = result.get("results", [])
+    state["step_data"]["market_intelligence"] = result
+    
+    state["onboarding_progress"] = (7 / 23) * 100
+    return state
+
+async def handle_comparative_angle(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 8: Define Competitive Alternatives & Angles."""
+    logger.info("Handling Comparative Angle (Step 8)")
+    
+    result = await angle_generator.execute(state)
+    angles = result.get("output", {})
+    
+    state["step_data"]["comparative_angle"] = angles
+    
+    state["onboarding_progress"] = (8 / 23) * 100
+    return state
+
 class OnboardingGraphV2:
     """Updated onboarding workflow graph with 23-step master logic."""
 
@@ -206,23 +253,29 @@ class OnboardingGraphV2:
         workflow.add_node("handle_contradiction_check", handle_contradiction_check)
         workflow.add_node("handle_truth_sheet", handle_truth_sheet)
         workflow.add_node("handle_brand_audit", handle_brand_audit)
+        workflow.add_node("handle_offer_pricing", handle_offer_pricing)
+        workflow.add_node("handle_market_intelligence", handle_market_intelligence)
+        workflow.add_node("handle_comparative_angle", handle_comparative_angle)
         
         # Add remaining nodes as placeholders
-        for step in self.step_order[5:]:
+        for step in self.step_order[8:]:
             workflow.add_node(f"handle_{step}", generic_handler)
 
         # Set entry point
         workflow.set_entry_point("handle_evidence_vault")
 
-        # Routing with Data Purge after Auto Extraction
+        # Routing
         workflow.add_edge("handle_evidence_vault", "handle_auto_extraction")
         workflow.add_edge("handle_auto_extraction", "handle_data_purge")
         workflow.add_edge("handle_data_purge", "handle_contradiction_check")
         workflow.add_edge("handle_contradiction_check", "handle_truth_sheet")
         workflow.add_edge("handle_truth_sheet", "handle_brand_audit")
+        workflow.add_edge("handle_brand_audit", "handle_offer_pricing")
+        workflow.add_edge("handle_offer_pricing", "handle_market_intelligence")
+        workflow.add_edge("handle_market_intelligence", "handle_comparative_angle")
 
         # Remaining linear routing
-        for i in range(5, len(self.step_order) - 1):
+        for i in range(8, len(self.step_order) - 1):
             workflow.add_edge(f"handle_{self.step_order[i]}", f"handle_{self.step_order[i+1]}")
         
         workflow.add_edge(f"handle_{self.step_order[-1]}", END)
@@ -238,5 +291,8 @@ __all__ = [
     "handle_contradiction_check", 
     "handle_truth_sheet", 
     "handle_data_purge",
-    "handle_brand_audit"
+    "handle_brand_audit",
+    "handle_offer_pricing",
+    "handle_market_intelligence",
+    "handle_comparative_angle"
 ]

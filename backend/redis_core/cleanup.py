@@ -531,8 +531,8 @@ class RedisCleanup:
 
                         processed_count += 1
 
-                    except Exception as e:
-                        errors.append(f"Failed to process lock {lock_key}: {e}")
+                except Exception as e:
+                    errors.append(f"Failed to process lock {lock_key}: {e}")
 
                 # Small delay between locks
                 await asyncio.sleep(0.01)

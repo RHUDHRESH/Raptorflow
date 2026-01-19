@@ -19,13 +19,13 @@
 - [x] Task: Implement Hook Specialist & Visualist (20260119)
     - [x] **Red:** Write tests for headline generation and image prompt formatting
     - [x] **Green:** Implement nodes for viral hooks and editorial prompts
-- [~] Task: Implement Skeptic/Editor (Reflection Node)
-    - [ ] **Red:** Write tests for "surprise" threshold validation and retry logic
-    - [ ] **Green:** Implement the final reflection layer to filter generic output
-- [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+- [x] Task: Implement Skeptic/Editor (Reflection Node) (20260119)
+    - [x] **Red:** Write tests for "surprise" threshold validation and retry logic
+    - [x] **Green:** Implement the final reflection layer to filter generic output
+- [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) (20260119)
 
 ## Phase 3: LangGraph Orchestration & Integration
-- [ ] Task: Assemble LangGraph Workflow
+- [~] Task: Assemble LangGraph Workflow
     - [ ] Define the graph edges, nodes, and conditional routing
     - [ ] Implement the "Surprise" retry loop in the graph
 - [ ] Task: Integrate BCM (Cognitive Spine) Access

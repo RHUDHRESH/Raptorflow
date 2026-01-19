@@ -246,26 +246,37 @@ async def generate_daily_wins_langgraph(
         graph_engine = DailyWinsGraph()
         session_id = request.session_id or str(uuid.uuid4())
 
-        result = await graph_engine.generate_win(
+        # Execute the graph
+        result_state = await graph_engine.run(
             workspace_id=request.workspace_id,
-            user_id=request.user_id,
-            session_id=session_id,
+            user_id=request.user_id
         )
 
-        if not result["success"]:
+        if result_state.get("error"):
             raise HTTPException(
                 status_code=500,
-                detail=f"LangGraph generation failed: {result.get('error')}",
+                detail=f"LangGraph generation failed: {result_state.get('error')}",
             )
+
+        final_win = result_state.get("final_win")
+        if not final_win:
+            # Fallback if no exceptional win was generated
+            final_win = {
+                "content": result_state.get("content_draft", "Best effort content."),
+                "hooks": result_state.get("hooks", []),
+                "visual_prompt": result_state.get("visual_prompt"),
+                "score": result_state.get("surprise_score", 0.0)
+            }
 
         return DailyWinsLangGraphResponse(
             success=True,
-            win=result.get("final_win"),
+            win=final_win,
             session_id=session_id,
             metadata={
-                "tokens_used": result.get("tokens_used", 0),
-                "cost_usd": result.get("cost_usd", 0.0),
-                "iterations": result.get("iteration_count", 0),
+                "tokens_used": result_state.get("tokens_used", 0),
+                "cost_usd": result_state.get("cost_usd", 0.0),
+                "iterations": result_state.get("iteration_count", 0),
+                "surprise_score": result_state.get("surprise_score", 0.0)
             },
             error=None,
         )

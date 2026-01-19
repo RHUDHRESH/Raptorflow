@@ -54,26 +54,25 @@ class TestDailyWinsLangGraph:
             "session_id": "test-session-id",
         }
 
-        mock_final_win = {
-            "topic": "Contrarian Take on SaaS",
-            "hook": "Stop building features.",
-            "content": "Focus on the problem instead.",
-            "platform": "LinkedIn",
-        }
-
-        mock_result = {
-            "success": True,
-            "final_win": mock_final_win,
+        mock_result_state = {
+            "final_win": {
+                "topic": "Contrarian Take on SaaS",
+                "hook": "Stop building features.",
+                "content": "Focus on the problem instead.",
+                "platform": "LinkedIn",
+            },
             "tokens_used": 1500,
             "cost_usd": 0.02,
             "iteration_count": 1,
+            "surprise_score": 0.9,
+            "error": None
         }
 
         with patch(
-            "backend.agents.graphs.daily_wins.DailyWinsGraph.generate_win",
+            "backend.agents.graphs.daily_wins.DailyWinsGraph.run",
             new_callable=AsyncMock,
-        ) as mock_generate:
-            mock_generate.return_value = mock_result
+        ) as mock_run:
+            mock_run.return_value = mock_result_state
             response = client.post("/daily_wins/generate-langgraph", json=request_data)
 
         assert response.status_code == 200
@@ -81,23 +80,24 @@ class TestDailyWinsLangGraph:
         assert data["success"] is True
         assert data["win"]["topic"] == "Contrarian Take on SaaS"
         assert data["metadata"]["tokens_used"] == 1500
+        assert data["metadata"]["surprise_score"] == 0.9
         assert data["session_id"] == "test-session-id"
 
     def test_generate_daily_wins_langgraph_failure(self, client):
         """Test POST /daily_wins/generate-langgraph - failure"""
         request_data = {"workspace_id": "test-workspace-id", "user_id": "test-user-id"}
 
-        mock_result = {"success": False, "error": "Simulated graph failure"}
+        mock_result_state = {"error": "Simulated graph failure"}
 
         with patch(
-            "backend.agents.graphs.daily_wins.DailyWinsGraph.generate_win",
+            "backend.agents.graphs.daily_wins.DailyWinsGraph.run",
             new_callable=AsyncMock,
-        ) as mock_generate:
-            mock_generate.return_value = mock_result
+        ) as mock_run:
+            mock_run.return_value = mock_result_state
             response = client.post("/daily_wins/generate-langgraph", json=request_data)
 
         assert response.status_code == 500
-        assert "LangGraph generation failed" in response.json()["detail"]
+        assert "Simulated graph failure" in response.json()["detail"]
 
 
 class TestDailyWinsGraphUnit:
@@ -141,27 +141,3 @@ class TestDailyWinsGraphUnit:
         )
         assert state["workspace_id"] == "ws-123"
         assert state["target_platform"] == "LinkedIn"
-
-    @pytest.mark.asyncio
-    async def test_generate_win_placeholder(self):
-        """Test generate_win runs through placeholders and returns success"""
-        graph = DailyWinsGraph()
-        # Mock the compiled graph to just return the state
-        mock_compiled_graph = MagicMock()
-        mock_compiled_graph.ainvoke = AsyncMock(
-            return_value={
-                "final_win": {"title": "Test Win"},
-                "tokens_used": 100,
-                "cost_usd": 0.01,
-                "iteration_count": 1,
-            }
-        )
-
-        with patch.object(
-            DailyWinsGraph, "create_graph", return_value=mock_compiled_graph
-        ):
-            graph.graph = mock_compiled_graph
-            result = await graph.generate_win("ws-1", "user-1", "sess-1")
-
-        assert result["success"] is True
-        assert result["final_win"]["title"] == "Test Win"
