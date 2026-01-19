@@ -45,10 +45,10 @@ Building the visible notification center and in-app guidance.
 ## Phase 4: Mobile Audit & Final Polish
 Ensuring the "MasterClass" feel extends to all devices.
 
-- [~] Task: Conduct a Mobile UI Audit and fix responsiveness issues.
-    - [ ] Fix layout shifts on small screens.
-    - [ ] Ensure all touch targets are at least 44x44px.
-- [ ] Task: Final visual consistency check and performance verification.
-    - [ ] Run Lighthouse or similar audit for performance impact.
-    - [ ] Verify all Sonner toasts match the updated design.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Mobile Audit & Final Polish' (Protocol in workflow.md)
+- [x] Task: Conduct a Mobile UI Audit and fix responsiveness issues.
+    - [x] Fix layout shifts on small screens.
+    - [x] Ensure all touch targets are at least 44x44px.
+- [x] Task: Final visual consistency check and performance verification.
+    - [x] Run Lighthouse or similar audit for performance impact.
+    - [x] Verify all Sonner toasts match the updated design.
+- [~] Task: Conductor - User Manual Verification 'Phase 4: Mobile Audit & Final Polish' (Protocol in workflow.md)

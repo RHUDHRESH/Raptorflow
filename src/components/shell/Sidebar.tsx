@@ -56,7 +56,7 @@ export function Sidebar() {
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
-    <aside className="fixed left-0 top-0 flex flex-col h-screen w-64 bg-[var(--paper)] border-r border-[var(--structure)] z-50 overflow-y-auto">
+    <aside className="fixed left-0 top-0 hidden lg:flex flex-col h-screen w-64 bg-[var(--paper)] border-r border-[var(--structure)] z-50 overflow-y-auto">
         {/* Paper texture overlay removed - handled globally */}
 
         {/* Blueprint accent line */}

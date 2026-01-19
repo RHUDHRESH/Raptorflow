@@ -141,18 +141,18 @@ function NotificationItem({
             {notification.message}
           </p>
           
-          <div className="flex gap-3 mt-2">
+          <div className="flex gap-4 mt-3">
             {!notification.read && (
               <button 
                 onClick={(e) => { e.preventDefault(); onRead(); }}
-                className="text-[9px] font-bold text-[var(--blueprint)] hover:underline uppercase tracking-wider"
+                className="text-[10px] font-bold text-[var(--blueprint)] hover:text-[var(--blueprint)]/80 uppercase tracking-wider py-2 -my-2"
               >
                 Mark as read
               </button>
             )}
             <button 
               onClick={(e) => { e.preventDefault(); onRemove(); }}
-              className="text-[9px] font-bold text-red-500 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider"
+              className="text-[10px] font-bold text-red-500 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider py-2 -my-2"
             >
               Remove
             </button>
