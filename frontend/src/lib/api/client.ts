@@ -289,6 +289,32 @@ class ApiClient {
       body: JSON.stringify({ cohort_name: cohortName }),
     });
   }
+
+  // Blackbox endpoints
+  async generateBlackBoxStrategy(data: {
+    focus_area: string;
+    business_context: string;
+    risk_tolerance: number;
+    workspace_id: string;
+    user_id: string;
+  }): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/blackbox/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async acceptBlackBoxStrategy(strategyId: string, data: {
+    workspace_id: string;
+    user_id: string;
+    convert_to_move: boolean;
+    move_name?: string;
+  }): Promise<ApiResponse<any>> {
+    return this.request(`/api/v1/blackbox/strategies/${strategyId}/accept`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 // Create singleton instance

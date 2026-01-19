@@ -37,18 +37,19 @@ class BlackboxWorkflow:
         self.cognitive_engine = cognitive_engine
         self.agent_dispatcher = agent_dispatcher
 
-    async def generate_strategy(self, workspace_id: str) -> Dict[str, Any]:
+    async def generate_strategy(self, workspace_id: str, volatility_level: int = 5) -> Dict[str, Any]:
         """
         Generate bold blackbox strategy with full orchestration.
 
         Args:
             workspace_id: Workspace ID
+            volatility_level: Volatility level (1-10)
 
         Returns:
             Strategy generation result
         """
         try:
-            logger.info(f"Generating blackbox strategy for workspace {workspace_id}")
+            logger.info(f"Generating blackbox strategy for workspace {workspace_id} with volatility {volatility_level}")
 
             # Get workspace context
             context = await self._get_workspace_context(workspace_id)
@@ -58,7 +59,7 @@ class BlackboxWorkflow:
 
             # Step 2: Generate bold strategy
             strategy_result = await self._generate_bold_strategy(
-                workspace_id, context_data, context
+                workspace_id, context_data, context, volatility_level
             )
 
             if not strategy_result["success"]:
@@ -345,7 +346,7 @@ class BlackboxWorkflow:
             return {"workspace_id": workspace_id}
 
     async def _generate_bold_strategy(
-        self, workspace_id: str, context_data: Dict[str, Any], context: Dict[str, Any]
+        self, workspace_id: str, context_data: Dict[str, Any], context: Dict[str, Any], volatility_level: int = 5
     ) -> Dict[str, Any]:
         """Generate bold strategy using blackbox strategist agent."""
         try:
@@ -357,6 +358,7 @@ class BlackboxWorkflow:
                     "workspace_id": workspace_id,
                     "user_id": context["user_id"],
                     "context_data": context_data,
+                    "volatility_level": volatility_level,
                     "task": "generate_bold_strategy",
                 }
             )

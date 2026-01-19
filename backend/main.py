@@ -46,6 +46,7 @@ from backend.api.v1 import (
     muse_vertex_ai,
     ocr,
     onboarding,
+    onboarding_v2,
     onboarding_universal,
     payments,
     payments_v2,
@@ -348,6 +349,7 @@ app.include_router(muse_vertex_ai.router, prefix="/api/v1", tags=["muse-vertex-a
 app.include_router(blackbox.router, prefix="/api/v1/blackbox", tags=["blackbox"])
 app.include_router(daily_wins.router, prefix="/api/v1/daily-wins", tags=["daily-wins"])
 app.include_router(onboarding.router, prefix="/api/v1/onboarding", tags=["onboarding"])
+app.include_router(onboarding_v2.router, prefix="/api/v1", tags=["onboarding-v2"])
 app.include_router(onboarding_universal.router, prefix="/api/v1/onboarding-universal", tags=["onboarding-universal"])
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
 app.include_router(memory.router, prefix="/api/v1/memory", tags=["memory"])

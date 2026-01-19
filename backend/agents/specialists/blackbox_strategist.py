@@ -22,16 +22,25 @@ logger = logging.getLogger(__name__)
 class StrategicChallenge:
     """Strategic challenge definition."""
 
-    challenge_type: (
-        str  # market_entry, competitive_advantage, growth_acceleration, transformation
-    )
+    challenge_type: str  # market_entry, competitive_advantage, growth_acceleration, transformation
     complexity: str  # simple, complex, wicked
     scope: str  # tactical, operational, strategic
     urgency: str  # low, medium, high, critical
-    stakeholders: List[str]
-    constraints: List[str]
-    objectives: List[str]
-    context: Dict[str, Any]
+    volatility: int = 5  # 1-10 scale
+    stakeholders: List[str] = None
+    constraints: List[str] = None
+    objectives: List[str] = None
+    context: Dict[str, Any] = None
+
+    def __post_init__(self):
+        if self.stakeholders is None:
+            self.stakeholders = []
+        if self.constraints is None:
+            self.constraints = []
+        if self.objectives is None:
+            self.objectives = []
+        if self.context is None:
+            self.context = {}
 
 
 @dataclass
@@ -262,6 +271,12 @@ Strategic thinking models you can apply:
 - Game Theory (competitive dynamics, strategic moves)
 - Complexity Theory (emergence, adaptation, self-organization)
 
+Volatility Management (1-10 Scale):
+- 1-3 (Low): Focus on incremental improvements, proven tactics, and high feasibility.
+- 4-6 (Medium): Balance innovation with reliability. Introduce some unconventional elements.
+- 7-8 (High): Aggressive expansion, "Black Moves", and high-reward/high-risk tactical plays.
+- 9-10 (Extreme): Maximum disruption, radical departures from conventional marketing, and experimental maneuvers.
+
 For each strategic challenge, you should:
 - Define the problem space and key dimensions
 - Apply appropriate strategic thinking models
@@ -332,11 +347,24 @@ Always think systemically, consider multiple perspectives, and challenge convent
 
         # Extract from user message
         user_input = self._extract_user_input(state)
+        
+        # Check for volatility in state (passed from API)
+        volatility = state.get("risk_tolerance") or state.get("volatility_level")
+        if not volatility and "memory_context" in state:
+            volatility = state["memory_context"].get("risk_tolerance")
+        
+        if not volatility:
+            volatility = 5
+
         if not user_input:
+            # If no message, try to build from context if available
             return None
 
         # Parse strategic challenge from user input
-        return self._parse_strategic_challenge(user_input, state)
+        challenge = self._parse_strategic_challenge(user_input, state)
+        if challenge:
+            challenge.volatility = int(volatility)
+        return challenge
 
     def _parse_strategic_challenge(
         self, user_input: str, state: AgentState
@@ -592,6 +620,7 @@ CHALLENGE TYPE: {challenge.challenge_type}
 COMPLEXITY: {challenge.complexity}
 SCOPE: {challenge.scope}
 URGENCY: {challenge.urgency}
+VOLATILITY: {challenge.volatility} (1-10 scale, where 10 is most disruptive/risky)
 STAKEHOLDERS: {", ".join(challenge.stakeholders)}
 CONSTRAINTS: {", ".join(challenge.constraints)}
 OBJECTIVES: {", ".join(challenge.objectives)}

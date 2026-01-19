@@ -135,6 +135,23 @@ class OnboardingOrchestratorV2(BaseAgent):
             OnboardingStep.BLACKBOX_ACTIVATION: self.evidence_classifier  # Could be blackbox
         }
 
+    async def update_universal_state(self, state: Any, updates: Dict[str, Any]) -> Any:
+        """Helper to perform incremental sync of business_context and BCM."""
+        if "business_context" not in state or state["business_context"] is None:
+            state["business_context"] = {"ucid": state.get("ucid", "PENDING")}
+            
+        state["business_context"].update(updates)
+        
+        # Recalculate BCM in real-time
+        try:
+            from ...services.bcm_service import BCMService
+            bcm = BCMService.sync_context_to_bcm(state["business_context"])
+            state["bcm_state"] = bcm
+        except Exception as e:
+            logger.error(f"Failed to recalculate BCM: {e}")
+            
+        return state
+
     def get_system_prompt(self) -> str:
         """Get the system prompt for this agent."""
         return """You are an OnboardingOrchestratorV2, a specialized AI agent for managing the 23-step Raptorflow onboarding process.

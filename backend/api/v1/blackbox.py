@@ -8,9 +8,14 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.agents.specialists.blackbox_strategist import BlackBoxStrategist
+from backend.agents.specialists.blackbox_strategist import BlackboxStrategist
 from backend.core.auth import get_current_user
 from backend.core.database import get_db
+from backend.dependencies import get_memory_controller, get_cognitive_engine, get_agent_dispatcher
+from backend.workflows.blackbox import BlackboxWorkflow
+from backend.memory.controller import MemoryController
+from backend.cognitive import CognitiveEngine
+from backend.agents.dispatcher import AgentDispatcher
 
 router = APIRouter(prefix="/blackbox", tags=["blackbox"])
 
@@ -85,7 +90,7 @@ class StrategyAcceptResponse(BaseModel):
 
 
 # Global instance
-blackbox_strategist = BlackBoxStrategist()
+blackbox_strategist = BlackboxStrategist()
 
 
 @router.post("/generate", response_model=StrategyResponse)
@@ -94,11 +99,14 @@ async def generate_strategy(
     background_tasks: BackgroundTasks,
     current_user: Dict = Depends(get_current_user),
     db=Depends(get_db),
+    memory_controller: MemoryController = Depends(get_memory_controller),
+    cognitive_engine: CognitiveEngine = Depends(get_cognitive_engine),
+    agent_dispatcher: AgentDispatcher = Depends(get_agent_dispatcher),
 ):
     """
     Generate a Blackbox strategy using creative but ethical approaches.
 
-    This endpoint uses the BlackBoxStrategist agent to create innovative
+    This endpoint uses the BlackboxWorkflow to create innovative
     strategies for business challenges across different focus areas.
     """
     try:
@@ -122,65 +130,39 @@ async def generate_strategy(
                 status_code=400, detail="Risk tolerance must be between 1 and 10"
             )
 
-        # Prepare strategy generation request
-        strategy_request = {
-            "focus_area": request.focus_area,
-            "business_context": request.business_context,
-            "constraints": request.constraints,
-            "risk_tolerance": request.risk_tolerance,
-            "timeline": request.timeline,
-            "budget_range": request.budget_range,
-        }
-
-        # Generate strategy using BlackBoxStrategist
-        result = await blackbox_strategist.execute(
-            {
-                "workspace_id": request.workspace_id,
-                "user_id": request.user_id,
-                "messages": [{"role": "user", "content": str(strategy_request)}],
-                "routing_path": ["blackbox"],
-                "memory_context": strategy_request,
-                "foundation_summary": {},
-                "active_icps": [],
-                "pending_approval": False,
-                "error": None,
-                "output": None,
-                "tokens_used": 0,
-                "cost_usd": 0.0,
-            }
+        # Initialize workflow
+        workflow = BlackboxWorkflow(
+            db_client=db,
+            memory_controller=memory_controller,
+            cognitive_engine=cognitive_engine,
+            agent_dispatcher=agent_dispatcher
         )
 
-        if result.get("error"):
+        # Generate strategy using BlackboxWorkflow
+        result = await workflow.generate_strategy(
+            workspace_id=request.workspace_id,
+            volatility_level=request.risk_tolerance
+        )
+
+        if not result.get("success"):
             raise HTTPException(
-                status_code=500, detail=f"Strategy generation failed: {result['error']}"
+                status_code=500, detail=f"Strategy generation failed: {result.get('error')}"
             )
 
-        # Parse strategy output
-        strategy_output = result.get("output", {})
-
-        # Generate strategy ID
-        strategy_id = str(uuid.uuid4())
-
-        # Save strategy to database (async background task)
-        background_tasks.add_task(
-            save_strategy_to_database,
-            strategy_id=strategy_id,
-            request=request,
-            result=result,
-            strategy_output=strategy_output,
-            db=db,
-        )
+        strategy_id = result["strategy_id"]
+        strategy_output = result["strategy"]
+        risk_assessment = result["risk_assessment"]
 
         return StrategyResponse(
             success=True,
             strategy_id=strategy_id,
             strategy_name=strategy_output.get(
-                "name", f"{request.focus_area.title()} Strategy"
+                "title", f"{request.focus_area.title()} Strategy"
             ),
             focus_area=request.focus_area,
-            risk_level=strategy_output.get("risk_level", 5),
-            risk_reasons=strategy_output.get("risk_reasons", []),
-            phases=strategy_output.get("phases", []),
+            risk_level=int(risk_assessment.get("risk_score", 0.5) * 10),
+            risk_reasons=risk_assessment.get("risk_factors", []),
+            phases=strategy_output.get("implementation_phases", []),
             expected_upside=strategy_output.get("expected_upside", ""),
             potential_downside=strategy_output.get("potential_downside", ""),
             implementation_steps=strategy_output.get("implementation_steps", []),

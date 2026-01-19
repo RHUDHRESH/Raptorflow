@@ -10,13 +10,13 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) (20260119)
 
 ## Phase 2: Skill Implementation (The 7 Nodes)
-- [ ] Task: Implement Context Miner & Trend Mapper
-    - [ ] **Red:** Write tests for BCM data extraction and SearXNG search integration
-    - [ ] **Green:** Implement nodes to fetch internal wins and external trends
-- [ ] Task: Implement Synthesizer & Voice Architect
-    - [ ] **Red:** Write tests for narrative bridging and tone enforcement
-    - [ ] **Green:** Implement nodes to merge data and apply "Editorial Restraint"
-- [ ] Task: Implement Hook Specialist & Visualist
+- [x] Task: Implement Context Miner & Trend Mapper (20260119)
+    - [x] **Red:** Write tests for BCM data extraction and SearXNG search integration
+    - [x] **Green:** Implement nodes to fetch internal wins and external trends
+- [x] Task: Implement Synthesizer & Voice Architect (20260119)
+    - [x] **Red:** Write tests for narrative bridging and tone enforcement
+    - [x] **Green:** Implement nodes to merge data and apply "Editorial Restraint"
+- [~] Task: Implement Hook Specialist & Visualist
     - [ ] **Red:** Write tests for headline generation and image prompt formatting
     - [ ] **Green:** Implement nodes for viral hooks and editorial prompts
 - [ ] Task: Implement Skeptic/Editor (Reflection Node)

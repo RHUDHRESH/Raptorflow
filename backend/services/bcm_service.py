@@ -52,5 +52,6 @@ class BCMService:
     @staticmethod
     def sync_context_to_bcm(context_data: Dict[str, Any]) -> Dict[str, Any]:
         """Helper to sync raw dict context to BCM."""
-        context = BusinessContext(**context_data)
+        # Use partial validation if needed
+        context = BusinessContext.model_validate(context_data, strict=False)
         return BCMService.calculate_bcm(context)

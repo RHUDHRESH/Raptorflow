@@ -1,77 +1,326 @@
-"""
-Daily Wins LangGraph workflow for high-quality, "surprising" daily content.
-Orchestrates 7 specialized skills to bridge BCM and market intelligence.
-"""
-
+from typing import Any, Dict, List, Optional, TypedDict, Literal
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional, TypedDict
+import logging
+import json
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
 from ..state import AgentState
+from backend.core.supabase import get_supabase_client
+from backend.services.search.searxng import SearXNGClient
 
+logger = logging.getLogger(__name__)
 
 class DailyWinState(AgentState):
     """Extended state for the LangGraph Daily Wins Engine."""
-
+    
     # Phase 1: Context Gathering
     internal_wins: List[Dict[str, Any]]
     recent_moves: List[Dict[str, Any]]
     active_campaigns: List[Dict[str, Any]]
     external_trends: List[Dict[str, Any]]
-
+    
     # Phase 2: Synthesis & Architecture
     synthesized_narrative: Optional[str]
     target_platform: Literal["LinkedIn", "X (Twitter)", "Instagram", "Email"]
-
+    
     # Phase 3: Content Generation
     content_draft: Optional[str]
     hooks: List[str]
     visual_prompt: Optional[str]
-
+    
     # Phase 4: Reflection & Refinement
     surprise_score: float
     reflection_feedback: Optional[str]
     iteration_count: int
     max_iterations: int
-
+    
     # Final Result
     final_win: Optional[Dict[str, Any]]
 
-
 # Schema for the 7 skills' inputs and outputs (Nodes)
-# These will be implemented as functions in Phase 2.
-
 
 async def context_miner_node(state: DailyWinState) -> DailyWinState:
     """Node: Extracts internal BCM context (wins, moves, campaigns)."""
-    return state
-
+    try:
+        workspace_id = state.get("workspace_id")
+        supabase = get_supabase_client()
+        
+        # 1. Fetch recent moves
+        moves_res = supabase.table("moves").select("*").eq("workspace_id", workspace_id).order("created_at", desc=True).limit(5).execute()
+        state["recent_moves"] = moves_res.data if moves_res.data else []
+        
+        # 2. Fetch active campaigns
+        campaigns_res = supabase.table("campaigns").select("*").eq("workspace_id", workspace_id).eq("status", "active").execute()
+        state["active_campaigns"] = campaigns_res.data if campaigns_res.data else []
+        
+        # 3. Fetch past daily wins for context
+        wins_res = supabase.table("daily_wins").select("*").eq("workspace_id", workspace_id).order("created_at", desc=True).limit(3).execute()
+        state["internal_wins"] = wins_res.data if wins_res.data else []
+        
+        logger.info(f"Context Miner: Extracted {len(state['recent_moves'])} moves and {len(state['active_campaigns'])} campaigns.")
+        return state
+    except Exception as e:
+        logger.error(f"Context Miner Node Error: {e}")
+        state["error"] = str(e)
+        return state
 
 async def trend_mapper_node(state: DailyWinState) -> DailyWinState:
     """Node: Fetches external trends via search tools (SearXNG, Reddit)."""
-    return state
+    try:
+        # Determine search queries based on foundation/industry
+        foundation = state.get("foundation_summary", "marketing trends")
+        query = f"latest {foundation} trends LinkedIn Reddit"
+        
+        searxng = SearXNGClient()
+        trends = await searxng.query(query, limit=5)
+        await searxng.close()
+        
+        state["external_trends"] = trends
+        logger.info(f"Trend Mapper: Found {len(trends)} external trends.")
+        return state
+    except Exception as e:
+        logger.error(f"Trend Mapper Node Error: {e}")
+        state["external_trends"] = [] # Fallback to empty
+        return state
 
 
 async def synthesizer_node(state: DailyWinState) -> DailyWinState:
+
+
     """Node: Bridges internal activity with external trends."""
-    return state
+
+
+    try:
+
+
+        from ..specialists.daily_wins import DailyWinsGenerator
+
+
+        agent = DailyWinsGenerator()
+
+
+        
+
+
+        # 1. Prepare data for synthesis
+
+
+        moves_str = json.dumps(state.get("recent_moves", [])[:3])
+
+
+        trends_str = json.dumps(state.get("external_trends", [])[:3])
+
+
+        
+
+
+        prompt = f"""
+
+
+        Merge these internal business 'moves' with these external market 'trends' to find a unique, contrarian angle for a LinkedIn post.
+
+
+        
+
+
+        INTERNAL MOVES: {moves_str}
+
+
+        EXTERNAL TRENDS: {trends_str}
+
+
+        
+
+
+        Focus on 'Editorial Restraint' and 'Surprise'. What is the one non-obvious synthesis?
+
+
+        """
+
+
+        
+
+
+        # Use existing agent's LLM capability
+
+
+        narrative = await agent._call_llm(prompt)
+
+
+        state["synthesized_narrative"] = narrative
+
+
+        logger.info(f"Synthesizer: Narrative generated.")
+
+
+        return state
+
+
+    except Exception as e:
+
+
+        logger.error(f"Synthesizer Node Error: {e}")
+
+
+        state["error"] = str(e)
+
+
+        return state
+
+
+
 
 
 async def voice_architect_node(state: DailyWinState) -> DailyWinState:
+
+
     """Node: Enforces tone and editorial restraint."""
-    return state
+
+
+    try:
+
+
+        from ..specialists.daily_wins import DailyWinsGenerator
+
+
+        agent = DailyWinsGenerator()
+
+
+        
+
+
+        narrative = state.get("synthesized_narrative")
+
+
+        if not narrative:
+
+
+            state["error"] = "No narrative to architect."
+
+
+            return state
+
+
+            
+
+
+        prompt = f"""
+
+
+        Refine this narrative into a high-end, surgical post for {state['target_platform']}.
+
+
+        Ensure it mirrors 'MasterClass polish + ChatGPT simplicity'.
+
+
+        
+
+
+        NARRATIVE: {narrative}
+
+
+        
+
+
+        Output only the final post content. No hashtags yet.
+
+
+        """
+
+
+        
+
+
+        content = await agent._call_llm(prompt)
+
+
+        state["content_draft"] = content
+
+
+        logger.info(f"Voice Architect: Content draft refined for {state['target_platform']}.")
+
+
+        return state
+
+
+    except Exception as e:
+
+
+        logger.error(f"Voice Architect Node Error: {e}")
+
+
+        state["error"] = str(e)
+
+
+        return state
+
+
+
 
 
 async def hook_specialist_node(state: DailyWinState) -> DailyWinState:
-    """Node: Crafts scroll-stopping headlines."""
-    return state
-
+    """Node: Generates viral hooks/headlines for the post."""
+    try:
+        from ..specialists.daily_wins import DailyWinsGenerator
+        agent = DailyWinsGenerator()
+        
+        content = state.get("content_draft")
+        if not content:
+            state["error"] = "No content to generate hooks from."
+            return state
+            
+        prompt = """
+        Generate 3 attention-grabbing hooks/headlines for this post.
+        Focus on 'Surprise' and 'Decisiveness'.
+        
+        POST CONTENT: {content}
+        
+        Output only a JSON list of strings.
+        """
+        
+        res = await agent._call_llm(prompt)
+        # Attempt to parse JSON list
+        try:
+            # Basic cleanup if LLM includes markdown
+            clean_res = res.strip().replace("```json", "").replace("```", "")
+            hooks = json.loads(clean_res)
+            state["hooks"] = hooks if isinstance(hooks, list) else [res]
+        except:
+            state["hooks"] = [res]
+            
+        logger.info(f"Hook Specialist: {len(state['hooks'])} hooks generated.")
+        return state
+    except Exception as e:
+        logger.error(f"Hook Specialist Node Error: {e}")
+        state["hooks"] = []
+        return state
 
 async def visualist_node(state: DailyWinState) -> DailyWinState:
-    """Node: Generates editorial art direction prompts."""
-    return state
+    """Node: Generates an editorial image prompt."""
+    try:
+        from ..specialists.daily_wins import DailyWinsGenerator
+        agent = DailyWinsGenerator()
+        
+        content = state.get("content_draft")
+        prompt = """
+        Describe a high-end, cinematic, 'Quiet Luxury' style image that matches this post content.
+        The image should feel like a custom editorial shot, not a generic stock photo.
+        
+        POST CONTENT: {content}
+        
+        Output only the image prompt.
+        """
+        
+        image_prompt = await agent._call_llm(prompt)
+        state["visual_prompt"] = image_prompt
+        logger.info(f"Visualist: Image prompt generated.")
+        return state
+    except Exception as e:
+        logger.error(f"Visualist Node Error: {e}")
+        state["visual_prompt"] = None
+        return state
 
 
 async def skeptic_editor_node(state: DailyWinState) -> DailyWinState:

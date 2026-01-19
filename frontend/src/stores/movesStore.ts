@@ -43,13 +43,17 @@ interface MovesState {
 
     // Cross-Module
     setPendingMove: (move: Partial<Move> | null) => void;
-    createMoveFromBlackBox: (data: {
+    generateStrategy: (data: {
         focusArea: string;
-        desiredOutcome: string;
         volatilityLevel: number;
+        workspaceId: string;
+        userId: string;
+    }) => Promise<any>;
+    createMoveFromStrategy: (strategyId: string, data: {
+        workspaceId: string;
+        userId: string;
         name: string;
-        steps: string[];
-    }) => string;
+    }) => Promise<string>;
 
     // Utilities
     getMoveById: (moveId: string) => Move | undefined;
@@ -256,63 +260,41 @@ export const useMovesStore = create<MovesState>()(
                 set({ pendingMove: move });
             },
 
-            // Create move from BlackBox data
-            createMoveFromBlackBox: (data) => {
-                const categoryMap: Record<string, MoveCategory> = {
-                    "Acquisition / Growth": "capture",
-                    "Retention / Loyalty": "rally",
-                    "Monetization / Cash": "capture",
-                    "Brand / PR": "authority",
-                    "Product / Viral": "rally",
-                };
+            // Generate strategy from BlackBox API
+            generateStrategy: async (data) => {
+                set({ isLoading: true });
+                try {
+                    const response = await apiClient.generateBlackBoxStrategy({
+                        focus_area: data.focusArea,
+                        business_context: "Autonomous strategy generation requested from Blackbox Engine.",
+                        risk_tolerance: data.volatilityLevel,
+                        workspace_id: data.workspaceId,
+                        user_id: data.userId
+                    });
+                    return response;
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
 
-                const category = categoryMap[data.focusArea] || "capture";
-                const moveId = `mov-${Date.now()}`;
-
-                const execution: ExecutionDay[] = data.steps.map((step, i) => ({
-                    day: i + 1,
-                    phase: i === 0 ? "Trigger" : i === 1 ? "Pivot" : "Close",
-                    pillarTask: {
-                        id: `pillar-${moveId}-${i + 1}`,
-                        title: step,
-                        description: `Step ${i + 1} of experimental move`,
-                        status: "pending",
-                        channel: "Multi-channel",
-                    },
-                    clusterActions: [
-                        {
-                            id: `cluster-${moveId}-${i + 1}-1`,
-                            title: "Share on social",
-                            description: "",
-                            status: "pending",
-                            channel: "Social",
-                        },
-                    ],
-                    networkAction: {
-                        id: `network-${moveId}-${i + 1}`,
-                        title: "DM 5 prospects",
-                        description: "",
-                        status: "pending",
-                        channel: "DM",
-                    },
-                }));
-
-                const newMove: Move = {
-                    id: moveId,
-                    name: data.name,
-                    category,
-                    status: "draft",
-                    duration: data.steps.length,
-                    goal: data.desiredOutcome,
-                    tone: data.volatilityLevel > 7 ? "Aggressive" : "Strategic",
-                    context: `Focus: ${data.focusArea}. Outcome: ${data.desiredOutcome}. Volatility: ${data.volatilityLevel}/10`,
-                    createdAt: new Date().toISOString(),
-                    progress: 0,
-                    execution,
-                };
-
-                get().addMove(newMove);
-                return moveId;
+            // Create move from strategy using BlackBox API
+            createMoveFromStrategy: async (strategyId, data) => {
+                set({ isLoading: true });
+                try {
+                    const response = await apiClient.acceptBlackBoxStrategy(strategyId, {
+                        workspace_id: data.workspaceId,
+                        user_id: data.userId,
+                        convert_to_move: true,
+                        move_name: data.name
+                    });
+                    
+                    const moveId = response.move_id || `mov-${Date.now()}`;
+                    // Re-fetch moves to show the new one
+                    await get().fetchMoves();
+                    return moveId;
+                } finally {
+                    set({ isLoading: false });
+                }
             },
 
             // Get move by ID
