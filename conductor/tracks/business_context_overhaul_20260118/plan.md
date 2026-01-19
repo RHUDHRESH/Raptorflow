@@ -1,0 +1,162 @@
+# Implementation Plan - Business Context Generator Overhaul
+
+## Phase 1: Core Architecture & Data Models
+- [x] Task: Create `BusinessContextState` core Pydantic model (SHA: 1801202)
+- [x] Task: Define `CompanyProfile` Pydantic model (Identity, Positioning, Mission, Vision) (SHA: 1801202)
+- [x] Task: Define `MarketAnalysis` Pydantic model (Size, Trends, Opportunities) (SHA: 1801202)
+- [x] Task: Define `CompetitiveLandscape` Pydantic model (Competitors, Differentiation, Advantages) (SHA: 1801202)
+- [x] Task: Define `CustomerSegments` Pydantic model (Primary/Secondary Profiles) (SHA: 1801202)
+- [x] Task: Define `ValueProposition` Pydantic model (Core Prop, USPs) (SHA: 1801202)
+- [x] Task: Define `BusinessModel` Pydantic model (Revenue Streams, Cost Structures) (SHA: 1801202)
+- [x] Task: Define `GrowthStrategy` Pydantic model (Drivers, Initiatives) (SHA: 1801202)
+- [x] Task: Define `RiskFactors` Pydantic model (Risks, Challenges, Mitigation) (SHA: 1801202)
+- [x] Task: Conductor - User Manual Verification 'Core Architecture & Data Models' (Protocol in workflow.md) (SHA: 190126A)
+
+## Phase 2: Advanced Analysis Models
+- [x] Task: Define `SWOTAnalysis` Pydantic model (SHA: 1801202)
+- [x] Task: Define `PESTELAnalysis` Pydantic model (SHA: 1801202)
+- [x] Task: Define `ValueChainAnalysis` Pydantic model (SHA: 1801202)
+- [x] Task: Define `BrandArchetypes` Pydantic model (SHA: 1801202)
+- [x] Task: Define `CompetitorMatrix` Pydantic model (SHA: 1801202)
+- [ ] Task: Conductor - User Manual Verification 'Advanced Analysis Models' (Protocol in workflow.md)
+
+## Phase 3: ICP Enhancement Models
+- [x] Task: Define `PsychographicInsights` model (SHA: 1801202)
+- [x] Task: Define `PainPointAnalysis` model (Severity 1-10) (SHA: 1801202)
+- [x] Task: Define `BuyingTriggers` and `ObjectionHandlers` models (SHA: 1801202)
+- [x] Task: Define `MessagingAngles` and `ChannelPreferences` models (SHA: 1801202)
+- [x] Task: Create composite `EnhancedICP` model merging all above (SHA: 1801202)
+- [ ] Task: Conductor - User Manual Verification 'ICP Enhancement Models' (Protocol in workflow.md)
+
+## Phase 4: Messaging Strategy Models
+- [x] Task: Define `BrandVoice` model (Tone, Personality) (SHA: 1801202)
+- [x] Task: Define `CoreMessagePillars` model (SHA: 1801202)
+- [x] Task: Define `MessagingFramework` model (Problem-Solution-Benefit) (SHA: 1801202)
+- [x] Task: Define `ChannelMessaging` and `SocialProof` models (SHA: 1801202)
+- [x] Task: Define `CallToAction` strategy model (SHA: 1801202)
+- [ ] Task: Conductor - User Manual Verification 'Messaging Strategy Models' (Protocol in workflow.md)
+
+## Phase 5: Infrastructure & Base Setup
+- [x] Task: Create `backend/services/business_context_graph.py` (SHA: 1801203)
+- [x] Task: Initialize Vertex AI Client with Singleton Pattern (SHA: 1801203)
+- [x] Task: Implement Base Node Class with Error Handling & Logging (SHA: 1801203)
+- [x] Task: Implement JSON Parsing Safety Wrapper (SHA: 1801203)
+- [x] Task: Implement "Graceful Degradation" Base Logic (SHA: 1801203)
+- [ ] Task: Conductor - User Manual Verification 'Infrastructure & Base Setup' (Protocol in workflow.md)
+
+## Phase 6: Core Context Graph Nodes (Part 1)
+- [x] Task: Implement `generate_profile` node (SHA: 1801204)
+- [x] Task: Implement `analyze_market` node (SHA: 1801204)
+- [x] Task: Implement `analyze_competitors` node (SHA: 1801204)
+- [x] Task: Implement `analyze_customer_segments` node (SHA: 1801204)
+- [ ] Task: Conductor - User Manual Verification 'Core Context Graph Nodes (Part 1)' (Protocol in workflow.md)
+
+## Phase 7: Core Context Graph Nodes (Part 2)
+- [x] Task: Implement `analyze_value_proposition` node (SHA: 1801205)
+- [x] Task: Implement `analyze_business_model` node (SHA: 1801205)
+- [x] Task: Implement `formulate_growth_strategy` node (SHA: 1801205)
+- [x] Task: Implement `assess_risk_factors` node (SHA: 1801205)
+- [ ] Task: Conductor - User Manual Verification 'Core Context Graph Nodes (Part 2)' (Protocol in workflow.md)
+
+## Phase 8: Advanced Analysis Graph Nodes
+- [x] Task: Implement `generate_swot` node (SHA: 1801206)
+- [x] Task: Implement `generate_pestel` node (SHA: 1801206)
+- [x] Task: Implement `analyze_value_chain` node (SHA: 1801206)
+- [x] Task: Implement `identify_brand_archetypes` node (SHA: 1801206)
+- [ ] Task: Conductor - User Manual Verification 'Advanced Analysis Graph Nodes' (Protocol in workflow.md)
+
+## Phase 9: ICP Enhancement Graph Logic
+- [x] Task: Implement `enhance_icp_psychographics` logic (SHA: 1801207)
+- [x] Task: Implement `enhance_icp_behaviors` logic (SHA: 1801207)
+- [x] Task: Implement `enhance_icp_messaging` logic (SHA: 1801207)
+- [x] Task: Build specialized `enhance_icp_subgraph` (SHA: 1801207)
+- [ ] Task: Conductor - User Manual Verification 'ICP Enhancement Graph Logic' (Protocol in workflow.md)
+
+## Phase 10: Messaging Strategy Graph Logic
+- [x] Task: Implement `define_brand_voice` logic (SHA: 1801208)
+- [x] Task: Implement `create_message_pillars` logic (SHA: 1801208)
+- [x] Task: Implement `generate_channel_strategy` logic (SHA: 1801208)
+- [x] Task: Build specialized `messaging_strategy_subgraph` (SHA: 1801208)
+- [ ] Task: Conductor - User Manual Verification 'Messaging Strategy Graph Logic' (Protocol in workflow.md)
+
+## Phase 11: Graph Orchestration
+- [x] Task: Define Main Graph Edges and Flow (SHA: 1801208)
+- [x] Task: Implement Parallel Execution for Independent Nodes (SHA: 1801208)
+- [x] Task: Implement State Merging Logic (SHA: 1801208)
+- [x] Task: Implement Global Error Handling & Retry Policies (SHA: 1801208)
+- [ ] Task: Conductor - User Manual Verification 'Graph Orchestration' (Protocol in workflow.md)
+
+## Phase 12: Fallback Implementation
+- [x] Task: Implement `_generate_fallback_context` with new structure (SHA: 1801209)
+- [x] Task: Implement `_generate_fallback_messaging` with new structure (SHA: 1801209)
+- [x] Task: Implement `_generate_fallback_icp` with new structure (SHA: 1801209)
+- [ ] Task: Conductor - User Manual Verification 'Fallback Implementation' (Protocol in workflow.md)
+
+## Phase 13: Service Integration
+- [x] Task: Refactor `BusinessContextGenerator` to use LangGraph (SHA: 1801209)
+- [x] Task: Implement `generate_from_foundation` wrapper (SHA: 1801209)
+- [x] Task: Implement `enhance_icp_context` wrapper (SHA: 1801209)
+- [x] Task: Implement `generate_messaging_strategy` wrapper (SHA: 1801209)
+- [x] Task: Verify Async Method signatures (SHA: 1801209)
+- [ ] Task: Conductor - User Manual Verification 'Service Integration' (Protocol in workflow.md)
+
+## Phase 14: Prompt Engineering (Context)
+- [x] Task: Optimize Prompts for Company Profile & Market (SHA: 1801210)
+- [x] Task: Optimize Prompts for Competitors & Segments (SHA: 1801210)
+- [x] Task: Optimize Prompts for Value Prop & Business Model (SHA: 1801210)
+- [x] Task: Optimize Prompts for Growth & Risk (SHA: 1801210)
+- [ ] Task: Conductor - User Manual Verification 'Prompt Engineering (Context)' (Protocol in workflow.md)
+
+## Phase 15: Prompt Engineering (Advanced)
+- [x] Task: Optimize Prompts for SWOT & PESTEL (SHA: 1801210)
+- [x] Task: Optimize Prompts for Value Chain & Archetypes (SHA: 1801210)
+- [ ] Task: Conductor - User Manual Verification 'Prompt Engineering (Advanced)' (Protocol in workflow.md)
+
+## Phase 16: Prompt Engineering (ICP & Messaging)
+- [x] Task: Optimize Prompts for ICP Psychographics (SHA: 1801210)
+- [x] Task: Optimize Prompts for Buying Triggers & Objections (SHA: 1801210)
+- [x] Task: Optimize Prompts for Brand Voice & Pillars (SHA: 1801210)
+- [ ] Task: Conductor - User Manual Verification 'Prompt Engineering (ICP & Messaging)' (Protocol in workflow.md)
+
+## Phase 17: Testing - Unit (Models)
+- [ ] Task: Test Core Pydantic Models
+- [ ] Task: Test Advanced Pydantic Models
+- [ ] Task: Test ICP & Messaging Pydantic Models
+- [ ] Task: Conductor - User Manual Verification 'Testing - Unit (Models)' (Protocol in workflow.md)
+
+## Phase 18: Testing - Unit (Nodes)
+- [ ] Task: Test Context Nodes (Real AI)
+- [ ] Task: Test Advanced Nodes (Real AI)
+- [ ] Task: Test ICP/Messaging Nodes (Real AI)
+- [ ] Task: Conductor - User Manual Verification 'Testing - Unit (Nodes)' (Protocol in workflow.md)
+
+## Phase 19: Testing - Integration
+- [ ] Task: Test Full Graph Execution (Success Path - Real AI)
+- [ ] Task: Test Graph Error Handling & Retries (Real AI)
+- [ ] Task: Test Fallback Mechanisms (Forced Failures)
+- [ ] Task: Conductor - User Manual Verification 'Testing - Integration' (Protocol in workflow.md)
+
+## Phase 20: Documentation & Metadata
+- [ ] Task: Add Docstrings to all new classes and methods
+- [ ] Task: Verify "generated_at" and "source" metadata in all outputs
+- [ ] Task: Verify "ai_enhanced" flags
+- [ ] Task: Update API Documentation (if applicable)
+- [ ] Task: Conductor - User Manual Verification 'Documentation & Metadata' (Protocol in workflow.md)
+
+## Phase 21: Performance Optimization
+- [ ] Task: Audit Graph Execution Latency
+- [ ] Task: Optimize Parallel Node Execution
+- [ ] Task: Implement Caching (if applicable/safe)
+- [ ] Task: Conductor - User Manual Verification 'Performance Optimization' (Protocol in workflow.md)
+
+## Phase 22: Security & Safety
+- [ ] Task: Verify Input Sanitization
+- [ ] Task: Verify Output Encoding/Safety
+- [ ] Task: Scan for potential Prompt Injection vulnerabilities
+- [ ] Task: Conductor - User Manual Verification 'Security & Safety' (Protocol in workflow.md)
+
+## Phase 23: Final Review & Polish
+- [ ] Task: Code Style Audit (Linting/Formatting)
+- [ ] Task: Type Hinting Audit (MyPy/Pyright)
+- [ ] Task: Dependency Check (Vertex AI, LangGraph, Pydantic)
+- [ ] Task: Conductor - User Manual Verification 'Final Review & Polish' (Protocol in workflow.md)
