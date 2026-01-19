@@ -8,13 +8,20 @@
 
 ## AI & LLM
 - **Platform:** [Google Vertex AI](https://cloud.google.com/vertex-ai) (Gemini models)
-- **Search & Intelligence:** SOTA Native Cluster (Self-hosted [SearXNG](https://searxng.org/) + Reddit .json backdoor), 100% free at SaaS scale.
-- **Orchestration:** [LangGraph](https://langchain-ai.github.io/langgraph/)
+- **Titan SOTA Intelligence Engine:**
+  - **Modes:** LITE (snippet search), RESEARCH (parallel scraping), DEEP (recursive traversal).
+  - **Discovery:** Parallel Search Multiplexing (Native Bing + Reddit .json + SearXNG).
+  - **Extraction:** Stealth Scraper Pool (Playwright Stealth + Fingerprint Randomization).
+  - **Ranking:** Semantic Ranking & Link Scoring via Gemini 1.5 Flash.
+- **Orchestration:** [LangGraph](https://langchain-ai.github.io/langgraph/) with **Supabase Checkpointing** for industrial-grade state persistence.
+- **Context Management:**
+  - **DCM (Distance Context Management):** Semantic vector sorting for BCM and Market Intel.
+  - **MacM (Memory Augmented Context Hub):** Session-based hot context integration.
 
 ## Backend & Infrastructure
 - **Cloud Provider:** [Google Cloud Platform (GCP)](https://cloud.google.com/)
 - **Compute:** [Cloud Run](https://cloud.google.com/run)
-- **Database & Auth:** [Supabase](https://supabase.com/) (Exclusive Google OAuth + UCID Identity)
+- **Database & Auth:** [Supabase](https://supabase.com/) (Unified PostgreSQL schema for all strategic state, including Arcs, Instances, and Agent Logs).
 - **Caching & Messaging:** [Upstash](https://upstash.com/) (Redis)
   - **Caching Logic:** Global `withCache` wrapper with namespaced TTLs.
   - **Message Bus:** Redis-based state synchronization for real-time AI agent updates.
