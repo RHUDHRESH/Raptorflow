@@ -20,7 +20,7 @@
 - [x] Task: Define `CompetitorMatrix` Pydantic model (SHA: 1801202)
 - [x] Task: Conductor - User Manual Verification 'Advanced Analysis Models' (Protocol in workflow.md) (SHA: 190126B)
 
-## Phase 3: ICP Enhancement Models
+## Phase 3: ICP Enhancement Models [checkpoint: 1654a59]
 - [x] Task: Define `PsychographicInsights` model (SHA: 1801202)
 - [x] Task: Define `PainPointAnalysis` model (Severity 1-10) (SHA: 1801202)
 - [x] Task: Define `BuyingTriggers` and `ObjectionHandlers` models (SHA: 1801202)
