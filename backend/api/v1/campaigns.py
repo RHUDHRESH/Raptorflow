@@ -11,11 +11,11 @@ from pydantic import BaseModel
 from backend.core.auth import get_auth_context, get_current_user, get_workspace_id
 from backend.core.models import AuthContext, User
 from backend.core.supabase_mgr import get_supabase_client
-from db.repositories import CampaignRepository
+from backend.db.campaigns import CampaignRepository
 
 # Import Vertex AI client for AI processing
 try:
-    from services.vertex_ai_client import get_vertex_ai_client
+    from backend.services.vertex_ai_client import get_vertex_ai_client
     vertex_ai_client = get_vertex_ai_client()
 except ImportError:
     logging.warning("Vertex AI client not available for campaigns")

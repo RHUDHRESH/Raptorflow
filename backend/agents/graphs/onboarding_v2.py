@@ -24,6 +24,8 @@ from ..specialists.capability_rating_agent import CapabilityRatingEngine
 from ..specialists.perceptual_map_generator import PerceptualMapGenerator
 from ..specialists.strategic_grid_agent import StrategicGridGenerator
 from ..specialists.positioning_statement_generator import PositioningStatementGenerator
+from ..specialists.focus_sacrifice_engine import FocusSacrificeEngine
+from ..specialists.icp_deep_generator import ICPDeepGenerator
 from ...infrastructure.storage import delete_file
 
 logger = logging.getLogger(__name__)
@@ -70,6 +72,8 @@ capability_rating_engine = CapabilityRatingEngine()
 perceptual_map_generator = PerceptualMapGenerator()
 strategic_grid_generator = StrategicGridGenerator()
 positioning_generator = PositioningStatementGenerator()
+focus_sacrifice_engine = FocusSacrificeEngine()
+icp_generator = ICPDeepGenerator()
 
 async def handle_evidence_vault(state: OnboardingStateV2) -> OnboardingStateV2:
     """Step 1: Process uploaded evidence and auto-classify."""
@@ -279,6 +283,31 @@ async def handle_positioning_statements(state: OnboardingStateV2) -> OnboardingS
     state["onboarding_progress"] = (13 / 23) * 100
     return state
 
+async def handle_focus_sacrifice(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 14: Recommend Strategic Tradeoffs (Focus vs Sacrifice)."""
+    logger.info("Handling Focus & Sacrifice (Step 14)")
+    
+    result = await focus_sacrifice_engine.execute(state)
+    tradeoff_data = result.get("output", {})
+    
+    state["step_data"]["focus_sacrifice"] = tradeoff_data
+    
+    state["onboarding_progress"] = (14 / 23) * 100
+    return state
+
+async def handle_icp_profiles(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 15: Generate Comprehensive ICP Profiles."""
+    logger.info("Handling ICP Profiles (Step 15)")
+    
+    result = await icp_generator.execute(state)
+    icp_data = result.get("output", {})
+    
+    state["icp_profiles"] = icp_data.get("profiles", [])
+    state["step_data"]["icp_profiles"] = icp_data
+    
+    state["onboarding_progress"] = (15 / 23) * 100
+    return state
+
 class OnboardingGraphV2:
     """Updated onboarding workflow graph with 23-step master logic."""
 
@@ -332,9 +361,11 @@ class OnboardingGraphV2:
         workflow.add_node("handle_perceptual_map", handle_perceptual_map)
         workflow.add_node("handle_strategic_grid", handle_strategic_grid)
         workflow.add_node("handle_positioning_statements", handle_positioning_statements)
+        workflow.add_node("handle_focus_sacrifice", handle_focus_sacrifice)
+        workflow.add_node("handle_icp_profiles", handle_icp_profiles)
         
         # Add remaining nodes as placeholders
-        for step in self.step_order[13:]:
+        for step in self.step_order[15:]:
             workflow.add_node(f"handle_{step}", generic_handler)
 
         # Set entry point
@@ -354,9 +385,11 @@ class OnboardingGraphV2:
         workflow.add_edge("handle_capability_rating", "handle_perceptual_map")
         workflow.add_edge("handle_perceptual_map", "handle_strategic_grid")
         workflow.add_edge("handle_strategic_grid", "handle_positioning_statements")
+        workflow.add_edge("handle_positioning_statements", "handle_focus_sacrifice")
+        workflow.add_edge("handle_focus_sacrifice", "handle_icp_profiles")
 
         # Remaining linear routing
-        for i in range(13, len(self.step_order) - 1):
+        for i in range(15, len(self.step_order) - 1):
             workflow.add_edge(f"handle_{self.step_order[i]}", f"handle_{self.step_order[i+1]}")
         
         workflow.add_edge(f"handle_{self.step_order[-1]}", END)
@@ -380,5 +413,7 @@ __all__ = [
     "handle_capability_rating",
     "handle_perceptual_map",
     "handle_strategic_grid",
-    "handle_positioning_statements"
+    "handle_positioning_statements",
+    "handle_focus_sacrifice",
+    "handle_icp_profiles"
 ]

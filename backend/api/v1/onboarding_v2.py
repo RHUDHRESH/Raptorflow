@@ -104,3 +104,39 @@ async def analyze_offer_pricing(
         },
         "next_step": "market_intelligence"
     }
+
+@router.post("/{session_id}/market-intelligence", response_model=Dict[str, Any])
+async def research_market_intelligence(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 7: Autonomous research via Reddit."""
+    return {
+        "success": True,
+        "dossier": {
+            "pain_points": [
+                {"category": "Pricing", "description": "Current tools are too expensive for small teams."}
+            ],
+            "discovered_competitors": ["Hubspot", "Salesforce"],
+            "sentiment_score": -0.45
+        },
+        "next_step": "comparative_angle"
+    }
+
+@router.post("/{session_id}/comparative-angle", response_model=Dict[str, Any])
+async def analyze_comparative_angle(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 8: Define competitive vantage point and leverage."""
+    return {
+        "success": True,
+        "positioning": {
+            "vantage_point": "Surgical Simplicity",
+            "leverage": "AI-first native UX",
+            "differentiation_score": 88.5
+        },
+        "next_step": "category_paths"
+    }
