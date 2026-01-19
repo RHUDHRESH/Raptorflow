@@ -72,29 +72,29 @@
 - [ ] Task: Write TDD tests for pain point categorization accuracy.
 - [ ] Task: Conductor - User Manual Verification 'Phase 10: Market Intelligence - Insight Extraction (Step 7)' (Protocol in workflow.md)
 
-## Phase 11: Competitive Landscape Mapping (Step 8)
-- [ ] Task: Implement CompetitorAnalyzer agent for deep rival research.
-- [ ] Task: Build Step 8 backend endpoint for comparative angle results.
-- [ ] Task: Implement "Vantage Point" logic to identify leverage (Your Leverage).
-- [ ] Task: Build the rival hook vs your gap mapping.
-- [ ] Task: Write TDD tests for competitor weakness detection.
-- [ ] Task: Conductor - User Manual Verification 'Phase 11: Competitive Landscape Mapping (Step 8)' (Protocol in workflow.md)
+## Phase 11: Competitive Landscape Mapping (Step 8) [checkpoint: 53f106c]
+- [x] Task: Implement CompetitorAnalyzer agent for deep rival research.
+- [x] Task: Build Step 8 backend endpoint for comparative angle results.
+- [x] Task: Implement "Vantage Point" logic to identify leverage (Your Leverage).
+- [x] Task: Build the rival hook vs your gap mapping.
+- [x] Task: Write TDD tests for competitor weakness detection.
+- [x] Task: Conductor - User Manual Verification 'Phase 11: Competitive Landscape Mapping (Step 8)' (Protocol in workflow.md)
 
-## Phase 12: Market Category Selection Logic (Step 9)
-- [ ] Task: Implement CategoryAdvisor agent for Safe/Clever/Bold pathing.
-- [ ] Task: Build Step 9 backend endpoint for category path selection.
-- [ ] Task: Implement pros/cons generation for each strategic path.
-- [ ] Task: Build pricing and effort implication logic for selected paths.
-- [ ] Task: Write TDD tests for strategic path recommendation logic.
-- [ ] Task: Conductor - User Manual Verification 'Phase 12: Market Category Selection Logic (Step 9)' (Protocol in workflow.md)
+## Phase 12: Market Category Selection Logic (Step 9) [checkpoint: 53f106c]
+- [x] Task: Implement CategoryAdvisor agent for Safe/Clever/Bold pathing.
+- [x] Task: Build Step 9 backend endpoint for category path selection.
+- [x] Task: Implement pros/cons generation for each strategic path.
+- [x] Task: Build pricing and effort implication logic for selected paths.
+- [x] Task: Write TDD tests for strategic path recommendation logic.
+- [x] Task: Conductor - User Manual Verification 'Phase 12: Market Category Selection Logic (Step 9)' (Protocol in workflow.md)
 
-## Phase 13: Capability Uniqueness Engine (Step 10)
-- [ ] Task: Implement CapabilityAuditor agent for 4-tier rating.
-- [ ] Task: Build Step 10 backend endpoint for capability ratings.
-- [ ] Task: Implement "Verification" tool to audit "Only You" claims via Titan Sorter.
-- [ ] Task: Build the capability-to-competitor gap analysis logic.
-- [ ] Task: Write TDD tests for uniqueness verification accuracy.
-- [ ] Task: Conductor - User Manual Verification 'Phase 13: Capability Uniqueness Engine (Step 10)' (Protocol in workflow.md)
+## Phase 13: Capability Uniqueness Engine (Step 10) [checkpoint: 53f106c]
+- [x] Task: Implement CapabilityAuditor agent for 4-tier rating.
+- [x] Task: Build Step 10 backend endpoint for capability ratings.
+- [x] Task: Implement "Verification" tool to audit "Only You" claims via Titan Sorter.
+- [x] Task: Build the capability-to-competitor gap analysis logic.
+- [x] Task: Write TDD tests for uniqueness verification accuracy.
+- [x] Task: Conductor - User Manual Verification 'Phase 13: Capability Uniqueness Engine (Step 10)' (Protocol in workflow.md)
 
 ## Phase 14: Perceptual Map Generation (Step 11)
 - [ ] Task: Implement PerceptualMapGenerator for quadrant analysis.
