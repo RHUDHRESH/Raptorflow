@@ -118,7 +118,7 @@
 - [x] Task: Optimize Prompts for Brand Voice & Pillars (SHA: 1801210)
 - [x] Task: Conductor - User Manual Verification 'Prompt Engineering (ICP & Messaging)' (Protocol in workflow.md) (SHA: 190126P)
 
-## Phase 17: Testing - Unit (Models)
+## Phase 17: Testing - Unit (Models) [checkpoint: 1b80cc0]
 - [x] Task: Test Core Pydantic Models (SHA: 190126Q)
 - [x] Task: Test Advanced Pydantic Models (SHA: 190126Q)
 - [x] Task: Test ICP & Messaging Pydantic Models (SHA: 190126Q)
