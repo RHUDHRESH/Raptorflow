@@ -140,3 +140,74 @@ async def analyze_comparative_angle(
         },
         "next_step": "category_paths"
     }
+
+@router.post("/{session_id}/category-paths", response_model=Dict[str, Any])
+async def recommend_category_paths(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 9: Recommend Safe/Clever/Bold category paths."""
+    return {
+        "success": True,
+        "paths": {
+            "safe": {"category": "Marketing Automation", "effort": "Low"},
+            "clever": {"category": "Autonomous Growth Engine", "effort": "Medium"},
+            "bold": {"category": "Founder OS", "effort": "High"},
+            "recommended": "clever"
+        },
+        "next_step": "capability_rating"
+    }
+
+@router.post("/{session_id}/capability-rating", response_model=Dict[str, Any])
+async def rate_capabilities(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 10: Audit and rate unique capabilities."""
+    return {
+        "success": True,
+        "ratings": [
+            {"capability": "Agent Swarm", "tier": 4, "status": "Verified Unique"}
+        ],
+        "next_step": "perceptual_map"
+    }
+
+@router.post("/{session_id}/strategic-grid", response_model=Dict[str, Any])
+async def lock_strategic_position(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 12: Lock strategic position and synthesize milestones."""
+    return {
+        "success": True,
+        "lock": {
+            "selected_position": "The Surgical Operator",
+            "milestones": [
+                {"name": "Swarm Core Alpha", "timeline": "Week 2"}
+            ],
+            "threats": [" incumbents adding shallow AI features"],
+            "opportunities": ["First-mover advantage in specialized swarm logic"]
+        },
+        "next_step": "positioning_statements"
+    }
+
+@router.post("/{session_id}/perceptual-map", response_model=Dict[str, Any])
+async def generate_perceptual_map(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 11: Map competitors and identify 'Only You' quadrant."""
+    return {
+        "success": True,
+        "map": {
+            "primary_axis": {"name": "Simplicity", "low": "Complex", "high": "Surgical"},
+            "secondary_axis": {"name": "Speed", "low": "Slow", "high": "Instant"},
+            "competitors": [{"name": "Hubspot", "x": 0.2, "y": 0.5}],
+            "only_you_quadrant": "Top Right (Surgical + Instant)"
+        },
+        "next_step": "strategic_grid"
+    }

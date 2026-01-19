@@ -3,7 +3,6 @@ Integration package for RaptorFlow backend.
 Provides cross-module integration and coordination.
 """
 
-from .agents_cognitive import execute_with_cognition
 from .auth_all import inject_auth_context, verify_workspace_access
 from .billing_usage import deduct_from_budget, refund_on_failure
 from .context_builder import build_full_context
@@ -17,7 +16,6 @@ from .validation import validate_agent_state, validate_workspace_consistency
 
 __all__ = [
     "route_with_memory_context",
-    "execute_with_cognition",
     "sync_database_to_memory",
     "invalidate_on_change",
     "inject_auth_context",

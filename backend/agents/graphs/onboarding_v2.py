@@ -22,10 +22,14 @@ from ..specialists.comparative_angle_agent import ComparativeAngleGenerator
 from ..specialists.category_advisor import CategoryAdvisor
 from ..specialists.capability_rating_agent import CapabilityRatingEngine
 from ..specialists.perceptual_map_generator import PerceptualMapGenerator
-from ..specialists.strategic_grid_agent import StrategicGridGenerator
+def get_strategic_grid_generator(): # Avoid circular dependency or name collision
+    from ..specialists.strategic_grid_agent import StrategicGridGenerator
+    return StrategicGridGenerator()
 from ..specialists.positioning_statement_generator import PositioningStatementGenerator
 from ..specialists.focus_sacrifice_engine import FocusSacrificeEngine
 from ..specialists.icp_deep_generator import ICPDeepGenerator
+from ..specialists.buying_process_agent import BuyingProcessArchitect
+from ..specialists.messaging_rules_engine import MessagingRulesEngine
 from ...infrastructure.storage import delete_file
 
 logger = logging.getLogger(__name__)
@@ -70,10 +74,13 @@ angle_generator = ComparativeAngleGenerator()
 category_advisor = CategoryAdvisor()
 capability_rating_engine = CapabilityRatingEngine()
 perceptual_map_generator = PerceptualMapGenerator()
+from ..specialists.strategic_grid_agent import StrategicGridGenerator
 strategic_grid_generator = StrategicGridGenerator()
 positioning_generator = PositioningStatementGenerator()
 focus_sacrifice_engine = FocusSacrificeEngine()
 icp_generator = ICPDeepGenerator()
+buying_process_architect = BuyingProcessArchitect()
+messaging_rules_engine = MessagingRulesEngine()
 
 async def handle_evidence_vault(state: OnboardingStateV2) -> OnboardingStateV2:
     """Step 1: Process uploaded evidence and auto-classify."""
@@ -308,6 +315,30 @@ async def handle_icp_profiles(state: OnboardingStateV2) -> OnboardingStateV2:
     state["onboarding_progress"] = (15 / 23) * 100
     return state
 
+async def handle_buying_process(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 16: Architect the Buying Process & Sales Cycle."""
+    logger.info("Handling Buying Process (Step 16)")
+    
+    result = await buying_process_architect.execute(state)
+    buying_data = result.get("output", {})
+    
+    state["step_data"]["buying_process"] = buying_data
+    
+    state["onboarding_progress"] = (16 / 23) * 100
+    return state
+
+async def handle_messaging_guardrails(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 17: Define Messaging Guardrails & Brand Rules."""
+    logger.info("Handling Messaging Guardrails (Step 17)")
+    
+    result = await messaging_rules_engine.execute(state)
+    rules_data = result.get("output", {})
+    
+    state["step_data"]["messaging_guardrails"] = rules_data
+    
+    state["onboarding_progress"] = (17 / 23) * 100
+    return state
+
 class OnboardingGraphV2:
     """Updated onboarding workflow graph with 23-step master logic."""
 
@@ -363,9 +394,11 @@ class OnboardingGraphV2:
         workflow.add_node("handle_positioning_statements", handle_positioning_statements)
         workflow.add_node("handle_focus_sacrifice", handle_focus_sacrifice)
         workflow.add_node("handle_icp_profiles", handle_icp_profiles)
+        workflow.add_node("handle_buying_process", handle_buying_process)
+        workflow.add_node("handle_messaging_guardrails", handle_messaging_guardrails)
         
         # Add remaining nodes as placeholders
-        for step in self.step_order[15:]:
+        for step in self.step_order[17:]:
             workflow.add_node(f"handle_{step}", generic_handler)
 
         # Set entry point
@@ -387,9 +420,11 @@ class OnboardingGraphV2:
         workflow.add_edge("handle_strategic_grid", "handle_positioning_statements")
         workflow.add_edge("handle_positioning_statements", "handle_focus_sacrifice")
         workflow.add_edge("handle_focus_sacrifice", "handle_icp_profiles")
+        workflow.add_edge("handle_icp_profiles", "handle_buying_process")
+        workflow.add_edge("handle_buying_process", "handle_messaging_guardrails")
 
         # Remaining linear routing
-        for i in range(15, len(self.step_order) - 1):
+        for i in range(17, len(self.step_order) - 1):
             workflow.add_edge(f"handle_{self.step_order[i]}", f"handle_{self.step_order[i+1]}")
         
         workflow.add_edge(f"handle_{self.step_order[-1]}", END)
@@ -415,5 +450,7 @@ __all__ = [
     "handle_strategic_grid",
     "handle_positioning_statements",
     "handle_focus_sacrifice",
-    "handle_icp_profiles"
+    "handle_icp_profiles",
+    "handle_buying_process",
+    "handle_messaging_guardrails"
 ]

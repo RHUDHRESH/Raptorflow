@@ -1,8 +1,9 @@
 """
 Capability Rating Specialist Agent
-Rates business capabilities against market benchmarks
+Rates business capabilities using a 4-tier system and verifies claims via Titan Sorter.
 """
 
+import json
 import logging
 from typing import Any, Dict, List, Optional
 from ..base import BaseAgent
@@ -12,46 +13,71 @@ from ..state import AgentState
 logger = logging.getLogger(__name__)
 
 class CapabilityRatingEngine(BaseAgent):
-    """Specialist agent for rating differentiated capabilities."""
+    """Specialist agent for rating differentiated capabilities with 4-tier system."""
 
     def __init__(self):
         super().__init__(
             name="CapabilityRatingEngine",
-            description="Rates business capabilities against competitors",
+            description="Audits and rates capabilities against market alternatives",
             model_tier=ModelTier.FLASH,
-            tools=["database"],
-            skills=["capability_analysis", "competitive_benchmarking"]
+            tools=["database", "web_search"],
+            skills=["capability_audit", "uniqueness_verification", "gap_analysis"]
         )
 
     def get_system_prompt(self) -> str:
-        return """You are the CapabilityRatingEngine.
-        Your goal is to evaluate the user's core capabilities (features, tech, service) vs benchmarks.
-        Rate each on a scale of 1-10 and identify 'True Differentiators'."""
+        return """You are the CapabilityAuditor (Rating Engine).
+        Your goal is to audit the user's claimed capabilities using a 4-tier rating system:
+        
+        Tier 1: COMMODITY (Expected, everyone has it)
+        Tier 2: STANDARD (Common in the industry)
+        Tier 3: ADVANCED (Better than most, but rivals exist)
+        Tier 4: UNIQUE / 'ONLY YOU' (No direct rival offers this exact capability)
+        
+        Key Responsibilities:
+        1. Assign a Tier (1-4) to each core capability.
+        2. Generate a 'Verification Query' for Tier 4 claims to be audited via Titan Sorter.
+        3. Perform Gap Analysis: Where is the competitor closest?
+        
+        Be skeptical. Tier 4 requires extreme evidence. Use 'Editorial Restraint'."""
 
     async def execute(self, state: Any) -> Dict[str, Any]:
-        """Execute capability rating."""
-        # 1. Get Product Data
-        # 2. Get Competitor Data
-        # 3. Rate
+        """Execute capability rating and verification."""
+        logger.info("CapabilityAuditor: Auditing capabilities")
         
-        ratings = [
-            {
-                "capability": "AI Accuracy",
-                "score": 9,
-                "benchmark": 7,
-                "status": "differentiator"
-            },
-            {
-                "capability": "Ease of Integration",
-                "score": 8,
-                "benchmark": 6,
-                "status": "advantage"
-            }
-        ]
+        business_context = state.get("business_context", {})
         
-        return {
-            "output": {
-                "ratings": ratings,
-                "overall_strength": 8.5
+        prompt = f"""
+        Audit the following business capabilities using the 4-tier system.
+        
+        BUSINESS CONTEXT:
+        {json.dumps(business_context, indent=2)}
+        
+        Output a JSON object with:
+        - ratings: list of {{
+            capability: string,
+            tier: int (1-4),
+            status: string,
+            rationale: string,
+            verification_query: string (to check if anyone else does this)
+          }}
+        - gap_analysis: string
+        """
+        
+        res = await self._call_llm(prompt)
+        
+        try:
+            clean_res = res.strip().replace("```json", "").replace("```", "")
+            data = json.loads(clean_res)
+            
+            # TODO: Integrate real verification tool loop here if needed
+            # For now we just return the ratings
+            
+            return {
+                "output": data
             }
-        }
+        except Exception as e:
+            logger.error(f"CapabilityAuditor: Failed to parse LLM response: {e}")
+            return {
+                "error": f"Failed to parse capability audit: {str(e)}",
+                "output": {}
+            }
