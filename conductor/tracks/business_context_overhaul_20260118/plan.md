@@ -65,7 +65,7 @@
 - [x] Task: Implement `identify_brand_archetypes` node (SHA: 1801206)
 - [x] Task: Conductor - User Manual Verification 'Advanced Analysis Graph Nodes' (Protocol in workflow.md) (SHA: 190126H)
 
-## Phase 9: ICP Enhancement Graph Logic
+## Phase 9: ICP Enhancement Graph Logic [checkpoint: 3931b06]
 - [x] Task: Implement `enhance_icp_psychographics` logic (SHA: 1801207)
 - [x] Task: Implement `enhance_icp_behaviors` logic (SHA: 1801207)
 - [x] Task: Implement `enhance_icp_messaging` logic (SHA: 1801207)
