@@ -38,6 +38,7 @@ from .base import BaseTool, ToolError, ToolResult, ToolStatus
 # from .template_tool import TemplateTool
 from .web_scraper import WebScraperTool
 from .web_search import WebSearchTool
+from .reddit_scraper import RedditScraperTool
 
 logger = structlog.get_logger(__name__)
 
@@ -54,6 +55,7 @@ TOOL_CATEGORIES = {
     "web_tools": [
         "WebSearchTool",
         "WebScraperTool",
+        "RedditScraperTool",
         "APIClientTool",
     ],
     "content_tools": [
@@ -95,6 +97,7 @@ def register_tool(tool_class: Type[BaseTool]):
 # Auto-register all imported tools
 register_tool(WebSearchTool)
 register_tool(WebScraperTool)
+register_tool(RedditScraperTool)
 # register_tool(ContentGeneratorTool)
 # register_tool(TemplateTool)
 # register_tool(FeedbackTool)

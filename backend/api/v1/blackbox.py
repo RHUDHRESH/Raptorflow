@@ -5,7 +5,7 @@ Blackbox strategy generation API endpoints.
 import uuid
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from backend.agents.specialists.blackbox_strategist import BlackboxStrategist

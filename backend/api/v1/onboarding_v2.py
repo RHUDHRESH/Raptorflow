@@ -78,3 +78,29 @@ async def submit_vault_evidence(
         "progress": 4.34,
         "next_step": "auto_extraction"
     }
+
+@router.post("/{session_id}/offer-pricing", response_model=Dict[str, Any])
+async def analyze_offer_pricing(
+    session_id: str,
+    workspace_id: str,
+    user_id: str
+):
+    """Step 6: Architect revenue model and pricing logic."""
+    # In a real scenario, we would load the state from Supabase checkpointer
+    # For now, we mock the graph execution for this specific step
+    from ...agents.graphs.onboarding_v2 import OnboardingGraphV2
+    
+    # Mocking graph invoke for Step 6
+    # This would normally be handled by a more generic 'next_step' trigger
+    return {
+        "success": True,
+        "analysis": {
+            "revenue_model": "Subscription",
+            "pricing_logic": "Value-based",
+            "risk_reversal": {
+                "score": 0.85,
+                "feedback": "Highly effective guarantee detected."
+            }
+        },
+        "next_step": "market_intelligence"
+    }

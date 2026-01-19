@@ -8,7 +8,7 @@ from typing import Generator, Optional
 
 from backend.agents.dispatcher import AgentDispatcher
 from backend.cognitive import CognitiveEngine
-from backend.core.middleware import get_current_user, get_current_workspace
+from backend.core.auth import get_current_user, get_workspace_id
 from backend.core.redis import get_redis_client
 from backend.core.supabase_mgr import get_supabase_client
 from fastapi import Depends, HTTPException, status
@@ -103,7 +103,7 @@ def get_agent_dispatcher() -> AgentDispatcher:
 
 
 def get_validated_workspace(
-    workspace_id: str = Depends(get_current_workspace), db: Client = Depends(get_db)
+    workspace_id: str = Depends(get_workspace_id), db: Client = Depends(get_db)
 ) -> dict:
     """
     Get validated workspace with database verification.

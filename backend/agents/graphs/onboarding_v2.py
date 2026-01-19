@@ -22,6 +22,8 @@ from ..specialists.comparative_angle_agent import ComparativeAngleGenerator
 from ..specialists.category_advisor import CategoryAdvisor
 from ..specialists.capability_rating_agent import CapabilityRatingEngine
 from ..specialists.perceptual_map_generator import PerceptualMapGenerator
+from ..specialists.strategic_grid_agent import StrategicGridGenerator
+from ..specialists.positioning_statement_generator import PositioningStatementGenerator
 from ...infrastructure.storage import delete_file
 
 logger = logging.getLogger(__name__)
@@ -66,6 +68,8 @@ angle_generator = ComparativeAngleGenerator()
 category_advisor = CategoryAdvisor()
 capability_rating_engine = CapabilityRatingEngine()
 perceptual_map_generator = PerceptualMapGenerator()
+strategic_grid_generator = StrategicGridGenerator()
+positioning_generator = PositioningStatementGenerator()
 
 async def handle_evidence_vault(state: OnboardingStateV2) -> OnboardingStateV2:
     """Step 1: Process uploaded evidence and auto-classify."""
@@ -250,6 +254,31 @@ async def handle_perceptual_map(state: OnboardingStateV2) -> OnboardingStateV2:
     state["onboarding_progress"] = (11 / 23) * 100
     return state
 
+async def handle_strategic_grid(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 12: Populate Strategic Grid (Value vs Rarity)."""
+    logger.info("Handling Strategic Grid (Step 12)")
+    
+    result = await strategic_grid_generator.execute(state)
+    grid_data = result.get("output", {})
+    
+    state["step_data"]["strategic_grid"] = grid_data
+    
+    state["onboarding_progress"] = (12 / 23) * 100
+    return state
+
+async def handle_positioning_statements(state: OnboardingStateV2) -> OnboardingStateV2:
+    """Step 13: Generate Final Positioning Statements."""
+    logger.info("Handling Positioning Statements (Step 13)")
+    
+    result = await positioning_generator.execute(state)
+    positioning_data = result.get("output", {})
+    
+    state["positioning"] = positioning_data
+    state["step_data"]["positioning_statements"] = positioning_data
+    
+    state["onboarding_progress"] = (13 / 23) * 100
+    return state
+
 class OnboardingGraphV2:
     """Updated onboarding workflow graph with 23-step master logic."""
 
@@ -301,9 +330,11 @@ class OnboardingGraphV2:
         workflow.add_node("handle_category_paths", handle_category_paths)
         workflow.add_node("handle_capability_rating", handle_capability_rating)
         workflow.add_node("handle_perceptual_map", handle_perceptual_map)
+        workflow.add_node("handle_strategic_grid", handle_strategic_grid)
+        workflow.add_node("handle_positioning_statements", handle_positioning_statements)
         
         # Add remaining nodes as placeholders
-        for step in self.step_order[11:]:
+        for step in self.step_order[13:]:
             workflow.add_node(f"handle_{step}", generic_handler)
 
         # Set entry point
@@ -321,9 +352,11 @@ class OnboardingGraphV2:
         workflow.add_edge("handle_comparative_angle", "handle_category_paths")
         workflow.add_edge("handle_category_paths", "handle_capability_rating")
         workflow.add_edge("handle_capability_rating", "handle_perceptual_map")
+        workflow.add_edge("handle_perceptual_map", "handle_strategic_grid")
+        workflow.add_edge("handle_strategic_grid", "handle_positioning_statements")
 
         # Remaining linear routing
-        for i in range(11, len(self.step_order) - 1):
+        for i in range(13, len(self.step_order) - 1):
             workflow.add_edge(f"handle_{self.step_order[i]}", f"handle_{self.step_order[i+1]}")
         
         workflow.add_edge(f"handle_{self.step_order[-1]}", END)
@@ -345,5 +378,7 @@ __all__ = [
     "handle_comparative_angle",
     "handle_category_paths",
     "handle_capability_rating",
-    "handle_perceptual_map"
+    "handle_perceptual_map",
+    "handle_strategic_grid",
+    "handle_positioning_statements"
 ]

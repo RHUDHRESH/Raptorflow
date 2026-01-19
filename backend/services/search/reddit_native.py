@@ -65,5 +65,56 @@ class RedditNativeScraper:
             logger.error(f"Reddit scrape failed: {e}")
             return []
 
+    async def get_thread(self, thread_url: str) -> Dict[str, Any]:
+        """
+        Fetches a single Reddit thread including comments.
+        Expects a URL like https://www.reddit.com/r/subreddit/comments/id/title/
+        """
+        if not thread_url.endswith(".json"):
+            # Ensure we use the .json endpoint
+            json_url = thread_url.rstrip("/") + ".json"
+        else:
+            json_url = thread_url
+
+        headers = self.fingerprints.get_headers()
+        headers["Accept"] = "application/json"
+
+        try:
+            response = await self.client.get(json_url, headers=headers)
+            if response.status_code != 200:
+                logger.warning(f"Reddit thread fetch failed: {response.status_code}")
+                return {}
+
+            data = response.json()
+            # Reddit returns a list: [post_data, comments_data]
+            if not isinstance(data, list) or len(data) < 2:
+                return {}
+
+            post_info = data[0].get("data", {}).get("children", [{}])[0].get("data", {})
+            comments_data = data[1].get("data", {}).get("children", [])
+
+            comments = []
+            for comment in comments_data:
+                c_data = comment.get("data", {})
+                if c_data.get("body"):
+                    comments.append({
+                        "author": c_data.get("author"),
+                        "body": c_data.get("body"),
+                        "ups": c_data.get("ups"),
+                        "created_utc": c_data.get("created_utc")
+                    })
+
+            return {
+                "title": post_info.get("title"),
+                "selftext": post_info.get("selftext"),
+                "subreddit": post_info.get("subreddit"),
+                "url": thread_url,
+                "comments": comments[:20] # Limit to top 20 comments for verbatims
+            }
+
+        except Exception as e:
+            logger.error(f"Reddit thread fetch failed for {thread_url}: {e}")
+            return {}
+
     async def close(self):
         await self.client.aclose()
