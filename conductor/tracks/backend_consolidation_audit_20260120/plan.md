@@ -38,8 +38,8 @@ Verify the "Cognitive Spine" and data integrity.
 - [x] Task: Performance Benchmarking (46cb0fd)
     - [x] Set up benchmark suites for Titan (Search Multiplexer) and Blackbox (Engine).
     - [x] Document current latencies and identify optimization bottlenecks.
-- [ ] Task: Secret Management Review
-    - [ ] Verify all hardcoded secrets are moved to GCP Secret Manager.
+- [x] Task: Secret Management Review (6632676)
+    - [x] Verify all hardcoded secrets are moved to GCP Secret Manager.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Security, Performance & Infrastructure Audit' (Protocol in workflow.md)
 
 ## Phase 4: Frontend Alignment & UX Polish
