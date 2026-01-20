@@ -22,7 +22,7 @@ Enable high-fidelity features like Replay, Profiling, and Trace linking.
     - [x] [GREEN] Configure `tracePropagationTargets` in the frontend and ensure CORS headers allow `sentry-trace` and `baggage`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Advanced Monitoring & Performance' (Protocol in workflow.md)
 
-## Phase 3: Security Hardening & Alerting
+## Phase 3: Security Hardening & Alerting [checkpoint: 43fdd8b]
 Ensure data privacy and establish the notification spine.
 
 - [x] Task: Implement PII Scrubbing & Data Security (8e26a9e)
