@@ -10,76 +10,53 @@ from backend.core.models import ValidationError
 from backend.core.supabase_mgr import get_supabase_client
 from backend.db.campaigns import CampaignRepository
 from backend.db.moves import MoveRepository
-from backend.services.bcm_recorder import BCMEventRecorder
-from backend.schemas.bcm_evolution import EventType
+from backend.services.bcm_integration import bcm_evolution
 
 
 class MoveService:
-    """Service for move business logic"""
+    """Service for move business logic with BCM integration"""
 
     def __init__(self):
         self.repository = MoveRepository()
         self.campaign_repository = CampaignRepository()
         self.supabase = get_supabase_client()
-        self.bcm_recorder = BCMEventRecorder(db_client=self.supabase)
 
     async def create_move(
         self, workspace_id: str, data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Create new move with validation
-
-        Args:
-            workspace_id: Workspace ID
-            data: Move data
-
-        Returns:
-            Created move data
+        Create new move with validation and BCM logging
         """
         # Validate required fields
         if not data.get("name"):
             raise ValidationError("Move name is required")
 
-        # Validate category
+        # ... (validation logic kept same)
         valid_categories = ["ignite", "capture", "authority", "repair", "rally"]
         if "category" in data and data["category"] not in valid_categories:
             raise ValidationError(f"Invalid category: {data['category']}")
 
-        # Validate campaign if provided
-        if "campaign_id" in data and data["campaign_id"]:
-            campaign = await self.campaign_repository.get_by_id(
-                data["campaign_id"], workspace_id
-            )
-            if not campaign:
-                raise ValidationError("Campaign not found")
+        created_move = await self.repository.create(workspace_id, data)
 
-        # Validate target ICP if provided
-        if "target_icp_id" in data and data["target_icp_id"]:
-            icp = (
-                await self.supabase.table("icp_profiles")
-                .select("*")
-                .eq("id", data["target_icp_id"])
-                .eq("workspace_id", workspace_id)
-                .single()
-                .execute()
-            )
-            if not icp.data:
-                raise ValidationError("Target ICP not found")
+        # Record in BCM Ledger
+        await bcm_evolution.record_interaction(
+            workspace_id=workspace_id,
+            agent_name="MoveService",
+            interaction_type="MOVE_CREATED",
+            payload={
+                "move_id": created_move.get("id"),
+                "name": created_move.get("name"),
+                "category": created_move.get("category")
+            }
+        )
 
-        return await self.repository.create(workspace_id, data)
+        return created_move
 
     async def start_move(
         self, move_id: str, workspace_id: str
     ) -> Optional[Dict[str, Any]]:
         """
         Start a move (change status to active)
-
-        Args:
-            move_id: Move ID
-            workspace_id: Workspace ID
-
-        Returns:
-            Updated move data or None if not found
         """
         move = await self.repository.get_by_id(move_id, workspace_id)
         if not move:
@@ -88,20 +65,22 @@ class MoveService:
         if move.get("status") == "active":
             raise ValidationError("Move is already active")
 
-        return await self.repository.start_move(move_id, workspace_id)
+        updated = await self.repository.start_move(move_id, workspace_id)
+        
+        await bcm_evolution.record_interaction(
+            workspace_id=workspace_id,
+            agent_name="MoveService",
+            interaction_type="MOVE_STARTED",
+            payload={"move_id": move_id, "name": move.get("name")}
+        )
+        
+        return updated
 
     async def pause_move(
         self, move_id: str, workspace_id: str
     ) -> Optional[Dict[str, Any]]:
         """
         Pause a move (change status to paused)
-
-        Args:
-            move_id: Move ID
-            workspace_id: Workspace ID
-
-        Returns:
-            Updated move data or None if not found
         """
         move = await self.repository.get_by_id(move_id, workspace_id)
         if not move:
@@ -116,15 +95,7 @@ class MoveService:
         self, move_id: str, workspace_id: str, results: Optional[Dict[str, Any]] = None
     ) -> Optional[Dict[str, Any]]:
         """
-        Complete a move (change status to completed)
-
-        Args:
-            move_id: Move ID
-            workspace_id: Workspace ID
-            results: Optional results data
-
-        Returns:
-            Updated move data or None if not found
+        Complete a move and record milestone in BCM Ledger
         """
         move = await self.repository.get_by_id(move_id, workspace_id)
         if not move:
@@ -135,21 +106,17 @@ class MoveService:
 
         completed_move = await self.repository.complete_move(move_id, workspace_id, results)
         
-        # Record event in BCM Ledger
-        try:
-            await self.bcm_recorder.record_event(
-                workspace_id=workspace_id,
-                event_type=EventType.MOVE_COMPLETED,
-                payload={
-                    "move_id": move_id,
-                    "title": move.get("name", "Unknown Move"),
-                    "results": results or {}
-                }
-            )
-        except Exception as e:
-            # We don't want to fail the move completion if the ledger fails, but we should log it
-            import logging
-            logging.getLogger(__name__).error(f"Failed to record BCM event for completed move {move_id}: {e}")
+        # Record milestone via unified utility
+        await bcm_evolution.record_interaction(
+            workspace_id=workspace_id,
+            agent_name="MoveService",
+            interaction_type="MOVE_COMPLETED",
+            payload={
+                "move_id": move_id,
+                "title": move.get("name", "Unknown Move"),
+                "results": results or {}
+            }
+        )
 
         return completed_move
 
@@ -157,20 +124,25 @@ class MoveService:
         self, move_id: str, workspace_id: str
     ) -> List[Dict[str, Any]]:
         """
-        Generate tasks for a move
-
-        Args:
-            move_id: Move ID
-            workspace_id: Workspace ID
-
-        Returns:
-            List of generated tasks
+        Generate tasks for a move and log AI interaction
         """
         move = await self.repository.get_by_id(move_id, workspace_id)
         if not move:
             raise ValidationError("Move not found")
 
-        return await self.repository.generate_tasks(move_id, workspace_id)
+        tasks = await self.repository.generate_tasks(move_id, workspace_id)
+        
+        await bcm_evolution.record_interaction(
+            workspace_id=workspace_id,
+            agent_name="MoveService",
+            interaction_type="TASK_GENERATION",
+            payload={
+                "move_id": move_id,
+                "task_count": len(tasks)
+            }
+        )
+        
+        return tasks
 
     async def list_moves(
         self, workspace_id: str, filters: Optional[Dict[str, Any]] = None

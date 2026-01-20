@@ -3,32 +3,41 @@ BCM State Projector Service
 Reconstructs the current 'Everything' BCM state from historical event logs.
 """
 import logging
+import json
 from typing import List, Dict, Any, Optional
 from backend.schemas.bcm_evolution import BusinessContextEverything, EventType, InteractionRecord
 from backend.schemas.business_context import BrandIdentity, StrategicAudience, MarketPosition
 from backend.core.supabase_mgr import get_supabase_client
+from backend.services.upstash_client import get_upstash_client
 
 logger = logging.getLogger(__name__)
 
 class BCMProjector:
-    """Service for projecting historical events into a live BCM state"""
+    """Service for projecting historical events into a live BCM state with Upstash caching"""
     
-    def __init__(self, db_client=None):
+    def __init__(self, db_client=None, redis_client=None):
         self.db = db_client or get_supabase_client()
+        self.redis = redis_client or get_upstash_client()
         self.table_name = "bcm_events"
 
     async def get_latest_state(self, workspace_id: str, ucid: str) -> BusinessContextEverything:
         """
-        Replay events to build the current state.
-        
-        Args:
-            workspace_id: The UUID of the workspace
-            ucid: The RaptorFlow UCID
-            
-        Returns:
-            The reconstructed BusinessContextEverything state
+        Replay events to build the current state, using Redis for hot cache.
         """
+        cache_key = f"bcm:projected:{workspace_id}:{ucid}"
+        
+        # 1. Try Cache First (Extreme Context Speed)
         try:
+            cached_data = await self.redis.get(cache_key)
+            if cached_data:
+                logger.info(f"BCM Projector: Cache hit for {workspace_id}")
+                return BusinessContextEverything.model_validate(cached_data)
+        except Exception as e:
+            logger.warning(f"BCM Projector: Cache retrieval failed: {e}")
+
+        # 2. Cache Miss: Reconstruct from Ledger (Economy: only done when needed)
+        try:
+            logger.info(f"BCM Projector: Reconstructing state from ledger for {workspace_id}")
             # Fetch all events for this workspace, ordered by creation
             result = await self.db.table(self.table_name) \
                 .select("*") \
@@ -49,12 +58,36 @@ class BCMProjector:
             state.history.total_events = len(events)
             if events:
                 state.history.last_event_id = events[-1].get("id")
+            
+            # 3. Dynamic Evolution Index Calculation (Strategic Maturity)
+            # Base index is 1.0. We add weight for significant events.
+            move_weight = 0.5
+            refinement_weight = 0.3
+            interaction_weight = 0.05
+            
+            moves_count = len(state.history.significant_milestones)
+            refinements_count = len(state.evolved_insights)
+            interactions_count = state.telemetry.total_interactions
+            
+            calculated_index = 1.0 + (moves_count * move_weight) + \
+                               (refinements_count * refinement_weight) + \
+                               (min(interactions_count, 40) * interaction_weight)
+            
+            state.history.evolution_index = min(round(calculated_index, 2), 10.0)
+            
+            # 4. Store in Hot Cache (TTL: 1 hour)
+            await self.redis.set(cache_key, state.model_dump(), ttl=3600)
                 
             return state
             
         except Exception as e:
             logger.error(f"Error projecting BCM state: {str(e)}")
             raise
+
+    async def invalidate_cache(self, workspace_id: str, ucid: str):
+        """Invalidates the projected state cache."""
+        cache_key = f"bcm:projected:{workspace_id}:{ucid}"
+        await self.redis.delete(cache_key)
 
     def _apply_event(self, state: BusinessContextEverything, event: Dict[str, Any]):
         """Apply a single event to the state object"""

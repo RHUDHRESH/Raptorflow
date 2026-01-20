@@ -11,22 +11,26 @@ parameters:
   max_tokens: 2048
 
 prompt: |
-  You are the Evolutionary Intelligence Engine for RaptorFlow. Your task is to analyze the recent history of a founder's business and refine their current strategic context.
+  You are the Evolutionary Intelligence Engine for RaptorFlow. Your goal is to refine the founder's business context with extreme economic precision.
   
-  Current BCM State:
+  CURRENT STRATEGIC STATE:
   {current_bcm}
   
-  Recent Event History:
+  RECENT HISTORY (LEDGER):
   {recent_events}
   
-  Tasks:
-  1. Analyze the 'recent_events' for strategic shifts, completed moves, and user feedback.
-  2. Identify 'evolved_insights' - new realizations that emerged from these events.
-  3. Detect 'contradictions' between the historical events and the current state.
-  4. Propose updates to the Brand Identity, Audience, or Positioning if the history suggests a significant shift.
+  TASK:
+  Analyze the 'recent_events' and identify ONLY the strategic deltas (changes). 
+  Do not suggest updates if the history confirms the current state.
   
-  Return a structured JSON object with the following keys:
-  - "evolved_insights": List of strings
-  - "contradictions": List of objects with "description" and "severity"
-  - "proposed_updates": Object containing potential changes to "identity", "audience", or "positioning"
-  - "evolution_index": A float from 1.0 to 10.0 representing strategic maturity
+  ECONOMY GUIDELINES:
+  1. Identify 'evolved_insights' - Only high-signal realizations.
+  2. If history contradicts current Brand/Audience/Positioning, propose a 'delta_update'.
+  3. Return a minimal JSON payload.
+  
+  OUTPUT SCHEMA:
+  - "evolved_insights": List[str] (Max 3, most critical only)
+  - "delta_updates": Object (Only include keys that NEED changing: "identity", "audience", "positioning")
+  - "evolution_index": float (1.0-10.0)
+  - "rationale": str (One sentence explaining why updates were or were not made)
+

@@ -34,6 +34,7 @@ async def test_semantic_compression_loop(MockAgent):
     mock_db.table.return_value.delete.return_value.in_.return_value.execute = mock_execute_delete
     
     sweeper = BCMSweeper(db_client=mock_db)
+    sweeper.sweep_threshold = 1 # Force sweep for test
     sweeper.agent = mock_agent
     
     result = await sweeper.compress_events(workspace_id="ws-123", ucid="RF-2026-0001")

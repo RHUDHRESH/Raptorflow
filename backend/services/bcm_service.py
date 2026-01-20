@@ -63,3 +63,27 @@ class BCMService:
         except Exception as e:
             logger.error(f"Error in BCM refinement loop: {e}")
             raise
+
+    async def analyze_evolution(self, workspace_id: str, ucid: str) -> Dict[str, Any]:
+        """
+        Recalculates the evolution index and syncs it to the primary workspaces table.
+        """
+        try:
+            # 1. Project the latest state (triggers dynamic calculation)
+            state = await self.projector.get_latest_state(workspace_id, ucid)
+            
+            # 2. Persist to workspaces table for fast high-level lookup
+            await self.db.table("workspaces").update({
+                "evolution_index": state.history.evolution_index,
+                "current_bcm_ucid": ucid
+            }).eq("id", workspace_id).execute()
+            
+            return {
+                "workspace_id": workspace_id,
+                "ucid": ucid,
+                "evolution_index": state.history.evolution_index,
+                "total_events": state.history.total_events
+            }
+        except Exception as e:
+            logger.error(f"Failed to analyze BCM evolution for {workspace_id}: {e}")
+            raise

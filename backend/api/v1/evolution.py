@@ -78,3 +78,21 @@ async def trigger_semantic_sweep(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Semantic sweep failed: {str(e)}"
         )
+
+@router.post("/analyze", status_code=status.HTTP_200_OK)
+async def analyze_and_sync_evolution(
+    request: RefineRequest,
+    auth: AuthContext = Depends(get_auth_context)
+):
+    """
+    Recalculates the Evolution Index and syncs it to the workspace profile.
+    """
+    try:
+        service = BCMService()
+        result = await service.analyze_evolution(workspace_id=auth.workspace_id, ucid=request.ucid)
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Evolution analysis failed: {str(e)}"
+        )

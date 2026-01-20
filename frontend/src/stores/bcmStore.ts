@@ -35,6 +35,19 @@ export interface BusinessContext {
     created_at: string;
     updated_at: string;
   };
+  evolution?: {
+    index: number;
+    insights: string[];
+    contradictions: any[];
+  };
+  history?: {
+    total_events: number;
+    milestones: string[];
+  };
+  telemetry?: {
+    total_interactions: number;
+    recent_activity: any[];
+  };
 }
 
 interface BCMStore {
@@ -51,6 +64,7 @@ interface BCMStore {
   exportBCM: () => string;
   importBCM: (jsonString: string) => { success: boolean; error?: string };
   calculateChecksum: (bcm: Omit<BusinessContext, 'meta'>) => string;
+  syncWithEvolution: (ucid: string) => Promise<void>;
 }
 
 export const useBCMStore = create<BCMStore>()(
@@ -188,6 +202,65 @@ export const useBCMStore = create<BCMStore>()(
         }
         return hash.toString(16);
       },
+
+      // Sync with Evolution API (Everything state)
+      syncWithEvolution: async (ucid) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await fetch(`/api/v1/evolution/state/${ucid}`);
+          if (!response.ok) throw new Error('Failed to fetch evolution state');
+          
+          const data = await response.json();
+          const evolutionState = data.state;
+
+          set((state) => ({
+            bcm: {
+              ...state.bcm!,
+              evolution: {
+                index: evolutionState.history.evolution_index,
+                insights: evolutionState.evolved_insights,
+                contradictions: evolutionState.contradiction_log
+              },
+              history: {
+                total_events: evolutionState.history.total_events,
+                milestones: evolutionState.history.significant_milestones
+              },
+              telemetry: {
+                total_interactions: evolutionState.telemetry.total_interactions,
+                recent_activity: evolutionState.telemetry.recent_interactions
+              }
+            },
+            isLoading: false
+          }));
+        } catch (error) {
+          set({ 
+            error: error instanceof Error ? error.message : 'Sync failed',
+            isLoading: false 
+          });
+        }
+      },
+
+      // Trigger AI Refinement
+      refineBCM: async (ucid) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await fetch('/api/v1/evolution/refine', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ucid })
+          });
+          
+          if (!response.ok) throw new Error('Refinement failed');
+          
+          // Re-sync after refinement
+          await get().syncWithEvolution(ucid);
+        } catch (error) {
+          set({ 
+            error: error instanceof Error ? error.message : 'Refinement failed',
+            isLoading: false 
+          });
+        }
+      }
     }),
     {
       name: 'raptorflow-bcm',

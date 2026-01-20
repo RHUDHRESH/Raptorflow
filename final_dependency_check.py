@@ -114,16 +114,20 @@ class FinalDependencyChecker:
             start_time = time.time()
             
             async with httpx.AsyncClient() as client:
+                url = f"{redis_url}/set/final_check/test_value"
+                print(f"DEBUG: POSTing to {url}")
                 set_response = await client.post(
-                    f"{redis_url}/set/final_check/test_value",
-                    headers={"Authorization": f"Bearer {redis_token}"}
+                    url,
+                    headers={"Authorization": f"Bearer {redis_token.strip()}"}
                 )
                 print(f"DEBUG: Redis SET status: {set_response.status_code}")
                 print(f"DEBUG: Redis SET body: {set_response.text}")
                 
+                url = f"{redis_url}/get/final_check"
+                print(f"DEBUG: GETting from {url}")
                 get_response = await client.get(
-                    f"{redis_url}/get/final_check",
-                    headers={"Authorization": f"Bearer {redis_token}"}
+                    url,
+                    headers={"Authorization": f"Bearer {redis_token.strip()}"}
                 )
                 print(f"DEBUG: Redis GET status: {get_response.status_code}")
                 print(f"DEBUG: Redis GET body: {get_response.text}")

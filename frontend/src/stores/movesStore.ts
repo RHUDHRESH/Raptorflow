@@ -74,24 +74,53 @@ export const useMovesStore = create<MovesState>()(
             fetchMoves: async () => {
                 set({ isLoading: true });
                 try {
-                    // In a real app we'd fetch all moves
-                    // For now we rely on the daily agenda for execution
+                    const response = await fetch('/api/v1/moves/');
+                    if (!response.ok) throw new Error('Failed to fetch moves');
+                    const data = await response.json();
+                    set({ moves: data });
+                } catch (error) {
+                    console.error("Fetch moves failed:", error);
                 } finally {
                     set({ isLoading: false });
                 }
             },
 
-            // Fetch daily agenda from consolidated backend
+            // Fetch calendar events
             fetchDailyAgenda: async () => {
-                const response = await apiClient.getDailyAgenda();
-                return response.data || [];
+                const response = await fetch('/api/v1/moves/calendar/events');
+                const data = await response.json();
+                return data.moves || [];
             },
 
             // Add a new move
-            addMove: (move) => {
-                set((state) => ({
-                    moves: [...state.moves, move],
-                }));
+            addMove: async (move) => {
+                try {
+                    const response = await fetch('/api/v1/moves/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: move.name,
+                            category: move.category,
+                            goal: move.goal,
+                            status: move.status,
+                            duration_days: move.duration
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to create move');
+                    
+                    const created = await response.json();
+                    
+                    set((state) => ({
+                        moves: [...state.moves, { ...move, id: created.id }],
+                    }));
+                } catch (error) {
+                    console.error("Move persistence failed:", error);
+                    // Fallback to local
+                    set((state) => ({
+                        moves: [...state.moves, move],
+                    }));
+                }
             },
 
             // Update Backend Task Status (Industrial Sync)

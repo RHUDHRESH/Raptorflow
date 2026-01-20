@@ -24,6 +24,7 @@ from backend.api.v1 import (
     admin,
     agents,
     analytics,
+    analytics_v2,
     approvals,
     auth,
     blackbox,
@@ -32,6 +33,7 @@ from backend.api.v1 import (
     context,
     council,
     daily_wins,
+    dashboard,
     database_automation,
     database_health,
     # episodes,
@@ -93,6 +95,7 @@ from backend.core.database_scaling import start_database_scaling, stop_database_
 
 # Import payment status service
 from backend.services.payment_status_service import PaymentStatusService
+from backend.services.bcm_sweeper import BCMSweeper
 
 # Import job scheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -349,10 +352,12 @@ app.include_router(muse.router, prefix="/api/v1/muse", tags=["muse"])
 app.include_router(muse_vertex_ai.router, prefix="/api/v1", tags=["muse-vertex-ai"])
 app.include_router(blackbox.router, prefix="/api/v1/blackbox", tags=["blackbox"])
 app.include_router(daily_wins.router, prefix="/api/v1/daily-wins", tags=["daily-wins"])
+app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboard"])
 app.include_router(onboarding.router, prefix="/api/v1/onboarding", tags=["onboarding"])
 app.include_router(onboarding_v2.router, prefix="/api/v1", tags=["onboarding-v2"])
 app.include_router(onboarding_universal.router, prefix="/api/v1/onboarding-universal", tags=["onboarding-universal"])
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
+app.include_router(analytics_v2.router, prefix="/api/v1/analytics-v2", tags=["analytics"])
 app.include_router(memory.router, prefix="/api/v1/memory", tags=["memory"])
 app.include_router(graph.router, prefix="/api/v1/graph", tags=["graph"])
 app.include_router(sessions.router, prefix="/api/v1/sessions", tags=["sessions"])
@@ -444,6 +449,11 @@ async def health_check():
 async def startup_event():
     scheduler = AsyncIOScheduler()
     scheduler.add_job(file_cleanup.delete_expired_originals, "cron", hour=3)
+    
+    # Schedule BCM Semantic Sweep (Daily at 4 AM)
+    sweeper = BCMSweeper()
+    scheduler.add_job(sweeper.sweep_all_workspaces, "cron", hour=4)
+    
     scheduler.start()
 
 

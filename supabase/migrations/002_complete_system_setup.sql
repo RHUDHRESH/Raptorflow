@@ -2,15 +2,15 @@
 -- This migration sets up all tables, RLS policies, functions, and triggers
 
 -- Enable necessary extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
 
 -- Create custom types
 CREATE TYPE user_role AS ENUM ('user', 'admin', 'super_admin', 'support', 'billing_admin');
-CREATE TYPE onboarding_status AS ENUM ('pending_workspace', 'pending_storage', 'pending_plan_selection', 'pending_payment', 'active', 'suspended', 'cancelled');
-CREATE TYPE subscription_status AS ENUM ('trialing', 'active', 'past_due', 'canceled', 'unpaid', 'incomplete');
-CREATE TYPE billing_cycle AS ENUM ('monthly', 'yearly');
+-- CREATE TYPE onboarding_status AS ENUM ('pending_workspace', 'pending_storage', 'pending_plan_selection', 'pending_payment', 'active', 'suspended', 'cancelled');
+-- CREATE TYPE subscription_status AS ENUM ('trialing', 'active', 'past_due', 'canceled', 'unpaid', 'incomplete');
+-- CREATE TYPE billing_cycle AS ENUM ('monthly', 'yearly');
 CREATE TYPE action_category AS ENUM ('auth', 'profile', 'workspace', 'subscription', 'payment', 'admin', 'security');
 CREATE TYPE security_event_type AS ENUM ('login_success', 'login_failure', 'password_change', 'mfa_enabled', 'mfa_disabled', 'suspicious_activity', 'data_export', 'account_deleted');
 
@@ -147,14 +147,14 @@ CREATE TABLE IF NOT EXISTS system_settings (
 
 -- Insert default system settings
 INSERT INTO system_settings (key, value, description, is_public) VALUES
-('maintenance_mode', 'false', 'System maintenance mode toggle', true),
-('max_login_attempts', '5', 'Maximum failed login attempts before lockout', false),
-('session_timeout_hours', '24', 'Session timeout in hours', false),
-('password_min_length', '8', 'Minimum password length', false),
-('enable_mfa_for_admins', 'true', 'Require MFA for admin users', false),
-('data_retention_days', '365', 'Default data retention period in days', false),
-('gdpr_enabled', 'true', 'GDPR compliance enabled', true),
-('support_email', 'support@raptorflow.com', 'Customer support email', true)
+('maintenance_mode', '"false"', 'System maintenance mode toggle', true),
+('max_login_attempts', '"5"', 'Maximum failed login attempts before lockout', false),
+('session_timeout_hours', '"24"', 'Session timeout in hours', false),
+('password_min_length', '"8"', 'Minimum password length', false),
+('enable_mfa_for_admins', '"true"', 'Require MFA for admin users', false),
+('data_retention_days', '"365"', 'Default data retention period in days', false),
+('gdpr_enabled', '"true"', 'GDPR compliance enabled', true),
+('support_email', '"support@raptorflow.com"', 'Customer support email', true)
 ON CONFLICT (key) DO NOTHING;
 
 -- Enhanced RLS Policies
@@ -202,13 +202,7 @@ CREATE POLICY "Super admins can manage roles" ON users
 DROP POLICY IF EXISTS "Users can view own workspaces" ON workspaces;
 CREATE POLICY "Users can view own workspaces" ON workspaces
     FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM user_workspaces 
-            WHERE user_workspaces.workspace_id = workspaces.id 
-            AND user_workspaces.user_id = (
-                SELECT id FROM users WHERE auth.uid() = auth_user_id
-            )
-        )
+        user_id = (SELECT id FROM users WHERE auth.uid() = auth_user_id)
     );
 
 DROP POLICY IF EXISTS "Admins can view all workspaces" ON workspaces;

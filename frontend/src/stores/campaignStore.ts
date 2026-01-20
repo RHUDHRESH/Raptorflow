@@ -41,8 +41,10 @@ export interface CampaignStoreState {
     // Actions
     setActiveCampaign: (id: string | null) => void;
     setView: (view: "LIST" | "DETAIL" | "WIZARD") => void;
-    addCampaign: (campaign: Campaign) => void;
-    updateCampaignMoveStatus: (campaignId: string, moveId: string, newStatus: MoveStatus) => void;
+    addCampaign: (campaign: any) => Promise<void>;
+    updateCampaignMoveStatus: (campaignId: string, moveId: string, newStatus: MoveStatus) => Promise<void>;
+    fetchCampaigns: () => Promise<void>;
+    fetchCalendar: () => Promise<any>;
 
     // Getters
     getActiveCampaign: () => Campaign | undefined;
@@ -77,31 +79,54 @@ export const useCampaignStore = create<CampaignStoreState>()(
 
             setView: (view) => set({ view }),
 
-            addCampaign: (campaign) => set((state) => ({
-                campaigns: [...state.campaigns, campaign]
-            })),
+            fetchCampaigns: async () => {
+                try {
+                    const response = await fetch('/api/v1/campaigns/');
+                    const data = await response.json();
+                    set({ campaigns: data.campaigns || [] });
+                } catch (error) {
+                    console.error("Fetch campaigns failed:", error);
+                }
+            },
 
-            updateCampaignMoveStatus: (campaignId, moveId, newStatus) => {
-                set((state) => ({
-                    campaigns: state.campaigns.map(c => {
-                        if (c.id !== campaignId) return c;
+            fetchCalendar: async () => {
+                const response = await fetch('/api/v1/campaigns/calendar/events');
+                return await response.json();
+            },
 
-                        const updatedMoves = c.moves.map(m =>
-                            m.id === moveId ? { ...m, status: newStatus } : m
-                        );
+            addCampaign: async (campaign) => {
+                try {
+                    const response = await fetch('/api/v1/campaigns/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: campaign.name,
+                            description: campaign.goal
+                        })
+                    });
+                    const created = await response.json();
+                    set((state) => ({
+                        campaigns: [...state.campaigns, created]
+                    }));
+                } catch (error) {
+                    console.error("Add campaign failed:", error);
+                }
+            },
 
-                        // Recalculate progress (simple logic for now)
-                        const totalMoves = updatedMoves.length;
-                        const completedMoves = updatedMoves.filter(m => m.status === "Completed").length;
-                        const progress = totalMoves > 0 ? Math.round((completedMoves / totalMoves) * 100) : 0;
-
-                        return {
-                            ...c,
-                            moves: updatedMoves,
-                            progress
-                        };
-                    })
-                }));
+            updateCampaignMoveStatus: async (campaignId, moveId, newStatus) => {
+                try {
+                    // Sync with Move API status
+                    await fetch(`/api/v1/moves/${moveId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: newStatus.toLowerCase() })
+                    });
+                    
+                    // Re-fetch campaigns to sync full state
+                    await get().fetchCampaigns();
+                } catch (error) {
+                    console.error("Update move status failed:", error);
+                }
             },
 
             getActiveCampaign: () => {

@@ -6,36 +6,26 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardMetrics, Metric } from "@/components/dashboard/DashboardMetrics";
 import { DashboardFocus } from "@/components/dashboard/DashboardFocus";
 import { DashboardActivity, ActivityItem } from "@/components/dashboard/DashboardActivity";
-import { useMovesStore } from "@/stores/movesStore";
-import { useCampaignStore } from "@/stores/campaignStore";
+import { useDashboardStore } from "@/stores/dashboardStore";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { Activity, Target, Users, Zap } from "lucide-react";
-
-/* ══════════════════════════════════════════════════════════════════════════════
-   DASHBOARD — Founder Command Center
-   Quiet Luxury: One decision per screen, editorial calm, decisive clarity.
-   ══════════════════════════════════════════════════════════════════════════════ */
+import { Activity, Target, Users, Zap, TrendingUp, Flame } from "lucide-react";
 
 export default function DashboardPage() {
   const pageRef = useRef<HTMLDivElement>(null);
-  const { moves } = useMovesStore();
-  const { campaigns } = useCampaignStore();
+  const { summary, fetchSummary, isLoading } = useDashboardStore();
   const { user } = useAuth();
 
-  // Calculate active items
-  const activeMoves = moves.filter(
-    (m) => m.status === "active" || m.status === "draft"
-  );
-  const activeCampaigns = campaigns.filter((c) => c.status === "Active");
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
   // Determine system status
-  const systemStatus =
-    activeCampaigns.length === 0 && activeMoves.length === 0
+  const systemStatus = !summary || (summary.active_campaigns.length === 0 && summary.active_moves.length === 0)
       ? "Attention"
       : "Nominal";
 
   // Primary focus move (first active)
-  const primaryMove = activeMoves.length > 0 ? activeMoves[0] : null;
+  const primaryMove = summary?.active_moves?.length ? summary.active_moves[0] : null;
 
   // Extract user name from email
   const userName = user
@@ -43,62 +33,43 @@ export default function DashboardPage() {
     user.email.split("@")[0].slice(1)
     : "Founder";
 
-  // Metrics data
+  // Metrics data from summary
   const metrics: Metric[] = [
     {
+      label: "Evolution Index",
+      value: summary?.evolution_index?.toFixed(1) || "1.0",
+      icon: TrendingUp,
+      trend: "up",
+      trendValue: "Strategy Growth"
+    },
+    {
       label: "Active Moves",
-      value: activeMoves.length,
+      value: summary?.active_moves?.length || 0,
       icon: Zap,
     },
     {
-      label: "Campaigns",
-      value: activeCampaigns.length,
-      trend: "neutral",
-      trendValue: "Stable",
+      label: "Daily Streak",
+      value: summary?.daily_wins_streak || 0,
+      icon: Flame,
+      trend: "up",
+      trendValue: "Consistency"
+    },
+    {
+      label: "Total Wins",
+      value: summary?.workspace_stats?.total_wins || 0,
       icon: Target,
-    },
-    {
-      label: "Est. Reach",
-      value: "12.4k",
-      trend: "up",
-      trendValue: "+12%",
-      icon: Users,
-    },
-    {
-      label: "Engagement",
-      value: "2.8%",
-      trend: "up",
-      trendValue: "+0.4%",
-      icon: Activity,
     },
   ];
 
-  // Recent activity (mock for now - would come from real data)
-  const recentActivity: ActivityItem[] = [
-    {
-      id: "1",
-      type: "campaign",
-      title: "Q1 Launch campaign activated",
-      timestamp: "2h ago",
-      status: "active",
-      href: "/campaigns",
-    },
-    {
-      id: "2",
-      type: "move",
-      title: "Welcome Sequence protocol completed",
-      timestamp: "1d ago",
-      status: "completed",
-      href: "/moves",
-    },
-    {
-      id: "3",
-      type: "cohort",
-      title: "New segment added: Enterprise Early Adopters",
-      timestamp: "2d ago",
-      href: "/cohorts",
-    },
-  ];
+  // Map Muse assets to Activity Items
+  const recentActivity: ActivityItem[] = summary?.recent_muse_assets?.map(asset => ({
+    id: asset.id,
+    type: "muse",
+    title: `Asset Created: ${asset.title}`,
+    timestamp: new Date(asset.created_at).toLocaleDateString(),
+    status: asset.status,
+    href: "/muse"
+  })) || [];
 
   // Entrance animation
   useEffect(() => {

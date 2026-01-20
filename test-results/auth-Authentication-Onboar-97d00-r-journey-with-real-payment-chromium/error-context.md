@@ -1,7 +1,7 @@
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
+- generic [ref=e1]:
   - main [ref=e2]:
     - generic [ref=e4]:
       - link "RaptorFlow" [ref=e5] [cursor=pointer]:
@@ -15,7 +15,7 @@
           - /url: "#how"
         - link "Pricing" [ref=e12] [cursor=pointer]:
           - /url: "#pricing"
-        - link "Log in" [ref=e13] [cursor=pointer]:
+        - link "Log in" [active] [ref=e13] [cursor=pointer]:
           - /url: /login
         - link "Start free" [ref=e14] [cursor=pointer]:
           - /url: /signup

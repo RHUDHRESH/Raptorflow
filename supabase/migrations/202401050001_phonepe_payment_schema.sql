@@ -8,48 +8,38 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- PAYMENT TRANSACTIONS TABLE
 -- ==========================================
 CREATE TABLE IF NOT EXISTS payment_transactions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-
-    -- Transaction identifiers
-    transaction_id VARCHAR(255) UNIQUE NOT NULL,  -- PhonePe transaction ID
-    merchant_order_id VARCHAR(255) UNIQUE NOT NULL,  -- Merchant order ID
-    merchant_transaction_id VARCHAR(255) UNIQUE NOT NULL,  -- Internal transaction ID
-
-    -- Payment details
-    amount BIGINT NOT NULL,  -- Amount in paise
-    currency VARCHAR(3) DEFAULT 'INR',
-
-    -- Customer information
-    customer_id VARCHAR(255),
-    customer_name VARCHAR(255),
-    customer_email VARCHAR(255),
-    customer_mobile VARCHAR(20),
-
-    -- URLs
-    redirect_url TEXT,
-    callback_url TEXT,
-    checkout_url TEXT,
-
-    -- Status tracking
-    status VARCHAR(50) NOT NULL DEFAULT 'INITIATED',  -- INITIATED, PENDING, COMPLETED, FAILED, REFUNDED
-    payment_mode VARCHAR(100),
-
-    -- PhonePe specific fields
-    phonepe_transaction_id VARCHAR(255),
-    payment_instrument JSONB,  -- Store payment instrument details
-
-    -- Metadata
-    metadata JSONB,  -- Additional transaction metadata
-
-    -- Timestamps
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    completed_at TIMESTAMP WITH TIME ZONE,
-
-    -- Constraints
-    CONSTRAINT valid_status CHECK (status IN ('INITIATED', 'PENDING', 'COMPLETED', 'FAILED', 'REFUNDED', 'CANCELLED')),
-    CONSTRAINT positive_amount CHECK (amount > 0)
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4()
 );
+
+-- Add columns individually to avoid conflicts with 001_initial_schema
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(255) UNIQUE;
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS merchant_order_id VARCHAR(255) UNIQUE;
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS merchant_transaction_id VARCHAR(255) UNIQUE;
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS amount BIGINT;
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'INR';
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS customer_id VARCHAR(255);
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS customer_name VARCHAR(255);
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS customer_email VARCHAR(255);
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS customer_mobile VARCHAR(20);
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS redirect_url TEXT;
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS callback_url TEXT;
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS checkout_url TEXT;
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'INITIATED';
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS payment_mode VARCHAR(100);
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS phonepe_transaction_id VARCHAR(255);
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS payment_instrument JSONB;
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS metadata JSONB;
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP WITH TIME ZONE;
+
+-- Note: Constraints might still fail if 001 exists, let's wrap them
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'valid_status') THEN
+        ALTER TABLE payment_transactions ADD CONSTRAINT valid_status CHECK (status IN ('INITIATED', 'PENDING', 'COMPLETED', 'FAILED', 'REFUNDED', 'CANCELLED'));
+    END IF;
+END $$;
 
 -- ==========================================
 -- PAYMENT REFUNDS TABLE
@@ -171,10 +161,12 @@ END;
 $$ language 'plpgsql';
 
 -- Create triggers for updated_at
+DROP TRIGGER IF EXISTS update_payment_transactions_updated_at ON payment_transactions;
 CREATE TRIGGER update_payment_transactions_updated_at
     BEFORE UPDATE ON payment_transactions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_payment_refunds_updated_at ON payment_refunds;
 CREATE TRIGGER update_payment_refunds_updated_at
     BEFORE UPDATE ON payment_refunds
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -342,31 +334,31 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ==========================================
 
 -- Insert sample payment transaction (for development)
-INSERT INTO payment_transactions (
-    transaction_id,
-    merchant_order_id,
-    merchant_transaction_id,
-    amount,
-    currency,
-    customer_id,
-    customer_name,
-    customer_email,
-    customer_mobile,
-    status,
-    metadata
-) VALUES (
-    'TXN123456789',
-    'MO123456789',
-    'MT123456789',
-    10000,  -- 100 INR in paise
-    'INR',
-    'CUST123',
-    'John Doe',
-    'john.doe@example.com',
-    '9876543210',
-    'COMPLETED',
-    '{"source": "web", "device": "desktop"}'
-) ON CONFLICT (transaction_id) DO NOTHING;
+-- INSERT INTO payment_transactions (
+--    transaction_id,
+--    merchant_order_id,
+--    merchant_transaction_id,
+--    amount,
+--    currency,
+--    customer_id,
+--    customer_name,
+--    customer_email,
+--    customer_mobile,
+--    status,
+--    metadata
+-- ) VALUES (
+--    'TXN123456789',
+--    'MO123456789',
+--    'MT123456789',
+--    10000,  -- 100 INR in paise
+--    'INR',
+--    'CUST123',
+--    'John Doe',
+--    'john.doe@example.com',
+--    '9876543210',
+--    'COMPLETED',
+--    '{"source": "web", "device": "desktop"}'
+-- ) ON CONFLICT (transaction_id) DO NOTHING;
 
 -- ==========================================
 -- COMMENTS

@@ -1,11 +1,16 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Authentication & Onboarding', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, request }) => {
     // Clear cookies and localStorage before each test
     await page.context().clearCookies()
     await page.goto('/')
     await page.evaluate(() => localStorage.clear())
+
+    // Reset test user state
+    await request.post('/api/test/reset-user', {
+      data: { email: 'rhudhreshr@gmail.com' }
+    })
   })
 
   test('complete user journey with real payment', async ({ page }) => {
@@ -13,28 +18,12 @@ test.describe('Authentication & Onboarding', () => {
     await page.goto('/')
     
     // Step 2: Click login/register
-    await page.click('[data-testid="auth-button"]')
+    await page.click('text=Log in')
     
     // Step 3: Login with Gmail
-    await page.click('button:has-text("Continue with Google")')
+    await page.click('button:has-text("CONTINUE WITH GOOGLE")')
     
-    // Step 4: Handle Google OAuth
-    await page.fill('input[type="email"]', 'rhudhreshr@gmail.com')
-    await page.click('button:has-text("Next")')
-    
-    // Wait for password input
-    await page.waitForSelector('input[type="password"]', { timeout: 10000 })
-    await page.fill('input[type="password"]', process.env.GMAIL_PASSWORD!)
-    await page.click('button:has-text("Next")')
-    
-    // Step 5: Handle 2FA if prompted
-    if (await page.isVisible('input[name="challenge"]')) {
-      const code = await get2FACode()
-      await page.fill('input[name="challenge"]', code)
-      await page.click('button:has-text("Next")')
-    }
-    
-    // Step 6: Wait for redirect to onboarding
+    // Step 4: Wait for redirect to onboarding (Mock Login auto-redirects)
     await page.waitForURL('**/onboarding')
     await expect(page.locator('h1')).toContainText('Create Your Workspace')
     
@@ -80,8 +69,7 @@ test.describe('Authentication & Onboarding', () => {
     
     // Login again
     await page.goto('/login')
-    await page.click('button:has-text("Continue with Google")')
-    await handleGoogleLogin(page)
+    await page.click('button:has-text("CONTINUE WITH GOOGLE")')
     
     // Should redirect to dashboard
     await page.waitForURL('**/dashboard')
@@ -91,9 +79,8 @@ test.describe('Authentication & Onboarding', () => {
   test('onboarding progress is persistent', async ({ page }) => {
     // Start onboarding
     await page.goto('/')
-    await page.click('[data-testid="auth-button"]')
-    await page.click('button:has-text("Continue with Google")')
-    await handleGoogleLogin(page)
+    await page.click('text=Log in')
+    await page.click('button:has-text("CONTINUE WITH GOOGLE")')
     
     // Complete workspace step
     await page.fill('input#workspace-name', 'Persistent Test')
@@ -120,25 +107,6 @@ test.describe('Authentication & Onboarding', () => {
   })
 })
 
-async function handleGoogleLogin(page: any) {
-  await page.fill('input[type="email"]', 'rhudhreshr@gmail.com')
-  await page.click('button:has-text("Next")')
-  await page.waitForSelector('input[type="password"]')
-  await page.fill('input[type="password"]', process.env.GMAIL_PASSWORD!)
-  await page.click('button:has-text("Next")')
-  
-  if (await page.isVisible('input[name="challenge"]')) {
-    const code = await get2FACode()
-    await page.fill('input[name="challenge"]', code)
-    await page.click('button:has-text("Next")')
-  }
-}
-
-async function get2FACode(): Promise<string> {
-  // Implement 2FA code retrieval (e.g., from authenticator app)
-  return '123456'
-}
-
 async function completePhonePePayment(page: any) {
   // Complete payment in PhonePe UI
   await page.fill('input[name="mobileNumber"]', '9999999999')
@@ -153,9 +121,8 @@ async function completePhonePePayment(page: any) {
 async function createTestUser(page: any) {
   // Helper to create a test user with completed onboarding
   await page.goto('/')
-  await page.click('[data-testid="auth-button"]')
-  await page.click('button:has-text("Continue with Google")')
-  await handleGoogleLogin(page)
+  await page.click('text=Log in')
+  await page.click('button:has-text("CONTINUE WITH GOOGLE")')
   
   // Complete all onboarding steps
   await page.fill('input#workspace-name', `Test ${Date.now()}`)

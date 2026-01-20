@@ -617,3 +617,42 @@ async def archive_campaign(
         )
 
     return {"message": "Campaign archived successfully", "campaign_id": campaign_id}
+
+@router.get("/calendar/events")
+async def get_campaign_calendar(
+    auth_context: AuthContext = Depends(get_auth_context),
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+):
+    """
+    Retrieve all campaign-related events for the calendar view.
+    """
+    supabase = get_supabase_client()
+    
+    # 1. Fetch campaigns within range (or all if not specified)
+    query = supabase.table("campaigns") \
+        .select("id, name, status, start_date, end_date") \
+        .eq("workspace_id", auth_context.workspace_id)
+    
+    if start_date:
+        query = query.gte("start_date", start_date)
+    if end_date:
+        query = query.lte("end_date", end_date)
+        
+    campaigns_res = await query.execute()
+    
+    # 2. Fetch moves associated with campaigns
+    campaign_ids = [c["id"] for c in campaigns_res.data] if campaigns_res.data else []
+    moves = []
+    if campaign_ids:
+        moves_res = await supabase.table("moves") \
+            .select("id, name, campaign_id, status, start_date, end_date") \
+            .in_("campaign_id", campaign_ids) \
+            .execute()
+        moves = moves_res.data or []
+        
+    return {
+        "success": True,
+        "campaigns": campaigns_res.data or [],
+        "moves": moves
+    }

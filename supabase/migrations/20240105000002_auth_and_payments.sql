@@ -40,20 +40,40 @@ ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 
 -- Users can view their own profile
-CREATE POLICY "Users can view own profile" ON user_profiles
-  FOR SELECT USING (auth.uid() = id);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own profile' AND tablename = 'user_profiles') THEN
+        CREATE POLICY "Users can view own profile" ON user_profiles FOR SELECT USING (auth.uid() = id);
+    END IF;
+END
+$$;
 
 -- Users can update their own profile
-CREATE POLICY "Users can update own profile" ON user_profiles
-  FOR UPDATE USING (auth.uid() = id);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update own profile' AND tablename = 'user_profiles') THEN
+        CREATE POLICY "Users can update own profile" ON user_profiles FOR UPDATE USING (auth.uid() = id);
+    END IF;
+END
+$$;
 
 -- Users can insert their own profile
-CREATE POLICY "Users can insert own profile" ON user_profiles
-  FOR INSERT WITH CHECK (auth.uid() = id);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own profile' AND tablename = 'user_profiles') THEN
+        CREATE POLICY "Users can insert own profile" ON user_profiles FOR INSERT WITH CHECK (auth.uid() = id);
+    END IF;
+END
+$$;
 
 -- Users can view their own payments
-CREATE POLICY "Users can view own payments" ON payments
-  FOR SELECT USING (auth.uid() = user_id);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own payments' AND tablename = 'payments') THEN
+        CREATE POLICY "Users can view own payments" ON payments FOR SELECT USING (auth.uid() = user_id);
+    END IF;
+END
+$$;
 
 -- ==========================================
 -- TRIGGERS AND FUNCTIONS
@@ -87,6 +107,7 @@ BEGIN
 END;$$ LANGUAGE plpgsql;
 
 -- Create updated_at trigger
+DROP TRIGGER IF EXISTS handle_updated_at ON user_profiles;
 CREATE TRIGGER handle_updated_at
   BEFORE UPDATE ON user_profiles
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();

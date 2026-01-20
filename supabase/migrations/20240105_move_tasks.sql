@@ -94,9 +94,12 @@ CREATE INDEX IF NOT EXISTS idx_move_tasks_assigned_to ON public.move_tasks(assig
 CREATE INDEX IF NOT EXISTS idx_move_tasks_due_date ON public.move_tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_move_tasks_created_at ON public.move_tasks(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_move_tasks_created_by ON public.move_tasks(created_by);
-CREATE INDEX IF NOT EXISTS idx_move_tasks_tags ON public.move_tasks USING GIN (tags) WITH (jsonb_path_ops);
-CREATE INDEX IF NOT EXISTS idx_move_tasks_dependencies ON public.move_tasks USING GIN (dependencies) WITH (jsonb_path_ops);
-CREATE INDEX IF NOT EXISTS idx_move_tasks_blocking_tasks ON public.move_tasks USING GIN (blocking_tasks) WITH (jsonb_path_ops);
+-- Tags index
+CREATE INDEX IF NOT EXISTS idx_move_tasks_tags ON public.move_tasks USING GIN (tags jsonb_path_ops);
+-- Dependencies index
+CREATE INDEX IF NOT EXISTS idx_move_tasks_dependencies ON public.move_tasks USING GIN (dependencies jsonb_path_ops);
+-- Blocking tasks index
+CREATE INDEX IF NOT EXISTS idx_move_tasks_blocking_tasks ON public.move_tasks USING GIN (blocking_tasks jsonb_path_ops);
 
 -- Vector index for semantic search
 CREATE INDEX IF NOT EXISTS idx_move_tasks_content_embedding

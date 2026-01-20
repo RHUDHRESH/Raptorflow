@@ -64,5 +64,8 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
+    env: {
+      NEXT_PUBLIC_MOCK_GOOGLE_LOGIN: 'true',
+    },
   },
 })

@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Edit3, Save, Download, Upload, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { Edit3, Save, Download, Upload, CheckCircle, AlertCircle, RefreshCw, Zap, TrendingUp, History } from "lucide-react";
 import { useBCMStore, BusinessContext } from "@/stores/bcmStore";
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 
 export function BCMEditor() {
-  const { bcm, setBCM, updateBCM, validateBCM, exportBCM, importBCM, isLoading, error } = useBCMStore();
+  const { bcm, setBCM, updateBCM, validateBCM, exportBCM, importBCM, syncWithEvolution, refineBCM, isLoading, error } = useBCMStore();
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [tempData, setTempData] = useState<Partial<BusinessContext>>({});
   const [validation, setValidation] = useState<{ isValid: boolean; errors: string[] }>({ isValid: true, errors: [] });
@@ -19,6 +19,13 @@ export function BCMEditor() {
       setValidation(validation);
     }
   }, [bcm, validateBCM]);
+
+  const handleRefine = async () => {
+    if (bcm?.foundation.company) {
+      // Use company name as a base for UCID or get it from meta if stored
+      await refineBCM('RF-PROJECTED');
+    }
+  };
 
   const handleSectionEdit = (section: string) => {
     setEditingSection(section);
@@ -144,6 +151,59 @@ export function BCMEditor() {
           </div>
         </BlueprintCard>
       )}
+
+      {/* Evolutionary Intelligence Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <BlueprintCard showCorners padding="md" className="border-[var(--accent)]/30">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xs font-technical text-[var(--muted)] uppercase tracking-wider flex items-center gap-2">
+              <Zap size={12} className="text-[var(--accent)]" />
+              Evolution Index
+            </h3>
+          </div>
+          <div className="text-4xl font-serif text-[var(--ink)] mb-1">
+            {bcm.evolution?.index || '1.0'}<span className="text-lg text-[var(--muted)]">/10</span>
+          </div>
+          <p className="text-xs text-[var(--muted)]">Strategic maturity score based on ledger interactions.</p>
+        </BlueprintCard>
+
+        <BlueprintCard showCorners padding="md">
+          <h3 className="text-xs font-technical text-[var(--muted)] uppercase tracking-wider mb-4 flex items-center gap-2">
+            <TrendingUp size={12} />
+            Evolved Insights
+          </h3>
+          <div className="space-y-2">
+            {bcm.evolution?.insights && bcm.evolution.insights.length > 0 ? (
+              bcm.evolution.insights.map((insight, i) => (
+                <div key={i} className="text-sm text-[var(--ink)] flex items-start gap-2">
+                  <span className="text-[var(--accent)] mt-1">•</span>
+                  {insight}
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-[var(--muted)] italic">No evolved insights yet. Run refinement to analyze history.</p>
+            )}
+          </div>
+        </BlueprintCard>
+
+        <BlueprintCard showCorners padding="md">
+          <h3 className="text-xs font-technical text-[var(--muted)] uppercase tracking-wider mb-4 flex items-center gap-2">
+            <History size={12} />
+            Strategic History
+          </h3>
+          <div className="text-2xl font-serif text-[var(--ink)] mb-1">
+            {bcm.history?.total_events || 0} <span className="text-sm text-[var(--muted)] font-sans">events</span>
+          </div>
+          <div className="text-xs text-[var(--muted)] truncate">
+            Last milestone: {bcm.history?.milestones?.[0] || 'Onboarding'}
+          </div>
+          <div className="mt-4">
+            <BlueprintButton size="sm" onClick={handleRefine} disabled={isLoading} className="w-full text-xs">
+              {isLoading ? 'Refining...' : 'Refine with AI'}
+            </BlueprintButton>
+          </div>
+        </BlueprintCard>
+      </div>
 
       {/* Foundation Section */}
       <BlueprintCard showCorners padding="lg">

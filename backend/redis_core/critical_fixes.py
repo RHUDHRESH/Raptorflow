@@ -300,7 +300,7 @@ CRITICAL_DEPLOYMENT_CHECKLIST = [
     "🟡 MEDIUM: Implement global rate limits",
 ]
 
-print("🔴 CRITICAL SECURITY FIXES IMPLEMENTED")
+print("[CRITICAL] CRITICAL SECURITY FIXES IMPLEMENTED")
 print("=" * 50)
 print("⚠️  IMMEDIATE ACTION REQUIRED:")
 print("1. Implement job payload validation in QueueService")

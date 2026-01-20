@@ -76,6 +76,8 @@ class ContextLoader:
     def __init__(self):
         self.database_tool = DatabaseTool()
         self.tool_registry = get_tool_registry()
+        from backend.services.bcm_projector import BCMProjector
+        self.bcm_projector = BCMProjector()
 
     async def load_context(
         self,
@@ -84,15 +86,30 @@ class ContextLoader:
         session_id: str,
         context_type: str = "full",
     ) -> Dict[str, Any]:
-        """Load context data for the agent."""
+        """Load context data for the agent, including evolved BCM state."""
         try:
             context = {}
 
-            # Load foundation data if available
+            # 1. Load Evolved BCM State (Highest-fidelity strategic context)
+            try:
+                # We use a default UCID or retrieve the active one from workspace
+                # For now, we'll project the latest unified state
+                evolved_bcm = await self.bcm_projector.get_latest_state(workspace_id, ucid="RF-BASELINE")
+                context["evolved_bcm"] = evolved_bcm.model_dump()
+                context["evolution_index"] = evolved_bcm.history.evolution_index
+                context["evolved_insights"] = evolved_bcm.evolved_insights
+                
+                # Ground foundation fields in evolved BCM
+                context["company_name"] = evolved_bcm.identity.name
+                context["industry"] = evolved_bcm.identity.industry
+                context["brand_voice"] = evolved_bcm.identity.brand_voice
+            except Exception as bcm_err:
+                logger.warning(f"Failed to load evolved BCM context: {bcm_err}")
+
+            # 2. Load foundation data (as backup/fallback)
             foundation_data = await self._load_foundation_data(workspace_id)
-            if foundation_data:
+            if foundation_data and "company_name" not in context:
                 context["foundation_summary"] = foundation_data.get("summary", "")
-                context["brand_voice"] = foundation_data.get("brand_voice", "")
                 context["company_name"] = foundation_data.get("company_name", "")
                 context["industry"] = foundation_data.get("industry", "")
                 context["onboarding_completed"] = foundation_data.get(

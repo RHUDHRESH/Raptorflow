@@ -49,16 +49,48 @@ export const useMuseStore = create<MuseStoreState>()(
                 }
             ],
 
-            addAsset: (asset) => set((state) => ({
-                assets: [
-                    {
-                        ...asset,
-                        id: `GEN-${Date.now()}`,
-                        createdAt: new Date().toISOString()
-                    },
-                    ...state.assets
-                ]
-            })),
+            addAsset: async (asset) => {
+                try {
+                    const response = await fetch('/api/v1/muse/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            task: asset.title,
+                            content_type: asset.type.toLowerCase(),
+                            context: { source: asset.source }
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save asset');
+                    
+                    const data = await response.json();
+                    
+                    set((state) => ({
+                        assets: [
+                            {
+                                ...asset,
+                                id: data.metadata?.asset_id || `GEN-${Date.now()}`,
+                                content: data.content || asset.content,
+                                createdAt: new Date().toISOString()
+                            },
+                            ...state.assets
+                        ]
+                    }));
+                } catch (error) {
+                    console.error("Muse persistence failed:", error);
+                    // Fallback to local only if API fails
+                    set((state) => ({
+                        assets: [
+                            {
+                                ...asset,
+                                id: `GEN-${Date.now()}`,
+                                createdAt: new Date().toISOString()
+                            },
+                            ...state.assets
+                        ]
+                    }));
+                }
+            },
 
             updateAsset: (id, updates) => set((state) => ({
                 assets: state.assets.map((asset) =>

@@ -38,6 +38,33 @@ export default function LoginPage() {
                 throw new Error('Supabase client not available');
             }
 
+            // 🛠️ MOCK LOGIN FOR DEVELOPMENT/TESTING
+            if (process.env.NEXT_PUBLIC_MOCK_GOOGLE_LOGIN === 'true') {
+                console.log('🔹 Using Mock Google Login');
+                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
+
+                // Use the test user credentials
+                const { error } = await supabase.auth.signInWithPassword({
+                    email: 'rhudhreshr@gmail.com', // Matching the test expectation
+                    password: process.env.GMAIL_PASSWORD || 'test123456'
+                });
+
+                if (error) {
+                     // If sign in fails (maybe user doesn't exist), try to sign up or use a default test user
+                     console.log('Mock login failed, trying fallback test user');
+                     const { error: fallbackError } = await supabase.auth.signInWithPassword({
+                        email: 'test@raptorflow.local',
+                        password: 'test123456'
+                     });
+                     if (fallbackError) throw fallbackError;
+                }
+                
+                // Redirect manually
+                const callbackUrl = getAuthCallbackUrl();
+                window.location.href = callbackUrl || '/dashboard';
+                return;
+            }
+
             const callbackUrl = getAuthCallbackUrl();
             console.log('🔗 Google OAuth redirect URL:', callbackUrl);
 

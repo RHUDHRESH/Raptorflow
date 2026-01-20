@@ -291,7 +291,7 @@ DEPLOYMENT_SECURITY_CHECKLIST = [
     "✅ Add data persistence and backup strategies",
 ]
 
-print("🔴 CRITICAL SECURITY FIXES IMPLEMENTED")
+print("[CRITICAL] CRITICAL SECURITY FIXES IMPLEMENTED")
 print("=" * 50)
 print("⚠️  IMMEDIATE ACTION REQUIRED:")
 print("1. Set WORKSPACE_KEY_SECRET environment variable")

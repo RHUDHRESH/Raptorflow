@@ -53,6 +53,23 @@ class BCMEventRecorder:
                 
             event_id = result.data[0]["id"]
             logger.info(f"Recorded {event_type} event for workspace {workspace_id}: {event_id}")
+
+            # Invalidate Hot Cache (Extreme Context Freshness)
+            try:
+                from backend.services.upstash_client import get_upstash_client
+                redis = get_upstash_client()
+                # We invalidate all versions for this workspace to be safe
+                pattern = f"bcm:projected:{workspace_id}:*"
+                # Note: Upstash client might need a simple delete for the specific key if ucid is known
+                if ucid:
+                    await redis.delete(f"bcm:projected:{workspace_id}:{ucid}")
+                else:
+                    # Fallback to general invalidation if pattern delete is supported, 
+                    # but usually ucid or a default is present
+                    await redis.delete(f"bcm:projected:{workspace_id}:RF-BASELINE")
+            except Exception as cache_err:
+                logger.warning(f"Failed to invalidate BCM cache: {cache_err}")
+
             return event_id
             
         except Exception as e:
