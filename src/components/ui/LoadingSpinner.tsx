@@ -2,14 +2,38 @@
 
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BlueprintLoader } from "./BlueprintLoader";
 
 interface LoadingSpinnerProps {
     size?: "sm" | "md" | "lg";
     className?: string;
     text?: string;
+    variant?: "classic" | "blueprint";
 }
 
-export function LoadingSpinner({ size = "md", className, text }: LoadingSpinnerProps) {
+/**
+ * Standardized Loading Spinner for RaptorFlow.
+ * Uses BlueprintLoader for technical branding by default.
+ */
+export function LoadingSpinner({ 
+    size = "md", 
+    className, 
+    text,
+    variant = "blueprint" 
+}: LoadingSpinnerProps) {
+    if (variant === "blueprint") {
+        return (
+            <div className={cn("flex flex-col items-center justify-center gap-3", className)}>
+                <BlueprintLoader size={size} />
+                {text && (
+                    <span className="font-technical text-[10px] text-[var(--blueprint)] uppercase tracking-wider">
+                        {text}
+                    </span>
+                )}
+            </div>
+        );
+    }
+
     const sizeClasses = {
         sm: "w-4 h-4",
         md: "w-6 h-6", 
@@ -28,7 +52,7 @@ export function LoadingSpinner({ size = "md", className, text }: LoadingSpinnerP
 
 interface LoadingStateProps {
     isLoading: boolean;
-    error?: Error | null;
+    error?: Error | { message: string } | null;
     children: React.ReactNode;
     fallback?: React.ReactNode;
     errorFallback?: React.ReactNode;
@@ -42,10 +66,11 @@ export function LoadingState({
     errorFallback 
 }: LoadingStateProps): React.ReactElement {
     if (error) {
-        return errorFallback as React.ReactElement || (
+        const message = 'message' in error ? error.message : String(error);
+        return (errorFallback as React.ReactElement) || (
             <div className="text-center py-8">
                 <div className="text-[var(--error)] text-sm mb-2">
-                    Error: {error.message}
+                    Error: {message}
                 </div>
                 <button 
                     onClick={() => window.location.reload()}
@@ -58,8 +83,8 @@ export function LoadingState({
     }
 
     if (isLoading) {
-        return fallback as React.ReactElement || <LoadingSpinner />;
+        return (fallback as React.ReactElement) || <LoadingSpinner />;
     }
 
-    return children as React.ReactElement;
+    return <>{children}</> as React.ReactElement;
 }

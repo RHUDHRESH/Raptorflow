@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { Loader2, RefreshCw, AlertTriangle, XCircle, HelpCircle } from "lucide-react";
+import { RefreshCw, AlertTriangle, XCircle, HelpCircle } from "lucide-react";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
+import { BlueprintLoader } from "@/components/ui/BlueprintLoader";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    STEP LOADING STATE — Consistent loading UI for AI processing
@@ -29,7 +30,7 @@ export function StepLoadingState({
     if (variant === "inline") {
         return (
             <div className="flex items-center gap-2 font-technical text-[var(--blueprint)]">
-                <Loader2 size={12} className="animate-spin" />
+                <BlueprintLoader size="sm" variant="spinner" />
                 <span>{stage || message}</span>
             </div>
         );
@@ -39,15 +40,15 @@ export function StepLoadingState({
         return (
             <BlueprintCard showCorners padding="md">
                 <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-[var(--radius-md)] bg-[var(--blueprint)] flex items-center justify-center ink-bleed-sm">
-                        <Loader2 size={18} className="text-[var(--paper)] animate-spin" />
+                    <div className="w-10 h-10 rounded-[var(--radius-md)] bg-[var(--canvas)] border border-[var(--border)] flex items-center justify-center ink-bleed-sm">
+                        <BlueprintLoader size="md" variant="spinner" />
                     </div>
                     <div className="flex-1">
                         <h3 className="text-sm font-semibold text-[var(--ink)]">{title}</h3>
-                        <p className="font-technical text-[var(--muted)]">{stage || message}</p>
+                        <p className="font-technical text-[var(--muted)] text-[10px] uppercase tracking-wider">{stage || message}</p>
                     </div>
                     {progress !== undefined && (
-                        <span className="font-technical text-[var(--blueprint)]">{progress}%</span>
+                        <span className="font-technical text-[var(--blueprint)] text-xs">{progress}%</span>
                     )}
                 </div>
             </BlueprintCard>
@@ -56,34 +57,36 @@ export function StepLoadingState({
 
     return (
         <div className="flex flex-col items-center justify-center py-16 text-center space-y-6">
-            <div className="w-16 h-16 rounded-[var(--radius-md)] bg-[var(--blueprint)] flex items-center justify-center ink-bleed-md">
-                <Loader2 size={30} className="text-[var(--paper)] animate-spin" />
+            <div className="w-20 h-20 rounded-[var(--radius-md)] bg-[var(--canvas)] border border-[var(--border)] flex items-center justify-center ink-bleed-md">
+                <BlueprintLoader size="lg" variant="spinner" />
             </div>
             <div>
                 <h3 className="font-serif text-xl text-[var(--ink)] mb-2">{title}</h3>
                 <p className="text-sm text-[var(--secondary)] max-w-md mx-auto">{message}</p>
                 {stage && (
-                    <p className="font-technical text-[var(--blueprint)] mt-2">{stage}</p>
+                    <p className="font-technical text-[var(--blueprint)] text-[10px] mt-4 uppercase tracking-widest">{stage}</p>
                 )}
             </div>
             {progress !== undefined && (
                 <div className="w-48">
-                    <div className="flex items-center justify-between font-technical text-[var(--muted)] mb-2">
+                    <div className="flex items-center justify-between font-technical text-[10px] text-[var(--muted)] mb-2 tracking-widest">
                         <span>PROGRESS</span>
                         <span>{progress}%</span>
                     </div>
-                    <div className="h-2 bg-[var(--canvas)] rounded-full overflow-hidden border border-[var(--border-subtle)]">
+                    <div className="h-1 bg-[var(--canvas)] rounded-full overflow-hidden border border-[var(--border-subtle)]">
                         <div
-                            className="h-full bg-[var(--blueprint)] rounded-full transition-all"
+                            className="h-full bg-[var(--blueprint)] transition-all duration-500 ease-out"
                             style={{ width: `${progress}%` }}
                         />
                     </div>
                 </div>
             )}
             {onCancel && (
-                <SecondaryButton size="sm" onClick={onCancel}>
-                    Cancel
-                </SecondaryButton>
+                <div className="pt-4">
+                    <SecondaryButton size="sm" onClick={onCancel}>
+                        Cancel Execution
+                    </SecondaryButton>
+                </div>
             )}
         </div>
     );
@@ -137,7 +140,7 @@ export function StepErrorState({
         },
     };
 
-    const { icon: Icon, color, bg, border, bgLight, defaultTitle } = config[variant];
+    const { icon: Icon, bg, border, bgLight, defaultTitle } = config[variant];
 
     return (
         <BlueprintCard showCorners padding="lg" className={`${border} ${bgLight}`}>
@@ -149,13 +152,13 @@ export function StepErrorState({
                     <h3 className="font-serif text-lg text-[var(--ink)] mb-1">{title || defaultTitle}</h3>
                     <p className="text-sm text-[var(--secondary)]">{message}</p>
                     {details && (
-                        <p className="font-technical text-[var(--muted)] mt-2">{details}</p>
+                        <p className="font-technical text-[var(--muted)] text-[10px] mt-4 uppercase tracking-widest">{details}</p>
                     )}
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 pt-2">
                     {onRetry && (
                         <BlueprintButton size="sm" onClick={onRetry}>
-                            <RefreshCw size={12} strokeWidth={1.5} />
+                            <RefreshCw size={12} strokeWidth={1.5} className="mr-2" />
                             Try Again
                         </BlueprintButton>
                     )}
@@ -200,9 +203,11 @@ export function StepEmptyState({
                     <p className="text-sm text-[var(--secondary)]">{description}</p>
                 </div>
                 {actionLabel && onAction && (
-                    <BlueprintButton size="sm" onClick={onAction}>
-                        {actionLabel}
-                    </BlueprintButton>
+                    <div className="pt-2">
+                        <BlueprintButton size="sm" onClick={onAction}>
+                            {actionLabel}
+                        </BlueprintButton>
+                    </div>
                 )}
             </div>
         </BlueprintCard>
