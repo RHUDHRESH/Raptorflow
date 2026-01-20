@@ -4,7 +4,7 @@ RaptorFlow is a "Founder Marketing Operating System" powered by a SOTA Cognitive
 # Product Guide — RaptorFlow
 
 ## Vision
-RaptorFlow is the **Founder Marketing Operating System**. It is designed to replace "marketing by vibes" with a rigorous, surgical system that converts messy business context into a 90-day war plan and weekly execution moves.
+RaptorFlow is the **Founder Marketing Operating System**. It is designed to replace "marketing by vibes" with a rigorous, surgical system powered by a consolidated, multi-tier backend architecture (Module > Service > Domain).
 
 ## Target Audience
 - **Solo Founders:** Who need to execute high-level marketing without a full team.
@@ -20,6 +20,7 @@ RaptorFlow is the **Founder Marketing Operating System**. It is designed to repl
 - **Auth:** Secure, single-tap Google OAuth.
 - **Payments:** Official PhonePe SDK Integration with Standard Checkout.
 - **ID System:** Unique Customer ID (UCID) in `RF-YYYY-XXXX` format for unified tracking.
+- **Security:** Zero-trust architecture with hardened multi-tenant isolation and strict workspace-level RLS.
 
 ## Core Modules (Cognitive Intelligence Engine Complete)
 - **Foundation:** The source of truth for Brand Kit and positioning. Implements the **Precision Soundbite Framework 3.0** across four strategic phases: JTBD & Jobs, Brand Hierarchy, Mechanism Audit, and Soundbite Studio. Powered by a high-performance **Universal Agent** architecture for multi-step data ingestion and strategic synthesis. (Universal State Sync Implemented)
