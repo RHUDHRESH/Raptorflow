@@ -31,10 +31,10 @@ Refactor existing modules into the new structure while adding test coverage.
 ## Phase 3: Security, Performance & Infrastructure Audit
 Verify the "Cognitive Spine" and data integrity.
 
-- [ ] Task: Comprehensive Security & RLS Audit
-    - [ ] Review all Supabase RLS policies against the "Identity Standard."
-    - [ ] [RED] Write failing integration tests that attempt unauthorized data access.
-    - [ ] [GREEN] Fix any RLS gaps and confirm tests pass.
+- [x] Task: Comprehensive Security & RLS Audit (43aaf0c)
+    - [x] Review all Supabase RLS policies against the "Identity Standard."
+    - [x] [RED] Write failing integration tests that attempt unauthorized data access.
+    - [x] [GREEN] Fix any RLS gaps and confirm tests pass.
 - [ ] Task: Performance Benchmarking
     - [ ] Set up benchmark suites for Titan (Search Multiplexer) and Blackbox (Engine).
     - [ ] Document current latencies and identify optimization bottlenecks.
