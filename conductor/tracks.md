@@ -91,10 +91,6 @@
 *Link: [./tracks/redis_caching_20260120/](./tracks/redis_caching_20260120/)*
 
 
----
-
-- [x] **Track: Sentry Configuration & Ultimate Monitoring**
-*Link: [./tracks/sentry_monitoring_20260120/](./tracks/sentry_monitoring_20260120/)*
 
 ---
 
