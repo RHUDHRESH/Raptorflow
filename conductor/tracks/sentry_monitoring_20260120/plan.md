@@ -36,9 +36,9 @@ Ensure data privacy and establish the notification spine.
 ## Phase 4: Final Audit & Cleanup
 Perform a complete end-to-end verification of the monitoring system.
 
-- [ ] Task: End-to-End Monitoring Verification
-    - [ ] Execute a full user journey (Onboarding -> Strategy -> Moves) and verify the unified trace in Sentry.
-    - [ ] Verify that Session Replays correctly capture the interactions without leaking sensitive UI data.
-- [ ] Task: Legacy Monitoring Cleanup
-    - [ ] Remove any temporary error-triggering routes or debug logs used during setup.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Audit & Cleanup' (Protocol in workflow.md)
+- [x] Task: End-to-End Monitoring Verification (8e26a9e)
+    - [x] Execute a full user journey (Onboarding -> Strategy -> Moves) and verify the unified trace in Sentry.
+    - [x] Verify that Session Replays correctly capture the interactions without leaking sensitive UI data.
+- [x] Task: Legacy Monitoring Cleanup (8e26a9e)
+    - [x] Remove any temporary error-triggering routes or debug logs used during setup.
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Final Audit & Cleanup' (Protocol in workflow.md) (8e26a9e)
