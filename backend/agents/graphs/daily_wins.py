@@ -2,13 +2,13 @@ from typing import Any, Dict, List, Optional, TypedDict, Literal
 from datetime import datetime
 import logging
 import json
+import uuid
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
 from ..state import AgentState
 from backend.core.supabase_mgr import get_supabase_client
-from backend.services.search.searxng import SearXNGClient
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +16,7 @@ class DailyWinState(AgentState):
     """Extended state for the LangGraph Daily Wins Engine."""
     
     # Phase 1: Context Gathering
+    bcm_manifest: Optional[Dict[str, Any]]
     internal_wins: List[Dict[str, Any]]
     recent_moves: List[Dict[str, Any]]
     active_campaigns: List[Dict[str, Any]]
@@ -39,27 +40,34 @@ class DailyWinState(AgentState):
     # Final Result
     final_win: Optional[Dict[str, Any]]
 
-# Schema for the 7 skills' inputs and outputs (Nodes)
-
 async def context_miner_node(state: DailyWinState) -> DailyWinState:
-    """Node: Extracts internal BCM context (wins, moves, campaigns)."""
+    """Node: Extracts internal BCM context using the Unified Context Builder."""
     try:
         workspace_id = state.get("workspace_id")
         supabase = get_supabase_client()
         
-        # 1. Fetch recent moves
-        moves_res = supabase.table("moves").select("*").eq("workspace_id", workspace_id).order("created_at", desc=True).limit(5).execute()
-        state["recent_moves"] = moves_res.data if moves_res.data else []
+        from backend.integration.context_builder import build_business_context_manifest
+        from backend.memory.controller import MemoryController
         
-        # 2. Fetch active campaigns
-        campaigns_res = supabase.table("campaigns").select("*").eq("workspace_id", workspace_id).eq("status", "active").execute()
-        state["active_campaigns"] = campaigns_res.data if campaigns_res.data else []
+        # Build full BCM manifest
+        memory_controller = MemoryController()
+        manifest_data = await build_business_context_manifest(
+            workspace_id=workspace_id,
+            db_client=supabase,
+            memory_controller=memory_controller
+        )
         
-        # 3. Fetch past daily wins for context
+        state["bcm_manifest"] = manifest_data.get("content", {})
+        
+        # Map specific parts for easier access in subsequent nodes
+        state["recent_moves"] = state["bcm_manifest"].get("current_moves", [])
+        state["active_campaigns"] = state["bcm_manifest"].get("active_campaigns", [])
+        
+        # Still fetch past wins for continuity
         wins_res = supabase.table("daily_wins").select("*").eq("workspace_id", workspace_id).order("created_at", desc=True).limit(3).execute()
         state["internal_wins"] = wins_res.data if wins_res.data else []
         
-        logger.info(f"Context Miner: Extracted {len(state['recent_moves'])} moves and {len(state['active_campaigns'])} campaigns.")
+        logger.info(f"Context Miner (BCM): Extracted manifest for workspace {workspace_id}.")
         return state
     except Exception as e:
         logger.error(f"Context Miner Node Error: {e}")
@@ -67,198 +75,92 @@ async def context_miner_node(state: DailyWinState) -> DailyWinState:
         return state
 
 async def trend_mapper_node(state: DailyWinState) -> DailyWinState:
-    """Node: Fetches external trends via search tools (SearXNG, Reddit)."""
+    """Node: Fetches external trends via the Titan Intelligence Engine."""
     try:
-        # Determine search queries based on foundation/industry
-        foundation = state.get("foundation_summary", "marketing trends")
-        query = f"latest {foundation} trends LinkedIn Reddit"
+        from backend.services.titan.tool import TitanIntelligenceTool
         
-        searxng = SearXNGClient()
-        trends = await searxng.query(query, limit=5)
-        await searxng.close()
+        # Determine search queries based on BCM foundation/industry
+        bcm = state.get("bcm_manifest") or {}
+        foundation = bcm.get("foundation") or {}
+        industry = foundation.get("industry", "marketing")
+        business_name = foundation.get("business_name", "our startup")
         
-        state["external_trends"] = trends
-        logger.info(f"Trend Mapper: Found {len(trends)} external trends.")
+        query = f"latest {industry} trends and news relevant to {business_name} LinkedIn Reddit"
+        
+        titan = TitanIntelligenceTool()
+        result = await titan._arun(query=query, mode="LITE")
+        
+        if result.success:
+            state["external_trends"] = result.data
+        else:
+            state["external_trends"] = []
+            
+        logger.info(f"Trend Mapper (Titan): Found trends via Titan Intelligence Engine.")
         return state
     except Exception as e:
         logger.error(f"Trend Mapper Node Error: {e}")
-        state["external_trends"] = [] # Fallback to empty
+        state["external_trends"] = [] 
         return state
-
 
 async def synthesizer_node(state: DailyWinState) -> DailyWinState:
-
-
     """Node: Bridges internal activity with external trends."""
-
-
     try:
-
-
         from ..specialists.daily_wins import DailyWinsGenerator
-
-
         agent = DailyWinsGenerator()
-
-
         
-
-
-        # 1. Prepare data for synthesis
-
-
         moves_str = json.dumps(state.get("recent_moves", [])[:3])
-
-
         trends_str = json.dumps(state.get("external_trends", [])[:3])
-
-
+        feedback = state.get("reflection_feedback", "None")
         
-
-
         prompt = f"""
-
-
-        Merge these internal business 'moves' with these external market 'trends' to find a unique, contrarian angle for a LinkedIn post.
-
-
+        Merge these internal business 'moves' with these external market 'trends' to find a unique, contrarian angle for a {state.get('target_platform', 'LinkedIn')} post.
         
-
-
         INTERNAL MOVES: {moves_str}
-
-
         EXTERNAL TRENDS: {trends_str}
-
-
         
-
-
+        PREVIOUS FEEDBACK (if any): {feedback}
+        
         Focus on 'Editorial Restraint' and 'Surprise'. What is the one non-obvious synthesis?
-
-
+        If feedback was provided, pivot your angle to address it while maintaining surprise.
         """
-
-
         
-
-
-        # Use existing agent's LLM capability
-
-
         narrative = await agent._call_llm(prompt)
-
-
         state["synthesized_narrative"] = narrative
-
-
         logger.info(f"Synthesizer: Narrative generated.")
-
-
         return state
-
-
     except Exception as e:
-
-
         logger.error(f"Synthesizer Node Error: {e}")
-
-
         state["error"] = str(e)
-
-
         return state
-
-
-
-
 
 async def voice_architect_node(state: DailyWinState) -> DailyWinState:
-
-
     """Node: Enforces tone and editorial restraint."""
-
-
     try:
-
-
         from ..specialists.daily_wins import DailyWinsGenerator
-
-
         agent = DailyWinsGenerator()
-
-
         
-
-
         narrative = state.get("synthesized_narrative")
-
-
         if not narrative:
-
-
             state["error"] = "No narrative to architect."
-
-
             return state
-
-
             
-
-
         prompt = f"""
-
-
         Refine this narrative into a high-end, surgical post for {state['target_platform']}.
-
-
         Ensure it mirrors 'MasterClass polish + ChatGPT simplicity'.
-
-
         
-
-
         NARRATIVE: {narrative}
-
-
         
-
-
         Output only the final post content. No hashtags yet.
-
-
         """
-
-
         
-
-
         content = await agent._call_llm(prompt)
-
-
         state["content_draft"] = content
-
-
         logger.info(f"Voice Architect: Content draft refined for {state['target_platform']}.")
-
-
         return state
-
-
     except Exception as e:
-
-
         logger.error(f"Voice Architect Node Error: {e}")
-
-
         state["error"] = str(e)
-
-
         return state
-
-
-
-
 
 async def hook_specialist_node(state: DailyWinState) -> DailyWinState:
     """Node: Generates viral hooks/headlines for the post."""
@@ -271,7 +173,7 @@ async def hook_specialist_node(state: DailyWinState) -> DailyWinState:
             state["error"] = "No content to generate hooks from."
             return state
             
-        prompt = """
+        prompt = f"""
         Generate 3 attention-grabbing hooks/headlines for this post.
         Focus on 'Surprise' and 'Decisiveness'.
         
@@ -281,9 +183,7 @@ async def hook_specialist_node(state: DailyWinState) -> DailyWinState:
         """
         
         res = await agent._call_llm(prompt)
-        # Attempt to parse JSON list
         try:
-            # Basic cleanup if LLM includes markdown
             clean_res = res.strip().replace("```json", "").replace("```", "")
             hooks = json.loads(clean_res)
             state["hooks"] = hooks if isinstance(hooks, list) else [res]
@@ -304,7 +204,7 @@ async def visualist_node(state: DailyWinState) -> DailyWinState:
         agent = DailyWinsGenerator()
         
         content = state.get("content_draft")
-        prompt = """
+        prompt = f"""
         Describe a high-end, cinematic, 'Quiet Luxury' style image that matches this post content.
         The image should feel like a custom editorial shot, not a generic stock photo.
         
@@ -321,7 +221,6 @@ async def visualist_node(state: DailyWinState) -> DailyWinState:
         logger.error(f"Visualist Node Error: {e}")
         state["visual_prompt"] = None
         return state
-
 
 async def skeptic_node(state: DailyWinState) -> DailyWinState:
     """Node: Evaluates the draft for 'Surprise' and 'Editorial Restraint'."""
@@ -341,11 +240,10 @@ async def skeptic_node(state: DailyWinState) -> DailyWinState:
         DRAFT: {content}
         HOOKS: {hooks}
         
-        Output only a JSON object: {{\"score\": float (0.0-1.0), \"feedback\": \"string\"}}
+        Output only a JSON object: {{"score": float (0.0-1.0), "feedback": "string"}}
         """
         
         res = await agent._call_llm(prompt)
-        # Increment iteration count
         state["iteration_count"] = state.get("iteration_count", 0) + 1
         
         try:
@@ -357,13 +255,45 @@ async def skeptic_node(state: DailyWinState) -> DailyWinState:
             state["surprise_score"] = 0.5
             state["reflection_feedback"] = "Failed to parse score."
             
-        # Final win logic
         if state["surprise_score"] >= 0.8:
+            # Calculate additional metrics using agent logic
+            # Use simple class or dict for mocks to satisfy attribute access
+            class MockObj:
+                def __init__(self, **kwargs):
+                    self.__dict__.update(kwargs)
+            
+            mock_req = MockObj(content_type='social', urgency='normal')
+            mock_angle = MockObj(engagement_potential=state["surprise_score"], hook_type='controversy', emotional_trigger='surprise')
+            
+            engagement = agent._calculate_engagement_prediction(
+                mock_req,
+                mock_angle,
+                content or ""
+            )
+            viral = agent._calculate_viral_potential(
+                mock_req,
+                mock_angle,
+                content or ""
+            )
+            
             state["final_win"] = {
+                "id": f"WIN-{uuid.uuid4().hex[:8]}",
+                "topic": state.get("target_platform", "LinkedIn") + " Insight",
+                "angle": "Surprise Synthesis",
+                "hook": content, 
+                "outline": hooks,
                 "content": content,
                 "hooks": hooks,
                 "visual_prompt": state.get("visual_prompt"),
                 "score": state["surprise_score"],
+                "engagement_prediction": engagement,
+                "viral_potential": viral,
+                "follow_up_ideas": [
+                    "Deep dive into the synthesis methodology",
+                    "Community Q&A on this contrarian take"
+                ],
+                "platform": state.get("target_platform", "LinkedIn"),
+                "timeToPost": "~10 min",
                 "generated_at": datetime.now().isoformat()
             }
             logger.info(f"Skeptic: Draft APPROVED with score {state['surprise_score']}.")
@@ -375,7 +305,6 @@ async def skeptic_node(state: DailyWinState) -> DailyWinState:
         logger.error(f"Skeptic Node Error: {e}")
         state["surprise_score"] = 0.0
         return state
-
 
 def should_continue(state: DailyWinState) -> Literal["synthesizer", END]:
     """Conditional edge to decide if we should retry synthesis."""

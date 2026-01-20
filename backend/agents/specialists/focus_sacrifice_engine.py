@@ -1,6 +1,6 @@
 """
 Focus & Sacrifice Engine
-Helps users make strategic tradeoffs in positioning
+Helps users make strategic tradeoffs in positioning via real AI inference
 """
 
 import logging
@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 from datetime import datetime
+import json
 
 from ..base import BaseAgent
 from ..config import ModelTier
@@ -113,12 +114,12 @@ class FocusSacrificeResult:
 
 
 class FocusSacrificeEngine(BaseAgent):
-    """Engine for strategic focus and sacrifice decisions"""
+    """Engine for strategic focus and sacrifice decisions using real inference."""
     
     def __init__(self):
         super().__init__(
             name="FocusSacrificeEngine",
-            description="Recommends strategic focus and sacrifice tradeoffs",
+            description="Recommends strategic focus and sacrifice tradeoffs via real AI inference",
             model_tier=ModelTier.FLASH,
             tools=["database"],
             skills=["strategic_tradeoffs", "positioning_strategy", "resource_allocation"]
@@ -128,58 +129,91 @@ class FocusSacrificeEngine(BaseAgent):
     def get_system_prompt(self) -> str:
         return """You are the FocusSacrificeEngine.
         Your goal is to force strategic clarity by defining what the business will NOT do.
-        For every 'Focus' item, there must be a corresponding 'Sacrifice' item."""
+        For every 'Focus' item, there must be a corresponding 'Sacrifice' item.
+        Be ruthless. Strategy is the art of sacrifice."""
 
-    async def execute(self, state: Any) -> Dict[str, Any]:
-        """Execute focus/sacrifice analysis using current state."""
-        company_info = state.get("business_context", {}).get("identity", {})
-        positioning = state.get("positioning", {})
-        
-        result = await self.analyze_focus_sacrifice(company_info, positioning=positioning)
-        return {"output": result.to_dict()}
-    
     def _generate_id(self, prefix: str) -> str:
         """Generate unique ID"""
         self.counter += 1
         return f"{prefix}-{self.counter:03d}"
 
-    async def analyze_focus_sacrifice(self, company_info: Dict[str, Any], positioning: Dict[str, Any] = None) -> FocusSacrificeResult:
-        """Generation logic"""
-        focus = FocusItem(
-            id=self._generate_id("FOC"),
-            category=FocusCategory.AUDIENCE,
-            description="Enterprise Security Teams",
-            rationale="High ACV and proven problem fit",
-            impact_score=0.9,
-            confidence=0.8
-        )
+    async def execute(self, state: Any) -> Dict[str, Any]:
+        """Execute focus/sacrifice analysis using real AI inference."""
+        company_info = state.get("business_context", {}).get("identity", {})
+        positioning = state.get("positioning", {})
         
-        sacrifice = SacrificeItem(
-            id=self._generate_id("SAC"),
-            category=FocusCategory.AUDIENCE,
-            description="SMB and Consumer segments",
-            rationale="Low margins and high churn risk",
-            impact=SacrificeImpact.HIGH,
-            alternative_message="We're enterprise-first",
-            recovery_path="Self-serve tier in 2027",
-            confidence=0.8
-        )
-        
-        pair = TradeoffPair(
-            id=self._generate_id("TRD"),
-            focus=focus,
-            sacrifice=sacrifice,
-            net_benefit="Maximized sales efficiency",
-            risk_assessment="Slower user count growth",
-            confidence=0.8
-        )
-        
-        return FocusSacrificeResult(
-            focus_items=[focus],
-            sacrifice_items=[sacrifice],
-            tradeoff_pairs=[pair],
-            positioning_statement="Focus on enterprise security, sacrifice SMB breadth.",
-            lightbulb_insights=[{"title": "Constraint is power", "insight": "By saying no to SMB, you become the clear choice for Enterprise."}],
-            recommendations=["Reject low-value leads"],
-            constraint_summary="Selective audience focus."
-        )
+        prompt = f"""Generate a strategic Focus & Sacrifice report.
+
+COMPANY INFO:
+{json.dumps(company_info, indent=2)}
+
+POSITIONING:
+{json.dumps(positioning, indent=2)}
+
+Return a JSON object:
+{{
+  "pairs": [
+    {{
+      "focus": {{ "category": "audience/feature/etc", "description": "...", "rationale": "...", "impact": 0.9 }},
+      "sacrifice": {{ "category": "...", "description": "...", "rationale": "...", "impact": "high/medium/low", "alternative_message": "...", "recovery_path": "..." }},
+      "net_benefit": "...",
+      "risk_assessment": "..."
+    }}
+  ],
+  "lightbulb_insights": [{{ "title": "...", "insight": "..." }}],
+  "recommendations": ["..."],
+  "summary": "..."
+}}"""
+
+        res = await self._call_llm(prompt)
+        try:
+            clean_res = res.strip().replace("```json", "").replace("```", "")
+            raw_data = json.loads(clean_res)
+            
+            focus_items = []
+            sacrifice_items = []
+            tradeoff_pairs = []
+            
+            for p in raw_data.get("pairs", []):
+                f = FocusItem(
+                    id=self._generate_id("FOC"),
+                    category=FocusCategory(p["focus"]["category"].lower()),
+                    description=p["focus"]["description"],
+                    rationale=p["focus"]["rationale"],
+                    impact_score=p["focus"].get("impact", 0.8),
+                    confidence=0.9
+                )
+                s = SacrificeItem(
+                    id=self._generate_id("SAC"),
+                    category=FocusCategory(p["sacrifice"]["category"].lower()),
+                    description=p["sacrifice"]["description"],
+                    rationale=p["sacrifice"]["rationale"],
+                    impact=SacrificeImpact(p["sacrifice"]["impact"].lower()),
+                    alternative_message=p["sacrifice"]["alternative_message"],
+                    recovery_path=p["sacrifice"]["recovery_path"],
+                    confidence=0.9
+                )
+                pair = TradeoffPair(
+                    id=self._generate_id("TRD"),
+                    focus=f,
+                    sacrifice=s,
+                    net_benefit=p["net_benefit"],
+                    risk_assessment=p["risk_assessment"],
+                    confidence=0.9
+                )
+                focus_items.append(f)
+                sacrifice_items.append(s)
+                tradeoff_pairs.append(pair)
+            
+            result = FocusSacrificeResult(
+                focus_items=focus_items,
+                sacrifice_items=sacrifice_items,
+                tradeoff_pairs=tradeoff_pairs,
+                positioning_statement=raw_data.get("summary", ""),
+                lightbulb_insights=raw_data.get("lightbulb_insights", []),
+                recommendations=raw_data.get("recommendations", []),
+                constraint_summary=raw_data.get("summary", "")
+            )
+            return {"output": result.to_dict()}
+        except:
+            return {"output": {"error": "Failed to parse AI focus/sacrifice output"}}

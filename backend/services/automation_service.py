@@ -6,6 +6,7 @@ Manages automated content sequences and trigger-based workflows
 import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timedelta
+import json
 
 try:
     from services.vertex_ai_service import vertex_ai_service
@@ -23,7 +24,7 @@ class AutomationService:
         steps: int = 5, 
         tone: str = "professional"
     ) -> Dict[str, Any]:
-        """Generate a complete multi-step content sequence using AI."""
+        """Generate a complete multi-step content sequence via real AI inference."""
         logger.info(f"Generating automation sequence for goal: {goal}")
         
         if not vertex_ai_service:
@@ -59,31 +60,12 @@ OUTPUT JSON format:
             )
             
             if ai_response["status"] == "success":
-                # Mock result for logic flow
-                return {
-                    "success": True,
-                    "sequence": {
-                        "name": f"Automated {goal}",
-                        "steps": [
-                            {
-                                "step_number": 1,
-                                "day": 0,
-                                "type": "Email",
-                                "subject": "Welcome to the future",
-                                "content_draft": "Hi [Name], thanks for joining...",
-                                "goal": "Onboarding"
-                            },
-                            {
-                                "step_number": 2,
-                                "day": 2,
-                                "type": "LinkedIn",
-                                "subject": "The hidden trap in marketing",
-                                "content_draft": "Most founders make this mistake...",
-                                "goal": "Value delivery"
-                            }
-                        ]
-                    }
-                }
+                try:
+                    clean_res = ai_response["text"].strip().replace("```json", "").replace("```", "")
+                    sequence_data = json.loads(clean_res)
+                    return {"success": True, "sequence": sequence_data}
+                except:
+                    return {"success": False, "error": "Failed to parse AI sequence output"}
             else:
                 return {"success": False, "error": ai_response.get("error", "AI error")}
                 

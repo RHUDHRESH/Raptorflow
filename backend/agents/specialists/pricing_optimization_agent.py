@@ -1,10 +1,11 @@
 """
 Pricing Optimization Specialist Agent
-Analyzes current offer and pricing against benchmarks
+Analyzes current offer and pricing against benchmarks via real AI inference
 """
 
 import logging
 from typing import Any, Dict, List, Optional
+import json
 from ..base import BaseAgent
 from ..config import ModelTier
 from ..state import AgentState
@@ -12,12 +13,12 @@ from ..state import AgentState
 logger = logging.getLogger(__name__)
 
 class PricingOptimizationAgent(BaseAgent):
-    """Specialist agent for offer and pricing analysis."""
+    """Specialist agent for offer and pricing analysis using real inference."""
 
     def __init__(self):
         super().__init__(
             name="PricingOptimizationAgent",
-            description="Analyzes and optimizes business offers and pricing models",
+            description="Analyzes and optimizes business offers and pricing models via real AI inference",
             model_tier=ModelTier.FLASH,
             tools=["database", "web_search"],
             skills=["pricing_analysis", "offer_optimization", "market_benchmarking"]
@@ -29,24 +30,33 @@ class PricingOptimizationAgent(BaseAgent):
         Compare against industry benchmarks and suggest optimizations for revenue and conversion."""
 
     async def execute(self, state: Any) -> Dict[str, Any]:
-        """Execute pricing analysis."""
-        # Mock analysis for now
-        analysis = {
-            "current_offer": "Standard B2B SaaS Subscription",
-            "benchmarks": {
-                "industry_avg": "$49 - $199 / month",
-                "competitor_positioning": "Premium"
-            },
-            "optimizations": [
-                {
-                    "type": "tiering",
-                    "suggestion": "Add a 'Usage-Based' tier to align with cost-to-serve.",
-                    "impact": "high"
-                }
-            ],
-            "score": 78.0
-        }
+        """Execute pricing analysis using real AI inference."""
+        identity = state.get("business_context", {}).get("identity", {})
+        pricing_facts = [f for f in state.get("step_data", {}).get("auto_extraction", {}).get("facts", []) if f.get("category") == "pricing"]
         
-        return {
-            "output": analysis
-        }
+        prompt = f"""Perform a surgical pricing and offer audit.
+
+BUSINESS IDENTITY:
+{json.dumps(identity, indent=2)}
+
+PRICING FACTS:
+{json.dumps(pricing_facts, indent=2)}
+
+Evaluate the current offer and suggest 3 high-impact optimizations.
+Return a JSON object:
+{{
+  "current_offer": "...",
+  "benchmarks": {{ "industry_avg": "...", "competitor_positioning": "..." }},
+  "optimizations": [
+    {{ "type": "...", "suggestion": "...", "impact": "high/medium/low" }}
+  ],
+  "score": 0-100,
+  "rationale": "..."
+}}"""
+
+        res = await self._call_llm(prompt)
+        try:
+            clean_res = res.strip().replace("```json", "").replace("```", "")
+            return {"output": json.loads(clean_res)}
+        except:
+            return {"output": {"error": "Failed to parse AI pricing output"}}

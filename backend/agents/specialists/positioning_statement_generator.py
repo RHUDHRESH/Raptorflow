@@ -1,6 +1,6 @@
 """
 Positioning Statement Generator Agent
-Creates strategic positioning statements and frameworks
+Creates strategic positioning statements and frameworks via real AI inference
 """
 
 import logging
@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 from datetime import datetime
-import re
+import json
 
 from ..base import BaseAgent
 from ..config import ModelTier
@@ -88,109 +88,94 @@ class PositioningResult:
 
 
 class PositioningStatementGenerator(BaseAgent):
-    """AI-powered positioning statement generator"""
+    """AI-powered positioning statement generator using real inference."""
     
     def __init__(self):
         super().__init__(
             name="PositioningStatementGenerator",
-            description="Generates strategic positioning statements and frameworks",
+            description="Generates strategic positioning statements and frameworks via real AI inference",
             model_tier=ModelTier.FLASH,
             tools=["database"],
             skills=["brand_positioning", "copywriting", "strategic_messaging"]
         )
         self.statement_counter = 0
-        self.templates = self._load_templates()
 
     def get_system_prompt(self) -> str:
         return """You are the PositioningStatementGenerator.
         Your goal is to synthesize all research, truths, and strategic decisions into definitive positioning statements.
-        Generate statements across multiple frameworks (Classic, Challenger, Category Creator, etc.)."""
+        Generate statements across multiple frameworks (Classic, Challenger, Category Creator, etc.).
+        Be definitive. Be bold. Use 'Editorial Restraint'."""
 
-    async def execute(self, state: Any) -> Dict[str, Any]:
-        """Execute positioning generation using current state."""
-        company_info = state.get("business_context", {}).get("identity", {})
-        # Merge with other step data
-        step_data = state.get("step_data", {})
-        
-        result = await self.generate_positioning(company_info, step_data)
-        return {"output": result.to_dict()}
-    
-    def _load_templates(self) -> Dict[PositioningFramework, str]:
-        """Load positioning templates"""
-        return {
-            PositioningFramework.CLASSIC: "For {target} who {need}, {product} is the {category} that {benefit}. Unlike {alternative}, we {differentiator}.",
-            PositioningFramework.CHALLENGER: "Most {category} solutions {old_way}. We believe {new_belief}. That's why {product} {approach}.",
-            PositioningFramework.CATEGORY_CREATOR: "We created {new_category} because {audience} deserved a better way to {action}. {product} is the first {category} that {unique_capability}.",
-            PositioningFramework.BENEFIT_FOCUSED: "Get {benefit} without {pain}. {product} helps {audience} {action} so they can {outcome}.",
-            PositioningFramework.COMPARISON: "{product} is like {familiar_reference} for {target}. We make {complex_thing} as simple as {simple_thing}.",
-        }
-    
     def _generate_statement_id(self) -> str:
         self.statement_counter += 1
         return f"POS-{self.statement_counter:03d}"
 
-    def _fill_template(self, template: str, elements: Dict[str, str]) -> str:
-        """Fill template with elements"""
-        result = template
-        for key, value in elements.items():
-            placeholder = "{" + key + "}"
-            if placeholder in result:
-                result = result.replace(placeholder, str(value))
+    async def execute(self, state: Any) -> Dict[str, Any]:
+        """Execute positioning generation using real AI inference."""
+        company_info = state.get("business_context", {}).get("identity", {})
+        step_data = state.get("step_data", {})
         
-        # Remove unfilled placeholders
-        result = re.sub(r'\{[^}]+\}', '[TBD]', result)
-        return result
+        prompt = f"""Synthesize a definitive positioning strategy.
 
-    async def generate_positioning(self, company_info: Dict[str, Any], step_data: Dict[str, Any]) -> PositioningResult:
-        """Generation logic"""
-        elements = {
-            "target": "enterprise security teams",
-            "need": "need to detect threats in milliseconds",
-            "product": company_info.get("company_name", "CyberShield"),
-            "category": "AI Security Platform",
-            "benefit": "ensure 100% data integrity",
-            "alternative": "legacy firewalls",
-            "differentiator": "use deep learning for predictive blocking",
-            "old_way": "react to known threats",
-            "new_belief": "prevention is better than cure",
-            "approach": "predicts the next attack",
-            "new_category": "Predictive Defense",
-            "audience": "modern security analysts",
-            "action": "secure their perimeter",
-            "unique_capability": "predicts unknown zero-day attacks",
-            "pain": "alert fatigue",
-            "outcome": "focus on strategy over firefighting",
-            "familiar_reference": "Stripe",
-            "complex_thing": "cybersecurity",
-            "simple_thing": "a single dashboard",
-        }
-        
-        statements = []
-        for framework, template in self.templates.items():
-            content = self._fill_template(template, elements)
-            statements.append(PositioningStatement(
-                id=self._generate_statement_id(),
-                type=StatementType.FULL,
-                framework=framework,
-                statement=content,
-                audience=elements["target"],
-                key_elements=elements,
-                score=0.9
-            ))
+COMPANY INFO:
+{json.dumps(company_info, indent=2)}
+
+RESEARCH DATA:
+{json.dumps(step_data, indent=2)}
+
+Return a JSON object:
+{{
+  "statements": [
+    {{ 
+      "framework": "classic/challenger/etc", 
+      "type": "full/elevator/tagline",
+      "statement": "...",
+      "audience": "...",
+      "key_elements": {{ "target": "...", "benefit": "...", "differentiator": "..." }},
+      "score": 0.0-1.0
+    }}
+  ],
+  "only_we_claims": ["..."],
+  "matrix": {{
+    "axes": ["...", "..."],
+    "your_position": {{ "axis1": 8, "axis2": 9 }},
+    "competitor_positions": {{ "Comp A": {{ "axis1": 5, "axis2": 4 }} }},
+    "white_space": "..."
+  }},
+  "recommendations": ["..."],
+  "summary": "..."
+}}"""
+
+        res = await self._call_llm(prompt)
+        try:
+            clean_res = res.strip().replace("```json", "").replace("```", "")
+            raw_data = json.loads(clean_res)
             
-        primary = statements[0]
-        matrix = PositioningMatrix(
-            axes=["Price", "Performance"],
-            your_position={"Price": 8, "Performance": 9},
-            competitor_positions={"Comp X": {"Price": 5, "Performance": 6}},
-            white_space="High performance gap"
-        )
-        
-        return PositioningResult(
-            statements=statements,
-            primary_statement=primary,
-            matrix=matrix,
-            only_we_claims=["Only we offer predictive blocking"],
-            recommendations=["Highlight zero-day protection"],
-            summary="Strategic positioning defined."
-        )
+            statements = [
+                PositioningStatement(
+                    id=self._generate_statement_id(),
+                    type=StatementType(s["type"].lower() if s["type"].lower() in [t.value for t in StatementType] else "full"),
+                    framework=PositioningFramework(s["framework"].lower() if s["framework"].lower() in [f.value for f in PositioningFramework] else "classic"),
+                    statement=s["statement"],
+                    audience=s["audience"],
+                    key_elements=s["key_elements"],
+                    score=s.get("score", 0.0)
+                )
+                for s in raw_data.get("statements", [])
+            ]
+            
+            primary = statements[0] if statements else None
+            matrix_data = raw_data.get("matrix")
+            matrix = PositioningMatrix(**matrix_data) if matrix_data else None
+            
+            result = PositioningResult(
+                statements=statements,
+                primary_statement=primary,
+                matrix=matrix,
+                only_we_claims=raw_data.get("only_we_claims", []),
+                recommendations=raw_data.get("recommendations", []),
+                summary=raw_data.get("summary", "")
+            )
+            return {"output": result.to_dict()}
+        except:
+            return {"output": {"error": "Failed to parse AI positioning output"}}

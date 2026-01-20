@@ -6,6 +6,7 @@ Analyzes and applies unique brand voice profiles using AI
 import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
+import json
 
 try:
     from services.vertex_ai_service import vertex_ai_service
@@ -18,24 +19,11 @@ class BrandVoiceService:
     """Service for learning and enforcing brand voice."""
 
     def __init__(self):
-        # Mock storage
-        self.profiles = {
-            "test-user": {
-                "name": "Direct & Authoritative",
-                "tone": "confident, punchy, no-fluff",
-                "style_rules": [
-                    "Use short, punchy sentences",
-                    "Avoid passive voice",
-                    "Focus on ROI and metrics",
-                    "Use active verbs"
-                ],
-                "vocabulary": ["ROI", "Leverage", "Strategic", "Decisive"],
-                "last_updated": datetime.now().isoformat()
-            }
-        }
+        # Mock storage - would be database in production
+        self.profiles = {}
 
     async def analyze_brand_voice(self, content_samples: List[str], user_id: str) -> Dict[str, Any]:
-        """Analyze content samples to extract a brand voice profile."""
+        """Analyze content samples to extract a brand voice profile via AI inference."""
         logger.info(f"Analyzing brand voice for user {user_id}")
         
         if not vertex_ai_service:
@@ -66,10 +54,15 @@ OUTPUT JSON format:
             )
             
             if ai_response["status"] == "success":
-                # Mock parsing and storage
-                profile = {"name": "Analyzed Voice", "tone": "Professional", "style_rules": ["Be clear"]}
-                self.profiles[user_id] = profile
-                return {"success": True, "profile": profile}
+                try:
+                    # Clean and parse JSON
+                    clean_res = ai_response["text"].strip().replace("```json", "").replace("```", "")
+                    profile = json.loads(clean_res)
+                    profile["last_updated"] = datetime.now().isoformat()
+                    self.profiles[user_id] = profile
+                    return {"success": True, "profile": profile}
+                except:
+                    return {"success": False, "error": "Failed to parse AI profile output"}
             else:
                 return {"success": False, "error": ai_response.get("error", "AI error")}
                 
@@ -82,13 +75,34 @@ OUTPUT JSON format:
         return self.profiles.get(user_id)
 
     async def apply_brand_voice(self, content: str, user_id: str) -> str:
-        """Refine content to match the user's brand voice profile."""
+        """Refine content to match the user's brand voice profile via real AI inference."""
         profile = await self.get_profile(user_id)
-        if not profile:
+        if not profile or not vertex_ai_service:
             return content
             
-        # In a real implementation, this would call Gemini to rewrite the content
-        # based on the profile's style rules and tone.
-        return f"[Refined for {profile['name']}]\n{content}"
+        prompt = f"""Rewrite the following content to match this Brand Voice Profile.
+
+PROFILE:
+{json.dumps(profile, indent=2)}
+
+CONTENT TO REWRITE:
+{content}
+
+Ensure the core message and meaning remain unchanged, but the tone and style adhere strictly to the profile."""
+
+        try:
+            ai_response = await vertex_ai_service.generate_text(
+                prompt=prompt,
+                workspace_id="brand-voice-apply",
+                user_id=user_id,
+                max_tokens=1000
+            )
+            
+            if ai_response["status"] == "success":
+                return ai_response["text"]
+            return content
+        except Exception as e:
+            logger.error(f"Applying brand voice failed: {e}")
+            return content
 
 brand_voice_service = BrandVoiceService()

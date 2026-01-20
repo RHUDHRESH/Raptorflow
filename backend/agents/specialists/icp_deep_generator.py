@@ -1,6 +1,6 @@
 """
 ICP Deep Generator Agent
-Creates comprehensive Ideal Customer Profile with psychographics
+Creates comprehensive Ideal Customer Profile via real AI inference
 """
 
 import logging
@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 from datetime import datetime
+import json
 
 from ..base import BaseAgent
 from ..config import ModelTier
@@ -163,12 +164,12 @@ class ICPGenerationResult:
 
 
 class ICPDeepGenerator(BaseAgent):
-    """AI-powered comprehensive ICP generator"""
+    """AI-powered comprehensive ICP generator using real inference."""
     
     def __init__(self):
         super().__init__(
             name="ICPDeepGenerator",
-            description="Generates deep ICP profiles with firmographics and psychographics",
+            description="Generates deep ICP profiles via real AI inference",
             model_tier=ModelTier.FLASH,
             tools=["database"],
             skills=["customer_profiling", "market_segmentation", "buyer_persona_development"]
@@ -181,16 +182,9 @@ class ICPDeepGenerator(BaseAgent):
     def get_system_prompt(self) -> str:
         return """You are the ICPDeepGenerator.
         Your goal is to define the Ideal Customer Profile (ICP) across 3 tiers (Primary, Secondary, Tertiary).
-        For each tier, define Firmographics, Psychographics, Pain Points, and Buying Triggers."""
+        For each tier, define Firmographics, Psychographics, Pain Points, and Buying Triggers.
+        Be specific. Avoid generic labels. Use behavioral science markers."""
 
-    async def execute(self, state: Any) -> Dict[str, Any]:
-        """Execute ICP generation using current state."""
-        company_info = state.get("business_context", {}).get("identity", {})
-        positioning = state.get("positioning", {})
-        
-        result = await self.generate_icp_profiles(company_info, positioning)
-        return {"output": result.to_dict()}
-    
     def _generate_icp_id(self) -> str:
         self.icp_counter += 1
         return f"ICP-{self.icp_counter:03d}"
@@ -207,44 +201,87 @@ class ICPDeepGenerator(BaseAgent):
         self.disq_counter += 1
         return f"DISQ-{self.disq_counter:03d}"
 
-    async def generate_icp_profiles(self, company_info: Dict[str, Any], positioning: Dict[str, Any]) -> ICPGenerationResult:
-        """Mock generation logic for Step 15."""
+    async def execute(self, state: Any) -> Dict[str, Any]:
+        """Execute ICP generation using real AI inference."""
+        company_info = state.get("business_context", {}).get("identity", {})
+        positioning = state.get("positioning", {})
         
-        primary_icp = ICPProfile(
-            id=self._generate_icp_id(),
-            name="Enterprise Security Guard",
-            tier=ICPTier.PRIMARY,
-            description="High-security enterprise teams needing real-time AI defense",
-            firmographics=Firmographics(
-                company_size="5000+ employees",
-                revenue_range="$1B+ ARR",
-                industry="Finance / Critical Infrastructure",
-                stage=CompanyStage.ENTERPRISE
-            ),
-            psychographics=Psychographics(
-                motivations=["Risk mitigation", "Regulatory compliance"],
-                fears=["Zero-day exploits", "Data exfiltration"],
-                values=["Integrity", "Security"],
-                decision_style="Data-driven",
-                risk_tolerance="Low",
-                information_sources=["Gartner", "Security Forums"],
-                preferred_communication="Direct / Case Studies"
-            ),
-            pain_points=[PainPoint(id=self._generate_pain_id(), description="Alert fatigue", severity="High", frequency="Daily")],
-            trigger_events=[TriggerEvent(id=self._generate_trigger_id(), event="Recent breach in sector", timing="Immediate", urgency_level="Critical", signals=["News"])],
-            disqualifiers=[Disqualifier(id=self._generate_disq_id(), criterion="Legacy air-gapped system", reason="No cloud connectivity", is_hard=True)],
-            buyer_types=[BuyerType.ECONOMIC, BuyerType.TECHNICAL],
-            key_stakeholders=["CISO", "VP Infrastructure"],
-            key_messages=["Secure your future with AI", "Eliminate zero-day gaps"],
-            objections=["Too expensive", "AI is a black box"],
-            estimated_deal_size="$100k-$500k",
-            sales_cycle_length="6-12 months",
-            win_rate_estimate="30%"
-        )
-        
-        return ICPGenerationResult(
-            profiles=[primary_icp],
-            primary_icp=primary_icp,
-            recommendations=["Focus on Fortune 500 Financials"],
-            summary="Primary ICP profile generated."
-        )
+        prompt = f"""Generate a 3-tier ICP report.
+
+COMPANY INFO:
+{json.dumps(company_info, indent=2)}
+
+POSITIONING:
+{json.dumps(positioning, indent=2)}
+
+Return a JSON object:
+{{
+  "profiles": [
+    {{
+      "tier": "primary/secondary/tertiary",
+      "name": "...",
+      "description": "...",
+      "firmographics": {{ "company_size": "...", "industry": "...", "stage": "startup/growth/scale/enterprise/mature" }},
+      "psychographics": {{ "motivations": ["..."], "fears": ["..."], "values": ["..."], "decision_style": "...", "risk_tolerance": "..." }},
+      "pain_points": [{{ "description": "...", "severity": "high/medium/low" }}],
+      "trigger_events": [{{ "event": "...", "urgency": "high/medium/low" }}],
+      "disqualifiers": [{{ "criterion": "...", "reason": "...", "is_hard": true }}],
+      "buyer_types": ["economic", "technical", "user"],
+      "key_messages": ["..."],
+      "estimated_deal_size": "...",
+      "sales_cycle_length": "..."
+    }}
+  ],
+  "recommendations": ["..."],
+  "summary": "..."
+}}"""
+
+        res = await self._call_llm(prompt)
+        try:
+            clean_res = res.strip().replace("```json", "").replace("```", "")
+            raw_data = json.loads(clean_res)
+            
+            profiles = []
+            for p in raw_data.get("profiles", []):
+                profile = ICPProfile(
+                    id=self._generate_icp_id(),
+                    name=p["name"],
+                    tier=ICPTier(p["tier"].lower()),
+                    description=p["description"],
+                    firmographics=Firmographics(
+                        company_size=p["firmographics"]["company_size"],
+                        revenue_range="TBD",
+                        industry=p["firmographics"]["industry"],
+                        stage=CompanyStage(p["firmographics"]["stage"].lower())
+                    ),
+                    psychographics=Psychographics(
+                        motivations=p["psychographics"]["motivations"],
+                        fears=p["psychographics"]["fears"],
+                        values=p["psychographics"]["values"],
+                        decision_style=p["psychographics"]["decision_style"],
+                        risk_tolerance=p["psychographics"]["risk_tolerance"],
+                        information_sources=[],
+                        preferred_communication="TBD"
+                    ),
+                    pain_points=[PainPoint(id=self._generate_pain_id(), description=pp["description"], severity=pp["severity"], frequency="TBD") for pp in p.get("pain_points", [])],
+                    trigger_events=[TriggerEvent(id=self._generate_trigger_id(), event=te["event"], timing="TBD", urgency_level=te["urgency"], signals=[]) for te in p.get("trigger_events", [])],
+                    disqualifiers=[Disqualifier(id=self._generate_disq_id(), criterion=dq["criterion"], reason=dq["reason"], is_hard=dq["is_hard"]) for dq in p.get("disqualifiers", [])],
+                    buyer_types=[BuyerType(bt.lower()) for bt in p.get("buyer_types", [])],
+                    key_stakeholders=[],
+                    key_messages=p.get("key_messages", []),
+                    objections=[],
+                    estimated_deal_size=p.get("estimated_deal_size", ""),
+                    sales_cycle_length=p.get("sales_cycle_length", ""),
+                    win_rate_estimate="TBD"
+                )
+                profiles.append(profile)
+            
+            result = ICPGenerationResult(
+                profiles=profiles,
+                primary_icp=profiles[0] if profiles else None,
+                recommendations=raw_data.get("recommendations", []),
+                summary=raw_data.get("summary", "")
+            )
+            return {"output": result.to_dict()}
+        except:
+            return {"output": {"error": "Failed to parse AI ICP output"}}

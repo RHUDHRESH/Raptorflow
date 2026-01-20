@@ -35,6 +35,12 @@ interface ContentWin {
     outline: string[];
     platform: string;
     timeToPost: string;
+    score?: number;
+    intelligenceBrief?: string;
+    visualPrompt?: string;
+    engagementPrediction?: number;
+    viralPotential?: number;
+    followUpIdeas?: string[];
 }
 
 const CONTENT_IDEAS = [
@@ -90,6 +96,7 @@ export default function DailyWinsPage() {
     const cardRef = useRef<HTMLDivElement>(null);
     const [contentWin, setContentWin] = useState<ContentWin | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isSurprising, setIsSurprising] = useState(false);
     const [copied, setCopied] = useState(false);
     const [streak, setStreak] = useState(0);
     const [totalWins, setTotalWins] = useState(0);
@@ -110,14 +117,13 @@ export default function DailyWinsPage() {
 
     const { user, profile } = useAuth();
 
-    const generateWin = async () => {
+    const generateWin = async (surprise: boolean = false) => {
         setIsGenerating(true);
+        setIsSurprising(surprise);
 
         try {
             const workspaceId = profile?.workspace_id;
             if (!workspaceId) {
-                // Determine what to do if no workspace.
-                // Fallback to local
                 throw new Error("No workspace ID");
             }
 
@@ -129,23 +135,30 @@ export default function DailyWinsPage() {
                 body: JSON.stringify({
                     workspace_id: workspaceId,
                     user_id: user?.id,
-                    time_constraint: 15
+                    force_refresh: surprise
                 })
             });
 
             if (!response.ok) throw new Error("Failed to generate win");
 
             const data = await response.json();
-            if (data.success && data.wins && data.wins.length > 0) {
-                const win = data.wins[0];
+            
+            if (data.success && data.win) {
+                const win = data.win;
                 setContentWin({
                     id: win.id || `WIN-${Date.now()}`,
                     topic: win.topic || "Daily Insight",
                     angle: win.angle || "Strategic View",
-                    hook: win.hook || win.topic,
-                    outline: win.outline ? (Array.isArray(win.outline) ? win.outline : win.outline.split('\n')) : ["Context", "Action", "Result"],
+                    hook: win.hook || win.content,
+                    outline: win.hooks || (Array.isArray(win.outline) ? win.outline : ["Context", "Action", "Result"]),
                     platform: win.platform || "LinkedIn",
-                    timeToPost: `~${win.estimated_time || 10} min`
+                    timeToPost: win.timeToPost || "~10 min",
+                    score: win.score,
+                    intelligenceBrief: win.content,
+                    visualPrompt: win.visual_prompt,
+                    engagementPrediction: win.engagement_prediction,
+                    viralPotential: win.viral_potential,
+                    followUpIdeas: win.follow_up_ideas
                 });
             } else {
                 throw new Error("No wins returned");
@@ -171,6 +184,7 @@ export default function DailyWinsPage() {
             }, 800);
         } finally {
             setIsGenerating(false);
+            setIsSurprising(false);
         }
     };
 
@@ -260,16 +274,26 @@ export default function DailyWinsPage() {
                                 Get a quick content idea you can write and post in 10 minutes or less.
                             </p>
 
-                            <button
-                                onClick={generateWin}
-                                className="flex items-center gap-2 px-6 py-3 mx-auto bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 transition-all font-medium"
-                            >
-                                <Zap size={16} />
-                                Get Today's Win
-                            </button>
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <button
+                                    onClick={() => generateWin(false)}
+                                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-[var(--surface)] text-[var(--ink)] border border-[var(--border)] rounded-[var(--radius)] hover:bg-[var(--surface)]/80 transition-all font-medium"
+                                >
+                                    <Zap size={16} />
+                                    Get Today's Win
+                                </button>
 
-                            <p className="mt-4 text-xs text-[var(--muted)]">
-                                Quick, focused, satisfying.
+                                <button
+                                    onClick={() => generateWin(true)}
+                                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-[var(--ink)] text-white rounded-[var(--radius)] hover:bg-[var(--ink)]/90 shadow-lg shadow-[var(--ink)]/10 transition-all font-medium group"
+                                >
+                                    <Sparkles size={16} className="group-hover:animate-pulse" />
+                                    Surprise Me
+                                </button>
+                            </div>
+
+                            <p className="mt-6 text-xs text-[var(--muted)]">
+                                {isSurprising ? "Deep trend mapping in progress..." : "Quick, focused, satisfying."}
                             </p>
                         </div>
                     )}
@@ -280,7 +304,9 @@ export default function DailyWinsPage() {
                             <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center">
                                 <RefreshCw size={18} className="text-[var(--muted)] animate-spin" />
                             </div>
-                            <p className="text-[var(--muted)]">Finding your win...</p>
+                            <p className="text-[var(--muted)] font-serif italic">
+                                {isSurprising ? "Synthesizing market surprises..." : "Finding your win..."}
+                            </p>
                         </div>
                     )}
 
@@ -296,6 +322,12 @@ export default function DailyWinsPage() {
                                     <span className="px-3 py-1 bg-[var(--surface)] text-[var(--muted)] text-xs rounded-full border border-[var(--border)]">
                                         {contentWin.platform}
                                     </span>
+                                    {contentWin.score && (
+                                        <span className="px-3 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-full border border-amber-100 flex items-center gap-1">
+                                            <Zap size={10} fill="currentColor" />
+                                            {Math.round(contentWin.score * 100)} Surprise
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-1 text-xs text-[var(--muted)]">
                                     <Clock size={12} />
@@ -305,28 +337,102 @@ export default function DailyWinsPage() {
 
                             {/* Main Card */}
                             <BlueprintCard showCorners padding="none">
-                                {/* Hook */}
+                                {/* Hook / Post Content */}
                                 <div className="p-6 border-b border-[var(--border)]">
                                     <p className="text-xs text-[var(--muted)] uppercase tracking-wide mb-2 font-medium">{contentWin.angle}</p>
-                                    <p className="text-lg text-[var(--ink)] leading-relaxed font-medium">
-                                        "{contentWin.hook}"
-                                    </p>
+                                    <div className="text-lg text-[var(--ink)] leading-relaxed font-serif whitespace-pre-wrap">
+                                        {contentWin.hook}
+                                    </div>
                                 </div>
 
-                                {/* Outline */}
+                                {/* Intelligence Brief (Narrative) if available */}
+                                {contentWin.intelligenceBrief && contentWin.score && (
+                                    <div className="p-6 bg-amber-50/30 border-b border-amber-100/50 space-y-6">
+                                        <div>
+                                            <p className="text-[10px] text-amber-700 uppercase tracking-[0.2em] mb-3 font-bold">Intelligence Brief</p>
+                                            <div className="text-sm text-amber-900/80 leading-relaxed italic">
+                                                "{contentWin.intelligenceBrief.split('\n')[0]}..." 
+                                                <span className="text-[10px] ml-2 font-bold uppercase cursor-help" title={contentWin.intelligenceBrief}>[Full Logic]</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Strategic Forecast */}
+                                        <div className="grid grid-cols-2 gap-6 pt-4 border-t border-amber-100/30">
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between items-center text-[10px] text-amber-700 font-bold uppercase tracking-wider">
+                                                    <span>Engagement</span>
+                                                    <span>{Math.round((contentWin.engagementPrediction || 0) * 100)}%</span>
+                                                </div>
+                                                <div className="h-1 bg-amber-100 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-amber-500 rounded-full transition-all duration-1000" 
+                                                        style={{ width: `${(contentWin.engagementPrediction || 0) * 100}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between items-center text-[10px] text-amber-700 font-bold uppercase tracking-wider">
+                                                    <span>Viral Potential</span>
+                                                    <span>{Math.round((contentWin.viralPotential || 0) * 100)}%</span>
+                                                </div>
+                                                <div className="h-1 bg-amber-100 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-orange-500 rounded-full transition-all duration-1000" 
+                                                        style={{ width: `${(contentWin.viralPotential || 0) * 100}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Follow-up Strategy */}
+                                        {contentWin.followUpIdeas && contentWin.followUpIdeas.length > 0 && (
+                                            <div className="pt-4 border-t border-amber-100/30">
+                                                <p className="text-[10px] text-amber-700 uppercase tracking-wider mb-3 font-bold flex items-center gap-2">
+                                                    <ArrowRight size={10} />
+                                                    Momentum Strategy
+                                                </p>
+                                                <ul className="space-y-2">
+                                                    {contentWin.followUpIdeas.map((idea, idx) => (
+                                                        <li key={idx} className="text-xs text-amber-900/70 flex items-center gap-2">
+                                                            <div className="w-1 h-1 rounded-full bg-amber-400" />
+                                                            {idea}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Outline / Hooks */}
                                 <div className="p-6 bg-[var(--surface)]">
-                                    <p className="text-xs text-[var(--muted)] uppercase tracking-wide mb-4 font-medium">Structure</p>
+                                    <p className="text-xs text-[var(--muted)] uppercase tracking-wide mb-4 font-medium">
+                                        {contentWin.intelligenceBrief ? "Alternative Hooks" : "Structure"}
+                                    </p>
                                     <div className="space-y-3">
                                         {contentWin.outline.map((step, i) => (
-                                            <div key={i} className="flex items-center gap-3">
-                                                <div className="w-6 h-6 rounded-full bg-[var(--ink)] text-white text-xs font-bold flex items-center justify-center shrink-0">
+                                            <div key={i} className="flex items-start gap-3">
+                                                <div className="w-5 h-5 rounded-full bg-[var(--ink)]/10 text-[var(--ink)] text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                                                     {i + 1}
                                                 </div>
-                                                <span className="text-sm text-[var(--ink)]">{step}</span>
+                                                <span className="text-sm text-[var(--ink)]/90 leading-snug">{step}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
+
+                                {/* Visual Prompt if available */}
+                                {contentWin.visualPrompt && (
+                                    <div className="p-4 bg-[var(--canvas)] border-t border-[var(--border)]">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Sparkles size={12} className="text-amber-500" />
+                                            <p className="text-[10px] text-[var(--muted)] uppercase tracking-wide font-medium">Visual Blueprint</p>
+                                        </div>
+                                        <p className="text-[11px] text-[var(--muted)] italic leading-relaxed">
+                                            {contentWin.visualPrompt}
+                                        </p>
+                                    </div>
+                                )}
 
                                 {/* Actions */}
                                 <div className="flex border-t border-[var(--border)]">
@@ -335,39 +441,32 @@ export default function DailyWinsPage() {
                                         className="flex-1 flex items-center justify-center gap-2 py-3 text-sm text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)] transition-colors border-r border-[var(--border)]"
                                     >
                                         {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-                                        {copied ? "Copied" : "Copy"}
+                                        {copied ? "Copied" : "Copy Content"}
                                     </button>
                                     <button
                                         onClick={expandInMuse}
                                         className="flex-1 flex items-center justify-center gap-2 py-3 text-sm text-[var(--blueprint)] hover:bg-[var(--blueprint)]/10 hover:text-[var(--blueprint)] transition-colors border-r border-[var(--border)] font-medium"
                                     >
                                         <Wand2 size={14} />
-                                        Expand in Muse
+                                        Refine with Muse
                                     </button>
                                     <button
-                                        onClick={() => openPlatform(contentWin.platform)}
-                                        className="flex-1 flex items-center justify-center gap-2 py-3 text-sm text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)] transition-colors border-r border-[var(--border)]"
-                                    >
-                                        <ExternalLink size={14} />
-                                        {contentWin.platform}
-                                    </button>
-                                    <button
-                                        onClick={markAsDone}
+                                        onClick={() => markAsDone()}
                                         className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium text-green-600 hover:bg-green-50 transition-colors"
                                     >
                                         <Check size={14} />
-                                        Posted!
+                                        Done & Posted
                                     </button>
                                 </div>
                             </BlueprintCard>
 
                             {/* Try Another */}
                             <button
-                                onClick={generateWin}
-                                className="w-full flex items-center justify-center gap-2 py-3 text-sm text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
+                                onClick={() => generateWin(contentWin.score ? true : false)}
+                                className="w-full flex items-center justify-center gap-2 py-4 text-sm text-[var(--muted)] hover:text-[var(--ink)] transition-colors group"
                             >
-                                <RefreshCw size={14} />
-                                Get another idea
+                                <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
+                                {contentWin.score ? "Generate Another Surprise" : "Get another idea"}
                             </button>
                         </div>
                     )}

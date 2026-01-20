@@ -38,6 +38,7 @@ def initial_state():
         cost_usd=0.0,
         created_at=datetime.now(),
         updated_at=datetime.now(),
+        bcm_manifest=None,
         internal_wins=[],
         recent_moves=[],
         active_campaigns=[],
@@ -59,36 +60,40 @@ class TestDailyWinsNodes:
 
     @pytest.mark.asyncio
     async def test_context_miner_node(self, initial_state):
-        """Test that context_miner fetches internal BCM context"""
-        # Mock DB results
-        mock_moves = [{"id": "move-1", "title": "Move 1"}]
-        mock_campaigns = [{"id": "camp-1", "name": "Campaign 1"}]
-        mock_wins = [{"id": "win-1", "title": "Win 1"}]
+        """Test that context_miner fetches internal BCM context manifest"""
+        mock_manifest = {
+            "content": {
+                "current_moves": [{"id": "move-1", "title": "Move 1"}],
+                "active_campaigns": [{"id": "camp-1", "name": "Campaign 1"}],
+                "foundation": {"industry": "SaaS"}
+            }
+        }
 
-        with patch("backend.core.supabase.get_supabase_client") as mock_supabase:
-            client = mock_supabase.return_value
-            client.table.return_value.select.return_value.eq.return_value.execute.return_value.data = mock_moves
-            # Simplified mocking for multiple calls
+        with patch("backend.integration.context_builder.build_business_context_manifest", new_callable=AsyncMock) as mock_bcm:
+            mock_bcm.return_value = mock_manifest
             
-            # For simplicity in this test, let's just assert the node updates the state
-            # In the Green phase, we'll make this more robust.
-            
-            updated_state = await context_miner_node(initial_state)
-            
-            assert "internal_wins" in updated_state
-            assert "recent_moves" in updated_state
-            assert "active_campaigns" in updated_state
+            with patch("backend.core.supabase_mgr.get_supabase_client") as mock_supabase:
+                # Node will also fetch past wins
+                mock_supabase.return_value.table.return_value.select.return_value.eq.return_value.order.return_value.limit.return_value.execute.return_value.data = []
+                
+                updated_state = await context_miner_node(initial_state)
+                
+                assert updated_state["bcm_manifest"] is not None
+                assert len(updated_state["recent_moves"]) == 1
+                assert len(updated_state["active_campaigns"]) == 1
 
     @pytest.mark.asyncio
     async def test_trend_mapper_node(self, initial_state):
-        """Test that trend_mapper fetches external trends"""
-        mock_trends = [{"title": "SaaS Trend 2026", "source": "Reddit"}]
+        """Test that trend_mapper fetches external trends via Titan"""
+        from backend.agents.tools.base import ToolResult
+        mock_trends = [{"title": "SaaS Trend 2026", "source": "Titan"}]
         
-        # Mock SearXNG tool or Search service
-        with patch("backend.services.search.searxng.SearXNGClient.query", new_callable=AsyncMock) as mock_search:
-            mock_search.return_value = mock_trends
-            mock_generate = await trend_mapper_node(initial_state)
-            assert "external_trends" in mock_generate
+        # Mock Titan tool
+        with patch("backend.services.titan.tool.TitanIntelligenceTool._arun", new_callable=AsyncMock) as mock_titan:
+            mock_titan.return_value = ToolResult(success=True, data=mock_trends)
+            updated_state = await trend_mapper_node(initial_state)
+            assert len(updated_state["external_trends"]) == 1
+            assert updated_state["external_trends"][0]["title"] == "SaaS Trend 2026"
 
     @pytest.mark.asyncio
     async def test_synthesizer_node(self, initial_state):

@@ -6,6 +6,7 @@ Analyzes content library to identify gaps and strategic alignment
 import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
+import json
 
 try:
     from services.vertex_ai_service import vertex_ai_service
@@ -18,7 +19,7 @@ class AuditService:
     """Service for auditing content strategy and identifying gaps."""
 
     async def audit_content_library(self, assets: List[Dict[str, Any]], gtm_goals: List[str]) -> Dict[str, Any]:
-        """Perform a strategic audit of the current content library."""
+        """Perform a strategic audit of the current content library via AI inference."""
         logger.info(f"Auditing content library with {len(assets)} assets")
         
         if not vertex_ai_service:
@@ -56,21 +57,12 @@ OUTPUT JSON format:
             )
             
             if ai_response["status"] == "success":
-                # Mock result for logic flow
-                return {
-                    "success": True,
-                    "audit": {
-                        "coverage_score": 65,
-                        "content_pillars": [
-                            {"name": "Education", "count": 3, "strength": "medium"},
-                            {"name": "Authority", "count": 2, "strength": "high"}
-                        ],
-                        "identified_gaps": [
-                            {"gap": "Case Studies", "priority": "high", "recommendation": "Create 3 customer success stories"}
-                        ],
-                        "strategic_alignment": "Strong on theory, weak on proof."
-                    }
-                }
+                try:
+                    clean_res = ai_response["text"].strip().replace("```json", "").replace("```", "")
+                    audit_data = json.loads(clean_res)
+                    return {"success": True, "audit": audit_data}
+                except:
+                    return {"success": False, "error": "Failed to parse AI audit output"}
             else:
                 return {"success": False, "error": ai_response.get("error", "AI error")}
                 

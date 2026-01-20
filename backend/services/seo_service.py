@@ -6,6 +6,7 @@ Analyzes content for SEO best practices and performs keyword research
 import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
+import json
 
 try:
     from services.vertex_ai_service import vertex_ai_service
@@ -18,7 +19,7 @@ class SEOService:
     """Service for SEO auditing and optimization."""
 
     async def optimize_content(self, content: str, target_keywords: List[str]) -> Dict[str, Any]:
-        """Audit content for SEO and provide optimization suggestions."""
+        """Audit content for SEO via AI inference."""
         logger.info(f"Optimizing content for keywords: {target_keywords}")
         
         if not vertex_ai_service:
@@ -52,22 +53,12 @@ OUTPUT JSON format:
             )
             
             if ai_response["status"] == "success":
-                # Mock result for logic flow
-                return {
-                    "success": True,
-                    "analysis": {
-                        "seo_score": 78,
-                        "readability_score": 85,
-                        "on_page_factors": [
-                            {"element": "H1 Header", "status": "good", "recommendation": "None"},
-                            {"element": "Meta Description", "status": "missing", "recommendation": "Add a 155 char meta description"}
-                        ],
-                        "optimization_suggestions": [
-                            "Add the primary keyword to the first 100 words",
-                            "Use more descriptive alt text for images"
-                        ]
-                    }
-                }
+                try:
+                    clean_res = ai_response["text"].strip().replace("```json", "").replace("```", "")
+                    analysis = json.loads(clean_res)
+                    return {"success": True, "analysis": analysis}
+                except:
+                    return {"success": False, "error": "Failed to parse AI SEO output"}
             else:
                 return {"success": False, "error": ai_response.get("error", "AI error")}
                 
@@ -76,11 +67,27 @@ OUTPUT JSON format:
             return {"success": False, "error": str(e)}
 
     async def keyword_research(self, topic: str) -> List[Dict[str, Any]]:
-        """Suggest keywords for a given topic."""
-        return [
-            {"keyword": f"{topic} automation", "volume": "High", "difficulty": "Medium"},
-            {"keyword": f"best {topic} software", "volume": "Medium", "difficulty": "High"},
-            {"keyword": f"how to use {topic}", "volume": "Low", "difficulty": "Low"}
-        ]
+        """Suggest keywords for a given topic via AI inference."""
+        if not vertex_ai_service:
+            return []
+
+        prompt = f"""Perform keyword research for the topic: {topic}.
+Return a JSON list of objects with 'keyword', 'volume' (High/Medium/Low), and 'difficulty' (High/Medium/Low).
+Limit to 5 highly relevant keywords."""
+
+        try:
+            ai_response = await vertex_ai_service.generate_text(
+                prompt=prompt,
+                workspace_id="keyword-research",
+                user_id="seo",
+                max_tokens=500
+            )
+            
+            if ai_response["status"] == "success":
+                clean_res = ai_response["text"].strip().replace("```json", "").replace("```", "")
+                return json.loads(clean_res)
+            return []
+        except:
+            return []
 
 seo_service = SEOService()

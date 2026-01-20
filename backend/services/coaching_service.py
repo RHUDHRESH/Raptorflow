@@ -6,6 +6,7 @@ Provides high-level strategic advice and content critiquing
 import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
+import json
 
 try:
     from services.vertex_ai_service import vertex_ai_service
@@ -18,7 +19,7 @@ class CoachingService:
     """Service for AI-driven strategic content coaching."""
 
     async def get_strategic_critique(self, content: str, bcm_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Critique content against the company's Business Context Map."""
+        """Critique content against the company's Business Context Map via real AI inference."""
         logger.info("Generating strategic content critique")
         
         if not vertex_ai_service:
@@ -30,7 +31,7 @@ CONTENT:
 {content}
 
 STRATEGIC CONTEXT (BCM):
-{bcm_context}
+{json.dumps(bcm_context, indent=2)}
 
 OUTPUT JSON format:
 {{
@@ -52,18 +53,12 @@ OUTPUT JSON format:
             )
             
             if ai_response["status"] == "success":
-                # Mock result for logic flow
-                return {
-                    "success": True,
-                    "critique": {
-                        "editorial_restraint_score": 82,
-                        "strategic_alignment": "high",
-                        "strengths": ["Clear focus on zero-day gap", "Punchy headline"],
-                        "weaknesses": ["Too many 'obviously' and 'clearly' fillers", "CTA is weak"],
-                        "coaching_advice": "Remove the first paragraph entirely. Start with the provocation in sentence 4.",
-                        "suggested_maneuver": "Change the focus from 'Safety' to 'Domination' to match the Challenger framework."
-                    }
-                }
+                try:
+                    clean_res = ai_response["text"].strip().replace("```json", "").replace("```", "")
+                    critique_data = json.loads(clean_res)
+                    return {"success": True, "critique": critique_data}
+                except:
+                    return {"success": False, "error": "Failed to parse AI coaching output"}
             else:
                 return {"success": False, "error": ai_response.get("error", "AI error")}
                 

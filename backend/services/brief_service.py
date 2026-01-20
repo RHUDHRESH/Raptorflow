@@ -6,6 +6,7 @@ Generates strategic content briefs based on ICP and market context
 import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
+import json
 
 try:
     from services.vertex_ai_service import vertex_ai_service
@@ -23,7 +24,7 @@ class BriefService:
         icp_context: Dict[str, Any], 
         platform: str = "blog"
     ) -> Dict[str, Any]:
-        """Generate a detailed content brief using Vertex AI."""
+        """Generate a detailed content brief via real AI inference."""
         logger.info(f"Generating brief for topic: {topic}")
         
         if not vertex_ai_service:
@@ -62,28 +63,12 @@ OUTPUT JSON format:
             )
             
             if ai_response["status"] == "success":
-                # Mock result for logic flow
-                return {
-                    "success": True,
-                    "brief": {
-                        "title_suggestions": [
-                            f"The Ultimate Guide to {topic}",
-                            f"How to Master {topic} in 2026"
-                        ],
-                        "objective": f"Establish authority in {topic} domain.",
-                        "target_audience_segments": ["Security Engineers", "C-Suite Executives"],
-                        "key_messages": ["Speed is safety", "Automation reduces fatigue"],
-                        "keywords": {
-                            "primary": topic.lower(),
-                            "secondary": ["automation", "efficiency", "security"]
-                        },
-                        "outline": [
-                            {"heading": "The State of " + topic, "key_points": ["Current challenges", "Why old ways fail"]},
-                            {"heading": "Strategic Approach", "key_points": ["New framework", "Key benefits"]}
-                        ],
-                        "cta_recommendation": "Book a technical POC"
-                    }
-                }
+                try:
+                    clean_res = ai_response["text"].strip().replace("```json", "").replace("```", "")
+                    brief_data = json.loads(clean_res)
+                    return {"success": True, "brief": brief_data}
+                except:
+                    return {"success": False, "error": "Failed to parse AI brief output"}
             else:
                 return {"success": False, "error": ai_response.get("error", "AI error")}
                 

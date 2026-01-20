@@ -1,6 +1,6 @@
 """
 Truth Sheet Generator Agent
-Auto-populates truth sheets from extracted evidence
+Auto-populates truth sheets from extracted evidence via real AI inference
 """
 
 import logging
@@ -8,7 +8,11 @@ from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 from datetime import datetime
-import re
+import json
+
+from ..base import BaseAgent
+from ..config import ModelTier
+from ..state import AgentState
 
 logger = logging.getLogger(__name__)
 
@@ -74,46 +78,80 @@ class TruthSheet:
         }
 
 
-class TruthSheetGenerator:
-    """AI-powered truth sheet generation from evidence"""
+class TruthSheetGenerator(BaseAgent):
+    """AI-powered truth sheet generation using real inference."""
     
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
+        super().__init__(
+            name="TruthSheetGenerator",
+            description="Consolidates multi-source evidence into a single source of truth via real AI inference",
+            model_tier=ModelTier.FLASH,
+            tools=["database"],
+            skills=["data_synthesis", "fact_checking", "strategic_alignment"]
+        )
         self.entry_counter = 0
     
+    def get_system_prompt(self) -> str:
+        return """You are the TruthSheetGenerator. Your job is to resolve inconsistencies and pick the 'Canonical Truth' from evidence.
+        If a pitch deck says $1M ARR and a tax return says $800k, follow the most reliable source.
+        Categorize truths into Company, Product, Market, etc."""
+
     def _generate_entry_id(self) -> str:
         """Generate unique entry ID"""
         self.entry_counter += 1
         return f"TRU-{self.entry_counter:03d}"
 
     async def execute(self, state: Any) -> Dict[str, Any]:
-        """Execute truth sheet generation using current state."""
-        evidence = state.get("evidence", [])
-        sheet = await self.generate_truth_sheet(evidence)
-        return {"output": sheet.to_dict()}
-
-    async def generate_truth_sheet(self, evidence_list: List[Dict[str, Any]]) -> TruthSheet:
-        """Generation logic"""
-        # Basic implementation for now
-        entries = []
-        for ev in evidence_list:
-            if ev.get("extracted_text"):
-                # Mock a few entries for verification
-                entries.append(TruthEntry(
-                    id=self._generate_entry_id(),
-                    category=TruthCategory.COMPANY,
-                    field_name="company_name",
-                    value="Extracted from " + ev.get("filename", "unknown"),
-                    source=ev.get("filename", "unknown"),
-                    confidence=ConfidenceLevel.HIGH,
-                    extracted_at=datetime.now().isoformat()
-                ))
+        """Execute truth sheet generation using real AI inference."""
+        extracted_facts = state.get("step_data", {}).get("auto_extraction", {}).get("facts", [])
         
-        return TruthSheet(
-            entries=entries,
-            completeness_score=0.5,
-            categories_covered=["company"],
-            missing_fields=["mission", "market_size"],
-            recommendations=["Verify extracted company name"],
-            summary=f"Found {len(entries)} candidate truths."
-        )
+        prompt = f"""Synthesize the following extracted facts into a definitive Truth Sheet.
+
+EXTRACTED FACTS:
+{json.dumps(extracted_facts, indent=2)}
+
+Return a JSON report:
+{{
+  "entries": [
+    {{ 
+      "category": "company/product/market/etc", 
+      "field_name": "...",
+      "value": "...",
+      "source": "...",
+      "confidence": "high/medium/low"
+    }}
+  ],
+  "completeness_score": 0-100,
+  "missing_fields": ["..."],
+  "summary": "..."
+}}"""
+
+        res = await self._call_llm(prompt)
+        try:
+            clean_res = res.strip().replace("```json", "").replace("```", "")
+            raw_data = json.loads(clean_res)
+            
+            entries = [
+                TruthEntry(
+                    id=self._generate_entry_id(),
+                    category=TruthCategory(e["category"].lower() if e["category"].lower() in [t.value for t in TruthCategory] else "company"),
+                    field_name=e["field_name"],
+                    value=e["value"],
+                    source=e["source"],
+                    confidence=ConfidenceLevel(e["confidence"].lower() if e["confidence"].lower() in [cl.value for cl in ConfidenceLevel] else "medium"),
+                    extracted_at=datetime.now().isoformat()
+                )
+                for e in raw_data.get("entries", [])
+            ]
+            
+            sheet = TruthSheet(
+                entries=entries,
+                completeness_score=raw_data.get("completeness_score", 0),
+                categories_covered=list(set(e.category.value for e in entries)),
+                missing_fields=raw_data.get("missing_fields", []),
+                recommendations=[],
+                summary=raw_data.get("summary", "")
+            )
+            return {"output": sheet.to_dict()}
+        except:
+            return {"output": {"error": "Failed to parse AI truth sheet"}}
