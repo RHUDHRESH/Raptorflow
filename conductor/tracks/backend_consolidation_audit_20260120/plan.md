@@ -11,7 +11,7 @@ Establish the foundation for the reorganization and standardized communication.
     - [x] Implement a global error handler/middleware to enforce this standard.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Architecture & API Standardization' (Protocol in workflow.md)
 
-## Phase 2: Backend Reorganization & TDD Implementation
+## Phase 2: Backend Reorganization & TDD Implementation [checkpoint: 14f2823]
 Refactor existing modules into the new structure while adding test coverage.
 
 - [x] Task: Refactor Foundation Module (8ebb101)
