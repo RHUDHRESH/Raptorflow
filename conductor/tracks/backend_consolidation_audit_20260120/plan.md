@@ -49,9 +49,9 @@ Bring the user-facing side into sync with the new backend.
     - [x] Audit all `fetch` or SDK calls in the frontend.
     - [x] [RED] Write failing tests for frontend components expecting old API shapes.
     - [x] [GREEN] Update components to consume the "RaptorFlow" standard response.
-- [ ] Task: Implement Standardized Error UI
-    - [ ] Create/Update Sonner toast components to handle bespoke error codes.
-    - [ ] Ensure all forms and actions provide consistent feedback.
+- [x] Task: Implement Standardized Error UI (7d287ac)
+    - [x] Create/Update Sonner toast components to handle bespoke error codes.
+    - [x] Ensure all forms and actions provide consistent feedback.
 - [ ] Task: UX Polish Audit
     - [ ] Audit loading states and Framer Motion transitions across all pages.
     - [ ] Refine responsive behavior for strictly "Editorial restraint."
