@@ -22,10 +22,10 @@ Refactor existing modules into the new structure while adding test coverage.
     - [x] [RED] Write failing tests for scraping and volatility engine logic.
     - [x] [GREEN] Reorganize into `src/modules/titan` and `src/modules/blackbox`.
     - [x] [REFACTOR] Optimize common utilities and agent orchestration.
-- [ ] Task: Refactor Operations Modules (Cohorts, Moves, Campaigns)
-    - [ ] [RED] Write failing tests for RICP and Breathing Arcs logic.
-    - [ ] [GREEN] Reorganize into their respective module directories.
-    - [ ] [REFACTOR] Ensure strict decoupling from Next.js route handlers.
+- [x] Task: Refactor Operations Modules (Cohorts, Moves, Campaigns) (1b85bcf)
+    - [x] [RED] Write failing tests for RICP and Breathing Arcs logic.
+    - [x] [GREEN] Reorganize into their respective module directories.
+    - [x] [REFACTOR] Ensure strict decoupling from Next.js route handlers.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Backend Reorganization & TDD Implementation' (Protocol in workflow.md)
 
 ## Phase 3: Security, Performance & Infrastructure Audit
