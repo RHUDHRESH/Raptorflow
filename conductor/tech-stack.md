@@ -47,6 +47,7 @@
 - **Icons:** [Lucide React](https://lucide.dev/)
 - **Forms/Validation:** [React Hook Form](https://react-hook-form.com/)
 - **Toast/Notifications:** [Sonner](https://sonner.stevenly.me/)
+- **Monitoring & Observability:** [Sentry](https://sentry.io/) (Full-stack Error Tracking, Performance, Session Replay, and Profiling).
 
 ## Development Tools
 - **Linter:** ESLint
