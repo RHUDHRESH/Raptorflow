@@ -64,6 +64,6 @@ Ensure the entire OS is "ready to go."
     - [x] Execute full user journey tests (Onboarding -> RICP -> Moves -> Matrix).
 - [x] Task: Final Coverage Verification (22908a6)
     - [x] Generate system-wide coverage report and ensure >80% coverage.
-- [ ] Task: Legacy Script Cleanup
-    - [ ] Remove or archive all `apply_fix.py`, `execute_migration.py`, and other temporary scripts.
+- [x] Task: Legacy Script Cleanup (0d38cc8)
+    - [x] Remove or archive all `apply_fix.py`, `execute_migration.py`, and other temporary scripts.
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Final System Verification & Cleanup' (Protocol in workflow.md)
