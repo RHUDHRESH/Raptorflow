@@ -162,250 +162,66 @@ class PricingMonitor:
     
     def __init__(self):
         """Initialize pricing monitor."""
-        self.pricing_cache = {}
-        self.last_update = {}
-        self.update_interval = 300  # 5 minutes
-        
-        logger.info("PricingMonitor initialized")
+        from backend.llm import CostCalculator
+        self.cost_calculator = CostCalculator()
+        logger.info("PricingMonitor initialized with real CostCalculator")
     
     async def get_pricing(self, provider: str, model: str) -> Optional[ProviderPricing]:
-        """Get current pricing for provider and model."""
+        """Get current pricing from CostCalculator."""
         try:
-            cache_key = f"{provider}:{model}"
-            
-            # Check cache
-            if cache_key in self.pricing_cache:
-                last_update = self.last_update.get(cache_key, datetime.min)
-                if (datetime.utcnow() - last_update).total_seconds() < self.update_interval:
-                    return self.pricing_cache[cache_key]
-            
-            # Fetch fresh pricing
-            pricing = await self._fetch_pricing(provider, model)
-            if pricing:
-                self.pricing_cache[cache_key] = pricing
-                self.last_update[cache_key] = datetime.utcnow()
-                return pricing
-            
-            return None
-            
+            pricing_data = self.cost_calculator.PRICING.get(model)
+            if not pricing_data:
+                # Fallback or default
+                pricing_data = {"input": 0.001, "output": 0.002}
+                
+            return ProviderPricing(
+                provider=provider,
+                model=model,
+                input_cost_per_1k=pricing_data["input"] * 1000,
+                output_cost_per_1k=pricing_data["output"] * 1000,
+                currency="USD",
+                tier=ProviderTier.STANDARD,
+                effective_date=datetime.utcnow()
+            )
         except Exception as e:
             logger.warning(f"Failed to get pricing for {provider}:{model}: {e}")
-            return None
-    
-    async def _fetch_pricing(self, provider: str, model: str) -> Optional[ProviderPricing]:
-        """Fetch pricing from provider."""
-        try:
-            # This would integrate with actual provider APIs
-            # For now, return mock data
-            mock_pricing = {
-                "openai": {
-                    "gpt-3.5-turbo": ProviderPricing(
-                        provider="openai",
-                        model="gpt-3.5-turbo",
-                        input_cost_per_1k=0.0015,
-                        output_cost_per_1k=0.002,
-                        currency="USD",
-                        tier=ProviderTier.STANDARD,
-                        effective_date=datetime.utcnow()
-                    ),
-                    "gpt-4": ProviderPricing(
-                        provider="openai",
-                        model="gpt-4",
-                        input_cost_per_1k=0.03,
-                        output_cost_per_1k=0.06,
-                        currency="USD",
-                        tier=ProviderTier.PREMIUM,
-                        effective_date=datetime.utcnow()
-                    ),
-                    "gpt-4-turbo": ProviderPricing(
-                        provider="openai",
-                        model="gpt-4-turbo",
-                        input_cost_per_1k=0.01,
-                        output_cost_per_1k=0.03,
-                        currency="USD",
-                        tier=ProviderTier.PREMIUM,
-                        effective_date=datetime.utcnow()
-                    )
-                },
-                "anthropic": {
-                    "claude-instant": ProviderPricing(
-                        provider="anthropic",
-                        model="claude-instant",
-                        input_cost_per_1k=0.0008,
-                        output_cost_per_1k=0.0024,
-                        currency="USD",
-                        tier=ProviderTier.BASIC,
-                        effective_date=datetime.utcnow()
-                    ),
-                    "claude-sonnet": ProviderPricing(
-                        provider="anthropic",
-                        model="claude-sonnet",
-                        input_cost_per_1k=0.003,
-                        output_cost_per_1k=0.015,
-                        currency="USD",
-                        tier=ProviderTier.STANDARD,
-                        effective_date=datetime.utcnow()
-                    ),
-                    "claude-opus": ProviderPricing(
-                        provider="anthropic",
-                        model="claude-opus",
-                        input_cost_per_1k=0.015,
-                        output_cost_per_1k=0.075,
-                        currency="USD",
-                        tier=ProviderTier.PREMIUM,
-                        effective_date=datetime.utcnow()
-                    )
-                },
-                "google": {
-                    "gemini-pro": ProviderPricing(
-                        provider="google",
-                        model="gemini-pro",
-                        input_cost_per_1k=0.0005,
-                        output_cost_per_1k=0.0015,
-                        currency="USD",
-                        tier=ProviderTier.BASIC,
-                        effective_date=datetime.utcnow(),
-                        promotional_discount=0.2  # 20% promotional discount
-                    ),
-                    "gemini-pro-vision": ProviderPricing(
-                        provider="google",
-                        model="gemini-pro-vision",
-                        input_cost_per_1k=0.0025,
-                        output_cost_per_1k=0.01,
-                        currency="USD",
-                        tier=ProviderTier.STANDARD,
-                        effective_date=datetime.utcnow()
-                    )
-                }
-            }
-            
-            return mock_pricing.get(provider, {}).get(model)
-            
-        except Exception as e:
-            logger.warning(f"Pricing fetch failed for {provider}:{model}: {e}")
             return None
 
 
 class PerformanceMonitor:
-    """Monitor provider performance metrics."""
+    """Monitor provider performance metrics using FallbackProviderManager."""
     
     def __init__(self):
         """Initialize performance monitor."""
-        self.metrics_cache = {}
-        self.performance_history = defaultdict(deque)
-        self.max_history_size = 1000
-        
         logger.info("PerformanceMonitor initialized")
     
     async def get_metrics(self, provider: str, model: str) -> Optional[ProviderMetrics]:
-        """Get current performance metrics."""
+        """Get current performance metrics from fallback manager."""
         try:
-            cache_key = f"{provider}:{model}"
+            from backend.core.fallback_providers import get_fallback_manager
+            fm = await get_fallback_manager()
             
-            # Check cache
-            if cache_key in self.metrics_cache:
-                last_update = self.metrics_cache[cache_key].last_updated
-                if (datetime.utcnow() - last_update).total_seconds() < 60:  # 1 minute cache
-                    return self.metrics_cache[cache_key]
+            # Find provider in fallback manager
+            provider_id = f"{provider}-{model}"
+            ph = fm.providers.get(provider_id)
             
-            # Fetch fresh metrics
-            metrics = await self._fetch_metrics(provider, model)
-            if metrics:
-                self.metrics_cache[cache_key] = metrics
-                self.performance_history[cache_key].append(metrics)
-                
-                # Limit history size
-                if len(self.performance_history[cache_key]) > self.max_history_size:
-                    self.performance_history[cache_key].popleft()
-                
-                return metrics
+            if ph:
+                return ProviderMetrics(
+                    provider=provider,
+                    model=model,
+                    latency_p50=ph.avg_response_time,
+                    latency_p95=ph.avg_response_time * 1.5,
+                    latency_p99=ph.avg_response_time * 2.0,
+                    success_rate=ph.success_rate,
+                    error_rate=ph.error_rate,
+                    throughput=1.0 / ph.avg_response_time if ph.avg_response_time > 0 else 10,
+                    uptime_percentage=ph.success_rate * 100,
+                    last_updated=ph.last_check
+                )
             
             return None
-            
         except Exception as e:
             logger.warning(f"Failed to get metrics for {provider}:{model}: {e}")
-            return None
-    
-    async def _fetch_metrics(self, provider: str, model: str) -> Optional[ProviderMetrics]:
-        """Fetch performance metrics."""
-        try:
-            # This would integrate with monitoring systems
-            # For now, return mock data with realistic variations
-            import random
-            
-            base_metrics = {
-                "openai": {
-                    "gpt-3.5-turbo": ProviderMetrics(
-                        provider="openai",
-                        model="gpt-3.5-turbo",
-                        latency_p50=0.8 + random.uniform(-0.2, 0.2),
-                        latency_p95=1.2 + random.uniform(-0.3, 0.3),
-                        latency_p99=2.0 + random.uniform(-0.5, 0.5),
-                        success_rate=0.98 + random.uniform(-0.02, 0.02),
-                        error_rate=0.02 + random.uniform(-0.01, 0.01),
-                        throughput=80 + random.uniform(-10, 10),
-                        uptime_percentage=99.5 + random.uniform(-0.5, 0.5),
-                        last_updated=datetime.utcnow()
-                    ),
-                    "gpt-4": ProviderMetrics(
-                        provider="openai",
-                        model="gpt-4",
-                        latency_p50=2.5 + random.uniform(-0.5, 0.5),
-                        latency_p95=3.5 + random.uniform(-0.7, 0.7),
-                        latency_p99=5.0 + random.uniform(-1.0, 1.0),
-                        success_rate=0.97 + random.uniform(-0.02, 0.02),
-                        error_rate=0.03 + random.uniform(-0.01, 0.01),
-                        throughput=40 + random.uniform(-5, 5),
-                        uptime_percentage=99.0 + random.uniform(-1.0, 1.0),
-                        last_updated=datetime.utcnow()
-                    )
-                },
-                "anthropic": {
-                    "claude-instant": ProviderMetrics(
-                        provider="anthropic",
-                        model="claude-instant",
-                        latency_p50=0.6 + random.uniform(-0.1, 0.1),
-                        latency_p95=1.0 + random.uniform(-0.2, 0.2),
-                        latency_p99=1.5 + random.uniform(-0.3, 0.3),
-                        success_rate=0.99 + random.uniform(-0.01, 0.01),
-                        error_rate=0.01 + random.uniform(-0.005, 0.005),
-                        throughput=100 + random.uniform(-15, 15),
-                        uptime_percentage=99.8 + random.uniform(-0.3, 0.3),
-                        last_updated=datetime.utcnow()
-                    ),
-                    "claude-sonnet": ProviderMetrics(
-                        provider="anthropic",
-                        model="claude-sonnet",
-                        latency_p50=1.5 + random.uniform(-0.3, 0.3),
-                        latency_p95=2.2 + random.uniform(-0.4, 0.4),
-                        latency_p99=3.0 + random.uniform(-0.6, 0.6),
-                        success_rate=0.98 + random.uniform(-0.02, 0.02),
-                        error_rate=0.02 + random.uniform(-0.01, 0.01),
-                        throughput=60 + random.uniform(-8, 8),
-                        uptime_percentage=99.3 + random.uniform(-0.4, 0.4),
-                        last_updated=datetime.utcnow()
-                    )
-                },
-                "google": {
-                    "gemini-pro": ProviderMetrics(
-                        provider="google",
-                        model="gemini-pro",
-                        latency_p50=1.2 + random.uniform(-0.2, 0.2),
-                        latency_p95=1.8 + random.uniform(-0.3, 0.3),
-                        latency_p99=2.5 + random.uniform(-0.5, 0.5),
-                        success_rate=0.96 + random.uniform(-0.03, 0.03),
-                        error_rate=0.04 + random.uniform(-0.02, 0.02),
-                        throughput=70 + random.uniform(-12, 12),
-                        uptime_percentage=98.5 + random.uniform(-1.0, 1.0),
-                        last_updated=datetime.utcnow()
-                    )
-                }
-            }
-            
-            return base_metrics.get(provider, {}).get(model)
-            
-        except Exception as e:
-            logger.warning(f"Metrics fetch failed for {provider}:{model}: {e}")
             return None
     
     def get_trend_analysis(self, provider: str, model: str, hours: int = 24) -> Dict[str, float]:

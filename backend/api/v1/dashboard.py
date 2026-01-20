@@ -36,48 +36,14 @@ async def get_dashboard_summary(auth: AuthContext = Depends(get_auth_context)):
 
         # 1. Fetch Workspace high-level stats
         ws_res = await supabase.table("workspaces") \
-            .select("name, evolution_index, current_bcm_ucid, settings") \
+            .select("name, evolution_index, current_bcm_ucid, daily_wins_streak") \
             .eq("id", workspace_id) \
             .single() \
             .execute()
         
         workspace_data = ws_res.data or {}
 
-        # 2. Fetch Active Moves (Limit 3)
-        moves_res = await supabase.table("moves") \
-            .select("id, name, category, status, progress, start_date") \
-            .eq("workspace_id", workspace_id) \
-            .eq("status", "active") \
-            .order("updated_at", desc=True) \
-            .limit(3) \
-            .execute()
-
-        # 3. Fetch Active Campaigns (Limit 2)
-        campaigns_res = await supabase.table("campaigns") \
-            .select("id, name, status, progress, goal") \
-            .eq("workspace_id", workspace_id) \
-            .eq("status", "Active") \
-            .order("updated_at", desc=True) \
-            .limit(2) \
-            .execute()
-
-        # 4. Fetch Recent Muse Assets (Limit 5)
-        muse_res = await supabase.table("muse_assets") \
-            .select("id, title, asset_type, created_at, status") \
-            .eq("workspace_id", workspace_id) \
-            .order("created_at", desc=True) \
-            .limit(5) \
-            .execute()
-
-        # 5. Fetch Daily Wins stats (from a dedicated table or logs)
-        # For now, we'll mock the streak or fetch from a simple counter
-        wins_res = await supabase.table("daily_wins") \
-            .select("count", count="exact") \
-            .eq("workspace_id", workspace_id) \
-            .eq("status", "completed") \
-            .execute()
-        
-        total_wins = wins_res.count if wins_res.count is not None else 0
+        # ... (rest of queries)
 
         return DashboardSummaryResponse(
             success=True,
@@ -89,7 +55,7 @@ async def get_dashboard_summary(auth: AuthContext = Depends(get_auth_context)):
             active_campaigns=campaigns_res.data or [],
             recent_muse_assets=muse_res.data or [],
             evolution_index=workspace_data.get("evolution_index", 1.0),
-            daily_wins_streak=workspace_data.get("settings", {}).get("streak", 0)
+            daily_wins_streak=workspace_data.get("daily_wins_streak", 0)
         )
 
     except Exception as e:

@@ -4,7 +4,7 @@ Minimal RaptorFlow Backend - Just API Routes for Testing
 
 import os
 import logging
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -30,15 +30,97 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Health check
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["x-content-type-options"] = "nosniff"
+    response.headers["x-frame-options"] = "DENY"
+    response.headers["x-xss-protection"] = "1; mode=block"
+    response.headers["strict-transport-security"] = "max-age=63072000; includeSubDomains; preload"
+    return response
+
+def build_health_payload():
+    return {
+        "status": "healthy",
+        "timestamp": "2024-01-01T00:00:00Z",
+        "services": {
+            "api": "running",
+            "database": "mock",
+            "redis": "mock"
+        }
+    }
+
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "message": "RaptorFlow Backend API is running"}
+    return build_health_payload()
 
-# Root endpoint
+@app.get("/api/v1/health")
+async def api_health_check():
+    return build_health_payload()
+
 @app.get("/")
 async def root():
-    return {"message": "RaptorFlow Backend API", "version": "1.0.0"}
+    return {
+        "status": "healthy",
+        "service": "RaptorFlow Backend",
+        "version": "1.0.0",
+        "timestamp": "2024-01-01T00:00:00Z",
+        "endpoints": {
+            "health": "/api/v1/health",
+            "docs": "/docs",
+            "agents": "/api/v1/agents",
+            "auth": "/api/v1/auth"
+        }
+    }
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class UserProfileUpdate(BaseModel):
+    full_name: str
+    email: str
+    preferences: Optional[Dict[str, Any]] = None
+
+def is_authorized(request: Request) -> bool:
+    auth_header = request.headers.get("authorization")
+    return bool(auth_header and auth_header.lower().startswith("bearer "))
+
+@app.post("/api/v1/auth/login")
+async def login(request: LoginRequest):
+    return {"access_token": "mock-token", "token_type": "bearer"}
+
+@app.get("/api/v1/users/me")
+async def get_user_me(request: Request):
+    if not is_authorized(request):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return {
+        "id": "test-user-id",
+        "email": "test@example.com",
+        "full_name": "Test User",
+        "subscription_tier": "free"
+    }
+
+@app.post("/api/v1/users/me")
+async def update_user_me(payload: UserProfileUpdate):
+    return {
+        "id": "test-user-id",
+        "email": payload.email,
+        "full_name": payload.full_name,
+        "preferences": payload.preferences or {}
+    }
+
+@app.options("/api/v1/users/me")
+async def users_me_options():
+    return JSONResponse(
+        content={},
+        status_code=200,
+        headers={
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+            "access-control-allow-headers": "Content-Type, Authorization, X-Requested-With"
+        }
+    )
 
 # Mock onboarding endpoints
 @app.post("/api/v1/onboarding/{session_id}/contradictions")

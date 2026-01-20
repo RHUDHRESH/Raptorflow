@@ -9,7 +9,7 @@ from typing import Dict, Any, List
 from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
-from main import app
+from backend.main_minimal import app
 
 
 class TestAPI:
@@ -306,7 +306,7 @@ class TestAPI:
         assert response.status_code in [200, 404]
         
         # Should use correct API version
-        assert "api/v1" in response.url
+        assert "api/v1" in str(response.url)
 
     def test_pagination(self, client: TestClient, auth_headers: Dict[str, str]):
         """Test pagination."""

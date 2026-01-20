@@ -21,7 +21,8 @@ import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { cn } from "@/lib/utils";
 import { openPlatform } from "@/lib/external-links";
 import { apiClient } from "@/lib/api/client";
-import { useSettingsStore } from "@/stores/settingsStore";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useDashboardStore } from "@/stores/dashboardStore";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
 
@@ -100,13 +101,16 @@ export default function DailyWinsPage() {
     const [totalWins, setTotalWins] = useState(0);
     const [mounted, setMounted] = useState(false);
 
+    const { workspace } = useAuth();
+    const { summary } = useDashboardStore();
+
     useEffect(() => {
         setMounted(true);
-        const savedStreak = localStorage.getItem("daily_wins_streak");
-        const savedTotal = localStorage.getItem("daily_wins_total");
-        if (savedStreak) setStreak(parseInt(savedStreak, 10));
-        if (savedTotal) setTotalWins(parseInt(savedTotal, 10));
-    }, []);
+        if (summary) {
+            setStreak(summary.daily_wins_streak);
+            setTotalWins(summary.workspace_stats.total_wins);
+        }
+    }, [summary]);
 
     useEffect(() => {
         if (!pageRef.current || !mounted) return;
@@ -123,15 +127,14 @@ export default function DailyWinsPage() {
                 return;
             }
 
-            const currentWorkspace = useSettingsStore.getState().currentWorkspace;
-            if (!currentWorkspace?.id) {
+            if (!workspace?.workspaceId) {
                 toast.error("No active workspace found.");
                 setIsGenerating(false);
                 return;
             }
 
             const response = await apiClient.generateDailyWin({
-                workspace_id: currentWorkspace.id,
+                workspace_id: workspace.workspaceId,
                 user_id: user.id,
                 platform: "LinkedIn"
             });
@@ -151,7 +154,7 @@ export default function DailyWinsPage() {
                 });
                 toast.success("Intelligence Brief ready.");
             } else {
-                toast.error(response.error || "Failed to generate win. The editor rejected the quality.");
+                toast.error((response.error as string) || "Failed to generate win. The editor rejected the quality.");
             }
         } catch (error) {
             console.error("Failed to generate win:", error);
@@ -170,14 +173,26 @@ export default function DailyWinsPage() {
         }
     }, [contentWin, isGenerating]);
 
-    const markAsDone = () => {
-        const newStreak = streak + 1;
-        const newTotal = totalWins + 1;
-        setStreak(newStreak);
-        setTotalWins(newTotal);
-        localStorage.setItem("daily_wins_streak", newStreak.toString());
-        localStorage.setItem("daily_wins_total", newTotal.toString());
-        setContentWin(null);
+    const markAsDone = async () => {
+        if (!contentWin) return;
+        
+        try {
+            if (!workspace?.workspaceId) return;
+
+            const response = await apiClient.markWinAsPosted(contentWin.id, {
+                workspace_id: workspace.workspaceId,
+                user_id: "current-user", // Backend gets it from token
+                platform: contentWin.platform
+            });
+
+            if (response.success) {
+                setStreak(response.new_streak as number);
+                toast.success(`Consistency rewarded! Current streak: ${response.new_streak as number}`);
+                setContentWin(null);
+            }
+        } catch (error) {
+            toast.error("Failed to mark win as posted on server.");
+        }
     };
 
     const copyToClipboard = async () => {

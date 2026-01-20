@@ -15,6 +15,7 @@ from .models import (
 )
 from .preprocessor import DocumentPreprocessor
 from .quality_assurance import QualityAssurance
+from .model_implementations import ModelFactory
 
 
 class ModelSelectionStrategy(str, Enum):
@@ -66,63 +67,7 @@ class OCRModelOrchestrator:
         self.max_latency = config.get("max_latency_seconds", 10.0)
         self.min_accuracy = config.get("min_accuracy", 0.85)
 
-    def _initialize_models(self) -> Dict[str, Any]:
-        """Initialize registry of SOTA OCR models with their capabilities."""
-        
-        # Chandra-OCR-8B - Highest accuracy (83.1%)
-        chandra_capabilities = ModelCapabilities(
-            name="chandra_ocr_8b",
-            accuracy_score=0.831,
-            throughput_pages_per_sec=1.29,
-            cost_per_million_pages=456.0,
-            supported_languages=[
-                "eng", "chi_sim", "spa", "fra", "deu", "jpn", "kor", 
-                "ara", "hin", "rus", "por", "ita", "tur", "pol", "nld"
-            ],
-            specializations=[
-                DocumentType.COMPLEX, DocumentType.FORM, DocumentType.TABLE,
-                DocumentType.TECHNICAL, DocumentType.MATHEMATICAL
-            ],
-            max_resolution=4000,
-            gpu_memory_gb=16,
-            model_size_gb=15.2,
-            license_type="open_source",
-            confidence_threshold=0.85,
-            strengths=["Highest accuracy", "Layout awareness", "Multilingual"],
-            weaknesses=["Slower processing", "Higher GPU memory usage"]
-        )
-
-        # OlmOCR-2-7B - Best open source (82.4%)
-        olm_capabilities = ModelCapabilities(
-            name="olm_ocr_2_7b",
-            accuracy_score=0.824,
-            throughput_pages_per_sec=1.78,
-            cost_per_million_pages=0.0,  # Open source
-            supported_languages=[
-                "eng", "chi_sim", "spa", "fra", "deu", "jpn", "kor",
-                "ara", "hin", "rus", "por", "ita", "tur", "pol", "nld",
-                "tha", "vie", "ind", "heb", "ben", "tam", "tel", "mar"
-            ],
-            specializations=[
-                DocumentType.PDF, DocumentType.IMAGE, DocumentType.BUSINESS_CARD
-            ],
-            max_resolution=3000,
-            gpu_memory_gb=12,
-            model_size_gb=13.8,
-            license_type="open_source",
-            confidence_threshold=0.82,
-            strengths=["Fully open source", "Synthetic data pipeline", "Unit test rewards"],
-            weaknesses=["Moderate accuracy", "Limited specializations"]
-        )
-
-        # dots.ocr - Multilingual specialist (80%)
-        dots_capabilities = ModelCapabilities(
-            name="dots_ocr",
-            accuracy_score=0.80,
-            throughput_pages_per_sec=2.0,
-            cost_per_million_pages=200.0,
-            supported_languages=[
-                "eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
+eng"eng", "chi_sim", "chi_tra", "spa", "fra", "deu", "jpn", "kor",
                 "ara", "hin", "rus", "por", "ita", "tur", "pol", "nld", "tha",
                 "vie", "ind", "heb", "ben", "tam", "tel", "mar", "guj", "kan",
                 "mal", "ori", "pun", "urd", "mya", "khm", "lao", "sin", "tib"

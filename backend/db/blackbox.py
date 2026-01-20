@@ -2,7 +2,7 @@
 Blackbox Strategies repository for database operations
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from backend.core.supabase_mgr import get_supabase_client
@@ -95,6 +95,8 @@ class BlackboxRepository(Repository):
             },
             "status": "draft",
             "duration_days": 30,  # Default duration
+            "start_date": datetime.utcnow().isoformat(),
+            "end_date": (datetime.utcnow() + timedelta(days=30)).isoformat()
         }
 
         # Create the move

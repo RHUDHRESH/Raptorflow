@@ -6,6 +6,54 @@ import { motion } from "framer-motion";
 import { ArrowRight01Icon, CheckmarkCircle02Icon } from "hugeicons-react";
 import { RaptorLogo } from "@/components/ui/CompassLogo";
 
+// Interactive Installations
+import ParticleFlowCanvas from "@/components/landing/installations/ParticleFlowCanvas";
+import ModuleConstellation from "@/components/landing/installations/ModuleConstellation";
+import LiquidTestimonials from "@/components/landing/installations/LiquidTestimonials";
+import InteractivePricing from "@/components/landing/installations/InteractivePricing";
+import AnimatedTimeline from "@/components/landing/installations/AnimatedTimeline";
+import MagneticBenefits from "@/components/landing/installations/MagneticBenefits";
+import AnimatedFAQ from "@/components/landing/installations/AnimatedFAQ";
+import ParallaxTransformation from "@/components/landing/installations/ParallaxTransformation";
+import ScrollProgressCTA from "@/components/landing/installations/ScrollProgressCTA";
+
+// New Installations (5 more)
+import OrbitTestimonials from "@/components/landing/installations/OrbitTestimonials";
+import TypewriterTerminal from "@/components/landing/installations/TypewriterTerminal";
+import GravityFormFields from "@/components/landing/installations/GravityFormFields";
+import StackedDeckCards from "@/components/landing/installations/StackedDeckCards";
+import ScrollStoryTimeline from "@/components/landing/installations/ScrollStoryTimeline";
+
+// Amazing Additions (3 more)
+import LogoGlobe3D from "@/components/landing/installations/LogoGlobe3D";
+import { SoundToggle } from "@/components/landing/installations/SoundSystem";
+import AIDemoChat from "@/components/landing/installations/AIDemoChat";
+
+// Personality Elements
+import {
+    AnimatedCounter,
+    FloatingEmojis,
+    WittyTooltip,
+    MoodGreeting,
+    SparkleText,
+    WavingHand,
+    ScrollEncouragement
+} from "@/components/landing/installations/PersonalityElements";
+
+// Extra Enhancements (10 more)
+import {
+    CursorSpotlight,
+    GradientWaveDivider,
+    FunFactsTicker,
+    InteractiveLogo,
+    BreathingDot,
+    LiveActivityIndicator
+} from "@/components/landing/installations/ExtraEnhancements";
+
+// Micro-interactions & Personality CSS
+import "@/components/landing/installations/micro-interactions.css";
+import "@/components/landing/installations/personality-styles.css";
+
 /**
  * LANDING PAGE - Grand Simplicity + Wow Factor
  * Clean, editorial, but with visual richness
@@ -14,21 +62,26 @@ export default function LandingPage() {
     return (
         <main className="min-h-screen bg-[var(--canvas)] text-[var(--ink)] overflow-x-hidden">
 
+            {/* Cursor Spotlight Effect */}
+            <CursorSpotlight />
+
             {/* ═══════════════════════════════════════════════════════════════
                 HEADER
             ═══════════════════════════════════════════════════════════════ */}
             <header className="fixed top-0 left-0 right-0 z-50 bg-[var(--canvas)]/90 backdrop-blur-md border-b border-[var(--border)]">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3">
-                        <RaptorLogo size={28} className="text-[var(--ink)]" />
-                        <span className="font-editorial text-xl font-bold tracking-tight">RaptorFlow</span>
-                    </Link>
+                    <InteractiveLogo>
+                        <Link href="/" className="flex items-center gap-3 group">
+                            <RaptorLogo size={28} className="text-[var(--ink)] micro-logo-spin" />
+                            <span className="font-editorial text-xl font-bold tracking-tight micro-text-gradient">RaptorFlow</span>
+                        </Link>
+                    </InteractiveLogo>
                     <nav className="hidden md:flex items-center gap-8">
-                        <Link href="#system" className="text-sm text-[var(--secondary)] hover:text-[var(--ink)]">System</Link>
-                        <Link href="#how" className="text-sm text-[var(--secondary)] hover:text-[var(--ink)]">How it works</Link>
-                        <Link href="#pricing" className="text-sm text-[var(--secondary)] hover:text-[var(--ink)]">Pricing</Link>
-                        <Link href="/login" className="text-sm text-[var(--ink)]">Log in</Link>
-                        <Link href="/signup" className="text-sm px-5 py-2.5 bg-[var(--ink)] text-[var(--canvas)] rounded-lg font-medium hover:opacity-90 transition-opacity">
+                        <Link href="#system" className="text-sm text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">System</Link>
+                        <Link href="#how" className="text-sm text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">How it works</Link>
+                        <Link href="#pricing" className="text-sm text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">Pricing</Link>
+                        <Link href="/login" className="text-sm text-[var(--ink)] micro-nav-link">Log in</Link>
+                        <Link href="/signup" className="text-sm px-5 py-2.5 bg-[var(--ink)] text-[var(--canvas)] rounded-lg font-medium micro-button-press">
                             Start free
                         </Link>
                     </nav>
@@ -39,34 +92,21 @@ export default function LandingPage() {
                 HERO - Full viewport, dramatic
             ═══════════════════════════════════════════════════════════════ */}
             <section className="relative min-h-screen flex items-center justify-center px-6 pt-20 overflow-hidden">
-                {/* Subtle gradient orbs */}
-                <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                    <motion.div
-                        animate={{
-                            scale: [1, 1.1, 1],
-                            opacity: [0.03, 0.06, 0.03]
-                        }}
-                        transition={{ duration: 8, repeat: Infinity }}
-                        className="absolute top-1/4 -left-1/4 w-[800px] h-[800px] bg-[var(--accent)] rounded-full blur-[150px]"
-                    />
-                    <motion.div
-                        animate={{
-                            scale: [1.1, 1, 1.1],
-                            opacity: [0.05, 0.08, 0.05]
-                        }}
-                        transition={{ duration: 10, repeat: Infinity }}
-                        className="absolute bottom-1/4 -right-1/4 w-[600px] h-[600px] bg-[var(--ink)] rounded-full blur-[120px] opacity-5"
-                    />
+                {/* Interactive Particle Flow Canvas */}
+                <div className="absolute inset-0 overflow-hidden">
+                    <ParticleFlowCanvas />
                 </div>
 
                 <div className="relative z-10 max-w-5xl mx-auto text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-full mb-10"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-full mb-10 micro-card-lift personality-glow-pulse"
                     >
-                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-sm text-[var(--secondary)]">Now in public beta</span>
+                        <span className="w-2 h-2 rounded-full bg-green-500 micro-badge-pulse" />
+                        <WittyTooltip message="We're just getting started! 🎉">
+                            <span className="text-sm text-[var(--secondary)] cursor-help">Now in public beta</span>
+                        </WittyTooltip>
                     </motion.div>
 
                     <motion.h1
@@ -75,8 +115,8 @@ export default function LandingPage() {
                         transition={{ delay: 0.1 }}
                         className="text-6xl md:text-7xl lg:text-8xl font-editorial font-medium leading-[0.95] tracking-tight mb-8"
                     >
-                        Stop posting.<br />
-                        <span className="text-[var(--muted)]">Start building.</span>
+                        <SparkleText>Stop posting.</SparkleText><br />
+                        <span className="text-[var(--muted)] personality-shimmer-text">Start building.</span>
                     </motion.h1>
 
                     <motion.p
@@ -97,14 +137,14 @@ export default function LandingPage() {
                     >
                         <Link
                             href="/signup"
-                            className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--ink)] text-[var(--canvas)] text-lg font-medium rounded-xl hover:opacity-90 transition-opacity"
+                            className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--ink)] text-[var(--canvas)] text-lg font-medium rounded-xl micro-button-press micro-arrow-slide"
                         >
-                            Start your free trial
-                            {React.createElement(ArrowRight01Icon as any, { className: "w-5 h-5 group-hover:translate-x-1 transition-transform" })}
+                            Get Started
+                            {React.createElement(ArrowRight01Icon as any, { className: "w-5 h-5 arrow" })}
                         </Link>
                         <Link
                             href="#how"
-                            className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-[var(--border)] text-[var(--ink)] text-lg font-medium rounded-xl hover:border-[var(--ink)] transition-colors"
+                            className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-[var(--border)] text-[var(--ink)] text-lg font-medium rounded-xl micro-border-glow"
                         >
                             See how it works
                         </Link>
@@ -114,11 +154,18 @@ export default function LandingPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5 }}
-                        className="text-sm text-[var(--muted)]"
+                        className="text-sm text-[var(--muted)] flex items-center justify-center gap-4 flex-wrap"
                     >
-                        No credit card required · 14 days free · Cancel anytime
+                        <span>No commitment required</span>
+                        <span className="opacity-50">·</span>
+                        <span className="personality-shake-hover cursor-default">Setup in 20 mins ⚡</span>
+                        <span className="opacity-50">·</span>
+                        <span>Cancel anytime</span>
                     </motion.p>
                 </div>
+
+                {/* Floating Emojis */}
+                <FloatingEmojis emojis={["🚀", "✨", "💡", "🎯", "⚡"]} />
 
                 {/* Scroll indicator */}
                 <motion.div
@@ -142,14 +189,19 @@ export default function LandingPage() {
             ═══════════════════════════════════════════════════════════════ */}
             <section className="py-12 border-y border-[var(--border)] bg-[var(--surface)]">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
-                    <p className="text-sm text-[var(--muted)] uppercase tracking-wider">Trusted by 500+ founders</p>
-                    <div className="flex items-center gap-10">
+                    <p className="text-sm text-[var(--muted)] uppercase tracking-wider">
+                        Trusted by <AnimatedCounter end={500} suffix="+" /> founders
+                    </p>
+                    <div className="flex items-center gap-10 micro-stagger-fade">
                         {["ProductHunt", "Indie Hackers", "YC", "Techstars", "500 Global"].map((name, i) => (
-                            <span key={i} className="text-sm font-medium text-[var(--muted)]">{name}</span>
+                            <span key={i} className="text-sm font-medium text-[var(--muted)] hover:text-[var(--ink)] transition-colors cursor-default micro-icon-bounce">{name}</span>
                         ))}
                     </div>
                 </div>
             </section>
+
+            {/* Fun Facts Ticker */}
+            <FunFactsTicker />
 
             {/* ═══════════════════════════════════════════════════════════════
                 THE PROBLEM - Emotional, relatable
@@ -188,29 +240,8 @@ export default function LandingPage() {
                         <p className="text-xl text-[var(--secondary)]">Everything you need to go from business context to market domination. No more tool-switching. Marketing, finally under control.</p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[
-                            { name: "Foundation", desc: "Our 22-step cognitive onboarding extracts your Precision Soundbites and builds your 90-day plan in minutes.", tag: "Strategy" },
-                            { name: "Cohorts", desc: "Segment by behavioral science markers, not demographics. Know exactly who converts—and why.", tag: "Intelligence" },
-                            { name: "Moves", desc: "Ready-to-ship execution packets delivered every Monday. Content drafted. Tasks clear. Just ship.", tag: "Execution" },
-                            { name: "Muse", desc: "Generate content that sounds like your specific brand voice, not a generic robot. Scale your ideas.", tag: "Creation" },
-                            { name: "Matrix", desc: "The Boardroom View. See what's actually driving pipeline. Cut what isn't. Decide in seconds.", tag: "Analytics" },
-                            { name: "Blackbox", desc: "The Cognitive Spine. Every experiment, every outcome, and every insight preserved forever.", tag: "Memory" }
-                        ].map((module, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: i * 0.1 }}
-                                className="group relative p-8 bg-[var(--canvas)] border border-[var(--border)] rounded-2xl hover:border-[var(--ink)] transition-all duration-300 cursor-pointer"
-                            >
-                                <span className="inline-block px-2 py-1 text-xs uppercase tracking-wider text-[var(--muted)] bg-[var(--surface)] rounded mb-4">{module.tag}</span>
-                                <h3 className="text-2xl font-bold mb-3 group-hover:text-[var(--accent)] transition-colors">{module.name}</h3>
-                                <p className="text-[var(--secondary)] leading-relaxed text-sm">{module.desc}</p>
-                            </motion.div>
-                        ))}
-                    </div>
+                    {/* Interactive Module Constellation */}
+                    <ModuleConstellation />
                 </div>
             </section>
 
@@ -224,28 +255,23 @@ export default function LandingPage() {
                         <h2 className="text-4xl md:text-5xl font-editorial">Deploy your OS.<br /><span className="text-[var(--muted)]">In three steps.</span></h2>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-12">
-                        {[
-                            { step: "01", title: "Synchronize Context", desc: "Connect your specific business context. We build your RICP, positioning, and 90-day execution plan automatically." },
-                            { step: "02", title: "Deploy Weekly Moves", desc: "Every Monday, get your ready-to-ship packet: assets, strategic tasks, and maneuvers. No more blank pages." },
-                            { step: "03", title: "Execute & Track", desc: "The Matrix shows the signal. See what's driving pipeline. Double down on winners. Scale with absolute certainty." }
-                        ].map((item, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: i * 0.15 }}
-                                className="text-center"
-                            >
-                                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center">
-                                    <span className="text-2xl font-mono font-bold text-[var(--blueprint)]">{item.step}</span>
-                                </div>
-                                <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-                                <p className="text-[var(--secondary)] leading-relaxed">{item.desc}</p>
-                            </motion.div>
-                        ))}
+                    {/* Animated Interactive Timeline */}
+                    <AnimatedTimeline />
+                </div>
+            </section>
+
+            {/* ═══════════════════════════════════════════════════════════════
+                SEE IT IN ACTION - Terminal Demo
+            ═══════════════════════════════════════════════════════════════ */}
+            <section className="py-32 bg-[var(--surface)] border-y border-[var(--border)]">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center mb-16">
+                        <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)] mb-4">See it in Action</p>
+                        <h2 className="text-4xl md:text-5xl font-editorial">Watch the magic. <span className="text-[var(--muted)]">Live.</span></h2>
                     </div>
+
+                    {/* Typewriter Terminal */}
+                    <TypewriterTerminal />
                 </div>
             </section>
 
@@ -259,54 +285,8 @@ export default function LandingPage() {
                         <p className="text-xl text-[var(--secondary)] mt-4">From marketing chaos to surgical execution.</p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-px bg-[var(--border)] border border-[var(--border)] rounded-3xl overflow-hidden shadow-2xl">
-                        {/* Before */}
-                        <div className="bg-[var(--surface)] p-12 space-y-8">
-                            <h3 className="text-2xl font-bold text-[var(--muted)] flex items-center gap-3">
-                                <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-sm font-mono font-bold italic">×</span>
-                                Before RaptorFlow
-                            </h3>
-                            <ul className="space-y-6">
-                                {[
-                                    "Staring at a blank cursor every Monday morning.",
-                                    "Guessing which channels are actually driving growth.",
-                                    "Switching between Buffer, Notion, and generic AI prompts.",
-                                    "Spending 15+ hours a week on 'marketing activities'.",
-                                    "Zero pipeline visibility and inconsistent messaging."
-                                ].map((item, i) => (
-                                    <li key={i} className="flex gap-4 text-lg text-[var(--secondary)] line-through decoration-[var(--muted)]/30">
-                                        <span className="text-[var(--muted)]/50">—</span>
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* After */}
-                        <div className="bg-[var(--canvas)] p-12 space-y-8 relative">
-                            <div className="absolute top-0 right-0 p-4 opacity-5">
-                                <RaptorLogo size={200} />
-                            </div>
-                            <h3 className="text-2xl font-bold text-[var(--ink)] flex items-center gap-3">
-                                <span className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm font-mono font-bold">✓</span>
-                                After RaptorFlow
-                            </h3>
-                            <ul className="space-y-6 relative z-10">
-                                {[
-                                    "Ready-to-ship Move packets delivered every Monday.",
-                                    "Surgical precision in ICP and behavior targeting.",
-                                    "A single, unified OS for strategy and execution.",
-                                    "Save 10+ hours a week through technical automation.",
-                                    "Full pipeline tracking and institutional memory."
-                                ].map((item, i) => (
-                                    <li key={i} className="flex gap-4 text-lg text-[var(--ink)] font-medium">
-                                        {React.createElement(CheckmarkCircle02Icon as any, { className: "w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" })}
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
+                    {/* Parallax Before/After Transformation */}
+                    <ParallaxTransformation />
                 </div>
             </section>
 
@@ -320,36 +300,11 @@ export default function LandingPage() {
                         <p className="text-xl text-[var(--canvas)]/70">RaptorFlow isn't another tool. It's the tool that replaces five others.</p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-8">
-                        {[
-                            { title: "Save 10+ hours per week", desc: "Stop context-switching between tools. Everything lives in one place." },
-                            { title: "Ship content that converts", desc: "No more guessing what to post. Every Move is backed by your strategy." },
-                            { title: "Know what's working", desc: "Real attribution, not vanity metrics. See the full pipeline picture." },
-                            { title: "Build institutional memory", desc: "Every experiment, every outcome. Never repeat the same mistakes." }
-                        ].map((benefit, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: true }}
-                                className="flex gap-4 p-6 rounded-xl bg-white/5 border border-white/10"
-                            >
-                                <div className="flex-shrink-0 mt-1">
-                                    {React.createElement(CheckmarkCircle02Icon as any, { className: "w-6 h-6 text-[var(--accent)]" })}
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold mb-2">{benefit.title}</h3>
-                                    <p className="text-[var(--canvas)]/70">{benefit.desc}</p>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
+                    {/* Magnetic Benefits Cards */}
+                    <MagneticBenefits />
                 </div>
             </section>
 
-            {/* ═══════════════════════════════════════════════════════════════
-                TESTIMONIALS - Multiple quotes
-            ═══════════════════════════════════════════════════════════════ */}
             <section className="py-32">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-16">
@@ -357,33 +312,24 @@ export default function LandingPage() {
                         <h2 className="text-4xl md:text-5xl font-editorial">Founders who ship.</h2>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-6">
-                        {[
-                            { quote: "I went from random posting to a real strategy in one afternoon. This is what founder marketing should feel like.", name: "Sarah Chen", role: "Founder, ProductLabs" },
-                            { quote: "RaptorFlow replaced Notion, Buffer, and ChatGPT for me. The weekly Moves alone save me 5 hours.", name: "Marcus Rodriguez", role: "CEO, Clarity AI" },
-                            { quote: "Finally understand what's driving pipeline vs. what's just vanity metrics. Game changer.", name: "Emma Thompson", role: "Founder, DesignPro" }
-                        ].map((testimonial, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: i * 0.1 }}
-                                className="p-8 border border-[var(--border)] rounded-2xl"
-                            >
-                                <p className="text-lg leading-relaxed mb-6">"{testimonial.quote}"</p>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-[var(--ink)] text-[var(--canvas)] flex items-center justify-center font-bold text-sm">
-                                        {testimonial.name.split(' ').map(n => n[0]).join('')}
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold">{testimonial.name}</p>
-                                        <p className="text-sm text-[var(--muted)]">{testimonial.role}</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
+                    {/* Orbit Testimonials */}
+                    <OrbitTestimonials />
+                </div>
+            </section>
+
+            {/* ═══════════════════════════════════════════════════════════════
+                EXPLORE FEATURES - Stacked Deck
+            ═══════════════════════════════════════════════════════════════ */}
+            <section className="py-32 bg-[var(--surface)] border-y border-[var(--border)]">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center mb-20">
+                        <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)] mb-4">Explore Features</p>
+                        <h2 className="text-4xl md:text-5xl font-editorial">Deal through the deck.</h2>
+                        <p className="text-xl text-[var(--secondary)] mt-4">Five modules that power your marketing OS.</p>
                     </div>
+
+                    {/* Stacked Deck Cards */}
+                    <StackedDeckCards />
                 </div>
             </section>
 
@@ -395,44 +341,11 @@ export default function LandingPage() {
                     <div className="text-center mb-16">
                         <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)] mb-4">Pricing</p>
                         <h2 className="text-4xl md:text-5xl font-editorial mb-4">Simple. Honest. <span className="text-[var(--muted)]">No surprises.</span></h2>
-                        <p className="text-xl text-[var(--secondary)]">Start free. Upgrade when you're ready.</p>
+                        <p className="text-xl text-[var(--secondary)]">Choose your plan and get started today.</p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                        {[
-                            { tier: "Ascent", price: "$29", desc: "For founders getting started", features: ["Foundation setup", "3 weekly Moves", "Basic Muse AI", "Matrix analytics", "Email support"] },
-                            { tier: "Glide", price: "$79", desc: "For founders scaling up", features: ["Everything in Ascent", "Unlimited Moves", "Advanced Muse (voice training)", "Cohort segmentation", "Priority support", "Blackbox vault"], popular: true },
-                            { tier: "Soar", price: "$199", desc: "For teams", features: ["Everything in Glide", "5 team seats", "Custom AI training", "API access", "Dedicated success manager"] }
-                        ].map((plan, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: i * 0.1 }}
-                                className={`p-8 rounded-2xl border ${plan.popular ? 'border-[var(--ink)] bg-[var(--canvas)] shadow-xl' : 'border-[var(--border)] bg-[var(--canvas)]'}`}
-                            >
-                                {plan.popular && <p className="text-xs uppercase tracking-wider text-[var(--accent)] mb-4 font-semibold">Most popular</p>}
-                                <h3 className="text-2xl font-bold mb-2">{plan.tier}</h3>
-                                <p className="text-4xl font-mono font-bold mb-1">{plan.price}<span className="text-base text-[var(--muted)] font-normal">/mo</span></p>
-                                <p className="text-sm text-[var(--muted)] mb-6">{plan.desc}</p>
-                                <ul className="space-y-3 mb-8">
-                                    {plan.features.map((f, j) => (
-                                        <li key={j} className="flex items-start gap-2 text-sm">
-                                            {React.createElement(CheckmarkCircle02Icon as any, { className: "w-4 h-4 text-[var(--accent)] flex-shrink-0 mt-0.5" })}
-                                            <span>{f}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <Link
-                                    href="/signup"
-                                    className={`block w-full py-3 text-center font-semibold rounded-xl transition-colors ${plan.popular ? 'bg-[var(--ink)] text-[var(--canvas)]' : 'border border-[var(--border)] hover:border-[var(--ink)]'}`}
-                                >
-                                    Start free trial
-                                </Link>
-                            </motion.div>
-                        ))}
-                    </div>
+                    {/* Interactive 3D Pricing Cards */}
+                    <InteractivePricing />
                 </div>
             </section>
 
@@ -446,25 +359,8 @@ export default function LandingPage() {
                         <h2 className="text-4xl md:text-5xl font-editorial">Questions? <span className="text-[var(--muted)]">Answered.</span></h2>
                     </div>
 
-                    <div className="space-y-6">
-                        {[
-                            { q: "How is RaptorFlow different from other marketing tools?", a: "RaptorFlow isn't a tool—it's an operating system. Others give you features in isolation. We connect strategy to execution in one unified workflow." },
-                            { q: "Do I need a marketing team?", a: "No. Built specifically for founders and lean teams. The system generates your weekly execution packets—no dedicated marketer needed." },
-                            { q: "What if I don't know my positioning yet?", a: "That's what Foundation is for. Our onboarding synthesizes your ICP, positioning, and 90-day plan in under 20 minutes." },
-                            { q: "How long until I see results?", a: "Most users ship their first Move within a week. Measurable pipeline impact typically shows within 4-6 weeks of consistent execution." }
-                        ].map((faq, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 10 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                className="p-6 border border-[var(--border)] rounded-xl"
-                            >
-                                <h3 className="text-lg font-bold mb-3">{faq.q}</h3>
-                                <p className="text-[var(--secondary)]">{faq.a}</p>
-                            </motion.div>
-                        ))}
-                    </div>
+                    {/* Animated FAQ Accordion */}
+                    <AnimatedFAQ />
                 </div>
             </section>
 
@@ -479,7 +375,7 @@ export default function LandingPage() {
                         viewport={{ once: true }}
                         className="text-5xl md:text-6xl lg:text-7xl font-editorial mb-6"
                     >
-                        Ready to stop guessing?
+                        Ready to stop guessing? <WavingHand />
                     </motion.h2>
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
@@ -488,7 +384,7 @@ export default function LandingPage() {
                         transition={{ delay: 0.1 }}
                         className="text-xl text-[var(--canvas)]/70 mb-10"
                     >
-                        Join 500+ founders who replaced marketing chaos with a system that works.
+                        Join <AnimatedCounter end={500} suffix="+" /> founders who replaced marketing chaos with a system that works.
                     </motion.p>
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -498,10 +394,10 @@ export default function LandingPage() {
                     >
                         <Link
                             href="/signup"
-                            className="inline-flex items-center gap-2 px-10 py-5 bg-[var(--canvas)] text-[var(--ink)] text-lg font-semibold rounded-xl hover:opacity-90 transition-opacity"
+                            className="inline-flex items-center gap-2 px-10 py-5 bg-[var(--canvas)] text-[var(--ink)] text-lg font-semibold rounded-xl micro-button-press micro-arrow-slide"
                         >
-                            Start your free trial
-                            {React.createElement(ArrowRight01Icon as any, { className: "w-5 h-5" })}
+                            Get Started
+                            {React.createElement(ArrowRight01Icon as any, { className: "w-5 h-5 arrow" })}
                         </Link>
                     </motion.div>
                 </div>
@@ -514,9 +410,9 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
                         <div>
-                            <div className="flex items-center gap-3 mb-4">
-                                <RaptorLogo size={28} className="text-[var(--ink)]" />
-                                <span className="font-editorial font-bold text-xl">RaptorFlow</span>
+                            <div className="flex items-center gap-3 mb-4 group">
+                                <RaptorLogo size={28} className="text-[var(--ink)] micro-logo-spin" />
+                                <span className="font-editorial font-bold text-xl micro-text-gradient">RaptorFlow</span>
                             </div>
                             <p className="text-[var(--secondary)] max-w-xs">The operating system for founder-led marketing.</p>
                         </div>
@@ -524,26 +420,41 @@ export default function LandingPage() {
                             <div>
                                 <h4 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)] mb-4">Product</h4>
                                 <ul className="space-y-2 text-sm">
-                                    <li><Link href="#system" className="text-[var(--secondary)] hover:text-[var(--ink)]">Features</Link></li>
-                                    <li><Link href="#pricing" className="text-[var(--secondary)] hover:text-[var(--ink)]">Pricing</Link></li>
-                                    <li><Link href="/login" className="text-[var(--secondary)] hover:text-[var(--ink)]">Log in</Link></li>
+                                    <li><Link href="#system" className="text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">Features</Link></li>
+                                    <li><Link href="#pricing" className="text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">Pricing</Link></li>
+                                    <li><Link href="/login" className="text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">Log in</Link></li>
                                 </ul>
                             </div>
                             <div>
                                 <h4 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)] mb-4">Legal</h4>
                                 <ul className="space-y-2 text-sm">
-                                    <li><Link href="/legal/privacy" className="text-[var(--secondary)] hover:text-[var(--ink)]">Privacy</Link></li>
-                                    <li><Link href="/legal/terms" className="text-[var(--secondary)] hover:text-[var(--ink)]">Terms</Link></li>
+                                    <li><Link href="/legal/privacy" className="text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">Privacy</Link></li>
+                                    <li><Link href="/legal/terms" className="text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">Terms</Link></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
-                    <div className="pt-8 border-t border-[var(--border)] flex justify-between text-sm text-[var(--muted)]">
-                        <p>© {new Date().getFullYear()} RaptorFlow Inc.</p>
-                        <p>Marketing. Finally under control.</p>
+                    <div className="pt-8 border-t border-[var(--border)] flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[var(--muted)]">
+                        <p>© {new Date().getFullYear()} RaptorFlow Inc. • Built with ❤️ for founders</p>
+                        <div className="flex items-center gap-4">
+                            <SoundToggle />
+                            <MoodGreeting />
+                        </div>
                     </div>
                 </div>
             </footer>
+
+            {/* Floating Scroll Progress CTA */}
+            <ScrollProgressCTA />
+
+            {/* Scroll Encouragement */}
+            <ScrollEncouragement />
+
+            {/* Live Activity Indicator */}
+            <LiveActivityIndicator />
+
+            {/* AI Demo Chat */}
+            <AIDemoChat />
         </main>
     );
 }

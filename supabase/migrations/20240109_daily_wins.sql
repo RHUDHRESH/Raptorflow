@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS public.daily_wins (
     ai_confidence DECIMAL(3,2) DEFAULT 0.00,
     ai_generated_at TIMESTAMPTZ,
     ai_insights JSONB DEFAULT '{}', -- AI-generated insights
+    content_embedding vector(384), -- For semantic search
 
     -- Tracking and analytics
     views INTEGER DEFAULT 0,
@@ -139,9 +140,9 @@ CREATE INDEX IF NOT EXISTS idx_daily_wins_blackbox_strategy_id ON public.daily_w
 CREATE INDEX IF NOT EXISTS idx_daily_wins_collaboration_level ON public.daily_wins(collaboration_level);
 CREATE INDEX IF NOT EXISTS idx_daily_wins_views ON public.daily_wins(views DESC);
 CREATE INDEX IF NOT EXISTS idx_daily_wins_inspiration_score ON public.daily_wins(inspiration_score DESC);
-CREATE INDEX IF NOT EXISTS idx_daily_wins_tags ON public.daily_wins USING GIN (tags) WITH (jsonb_path_ops);
-CREATE INDEX IF NOT EXISTS idx_daily_wins_keywords ON public.daily_wins USING GIN (keywords) WITH (jsonb_path_ops);
-CREATE INDEX IF NOT EXISTS idx_daily_wins_attributes ON public.daily_wins USING GIN (attributes) WITH (jsonb_path_ops);
+CREATE INDEX IF NOT EXISTS idx_daily_wins_tags ON public.daily_wins USING GIN (tags jsonb_path_ops);
+CREATE INDEX IF NOT EXISTS idx_daily_wins_keywords ON public.daily_wins USING GIN (keywords jsonb_path_ops);
+CREATE INDEX IF NOT EXISTS idx_daily_wins_attributes ON public.daily_wins USING GIN (attributes jsonb_path_ops);
 
 -- Vector index for semantic search
 CREATE INDEX IF NOT EXISTS idx_daily_wins_content_embedding

@@ -25,7 +25,7 @@
 - **Connection Time:** 1.84s (acceptable)
 - **Operations:** SET, GET, INFO commands working
 - **Performance:** Fast response times
-- **URL:** https://selected-lemming-36956.upstash.io
+- **URL:** https://patient-goshawk-35225.upstash.io
 - **Verification:** Test operations completed successfully
 
 ### 4. Python Dependencies

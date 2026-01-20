@@ -518,11 +518,18 @@ class SecurityAudit:
             return hashlib.sha256(event_string.encode()).hexdigest()
     
     def _generate_digital_signature(self, event: AuditEvent) -> str:
-        """Generate digital signature for event."""
-        # In production, this would use proper cryptographic signing
-        # For now, generate a mock signature
-        signature_data = f"{event.event_id}:{event.timestamp}:{event.checksum}"
-        return base64.b64encode(signature_data.encode()).decode()
+        """Generate real HMAC-SHA256 digital signature for event integrity."""
+        import hmac
+        from backend.config.settings import get_settings
+        
+        settings = get_settings()
+        secret = settings.SECRET_KEY.encode()
+        
+        # Data to sign: event_id, timestamp, and checksum
+        data_to_sign = f"{event.event_id}:{event.timestamp.isoformat()}:{event.checksum}".encode()
+        
+        signature = hmac.new(secret, data_to_sign, hashlib.sha256).digest()
+        return base64.b64encode(signature).decode()
     
     def _update_indexes(self, event: AuditEvent):
         """Update search indexes."""

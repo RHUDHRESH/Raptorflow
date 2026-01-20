@@ -192,7 +192,8 @@ class RedisClient:
         """Check Redis connection."""
         try:
             result = await self.async_client.ping()
-            return result is True
+            # Upstash may return 'PONG' string or True boolean
+            return result is True or result == "PONG"
         except Exception:
             return False
 

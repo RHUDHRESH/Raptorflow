@@ -1,9 +1,9 @@
----
+﻿---
 active: true
 iteration: 1
 max_iterations: 0
-completion_promise: "RAPTORFLOW_INTERFACE_COMPLETE"
-started_at: "2026-01-20T14:00:00Z"
+completion_promise: "RAPTORFLOW_ONBOARDING_REACHED"
+started_at: "2026-01-20T12:00:00Z"
 ---
 
-Audit and connect News, Moves, Campaigns, Daily Wins, and Blackbox to the backend; then build out a high-fidelity Dashboard and Analytics system (both FE and BE).
+Run Raptorflow app, test landing page, clean Supabase records, test Google Auth (rhudhreshr@gmail.com / nevergiveup17$), select 5k Ascent plan, test PhonePe payment, configure and test Resend emails (invoice, welcome, plan confirmation), ensure RLS/tenant isolation, and reach onboarding first page.

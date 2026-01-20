@@ -10,28 +10,42 @@ import { BlueprintButton } from "@/components/ui/BlueprintButton";
 export default function OnboardingPage() {
   const router = useRouter();
   const { session, createSession } = useOnboardingStore();
-  const { workspace, isLoading } = useAuth();
+  const { workspace, isLoading, user } = useAuth();
 
   useEffect(() => {
     if (isLoading) return;
 
-    const workspaceId = workspace?.workspaceId;
-    if (!workspaceId) {
-      return;
-    }
+    const checkStatus = async () => {
+      const workspaceId = workspace?.workspaceId;
+      
+      // If they have a workspace and onboarding is active, redirect to dashboard
+      // Note: we check the active status from user profile or metadata if available
+      const anyUser = user as any;
+      if (workspaceId && (anyUser?.onboardingStatus === 'active' || anyUser?.user_metadata?.onboarding_status === 'active')) {
+        console.log("User already onboarded, breaking loop and redirecting to dashboard");
+        router.push("/dashboard");
+        return;
+      }
 
-    // Initialize session if not exists and redirect to first step
-    if (!session?.sessionId) {
-      createSession(workspaceId, workspace?.workspaceName || "New Client");
-    }
+      if (!workspaceId) {
+        return;
+      }
 
-    // Small delay to ensure session is initialized
-    const timer = setTimeout(() => {
-      router.push("/onboarding/session/step/1");
-    }, 150);
+      // Initialize session if not exists and redirect to first step
+      if (!session?.sessionId) {
+        createSession(workspaceId, workspace?.workspaceName || "New Client");
+      }
 
-    return () => clearTimeout(timer);
-  }, [session, createSession, router, workspace, isLoading]);
+      // Small delay to ensure session is initialized
+      const timer = setTimeout(() => {
+        router.push("/onboarding/session/step/1");
+      }, 150);
+
+      return () => clearTimeout(timer);
+    };
+
+    checkStatus();
+  }, [session, createSession, router, workspace, isLoading, user]);
 
   if (!isLoading && !workspace?.workspaceId) {
     return (

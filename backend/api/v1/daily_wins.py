@@ -6,7 +6,7 @@ Unified Surpise Engine via LangGraph.
 import json
 import logging
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
@@ -264,15 +264,44 @@ async def mark_win_as_posted(
     request: MarkPostedRequest,
     current_user: Dict = Depends(get_current_user),
 ):
-    """Mark a daily win as posted."""
+    """Mark a daily win as posted and increment workspace streak."""
     try:
         supabase = get_supabase_client()
+        now = datetime.now(UTC)
+        
+        # 1. Mark win as posted
         supabase.table("daily_wins").update(
-            {"status": "posted", "posted_at": datetime.now().isoformat()}
+            {"status": "posted", "posted_at": now.isoformat()}
         ).eq("id", win_id).eq("workspace_id", request.workspace_id).execute()
 
-        return {"success": True}
+        # 2. Update Streak
+        ws_res = await supabase.table("workspaces") \
+            .select("daily_wins_streak, last_win_at") \
+            .eq("id", request.workspace_id) \
+            .single() \
+            .execute()
+        
+        ws_data = ws_res.data or {}
+        current_streak = ws_data.get("daily_wins_streak", 0)
+        last_win_at = ws_data.get("last_win_at")
+        
+        new_streak = 1
+        if last_win_at:
+            last_date = datetime.fromisoformat(last_win_at).date()
+            today = now.date()
+            if last_date == today:
+                new_streak = current_streak # Already posted today
+            elif last_date == (today - timedelta(days=1)):
+                new_streak = current_streak + 1
+        
+        await supabase.table("workspaces").update({
+            "daily_wins_streak": new_streak,
+            "last_win_at": now.isoformat()
+        }).eq("id", request.workspace_id).execute()
+
+        return {"success": True, "new_streak": new_streak}
     except Exception as e:
+        logger.error(f"Failed to mark win as posted: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

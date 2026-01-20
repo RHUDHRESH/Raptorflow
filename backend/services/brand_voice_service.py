@@ -8,23 +8,20 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-try:
-    from services.vertex_ai_service import vertex_ai_service
-except ImportError:
-    vertex_ai_service = None
+from services.vertex_ai_service import vertex_ai_service
+from backend.core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
 
 class BrandVoiceService:
-    """Service for learning and enforcing brand voice."""
+    """Service for learning and enforcing brand voice with Supabase persistence."""
 
     def __init__(self):
-        # Mock storage - would be database in production
-        self.profiles = {}
+        self.supabase = get_supabase_client()
 
     async def analyze_brand_voice(
-        self, content_samples: List[str], user_id: str
+        self, content_samples: List[str], user_id: str, workspace_id: str = "default"
     ) -> Dict[str, Any]:
         """Analyze content samples to extract a brand voice profile via AI inference."""
         logger.info(f"Analyzing brand voice for user {user_id}")
@@ -67,12 +64,21 @@ OUTPUT JSON format:
                     )
                     profile = json.loads(clean_res)
                     profile["last_updated"] = datetime.now().isoformat()
-                    self.profiles[user_id] = profile
+                    
+                    # Store in Supabase
+                    await self.supabase.table("brand_profiles").upsert({
+                        "user_id": user_id,
+                        "workspace_id": workspace_id,
+                        "profile_data": profile,
+                        "updated_at": datetime.utcnow().isoformat()
+                    }).execute()
+                    
                     return {"success": True, "profile": profile}
-                except:
+                except Exception as e:
+                    logger.error(f"Failed to store brand profile: {e}")
                     return {
                         "success": False,
-                        "error": "Failed to parse AI profile output",
+                        "error": "Failed to parse or store AI profile output",
                     }
             else:
                 return {"success": False, "error": ai_response.get("error", "AI error")}
@@ -81,13 +87,24 @@ OUTPUT JSON format:
             logger.error(f"Voice analysis failed: {e}")
             return {"success": False, "error": str(e)}
 
-    async def get_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
-        """Get the brand voice profile for a user."""
-        return self.profiles.get(user_id)
+    async def get_profile(self, user_id: str, workspace_id: str = "default") -> Optional[Dict[str, Any]]:
+        """Get the brand voice profile from Supabase."""
+        try:
+            result = await self.supabase.table("brand_profiles")\
+                .select("profile_data")\
+                .eq("user_id", user_id)\
+                .eq("workspace_id", workspace_id)\
+                .single()\
+                .execute()
+            
+            return result.data.get("profile_data") if result.data else None
+        except Exception as e:
+            logger.warning(f"Failed to fetch brand profile for {user_id}: {e}")
+            return None
 
-    async def apply_brand_voice(self, content: str, user_id: str) -> str:
+    async def apply_brand_voice(self, content: str, user_id: str, workspace_id: str = "default") -> str:
         """Refine content to match the user's brand voice profile via real AI inference."""
-        profile = await self.get_profile(user_id)
+        profile = await self.get_profile(user_id, workspace_id)
         if not profile or not vertex_ai_service:
             return content
 

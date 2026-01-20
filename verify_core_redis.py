@@ -22,8 +22,8 @@ def load_env(env_path):
 load_env('backend/.env')
 
 # Manually override to be sure
-os.environ["UPSTASH_REDIS_URL"] = "https://selected-lemming-36956.upstash.io"
-os.environ["UPSTASH_REDIS_TOKEN"] = "AZBcAAInCDF3MTZ1NzY3YjE4NjY6dM1yYm=jNTVmk8H1MTU1ZWF1NNAx!2YSNTY"
+os.environ["UPSTASH_REDIS_URL"] = "https://patient-goshawk-35225.upstash.io"
+os.environ["UPSTASH_REDIS_TOKEN"] = "AYmZAAIncDEwNDA0NjczMDU4OTk0NTc1YTBlNGQ0NzUzZWFjNWI0MXAxMzUyMjU"
 
 from backend.redis_core.client import get_redis
 

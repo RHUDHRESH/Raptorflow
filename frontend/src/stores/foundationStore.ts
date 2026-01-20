@@ -167,7 +167,7 @@ export const useFoundationStore = create<FoundationStore>()(
             fetchFoundation: async () => {
                 try {
                     const response = await api.get('/foundation/');
-                    const data = response.data;
+                    const data = response.data as any;
                     
                     set({
                         ricps: data.ricps || [],

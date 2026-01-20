@@ -1,8 +1,8 @@
 import urllib.request
 import os
 
-token = "AZBcAAInCDF3MTZ1NzY3YjE4NjY6dM1yYm=jNTVmk8H1MTU1ZWF1NNAx!2YSNTY"
-url = f"https://selected-lemming-36956.upstash.io/ping?_token={token}"
+token = "AYmZAAIncDEwNDA0NjczMDU4OTk0NTc1YTBlNGQ0NzUzZWFjNWI0MXAxMzUyMjU"
+url = f"https://patient-goshawk-35225.upstash.io/ping?_token={token}"
 
 print(f"Trying token as query param...")
 

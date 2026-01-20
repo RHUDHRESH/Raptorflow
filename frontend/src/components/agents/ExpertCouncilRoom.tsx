@@ -70,7 +70,7 @@ export function ExpertCouncilRoom() {
     setSkillsLoaded({});
 
     try {
-      const response = await api.post("/council/execute", { mission });
+      const response = await api.post<any>("/council/execute", { mission });
       const data = response.data;
       
       if (data.skills_loaded) {

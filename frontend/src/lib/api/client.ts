@@ -58,262 +58,162 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
 
-    try {
-      const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
-        ...options,
-      });
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error(`API request failed for ${endpoint}:`, error);
-      // Return mock data for development
-      return this.getMockResponse<T>(endpoint);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
     }
+
+    const data = await response.json();
+    return data;
   }
 
-  private getMockResponse<T>(endpoint: string): ApiResponse<T> {
-    // Mock responses for development when backend is not available
-    const mockResponses: Record<string, ApiResponse<unknown>> = {
-      '/': {
-        message: "Raptorflow Ultimate Backend API",
-        version: "2.0.0",
-        status: "active",
-        modules: ["agents", "skills", "tools", "data", "workflows", "monitoring"],
-        timestamp: new Date().toISOString(),
-      },
-      '/health': {
-        status: "healthy",
-        timestamp: new Date().toISOString(),
-        modules: {
-          agents: "active",
-          skills: "active",
-          tools: "active",
-          data: "active",
-          workflows: "active",
-          monitoring: "active"
-        }
-      },
-      '/agents': {
-        status: "success",
-        timestamp: new Date().toISOString(),
-        module: "agents",
-        count: 5,
-        agents: [
-          {
-            id: "1",
-            name: "ICP Architect",
-            type: "specialist",
-            status: "active",
-            capabilities: ["market research", "persona development", "segmentation"]
-          },
-          {
-            id: "2",
-            name: "Content Generator",
-            type: "creative",
-            status: "active",
-            capabilities: ["blog posts", "social media", "email campaigns"]
-          },
-          {
-            id: "3",
-            name: "Campaign Manager",
-            type: "orchestrator",
-            status: "active",
-            capabilities: ["campaign planning", "budget allocation", "performance tracking"]
-          }
-        ]
-      },
-      '/skills': {
-        status: "success",
-        timestamp: new Date().toISOString(),
-        module: "skills",
-        count: 8,
-        skills: [
-          {
-            id: "1",
-            name: "Market Analysis",
-            category: "research",
-            status: "active",
-            description: "Analyze market trends and competitor data"
-          },
-          {
-            id: "2",
-            name: "Content Creation",
-            category: "creative",
-            status: "active",
-            description: "Generate marketing content and copy"
-          },
-          {
-            id: "3",
-            name: "Data Visualization",
-            category: "analytics",
-            status: "active",
-            description: "Create charts and visual reports"
-          }
-        ]
-      },
-      '/tools': {
-        status: "success",
-        timestamp: new Date().toISOString(),
-        module: "tools",
-        count: 12,
-        tools: [
-          {
-            id: "1",
-            name: "Email Sender",
-            type: "communication",
-            status: "active",
-            description: "Send marketing emails and newsletters"
-          },
-          {
-            id: "2",
-            name: "Social Media Poster",
-            type: "social",
-            status: "active",
-            description: "Post content to social media platforms"
-          },
-          {
-            id: "3",
-            name: "Analytics Dashboard",
-            type: "analytics",
-            status: "active",
-            description: "Track and analyze marketing metrics"
-          }
-        ]
-      }
-    };
-
-    return (mockResponses[endpoint] || {
-      status: "error",
-      message: "Endpoint not found",
-      timestamp: new Date().toISOString()
-    }) as ApiResponse<T>;
+  async get<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { ...options, method: 'GET' });
   }
 
-  // System endpoints
-  async getHealth() {
-    return this.request('/health');
+  async post<T>(endpoint: string, body: any, options: RequestInit = {}): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
   }
 
-  async getSystemInfo() {
+  // Dashboard endpoints
+  async getDashboardSummary(): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/dashboard/summary');
+  }
+
+  // Analytics endpoints
+  async getMovesPerformance(): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/analytics-v2/moves');
+  }
+
+  async getMusePerformance(): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/analytics-v2/muse');
+  }
+
+  // Moves endpoints
+  async listMoves(): Promise<ApiResponse<any[]>> {
+    return this.request('/api/v1/moves/');
+  }
+
+  async createMove(data: any): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/moves/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateMove(moveId: string, data: any): Promise<ApiResponse<any>> {
+    return this.request(`/api/v1/moves/${moveId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getMovesCalendar(): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/moves/calendar/events');
+  }
+
+  // Campaigns endpoints
+  async listCampaigns(): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/campaigns/');
+  }
+
+  async createCampaign(data: any): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/campaigns/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getCampaignCalendar(): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/campaigns/calendar/events');
+  }
+
+  // Muse endpoints
+  async generateMuseAsset(data: any): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/muse/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async listMuseAssets(): Promise<ApiResponse<any[]>> {
+    return this.request('/api/v1/muse/assets');
+  }
+
+  async deriveTrinity(cohortName: string): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/icps/derive-trinity', {
+      method: 'POST',
+      body: JSON.stringify({ name: cohortName }),
+    });
+  }
+
+  async createBlueprint(goal: string): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/moves/create-blueprint', {
+      method: 'POST',
+      body: JSON.stringify({ goal }),
+    });
+  }
+
+  async getExpertReasoning(moveId: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/v1/moves/${moveId}/reasoning`);
+  }
+
+  async getAgents(): Promise<ApiResponse<Agent[]>> {
+    return this.request('/api/v1/agents/');
+  }
+
+  async getSkills(): Promise<ApiResponse<Skill[]>> {
+    return this.request('/api/v1/agents/skills');
+  }
+
+  async getTools(): Promise<ApiResponse<Tool[]>> {
+    return this.request('/api/v1/agents/tools');
+  }
+
+  async getWorkflows(): Promise<ApiResponse<Workflow[]>> {
+    return this.request('/api/v1/agents/workflows');
+  }
+
+  async getSystemHealth(): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/health');
+  }
+
+  async getHealth(): Promise<ApiResponse<any>> {
+    return this.getSystemHealth();
+  }
+
+  async getSystemInfo(): Promise<ApiResponse<any>> {
     return this.request('/');
   }
 
-  // Agent endpoints
-  async getAgents(): Promise<ApiResponse<Agent[]>> {
-    return this.request('/agents');
-  }
-
-  async getAgent(id: string): Promise<ApiResponse<Agent>> {
-    return this.request(`/agents/${id}`);
-  }
-
-  // Skill endpoints
-  async getSkills(): Promise<ApiResponse<Skill[]>> {
-    return this.request('/skills');
-  }
-
-  async getSkill(id: string): Promise<ApiResponse<Skill>> {
-    return this.request(`/skills/${id}`);
-  }
-
-  // Tool endpoints
-  async getTools(): Promise<ApiResponse<Tool[]>> {
-    return this.request('/tools');
-  }
-
-  async getTool(id: string): Promise<ApiResponse<Tool>> {
-    return this.request(`/tools/${id}`);
-  }
-
-  // Workflow endpoints
-  async getWorkflows(): Promise<ApiResponse<Workflow[]>> {
-    return this.request('/workflows');
-  }
-
-  async getWorkflow(id: string): Promise<ApiResponse<Workflow>> {
-    return this.request(`/workflows/${id}`);
-  }
-
-  // Data endpoints
-  async getDataStatus() {
-    return this.request('/data');
-  }
-
-  // Monitoring endpoints
-  async getMonitoringStatus() {
-    return this.request('/monitoring');
-  }
-
-  // Strategic Command endpoints (Consolidated Backend)
-  async getDailyAgenda(): Promise<ApiResponse<any[]>> {
-    return this.request('/api/v1/strategic/agenda/daily');
-  }
-
-  async createBlueprint(goal: string, campaignId?: string, sessionId?: string): Promise<ApiResponse<any>> {
-    return this.request('/api/v1/strategic/blueprint', {
-      method: 'POST',
-      body: JSON.stringify({ goal, campaign_id: campaignId, session_id: sessionId }),
-    });
-  }
-
-  async updateTaskStatus(taskId: string, status: string): Promise<ApiResponse<any>> {
-    return this.request(`/api/v1/strategic/tasks/${taskId}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
-    });
-  }
-
-  async getExpertReasoning(entityId: string): Promise<ApiResponse<any[]>> {
-    return this.request(`/api/v1/strategic/reasoning/${entityId}`);
-  }
-
-  async concludeMove(moveId: string): Promise<ApiResponse<any>> {
-    return this.request(`/api/v1/strategic/moves/${moveId}/conclude`, {
-      method: 'POST',
-    });
-  }
-
-  // Foundation/ICP endpoints
-  async deriveTrinity(cohortName: string): Promise<any> {
-    return this.request('/v1/icps/derive-trinity', {
-      method: 'POST',
-      body: JSON.stringify({ cohort_name: cohortName }),
-    });
-  }
-
-  // Blackbox endpoints
-  async generateBlackBoxStrategy(data: {
-    focus_area: string;
-    business_context: string;
-    risk_tolerance: number;
-    workspace_id: string;
-    user_id: string;
-  }): Promise<ApiResponse<any>> {
+  async generateBlackBoxStrategy(data: any): Promise<ApiResponse<any>> {
     return this.request('/api/v1/blackbox/generate', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async acceptBlackBoxStrategy(strategyId: string, data: {
-    workspace_id: string;
-    user_id: string;
-    convert_to_move: boolean;
-    move_name?: string;
-  }): Promise<ApiResponse<any>> {
+  async acceptBlackBoxStrategy(strategyId: string, data: any): Promise<ApiResponse<any>> {
     return this.request(`/api/v1/blackbox/strategies/${strategyId}/accept`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  }
+
+  async getDailyAgenda(): Promise<ApiResponse<any>> {
+    return this.request('/api/v1/moves/calendar/events');
   }
 
   // Daily Wins endpoints
@@ -322,7 +222,14 @@ class ApiClient {
     user_id: string;
     platform: string;
   }): Promise<ApiResponse<any>> {
-    return this.request('/api/v1/daily_wins/generate-langgraph', {
+    return this.request('/api/v1/daily_wins/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async markWinAsPosted(winId: string, data: any): Promise<ApiResponse<any>> {
+    return this.request(`/api/v1/daily_wins/${winId}/mark-posted`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -331,3 +238,4 @@ class ApiClient {
 
 // Create singleton instance
 export const apiClient = new ApiClient();
+export const api = apiClient;

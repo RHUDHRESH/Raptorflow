@@ -1,10 +1,13 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { createServerClient } from '@supabase/auth-helpers-nextjs'
+
+type CookieOptions = Parameters<ReturnType<typeof NextResponse.json>['cookies']['set']>[2]
+type PendingCookie = { name: string; value: string; options?: CookieOptions }
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/pricing'
   const error = searchParams.get('error')
 
   // Handle OAuth errors
@@ -14,17 +17,33 @@ export async function GET(request: Request) {
   }
 
   if (code) {
-    const supabase = createClient(
+    const cookieStore = await cookies()
+    const pendingCookies: PendingCookie[] = []
+    const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => cookieStore.getAll(),
+          setAll: (cookiesToSet) => {
+            pendingCookies.push(...cookiesToSet)
+          }
+        }
+      }
     )
+    const applyCookies = (response: NextResponse) => {
+      pendingCookies.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, options)
+      })
+      return response
+    }
 
     // Exchange code for session
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
     if (exchangeError) {
       console.error('Code exchange error:', exchangeError)
-      return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+      return applyCookies(NextResponse.redirect(`${origin}/login?error=auth_failed`))
     }
 
     // Get current session
@@ -60,11 +79,11 @@ export async function GET(request: Request) {
 
           if (insertError) {
             console.error('Failed to create user profile:', insertError)
-            return NextResponse.redirect(`${origin}/login?error=profile_creation_failed`)
+            return applyCookies(NextResponse.redirect(`${origin}/login?error=profile_creation_failed`))
           }
 
           // New user - redirect to pricing
-          return NextResponse.redirect(`${origin}/pricing`)
+          return applyCookies(NextResponse.redirect(`${origin}/pricing`))
         }
 
         // Existing user - check subscription status
@@ -74,26 +93,26 @@ export async function GET(request: Request) {
 
           // If user has active subscription and onboarding completed, go to workspace
           if (profile.subscription_status === 'active' && profile.onboarding_completed) {
-            return NextResponse.redirect(`${origin}/workspace`)
+            return applyCookies(NextResponse.redirect(`${origin}/workspace`))
           }
 
           // If user has active subscription but no onboarding, go to onboarding
           if (profile.subscription_status === 'active' && !profile.onboarding_completed) {
-            return NextResponse.redirect(`${origin}/onboarding`)
+            return applyCookies(NextResponse.redirect(`${origin}/onboarding`))
           }
 
           // If user has no subscription, go to pricing
           if (profile.subscription_status === 'none' || !profile.subscription_plan) {
-            return NextResponse.redirect(`${origin}/pricing`)
+            return applyCookies(NextResponse.redirect(`${origin}/pricing`))
           }
 
           // Default - go to pricing for plan selection
-          return NextResponse.redirect(`${origin}/pricing`)
+          return applyCookies(NextResponse.redirect(`${origin}/pricing`))
         }
 
       } catch (error) {
         console.error('Error in auth callback:', error)
-        return NextResponse.redirect(`${origin}/login?error=callback_error`)
+        return applyCookies(NextResponse.redirect(`${origin}/login?error=callback_error`))
       }
     }
   }

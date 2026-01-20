@@ -108,21 +108,27 @@ class BCMSweeper:
         """
         logger.info("Starting global BCM Semantic Sweep...")
         try:
-            # Get unique workspaces with events
+            # 1. ECONOMY: Efficiently find workspaces that have pending interactions
             result = await self.db.table("bcm_events") \
                 .select("workspace_id") \
+                .eq("event_type", EventType.USER_INTERACTION) \
                 .execute()
             
+            # Using set for unique IDs if distinct isn't directly available via simple select
             workspaces = list(set([r["workspace_id"] for r in result.data]))
             
             stats = {"total": len(workspaces), "successful": 0, "failed": 0}
             
             for ws_id in workspaces:
-                # Try to compress
-                sweep_res = await self.compress_events(workspace_id=ws_id, ucid="SYSTEM-AUTO-SWEEP")
-                if sweep_res["success"]:
-                    stats["successful"] += 1
-                else:
+                try:
+                    # Try to compress
+                    sweep_res = await self.compress_events(workspace_id=ws_id, ucid="SYSTEM-AUTO-SWEEP")
+                    if sweep_res["success"]:
+                        stats["successful"] += 1
+                    else:
+                        stats["failed"] += 1
+                except Exception as sweep_err:
+                    logger.error(f"Sweep failed for workspace {ws_id}: {sweep_err}")
                     stats["failed"] += 1
             
             logger.info(f"Global BCM Sweep finished. Stats: {stats}")

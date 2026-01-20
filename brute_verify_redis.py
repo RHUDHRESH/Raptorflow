@@ -1,14 +1,13 @@
 import urllib.request
 import os
 
-url = "https://selected-lemming-36956.upstash.io/ping"
-raw_token = "AZBcAAInCDF3MTZ1NzY3YjE4NjY6dM1yYm=jNTVmk8H1MTU1ZWF1NNAx!2YSNTY"
+url = "https://patient-goshawk-35225.upstash.io/ping"
+raw_token = "AYmZAAIncDEwNDA0NjczMDU4OTk0NTc1YTBlNGQ0NzUzZWFjNWI0MXAxMzUyMjU"
 
 variations = [
     raw_token,
     raw_token.strip(),
     raw_token.replace(" ", ""),
-    "AZBcAAInCDF3MTZ1NzY3YjE4NjY6dM1yYm=jNTVmk8H1MTU1ZWF1NNAx", # Removed !2YSNTY
 ]
 
 for token in variations:

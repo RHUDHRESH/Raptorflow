@@ -164,35 +164,33 @@ class MoveService:
     ) -> Optional[Dict[str, Any]]:
         """
         Get move with full details including tasks and related data
-
-        Args:
-            move_id: Move ID
-            workspace_id: Workspace ID
-
-        Returns:
-            Move data with details or None if not found
         """
         move = await self.repository.get_with_tasks(move_id, workspace_id)
         if not move:
             return None
 
+        # Parallel fetching for performance
+        tasks = []
+        
         # Get campaign details if associated
         if move.get("campaign_id"):
-            campaign = await self.campaign_repository.get_by_id(
-                move["campaign_id"], workspace_id
-            )
-            move["campaign"] = campaign
+            tasks.append(self.campaign_repository.get_by_id(move["campaign_id"], workspace_id))
+        else:
+            tasks.append(asyncio.sleep(0, result=None))
 
         # Get target ICP details if specified
         if move.get("target_icp_id"):
-            icp = (
-                await self.supabase.table("icp_profiles")
-                .select("*")
-                .eq("id", move["target_icp_id"])
-                .single()
-                .execute()
-            )
-            move["target_icp"] = icp.data if icp.data else None
+            tasks.append(self.supabase.table("icp_profiles").select("*").eq("id", move["target_icp_id"]).single().execute())
+        else:
+            tasks.append(asyncio.sleep(0, result=None))
+
+        results = await asyncio.gather(*tasks)
+        
+        move["campaign"] = results[0]
+        if results[1] and hasattr(results[1], "data"):
+            move["target_icp"] = results[1].data
+        else:
+            move["target_icp"] = None
 
         return move
 

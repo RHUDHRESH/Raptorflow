@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { sendPaymentConfirmationEmail } from '@/lib/email'
 
 export async function POST(request: Request) {
     try {
@@ -31,6 +32,11 @@ export async function POST(request: Request) {
         // 1. Get Callback Data (Basic fallback)
         const jsonBody = JSON.parse(body);
         const { response } = jsonBody;
+        // Decode base64 response if needed, but usually PhonePe sends it directly in some cases
+        // This is a simplified fallback
+        const data = jsonBody.data || {};
+        const code = jsonBody.code || 'PAYMENT_ERROR';
+        const merchantTransactionId = data.merchantTransactionId;
 
         // Use Service Role to bypass RLS for webhooks
         const supabase = createClient(
@@ -48,15 +54,14 @@ export async function POST(request: Request) {
         const status = code === 'PAYMENT_SUCCESS' ? 'completed' : 'failed'
 
         const { data: payment } = await supabase
-            .from('payments')
+            .from('payment_transactions')
             .update({
                 status,
-                provider_transaction_id: data.providerReferenceId,
-                payment_instrument_type: data.paymentInstrument?.type || 'UNKNOWN',
-                updated_at: new Date().toISOString()
+                phonepe_response: jsonBody,
+                completed_at: new Date().toISOString()
             })
-            .eq('merchant_transaction_id', merchantTransactionId)
-            .select()
+            .eq('transaction_id', merchantTransactionId)
+            .select('*, users(*)')
             .single()
 
         if (!payment) {
@@ -81,13 +86,28 @@ export async function POST(request: Request) {
                 })
                 .eq('user_id', payment.user_id)
 
+            // Send confirmation email
+            try {
+                const user = payment.users;
+                await sendPaymentConfirmationEmail({
+                    email: user.email,
+                    name: user.full_name || user.email.split('@')[0],
+                    planName: payment.plan_id.toUpperCase(),
+                    amount: `₹${(payment.amount_paise / 100).toLocaleString()}`,
+                    transactionId: merchantTransactionId,
+                    date: new Date().toLocaleDateString()
+                });
+            } catch (emailError) {
+                console.error('Webhook: Failed to send confirmation email:', emailError);
+            }
+
             // Log Success
             await supabase.from('audit_logs').insert({
                 actor_id: payment.user_id,
                 action: 'payment_completed',
                 action_category: 'billing',
-                description: `Payment of ${payment.amount_paise} paise completed via ${data.paymentInstrument?.type || 'PhonePe'}`,
-                metadata: { provider_ref: data.providerReferenceId }
+                description: `Payment of ${payment.amount_paise} paise completed via PhonePe Webhook`,
+                metadata: { transaction_id: merchantTransactionId }
             })
         } else {
             // Log Failure

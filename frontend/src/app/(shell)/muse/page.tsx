@@ -49,10 +49,10 @@ function MusePageContent() {
         { id: "analytics", label: "ANALYTICS", icon: <BarChart2 size={16} />, code: "MSC-05" },
     ];
 
-    const handleTemplateSubmit = (content: string) => {
+    const handleTemplateSubmit = async (content: string) => {
         if (!selectedTemplate) return;
         
-        addAsset({
+        await addAsset({
             title: `Draft: ${selectedTemplate.title}`,
             content,
             type: selectedTemplate.type as any,

@@ -51,7 +51,8 @@ export default function CampaignsPage() {
     setActiveCampaign,
     updateCampaignMoveStatus,
     addCampaign,
-    getActiveCampaign
+    getActiveCampaign,
+    fetchCampaigns
   } = useCampaignStore();
 
   const [activeTab, setActiveTab] = useState<ViewTab>("active");
@@ -63,7 +64,8 @@ export default function CampaignsPage() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    fetchCampaigns();
+  }, [fetchCampaigns]);
 
   useEffect(() => {
     if (!pageRef.current || !mounted) return;

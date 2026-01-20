@@ -9,19 +9,16 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell
 } from "recharts";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
-import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
-import { TrendingUp, Zap, FileText, CheckCircle } from "lucide-react";
+import { TrendingUp, Zap } from "lucide-react";
+import { apiClient } from "@/lib/api/client";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    ANALYTICS V2 — Strategic Performance Dashboard
-   High-fidelity visualization of Moves, Muse, and Campaign success.
    ══════════════════════════════════════════════════════════════════════════════ */
 
 export default function AnalyticsPage() {
@@ -33,15 +30,12 @@ export default function AnalyticsPage() {
     async function fetchAnalytics() {
       try {
         const [movesRes, museRes] = await Promise.all([
-          fetch('/api/v1/analytics-v2/moves'),
-          fetch('/api/v1/analytics-v2/muse')
+          apiClient.getMovesPerformance(),
+          apiClient.getMusePerformance()
         ]);
         
-        const moves = await movesRes.json();
-        const muse = await museRes.json();
-        
-        setMovesData(moves.stats);
-        setMuseData(muse.stats);
+        setMovesData(movesRes.stats);
+        setMuseData(museRes.stats);
       } catch (error) {
         console.error("Failed to fetch analytics:", error);
       } finally {
@@ -121,7 +115,7 @@ export default function AnalyticsPage() {
                      <div className="w-2 h-2 rounded-full" style={{backgroundColor: COLORS[i % COLORS.length]}} />
                      <span className="capitalize">{item.name}</span>
                    </div>
-                   <span className="font-technical">{item.value}</span>
+                   <span className="font-technical">{item.value as number}</span>
                  </div>
                ))}
             </div>

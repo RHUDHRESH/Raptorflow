@@ -31,6 +31,8 @@ class CampaignCreate(BaseModel):
     target_icps: Optional[List[str]] = []
     phases: Optional[List[Dict[str, Any]]] = []
     budget_usd: Optional[float] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
 
 
 class CampaignUpdate(BaseModel):
@@ -40,6 +42,8 @@ class CampaignUpdate(BaseModel):
     phases: Optional[List[Dict[str, Any]]] = None
     budget_usd: Optional[float] = None
     status: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
 
 
 @router.get("/")
@@ -116,6 +120,8 @@ async def create_campaign(
         "phases": campaign_data.phases or [],
         "budget_usd": campaign_data.budget_usd,
         "status": "planning",
+        "start_date": campaign_data.start_date,
+        "end_date": campaign_data.end_date
     }
 
     # Add AI-generated campaign strategy if Vertex AI is available
@@ -266,6 +272,10 @@ async def update_campaign(
         update_data["budget_usd"] = campaign_data.budget_usd
     if campaign_data.status is not None:
         update_data["status"] = campaign_data.status
+    if campaign_data.start_date is not None:
+        update_data["start_date"] = campaign_data.start_date
+    if campaign_data.end_date is not None:
+        update_data["end_date"] = campaign_data.end_date
 
     if not update_data:
         raise HTTPException(

@@ -13,6 +13,7 @@ from typing import Any, Dict, Optional
 
 from backend.core.models import User
 from backend.core.supabase_mgr import get_supabase_client
+from backend.redis_core.client import get_redis
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,8 @@ class SessionManager:
     """Redis-backed session manager"""
 
     def __init__(self):
-        self.redis_client = get_supabase_client()
+        self.redis = get_redis()
+        self.supabase = get_supabase_client()
         self.session_ttl = 1800  # 30 minutes
         self.session_prefix = "session:"
 
@@ -62,9 +64,9 @@ class SessionManager:
         }
 
         try:
-            # Store in Redis
+            # Store in Redis with TTL
             key = f"{self.session_prefix}{session_id}"
-            await self.redis_client.table("sessions").insert(session_data).execute()
+            await self.redis.set_json(key, session_data, ex=self.session_ttl)
 
             return session_id
 
@@ -84,32 +86,20 @@ class SessionManager:
         """
         try:
             key = f"{self.session_prefix}{session_id}"
-            result = (
-                await self.redis_client.table("sessions")
-                .select("*")
-                .eq("session_id", session_id)
-                .single()
-                .execute()
-            )
+            session_data = await self.redis.get_json(key)
 
-            if not result.data:
+            if not session_data:
                 return None
 
-            session_data = result.data
-
-            # Check if expired
-            expires_at = datetime.fromisoformat(session_data["expires_at"])
-            if datetime.utcnow() > expires_at:
-                # Clean up expired session
-                await self.invalidate_session(session_id)
-                return None
+            # Refresh TTL on access
+            await self.redis.expire(key, self.session_ttl)
 
             return Session(
                 session_id=session_data["session_id"],
                 user_id=session_data["user_id"],
                 workspace_id=session_data["workspace_id"],
                 created_at=datetime.fromisoformat(session_data["created_at"]),
-                expires_at=expires_at,
+                expires_at=datetime.utcnow() + timedelta(seconds=self.session_ttl),
                 data=session_data.get("data", {}),
             )
 
@@ -129,13 +119,8 @@ class SessionManager:
         """
         try:
             key = f"{self.session_prefix}{session_id}"
-            result = (
-                await self.redis_client.table("sessions")
-                .delete()
-                .eq("session_id", session_id)
-                .execute()
-            )
-            return len(result.data) > 0
+            await self.redis.delete(key)
+            return True
         except Exception as e:
             logger.error(f"Error invalidating session: {e}")
             return False
@@ -153,15 +138,16 @@ class SessionManager:
         """
         try:
             key = f"{self.session_prefix}{session_id}"
-            result = (
-                await self.redis_client.table("sessions")
-                .update({"data": data})
-                .eq("session_id", session_id)
-                .execute()
-            )
-            return len(result.data) > 0
+            session_data = await self.redis.get_json(key)
+            
+            if not session_data:
+                return False
+                
+            session_data["data"] = data
+            await self.redis.set_json(key, session_data, ex=self.session_ttl)
+            return True
         except Exception as e:
-            logger.error(f"Error invalidating session: {e}")
+            logger.error(f"Error updating session data: {e}")
             return False
 
     async def get_session_user(self, session_id: str) -> Optional[User]:
@@ -181,7 +167,7 @@ class SessionManager:
         try:
             # Fetch user from database
             result = (
-                await self.redis_client.table("users")
+                self.supabase.table("users")
                 .select("*")
                 .eq("id", session.user_id)
                 .single()
@@ -198,7 +184,7 @@ class SessionManager:
                 full_name=user_data.get("full_name"),
                 avatar_url=user_data.get("avatar_url"),
                 subscription_tier=user_data.get("subscription_tier", "free"),
-                budget_limit_monthly=user_data.get("budget_limit_monthly", 1.0),
+                budget_limit_monthly=float(user_data.get("budget_limit_monthly", 1.0)),
                 onboarding_completed_at=user_data.get("onboarding_completed_at"),
                 preferences=user_data.get("preferences", {}),
                 created_at=user_data.get("created_at"),
@@ -206,7 +192,7 @@ class SessionManager:
             )
 
         except Exception as e:
-            logger.error(f"Error validating session: {e}")
+            logger.error(f"Error getting session user: {e}")
             return None
 
 

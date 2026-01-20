@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Check, Calendar, Zap, Share2, MessageSquare, Layers, ArrowUpRight, TrendingUp, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMovesStore } from "@/stores/movesStore";
@@ -158,8 +158,6 @@ export function TodaysAgenda({ onMoveClick }: TodaysAgendaProps) {
                     );
                 })}
             </div>
-        </div>
-    );
 
             {/* Task Detail Popup */}
             {selectedTask && getSelectedMove() && (

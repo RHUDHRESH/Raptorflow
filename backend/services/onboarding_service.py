@@ -9,31 +9,62 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+from backend.core.supabase_mgr import get_supabase_client
+
+logger = logging.getLogger(__name__)
+
 class MuseOnboardingService:
-    """Service for managing the Muse-specific onboarding journey."""
+    """Service for managing the Muse-specific onboarding journey with Supabase persistence."""
 
     def __init__(self):
-        # Mock storage
-        self.user_progress = {}
+        self.supabase = get_supabase_client()
 
-    async def get_onboarding_status(self, user_id: str) -> Dict[str, Any]:
-        """Get the user's progress through the Muse tutorial."""
-        return self.user_progress.get(user_id, {
+    async def get_onboarding_status(self, user_id: str, workspace_id: str = "default") -> Dict[str, Any]:
+        """Get the user's progress through the Muse tutorial from Supabase."""
+        try:
+            result = await self.supabase.table("muse_onboarding")\
+                .select("*")\
+                .eq("user_id", user_id)\
+                .eq("workspace_id", workspace_id)\
+                .single()\
+                .execute()
+            
+            if result.data:
+                return {
+                    "completed_steps": result.data.get("completed_steps", []),
+                    "current_lesson": result.data.get("current_lesson", "MSC-01: Chat Basics"),
+                    "percent_complete": result.data.get("percent_complete", 0)
+                }
+        except Exception as e:
+            logger.warning(f"No progress found for {user_id}: {e}")
+            
+        return {
             "completed_steps": [],
             "current_lesson": "MSC-01: Chat Basics",
             "percent_complete": 0
-        })
+        }
 
-    async def complete_step(self, user_id: str, step_id: str) -> Dict[str, Any]:
-        """Mark an onboarding step as complete."""
-        if user_id not in self.user_progress:
-            self.user_progress[user_id] = {"completed_steps": [], "percent_complete": 0}
+    async def complete_step(self, user_id: str, step_id: str, workspace_id: str = "default") -> Dict[str, Any]:
+        """Mark an onboarding step as complete in Supabase."""
+        current_status = await self.get_onboarding_status(user_id, workspace_id)
         
-        if step_id not in self.user_progress[user_id]["completed_steps"]:
-            self.user_progress[user_id]["completed_steps"].append(step_id)
-            self.user_progress[user_id]["percent_complete"] = (len(self.user_progress[user_id]["completed_steps"]) / 5) * 100
+        if step_id not in current_status["completed_steps"]:
+            current_status["completed_steps"].append(step_id)
+            # Assume 5 total steps for tutorial
+            current_status["percent_complete"] = min((len(current_status["completed_steps"]) / 5) * 100, 100)
             
-        return self.user_progress[user_id]
+            try:
+                await self.supabase.table("muse_onboarding").upsert({
+                    "user_id": user_id,
+                    "workspace_id": workspace_id,
+                    "completed_steps": current_status["completed_steps"],
+                    "percent_complete": current_status["percent_complete"],
+                    "updated_at": datetime.utcnow().isoformat()
+                }).execute()
+            except Exception as e:
+                logger.error(f"Failed to save Muse progress: {e}")
+            
+        return current_status
 
     async def get_quick_start_guide(self) -> List[Dict[str, str]]:
         """Return the prioritized Quick Start roadmap."""

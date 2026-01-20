@@ -23,7 +23,7 @@
 - **Status:** WORKING
 - **Connection Time:** 1.84s
 - **Operations:** SET, GET, and INFO commands working
-- **URL:** https://selected-lemming-36956.upstash.io
+- **URL:** https://patient-goshawk-35225.upstash.io
 - **Token:** Valid and functional
 
 ### 4. Basic Python & HTTP Functionality

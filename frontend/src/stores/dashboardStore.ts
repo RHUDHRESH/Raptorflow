@@ -30,15 +30,11 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   fetchSummary: async () => {
     set({ isLoading: true, error: null });
     try {
-      // Assuming apiClient has a getDashboardSummary method or we use fetch
-      const response = await fetch('/api/v1/dashboard/summary');
-      if (!response.ok) throw new Error('Failed to fetch dashboard summary');
-      
-      const data = await response.json();
-      if (data.success) {
-        set({ summary: data, isLoading: false });
+      const response = await apiClient.getDashboardSummary();
+      if (response.success) {
+        set({ summary: response as unknown as DashboardSummary, isLoading: false });
       } else {
-        throw new Error(data.error || 'Unknown error');
+        throw new Error(response.error as string || 'Unknown error');
       }
     } catch (error) {
       set({ 

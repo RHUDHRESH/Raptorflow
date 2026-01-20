@@ -15,8 +15,8 @@ interface CampaignMove {
     title: string;
     type: string;
     status: 'Planned' | 'Active' | 'Completed';
-    start: string;
-    end: string;
+    start_date?: string;
+    end_date?: string;
     items_done: number;
     items_total: number;
     desc: string;
@@ -28,6 +28,8 @@ interface Campaign {
     status: string;
     progress: number;
     goal: string;
+    start_date?: string;
+    end_date?: string;
     moves: CampaignMove[];
 }
 
@@ -40,31 +42,33 @@ interface CampaignTimelineProps {
 export function CampaignTimeline({ campaign, onClose, onMoveClick }: CampaignTimelineProps) {
     // Calculate timeline range
     const timelineData = useMemo(() => {
-        const today = new Date();
+        const campaignStart = campaign.start_date ? new Date(campaign.start_date) : new Date();
+        const campaignEnd = campaign.end_date ? new Date(campaign.end_date) : addDays(campaignStart, 90);
+        
+        const totalDays = Math.max(differenceInDays(campaignEnd, campaignStart), 30);
+        const weeksCount = Math.ceil(totalDays / 7);
 
-        // For demo, create timeline weeks
         const weeks = [];
-        const startDate = today;
-        for (let i = 0; i < 12; i++) {
-            weeks.push(addDays(startDate, i * 7));
+        for (let i = 0; i < weeksCount; i++) {
+            weeks.push(addDays(campaignStart, i * 7));
         }
 
-        return { today, weeks, totalWeeks: 12 };
-    }, []);
+        return { campaignStart, campaignEnd, weeks, totalWeeks: weeksCount, totalDays };
+    }, [campaign]);
 
     const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Active': return 'bg-[var(--ink)]';
-            case 'Completed': return 'bg-green-600';
-            case 'Planned': return 'bg-[var(--muted)]';
+        switch (status.toLowerCase()) {
+            case 'active': return 'bg-[var(--ink)]';
+            case 'completed': return 'bg-green-600';
+            case 'planned': return 'bg-[var(--muted)]';
             default: return 'bg-[var(--muted)]';
         }
     };
 
     const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'Active': return <Play size={10} className="text-white" />;
-            case 'Completed': return <CheckCircle2 size={10} className="text-white" />;
+        switch (status.toLowerCase()) {
+            case 'active': return <Play size={10} className="text-white" />;
+            case 'completed': return <CheckCircle2 size={10} className="text-white" />;
             default: return <Clock size={10} className="text-white" />;
         }
     };
@@ -115,11 +119,15 @@ export function CampaignTimeline({ campaign, onClose, onMoveClick }: CampaignTim
                     {/* Moves with Gantt Bars */}
                     <div className="space-y-3 min-w-[800px]">
                         {campaign.moves.map((move, idx) => {
-                            // Calculate position (demo: spread moves across timeline)
-                            const startWeek = Math.floor(idx * 2);
-                            const duration = 3; // weeks
-                            const leftPercent = (startWeek / 12) * 100;
-                            const widthPercent = (duration / 12) * 100;
+                            // Calculate real offsets
+                            const moveStart = move.start_date ? new Date(move.start_date) : timelineData.campaignStart;
+                            const moveEnd = move.end_date ? new Date(move.end_date) : addDays(moveStart, 14);
+                            
+                            const daysFromStart = differenceInDays(moveStart, timelineData.campaignStart);
+                            const moveDuration = Math.max(differenceInDays(moveEnd, moveStart), 1);
+                            
+                            const leftPercent = (daysFromStart / timelineData.totalDays) * 100;
+                            const widthPercent = (moveDuration / timelineData.totalDays) * 100;
 
                             return (
                                 <div key={move.id} className="flex items-center group">
@@ -161,27 +169,17 @@ export function CampaignTimeline({ campaign, onClose, onMoveClick }: CampaignTim
                                                 getStatusColor(move.status)
                                             )}
                                             style={{
-                                                left: `${leftPercent}%`,
-                                                width: `${widthPercent}%`,
-                                                minWidth: '80px'
+                                                left: `${Math.max(0, leftPercent)}%`,
+                                                width: `${Math.min(100, widthPercent)}%`,
+                                                minWidth: '20px'
                                             }}
                                             onClick={() => onMoveClick?.(move)}
                                         >
                                             {getStatusBadge(move.status)}
-                                            <span className="text-xs text-white font-medium truncate">
+                                            <span className="text-[10px] text-white font-medium truncate">
                                                 {move.status}
                                             </span>
                                         </div>
-
-                                        {/* Connection Arrow to Next */}
-                                        {idx < campaign.moves.length - 1 && (
-                                            <div
-                                                className="absolute top-1/2 -translate-y-1/2 text-[var(--muted)]"
-                                                style={{ left: `${leftPercent + widthPercent + 1}%` }}
-                                            >
-                                                <ArrowRight size={14} />
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             );

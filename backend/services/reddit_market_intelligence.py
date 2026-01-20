@@ -14,10 +14,8 @@ import re
 from collections import defaultdict, Counter
 
 # Import AI services
-try:
-    from services.vertex_ai_service import vertex_ai_service
-except ImportError:
-    vertex_ai_service = None
+from services.vertex_ai_service import vertex_ai_service
+from backend.services.search.reddit_native import RedditNativeScraper
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +129,7 @@ class RedditMarketIntelligence:
     
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+        self.scraper = RedditNativeScraper()
         
         # Pain point keywords
         self.pain_point_keywords = self._initialize_pain_point_keywords()
@@ -337,27 +336,31 @@ class RedditMarketIntelligence:
         return all_subreddits[:10]  # Limit to 10 subreddits
     
     async def _scrape_subreddit(self, subreddit: str, limit: int = 100) -> List[Dict[str, Any]]:
-        """Scrape posts from subreddit (mock implementation)"""
-        # In production, this would use Reddit API or web scraping
-        # For now, return mock data
-        
-        mock_posts = []
-        
-        for i in range(min(limit, 50)):  # Mock 50 posts max
-            post = {
-                "id": f"{subreddit}_{i}",
-                "title": f"Sample post {i+1} from r/{subreddit}",
-                "content": f"This is a sample post content from {subreddit}. It discusses various marketing challenges and solutions.",
-                "subreddit": subreddit,
-                "author": f"user_{i}",
-                "score": i * 10,
-                "comments_count": i * 5,
-                "created_at": datetime.now() - timedelta(days=i),
-                "url": f"https://reddit.com/r/{subreddit}/comments/{i}"
-            }
-            mock_posts.append(post)
-        
-        return mock_posts
+        """Scrape posts from subreddit using real Native Scraper"""
+        try:
+            # Construct a broad search query for the subreddit
+            search_query = f"subreddit:{subreddit}"
+            results = await self.scraper.query(search_query, limit=min(limit, 50))
+            
+            posts = []
+            for res in results:
+                # Add necessary fields for RedditPost dataclass
+                posts.append({
+                    "id": res["url"].split("/")[-2] if len(res["url"].split("/")) > 2 else "unknown",
+                    "title": res["title"],
+                    "content": res["snippet"],
+                    "subreddit": subreddit,
+                    "author": "unknown", # Native search doesn't return author easily without thread fetch
+                    "score": res.get("metadata", {}).get("ups", 0),
+                    "comments_count": res.get("metadata", {}).get("num_comments", 0),
+                    "created_at": datetime.now(), # Placeholder timestamp
+                    "url": res["url"]
+                })
+            
+            return posts
+        except Exception as e:
+            self.logger.error(f"Failed to scrape subreddit {subreddit}: {e}")
+            return []
     
     async def _analyze_post(self, post: Dict[str, Any], company_info: Dict[str, Any]) -> RedditPost:
         """Analyze individual Reddit post"""

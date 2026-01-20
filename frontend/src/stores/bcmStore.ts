@@ -65,6 +65,7 @@ interface BCMStore {
   importBCM: (jsonString: string) => { success: boolean; error?: string };
   calculateChecksum: (bcm: Omit<BusinessContext, 'meta'>) => string;
   syncWithEvolution: (ucid: string) => Promise<void>;
+  refineBCM: (ucid: string) => Promise<void>;
 }
 
 export const useBCMStore = create<BCMStore>()(

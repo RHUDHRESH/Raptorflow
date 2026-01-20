@@ -32,6 +32,7 @@ import structlog
 from ..base import BaseAgent
 from backend.agents.config import ModelTier
 from ..state import AgentState
+from backend.core.session import get_session_manager
 
 # Import Vertex AI service
 from backend.services.vertex_ai_service import vertex_ai_service
@@ -290,14 +291,36 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
             return "general_guidance"
 
     async def _start_onboarding(self, state: AgentState) -> Dict[str, Any]:
-        """Start new onboarding session."""
+        """Start new onboarding session with real persistence."""
+        session_id = state.get("session_id") or str(uuid.uuid4())
+        workspace_id = state.get("workspace_id", "default")
+        user_id = state.get("user_id", "system")
+        
+        session_manager = get_session_manager()
+        
+        # Initialize session in Redis
+        initial_data = {
+            "user_id": user_id,
+            "workspace_id": workspace_id,
+            "current_stage": OnboardingStage.INITIAL_SETUP.value,
+            "status": OnboardingStatus.IN_PROGRESS.value,
+            "steps": {},
+            "vault": {},
+            "metadata": {"started_via": "agent"}
+        }
+        
+        # We don't call create_session here as it generates its own ID, 
+        # instead we use update_session_data or just use the manager to store
+        await session_manager.update_session_data(session_id, initial_data)
+        
         return {
             "action": "start_onboarding",
+            "session_id": session_id,
             "status": "ready",
             "next_steps": [
-                "Complete account setup",
-                "Provide business information",
-                "Create ICP profiles",
+                "Complete account setup (Step 1)",
+                "Provide business information (Step 2)",
+                "Create ICP profiles (Step 16)",
                 "Configure workflows",
             ],
             "estimated_duration": "2-4 weeks",
@@ -305,15 +328,46 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
         }
 
     async def _check_progress(self, state: AgentState) -> Dict[str, Any]:
-        """Check onboarding progress."""
+        """Check onboarding progress using real Redis data."""
+        session_id = state.get("session_id")
+        if not session_id:
+            return {"action": "check_progress", "error": "No active session ID found"}
+            
+        session_manager = get_session_manager()
+        session = await session_manager.validate_session(session_id)
+        
+        if not session or not session.data:
+            return {"action": "check_progress", "error": "Session data not found"}
+            
+        data = session.data
+        steps = data.get("steps", {})
+        completed_count = len(steps)
+        total_milestones = len(self.milestones)
+        progress_pct = (completed_count / total_milestones) * 100 if total_milestones > 0 else 0
+        
         return {
             "action": "check_progress",
-            "current_stage": "foundation_data",
-            "completed_milestones": 1,
-            "total_milestones": len(self.milestones),
-            "progress_percentage": 12.5,
-            "next_milestone": "ICP Development",
+            "current_stage": data.get("current_stage", "initial_setup"),
+            "completed_milestones": completed_count,
+            "total_milestones": total_milestones,
+            "progress_percentage": round(progress_pct, 1),
+            "next_milestone": self._determine_next_milestone(steps),
         }
+
+    def _determine_next_milestone(self, completed_steps: Dict[str, Any]) -> str:
+        """Helper to determine the next milestone based on completed steps."""
+        # Simple logic: first step ID (as string) not in completed_steps
+        for i in range(1, 20): # Check steps 1 to 20
+            if str(i) not in completed_steps:
+                milestone_map = {
+                    "1": "Account Setup",
+                    "2": "Foundation Data",
+                    "9": "Category Definition",
+                    "10": "Capability Mapping",
+                    "16": "ICP Creation"
+                }
+                return milestone_map.get(str(i), f"Step {i}")
+        return "Finalization"
 
     async def _get_next_steps(self, state: AgentState) -> Dict[str, Any]:
         """Get next steps for onboarding."""

@@ -19,8 +19,8 @@ def load_env(env_path):
 load_env('backend/.env')
 
 # Manually set the REST URL and TOKEN since upstash_client uses them
-os.environ["UPSTASH_REDIS_REST_URL"] = "https://selected-lemming-36956.upstash.io"
-os.environ["UPSTASH_REDIS_REST_TOKEN"] = "AZBcAAInCDF3MTZ1NzY3YjE4NjY6dM1yYm=jNTVmk8H1MTU1ZWF1NNAx!2YSNTY"
+os.environ["UPSTASH_REDIS_REST_URL"] = "https://patient-goshawk-35225.upstash.io"
+os.environ["UPSTASH_REDIS_REST_TOKEN"] = "AYmZAAIncDEwNDA0NjczMDU4OTk0NTc1YTBlNGQ0NzUzZWFjNWI0MXAxMzUyMjU"
 
 from services.upstash_client import UpstashClient
 

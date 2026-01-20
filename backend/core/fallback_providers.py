@@ -566,18 +566,29 @@ class FallbackProviderManager:
         max_tokens: Optional[int],
         **kwargs
     ) -> Tuple[str, float]:
-        """Execute inference with specific provider."""
+        """Execute real inference with specific provider using LLMManager."""
+        from backend.llm import llm_manager, LLMRequest, LLMMessage, LLMRole
+        
         start_time = time.time()
         
-        # This would integrate with your actual LLM providers
-        # For now, we'll simulate the call
-        await asyncio.sleep(0.5 + (provider.avg_response_time * 0.1))  # Simulate processing
+        # Prepare request
+        request = LLMRequest(
+            messages=[LLMMessage(role=LLMRole.USER, content=prompt)],
+            model=provider.model,
+            temperature=temperature,
+            max_tokens=max_tokens or 2048,
+            **kwargs
+        )
         
-        # Mock response
-        response = f"Response from {provider.provider}:{provider.model} for prompt: {prompt[:50]}..."
+        # Execute via llm_manager
+        # We specify the provider directly to bypass secondary fallback loops
+        response = await llm_manager.generate(
+            request=request,
+            provider=provider.provider
+        )
         
         response_time = time.time() - start_time
-        return response, response_time
+        return response.content, response_time
     
     async def _health_check_loop(self):
         """Background health check loop."""

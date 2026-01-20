@@ -126,16 +126,58 @@ class VertexAIService:
         # Check budget alerts
         await self._check_budget_alerts(workspace_id, cost)
     
-    async def _check_budget_alerts(self, workspace_id: str, current_cost: float):
-        """Check if workspace is approaching budget limits"""
-        # TODO: Implement budget checking from database
-        daily_budget = getattr(settings, 'DAILY_AI_BUDGET', 10.0)  # $10 per day default
-        monthly_budget = getattr(settings, 'MONTHLY_AI_BUDGET', 100.0)  # $100 per month default
-        
-        # For now, just log if approaching limits
-        if current_cost > daily_budget * 0.8:
-            logger.warning(f"Workspace {workspace_id} approaching daily budget: ${current_cost:.4f}")
-    
+    async def _check_budget_limits(self, workspace_id: str) -> bool:
+        """
+        Check if workspace is within budget limits by querying real usage data.
+        Returns True if within budget, False otherwise.
+        """
+        try:
+            from backend.core.supabase_mgr import get_supabase_client
+            supabase = get_supabase_client()
+            
+            # 1. Fetch Limits from Workspace
+            ws_res = await supabase.table("workspaces").select("settings").eq("id", workspace_id).single().execute()
+            settings = ws_res.data.get("settings", {}) if ws_res.data else {}
+            
+            daily_budget = settings.get("daily_ai_budget", 10.0)
+            monthly_budget = settings.get("monthly_ai_budget", 100.0)
+            
+            # 2. Query actual costs for today and this month
+            today = datetime.now().date().isoformat()
+            first_of_month = datetime.now().replace(day=1).date().isoformat()
+            
+            # Monthly query
+            monthly_res = await supabase.table("agent_executions") \
+                .select("cost_estimate") \
+                .eq("workspace_id", workspace_id) \
+                .gte("created_at", f"{first_of_month}T00:00:00") \
+                .execute()
+            
+            total_monthly_cost = sum([e.get("cost_estimate", 0) or 0 for e in monthly_res.data or []])
+            
+            if total_monthly_cost >= monthly_budget:
+                logger.error(f"Workspace {workspace_id} exceeded monthly AI budget: ${total_monthly_cost:.2f}")
+                return False
+                
+            # Daily query
+            daily_res = await supabase.table("agent_executions") \
+                .select("cost_estimate") \
+                .eq("workspace_id", workspace_id) \
+                .gte("created_at", f"{today}T00:00:00") \
+                .execute()
+                
+            total_daily_cost = sum([e.get("cost_estimate", 0) or 0 for e in daily_res.data or []])
+            
+            if total_daily_cost >= daily_budget:
+                logger.error(f"Workspace {workspace_id} exceeded daily AI budget: ${total_daily_cost:.2f}")
+                return False
+                
+            return True
+            
+        except Exception as e:
+            logger.warning(f"Budget check failed, allowing request by default: {e}")
+            return True
+
     async def generate_text(
         self, 
         prompt: str, 
@@ -144,14 +186,22 @@ class VertexAIService:
         max_tokens: int = 1000,
         temperature: float = 0.7
     ) -> Dict[str, Any]:
-        """Generate text using Vertex AI with rate limiting and cost tracking"""
+        """Generate text using Vertex AI with rate limiting and budget enforcement"""
         
-        # Check rate limits
+        # 1. Check rate limits (per instance)
         if not self._check_rate_limit():
             return {
                 "status": "error",
                 "error": "Rate limit exceeded. Please try again later.",
                 "retry_after": 60
+            }
+            
+        # 2. Check budget limits (per workspace)
+        if not await self._check_budget_limits(workspace_id):
+            return {
+                "status": "error",
+                "error": "AI Budget exceeded for this workspace. Please upgrade your plan.",
+                "error_type": "budget_exceeded"
             }
         
         try:

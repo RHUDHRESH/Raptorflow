@@ -184,16 +184,46 @@ async function validateSession(
     const sessionAge = Date.now() - new Date(session.expires_at!).getTime()
     const needsRotation = sessionAge > SECURITY_CONFIG.SESSION.ROTATION_AGE
 
-    // For now, we trust the Supabase session without requiring a database lookup.
-    // This allows new users who haven't been inserted into public.users yet to proceed.
-    // The application layer should handle profile creation if needed.
+    // Get basic user info from session
+    let workspaceId = session.user.user_metadata?.workspace_id
+    let onboardingStatus = session.user.user_metadata?.onboarding_status
+
+    // ROBUSTNESS: If workspace_id is missing from metadata, try to fetch it from the database once
+    // This prevents redirect loops for existing users with stale metadata
+    if (!workspaceId) {
+      const { data: workspace } = await supabase
+        .from('workspaces')
+        .select('id')
+        .or(`owner_id.eq.${session.user.id},user_id.eq.${session.user.id}`)
+        .limit(1)
+        .maybeSingle()
+      
+      if (workspace) {
+        workspaceId = workspace.id
+      }
+    }
+
+    // Also check profile for onboarding status if missing
+    if (!onboardingStatus || onboardingStatus === 'pending') {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_status')
+        .eq('id', session.user.id)
+        .maybeSingle()
+      
+      if (profile) {
+        onboardingStatus = profile.onboarding_status
+      }
+    }
+
     const user = {
       id: session.user.id,
       email: session.user.email,
       role: session.user.user_metadata?.role || 'user',
       is_active: true,
       is_banned: false,
-      workspace_id: session.user.user_metadata?.workspace_id
+      workspace_id: workspaceId,
+      onboarding_status: onboardingStatus
     }
 
     return {
@@ -310,16 +340,15 @@ export async function middleware(request: NextRequest) {
     // Redirect authenticated users from auth routes
     if (authRoutes.some(route => path.startsWith(route)) && isAuth) {
       // If user has a workspace or completed onboarding, go to dashboard
-      // Otherwise, go to onboarding. 
-      // Note: we check workspace_id from metadata which was populated in validateSession
-      if (user?.workspace_id || user?.user_metadata?.onboarding_status === 'active') {
+      // Note: we check workspace_id from metadata or database which was populated in validateSession
+      if (user?.workspace_id || user?.onboarding_status === 'active') {
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
       return NextResponse.redirect(new URL('/onboarding', request.url))
     }
 
-    // New: If authenticated but on dashboard/other routes and has no workspace, redirect to onboarding
-    if (path.startsWith('/dashboard') && isAuth && !user?.workspace_id) {
+    // New: If authenticated but on dashboard/other routes and has no workspace or not active, redirect to onboarding
+    if (path.startsWith('/dashboard') && isAuth && (!user?.workspace_id || user?.onboarding_status !== 'active')) {
        return NextResponse.redirect(new URL('/onboarding', request.url))
     }
 

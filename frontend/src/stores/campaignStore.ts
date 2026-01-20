@@ -6,6 +6,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { apiClient } from "@/lib/api/client";
 
 // --- Types ---
 
@@ -81,32 +82,33 @@ export const useCampaignStore = create<CampaignStoreState>()(
 
             fetchCampaigns: async () => {
                 try {
-                    const response = await fetch('/api/v1/campaigns/');
-                    const data = await response.json();
-                    set({ campaigns: data.campaigns || [] });
+                    const response = await apiClient.listCampaigns() as any;
+                    set({ campaigns: response.campaigns || [] });
                 } catch (error) {
                     console.error("Fetch campaigns failed:", error);
                 }
             },
 
             fetchCalendar: async () => {
-                const response = await fetch('/api/v1/campaigns/calendar/events');
-                return await response.json();
+                try {
+                    const response = await apiClient.getCampaignCalendar();
+                    return response;
+                } catch (error) {
+                    console.error("Fetch campaign calendar failed:", error);
+                    return { campaigns: [], moves: [] };
+                }
             },
 
             addCampaign: async (campaign) => {
                 try {
-                    const response = await fetch('/api/v1/campaigns/', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            name: campaign.name,
-                            description: campaign.goal
-                        })
-                    });
-                    const created = await response.json();
+                    const response = await apiClient.createCampaign({
+                        name: campaign.name,
+                        description: campaign.goal,
+                        start_date: campaign.start_date,
+                        end_date: campaign.end_date
+                    }) as any;
                     set((state) => ({
-                        campaigns: [...state.campaigns, created]
+                        campaigns: [...state.campaigns, response]
                     }));
                 } catch (error) {
                     console.error("Add campaign failed:", error);
@@ -115,14 +117,7 @@ export const useCampaignStore = create<CampaignStoreState>()(
 
             updateCampaignMoveStatus: async (campaignId, moveId, newStatus) => {
                 try {
-                    // Sync with Move API status
-                    await fetch(`/api/v1/moves/${moveId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: newStatus.toLowerCase() })
-                    });
-                    
-                    // Re-fetch campaigns to sync full state
+                    await apiClient.updateMove(moveId, { status: newStatus.toLowerCase() });
                     await get().fetchCampaigns();
                 } catch (error) {
                     console.error("Update move status failed:", error);

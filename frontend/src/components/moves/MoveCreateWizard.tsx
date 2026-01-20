@@ -5,6 +5,7 @@ import { MoveCategory, MoveBriefData, ExecutionDay, MOVE_CATEGORIES } from "./ty
 import { BlueprintModal } from "@/components/ui/BlueprintModal";
 import { ArrowRight, Check, Sparkles, ChevronRight, Target, Clock, MessageSquare, Lightbulb, Users, User, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api/client";
 import { MoveCategoryIcon } from "./MoveCategoryIcon";
 import { useBCMStore } from "@/stores/bcmStore";
 

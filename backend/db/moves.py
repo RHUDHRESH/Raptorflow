@@ -179,6 +179,12 @@ class MoveRepository(Repository):
                 "updated_at": datetime.utcnow().isoformat(),
             }
 
+            # Map calendar fields if present
+            if "start_date" in data:
+                move_data["start_date"] = data["start_date"]
+            if "end_date" in data:
+                move_data["end_date"] = data["end_date"]
+
             # Validate required fields
             if not move_data.get("name"):
                 raise ValidationError("Move name is required")

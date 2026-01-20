@@ -51,7 +51,7 @@ const routes = [
 ];
 
 test.describe('Comprehensive Page Error Detection', () => {
-  let errors: Array<{
+  const errors: Array<{
     route: string;
     error: string;
     type: 'console' | 'network' | 'page' | 'timeout';

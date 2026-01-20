@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { sendPaymentConfirmationEmail } from '@/lib/email'
 
 export async function POST(request: Request) {
   try {
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
       // Get user
       const { data: user } = await supabase
         .from('users')
-        .select('id')
+        .select('id, email, full_name')
         .eq('auth_user_id', session.user.id)
         .single()
 
@@ -73,6 +74,21 @@ export async function POST(request: Request) {
         .from('users')
         .update({ onboarding_status: 'active' })
         .eq('id', user!.id)
+
+      // Send confirmation email via Resend
+      try {
+        await sendPaymentConfirmationEmail({
+          email: user!.email,
+          name: user!.full_name || user!.email.split('@')[0],
+          planName: transaction.plan_id.toUpperCase(),
+          amount: `₹${(transaction.amount_paise / 100).toLocaleString()}`,
+          transactionId: transactionId,
+          date: new Date().toLocaleDateString()
+        });
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError);
+        // Don't fail the transaction if email fails
+      }
 
       // Log success
       await supabase.from('audit_logs').insert({

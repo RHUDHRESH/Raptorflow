@@ -12,6 +12,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 
 // ============================================================================
@@ -90,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Set up Supabase auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event: AuthChangeEvent, session: Session | null) => {
         console.log('🔐 [Auth] Auth state changed:', event, session?.user?.email);
         
         if (event === 'SIGNED_IN' && session) {

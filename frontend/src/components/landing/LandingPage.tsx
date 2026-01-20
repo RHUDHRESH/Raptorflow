@@ -4,7 +4,26 @@ import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight01Icon, CheckmarkCircle02Icon } from "hugeicons-react";
-import { RaptorLogo } from "@/components/ui/CompassLogo";
+
+function RaptorLogoIcon({ size = 32, className = "" }: { size?: number; className?: string }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className={className}
+        >
+            <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M8 4C6 4 4 6 4 10L4 14C4 16 5 18 7 19L7 22C7 24 8 26 10 27L16 30L22 20L28 16L24 14L28 12L22 8L8 4ZM14 18C15.1046 18 16 17.1046 16 16C16 14.8954 15.1046 14 14 14C12.8954 14 12 14.8954 12 16C12 17.1046 12.8954 18 14 18Z"
+                fill="currentColor"
+            />
+        </svg>
+    );
+}
 
 /**
  * LANDING PAGE - Grand Simplicity + Wow Factor
@@ -20,7 +39,7 @@ export default function LandingPage() {
             <header className="fixed top-0 left-0 right-0 z-50 bg-[var(--canvas)]/90 backdrop-blur-md border-b border-[var(--border)]">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-3">
-                        <RaptorLogo size={28} className="text-[var(--ink)]" />
+                        <RaptorLogoIcon size={28} className="text-[var(--ink)]" />
                         <span className="font-editorial text-xl font-bold tracking-tight">RaptorFlow</span>
                     </Link>
                     <nav className="hidden md:flex items-center gap-8">
@@ -454,7 +473,7 @@ export default function LandingPage() {
                     <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
                         <div>
                             <div className="flex items-center gap-3 mb-4">
-                                <RaptorLogo size={28} className="text-[var(--ink)]" />
+                                <RaptorLogoIcon size={28} className="text-[var(--ink)]" />
                                 <span className="font-editorial font-bold text-xl">RaptorFlow</span>
                             </div>
                             <p className="text-[var(--secondary)] max-w-xs">The operating system for founder-led marketing.</p>

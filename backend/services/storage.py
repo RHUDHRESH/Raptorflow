@@ -24,8 +24,10 @@ except ImportError:
 from google.cloud import storage
 from google.cloud.storage import Blob
 
-from .storage import storage_service as basic_storage_service
 from ..infrastructure.storage import get_cloud_storage, FileCategory, StorageConfig
+
+# No longer importing from .storage to avoid circular dependency
+# basic_storage_service will be initialized using get_cloud_storage()
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +63,7 @@ class EnhancedStorageService:
     
     def __init__(self):
         # Use existing storage service as base
-        self.basic_storage = basic_storage_service
+        self.basic_storage = get_cloud_storage()
         self.cloud_storage = get_cloud_storage()
         
         # CDN configuration
@@ -463,4 +465,4 @@ class EnhancedStorageService:
 enhanced_storage_service = EnhancedStorageService()
 
 # Keep backward compatibility
-storage_service = basic_storage_service
+storage_service = get_cloud_storage()

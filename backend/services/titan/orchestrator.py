@@ -10,9 +10,8 @@ from backend.services.search.orchestrator import SOTASearchOrchestrator
 from backend.services.titan.multiplexer import SearchMultiplexer, SemanticRanker
 from backend.services.titan.scraper import PlaywrightStealthPool, IntelligentMarkdown
 from backend.tools.web_scraper import WebScraperTool, ScrapingMethod, ContentType
-from backend.config.settings import get_settings
-from backend.llm import LLMManager, LLMRequest, LLMMessage, LLMRole
-from backend.redis_core.cache import CacheService
+from backend.services.storage import enhanced_storage_service
+from backend.core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger("raptorflow.services.titan.orchestrator")
 
@@ -186,22 +185,61 @@ class TitanOrchestrator:
 
         return result
 
-    async def _store_intelligence(self, query: str, result: Dict[str, Any]):
+    async def _store_intelligence(self, query: str, result: Dict[str, Any], workspace_id: str = "default"):
         """
         Stores result in GCS Evidence Vault and pgvector.
         """
-        # Placeholder for Evidence Vault integration
-        # In a real build, we'd use backend.infrastructure.storage
         logger.info(f"Persisting intelligence for query: {query}")
         
-        # 1. Store raw JSON in GCS (mocked for now)
-        
-        # 2. Inject chunks into pgvector
+        # 1. Store raw JSON in GCS Evidence Vault
+        filename = f"titan_intel_{hashlib.md5(query.encode()).hexdigest()[:10]}.json"
+        try:
+            # Prepare content
+            json_content = json.dumps(result, indent=2).encode('utf-8')
+            
+            # Use enhanced storage service
+            upload_res = await enhanced_storage_service.upload_file(
+                file_content=json_content,
+                filename=filename,
+                workspace_id=workspace_id,
+                content_type="application/json",
+                user_id="titan_engine"
+            )
+            
+            if upload_res["status"] == "success":
+                logger.info(f"Titan intelligence saved to GCS: {upload_res['storage_path']}")
+            else:
+                logger.warning(f"Failed to save Titan intelligence to GCS: {upload_res.get('error')}")
+        except Exception as e:
+            logger.error(f"GCS storage failed for Titan result: {e}")
+
+        # 2. Inject chunks into pgvector (Supabase)
         intelligence = result.get("intelligence_map", {})
         if intelligence:
-            text_to_chunk = f"{intelligence.get('summary', '')} {' '.join(intelligence.get('key_findings', []))}"
-            chunks = self._chunk_text(text_to_chunk)
-            # await self.vector_store.upsert(chunks) # Future: use real vector store
+            try:
+                summary = intelligence.get('summary', '')
+                findings = ' '.join(intelligence.get('key_findings', []))
+                text_to_vectorize = f"Query: {query}\nSummary: {summary}\nFindings: {findings}"
+                
+                # Use Supabase RPC for vector upsert if available
+                # This assumes a 'match_documents' or similar RPC exists for vector search
+                # and a 'documents' table for storage.
+                supabase = get_supabase_client()
+                
+                # Simplified vector storage logic
+                # In production, we'd generate embeddings first using vertex_ai_service
+                await supabase.table("intelligence_vault").insert({
+                    "workspace_id": workspace_id,
+                    "query": query,
+                    "summary": summary,
+                    "full_intelligence": intelligence,
+                    "source": "titan_sota",
+                    "created_at": datetime.now().isoformat()
+                }).execute()
+                
+                logger.info("Titan intelligence indexed in Supabase")
+            except Exception as e:
+                logger.error(f"Vector storage failed for Titan result: {e}")
 
     def _chunk_text(self, text: str, chunk_size: int = 1000) -> List[str]:
         """Simple text chunker."""

@@ -132,7 +132,7 @@ export default function SystemCheckPage() {
                 router.replace('/onboarding');
             } else {
                 // Everything ready → Go to dashboard
-                router.replace('/(shell)/dashboard');
+                router.replace('/dashboard');
             }
 
         } catch (err) {

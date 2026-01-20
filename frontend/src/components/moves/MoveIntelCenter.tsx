@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Move, ExecutionDay, TaskItem, MOVE_CATEGORIES } from "./types";
 import { useMovesStore } from "@/stores/movesStore"; // Import store
 import { MoveCategoryIcon } from "@/components/moves/MoveCategoryIcon";
 import { Check, Zap, Share2, MessageSquare, Layout, Activity, Calendar, Layers, ChevronDown, ChevronRight, Target, Lightbulb, Users, Megaphone, ArrowRight, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api/client";
+import { BlueprintCard } from "@/components/ui/BlueprintCard";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    MOVE INTEL CENTER — QUIET LUXURY REDESIGN
@@ -22,6 +24,7 @@ export function MoveIntelCenter({ move }: MoveIntelCenterProps) {
     const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set([1]));
     const [reasoning, setReasoning] = useState<any[]>([]);
     const [loadingReasoning, setLoadingReasoning] = useState(false);
+    const [isCompleting, setIsCompleting] = useState(false);
 
     // --- ABSOLUTE INFINITY: FETCH REASONING ---
     useEffect(() => {

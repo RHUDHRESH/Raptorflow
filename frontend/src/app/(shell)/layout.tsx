@@ -1,6 +1,8 @@
 "use client";
 
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Shell } from "@/components/shell/Shell";
+import { BlueprintCommandPrompt } from "@/components/ui/BlueprintCommandPrompt";
 
 export default function ShellLayout({
     children,
@@ -8,11 +10,11 @@ export default function ShellLayout({
     children: React.ReactNode;
 }) {
     return (
-        <Shell>
-            <BlueprintCommandPrompt />
-            {children}
-        </Shell>
+        <ProtectedRoute>
+            <Shell>
+                <BlueprintCommandPrompt />
+                {children}
+            </Shell>
+        </ProtectedRoute>
     );
 }
-
-import { BlueprintCommandPrompt } from "@/components/ui/BlueprintCommandPrompt";

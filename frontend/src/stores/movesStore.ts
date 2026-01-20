@@ -74,10 +74,8 @@ export const useMovesStore = create<MovesState>()(
             fetchMoves: async () => {
                 set({ isLoading: true });
                 try {
-                    const response = await fetch('/api/v1/moves/');
-                    if (!response.ok) throw new Error('Failed to fetch moves');
-                    const data = await response.json();
-                    set({ moves: data });
+                    const response = await apiClient.listMoves();
+                    set({ moves: response.data || [] });
                 } catch (error) {
                     console.error("Fetch moves failed:", error);
                 } finally {
@@ -85,48 +83,45 @@ export const useMovesStore = create<MovesState>()(
                 }
             },
 
-            // Fetch calendar events
+            // Fetch daily agenda from consolidated backend
             fetchDailyAgenda: async () => {
-                const response = await fetch('/api/v1/moves/calendar/events');
-                const data = await response.json();
-                return data.moves || [];
+                try {
+                    const response = await apiClient.getMovesCalendar() as any;
+                    return response.moves || [];
+                } catch (error) {
+                    console.error("Fetch agenda failed:", error);
+                    return [];
+                }
             },
 
             // Add a new move
             addMove: async (move) => {
                 try {
-                    const response = await fetch('/api/v1/moves/', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            name: move.name,
-                            category: move.category,
-                            goal: move.goal,
-                            status: move.status,
-                            duration_days: move.duration
-                        })
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to create move');
-                    
-                    const created = await response.json();
+                    const response = await apiClient.createMove({
+                        name: move.name,
+                        category: move.category,
+                        goal: move.goal,
+                        status: move.status,
+                        duration_days: move.duration,
+                        start_date: move.startDate,
+                        end_date: move.endDate
+                    }) as any;
                     
                     set((state) => ({
-                        moves: [...state.moves, { ...move, id: created.id }],
+                        moves: [...state.moves, { ...move, id: response.id }],
                     }));
                 } catch (error) {
                     console.error("Move persistence failed:", error);
-                    // Fallback to local
-                    set((state) => ({
-                        moves: [...state.moves, move],
-                    }));
                 }
             },
 
             // Update Backend Task Status (Industrial Sync)
             updateBackendTaskStatus: async (taskId, status) => {
-                await apiClient.updateTaskStatus(taskId, status);
-                // After backend update, we could optionally re-fetch or update locally
+                try {
+                    await apiClient.updateMove(taskId, { status });
+                } catch (error) {
+                    console.error("Backend task sync failed:", error);
+                }
             },
 
             // Update an existing move
@@ -315,7 +310,7 @@ export const useMovesStore = create<MovesState>()(
                         user_id: data.userId,
                         convert_to_move: true,
                         move_name: data.name
-                    });
+                    }) as any;
                     
                     const moveId = response.move_id || `mov-${Date.now()}`;
                     // Re-fetch moves to show the new one

@@ -3,40 +3,40 @@
  * Returns user's current subscription, workspace, and onboarding status
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { createServerClient } from '@supabase/auth-helpers-nextjs';
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+type CookieOptions = Parameters<ReturnType<typeof NextResponse.json>['cookies']['set']>[2];
+type PendingCookie = { name: string; value: string; options?: CookieOptions };
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Get user from authentication
-    const authResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/me`, {
-      headers: request.headers,
-    });
+    const cookieStore = await cookies();
+    const pendingCookies: PendingCookie[] = [];
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => cookieStore.getAll(),
+          setAll: (cookiesToSet) => {
+            pendingCookies.push(...cookiesToSet);
+          }
+        }
+      }
+    );
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-    if (!authResponse.ok) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    if (error || !user) {
+      const response = NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      pendingCookies.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, options);
+      });
+      return response;
     }
 
-    const authData = await authResponse.json();
-    const user = authData.user;
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
-    const userId = user.userId;
+    const userId = user.id;
 
     // Get subscription data directly from table
     const { data: subscriptionData, error: subError } = await supabase
@@ -50,8 +50,16 @@ export async function GET(request: NextRequest) {
     const { data: workspaceData, error: wsError } = await supabase
       .from('workspaces')
       .select('*')
-      .eq('owner_id', userId)
+      .eq('user_id', userId)
       .single();
+
+    const { data: onboardingSession } = workspaceData
+      ? await supabase
+          .from('onboarding_sessions')
+          .select('status, current_step')
+          .eq('workspace_id', workspaceData.id)
+          .maybeSingle()
+      : { data: null };
 
     // Build response
     const subscription = subscriptionData ? {
@@ -76,9 +84,9 @@ export async function GET(request: NextRequest) {
       hasWorkspace: true,
       workspaceId: workspaceData.id,
       workspaceName: workspaceData.name,
-      onboardingCompleted: workspaceData.onboarding_completed || false,
-      onboardingStep: workspaceData.onboarding_step || 1,
-      businessContextUrl: workspaceData.business_context_url || null,
+      onboardingCompleted: onboardingSession?.status === 'completed',
+      onboardingStep: onboardingSession?.current_step ?? 1,
+      businessContextUrl: null,
     } : {
       hasWorkspace: false,
       workspaceId: null,
@@ -88,7 +96,7 @@ export async function GET(request: NextRequest) {
       businessContextUrl: null,
     };
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user: {
         id: userId,
@@ -98,6 +106,10 @@ export async function GET(request: NextRequest) {
       workspace,
       canAccessApp: subscription.hasSubscription && workspace.hasWorkspace,
     });
+    pendingCookies.forEach(({ name, value, options }) => {
+      response.cookies.set(name, value, options);
+    });
+    return response;
 
   } catch (error) {
     console.error('Subscription status error:', error);

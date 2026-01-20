@@ -27,11 +27,12 @@ export default function MovesPage() {
   const [selectedMove, setSelectedMove] = useState<Move | null>(null);
   const [activeTab, setActiveTab] = useState<ViewTab>('agenda');
 
-  const { moves, addMove } = useMovesStore();
+  const { moves, addMove, fetchMoves } = useMovesStore();
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    fetchMoves();
+  }, [fetchMoves]);
 
   // Calculate stats
   const stats = {

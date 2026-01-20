@@ -87,10 +87,15 @@ export function BCMEditor() {
             Complete onboarding to generate your Business Context Model, or import an existing one.
           </p>
           <div className="flex items-center justify-center gap-4">
-            <SecondaryButton onClick={handleImport} className="flex items-center gap-2">
-              <Upload size={14} />
-              Import BCM
-            </SecondaryButton>
+            <label className="cursor-pointer">
+              <SecondaryButton className="flex items-center gap-2" asChild>
+                <span className="flex items-center gap-2">
+                  <Upload size={14} />
+                  <span>Import BCM</span>
+                </span>
+              </SecondaryButton>
+              <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+            </label>
           </div>
         </BlueprintCard>
       </div>
@@ -121,9 +126,9 @@ export function BCMEditor() {
           </SecondaryButton>
           <label className="cursor-pointer">
             <SecondaryButton className="flex items-center gap-2" asChild>
-              <span>
+              <span className="flex items-center gap-2">
                 <Upload size={14} />
-                Import
+                <span>Import</span>
               </span>
             </SecondaryButton>
             <input type="file" accept=".json" onChange={handleImport} className="hidden" />
@@ -230,7 +235,11 @@ export function BCMEditor() {
                 value={tempData.foundation?.company || bcm.foundation.company}
                 onChange={(e) => setTempData(prev => ({
                   ...prev,
-                  foundation: { ...prev.foundation, company: e.target.value }
+                  foundation: { 
+                    company: e.target.value,
+                    mission: prev.foundation?.mission || bcm.foundation.mission,
+                    value_prop: prev.foundation?.value_prop || bcm.foundation.value_prop
+                  }
                 }))}
                 className="w-full px-3 py-2 bg-[var(--surface)] border border-[var(--border)] rounded text-sm text-[var(--ink)] focus:outline-none focus:border-[var(--ink)]"
               />
@@ -241,7 +250,11 @@ export function BCMEditor() {
                 value={tempData.foundation?.mission || bcm.foundation.mission}
                 onChange={(e) => setTempData(prev => ({
                   ...prev,
-                  foundation: { ...prev.foundation, mission: e.target.value }
+                  foundation: { 
+                    company: prev.foundation?.company || bcm.foundation.company,
+                    mission: e.target.value,
+                    value_prop: prev.foundation?.value_prop || bcm.foundation.value_prop
+                  }
                 }))}
                 rows={3}
                 className="w-full px-3 py-2 bg-[var(--surface)] border border-[var(--border)] rounded text-sm text-[var(--ink)] focus:outline-none focus:border-[var(--ink)]"
@@ -253,7 +266,11 @@ export function BCMEditor() {
                 value={tempData.foundation?.value_prop || bcm.foundation.value_prop}
                 onChange={(e) => setTempData(prev => ({
                   ...prev,
-                  foundation: { ...prev.foundation, value_prop: e.target.value }
+                  foundation: { 
+                    company: prev.foundation?.company || bcm.foundation.company,
+                    mission: prev.foundation?.mission || bcm.foundation.mission,
+                    value_prop: e.target.value
+                  }
                 }))}
                 rows={2}
                 className="w-full px-3 py-2 bg-[var(--surface)] border border-[var(--border)] rounded text-sm text-[var(--ink)] focus:outline-none focus:border-[var(--ink)]"
@@ -312,7 +329,11 @@ export function BCMEditor() {
                 value={tempData.messaging?.one_liner || bcm.messaging.one_liner}
                 onChange={(e) => setTempData(prev => ({
                   ...prev,
-                  messaging: { ...prev.messaging, one_liner: e.target.value }
+                  messaging: { 
+                    one_liner: e.target.value,
+                    value_props: prev.messaging?.value_props || bcm.messaging.value_props,
+                    brand_voice: prev.messaging?.brand_voice || bcm.messaging.brand_voice
+                  }
                 }))}
                 className="w-full px-3 py-2 bg-[var(--surface)] border border-[var(--border)] rounded text-sm text-[var(--ink)] focus:outline-none focus:border-[var(--ink)]"
               />
@@ -325,9 +346,10 @@ export function BCMEditor() {
                 onChange={(e) => setTempData(prev => ({
                   ...prev,
                   messaging: { 
-                    ...prev.messaging, 
+                    one_liner: prev.messaging?.one_liner || bcm.messaging.one_liner,
+                    value_props: prev.messaging?.value_props || bcm.messaging.value_props,
                     brand_voice: { 
-                      ...prev.messaging?.brand_voice, 
+                      ...prev.messaging?.brand_voice || bcm.messaging.brand_voice, 
                       tone: e.target.value.split(',').map(t => t.trim()).filter(t => t)
                     }
                   }

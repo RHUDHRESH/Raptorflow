@@ -3,6 +3,9 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Move, MOVE_CATEGORIES } from "./types";
 import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api/client";
+import { openPlatform } from "@/lib/external-links";
+import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import {
     ChevronLeft,
     ChevronRight,

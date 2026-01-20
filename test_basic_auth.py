@@ -2,8 +2,8 @@ import urllib.request
 import base64
 import os
 
-url = "https://selected-lemming-36956.upstash.io/ping"
-token = "AZBcAAInCDF3MTZ1NzY3YjE4NjY6dM1yYm=jNTVmk8H1MTU1ZWF1NNAx!2YSNTY"
+url = "https://patient-goshawk-35225.upstash.io/ping"
+token = "AYmZAAIncDEwNDA0NjczMDU4OTk0NTc1YTBlNGQ0NzUzZWFjNWI0MXAxMzUyMjU"
 
 # Try Basic Auth
 auth_str = f"default:{token}"

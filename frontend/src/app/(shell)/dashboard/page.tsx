@@ -64,7 +64,7 @@ export default function DashboardPage() {
   // Map Muse assets to Activity Items
   const recentActivity: ActivityItem[] = summary?.recent_muse_assets?.map(asset => ({
     id: asset.id,
-    type: "muse",
+    type: "asset",
     title: `Asset Created: ${asset.title}`,
     timestamp: new Date(asset.created_at).toLocaleDateString(),
     status: asset.status,

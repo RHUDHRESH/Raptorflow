@@ -1,8 +1,8 @@
 from upstash_redis import Redis
 import os
 
-url = "https://selected-lemming-36956.upstash.io"
-token = "AZBcAAInCDF3MTZ1NzY3YjE4NjY6dM1yYm=jNTVmk8H1MTU1ZWF1NNAx!2YSNTY"
+url = "https://patient-goshawk-35225.upstash.io"
+token = "AYmZAAIncDEwNDA0NjczMDU4OTk0NTc1YTBlNGQ0NzUzZWFjNWI0MXAxMzUyMjU"
 
 print(f"Connecting to {url} using upstash-redis library...")
 

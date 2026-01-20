@@ -13,12 +13,31 @@ export async function GET(request: Request) {
     const { data: { session } } = await supabase.auth.exchangeCodeForSession(code);
 
     if (session?.user) {
-      // Check profile for UCID and onboarding status
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('ucid, onboarding_status')
-        .eq('id', session.user.id)
-        .single();
+      // Check profile and workspace to ensure session metadata is synced
+      const [{ data: profile }, { data: workspace }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('ucid, onboarding_status, role')
+          .eq('id', session.user.id)
+          .single(),
+        supabase
+          .from('workspaces')
+          .select('id')
+          .or(`owner_id.eq.${session.user.id},user_id.eq.${session.user.id}`)
+          .limit(1)
+          .maybeSingle()
+      ]);
+
+      // Sync workspace_id and role to metadata for middleware
+      if (workspace?.id || profile?.role) {
+        await supabase.auth.updateUser({
+          data: {
+            workspace_id: workspace?.id || session.user.user_metadata?.workspace_id,
+            role: profile?.role || session.user.user_metadata?.role || 'user',
+            onboarding_status: profile?.onboarding_status || 'pending'
+          }
+        });
+      }
 
       // If no profile yet, or no UCID, or pending onboarding -> go to onboarding
       if (!profile || !profile.ucid || profile.onboarding_status === 'pending') {

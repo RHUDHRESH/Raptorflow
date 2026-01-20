@@ -2,7 +2,7 @@ import redis
 import os
 
 # Load manually to be sure
-url = "redis://default:AZBcAAInCDF3MTZ1NzY3YjE4NjY6dM1yYm=jNTVmk8H1MTU1ZWF1NNAx!2YSNTY@selected-lemming-36956.upstash.io:6379"
+url = "rediss://default:AYmZAAIncDEwNDA0NjczMDU4OTk0NTc1YTBlNGQ0NzUzZWFjNWI0MXAxMzUyMjU@patient-goshawk-35225.upstash.io:6379"
 
 print(f"Connecting to Redis via redis:// protocol...")
 

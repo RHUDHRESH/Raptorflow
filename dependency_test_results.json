@@ -9,7 +9,7 @@
     "redis": {
       "status": "\u2705 PASS",
       "details": {
-        "url": "https://selected-lemming-36956.upstash.io",
+        "url": "https://patient-goshawk-35225.upstash.io",
         "connection_time": "2.16s",
         "set_success": true,
         "get_success": true,

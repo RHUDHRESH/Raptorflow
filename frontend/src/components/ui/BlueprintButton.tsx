@@ -26,6 +26,46 @@ export function BlueprintButton({
     label,
     ...props
 }: BlueprintButtonProps) {
+    if (props.asChild) {
+        return (
+            <Button
+                variant={variant}
+                size={size}
+                className={cn(
+                    "relative overflow-visible",
+                    className
+                )}
+                {...props}
+            >
+                {children}
+            </Button>
+        );
+    }
+
+    const buttonContent = (
+        <Button
+            variant={variant}
+            size={size}
+            className={cn(
+                "relative overflow-visible", // Allow corners to sit outside if needed
+                className
+            )}
+            {...props}
+        >
+            {/* Corner Registration Marks - Pure CSS, no SVGs */}
+            {showCorners && (
+                <>
+                    <span className="absolute -top-[1px] -left-[1px] w-2 h-2 border-t border-l border-current opacity-30 group-hover:opacity-100 transition-opacity" />
+                    <span className="absolute -top-[1px] -right-[1px] w-2 h-2 border-t border-r border-current opacity-30 group-hover:opacity-100 transition-opacity" />
+                    <span className="absolute -bottom-[1px] -left-[1px] w-2 h-2 border-b border-l border-current opacity-30 group-hover:opacity-100 transition-opacity" />
+                    <span className="absolute -bottom-[1px] -right-[1px] w-2 h-2 border-b border-r border-current opacity-30 group-hover:opacity-100 transition-opacity" />
+                </>
+            )}
+
+            {children}
+        </Button>
+    );
+
     return (
         <div className="relative inline-flex flex-col items-start gap-1 group">
             {/* Technical Label - Top Left (Optional) */}
@@ -34,28 +74,7 @@ export function BlueprintButton({
                     {label}
                 </span>
             )}
-
-            <Button
-                variant={variant}
-                size={size}
-                className={cn(
-                    "relative overflow-visible", // Allow corners to sit outside if needed
-                    className
-                )}
-                {...props}
-            >
-                {/* Corner Registration Marks - Pure CSS, no SVGs */}
-                {showCorners && (
-                    <>
-                        <span className="absolute -top-[1px] -left-[1px] w-2 h-2 border-t border-l border-current opacity-30 group-hover:opacity-100 transition-opacity" />
-                        <span className="absolute -top-[1px] -right-[1px] w-2 h-2 border-t border-r border-current opacity-30 group-hover:opacity-100 transition-opacity" />
-                        <span className="absolute -bottom-[1px] -left-[1px] w-2 h-2 border-b border-l border-current opacity-30 group-hover:opacity-100 transition-opacity" />
-                        <span className="absolute -bottom-[1px] -right-[1px] w-2 h-2 border-b border-r border-current opacity-30 group-hover:opacity-100 transition-opacity" />
-                    </>
-                )}
-
-                {children}
-            </Button>
+            {buttonContent}
         </div>
     );
 }

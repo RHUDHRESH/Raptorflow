@@ -23,85 +23,48 @@ from fastapi import (
 from typing import Optional
 from pydantic import BaseModel
 
-# Fix import paths
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../backend-clean"))
+import logging
+import os
+import sys
+import tempfile
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+from pydantic import BaseModel
 
-try:
-    from services.ocr_service import OCRService
-except ImportError:
-    # Fallback if OCR service is not available
-    OCRService = None
-    logging.warning("OCR Service not available, using fallback")
+from fastapi import (
+    APIRouter,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    Query,
+)
 
-try:
-    from backend_clean.core.search_native import NativeSearch
-except ImportError:
-    # Fallback to mock if search service is not available
-    class NativeSearch:
-        async def query(self, q, limit=1):
-            return [
-                {
-                    "title": "Mock Search",
-                    "snippet": "Mock Content",
-                    "url": "http://example.com",
-                }
-            ]
-
-        async def close(self):
-            pass
-
-# Import Vertex AI client for real AI processing
-try:
-    from services.vertex_ai_client import get_vertex_ai_client
-    vertex_ai_client = get_vertex_ai_client()
-except ImportError:
-    logger.warning("Vertex AI client not available, using fallback")
-    vertex_ai_client = None
-
-# Import new AI agents
-try:
-    from agents.specialists.evidence_classifier import EvidenceClassifier
-    from agents.specialists.extraction_orchestrator import ExtractionOrchestrator
-    from agents.specialists.contradiction_detector import ContradictionDetector
-    from agents.specialists.reddit_researcher import RedditResearcher
-    from agents.specialists.perceptual_map_generator import PerceptualMapGenerator
-    from agents.specialists.neuroscience_copywriter import NeuroscienceCopywriter
-    from agents.specialists.channel_recommender import ChannelRecommender
-    from agents.specialists.category_advisor import CategoryAdvisor
-    from agents.specialists.market_size_calculator import MarketSizeCalculator
-    from agents.specialists.competitor_analyzer import CompetitorAnalyzer
-    from agents.specialists.focus_sacrifice_engine import FocusSacrificeEngine
-    from agents.specialists.proof_point_validator import ProofPointValidator
-    from agents.specialists.truth_sheet_generator import TruthSheetGenerator
-    from agents.specialists.messaging_rules_engine import MessagingRulesEngine
-    from agents.specialists.soundbites_generator import SoundbitesGenerator
-    from agents.specialists.icp_deep_generator import ICPDeepGenerator
-    from agents.specialists.positioning_statement_generator import PositioningStatementGenerator
-except ImportError as e:
-    logging.warning(f"AI agents not available: {e}")
-    EvidenceClassifier = None
-    ExtractionOrchestrator = None
-    ContradictionDetector = None
-    RedditResearcher = None
-    PerceptualMapGenerator = None
-    NeuroscienceCopywriter = None
-    ChannelRecommender = None
-    CategoryAdvisor = None
-    MarketSizeCalculator = None
-    CompetitorAnalyzer = None
-    FocusSacrificeEngine = None
-    ProofPointValidator = None
-    TruthSheetGenerator = None
-    MessagingRulesEngine = None
-    SoundbitesGenerator = None
-    ICPDeepGenerator = None
-    PositioningStatementGenerator = None
-    LaunchReadinessChecker = None
-    ChannelStrategyOptimizer = None
-
+# Core system imports
+from backend.services.ocr_service import OCRService
+from backend.services.search.orchestrator import SOTASearchOrchestrator as NativeSearch
+from backend.services.vertex_ai_service import vertex_ai_service
 from backend.services.storage import enhanced_storage_service
-from db.repositories.onboarding import OnboardingRepository
+from backend.db.repositories.onboarding import OnboardingRepository
 
+# Specialist Agent imports
+from backend.agents.specialists.evidence_classifier import EvidenceClassifier
+from backend.agents.specialists.extraction_orchestrator import ExtractionOrchestrator
+from backend.agents.specialists.contradiction_detector import ContradictionDetector
+from backend.agents.specialists.reddit_researcher import RedditResearcher
+from backend.agents.specialists.perceptual_map_generator import PerceptualMapGenerator
+from backend.agents.specialists.neuroscience_copywriter import NeuroscienceCopywriter
+from backend.agents.specialists.channel_recommender import ChannelRecommender
+from backend.agents.specialists.category_advisor import CategoryAdvisor
+from backend.agents.specialists.market_size_calculator import MarketSizeCalculator
+from backend.agents.specialists.competitor_analyzer import CompetitorAnalyzer
+from backend.agents.specialists.focus_sacrifice_engine import FocusSacrificeEngine
+from backend.agents.specialists.proof_point_validator import ProofPointValidator
+from backend.agents.specialists.truth_sheet_generator import TruthSheetGenerator
+from backend.agents.specialists.messaging_rules_engine import MessagingRulesEngine
+from backend.agents.specialists.soundbites_generator import SoundbitesGenerator
+from backend.agents.specialists.icp_deep_generator import ICPDeepGenerator
+from backend.agents.specialists.positioning_statement_generator import PositioningStatementGenerator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -110,29 +73,29 @@ logger = logging.getLogger(__name__)
 # Create router
 router = APIRouter(prefix="/api/v1/onboarding", tags=["onboarding"])
 
-# Initialize services
-ocr_service = OCRService() if OCRService else None
+# Initialize industrial services
+ocr_service = OCRService()
 search_service = NativeSearch()
 onboarding_repo = OnboardingRepository()
 
 # Initialize AI agents
-evidence_classifier = EvidenceClassifier() if EvidenceClassifier else None
-extraction_orchestrator = ExtractionOrchestrator() if ExtractionOrchestrator else None
-contradiction_detector = ContradictionDetector() if ContradictionDetector else None
-reddit_researcher = RedditResearcher() if RedditResearcher else None
-perceptual_map_generator = PerceptualMapGenerator() if PerceptualMapGenerator else None
-neuroscience_copywriter = NeuroscienceCopywriter() if NeuroscienceCopywriter else None
-channel_recommender = ChannelRecommender() if ChannelRecommender else None
-category_advisor = CategoryAdvisor() if CategoryAdvisor else None
-market_size_calculator = MarketSizeCalculator() if MarketSizeCalculator else None
-competitor_analyzer = CompetitorAnalyzer() if CompetitorAnalyzer else None
-focus_sacrifice_engine = FocusSacrificeEngine() if FocusSacrificeEngine else None
-proof_point_validator = ProofPointValidator() if ProofPointValidator else None
-truth_sheet_generator = TruthSheetGenerator() if TruthSheetGenerator else None
-messaging_rules_engine = MessagingRulesEngine() if MessagingRulesEngine else None
-soundbites_generator = SoundbitesGenerator() if SoundbitesGenerator else None
-icp_deep_generator = ICPDeepGenerator() if ICPDeepGenerator else None
-positioning_generator = PositioningStatementGenerator() if PositioningStatementGenerator else None
+evidence_classifier = EvidenceClassifier()
+extraction_orchestrator = ExtractionOrchestrator()
+contradiction_detector = ContradictionDetector()
+reddit_researcher = RedditResearcher()
+perceptual_map_generator = PerceptualMapGenerator()
+neuroscience_copywriter = NeuroscienceCopywriter()
+channel_recommender = ChannelRecommender()
+category_advisor = CategoryAdvisor()
+market_size_calculator = MarketSizeCalculator()
+competitor_analyzer = CompetitorAnalyzer()
+focus_sacrifice_engine = FocusSacrificeEngine()
+proof_point_validator = ProofPointValidator()
+truth_sheet_generator = TruthSheetGenerator()
+messaging_rules_engine = MessagingRulesEngine()
+soundbites_generator = SoundbitesGenerator()
+icp_deep_generator = ICPDeepGenerator()
+positioning_generator = PositioningStatementGenerator()
 
 
 # Pydantic models
@@ -150,185 +113,75 @@ class URLProcessRequest(BaseModel):
 
 # Helper functions
 async def scrape_website(url: str) -> Dict[str, Any]:
-    """Scrape website content using real web requests"""
+    """Scrape website content using the real SOTA search service"""
     try:
         # Validate URL
         if not url or not url.startswith(('http://', 'https://')):
             return {"status": "error", "error": "Invalid URL format"}
         
-        # Use real web scraping with requests and BeautifulSoup
-        try:
-            import httpx
-            from bs4 import BeautifulSoup
-            
-            # Fetch the webpage
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.get(url, follow_redirects=True)
-                response.raise_for_status()
-                
-                # Parse HTML content
-                soup = BeautifulSoup(response.text, 'html.parser')
-                
-                # Extract key information
-                title = soup.find('title')
-                title_text = title.get_text().strip() if title else ""
-                
-                # Extract meta description
-                meta_desc = soup.find('meta', attrs={'name': 'description'})
-                description = meta_desc.get('content', '') if meta_desc else ""
-                
-                # Extract main content (first paragraph or so)
-                content = ""
-                for tag in soup.find(['p', 'h1', 'h2', 'h3']):
-                    text = tag.get_text().strip()
-                    if len(text) > 50:  # Skip very short texts
-                        content = text[:500]  # Limit to 500 chars
-                        break
-                
-                # If no content found, use meta description
-                if not content and description:
-                    content = description
-                
-                # Use fallback search if scraping doesn't yield good content
-                if not content or len(content) < 100:
-                    search = NativeSearch()
-                    domain = url.split("//")[-1].split("/")[0]
-                    search_query = f"site:{domain}"
-                    
-                    results = await search.query(search_query, limit=1)
-                    await search.close()
-                    
-                    if results and len(results) > 0:
-                        result = results[0]
-                        return {
-                            "status": "success",
-                            "title": result.get("title", title_text),
-                            "content": result.get("snippet", content),
-                            "url": url,
-                            "source": "search_fallback",
-                            "search_confidence": result.get("confidence", 0.7),
-                            "domain": domain,
-                        }
-                
-                return {
-                    "status": "success",
-                    "title": title_text,
-                    "content": content,
-                    "url": url,
-                    "source": "web_scraping",
-                    "search_confidence": 0.9,
-                    "domain": url.split("//")[-1].split("/")[0],
-                }
-                
-        except ImportError:
-            # Fallback to NativeSearch if httpx/BeautifulSoup not available
-            logger.warning("httpx/BeautifulSoup not available, using search fallback")
-            search = NativeSearch()
-            domain = url.split("//")[-1].split("/")[0]
-            search_query = f"site:{domain}"
-            
-            results = await search.query(search_query, limit=1)
-            await search.close()
-
-            if results and len(results) > 0:
-                result = results[0]
-                return {
-                    "status": "success",
-                    "title": result.get("title", ""),
-                    "content": result.get("snippet", ""),
-                    "url": result.get("url", ""),
-                    "source": result.get("source", "web_scraping"),
-                    "search_confidence": result.get("confidence", 0.8),
-                    "domain": domain,
-                }
-            else:
-                return {
-                    "status": "error", 
-                    "error": f"No content found for URL: {url}",
-                    "domain": domain
-                }
+        # Use SOTA search cluster
+        results = await search_service.query(f"site:{url}", limit=1)
+        
+        if results:
+            res = results[0]
+            return {
+                "status": "success",
+                "title": res.get("title", ""),
+                "content": res.get("snippet", ""),
+                "url": url,
+                "source": "sota_search_cluster",
+                "search_confidence": res.get("confidence", 0.9),
+                "domain": url.split("//")[-1].split("/")[0],
+            }
+        else:
+            return {
+                "status": "error", 
+                "error": f"No content found for URL via SOTA cluster: {url}"
+            }
             
     except Exception as e:
-        logger.error(f"Scraping failed for {url}: {e}")
+        logger.error(f"SOTA scraping failed for {url}: {e}")
         return {
             "status": "error", 
-            "error": f"Scraping service unavailable: {str(e)}",
+            "error": f"Search cluster unavailable: {str(e)}",
             "url": url
         }
 
 
 async def process_ocr(file_path: str, file_content: bytes) -> Dict[str, Any]:
-    """Process file with real OCR service"""
+    """Process file with real industrial OCR service"""
     try:
-        # Check if OCR service is available
-        if OCRService is None:
-            logger.warning("OCR Service not available, using fallback")
-            file_size = len(file_content)
-            file_type = file_path.split(".")[-1] if "." in file_path else "unknown"
-            return {
-                "status": "success",
-                "extracted_text": f"[OCR Fallback] File processed: {file_path} ({file_size} bytes, type: {file_type})",
-                "page_count": 1,
-                "confidence": 0.3,
-                "processing_method": "fallback",
-                "file_type": file_type,
-            }
+        # Determine file type
+        file_extension = os.path.splitext(file_path)[1].lower()
+        content_type = {
+            '.pdf': 'application/pdf',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.tiff': 'image/tiff'
+        }.get(file_extension, 'application/octet-stream')
 
-        # Initialize OCR service
-        ocr_service = OCRService()
+        # Process with real Hybrid OCR Machine
+        result = await ocr_service.extract_text_from_bytes(
+            file_content=file_content,
+            file_type=content_type,
+            document_id=os.path.basename(file_path)
+        )
         
-        # Save file temporarily for processing
-        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file_path)[1]) as temp_file:
-            temp_file.write(file_content)
-            temp_file_path = temp_file.name
-        
-        try:
-            # Determine content type
-            file_extension = os.path.splitext(file_path)[1].lower()
-            content_type = {
-                '.pdf': 'application/pdf',
-                '.doc': 'application/msword',
-                '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                '.txt': 'text/plain',
-                '.jpg': 'image/jpeg',
-                '.jpeg': 'image/jpeg',
-                '.png': 'image/png',
-                '.tiff': 'image/tiff',
-                '.bmp': 'image/bmp'
-            }.get(file_extension, 'application/octet-stream')
-            
-            # Create a simple document metadata object
-            class SimpleDocument:
-                def __init__(self, file_path, content_type):
-                    self.id = file_path
-                    self.s3_key = temp_file_path  # Use temp file path as key
-                    self.content_type = content_type
-            
-            document = SimpleDocument(file_path, content_type)
-            
-            # Process with real OCR using the extract_text method
-            result = await ocr_service.extract_text(document)
-            
-            return {
-                "status": "success",
-                "extracted_text": result.extracted_text,
-                "page_count": result.page_count,
-                "confidence": result.confidence_score,
-                "processing_method": result.provider_used,
-                "file_type": file_extension,
-                "processing_time": result.processing_time,
-                "language": result.language,
-                "structured_data": result.structured_data,
-            }
-        finally:
-            # Clean up temp file
-            try:
-                os.unlink(temp_file_path)
-            except OSError:
-                logger.warning(f"Could not clean up temp file: {temp_file_path}")
+        return {
+            "status": "success",
+            "extracted_text": result.extracted_text,
+            "page_count": result.page_count,
+            "confidence": result.confidence_score,
+            "processing_method": result.provider_used,
+            "file_type": file_extension,
+            "processing_time": result.processing_time,
+            "language": result.language,
+            "structured_data": result.structured_data,
+        }
             
     except Exception as e:
-        logger.error(f"OCR processing failed: {e}")
+        logger.error(f"Industrial OCR processing failed: {e}")
         return {
             "status": "error", 
             "error": str(e),

@@ -5,6 +5,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { apiClient } from "@/lib/api/client";
 
 export interface MuseAsset {
     id: string;
@@ -51,26 +52,18 @@ export const useMuseStore = create<MuseStoreState>()(
 
             addAsset: async (asset) => {
                 try {
-                    const response = await fetch('/api/v1/muse/generate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            task: asset.title,
-                            content_type: asset.type.toLowerCase(),
-                            context: { source: asset.source }
-                        })
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to save asset');
-                    
-                    const data = await response.json();
+                    const response = await apiClient.generateMuseAsset({
+                        task: asset.title,
+                        content_type: asset.type.toLowerCase(),
+                        context: { source: asset.source }
+                    }) as any;
                     
                     set((state) => ({
                         assets: [
                             {
                                 ...asset,
-                                id: data.metadata?.asset_id || `GEN-${Date.now()}`,
-                                content: data.content || asset.content,
+                                id: (response.metadata?.asset_id as string) || `GEN-${Date.now()}`,
+                                content: (response.content as string) || asset.content,
                                 createdAt: new Date().toISOString()
                             },
                             ...state.assets
@@ -78,7 +71,7 @@ export const useMuseStore = create<MuseStoreState>()(
                     }));
                 } catch (error) {
                     console.error("Muse persistence failed:", error);
-                    // Fallback to local only if API fails
+                    // Fallback to local
                     set((state) => ({
                         assets: [
                             {
