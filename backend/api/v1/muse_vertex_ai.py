@@ -195,6 +195,23 @@ async def generate_content(
             request.content_type,
         )
 
+    # Record in BCM Ledger
+    try:
+        from backend.services.bcm_integration import bcm_evolution
+        await bcm_evolution.record_interaction(
+            workspace_id=request.workspace_id,
+            agent_name="Muse",
+            interaction_type="CONTENT_GENERATION",
+            payload={
+                "task": request.task,
+                "content_type": request.content_type,
+                "asset_id": asset_id
+            }
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Failed to ledger Muse generation: {e}")
+
     return ContentResponse(
         success=True,
         content=ai_res["text"],
@@ -213,6 +230,21 @@ async def chat(request: ChatRequest, user=Depends(get_current_user)):
     )
 
     if ai_res["status"] == "success":
+        # Record in BCM Ledger
+        try:
+            from backend.services.bcm_integration import bcm_evolution
+            await bcm_evolution.record_interaction(
+                workspace_id=request.workspace_id,
+                agent_name="Muse",
+                interaction_type="CHAT",
+                payload={
+                    "message_preview": request.message[:100]
+                }
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Failed to ledger Muse chat: {e}")
+
         return ChatResponse(
             success=True, message=ai_res["text"], tokens_used=ai_res["total_tokens"]
         )

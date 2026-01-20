@@ -736,6 +736,19 @@ class BusinessContextGraph:
         state["current_agent"] = "BusinessContextGenerator"
         
         self._update_metadata(state)
+
+        # Record in BCM Ledger
+        try:
+            from backend.services.bcm_integration import bcm_evolution
+            await bcm_evolution.record_strategic_shift(
+                workspace_id=state.get("workspace_id"),
+                ucid=state["context_data"].ucid or "RF-STRATEGY-REBUILD",
+                reason="Business Context Graph Reconstruction",
+                updates=state["output"]
+            )
+        except Exception as e:
+            logger.error(f"Failed to ledger strategy synthesis: {e}")
+
         return state
 
 # Global singleton pattern

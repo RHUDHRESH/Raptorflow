@@ -80,6 +80,23 @@ class ICPService:
         
         # Update ricp ID with database ID
         ricp.id = created.get("id", ricp.id)
+
+        # Record interaction in BCM Ledger
+        try:
+            from backend.services.bcm_integration import bcm_evolution
+            await bcm_evolution.record_interaction(
+                workspace_id=workspace_id,
+                agent_name="ICPService",
+                interaction_type="ICP_DERIVATION",
+                payload={
+                    "cohort_name": cohort_name,
+                    "icp_id": ricp.id,
+                    "confidence": ricp.confidence
+                }
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Failed to ledger ICP derivation: {e}")
         
         return ricp
 

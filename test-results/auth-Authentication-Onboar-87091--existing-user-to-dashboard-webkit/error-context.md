@@ -325,4 +325,5 @@
         - paragraph [ref=e367]: © 2026 RaptorFlow Inc.
         - paragraph [ref=e368]: Marketing. Finally under control.
   - region "Notifications alt+T"
+  - alert [ref=e369]
 ```

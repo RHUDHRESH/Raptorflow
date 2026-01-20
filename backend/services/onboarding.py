@@ -158,7 +158,22 @@ class OnboardingService:
             "current_step": 13,  # Final step
         }
 
-        return await self.repository.update_step(workspace_id, 13, update_data)
+        updated_session = await self.repository.update_step(workspace_id, 13, update_data)
+
+        # Record initial baseline in BCM Ledger
+        try:
+            from backend.services.bcm_integration import bcm_evolution
+            await bcm_evolution.record_strategic_shift(
+                workspace_id=workspace_id,
+                ucid="RF-BASELINE",
+                reason="Initial Onboarding Completion",
+                updates=session.get("step_data", {})
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Failed to ledger onboarding completion: {e}")
+
+        return updated_session
 
     async def reset_step(
         self, workspace_id: str, step: int

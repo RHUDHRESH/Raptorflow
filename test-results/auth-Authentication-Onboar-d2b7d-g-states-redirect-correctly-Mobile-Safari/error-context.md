@@ -20,7 +20,7 @@
     - paragraph [ref=e23]: Authorized Personnel Only © 2026 RaptorFlow
   - generic [ref=e26] [cursor=pointer]:
     - img [ref=e27]
-    - generic [ref=e29]: 3 errors
+    - generic [ref=e29]: 4 errors
     - button "Hide Errors" [ref=e30]:
       - img [ref=e31]
 ```

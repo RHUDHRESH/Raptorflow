@@ -1,9 +1,9 @@
 ---
 active: true
 iteration: 1
-max_iterations: 25
-completion_promise: "AUTHENTICATION_SYSTEM_DEPLOYED"
-started_at: "2026-01-19T03:48:28Z"
+max_iterations: 15
+completion_promise: "AUTH_FIXED"
+started_at: "2026-01-20T12:00:00Z"
 ---
 
-Build a secure serverless web app using Supabase Pro tier integrated with PhonePe payment gateway, including Google/Email auth, RLS policies (is_paid check), and Edge Functions as per the research report.
+Fix authentication issues, build, and test until passing.

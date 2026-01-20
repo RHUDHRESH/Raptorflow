@@ -47,9 +47,7 @@ class UpstashClient:
         try:
             self._client = Redis(
                 url=self.config.rest_url,
-                token=self.config.rest_token,
-                retry=self.config.retry_attempts,
-                retry_delay=self.config.retry_delay
+                token=self.config.rest_token
             )
             logger.info("Upstash Redis client initialized successfully")
         except Exception as e:

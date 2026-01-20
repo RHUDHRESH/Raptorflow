@@ -104,6 +104,8 @@ class FinalDependencyChecker:
             
             redis_url = os.getenv('UPSTASH_REDIS_REST_URL')
             redis_token = os.getenv('UPSTASH_REDIS_REST_TOKEN')
+            print(f"DEBUG: Using URL: {redis_url}")
+            print(f"DEBUG: Using Token: [{redis_token}]")
             
             if not redis_url or not redis_token:
                 self.status['redis'] = 'FAIL - Missing credentials'
