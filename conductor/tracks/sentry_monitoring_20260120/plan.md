@@ -33,7 +33,7 @@ Ensure data privacy and establish the notification spine.
     - [x] Verify environment-specific noise reduction (filtering dev errors from urgent alerts).
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Security Hardening & Alerting' (Protocol in workflow.md)
 
-## Phase 4: Final Audit & Cleanup
+## Phase 4: Final Audit & Cleanup [checkpoint: 22d90a5]
 Perform a complete end-to-end verification of the monitoring system.
 
 - [x] Task: End-to-End Monitoring Verification (8e26a9e)
