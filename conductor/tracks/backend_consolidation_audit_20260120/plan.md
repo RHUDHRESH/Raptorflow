@@ -28,7 +28,7 @@ Refactor existing modules into the new structure while adding test coverage.
     - [x] [REFACTOR] Ensure strict decoupling from Next.js route handlers.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Backend Reorganization & TDD Implementation' (Protocol in workflow.md)
 
-## Phase 3: Security, Performance & Infrastructure Audit
+## Phase 3: Security, Performance & Infrastructure Audit [checkpoint: 1feb951]
 Verify the "Cognitive Spine" and data integrity.
 
 - [x] Task: Comprehensive Security & RLS Audit (43aaf0c)
