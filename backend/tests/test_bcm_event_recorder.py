@@ -1,6 +1,6 @@
 import pytest
 import uuid
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, AsyncMock, patch
 from backend.services.bcm_recorder import BCMEventRecorder
 from backend.schemas.bcm_evolution import EventType
 
@@ -8,7 +8,9 @@ from backend.schemas.bcm_evolution import EventType
 async def test_record_event_success():
     """Test successfully recording an event"""
     mock_supabase = Mock()
-    mock_supabase.table.return_value.insert.return_value.execute.return_value = Mock(data=[{"id": "event-123"}])
+    # execute() must be an AsyncMock because it is awaited in the service
+    mock_execute = AsyncMock(return_value=Mock(data=[{"id": "event-123"}]))
+    mock_supabase.table.return_value.insert.return_value.execute = mock_execute
     
     recorder = BCMEventRecorder(db_client=mock_supabase)
     
@@ -34,7 +36,8 @@ async def test_record_event_success():
 async def test_record_event_failure():
     """Test failure during event recording"""
     mock_supabase = Mock()
-    mock_supabase.table.return_value.insert.return_value.execute.side_effect = Exception("DB Error")
+    mock_execute = AsyncMock(side_effect=Exception("DB Error"))
+    mock_supabase.table.return_value.insert.return_value.execute = mock_execute
     
     recorder = BCMEventRecorder(db_client=mock_supabase)
     

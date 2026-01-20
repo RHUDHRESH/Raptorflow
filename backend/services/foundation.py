@@ -15,6 +15,7 @@ from backend.db.campaigns import CampaignRepository
 from backend.db.messaging import MessagingRepository
 from backend.services.business_context_generator import get_business_context_generator
 from backend.schemas import RICP, MessagingStrategy
+from backend.redis_core.cache import cached
 
 
 class FoundationService:
@@ -26,7 +27,8 @@ class FoundationService:
         self.messaging_repository = MessagingRepository()
         self.supabase = get_supabase_client()
 
-    async def get_foundation(self, workspace_id: str) -> Optional[Dict[str, Any]]:
+    @cached(ttl=3600, cache_type="foundation")
+    async def get_foundation(self, workspace_id: str = None) -> Optional[Dict[str, Any]]:
         """
         Get foundation for workspace
 
@@ -37,8 +39,10 @@ class FoundationService:
             Foundation data or None if not found
         """
         return await self.repository.get_by_workspace(workspace_id)
+
+    @cached(ttl=3600, cache_type="foundation")
     async def get_foundation_with_metrics(
-        self, workspace_id: str
+        self, workspace_id: str = None
     ) -> Optional[Dict[str, Any]]:
         """
         Get foundation with additional metrics and RICPs
@@ -158,7 +162,21 @@ class FoundationService:
         await self.validate_foundation_data(data)
 
         # Update in repository
-        return await self.repository.upsert(workspace_id, data)
+        result = await self.repository.upsert(workspace_id, data)
+        
+        # Invalidate Cache
+        from backend.redis_core.cache import CacheService
+        cache = CacheService()
+        
+        # 1. Clear Foundation Cache
+        await cache.delete(workspace_id, "get_foundation")
+        await cache.delete(workspace_id, "get_foundation_with_metrics")
+        
+        # 2. Clear Dependent Caches (ICPs, Moves, Campaigns, AI results)
+        # We clear the whole workspace cache because Foundation is the root source of truth
+        await cache.clear_workspace(workspace_id)
+        
+        return result
 
     async def delete_foundation(self, workspace_id: str) -> bool:
         """

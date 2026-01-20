@@ -14,6 +14,7 @@ from backend.db.moves import MoveRepository
 from backend.services.business_context_generator import get_business_context_generator
 from backend.services.business_context_graph import get_business_context_graph, create_initial_workflow_state
 from backend.schemas import RICP
+from backend.redis_core.cache import cached
 
 
 class ICPService:
@@ -180,6 +181,7 @@ class ICPService:
 
         return await self.repository.set_primary(workspace_id, icp_id)
 
+    @cached(ttl=3600, cache_type="icps")
     async def get_primary(self, workspace_id: str) -> Optional[Dict[str, Any]]:
         """
         Get primary ICP for workspace
@@ -192,6 +194,7 @@ class ICPService:
         """
         return await self.repository.get_primary(workspace_id)
 
+    @cached(ttl=3600, cache_type="icps")
     async def list_icps(
         self, workspace_id: str, filters: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
@@ -234,7 +237,15 @@ class ICPService:
             if not isinstance(score, int) or score < 0 or score > 100:
                 raise ValidationError("Fit score must be an integer between 0 and 100")
 
-        return await self.repository.update(icp_id, workspace_id, data)
+        result = await self.repository.update(icp_id, workspace_id, data)
+        
+        if result:
+            # Invalidate ICP related caches
+            from backend.redis_core.cache import CacheService
+            cache = CacheService()
+            await cache.invalidate_pattern(workspace_id, "icps*")
+            
+        return result
 
     async def delete_icp(self, icp_id: str, workspace_id: str) -> bool:
         """

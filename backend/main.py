@@ -59,6 +59,7 @@ from backend.api.v1 import (
     ai_proxy,
     search,
     titan,
+    evolution,
 )
 from backend.core.posthog import add_posthog_middleware
 from backend.core.prometheus_metrics import PrometheusMiddleware, init_prometheus_metrics
@@ -380,6 +381,7 @@ app.include_router(usage.router, tags=["usage"])
 # Add enhanced storage management router
 app.include_router(storage.router, prefix="/api/v1", tags=["storage"])
 app.include_router(context.router, prefix="/api/v1/context", tags=["context"])  # New context router
+app.include_router(evolution.router, prefix="/api/v1/evolution", tags=["evolution"])
 app.include_router(ocr.router, prefix="/api/v1", tags=["ocr"])
 app.include_router(search.router, prefix="/api/v1/search", tags=["search"])
 app.include_router(titan.router, prefix="/api/v1/titan", tags=["titan"])

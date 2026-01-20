@@ -1,8 +1,0 @@
-{
-  "track_id": "sentry_monitoring_20260120",
-  "type": "chore",
-  "status": "new",
-  "created_at": "2026-01-20T07:46:00Z",
-  "updated_at": "2026-01-20T07:46:00Z",
-  "description": "Configure Sentry, talk to Sentry, and set up monitoring with full power admin access."
-}

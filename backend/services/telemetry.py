@@ -6,6 +6,8 @@ import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 from backend.core.supabase_mgr import get_supabase_client
+from backend.services.bcm_recorder import BCMEventRecorder
+from backend.schemas.bcm_evolution import EventType
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +16,7 @@ class ReasoningTelemetry:
 
     def __init__(self):
         self.supabase = get_supabase_client()
+        self.bcm_recorder = BCMEventRecorder(db_client=self.supabase)
 
     async def log_reasoning(self, workspace_id: str, agent_name: str, task_id: str, trace: Dict[str, Any]) -> bool:
         """
@@ -30,6 +33,21 @@ class ReasoningTelemetry:
             
             # Using Supabase JSONB for persistence
             await self.supabase.table("agent_reasoning_logs").insert(data).execute()
+            
+            # Record in BCM Ledger
+            try:
+                await self.bcm_recorder.record_event(
+                    workspace_id=workspace_id,
+                    event_type=EventType.USER_INTERACTION,
+                    payload={
+                        "agent_name": agent_name,
+                        "task_id": task_id,
+                        "interaction_type": "AI_REASONING"
+                    }
+                )
+            except Exception as e:
+                logger.error(f"Failed to record BCM event for reasoning log: {e}")
+
             return True
         except Exception as e:
             logger.error(f"Failed to log reasoning: {e}")

@@ -6,10 +6,12 @@ Handles Gemini API connections via the latest unified SDK.
 import os
 import json
 import logging
+import hashlib
 from typing import Optional, Dict, Any, List
 from dotenv import load_dotenv
 from google import genai
 from pydantic import BaseModel
+from backend.redis_core.cache import CacheService
 
 # Load environment variables
 load_dotenv()
@@ -68,6 +70,17 @@ class VertexAIClient:
             sanitized_prompt = self._sanitize_input(prompt)
             model_to_use = model or self.config.model
             
+            # Check Cache
+            cache_service = CacheService()
+            cache_key = f"ai_res:{hashlib.md5(sanitized_prompt.encode()).hexdigest()}"
+            
+            # We use a global/system workspace ID for LLM results if not provided
+            # or just bypass workspace isolation for pure prompt-based cache
+            cached_val = await cache_service.redis.get(cache_key)
+            if cached_val:
+                logger.info(f"AI Cache Hit: {cache_key}")
+                return cached_val.decode('utf-8') if isinstance(cached_val, bytes) else cached_val
+
             # Using the new SDK's generate_content
             response = self.client.models.generate_content(
                 model=model_to_use,
@@ -81,7 +94,10 @@ class VertexAIClient:
             )
             
             if response and response.text:
-                return response.text
+                result = response.text
+                # Set Cache (TTL: 24h)
+                await cache_service.redis.set(cache_key, result, ex=86400)
+                return result
             return None
         except Exception as e:
             logger.error(f"Inference failure: {e}")

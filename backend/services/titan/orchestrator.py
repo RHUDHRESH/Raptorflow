@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import hashlib
 from typing import List, Dict, Any, Optional
 from enum import Enum
 from datetime import datetime
@@ -11,6 +12,7 @@ from backend.services.titan.scraper import PlaywrightStealthPool, IntelligentMar
 from backend.tools.web_scraper import WebScraperTool, ScrapingMethod, ContentType
 from backend.config.settings import get_settings
 from backend.llm import LLMManager, LLMRequest, LLMMessage, LLMRole
+from backend.redis_core.cache import CacheService
 
 logger = logging.getLogger("raptorflow.services.titan.orchestrator")
 
@@ -147,6 +149,7 @@ class TitanOrchestrator:
         self.markdown = IntelligentMarkdown()
         self.link_scorer = LinkSignalScorer(self.llm)
         self.synthesizer = CognitiveSynthesizer(self.llm)
+        self.cache = CacheService()
 
     async def execute(
         self, 
@@ -232,6 +235,13 @@ class TitanOrchestrator:
         """
         Escalation ladder: HTTP -> Playwright Stealth.
         """
+        # Check Cache (TTL: 24h)
+        cache_key = f"titan:scrape:{hashlib.md5(url.encode()).hexdigest()}"
+        cached_val = await self.cache.redis.get_json(cache_key)
+        if cached_val:
+            logger.info(f"Titan Scrape Cache Hit: {url}")
+            return cached_val
+
         if not use_stealth:
             try:
                 result = await self.scraper_tool._execute(url=url, method="http")
@@ -239,7 +249,9 @@ class TitanOrchestrator:
                 content_list = result.get("content", {}).get("content", [])
                 text = " ".join([c.get("data", {}).get("text", "") for c in content_list if isinstance(c, dict)])
                 if len(text) > 500:
-                    return {"url": url, "text": text, "method": "http"}
+                    resp = {"url": url, "text": text, "method": "http"}
+                    await self.cache.redis.set_json(cache_key, resp, ex=86400)
+                    return resp
             except Exception:
                 logger.debug(f"HTTP scrape failed for {url}, escalating...")
 
@@ -247,13 +259,15 @@ class TitanOrchestrator:
         stealth_result = await self.stealth_pool.scrape_url(url)
         if stealth_result.get("status") == "success":
             clean_text = self.markdown.convert(stealth_result.get("html", ""))
-            return {
+            resp = {
                 "url": url,
                 "text": clean_text,
                 "title": stealth_result.get("title"),
                 "links": stealth_result.get("links"),
                 "method": "playwright_stealth"
             }
+            await self.cache.redis.set_json(cache_key, resp, ex=86400)
+            return resp
         
         return {"url": url, "error": "All scraping methods failed", "status": "failed"}
 

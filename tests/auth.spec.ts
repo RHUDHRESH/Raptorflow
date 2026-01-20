@@ -4,6 +4,7 @@ test.describe('Authentication & Onboarding', () => {
   test.beforeEach(async ({ page }) => {
     // Clear cookies and localStorage before each test
     await page.context().clearCookies()
+    await page.goto('/')
     await page.evaluate(() => localStorage.clear())
   })
 

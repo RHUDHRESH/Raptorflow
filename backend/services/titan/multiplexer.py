@@ -1,8 +1,11 @@
 import asyncio
 import logging
+import hashlib
+import json
 from typing import List, Dict, Any, Optional
 from backend.services.search.orchestrator import SOTASearchOrchestrator
 from backend.llm import LLMManager, LLMRequest, LLMMessage, LLMRole
+from backend.redis_core.cache import CacheService
 
 logger = logging.getLogger("raptorflow.services.titan.multiplexer")
 
@@ -13,6 +16,7 @@ class SearchMultiplexer:
     def __init__(self):
         self.search_orchestrator = SOTASearchOrchestrator()
         self.llm = LLMManager()
+        self.cache = CacheService()
 
     async def generate_variations(self, query: str, focus_areas: List[str] = None, count: int = 5) -> List[str]:
         """
@@ -48,6 +52,13 @@ Return only a JSON list of strings."""
         """
         Generates and executes variations in parallel.
         """
+        # Check cache (TTL: 24h)
+        cache_key = f"titan:search:{hashlib.md5(f'{query}:{focus_areas}:{count}'.encode()).hexdigest()}"
+        cached_val = await self.cache.redis.get_json(cache_key)
+        if cached_val:
+            logger.info(f"Titan Search Cache Hit: {query}")
+            return cached_val
+
         variations = await self.generate_variations(query, focus_areas, count)
         logger.info(f"Executing {len(variations)} search variations for: {query}")
         
@@ -64,6 +75,9 @@ Return only a JSON list of strings."""
                     if url and url not in seen_urls:
                         all_results.append(res)
                         seen_urls.add(url)
+        
+        # Set cache
+        await self.cache.redis.set_json(cache_key, all_results, ex=86400)
         
         return all_results
 

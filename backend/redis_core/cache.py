@@ -7,6 +7,7 @@ cache invalidation, and performance optimization.
 
 import hashlib
 import json
+import inspect
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional
 
@@ -123,22 +124,42 @@ class CacheService:
         if ttl is None:
             ttl = self.ttl_configs.get(cache_type, self.DEFAULT_TTL)
 
-        return await self.redis.set_json(redis_key, sanitized_value, ex=ttl)
+        # Store value
+        success = await self.redis.set_json(redis_key, sanitized_value, ex=ttl)
+        
+        if success:
+            # Track key for this workspace (Set)
+            index_key = f"idx:ws:{workspace_id}"
+            await self.redis.async_client.sadd(index_key, redis_key)
+            await self.redis.async_client.expire(index_key, 86400 * 7) # Index expires in 7 days
+
+        return success
 
     async def delete(self, workspace_id: str, key: str) -> bool:
         """Delete cached value."""
         redis_key = self._get_key(workspace_id, key)
         result = await self.redis.delete(redis_key)
+        
+        # Remove from index
+        index_key = f"idx:ws:{workspace_id}"
+        await self.redis.async_client.srem(index_key, redis_key)
+        
         return result > 0
 
     async def clear_workspace(self, workspace_id: str) -> int:
         """Clear all cache for a workspace."""
-        # In production, maintain a cache index for efficient clearing
-        # For now, this is a placeholder
-        pattern = f"{self.KEY_PREFIX}{workspace_id}:*"
-        # Note: Upstash Redis doesn't support KEYS command in production
-        # Would need to maintain an index of cache keys
-        return 0
+        index_key = f"idx:ws:{workspace_id}"
+        keys = await self.redis.async_client.smembers(index_key)
+        
+        if not keys:
+            return 0
+            
+        # Delete all tracked keys
+        count = await self.redis.async_client.delete(*keys)
+        # Delete index itself
+        await self.redis.async_client.delete(index_key)
+        
+        return count
 
     async def get_or_set(
         self,
@@ -156,7 +177,7 @@ class CacheService:
 
         # Generate value
         if callable(factory):
-            if hasattr(factory, "__await__"):
+            if inspect.iscoroutinefunction(factory) or inspect.isawaitable(factory):
                 value = await factory()
             else:
                 value = factory()
@@ -218,10 +239,31 @@ class CacheService:
         return success_count
 
     async def invalidate_pattern(self, workspace_id: str, pattern: str) -> int:
-        """Invalidate cache keys matching pattern."""
-        # In production, maintain a pattern index
-        # For now, placeholder implementation
-        return 0
+        """Invalidate cache keys matching pattern within workspace context."""
+        index_key = f"idx:ws:{workspace_id}"
+        keys = await self.redis.async_client.smembers(index_key)
+        
+        if not keys:
+            return 0
+            
+        import fnmatch
+        # keys from smembers might be bytes
+        target_keys = []
+        for k in keys:
+            k_str = k.decode('utf-8') if isinstance(k, bytes) else str(k)
+            # Full key is cache:{workspace_id}:{key}
+            # The pattern is matched against the whole key
+            if fnmatch.fnmatch(k_str, f"{self.KEY_PREFIX}{workspace_id}:{pattern}"):
+                target_keys.append(k_str)
+        
+        if not target_keys:
+            return 0
+            
+        count = await self.redis.async_client.delete(*target_keys)
+        # Remove from index
+        await self.redis.async_client.srem(index_key, *target_keys)
+        
+        return count
 
     # Specialized cache methods
     async def get_foundation(self, workspace_id: str) -> Optional[Dict[str, Any]]:
@@ -280,21 +322,23 @@ def cached(
         async def wrapper(*args, **kwargs):
             # Extract workspace_id from first argument or kwargs
             workspace_id = None
-            if args and hasattr(args[0], "workspace_id"):
-                workspace_id = args[0].workspace_id
-            elif "workspace_id" in kwargs:
+            if "workspace_id" in kwargs:
                 workspace_id = kwargs["workspace_id"]
-            elif args and isinstance(args[0], str):
-                # Assume first arg is workspace_id
-                workspace_id = args[0]
+            elif args:
+                if hasattr(args[0], "workspace_id"):
+                    workspace_id = args[0].workspace_id
+                elif isinstance(args[0], str) and len(args[0]) > 20: # Likely a UUID
+                    workspace_id = args[0]
+                elif len(args) > 1 and isinstance(args[1], str) and len(args[1]) > 20:
+                    # Some methods have (self, workspace_id)
+                    workspace_id = args[1]
 
             if not workspace_id:
                 # No workspace isolation, execute function
-                return (
-                    await func(*args, **kwargs)
-                    if hasattr(func, "__await__")
-                    else func(*args, **kwargs)
-                )
+                if inspect.iscoroutinefunction(func):
+                    return await func(*args, **kwargs)
+                else:
+                    return func(*args, **kwargs)
 
             # Generate cache key
             if key_fn:
@@ -316,14 +360,18 @@ def cached(
             # Try cache
             cached_result = await cache_service.get(workspace_id, cache_key)
             if cached_result is not None:
+                import logging
+                logging.getLogger("backend.redis_core.cache").info(f"Decorator Cache HIT: {workspace_id}:{cache_key}")
                 return cached_result
 
+            import logging
+            logging.getLogger("backend.redis_core.cache").info(f"Decorator Cache MISS: {workspace_id}:{cache_key}")
+
             # Execute function
-            result = (
-                await func(*args, **kwargs)
-                if hasattr(func, "__await__")
-                else func(*args, **kwargs)
-            )
+            if inspect.iscoroutinefunction(func):
+                result = await func(*args, **kwargs)
+            else:
+                result = func(*args, **kwargs)
 
             # Cache result
             await cache_service.set(workspace_id, cache_key, result, ttl, cache_type)

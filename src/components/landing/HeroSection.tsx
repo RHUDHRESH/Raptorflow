@@ -45,9 +45,8 @@ export function HeroSection() {
                         transition={{ duration: 0.6, delay: 0.1 }}
                         className="text-5xl md:text-6xl lg:text-7xl font-editorial font-medium leading-[1.1] text-[var(--ink)] tracking-tight mb-6"
                     >
-                        Marketing.{" "}
-                        <span className="italic text-[var(--muted)]">Finally</span>{" "}
-                        under control.
+                        Marketing by vibes is <span className="italic text-[var(--muted)] text-4xl md:text-5xl lg:text-6xl align-middle">dead.</span><br />
+                        Deploy the Founder’s OS.
                     </motion.h1>
 
                     {/* Subheadline */}
@@ -57,9 +56,9 @@ export function HeroSection() {
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="text-lg md:text-xl text-[var(--secondary)] leading-relaxed max-w-2xl mx-auto mb-10"
                     >
-                        Stop guessing what to post. Start executing a proven system.{" "}
+                        Stop guessing what to post. Raptorflow converts your business context into a 90-day war plan and weekly ready-to-ship Move packets.{" "}
                         <span className="text-[var(--ink)] font-medium">
-                            One platform for strategy, content, and execution.
+                            Strategy, content, and execution—unified at last.
                         </span>
                     </motion.p>
 
@@ -72,13 +71,13 @@ export function HeroSection() {
                     >
                         <BlueprintButton
                             size="lg"
-                            label="Start Free Trial"
+                            label="Initialize Your OS"
                             variant="blueprint"
                             onClick={() => window.location.href = '/signup'}
-                            className="group min-w-[200px]"
+                            className="group min-w-[220px]"
                         >
                             <span className="flex items-center gap-2">
-                                Start Free Trial
+                                Initialize Your OS
                                 {React.createElement(ArrowRight01Icon as any, {
                                     className: "w-5 h-5 transition-transform group-hover:translate-x-1"
                                 })}

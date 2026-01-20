@@ -162,8 +162,8 @@ export default function LandingPage() {
                         viewport={{ once: true }}
                         className="text-3xl md:text-4xl lg:text-5xl font-editorial leading-[1.3] text-[var(--ink)]"
                     >
-                        You've tried Buffer. Notion. ChatGPT. Five different tools that don't talk to each other.
-                        <span className="text-[var(--muted)]"> Six months of posting. Twelve followers. Zero pipeline.</span>
+                        You didn't start a company to spend 15 hours a week fighting with generic AI prompts and social media schedulers.
+                        <span className="text-[var(--muted)]"> Tool sprawl is the villain of your growth. Six months of posting. Zero pipeline.</span>
                     </motion.p>
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
@@ -172,7 +172,7 @@ export default function LandingPage() {
                         transition={{ delay: 0.2 }}
                         className="mt-8 text-xl text-[var(--secondary)]"
                     >
-                        Marketing shouldn't feel like shouting into the void.
+                        The problem isn’t your effort; it’s your architecture.
                     </motion.p>
                 </div>
             </section>
@@ -183,19 +183,19 @@ export default function LandingPage() {
             <section id="system" className="py-32 bg-[var(--surface)] border-y border-[var(--border)]">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="max-w-3xl mb-20">
-                        <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)] mb-4">The System</p>
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-editorial mb-6">Six modules.<br /><span className="text-[var(--muted)]">One operating system.</span></h2>
-                        <p className="text-xl text-[var(--secondary)]">Everything you need to go from strategy to execution. No more tool-switching. No more context-switching.</p>
+                        <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)] mb-4">The Technical Spine</p>
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-editorial mb-6">Six modules.<br /><span className="text-[var(--muted)]">One unified engine.</span></h2>
+                        <p className="text-xl text-[var(--secondary)]">Everything you need to go from business context to market domination. No more tool-switching. Marketing, finally under control.</p>
                     </div>
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[
-                            { name: "Foundation", desc: "Define your ICP, positioning, and messaging once. Use it everywhere. Build your 90-day war plan in 20 minutes.", tag: "Strategy" },
-                            { name: "Cohorts", desc: "Segment by behavior, not demographics. Know exactly who converts—and why. Target with surgical precision.", tag: "Intelligence" },
-                            { name: "Moves", desc: "Get weekly execution packets delivered every Monday. Content drafted. Tasks clear. Just ship.", tag: "Execution" },
-                            { name: "Muse", desc: "Generate content that sounds like you, not a robot. Train it on your voice. Scale your ideas.", tag: "Creation" },
-                            { name: "Matrix", desc: "Signal, not noise. See what's actually driving pipeline. Cut what isn't. Decide in seconds.", tag: "Analytics" },
-                            { name: "Blackbox", desc: "Never lose a learning. Every experiment, every outcome, every insight—preserved forever.", tag: "Memory" }
+                            { name: "Foundation", desc: "Our 22-step cognitive onboarding extracts your Precision Soundbites and builds your 90-day plan in minutes.", tag: "Strategy" },
+                            { name: "Cohorts", desc: "Segment by behavioral science markers, not demographics. Know exactly who converts—and why.", tag: "Intelligence" },
+                            { name: "Moves", desc: "Ready-to-ship execution packets delivered every Monday. Content drafted. Tasks clear. Just ship.", tag: "Execution" },
+                            { name: "Muse", desc: "Generate content that sounds like your specific brand voice, not a generic robot. Scale your ideas.", tag: "Creation" },
+                            { name: "Matrix", desc: "The Boardroom View. See what's actually driving pipeline. Cut what isn't. Decide in seconds.", tag: "Analytics" },
+                            { name: "Blackbox", desc: "The Cognitive Spine. Every experiment, every outcome, and every insight preserved forever.", tag: "Memory" }
                         ].map((module, i) => (
                             <motion.div
                                 key={i}
@@ -207,7 +207,7 @@ export default function LandingPage() {
                             >
                                 <span className="inline-block px-2 py-1 text-xs uppercase tracking-wider text-[var(--muted)] bg-[var(--surface)] rounded mb-4">{module.tag}</span>
                                 <h3 className="text-2xl font-bold mb-3 group-hover:text-[var(--accent)] transition-colors">{module.name}</h3>
-                                <p className="text-[var(--secondary)] leading-relaxed">{module.desc}</p>
+                                <p className="text-[var(--secondary)] leading-relaxed text-sm">{module.desc}</p>
                             </motion.div>
                         ))}
                     </div>
@@ -220,15 +220,15 @@ export default function LandingPage() {
             <section id="how" className="py-32">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-20">
-                        <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)] mb-4">How It Works</p>
-                        <h2 className="text-4xl md:text-5xl font-editorial">From chaos to clarity.<br /><span className="text-[var(--muted)]">In three steps.</span></h2>
+                        <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)] mb-4">The Implementation Plan</p>
+                        <h2 className="text-4xl md:text-5xl font-editorial">Deploy your OS.<br /><span className="text-[var(--muted)]">In three steps.</span></h2>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-12">
                         {[
-                            { step: "01", title: "Define your foundation", desc: "Answer strategic questions once. RaptorFlow builds your ICP, positioning, and 90-day execution plan automatically." },
-                            { step: "02", title: "Execute weekly Moves", desc: "Every Monday, get a ready-to-ship packet: content, assets, and tasks. No more blank pages. Just execute." },
-                            { step: "03", title: "Track what works", desc: "Matrix shows you signal, not noise. See what's driving pipeline. Double down on winners. Cut the rest." }
+                            { step: "01", title: "Synchronize Context", desc: "Connect your specific business context. We build your RICP, positioning, and 90-day execution plan automatically." },
+                            { step: "02", title: "Deploy Weekly Moves", desc: "Every Monday, get your ready-to-ship packet: assets, strategic tasks, and maneuvers. No more blank pages." },
+                            { step: "03", title: "Execute & Track", desc: "The Matrix shows the signal. See what's driving pipeline. Double down on winners. Scale with absolute certainty." }
                         ].map((item, i) => (
                             <motion.div
                                 key={i}
@@ -239,12 +239,73 @@ export default function LandingPage() {
                                 className="text-center"
                             >
                                 <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center">
-                                    <span className="text-2xl font-mono font-bold">{item.step}</span>
+                                    <span className="text-2xl font-mono font-bold text-[var(--blueprint)]">{item.step}</span>
                                 </div>
                                 <h3 className="text-xl font-bold mb-3">{item.title}</h3>
                                 <p className="text-[var(--secondary)] leading-relaxed">{item.desc}</p>
                             </motion.div>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ═══════════════════════════════════════════════════════════════
+                THE TRANSFORMATION - Before vs After
+            ═══════════════════════════════════════════════════════════════ */}
+            <section className="py-32 bg-[var(--canvas)] border-t border-[var(--border)] overflow-hidden">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center mb-20">
+                        <h2 className="text-4xl md:text-5xl font-editorial">The Transformation.</h2>
+                        <p className="text-xl text-[var(--secondary)] mt-4">From marketing chaos to surgical execution.</p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-px bg-[var(--border)] border border-[var(--border)] rounded-3xl overflow-hidden shadow-2xl">
+                        {/* Before */}
+                        <div className="bg-[var(--surface)] p-12 space-y-8">
+                            <h3 className="text-2xl font-bold text-[var(--muted)] flex items-center gap-3">
+                                <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-sm font-mono font-bold italic">×</span>
+                                Before RaptorFlow
+                            </h3>
+                            <ul className="space-y-6">
+                                {[
+                                    "Staring at a blank cursor every Monday morning.",
+                                    "Guessing which channels are actually driving growth.",
+                                    "Switching between Buffer, Notion, and generic AI prompts.",
+                                    "Spending 15+ hours a week on 'marketing activities'.",
+                                    "Zero pipeline visibility and inconsistent messaging."
+                                ].map((item, i) => (
+                                    <li key={i} className="flex gap-4 text-lg text-[var(--secondary)] line-through decoration-[var(--muted)]/30">
+                                        <span className="text-[var(--muted)]/50">—</span>
+                                        {item}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* After */}
+                        <div className="bg-[var(--canvas)] p-12 space-y-8 relative">
+                            <div className="absolute top-0 right-0 p-4 opacity-5">
+                                <RaptorLogo size={200} />
+                            </div>
+                            <h3 className="text-2xl font-bold text-[var(--ink)] flex items-center gap-3">
+                                <span className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm font-mono font-bold">✓</span>
+                                After RaptorFlow
+                            </h3>
+                            <ul className="space-y-6 relative z-10">
+                                {[
+                                    "Ready-to-ship Move packets delivered every Monday.",
+                                    "Surgical precision in ICP and behavior targeting.",
+                                    "A single, unified OS for strategy and execution.",
+                                    "Save 10+ hours a week through technical automation.",
+                                    "Full pipeline tracking and institutional memory."
+                                ].map((item, i) => (
+                                    <li key={i} className="flex gap-4 text-lg text-[var(--ink)] font-medium">
+                                        {React.createElement(CheckmarkCircle02Icon as any, { className: "w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" })}
+                                        {item}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </section>

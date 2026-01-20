@@ -4,6 +4,12 @@ const { withSentryConfig } = require('@sentry/nextjs');
 const nextConfig = {
   // Your existing Next.js configuration
   reactStrictMode: true,
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push('@sentry/profiling-node');
+    }
+    return config;
+  },
 };
 
 module.exports = withSentryConfig(

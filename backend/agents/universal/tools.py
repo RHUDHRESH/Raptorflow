@@ -37,6 +37,19 @@ class SearchMockTool(BaseTool):
             {"title": f"Result 2 for {query}", "snippet": "Another relevant piece of information.", "url": "https://example.com/2"}
         ]
 
+class CachePurgeTool(BaseTool):
+    """Tool for surgical cache purging."""
+    async def run(self, workspace_id: str, pattern: Optional[str] = None) -> Dict[str, Any]:
+        from backend.redis_core.cache import CacheService
+        cache = CacheService()
+        
+        if pattern:
+            count = await cache.invalidate_pattern(workspace_id, pattern)
+            return {"success": True, "action": "invalidate_pattern", "count": count, "pattern": pattern}
+        else:
+            count = await cache.clear_workspace(workspace_id)
+            return {"success": True, "action": "clear_workspace", "count": count}
+
 class ToolRegistry:
     """Registry for managing and accessing agent tools."""
     
@@ -49,6 +62,7 @@ class ToolRegistry:
         self.register_tool("ocr", OCRMockTool())
         self.register_tool("web_scraper", ScraperMockTool())
         self.register_tool("market_search", SearchMockTool())
+        self.register_tool("cache_purge", CachePurgeTool())
 
     def register_tool(self, name: str, tool: BaseTool):
         """Register a new tool."""

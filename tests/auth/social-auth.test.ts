@@ -18,11 +18,20 @@ test.describe('Social Authentication & Onboarding', () => {
     test('should display Google and GitHub login options', async () => {
       await page.goto(`${baseUrl}/login`);
       
+      // Debug: Print title and status
+      console.log(`Page Title: ${await page.title()}`);
+      
       // Check for Google login button
       const googleBtn = page.locator('button:has-text("Continue with Google")');
-      await expect(googleBtn).toBeVisible();
+      try {
+        await expect(googleBtn).toBeVisible({ timeout: 5000 });
+      } catch (e) {
+        console.log('Google button not found. Page content:');
+        console.log(await page.content());
+        throw e;
+      }
       
-      // Check for GitHub login button - THIS SHOULD FAIL INITIALLY
+      // Check for GitHub login button
       const githubBtn = page.locator('button:has-text("Continue with GitHub")');
       await expect(githubBtn).toBeVisible();
     });

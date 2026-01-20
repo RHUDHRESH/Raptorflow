@@ -1,0 +1,80 @@
+"""
+BCM Evolution API
+=================
+
+Exposes the Evolutionary Intelligence Engine for RaptorFlow.
+Handles strategic refinement, ledger projection, and semantic compression.
+"""
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Dict, Any, Optional
+from pydantic import BaseModel
+
+from backend.core.auth import get_auth_context
+from backend.core.models import AuthContext
+from backend.services.bcm_service import BCMService
+from backend.services.bcm_projector import BCMProjector
+from backend.services.bcm_sweeper import BCMSweeper
+
+router = APIRouter(prefix="/evolution", tags=["evolution"])
+
+class RefineRequest(BaseModel):
+    ucid: str
+
+class EvolutionStateResponse(BaseModel):
+    ucid: str
+    state: Dict[str, Any]
+
+@router.post("/refine", status_code=status.HTTP_200_OK)
+async def refine_strategic_context(
+    request: RefineRequest, 
+    auth: AuthContext = Depends(get_auth_context)
+):
+    """
+    Analyzes recent history and refines the current business context.
+    """
+    try:
+        service = BCMService()
+        result = await service.refine_context(workspace_id=auth.workspace_id, ucid=request.ucid)
+        return {"success": True, "refinement": result}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Strategic refinement failed: {str(e)}"
+        )
+
+@router.get("/state/{ucid}", response_model=EvolutionStateResponse)
+async def get_projected_state(
+    ucid: str, 
+    auth: AuthContext = Depends(get_auth_context)
+):
+    """
+    Returns the 'Everything' projected state for a given UCID.
+    """
+    try:
+        projector = BCMProjector()
+        state = await projector.get_latest_state(workspace_id=auth.workspace_id, ucid=ucid)
+        return EvolutionStateResponse(ucid=ucid, state=state.model_dump())
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to project BCM state: {str(e)}"
+        )
+
+@router.post("/sweep", status_code=status.HTTP_200_OK)
+async def trigger_semantic_sweep(
+    request: RefineRequest,
+    auth: AuthContext = Depends(get_auth_context)
+):
+    """
+    Triggers semantic compression of old events into summaries.
+    """
+    try:
+        sweeper = BCMSweeper()
+        result = await sweeper.compress_events(workspace_id=auth.workspace_id, ucid=request.ucid)
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Semantic sweep failed: {str(e)}"
+        )

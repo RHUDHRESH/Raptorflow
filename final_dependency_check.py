@@ -116,11 +116,15 @@ class FinalDependencyChecker:
                     f"{redis_url}/set/final_check/test_value",
                     headers={"Authorization": f"Bearer {redis_token}"}
                 )
+                print(f"DEBUG: Redis SET status: {set_response.status_code}")
+                print(f"DEBUG: Redis SET body: {set_response.text}")
                 
                 get_response = await client.get(
                     f"{redis_url}/get/final_check",
                     headers={"Authorization": f"Bearer {redis_token}"}
                 )
+                print(f"DEBUG: Redis GET status: {get_response.status_code}")
+                print(f"DEBUG: Redis GET body: {get_response.text}")
             
             connection_time = time.time() - start_time
             

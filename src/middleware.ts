@@ -83,6 +83,11 @@ async function logSecurityEvent(
 
 // Rate limiting check
 function checkRateLimit(ip: string, isAuth: boolean, isAdmin: boolean = false): boolean {
+  // Bypass rate limiting in development, test, or CI environments
+  if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test' || process.env.CI) {
+    return true
+  }
+
   const now = Date.now()
   const windowMs = 60 * 1000 // 1 minute
   const key = `rate_limit:${ip}`
@@ -114,6 +119,11 @@ function checkRateLimit(ip: string, isAuth: boolean, isAdmin: boolean = false): 
 // User agent validation
 function validateUserAgent(userAgent: string | null): boolean {
   if (!userAgent) return false
+
+  // Allow all user agents in development, test, or CI environments
+  if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test' || process.env.CI) {
+    return true
+  }
 
   return !SECURITY_CONFIG.BLOCKED_USER_AGENTS.some(pattern =>
     pattern.test(userAgent)

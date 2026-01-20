@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from backend.core.auth import get_current_user
 from backend.core.database import get_db
+from backend.redis_core.cache import cached
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -87,6 +88,7 @@ class WorkspaceAnalyticsResponse(BaseModel):
 
 
 @router.get("/usage", response_model=UsageStatsResponse)
+@cached(ttl=3600)
 async def get_usage_stats(
     workspace_id: Optional[str] = None,
     days: int = 30,
@@ -193,6 +195,7 @@ async def get_usage_stats(
 
 
 @router.get("/performance", response_model=PerformanceResponse)
+@cached(ttl=3600)
 async def get_performance_metrics(
     workspace_id: Optional[str] = None,
     days: int = 30,
@@ -320,6 +323,7 @@ async def get_performance_metrics(
 
 
 @router.get("/costs", response_model=CostResponse)
+@cached(ttl=3600)
 async def get_cost_breakdown(
     workspace_id: Optional[str] = None,
     days: int = 30,
@@ -632,6 +636,7 @@ async def get_campaign_performance(
 
 
 @router.get("/workspaces/{workspace_id}", response_model=WorkspaceAnalyticsResponse)
+@cached(ttl=3600)
 async def get_workspace_analytics(
     workspace_id: str,
     days: int = 30,

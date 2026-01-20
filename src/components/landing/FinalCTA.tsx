@@ -22,12 +22,12 @@ export function FinalCTA() {
                 >
                     {/* Headline */}
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-editorial text-[var(--canvas)] mb-6 leading-tight">
-                        Ready to stop guessing?
+                        Stop shouting into the void.
                     </h2>
 
                     {/* Subtext */}
                     <p className="text-lg md:text-xl text-[var(--canvas)]/70 mb-10 max-w-2xl mx-auto leading-relaxed">
-                        Join 500+ founders who replaced marketing chaos with a system that actually works.
+                        Join 500+ founders who replaced "marketing by vibes" with a system that tracks every dollar and every Move.
                     </p>
 
                     {/* CTA Buttons */}
@@ -36,7 +36,7 @@ export function FinalCTA() {
                             href="/signup"
                             className="group inline-flex items-center gap-2 px-8 py-4 bg-[var(--canvas)] text-[var(--ink)] font-semibold rounded-xl hover:bg-[var(--canvas)]/90 transition-all"
                         >
-                            Start Free Trial
+                            Initialize Your OS
                             {React.createElement(ArrowRight01Icon as any, {
                                 className: "w-5 h-5 transition-transform group-hover:translate-x-1"
                             })}

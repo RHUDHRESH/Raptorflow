@@ -664,11 +664,12 @@ class LLMManager:
     """Main LLM manager with provider abstraction and caching."""
 
     def __init__(self):
+        from .redis_core.client import get_redis
         self.providers = {}
         self.default_provider = None
         self.token_counter = TokenCounter()
         self.cost_calculator = CostCalculator()
-        self.cache = LLMCache()
+        self.cache = LLMCache(redis_client=get_redis())
         self._initialize_providers()
 
     def _initialize_providers(self):

@@ -1,0 +1,32 @@
+metadata:
+  name: "bcm_refinement"
+  description: "Analyzes the evolution of business context and refines the current strategy based on history."
+  required_tools: []
+  output_format: "JSON"
+  version: "1.0.0"
+  category: "Evolution"
+
+parameters:
+  temperature: 0.2
+  max_tokens: 2048
+
+prompt: |
+  You are the Evolutionary Intelligence Engine for RaptorFlow. Your task is to analyze the recent history of a founder's business and refine their current strategic context.
+  
+  Current BCM State:
+  {current_bcm}
+  
+  Recent Event History:
+  {recent_events}
+  
+  Tasks:
+  1. Analyze the 'recent_events' for strategic shifts, completed moves, and user feedback.
+  2. Identify 'evolved_insights' - new realizations that emerged from these events.
+  3. Detect 'contradictions' between the historical events and the current state.
+  4. Propose updates to the Brand Identity, Audience, or Positioning if the history suggests a significant shift.
+  
+  Return a structured JSON object with the following keys:
+  - "evolved_insights": List of strings
+  - "contradictions": List of objects with "description" and "severity"
+  - "proposed_updates": Object containing potential changes to "identity", "audience", or "positioning"
+  - "evolution_index": A float from 1.0 to 10.0 representing strategic maturity

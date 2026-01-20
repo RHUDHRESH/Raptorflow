@@ -11,6 +11,7 @@ import json
 
 from backend.agents.state import AgentState
 from backend.memory.controller import MemoryController
+from backend.services.bcm_projector import BCMProjector
 
 from supabase import Client
 
@@ -23,6 +24,7 @@ async def build_full_context(
     db_client: Client,
     memory_controller: MemoryController,
     session_data: Dict[str, Any] = None,
+    ucid: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Build comprehensive context from all sources.
@@ -33,6 +35,7 @@ async def build_full_context(
         db_client: Database client
         memory_controller: Memory controller
         session_data: Optional session data
+        ucid: Optional RaptorFlow UCID
 
     Returns:
         Complete context dictionary
@@ -46,7 +49,16 @@ async def build_full_context(
             "timestamp": datetime.datetime.now().timestamp(),
         }
 
-        # Gather database context
+        # 1. Gather BCM Evolution State (The Everything Engine)
+        if ucid:
+            try:
+                projector = BCMProjector(db_client=db_client)
+                bcm_everything = await projector.get_latest_state(workspace_id, ucid)
+                context["bcm_everything"] = bcm_everything.model_dump()
+            except Exception as e:
+                logger.warning(f"Failed to project BCM Everything state: {e}")
+
+        # 2. Gather database context
         context["database"] = await _build_database_context(workspace_id, db_client)
 
         # Gather memory context
@@ -201,7 +213,19 @@ def _unify_context(context: Dict[str, Any]) -> Dict[str, Any]:
             "metadata": {},
         }
 
-        # Process database context
+        # 1. Process BCM Everything context
+        if "bcm_everything" in context:
+            bcm = context["bcm_everything"]
+            unified["relevant_items"].append({
+                "type": "bcm_evolution",
+                "content": f"Strategic Evolution Index: {bcm.get('history', {}).get('evolution_index', 1.0)}",
+                "milestones": bcm.get("history", {}).get("significant_milestones", []),
+                "insights": bcm.get("evolved_insights", []),
+                "source": "bcm_everything",
+                "relevance": 1.0
+            })
+
+        # 2. Process database context
         db_context = context.get("database", {})
         if "foundation" in db_context and db_context["foundation"]:
             foundation = db_context["foundation"]

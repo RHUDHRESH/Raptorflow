@@ -10,6 +10,8 @@ from backend.core.models import ValidationError
 from backend.core.supabase_mgr import get_supabase_client
 from backend.db.campaigns import CampaignRepository
 from backend.db.moves import MoveRepository
+from backend.services.bcm_recorder import BCMEventRecorder
+from backend.schemas.bcm_evolution import EventType
 
 
 class MoveService:
@@ -19,6 +21,7 @@ class MoveService:
         self.repository = MoveRepository()
         self.campaign_repository = CampaignRepository()
         self.supabase = get_supabase_client()
+        self.bcm_recorder = BCMEventRecorder(db_client=self.supabase)
 
     async def create_move(
         self, workspace_id: str, data: Dict[str, Any]
@@ -130,7 +133,25 @@ class MoveService:
         if move.get("status") == "completed":
             raise ValidationError("Move is already completed")
 
-        return await self.repository.complete_move(move_id, workspace_id, results)
+        completed_move = await self.repository.complete_move(move_id, workspace_id, results)
+        
+        # Record event in BCM Ledger
+        try:
+            await self.bcm_recorder.record_event(
+                workspace_id=workspace_id,
+                event_type=EventType.MOVE_COMPLETED,
+                payload={
+                    "move_id": move_id,
+                    "title": move.get("name", "Unknown Move"),
+                    "results": results or {}
+                }
+            )
+        except Exception as e:
+            # We don't want to fail the move completion if the ledger fails, but we should log it
+            import logging
+            logging.getLogger(__name__).error(f"Failed to record BCM event for completed move {move_id}: {e}")
+
+        return completed_move
 
     async def generate_tasks(
         self, move_id: str, workspace_id: str
