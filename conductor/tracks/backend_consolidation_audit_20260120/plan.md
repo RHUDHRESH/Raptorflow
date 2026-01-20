@@ -14,10 +14,10 @@ Establish the foundation for the reorganization and standardized communication.
 ## Phase 2: Backend Reorganization & TDD Implementation
 Refactor existing modules into the new structure while adding test coverage.
 
-- [ ] Task: Refactor Foundation Module
-    - [ ] [RED] Write failing tests for Brand Kit and Positioning logic.
-    - [ ] [GREEN] Move logic to `src/modules/foundation/services` and `src/modules/foundation/domain`.
-    - [ ] [REFACTOR] Clean up legacy script references and imports.
+- [x] Task: Refactor Foundation Module (8ebb101)
+    - [x] [RED] Write failing tests for Brand Kit and Positioning logic.
+    - [x] [GREEN] Move logic to `src/modules/foundation/services` and `src/modules/foundation/domain`.
+    - [x] [REFACTOR] Clean up legacy script references and imports.
 - [ ] Task: Refactor Intelligence Modules (Titan & Blackbox)
     - [ ] [RED] Write failing tests for scraping and volatility engine logic.
     - [ ] [GREEN] Reorganize into `src/modules/titan` and `src/modules/blackbox`.
