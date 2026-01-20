@@ -27,7 +27,7 @@
   - **Security:** Hardened RLS policies using centralized `check_membership` for multi-tenant isolation.
 - **API Standard:** "RaptorFlow" Bespoke Standard for unified JSON responses and global error handling.
 - **Caching & Messaging:** [Upstash](https://upstash.com/) (Redis)
-  - **Caching Logic:** Global `withCache` wrapper with namespaced TTLs.
+  - **Caching Logic:** SOTA Global `@cached` decorator and `CacheService` with workspace-level isolation, surgical pattern invalidation, and automated dependency-based purging.
   - **Message Bus:** Redis-based state synchronization for real-time AI agent updates.
   - **Job Queue:** Managed Redis task queue for reliable asynchronous execution.
 - **Stealth Networking:** [Gluetun](https://github.com/qdm12/gluetun) (VPN-based IP rotation for Search Cluster)

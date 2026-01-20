@@ -13,7 +13,7 @@ RaptorFlow is the **Founder Marketing Operating System**. It is designed to repl
 ## Core Goals
 1.  **Clarity:** Achieve absolute certainty in brand positioning, messaging, and ICP (Ideal Customer Profile) segments.
 2.  **Execution:** Automate the generation of weekly "Moves" using a production-grade autonomous engine and track them with surgical precision.
-3.  **Consolidation:** Eliminate tool sprawl by centralizing strategy, asset generation, and performance tracking into one "Blackbox" industrial intelligence engine.
+3.  **Economy & Performance:** Minimize operational overhead via a comprehensive Redis caching layer that reduces redundant LLM and Research costs by >40% while maintaining sub-100ms retrieval.
 4.  **Minimalism:** Maintain a strictly personal-account model with a high-integrity identity system (UCID).
 
 ## Identity Standard
