@@ -18,10 +18,10 @@ Refactor existing modules into the new structure while adding test coverage.
     - [x] [RED] Write failing tests for Brand Kit and Positioning logic.
     - [x] [GREEN] Move logic to `src/modules/foundation/services` and `src/modules/foundation/domain`.
     - [x] [REFACTOR] Clean up legacy script references and imports.
-- [ ] Task: Refactor Intelligence Modules (Titan & Blackbox)
-    - [ ] [RED] Write failing tests for scraping and volatility engine logic.
-    - [ ] [GREEN] Reorganize into `src/modules/titan` and `src/modules/blackbox`.
-    - [ ] [REFACTOR] Optimize common utilities and agent orchestration.
+- [x] Task: Refactor Intelligence Modules (Titan & Blackbox) (cf5f78a)
+    - [x] [RED] Write failing tests for scraping and volatility engine logic.
+    - [x] [GREEN] Reorganize into `src/modules/titan` and `src/modules/blackbox`.
+    - [x] [REFACTOR] Optimize common utilities and agent orchestration.
 - [ ] Task: Refactor Operations Modules (Cohorts, Moves, Campaigns)
     - [ ] [RED] Write failing tests for RICP and Breathing Arcs logic.
     - [ ] [GREEN] Reorganize into their respective module directories.
