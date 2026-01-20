@@ -60,8 +60,8 @@ Bring the user-facing side into sync with the new backend.
 ## Phase 5: Final System Verification & Cleanup
 Ensure the entire OS is "ready to go."
 
-- [ ] Task: End-to-End Integration Testing
-    - [ ] Execute full user journey tests (Onboarding -> RICP -> Moves -> Matrix).
+- [x] Task: End-to-End Integration Testing (58c7ea8)
+    - [x] Execute full user journey tests (Onboarding -> RICP -> Moves -> Matrix).
 - [ ] Task: Final Coverage Verification
     - [ ] Generate system-wide coverage report and ensure >80% coverage.
 - [ ] Task: Legacy Script Cleanup
