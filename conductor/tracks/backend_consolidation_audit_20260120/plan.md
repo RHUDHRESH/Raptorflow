@@ -57,7 +57,7 @@ Bring the user-facing side into sync with the new backend.
     - [x] Refine responsive behavior for strictly "Editorial restraint."
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Alignment & UX Polish' (Protocol in workflow.md)
 
-## Phase 5: Final System Verification & Cleanup
+## Phase 5: Final System Verification & Cleanup [checkpoint: 8cf3458]
 Ensure the entire OS is "ready to go."
 
 - [x] Task: End-to-End Integration Testing (58c7ea8)
