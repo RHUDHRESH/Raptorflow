@@ -18,7 +18,7 @@ class UsageStatsResponse(BaseModel):
     """Response model for usage statistics."""
 
     success: bool
-    period: Dict[str, str]
+    period: Dict[str, Any]
     total_requests: int
     requests_by_agent: Dict[str, int]
     requests_by_day: Dict[str, int]
@@ -30,7 +30,7 @@ class PerformanceResponse(BaseModel):
     """Response model for performance metrics."""
 
     success: bool
-    period: Dict[str, str]
+    period: Dict[str, Any]
     avg_response_time_ms: float
     p95_response_time_ms: float
     p99_response_time_ms: float
@@ -44,7 +44,7 @@ class CostResponse(BaseModel):
     """Response model for cost breakdown."""
 
     success: bool
-    period: Dict[str, str]
+    period: Dict[str, Any]
     total_cost_usd: float
     cost_by_agent: Dict[str, float]
     cost_by_model: Dict[str, float]
@@ -59,7 +59,7 @@ class CampaignMetricsResponse(BaseModel):
 
     success: bool
     campaign_id: str
-    period: Dict[str, str]
+    period: Dict[str, Any]
     total_impressions: int
     total_engagements: int
     total_conversions: int
@@ -77,7 +77,7 @@ class WorkspaceAnalyticsResponse(BaseModel):
 
     success: bool
     workspace_id: str
-    period: Dict[str, str]
+    period: Dict[str, Any]
     usage_summary: Dict[str, Any]
     performance_summary: Dict[str, Any]
     cost_summary: Dict[str, Any]

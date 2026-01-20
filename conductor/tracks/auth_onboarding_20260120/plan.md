@@ -2,8 +2,8 @@
 
 ## Phase 1: Authentication & Social Login (TDD)
 - [x] Task: Set up test suite for authentication flows 356ad96
-- [ ] Task: Implement social login (Google, GitHub) support
-    - [ ] Write failing tests for social login redirection and callback
+- [~] Task: Implement social login (Google, GitHub) support
+    - [~] Write failing tests for social login redirection and callback
     - [ ] Implement Google login integration
     - [ ] Implement GitHub login integration
     - [ ] Verify social login tests pass

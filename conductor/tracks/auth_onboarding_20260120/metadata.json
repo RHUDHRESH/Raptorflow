@@ -1,0 +1,8 @@
+{
+  "track_id": "auth_onboarding_20260120",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-20T07:48:00Z",
+  "updated_at": "2026-01-20T07:48:00Z",
+  "description": "Fix auth and onboarding So, what to do for new users, what to do for recurring users, and fix the front-end as well: payment pages, payment tiers, what benefits you get—all of it. So yeah, that's all."
+}

@@ -92,8 +92,8 @@ class SentryConfig:
     dist: Optional[str] = None
     server_name: Optional[str] = None
     sample_rate: float = 1.0
-    traces_sample_rate: float = 0.1
-    profiles_sample_rate: float = 0.1
+    traces_sample_rate: float = 1.0
+    profiles_sample_rate: float = 1.0
     debug: bool = False
     max_breadcrumbs: int = 100
     attach_stacktrace: bool = True

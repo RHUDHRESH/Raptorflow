@@ -15,8 +15,11 @@ class MoveRepository(Repository):
     """Repository for moves operations"""
 
     def __init__(self):
-        super().__init__(get_supabase_client())
-        self.table_name = "moves"
+        super().__init__("moves")
+
+    def _map_to_model(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Map database record to dict."""
+        return data
 
     async def list_by_campaign(
         self, campaign_id: str, workspace_id: str

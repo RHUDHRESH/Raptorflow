@@ -9,15 +9,36 @@ Sentry.init({
   tracesSampleRate: SENTRY_ENVIRONMENT === 'production' ? 0.1 : 1.0,
   debug: false,
   replaysOnErrorSampleRate: 1.0,
-  replaysSessionSampleRate: 0.1,
+  replaysSessionSampleRate: 1.0,
   integrations: [
     new Sentry.Replay({
       maskAllText: true,
       blockAllMedia: true,
     }),
-    new Sentry.BrowserTracing(),
+    new Sentry.BrowserTracing({
+      tracePropagationTargets: ['localhost', /^https:\/\/api\.raptorflow\.in/, /^https:\/\/raptorflow\.in/],
+    }),
   ],
   beforeSend(event: any) {
+    // Recursive scrubber for PII
+    const PII_PATTERNS = ['api_key', 'email', 'password', 'token', 'secret', 'auth', 'key'];
+    const scrub = (obj: any) => {
+      if (!obj || typeof obj !== 'object') return obj;
+      Object.keys(obj).forEach(key => {
+        if (PII_PATTERNS.some(p => key.toLowerCase().includes(p))) {
+          obj[key] = '[FILTERED]';
+        } else if (typeof obj[key] === 'object') {
+          scrub(obj[key]);
+        }
+      });
+      return obj;
+    };
+
+    // Scrub context and extra data
+    if (event.contexts) scrub(event.contexts);
+    if (event.extra) scrub(event.extra);
+    if (event.request && event.request.data) scrub(event.request.data);
+
     // Filter out certain errors
     if (event.exception) {
       const error = event.exception.values?.[0]

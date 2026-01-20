@@ -84,3 +84,26 @@
 
 
 
+
+---
+
+- [~] **Track: System-Wide Backend Verification & Redis Caching**
+*Link: [./tracks/redis_caching_20260120/](./tracks/redis_caching_20260120/)*
+
+
+---
+
+- [~] **Track: Sentry Configuration & Ultimate Monitoring**
+*Link: [./tracks/sentry_monitoring_20260120/](./tracks/sentry_monitoring_20260120/)*
+
+---
+
+- [~] **Track: BCM Evolution Engine (The Everything Engine)**
+*Link: [./tracks/bcm_evolution_20260120/](./tracks/bcm_evolution_20260120/)*
+
+
+
+---
+
+- [~] **Track: Auth and Onboarding Overhaul**
+*Link: [./tracks/auth_onboarding_20260120/](./tracks/auth_onboarding_20260120/)*

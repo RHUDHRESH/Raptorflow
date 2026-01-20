@@ -53,8 +53,8 @@ class SentryMiddleware:
                 RedisIntegration(),
                 SqlalchemyIntegration(),
             ],
-            traces_sample_rate=0.1,  # Capture 10% of transactions for performance
-            profiles_sample_rate=0.1,  # Capture 10% of profiles for performance
+            traces_sample_rate=1.0,  # Capture 100% of transactions for performance audit
+            profiles_sample_rate=1.0,  # Capture 100% of profiles for performance audit
             send_default_pii=False,  # Don't send personally identifiable information
             attach_stacktrace=True,  # Include stack traces
             before_send=self._before_send,
@@ -122,16 +122,36 @@ class SentryMiddleware:
     ) -> Optional[Dict[str, Any]]:
         """Filter events before sending to Sentry"""
 
-        # Filter out sensitive data
-        if "request" in event and "data" in event["request"]:
-            # Remove sensitive form data
-            if "form" in event["request"]["data"]:
-                sensitive_fields = ["password", "token", "secret", "key", "auth"]
-                form_data = event["request"]["data"]["form"]
+        PII_PATTERNS = ["email", "password", "token", "secret", "key", "auth"]
 
-                for field in sensitive_fields:
-                    if field in form_data:
-                        form_data[field] = "[FILTERED]"
+        def scrub_dict(d: Any) -> Any:
+            if not isinstance(d, dict):
+                return d
+            for k, v in d.items():
+                if any(p in k.lower() for p in PII_PATTERNS):
+                    d[k] = "[FILTERED]"
+                elif isinstance(v, dict):
+                    scrub_dict(v)
+                elif isinstance(v, list):
+                    for item in v:
+                        if isinstance(item, dict):
+                            scrub_dict(item)
+            return d
+
+        # Scrub request data
+        if "request" in event:
+            if "data" in event["request"]:
+                scrub_dict(event["request"]["data"])
+            if "headers" in event["request"]:
+                scrub_dict(event["request"]["headers"])
+            if "cookies" in event["request"]:
+                event["request"]["cookies"] = "[FILTERED]"
+
+        # Scrub context and extra
+        if "contexts" in event:
+            scrub_dict(event["contexts"])
+        if "extra" in event:
+            scrub_dict(event["extra"])
 
         # Filter out certain exceptions
         if "exception" in event:

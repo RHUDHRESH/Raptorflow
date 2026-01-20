@@ -15,7 +15,11 @@ class CampaignRepository(Repository):
     """Repository for campaign operations"""
 
     def __init__(self):
-        super().__init__(get_supabase_client())
+        super().__init__("campaigns")
+
+    def _map_to_model(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Map database record to dict."""
+        return data
 
     async def get_by_workspace(
         self, workspace_id: str, pagination: Optional[Pagination] = None

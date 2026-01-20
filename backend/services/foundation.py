@@ -143,6 +143,23 @@ class FoundationService:
 
         return True
 
+    async def update_foundation(self, workspace_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Updates foundation data for a workspace.
+
+        Args:
+            workspace_id: Workspace ID
+            data: Foundation data to update
+
+        Returns:
+            Updated foundation data
+        """
+        # Validate data
+        await self.validate_foundation_data(data)
+
+        # Update in repository
+        return await self.repository.upsert(workspace_id, data)
+
     async def delete_foundation(self, workspace_id: str) -> bool:
         """
         Delete foundation for workspace

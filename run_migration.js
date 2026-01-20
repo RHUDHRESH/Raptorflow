@@ -11,7 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 async function runMigration() {
   try {
     console.log('Reading migration file...');
-    const migrationSQL = fs.readFileSync('./supabase/migrations/20260118_google_auth_profiles.sql', 'utf8');
+    const migrationSQL = fs.readFileSync('./supabase/migrations/20260120_bcm_evolution_events.sql', 'utf8');
     
     console.log('Executing migration...');
     

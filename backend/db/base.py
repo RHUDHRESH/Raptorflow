@@ -42,6 +42,11 @@ class Repository(ABC, Generic[T]):
             self._supabase_client = get_supabase_client()
         return self._supabase_client
 
+    @property
+    def client(self):
+        """Get Supabase client"""
+        return self._get_supabase_client()
+
     async def get(self, id: str, workspace_id: str) -> Optional[T]:
         """Get single record by ID (workspace isolated)"""
         try:
