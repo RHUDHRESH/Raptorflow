@@ -42,7 +42,7 @@ Verify the "Cognitive Spine" and data integrity.
     - [x] Verify all hardcoded secrets are moved to GCP Secret Manager.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Security, Performance & Infrastructure Audit' (Protocol in workflow.md)
 
-## Phase 4: Frontend Alignment & UX Polish
+## Phase 4: Frontend Alignment & UX Polish [checkpoint: 29319b9]
 Bring the user-facing side into sync with the new backend.
 
 - [x] Task: Update Frontend Service Layers (8e26a9e)
