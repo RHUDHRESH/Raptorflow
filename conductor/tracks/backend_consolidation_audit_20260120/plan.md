@@ -45,10 +45,10 @@ Verify the "Cognitive Spine" and data integrity.
 ## Phase 4: Frontend Alignment & UX Polish
 Bring the user-facing side into sync with the new backend.
 
-- [ ] Task: Update Frontend Service Layers
-    - [ ] Audit all `fetch` or SDK calls in the frontend.
-    - [ ] [RED] Write failing tests for frontend components expecting old API shapes.
-    - [ ] [GREEN] Update components to consume the "RaptorFlow" standard response.
+- [x] Task: Update Frontend Service Layers (8e26a9e)
+    - [x] Audit all `fetch` or SDK calls in the frontend.
+    - [x] [RED] Write failing tests for frontend components expecting old API shapes.
+    - [x] [GREEN] Update components to consume the "RaptorFlow" standard response.
 - [ ] Task: Implement Standardized Error UI
     - [ ] Create/Update Sonner toast components to handle bespoke error codes.
     - [ ] Ensure all forms and actions provide consistent feedback.
