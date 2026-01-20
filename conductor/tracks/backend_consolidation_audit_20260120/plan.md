@@ -52,9 +52,9 @@ Bring the user-facing side into sync with the new backend.
 - [x] Task: Implement Standardized Error UI (7d287ac)
     - [x] Create/Update Sonner toast components to handle bespoke error codes.
     - [x] Ensure all forms and actions provide consistent feedback.
-- [ ] Task: UX Polish Audit
-    - [ ] Audit loading states and Framer Motion transitions across all pages.
-    - [ ] Refine responsive behavior for strictly "Editorial restraint."
+- [x] Task: UX Polish Audit (b46e2f1)
+    - [x] Audit loading states and Framer Motion transitions across all pages.
+    - [x] Refine responsive behavior for strictly "Editorial restraint."
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Alignment & UX Polish' (Protocol in workflow.md)
 
 ## Phase 5: Final System Verification & Cleanup
