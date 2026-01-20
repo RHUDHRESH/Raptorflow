@@ -1,31 +1,35 @@
 /**
  * React hooks for API integration
  * Provides easy-to-use hooks for common API operations
+ * Aligned with the RaptorFlow Bespoke API Standard.
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { apiClient, ApiResponse, Agent, Skill, Tool, Workflow } from './client';
+import { RaptorResponse } from '../../modules/infrastructure/types/api';
 
 // Generic hook for API requests
 export function useApi<T>(
-  apiCall: () => Promise<ApiResponse<T>>
+  apiCall: () => Promise<RaptorResponse<T>>
 ) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ code: string; message: string } | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await apiCall();
-      if (response.status === 'success' || response.status === 'active') {
-        setData(response.data as T);
+      if (response.success) {
+        setData(response.data);
       } else {
-        setError(response.message || 'API request failed');
+        setError(response.error);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError({ 
+        code: 'NETWORK_ERROR', 
+        message: err instanceof Error ? err.message : 'An error occurred' 
+      });
     } finally {
       setLoading(false);
     }
@@ -38,52 +42,12 @@ export function useApi<T>(
   return { data, loading, error, refetch: fetchData };
 }
 
-// Specific hooks for different endpoints
-export function useAgents() {
-  return useApi<Agent[]>(() => apiClient.getAgents());
-}
-
-export function useSkills() {
-  return useApi<Skill[]>(() => apiClient.getSkills());
-}
-
-export function useTools() {
-  return useApi<Tool[]>(() => apiClient.getTools());
-}
-
-export function useWorkflows() {
-  return useApi<Workflow[]>(() => apiClient.getWorkflows());
-}
-
-export function useSystemHealth() {
-  return useApi(() => apiClient.getHealth());
-}
-
-export function useSystemInfo() {
-  return useApi(() => apiClient.getSystemInfo());
-}
-
-// Hook for real-time data updates
-export function useRealTimeData<T>(
-  apiCall: () => Promise<ApiResponse<T>>,
-  intervalMs: number = 30000
-) {
-  const { data, loading, error, refetch } = useApi(apiCall);
-
-  useEffect(() => {
-    const interval = setInterval(refetch, intervalMs);
-    return () => clearInterval(interval);
-  }, [refetch, intervalMs]);
-
-  return { data, loading, error, refetch };
-}
-
 // Hook for mutations (POST, PUT, DELETE)
 export function useApiMutation<T, P = unknown>(
-  apiCall: (params: P) => Promise<ApiResponse<T>>
+  apiCall: (params: P) => Promise<RaptorResponse<T>>
 ) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ code: string; message: string } | null>(null);
   const [data, setData] = useState<T | null>(null);
 
   const mutate = useCallback(async (params: P) => {
@@ -91,17 +55,21 @@ export function useApiMutation<T, P = unknown>(
       setLoading(true);
       setError(null);
       const response = await apiCall(params);
-      if (response.status === 'success') {
-        setData(response.data as T);
+      if (response.success) {
+        setData(response.data);
         return response;
       } else {
-        setError(response.message || 'Mutation failed');
-        throw new Error(response.message || 'Mutation failed');
+        const err = response.error || { code: 'UNKNOWN_ERROR', message: 'Mutation failed' };
+        setError(err);
+        throw err;
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(errorMessage);
-      throw err;
+      const apiError = (err as any).code 
+        ? err as { code: string; message: string }
+        : { code: 'NETWORK_ERROR', message: err instanceof Error ? err.message : 'Unknown error' };
+      
+      setError(apiError);
+      throw apiError;
     } finally {
       setLoading(false);
     }

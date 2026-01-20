@@ -1,17 +1,12 @@
 /**
  * API Client for RaptorFlow Backend Integration
  * Provides type-safe API calls to the backend services
+ * Aligned with the RaptorFlow Bespoke API Standard.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { RaptorResponse } from '../../modules/infrastructure/types/api';
 
-export interface ApiResponse<T = unknown> {
-  data?: T;
-  message?: string;
-  status: string;
-  timestamp: string;
-  [key: string]: unknown; // Allow additional properties
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export interface Agent {
   id: string;
@@ -55,7 +50,7 @@ class ApiClient {
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  ): Promise<RaptorResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
 
     try {
@@ -67,12 +62,33 @@ class ApiClient {
         ...options,
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      
+      // If the backend already returns RaptorResponse, return it directly
+      if (typeof data.success === 'boolean' && data.meta) {
+        return data as RaptorResponse<T>;
       }
 
-      const data = await response.json();
-      return data;
+      // Legacy support: Wrap non-standard responses
+      if (response.ok) {
+        return {
+          success: true,
+          data: data,
+          error: null,
+          meta: { timestamp: new Date().toISOString() }
+        };
+      } else {
+        return {
+          success: false,
+          data: null,
+          error: {
+            code: 'API_ERROR',
+            message: data.message || `HTTP error! status: ${response.status}`,
+            details: data
+          },
+          meta: { timestamp: new Date().toISOString() }
+        };
+      }
     } catch (error) {
       console.error(`API request failed for ${endpoint}:`, error);
       // Return mock data for development
@@ -80,19 +96,25 @@ class ApiClient {
     }
   }
 
-  private getMockResponse<T>(endpoint: string): ApiResponse<T> {
-    // Mock responses for development when backend is not available
-    const mockResponses: Record<string, ApiResponse<unknown>> = {
+  private getMockResponse<T>(endpoint: string): RaptorResponse<T> {
+    const timestamp = new Date().toISOString();
+    
+    const wrap = <T>(data: T): RaptorResponse<T> => ({
+      success: true,
+      data,
+      error: null,
+      meta: { timestamp }
+    });
+
+    const mockData: Record<string, any> = {
       '/': {
         message: "Raptorflow Ultimate Backend API",
         version: "2.0.0",
         status: "active",
-        modules: ["agents", "skills", "tools", "data", "workflows", "monitoring"],
-        timestamp: new Date().toISOString(),
+        modules: ["agents", "skills", "tools", "data", "workflows", "monitoring"]
       },
       '/health': {
         status: "healthy",
-        timestamp: new Date().toISOString(),
         modules: {
           agents: "active",
           skills: "active",
@@ -102,155 +124,93 @@ class ApiClient {
           monitoring: "active"
         }
       },
-      '/agents': {
-        status: "success",
-        timestamp: new Date().toISOString(),
-        module: "agents",
-        count: 5,
-        agents: [
-          {
-            id: "1",
-            name: "ICP Architect",
-            type: "specialist",
-            status: "active",
-            capabilities: ["market research", "persona development", "segmentation"]
-          },
-          {
-            id: "2",
-            name: "Content Generator",
-            type: "creative",
-            status: "active",
-            capabilities: ["blog posts", "social media", "email campaigns"]
-          },
-          {
-            id: "3",
-            name: "Campaign Manager",
-            type: "orchestrator",
-            status: "active",
-            capabilities: ["campaign planning", "budget allocation", "performance tracking"]
-          }
-        ]
-      },
-      '/skills': {
-        status: "success",
-        timestamp: new Date().toISOString(),
-        module: "skills",
-        count: 8,
-        skills: [
-          {
-            id: "1",
-            name: "Market Analysis",
-            category: "research",
-            status: "active",
-            description: "Analyze market trends and competitor data"
-          },
-          {
-            id: "2",
-            name: "Content Creation",
-            category: "creative",
-            status: "active",
-            description: "Generate marketing content and copy"
-          },
-          {
-            id: "3",
-            name: "Data Visualization",
-            category: "analytics",
-            status: "active",
-            description: "Create charts and visual reports"
-          }
-        ]
-      },
-      '/tools': {
-        status: "success",
-        timestamp: new Date().toISOString(),
-        module: "tools",
-        count: 12,
-        tools: [
-          {
-            id: "1",
-            name: "Email Sender",
-            type: "communication",
-            status: "active",
-            description: "Send marketing emails and newsletters"
-          },
-          {
-            id: "2",
-            name: "Social Media Poster",
-            type: "social",
-            status: "active",
-            description: "Post content to social media platforms"
-          },
-          {
-            id: "3",
-            name: "Analytics Dashboard",
-            type: "analytics",
-            status: "active",
-            description: "Track and analyze marketing metrics"
-          }
-        ]
-      }
+      '/agents': [
+        {
+          id: "1",
+          name: "ICP Architect",
+          type: "specialist",
+          status: "active",
+          capabilities: ["market research", "persona development", "segmentation"]
+        }
+      ],
+      '/skills': [
+        {
+          id: "1",
+          name: "Market Analysis",
+          category: "research",
+          status: "active",
+          description: "Analyze market trends and competitor data"
+        }
+      ],
+      '/tools': [
+        {
+          id: "1",
+          name: "Email Sender",
+          type: "communication",
+          status: "active",
+          description: "Send marketing emails and newsletters"
+        }
+      ]
     };
 
-    return (mockResponses[endpoint] || {
-      status: "error",
-      message: "Endpoint not found",
-      timestamp: new Date().toISOString()
-    }) as ApiResponse<T>;
+    if (mockData[endpoint]) {
+      return wrap(mockData[endpoint]);
+    }
+
+    return {
+      success: false,
+      data: null,
+      error: {
+        code: 'NOT_FOUND',
+        message: 'Endpoint not found'
+      },
+      meta: { timestamp }
+    };
   }
 
   // System endpoints
   async getHealth() {
-    return this.request('/health');
+    return this.request<any>('/health');
   }
 
   async getSystemInfo() {
-    return this.request('/');
+    return this.request<any>('/');
   }
 
   // Agent endpoints
-  async getAgents(): Promise<ApiResponse<Agent[]>> {
+  async getAgents(): Promise<RaptorResponse<Agent[]>> {
     return this.request('/agents');
   }
 
-  async getAgent(id: string): Promise<ApiResponse<Agent>> {
+  async getAgent(id: string): Promise<RaptorResponse<Agent>> {
     return this.request(`/agents/${id}`);
   }
 
   // Skill endpoints
-  async getSkills(): Promise<ApiResponse<Skill[]>> {
+  async getSkills(): Promise<RaptorResponse<Skill[]>> {
     return this.request('/skills');
   }
 
-  async getSkill(id: string): Promise<ApiResponse<Skill>> {
+  async getSkill(id: string): Promise<RaptorResponse<Skill>> {
     return this.request(`/skills/${id}`);
   }
 
   // Tool endpoints
-  async getTools(): Promise<ApiResponse<Tool[]>> {
+  async getTools(): Promise<RaptorResponse<Tool[]>> {
     return this.request('/tools');
   }
 
-  async getTool(id: string): Promise<ApiResponse<Tool>> {
+  async getTool(id: string): Promise<RaptorResponse<Tool>> {
     return this.request(`/tools/${id}`);
   }
 
   // Workflow endpoints
-  async getWorkflows(): Promise<ApiResponse<Workflow[]>> {
+  async getWorkflows(): Promise<RaptorResponse<Workflow[]>> {
     return this.request('/workflows');
   }
 
-  async getWorkflow(id: string): Promise<ApiResponse<Workflow>> {
+  async getWorkflow(id: string): Promise<RaptorResponse<Workflow>> {
     return this.request(`/workflows/${id}`);
-  }
-
-  // Data endpoints
-  async getDataStatus() {
-    return this.request('/data');
-  }
-
-  // Monitoring endpoints
-  async getMonitoringStatus() {
-    return this.request('/monitoring');
   }
 }
 

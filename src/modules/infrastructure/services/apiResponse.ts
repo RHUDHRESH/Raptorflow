@@ -1,22 +1,9 @@
+import { RaptorResponse } from '../types/api';
+
 /**
  * RaptorFlow Bespoke API Standard
  * Utility for standardized success and error responses.
  */
-
-export interface RaptorResponse<T = any> {
-  success: boolean;
-  data: T | null;
-  error: {
-    code: string;
-    message: string;
-    details?: any;
-  } | null;
-  meta: {
-    timestamp: string;
-    requestId?: string;
-    [key: string]: any;
-  };
-}
 
 /**
  * Creates a standardized success response.
