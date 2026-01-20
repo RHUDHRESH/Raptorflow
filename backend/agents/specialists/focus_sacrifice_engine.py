@@ -3,12 +3,12 @@ Focus & Sacrifice Engine
 Helps users make strategic tradeoffs in positioning via real AI inference
 """
 
-import logging
-from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass, field, asdict
-from enum import Enum
-from datetime import datetime
 import json
+import logging
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..base import BaseAgent
 from ..config import ModelTier
@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class FocusCategory(Enum):
     """Categories for focus decisions"""
+
     AUDIENCE = "audience"
     FEATURE = "feature"
     MARKET = "market"
@@ -28,6 +29,7 @@ class FocusCategory(Enum):
 
 class SacrificeImpact(Enum):
     """Impact level of sacrifice"""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -36,6 +38,7 @@ class SacrificeImpact(Enum):
 @dataclass
 class FocusItem:
     """An item to focus on"""
+
     id: str
     category: FocusCategory
     description: str
@@ -53,6 +56,7 @@ class FocusItem:
 @dataclass
 class SacrificeItem:
     """An item to sacrifice/deprioritize"""
+
     id: str
     category: FocusCategory
     description: str
@@ -72,6 +76,7 @@ class SacrificeItem:
 @dataclass
 class TradeoffPair:
     """A focus-sacrifice pair"""
+
     id: str
     focus: FocusItem
     sacrifice: SacrificeItem
@@ -86,13 +91,14 @@ class TradeoffPair:
             "sacrifice": self.sacrifice.to_dict(),
             "net_benefit": self.net_benefit,
             "risk_assessment": self.risk_assessment,
-            "confidence": self.confidence
+            "confidence": self.confidence,
         }
 
 
-@dataclass 
+@dataclass
 class FocusSacrificeResult:
     """Complete focus/sacrifice analysis"""
+
     focus_items: List[FocusItem]
     sacrifice_items: List[SacrificeItem]
     tradeoff_pairs: List[TradeoffPair]
@@ -109,20 +115,24 @@ class FocusSacrificeResult:
             "positioning_statement": self.positioning_statement,
             "lightbulb_insights": self.lightbulb_insights,
             "recommendations": self.recommendations,
-            "constraint_summary": self.constraint_summary
+            "constraint_summary": self.constraint_summary,
         }
 
 
 class FocusSacrificeEngine(BaseAgent):
     """Engine for strategic focus and sacrifice decisions using real inference."""
-    
+
     def __init__(self):
         super().__init__(
             name="FocusSacrificeEngine",
             description="Recommends strategic focus and sacrifice tradeoffs via real AI inference",
             model_tier=ModelTier.FLASH,
             tools=["database"],
-            skills=["strategic_tradeoffs", "positioning_strategy", "resource_allocation"]
+            skills=[
+                "strategic_tradeoffs",
+                "positioning_strategy",
+                "resource_allocation",
+            ],
         )
         self.counter = 0
 
@@ -141,7 +151,7 @@ class FocusSacrificeEngine(BaseAgent):
         """Execute focus/sacrifice analysis using real AI inference."""
         company_info = state.get("business_context", {}).get("identity", {})
         positioning = state.get("positioning", {})
-        
+
         prompt = f"""Generate a strategic Focus & Sacrifice report.
 
 COMPANY INFO:
@@ -169,11 +179,11 @@ Return a JSON object:
         try:
             clean_res = res.strip().replace("```json", "").replace("```", "")
             raw_data = json.loads(clean_res)
-            
+
             focus_items = []
             sacrifice_items = []
             tradeoff_pairs = []
-            
+
             for p in raw_data.get("pairs", []):
                 f = FocusItem(
                     id=self._generate_id("FOC"),
@@ -181,7 +191,7 @@ Return a JSON object:
                     description=p["focus"]["description"],
                     rationale=p["focus"]["rationale"],
                     impact_score=p["focus"].get("impact", 0.8),
-                    confidence=0.9
+                    confidence=0.9,
                 )
                 s = SacrificeItem(
                     id=self._generate_id("SAC"),
@@ -191,7 +201,7 @@ Return a JSON object:
                     impact=SacrificeImpact(p["sacrifice"]["impact"].lower()),
                     alternative_message=p["sacrifice"]["alternative_message"],
                     recovery_path=p["sacrifice"]["recovery_path"],
-                    confidence=0.9
+                    confidence=0.9,
                 )
                 pair = TradeoffPair(
                     id=self._generate_id("TRD"),
@@ -199,12 +209,12 @@ Return a JSON object:
                     sacrifice=s,
                     net_benefit=p["net_benefit"],
                     risk_assessment=p["risk_assessment"],
-                    confidence=0.9
+                    confidence=0.9,
                 )
                 focus_items.append(f)
                 sacrifice_items.append(s)
                 tradeoff_pairs.append(pair)
-            
+
             result = FocusSacrificeResult(
                 focus_items=focus_items,
                 sacrifice_items=sacrifice_items,
@@ -212,7 +222,7 @@ Return a JSON object:
                 positioning_statement=raw_data.get("summary", ""),
                 lightbulb_insights=raw_data.get("lightbulb_insights", []),
                 recommendations=raw_data.get("recommendations", []),
-                constraint_summary=raw_data.get("summary", "")
+                constraint_summary=raw_data.get("summary", ""),
             )
             return {"output": result.to_dict()}
         except:

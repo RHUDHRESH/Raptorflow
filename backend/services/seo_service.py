@@ -3,10 +3,10 @@ SEO Optimization Service
 Analyzes content for SEO best practices and performs keyword research
 """
 
-import logging
-from typing import Any, Dict, List, Optional
-from datetime import datetime
 import json
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 try:
     from services.vertex_ai_service import vertex_ai_service
@@ -15,13 +15,16 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class SEOService:
     """Service for SEO auditing and optimization."""
 
-    async def optimize_content(self, content: str, target_keywords: List[str]) -> Dict[str, Any]:
+    async def optimize_content(
+        self, content: str, target_keywords: List[str]
+    ) -> Dict[str, Any]:
         """Audit content for SEO via AI inference."""
         logger.info(f"Optimizing content for keywords: {target_keywords}")
-        
+
         if not vertex_ai_service:
             return {"success": False, "error": "Vertex AI service not available"}
 
@@ -46,22 +49,24 @@ OUTPUT JSON format:
 
         try:
             ai_response = await vertex_ai_service.generate_text(
-                prompt=prompt,
-                workspace_id="seo-opt",
-                user_id="seo",
-                max_tokens=800
+                prompt=prompt, workspace_id="seo-opt", user_id="seo", max_tokens=800
             )
-            
+
             if ai_response["status"] == "success":
                 try:
-                    clean_res = ai_response["text"].strip().replace("```json", "").replace("```", "")
+                    clean_res = (
+                        ai_response["text"]
+                        .strip()
+                        .replace("```json", "")
+                        .replace("```", "")
+                    )
                     analysis = json.loads(clean_res)
                     return {"success": True, "analysis": analysis}
                 except:
                     return {"success": False, "error": "Failed to parse AI SEO output"}
             else:
                 return {"success": False, "error": ai_response.get("error", "AI error")}
-                
+
         except Exception as e:
             logger.error(f"SEO analysis failed: {e}")
             return {"success": False, "error": str(e)}
@@ -80,14 +85,20 @@ Limit to 5 highly relevant keywords."""
                 prompt=prompt,
                 workspace_id="keyword-research",
                 user_id="seo",
-                max_tokens=500
+                max_tokens=500,
             )
-            
+
             if ai_response["status"] == "success":
-                clean_res = ai_response["text"].strip().replace("```json", "").replace("```", "")
+                clean_res = (
+                    ai_response["text"]
+                    .strip()
+                    .replace("```json", "")
+                    .replace("```", "")
+                )
                 return json.loads(clean_res)
             return []
         except:
             return []
+
 
 seo_service = SEOService()

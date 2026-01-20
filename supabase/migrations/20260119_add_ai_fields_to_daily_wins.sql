@@ -1,7 +1,7 @@
 -- Add AI-specific fields to daily_wins table
 -- Migration: 20260119_add_ai_fields_to_daily_wins.sql
 
-ALTER TABLE public.daily_wins 
+ALTER TABLE public.daily_wins
 ADD COLUMN IF NOT EXISTS topic TEXT,
 ADD COLUMN IF NOT EXISTS angle TEXT,
 ADD COLUMN IF NOT EXISTS hook TEXT,

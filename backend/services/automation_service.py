@@ -3,10 +3,10 @@ Content Automation Service
 Manages automated content sequences and trigger-based workflows
 """
 
-import logging
-from typing import Any, Dict, List, Optional
-from datetime import datetime, timedelta
 import json
+import logging
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
 try:
     from services.vertex_ai_service import vertex_ai_service
@@ -15,18 +15,16 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class AutomationService:
     """Service for orchestrating automated content workflows."""
 
     async def create_content_sequence(
-        self, 
-        goal: str, 
-        steps: int = 5, 
-        tone: str = "professional"
+        self, goal: str, steps: int = 5, tone: str = "professional"
     ) -> Dict[str, Any]:
         """Generate a complete multi-step content sequence via real AI inference."""
         logger.info(f"Generating automation sequence for goal: {goal}")
-        
+
         if not vertex_ai_service:
             return {"success": False, "error": "Vertex AI service not available"}
 
@@ -56,21 +54,30 @@ OUTPUT JSON format:
                 prompt=prompt,
                 workspace_id="automation",
                 user_id="auto-gen",
-                max_tokens=2000
+                max_tokens=2000,
             )
-            
+
             if ai_response["status"] == "success":
                 try:
-                    clean_res = ai_response["text"].strip().replace("```json", "").replace("```", "")
+                    clean_res = (
+                        ai_response["text"]
+                        .strip()
+                        .replace("```json", "")
+                        .replace("```", "")
+                    )
                     sequence_data = json.loads(clean_res)
                     return {"success": True, "sequence": sequence_data}
                 except:
-                    return {"success": False, "error": "Failed to parse AI sequence output"}
+                    return {
+                        "success": False,
+                        "error": "Failed to parse AI sequence output",
+                    }
             else:
                 return {"success": False, "error": ai_response.get("error", "AI error")}
-                
+
         except Exception as e:
             logger.error(f"Automation generation failed: {e}")
             return {"success": False, "error": str(e)}
+
 
 automation_service = AutomationService()

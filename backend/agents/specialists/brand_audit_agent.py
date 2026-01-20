@@ -3,14 +3,16 @@ Brand Audit Specialist Agent
 Performs adversarial audit of brand claims against evidence via real AI inference
 """
 
+import json
 import logging
 from typing import Any, Dict, List, Optional
-import json
+
 from ..base import BaseAgent
 from ..config import ModelTier
 from ..state import AgentState
 
 logger = logging.getLogger(__name__)
+
 
 class BrandAuditEngine(BaseAgent):
     """Adversarial agent that audits brand claims against evidence using real inference."""
@@ -21,7 +23,7 @@ class BrandAuditEngine(BaseAgent):
             description="Audits brand consistency and claims via real AI inference",
             model_tier=ModelTier.FLASH,
             tools=["database"],
-            skills=["brand_audit", "claim_verification", "adversarial_logic"]
+            skills=["brand_audit", "claim_verification", "adversarial_logic"],
         )
 
     def get_system_prompt(self) -> str:
@@ -33,8 +35,10 @@ class BrandAuditEngine(BaseAgent):
     async def execute(self, state: Any) -> Dict[str, Any]:
         """Execute brand audit using real AI inference."""
         truth_sheet = state.get("step_data", {}).get("truth_sheet", {})
-        extracted_facts = state.get("step_data", {}).get("auto_extraction", {}).get("facts", [])
-        
+        extracted_facts = (
+            state.get("step_data", {}).get("auto_extraction", {}).get("facts", [])
+        )
+
         prompt = f"""Perform a surgical brand audit.
 
 CLAIMS (Truth Sheet):

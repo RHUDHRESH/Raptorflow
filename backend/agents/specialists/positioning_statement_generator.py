@@ -3,12 +3,12 @@ Positioning Statement Generator Agent
 Creates strategic positioning statements and frameworks via real AI inference
 """
 
-import logging
-from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass, field, asdict
-from enum import Enum
-from datetime import datetime
 import json
+import logging
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..base import BaseAgent
 from ..config import ModelTier
@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class PositioningFramework(Enum):
     """Positioning framework types"""
+
     CLASSIC = "classic"
     CHALLENGER = "challenger"
     CATEGORY_CREATOR = "category_creator"
@@ -28,6 +29,7 @@ class PositioningFramework(Enum):
 
 class StatementType(Enum):
     """Types of positioning statements"""
+
     FULL = "full"
     ELEVATOR = "elevator"
     TAGLINE = "tagline"
@@ -38,6 +40,7 @@ class StatementType(Enum):
 @dataclass
 class PositioningStatement:
     """A positioning statement"""
+
     id: str
     type: StatementType
     framework: PositioningFramework
@@ -57,6 +60,7 @@ class PositioningStatement:
 @dataclass
 class PositioningMatrix:
     """Positioning comparison matrix"""
+
     axes: List[str]
     your_position: Dict[str, float]
     competitor_positions: Dict[str, Dict[str, float]]
@@ -69,6 +73,7 @@ class PositioningMatrix:
 @dataclass
 class PositioningResult:
     """Complete positioning result"""
+
     statements: List[PositioningStatement]
     primary_statement: PositioningStatement
     matrix: Optional[PositioningMatrix]
@@ -79,24 +84,26 @@ class PositioningResult:
     def to_dict(self):
         return {
             "statements": [s.to_dict() for s in self.statements],
-            "primary_statement": self.primary_statement.to_dict() if self.primary_statement else None,
+            "primary_statement": (
+                self.primary_statement.to_dict() if self.primary_statement else None
+            ),
             "matrix": self.matrix.to_dict() if self.matrix else None,
             "only_we_claims": self.only_we_claims,
             "recommendations": self.recommendations,
-            "summary": self.summary
+            "summary": self.summary,
         }
 
 
 class PositioningStatementGenerator(BaseAgent):
     """AI-powered positioning statement generator using real inference."""
-    
+
     def __init__(self):
         super().__init__(
             name="PositioningStatementGenerator",
             description="Generates strategic positioning statements and frameworks via real AI inference",
             model_tier=ModelTier.FLASH,
             tools=["database"],
-            skills=["brand_positioning", "copywriting", "strategic_messaging"]
+            skills=["brand_positioning", "copywriting", "strategic_messaging"],
         )
         self.statement_counter = 0
 
@@ -114,7 +121,7 @@ class PositioningStatementGenerator(BaseAgent):
         """Execute positioning generation using real AI inference."""
         company_info = state.get("business_context", {}).get("identity", {})
         step_data = state.get("step_data", {})
-        
+
         prompt = f"""Synthesize a definitive positioning strategy.
 
 COMPANY INFO:
@@ -126,8 +133,8 @@ RESEARCH DATA:
 Return a JSON object:
 {{
   "statements": [
-    {{ 
-      "framework": "classic/challenger/etc", 
+    {{
+      "framework": "classic/challenger/etc",
       "type": "full/elevator/tagline",
       "statement": "...",
       "audience": "...",
@@ -150,31 +157,40 @@ Return a JSON object:
         try:
             clean_res = res.strip().replace("```json", "").replace("```", "")
             raw_data = json.loads(clean_res)
-            
+
             statements = [
                 PositioningStatement(
                     id=self._generate_statement_id(),
-                    type=StatementType(s["type"].lower() if s["type"].lower() in [t.value for t in StatementType] else "full"),
-                    framework=PositioningFramework(s["framework"].lower() if s["framework"].lower() in [f.value for f in PositioningFramework] else "classic"),
+                    type=StatementType(
+                        s["type"].lower()
+                        if s["type"].lower() in [t.value for t in StatementType]
+                        else "full"
+                    ),
+                    framework=PositioningFramework(
+                        s["framework"].lower()
+                        if s["framework"].lower()
+                        in [f.value for f in PositioningFramework]
+                        else "classic"
+                    ),
                     statement=s["statement"],
                     audience=s["audience"],
                     key_elements=s["key_elements"],
-                    score=s.get("score", 0.0)
+                    score=s.get("score", 0.0),
                 )
                 for s in raw_data.get("statements", [])
             ]
-            
+
             primary = statements[0] if statements else None
             matrix_data = raw_data.get("matrix")
             matrix = PositioningMatrix(**matrix_data) if matrix_data else None
-            
+
             result = PositioningResult(
                 statements=statements,
                 primary_statement=primary,
                 matrix=matrix,
                 only_we_claims=raw_data.get("only_we_claims", []),
                 recommendations=raw_data.get("recommendations", []),
-                summary=raw_data.get("summary", "")
+                summary=raw_data.get("summary", ""),
             )
             return {"output": result.to_dict()}
         except:

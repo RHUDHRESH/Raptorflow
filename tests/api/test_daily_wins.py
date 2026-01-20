@@ -60,26 +60,32 @@ class TestDailyWinsLangGraph:
                 "hook": "Stop building features.",
                 "content": "Focus on the problem instead.",
                 "platform": "LinkedIn",
-                "score": 0.9
+                "score": 0.9,
             },
             "tokens_used": 1500,
             "cost_usd": 0.02,
             "iteration_count": 1,
             "surprise_score": 0.9,
-            "error": None
+            "error": None,
         }
 
         # Patch the actual implementation to intercept the local import
         with patch(
             "backend.agents.graphs.daily_wins.DailyWinsGraph.run",
             new_callable=AsyncMock,
-            return_value=mock_result_state
+            return_value=mock_result_state,
         ):
             # Also mock the DB insert since the table might not exist
-            with patch("backend.core.supabase_mgr.get_supabase_client") as mock_supabase:
-                mock_supabase.return_value.table.return_value.insert.return_value.execute.return_value.data = [{"id": 1}]
-                
-                response = client.post("/daily_wins/generate-langgraph", json=request_data)
+            with patch(
+                "backend.core.supabase_mgr.get_supabase_client"
+            ) as mock_supabase:
+                mock_supabase.return_value.table.return_value.insert.return_value.execute.return_value.data = [
+                    {"id": 1}
+                ]
+
+                response = client.post(
+                    "/daily_wins/generate-langgraph", json=request_data
+                )
 
         assert response.status_code == 200
         data = response.json()
@@ -98,7 +104,7 @@ class TestDailyWinsLangGraph:
         with patch(
             "backend.agents.graphs.daily_wins.DailyWinsGraph.run",
             new_callable=AsyncMock,
-            return_value=mock_result_state
+            return_value=mock_result_state,
         ):
             response = client.post("/daily_wins/generate-langgraph", json=request_data)
 

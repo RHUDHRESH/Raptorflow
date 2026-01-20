@@ -3,14 +3,16 @@ Pricing Optimization Specialist Agent
 Analyzes current offer and pricing against benchmarks via real AI inference
 """
 
+import json
 import logging
 from typing import Any, Dict, List, Optional
-import json
+
 from ..base import BaseAgent
 from ..config import ModelTier
 from ..state import AgentState
 
 logger = logging.getLogger(__name__)
+
 
 class PricingOptimizationAgent(BaseAgent):
     """Specialist agent for offer and pricing analysis using real inference."""
@@ -21,7 +23,7 @@ class PricingOptimizationAgent(BaseAgent):
             description="Analyzes and optimizes business offers and pricing models via real AI inference",
             model_tier=ModelTier.FLASH,
             tools=["database", "web_search"],
-            skills=["pricing_analysis", "offer_optimization", "market_benchmarking"]
+            skills=["pricing_analysis", "offer_optimization", "market_benchmarking"],
         )
 
     def get_system_prompt(self) -> str:
@@ -32,8 +34,14 @@ class PricingOptimizationAgent(BaseAgent):
     async def execute(self, state: Any) -> Dict[str, Any]:
         """Execute pricing analysis using real AI inference."""
         identity = state.get("business_context", {}).get("identity", {})
-        pricing_facts = [f for f in state.get("step_data", {}).get("auto_extraction", {}).get("facts", []) if f.get("category") == "pricing"]
-        
+        pricing_facts = [
+            f
+            for f in state.get("step_data", {})
+            .get("auto_extraction", {})
+            .get("facts", [])
+            if f.get("category") == "pricing"
+        ]
+
         prompt = f"""Perform a surgical pricing and offer audit.
 
 BUSINESS IDENTITY:

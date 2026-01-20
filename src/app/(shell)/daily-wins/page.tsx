@@ -142,7 +142,7 @@ export default function DailyWinsPage() {
             if (!response.ok) throw new Error("Failed to generate win");
 
             const data = await response.json();
-            
+
             if (data.success && data.win) {
                 const win = data.win;
                 setContentWin({
@@ -351,7 +351,7 @@ export default function DailyWinsPage() {
                                         <div>
                                             <p className="text-[10px] text-amber-700 uppercase tracking-[0.2em] mb-3 font-bold">Intelligence Brief</p>
                                             <div className="text-sm text-amber-900/80 leading-relaxed italic">
-                                                "{contentWin.intelligenceBrief.split('\n')[0]}..." 
+                                                "{contentWin.intelligenceBrief.split('\n')[0]}..."
                                                 <span className="text-[10px] ml-2 font-bold uppercase cursor-help" title={contentWin.intelligenceBrief}>[Full Logic]</span>
                                             </div>
                                         </div>
@@ -364,8 +364,8 @@ export default function DailyWinsPage() {
                                                     <span>{Math.round((contentWin.engagementPrediction || 0) * 100)}%</span>
                                                 </div>
                                                 <div className="h-1 bg-amber-100 rounded-full overflow-hidden">
-                                                    <div 
-                                                        className="h-full bg-amber-500 rounded-full transition-all duration-1000" 
+                                                    <div
+                                                        className="h-full bg-amber-500 rounded-full transition-all duration-1000"
                                                         style={{ width: `${(contentWin.engagementPrediction || 0) * 100}%` }}
                                                     />
                                                 </div>
@@ -376,8 +376,8 @@ export default function DailyWinsPage() {
                                                     <span>{Math.round((contentWin.viralPotential || 0) * 100)}%</span>
                                                 </div>
                                                 <div className="h-1 bg-amber-100 rounded-full overflow-hidden">
-                                                    <div 
-                                                        className="h-full bg-orange-500 rounded-full transition-all duration-1000" 
+                                                    <div
+                                                        className="h-full bg-orange-500 rounded-full transition-all duration-1000"
                                                         style={{ width: `${(contentWin.viralPotential || 0) * 100}%` }}
                                                     />
                                                 </div>

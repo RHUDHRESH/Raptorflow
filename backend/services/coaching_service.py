@@ -3,10 +3,10 @@ Muse Coaching Service
 Provides high-level strategic advice and content critiquing
 """
 
-import logging
-from typing import Any, Dict, List, Optional
-from datetime import datetime
 import json
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 try:
     from services.vertex_ai_service import vertex_ai_service
@@ -15,13 +15,16 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class CoachingService:
     """Service for AI-driven strategic content coaching."""
 
-    async def get_strategic_critique(self, content: str, bcm_context: Dict[str, Any]) -> Dict[str, Any]:
+    async def get_strategic_critique(
+        self, content: str, bcm_context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Critique content against the company's Business Context Map via real AI inference."""
         logger.info("Generating strategic content critique")
-        
+
         if not vertex_ai_service:
             return {"success": False, "error": "Vertex AI service not available"}
 
@@ -46,24 +49,30 @@ OUTPUT JSON format:
 
         try:
             ai_response = await vertex_ai_service.generate_text(
-                prompt=prompt,
-                workspace_id="coaching",
-                user_id="coach",
-                max_tokens=800
+                prompt=prompt, workspace_id="coaching", user_id="coach", max_tokens=800
             )
-            
+
             if ai_response["status"] == "success":
                 try:
-                    clean_res = ai_response["text"].strip().replace("```json", "").replace("```", "")
+                    clean_res = (
+                        ai_response["text"]
+                        .strip()
+                        .replace("```json", "")
+                        .replace("```", "")
+                    )
                     critique_data = json.loads(clean_res)
                     return {"success": True, "critique": critique_data}
                 except:
-                    return {"success": False, "error": "Failed to parse AI coaching output"}
+                    return {
+                        "success": False,
+                        "error": "Failed to parse AI coaching output",
+                    }
             else:
                 return {"success": False, "error": ai_response.get("error", "AI error")}
-                
+
         except Exception as e:
             logger.error(f"Coaching failed: {e}")
             return {"success": False, "error": str(e)}
+
 
 coaching_service = CoachingService()

@@ -3,10 +3,10 @@ Content Brief Service
 Generates strategic content briefs based on ICP and market context
 """
 
-import logging
-from typing import Any, Dict, List, Optional
-from datetime import datetime
 import json
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 try:
     from services.vertex_ai_service import vertex_ai_service
@@ -15,18 +15,16 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class BriefService:
     """Service for generating strategic content briefs."""
 
     async def generate_brief(
-        self, 
-        topic: str, 
-        icp_context: Dict[str, Any], 
-        platform: str = "blog"
+        self, topic: str, icp_context: Dict[str, Any], platform: str = "blog"
     ) -> Dict[str, Any]:
         """Generate a detailed content brief via real AI inference."""
         logger.info(f"Generating brief for topic: {topic}")
-        
+
         if not vertex_ai_service:
             return {"success": False, "error": "Vertex AI service not available"}
 
@@ -59,21 +57,30 @@ OUTPUT JSON format:
                 prompt=prompt,
                 workspace_id="content-brief",
                 user_id="brief-gen",
-                max_tokens=1200
+                max_tokens=1200,
             )
-            
+
             if ai_response["status"] == "success":
                 try:
-                    clean_res = ai_response["text"].strip().replace("```json", "").replace("```", "")
+                    clean_res = (
+                        ai_response["text"]
+                        .strip()
+                        .replace("```json", "")
+                        .replace("```", "")
+                    )
                     brief_data = json.loads(clean_res)
                     return {"success": True, "brief": brief_data}
                 except:
-                    return {"success": False, "error": "Failed to parse AI brief output"}
+                    return {
+                        "success": False,
+                        "error": "Failed to parse AI brief output",
+                    }
             else:
                 return {"success": False, "error": ai_response.get("error", "AI error")}
-                
+
         except Exception as e:
             logger.error(f"Brief generation failed: {e}")
             return {"success": False, "error": str(e)}
+
 
 brief_service = BriefService()
