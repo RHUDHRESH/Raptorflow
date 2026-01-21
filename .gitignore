@@ -33,3 +33,11 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 nul
+
+# Google Credentials
+raptorflow-storage-key.json
+rhudhreshr_json/
+mcp-config.json
+update_gemini_settings.py
+manual_auth_session.js
+verify_google_token.js

@@ -103,3 +103,8 @@
 
 - [~] **Track: Auth and Onboarding Overhaul**
 *Link: [./tracks/auth_onboarding_20260120/](./tracks/auth_onboarding_20260120/)*
+
+---
+
+- [~] **Track: Authentication & Database Architecture Overhaul**
+*Link: [./tracks/auth_db_overhaul_20260121/](./tracks/auth_db_overhaul_20260121/)*
