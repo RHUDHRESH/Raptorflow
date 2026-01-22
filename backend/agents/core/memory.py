@@ -16,8 +16,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from ..base import BaseAgent
 from backend.agents.config import ModelTier
+
+from ..base import BaseAgent
 from ..exceptions import MemoryError, ValidationError
 from ..state import AgentState
 

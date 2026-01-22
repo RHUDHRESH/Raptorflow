@@ -378,22 +378,30 @@ async def complete_onboarding(current_user: User = Depends(get_current_user)):
 
 @router.get("/me/notifications")
 async def get_user_notifications(
-    current_user: User = Depends(get_current_user), limit: int = Query(default=20, description="Maximum notifications to return")
+    current_user: User = Depends(get_current_user),
+    limit: int = Query(default=20, description="Maximum notifications to return"),
 ):
     """
     Get user notifications
     """
     try:
         # Query notifications table
-        result = supabase.table("notifications").select("*").eq("user_id", current_user.id).order("created_at", desc=True).limit(limit).execute()
-        
+        result = (
+            supabase.table("notifications")
+            .select("*")
+            .eq("user_id", current_user.id)
+            .order("created_at", desc=True)
+            .limit(limit)
+            .execute()
+        )
+
         notifications = result.data or []
         unread_count = len([n for n in notifications if not n.get("read", False)])
-        
+
         return {
-            "notifications": notifications, 
-            "unread_count": unread_count, 
-            "user_id": current_user.id
+            "notifications": notifications,
+            "unread_count": unread_count,
+            "user_id": current_user.id,
         }
     except Exception as e:
         logger.error(f"Failed to get notifications for user {current_user.id}: {e}")

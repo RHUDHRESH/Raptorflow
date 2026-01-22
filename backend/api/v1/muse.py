@@ -11,8 +11,8 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 try:
-    from synapse import brain
     from schemas import NodeInput
+    from synapse import brain
 except Exception:
     brain = None
     NodeInput = None
@@ -54,12 +54,16 @@ async def generate_content(request: ContentRequest) -> ContentResponse:
         result = await brain.run_node("content_creator", node_input.dict())
 
         if result.get("status") != "success":
-            return ContentResponse(success=False, error=result.get("error", "Unknown error"))
+            return ContentResponse(
+                success=False, error=result.get("error", "Unknown error")
+            )
 
         seo_score = 0.0
         suggestions: List[str] = []
         try:
-            seo_result = await brain.run_node("seo_skill", {"content": result["data"]["content"]})
+            seo_result = await brain.run_node(
+                "seo_skill", {"content": result["data"]["content"]}
+            )
             seo_score = seo_result.get("data", {}).get("seo_score", 0.0)
             suggestions = seo_result.get("data", {}).get("suggestions", [])
         except Exception:

@@ -96,4 +96,3 @@ export function AuthenticatedContent({ children }: { children: React.ReactNode }
 
   return <>{children}</>;
 }
-

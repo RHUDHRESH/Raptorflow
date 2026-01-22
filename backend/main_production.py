@@ -23,6 +23,10 @@ from agents import (
     get_llm,
     validate_config,
 )
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
 from backend.agents.dispatcher import AgentDispatcher
 from backend.agents.exceptions import ConfigurationError, RaptorflowError
 from backend.agents.graphs.main import create_raptorflow_graph, execute_workflow
@@ -30,9 +34,6 @@ from backend.agents.preprocessing import RequestPreprocessor
 from backend.agents.routing.pipeline import RoutingPipeline
 from backend.agents.specialists.quality_checker import QualityChecker
 from backend.agents.tools.registry import get_tool_registry
-from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 # Configure structured logging
 logging.basicConfig(

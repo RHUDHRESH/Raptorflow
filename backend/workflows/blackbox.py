@@ -11,7 +11,6 @@ from backend.agents.dispatcher import AgentDispatcher
 from backend.agents.state import AgentState
 from backend.cognitive import CognitiveEngine
 from backend.memory.controller import MemoryController
-
 from supabase import Client
 
 logger = logging.getLogger(__name__)
@@ -37,7 +36,9 @@ class BlackboxWorkflow:
         self.cognitive_engine = cognitive_engine
         self.agent_dispatcher = agent_dispatcher
 
-    async def generate_strategy(self, workspace_id: str, volatility_level: int = 5) -> Dict[str, Any]:
+    async def generate_strategy(
+        self, workspace_id: str, volatility_level: int = 5
+    ) -> Dict[str, Any]:
         """
         Generate bold blackbox strategy with full orchestration.
 
@@ -49,7 +50,9 @@ class BlackboxWorkflow:
             Strategy generation result
         """
         try:
-            logger.info(f"Generating blackbox strategy for workspace {workspace_id} with volatility {volatility_level}")
+            logger.info(
+                f"Generating blackbox strategy for workspace {workspace_id} with volatility {volatility_level}"
+            )
 
             # Get workspace context
             context = await self._get_workspace_context(workspace_id)
@@ -346,7 +349,11 @@ class BlackboxWorkflow:
             return {"workspace_id": workspace_id}
 
     async def _generate_bold_strategy(
-        self, workspace_id: str, context_data: Dict[str, Any], context: Dict[str, Any], volatility_level: int = 5
+        self,
+        workspace_id: str,
+        context_data: Dict[str, Any],
+        context: Dict[str, Any],
+        volatility_level: int = 5,
     ) -> Dict[str, Any]:
         """Generate bold strategy using blackbox strategist agent."""
         try:

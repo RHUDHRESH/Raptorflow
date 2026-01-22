@@ -2,9 +2,12 @@
 Package initialization for Raptorflow agents.
 """
 
-from .base import BaseAgent
-from .config import SimplifiedConfig, ModelTier, estimate_cost, get_config
+import os
+
 from backend.config.agent_config import AgentConfig
+
+from .base import BaseAgent
+from .config import ModelTier, SimplifiedConfig, estimate_cost, get_config
 
 # Import core components
 from .dispatcher import AgentDispatcher, AgentRegistry
@@ -37,8 +40,6 @@ from .skills.registry import (
     get_skills_registry,
     list_skills,
 )
-
-import os
 
 # Import specialist agents only if not skipping init
 if os.getenv("RAPTORFLOW_SKIP_INIT", "false").lower() != "true":

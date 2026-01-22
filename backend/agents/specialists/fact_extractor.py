@@ -28,9 +28,10 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import structlog
 
+from backend.agents.config import ModelTier
+
 # Local imports
 from ..base import BaseAgent
-from backend.agents.config import ModelTier
 from ..state import AgentState
 
 logger = structlog.get_logger(__name__)

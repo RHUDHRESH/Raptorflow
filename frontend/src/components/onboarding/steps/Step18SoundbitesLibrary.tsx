@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    PAPER TERMINAL ΓÇö Step 18: Soundbites Library (Copy Refinement)
-   
+
    PURPOSE: "No Scroll" Copy Editor.
    - Core Fields: Problem, Agitation, Mechanism, Social Proof, Expertise, Transformation, CTA.
    - Logic: "Approve" or "Improve".
@@ -55,7 +55,7 @@ export default function Step17SoundbitesLibrary() {
             const foundationData = getStepById(0)?.data as { company_info?: any } | undefined;
             const positioningData = getStepById(12)?.data as { positioning?: any } | undefined;
             const icpData = getStepById(15)?.data as { icp_deep?: any } | undefined;
-            
+
             const response = await fetch('/api/onboarding/soundbites', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -66,7 +66,7 @@ export default function Step17SoundbitesLibrary() {
                     icp_data: icpData?.icp_deep || {}
                 })
             });
-            
+
             const data = await response.json();
             if (data.success && data.soundbites?.library) {
                 const newSoundbites: Soundbite[] = data.soundbites.library.map((sb: any, i: number) => ({
@@ -75,7 +75,7 @@ export default function Step17SoundbitesLibrary() {
                     content: sb.content,
                     status: "draft" as const
                 }));
-                
+
                 // Merge with default, prioritize AI-generated
                 const mergedSoundbites = [...DEFAULT_SOUNDBITES];
                 newSoundbites.forEach((aiBite, index) => {
@@ -83,7 +83,7 @@ export default function Step17SoundbitesLibrary() {
                         mergedSoundbites[index] = { ...mergedSoundbites[index], content: aiBite.content };
                     }
                 });
-                
+
                 setSoundbites(mergedSoundbites);
                 updateStepData(18, { soundbites: mergedSoundbites, confirmed: false });
             }
@@ -129,8 +129,8 @@ export default function Step17SoundbitesLibrary() {
                     <h2 className="font-serif text-2xl text-[var(--ink)]">Soundbites Library</h2>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                    <BlueprintButton 
-                        onClick={generateSoundbites} 
+                    <BlueprintButton
+                        onClick={generateSoundbites}
                         disabled={isGenerating}
                         size="sm"
                     >

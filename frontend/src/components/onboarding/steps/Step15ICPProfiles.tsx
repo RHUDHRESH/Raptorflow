@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    PAPER TERMINAL ΓÇö Step 15: ICP Profiles (Deep Research)
-   
+
    PURPOSE: "No Scroll" ICP Selector + Rich Detail View.
    - Horizontal "Player Cards" for selection phase.
    - Full-Screen Detail View with deep psychographics/demographics.
@@ -311,7 +311,7 @@ export default function Step15ICPProfiles() {
         try {
             const foundationData = getStepById(0)?.data as { company_info?: any } | undefined;
             const positioningData = getStepById(12)?.data as { positioning?: any } | undefined;
-            
+
             const response = await fetch('/api/onboarding/icp-deep', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -322,7 +322,7 @@ export default function Step15ICPProfiles() {
                     count: 3
                 })
             });
-            
+
             const data = await response.json();
             if (data.success && data.icp_profiles?.profiles) {
                 const aiProfiles: ICPProfile[] = data.icp_profiles.profiles.map((profile: any, i: number) => ({
@@ -332,10 +332,10 @@ export default function Step15ICPProfiles() {
                     role: profile.firmographics?.stage || "Unknown",
                     stage: profile.firmographics?.revenue_range || "Unknown",
                     matchScore: 85 - (i * 5), // Decrease score for secondary profiles
-                    demographics: { 
-                        age: "25-45", 
-                        income: profile.firmographics?.revenue_range || "Unknown", 
-                        base: profile.firmographics?.geography || "Global" 
+                    demographics: {
+                        age: "25-45",
+                        income: profile.firmographics?.revenue_range || "Unknown",
+                        base: profile.firmographics?.geography || "Global"
                     },
                     psychographics: {
                         beliefs: profile.pain_points?.slice(0, 2).map((p: any) => p.description) || [],
@@ -348,13 +348,13 @@ export default function Step15ICPProfiles() {
                         hangouts: ["LinkedIn", "Industry Forums"],
                         follows: ["Industry Leaders"]
                     },
-                    sophistication: { 
-                        stage: 3, 
-                        label: "Solution Aware", 
-                        why: "Understands the problem space and looking for solutions" 
+                    sophistication: {
+                        stage: 3,
+                        label: "Solution Aware",
+                        why: "Understands the problem space and looking for solutions"
                     }
                 }));
-                
+
                 setProfiles(aiProfiles);
                 updateStepData(16, { profiles: aiProfiles, confirmed: false });
             }

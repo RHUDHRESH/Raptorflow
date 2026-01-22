@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    PAPER TERMINAL ΓÇö Step 8: Comparative Angle
-   
+
    PURPOSE: Define the "Upper Hand" against competitors.
    - "Quiet Luxury" Refactor: "Landscape Matrix".
    - Minimalist grid/table for comparison.
@@ -202,7 +202,7 @@ export default function Step8CompetitiveAlternatives() {
         try {
             const step1Data = getStepById(1)?.data as { evidence?: any[] } | undefined;
             const foundationData = getStepById(0)?.data as { company_info?: any } | undefined;
-            
+
             const response = await fetch('/api/onboarding/competitor-analysis', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -212,7 +212,7 @@ export default function Step8CompetitiveAlternatives() {
                     evidence: step1Data?.evidence || []
                 })
             });
-            
+
             const data = await response.json();
             if (data.success && data.competitor_analysis?.competitors) {
                 const newAlternatives: Alternative[] = data.competitor_analysis.competitors.map((comp: any, i: number) => ({

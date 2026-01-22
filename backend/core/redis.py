@@ -32,7 +32,7 @@ class RedisClient:
         if self._client is None:
             # Create Upstash Redis client
             self._client = SyncRedis(url=self.url, token=self.token)
-            
+
             # Test connection
             result = self._client.ping()
             if result == "PONG":

@@ -232,7 +232,9 @@ def run_integration_tests():
             result = ocr.process_document(doc)
 
             if result["success"]:
-                print(f"Γ£ô Success - Processing time: {result['processing_time']:.2f}s")
+                print(
+                    f"Γ£ô Success - Processing time: {result['processing_time']:.2f}s"
+                )
                 print(
                     f"  Content length: {len(result['final_output']['extracted_content']['text'])}"
                 )

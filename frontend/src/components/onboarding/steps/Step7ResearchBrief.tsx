@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    PAPER TERMINAL ΓÇö Step 6: Market Intelligence
-   
+
    PURPOSE: Visualize the "Market Scraper" and gather real customer insights.
    - "Quiet Luxury" Refactor: "Intelligence Dossier" style.
    - Terminal-like "Scanning" visualization.
@@ -168,9 +168,9 @@ export default function Step7ResearchBrief() {
                     company_domain: 'marketing',
                 })
             });
-            
+
             const result = await response.json();
-            
+
             // Map API response to our insight format
             const apiInsights: CustomerInsight[] = (result.pain_points || []).map((pp: any, idx: number) => ({
                 id: pp.id || `${idx + 1}`,
@@ -179,7 +179,7 @@ export default function Step7ResearchBrief() {
                 source: `Reddit r/${result.subreddits_analyzed?.[0] || 'SaaS'}`,
                 sentiment: Math.round((1 - (pp.severity || 0.5)) * 100),
             }));
-            
+
             // Add a desire insight from market insights
             if (result.market_insights?.length > 0) {
                 apiInsights.push({
@@ -190,13 +190,13 @@ export default function Step7ResearchBrief() {
                     sentiment: 85,
                 });
             }
-            
+
             const apiCompetitors = (result.competitor_mentions || []).map((c: any) => c.competitor);
             const apiSummary = result.research_summary || "Market research complete. Key pain points identified.";
-            
+
             const finalInsights = apiInsights.length > 0 ? apiInsights : generateFallbackInsights();
             const finalCompetitors = apiCompetitors.length > 0 ? apiCompetitors : ["HubSpot", "Salesforce", "ClickUp"];
-            
+
             setInsights(finalInsights);
             setDetectedCompetitors(finalCompetitors);
             setSummary(apiSummary);
@@ -213,7 +213,7 @@ export default function Step7ResearchBrief() {
             const fallbackInsights = generateFallbackInsights();
             const fallbackCompetitors = ["HubSpot", "Salesforce", "ClickUp", "Monday.com"];
             const fallbackSummary = "The market is saturated with complex tools. Users are craving simplicity.";
-            
+
             setInsights(fallbackInsights);
             setDetectedCompetitors(fallbackCompetitors);
             setSummary(fallbackSummary);
@@ -227,7 +227,7 @@ export default function Step7ResearchBrief() {
         }
         setIsScanning(false);
     };
-    
+
     const generateFallbackInsights = (): CustomerInsight[] => [
         { id: "1", type: "pain", quote: "I spend more time configuring the tool than actually doing the work.", source: "Reddit r/productivity", sentiment: 12 },
         { id: "2", type: "desire", quote: "I just want a dashboard that tells me exactly what to do next.", source: "G2 Crowd", sentiment: 88 },

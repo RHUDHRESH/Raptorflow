@@ -38,14 +38,14 @@ export function BlueprintBadge({
         blackbox: "bg-ink text-canvas border-ink",
     };
 
-    // For quiet luxury, "success", "warning" etc are often too bright. 
+    // For quiet luxury, "success", "warning" etc are often too bright.
     // We strictly control them to be subtle or high contrast against ink.
     // However, sticking to the requested change, I will map them to the closest safe tokens.
     // Wait, the user wants "Quiet Luxury" which usually means avoiding standard green/red.
     // I will use tailored colors if available, or just standard ones but muted.
     // Let's stick to standard Tailwind classes if possible, but I don't have success-light defined.
     // Checked tailwind config mentally: I have 'success', 'warning', 'error' in 'functional'.
-    // Usage: 'text-functional-success', 'bg-functional-success'. 
+    // Usage: 'text-functional-success', 'bg-functional-success'.
     // Let's assume standard names for now to pass build, but I'll use hex for safety if unsure.
     // Actually, I'll use the 'functional' token names I saw in previous context or just standard tailwind colors if I didn't see them.
     // Re-reading tailwind.config.ts summary in context: "functional" colors were defined. containing success, warning, error, info.

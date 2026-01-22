@@ -11,9 +11,13 @@ from typing import Any, Dict, List, Optional
 try:
     from backend.agents.specialists.quality_checker import QualityChecker
 except ImportError:
+
     class QualityChecker:
         """Stub for QualityChecker if missing"""
-        async def execute(self, state): return state
+
+        async def execute(self, state):
+            return state
+
 
 from backend.memory.controller import MemoryController
 from supabase import Client
@@ -48,11 +52,11 @@ async def process_output(
         }
 
         # Step 1: Quality check
-        results["quality"] = {"score": 0.8, "approved": True} # Placeholder
+        results["quality"] = {"score": 0.8, "approved": True}  # Placeholder
 
         # Step 2: Store in database
         # ... simplified for now to allow boot ...
-        
+
         return results
 
     except Exception as e:

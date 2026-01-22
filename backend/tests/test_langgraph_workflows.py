@@ -106,7 +106,9 @@ class TestLangGraphWorkflows:
                 success = workflow.initialize(self.agent_registry)
                 if success:
                     self.workflows[workflow_name] = workflow
-                    logger.info(f"Γ£à {workflow_name} workflow initialized successfully")
+                    logger.info(
+                        f"Γ£à {workflow_name} workflow initialized successfully"
+                    )
                 else:
                     logger.error(f"Γ¥î {workflow_name} workflow initialization failed")
             except Exception as e:

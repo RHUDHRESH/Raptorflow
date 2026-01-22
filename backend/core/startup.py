@@ -17,6 +17,7 @@ from backend.agents.core.monitor import AgentMonitor
 from backend.agents.core.orchestrator import AgentOrchestrator
 from backend.agents.core.registry import AgentRegistry
 from backend.agents.core.state import AgentStateManager
+
 from ..cache.redis_client import RedisClient
 from ..database.connection import DatabaseManager
 from ..llm.vertex_client import VertexAIClient

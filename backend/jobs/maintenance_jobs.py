@@ -315,37 +315,37 @@ class MaintenanceJobs:
             # Get database service
             try:
                 from backend.core.database import get_database_service
-                
+
                 database_service = await get_database_service()
                 if database_service:
                     # Get database statistics before vacuum
                     before_stats = await database_service.get_database_statistics()
-                    
+
                     # Vacuum database
                     vacuum_result = await database_service.vacuum_database()
-                    
+
                     # Optimize tables
                     tables_optimized = []
                     tables = await database_service.get_table_list()
-                    
+
                     for table in tables:
                         try:
                             await database_service.optimize_table(table)
                             tables_optimized.append(table)
                         except Exception as e:
                             errors.append(f"Failed to optimize table {table}: {str(e)}")
-                    
+
                     # Rebuild indexes
                     indexes_rebuilt = []
                     indexes = await database_service.get_index_list()
-                    
+
                     for index in indexes:
                         try:
                             await database_service.rebuild_index(index)
                             indexes_rebuilt.append(index)
                         except Exception as e:
                             errors.append(f"Failed to rebuild index {index}: {str(e)}")
-                    
+
                     # Update statistics
                     statistics_updated = []
                     for table in tables:
@@ -356,35 +356,39 @@ class MaintenanceJobs:
                             errors.append(
                                 f"Failed to update statistics for table {table}: {str(e)}"
                             )
-                    
+
                     # Get database statistics after vacuum
                     after_stats = await database_service.get_database_statistics()
-                    
+
                     # Calculate improvements
-                    space_freed_mb = before_stats.get("total_size_mb", 0) - after_stats.get(
+                    space_freed_mb = before_stats.get(
                         "total_size_mb", 0
+                    ) - after_stats.get("total_size_mb", 0)
+                    performance_improvement = vacuum_result.get(
+                        "performance_improvement", 0.0
                     )
-                    performance_improvement = vacuum_result.get("performance_improvement", 0.0)
-                    
+
                     processing_time = (datetime.utcnow() - start_time).total_seconds()
-                    
+
                     # Record metrics
                     await self.monitoring.record_metric(
-                        "database_vacuum_space_freed", space_freed_mb, {"operation": "vacuum"}
+                        "database_vacuum_space_freed",
+                        space_freed_mb,
+                        {"operation": "vacuum"},
                     )
-                    
+
                     await self.monitoring.record_metric(
                         "database_vacuum_performance_improvement",
                         performance_improvement,
                         {"operation": "vacuum"},
                     )
-                    
+
                     await self.monitoring.record_metric(
                         "database_vacuum_processing_time",
                         processing_time,
                         {"operation": "vacuum"},
                     )
-                    
+
                     result = DatabaseMaintenanceResult(
                         tables_optimized=tables_optimized,
                         indexes_rebuilt=indexes_rebuilt,
@@ -394,7 +398,7 @@ class MaintenanceJobs:
                         processing_time_seconds=processing_time,
                         errors=errors,
                     )
-                    
+
                     # Log completion
                     await self.logging.log_structured(
                         "INFO",
@@ -408,9 +412,9 @@ class MaintenanceJobs:
                             "processing_time_seconds": processing_time,
                         },
                     )
-                    
+
                     return result
-                    
+
             except ImportError:
                 # Fall back to legacy implementation
                 pass
@@ -569,7 +573,7 @@ class MaintenanceJobs:
             # Backup database
             try:
                 from backend.core.database import get_database_service
-                
+
                 database_service = await get_database_service()
                 if database_service:
                     db_backup = await database_service.create_backup()
@@ -655,7 +659,7 @@ class MaintenanceJobs:
             # Check database health
             try:
                 from backend.core.database import get_database_service
-                
+
                 database_service = await get_database_service()
                 if database_service:
                     db_health = await database_service.health_check()

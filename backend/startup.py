@@ -16,7 +16,6 @@ from backend.core.migrations import run_migrations
 from backend.core.redis import get_redis_client
 from backend.core.supabase_mgr import get_supabase_client
 from backend.memory.controller import SimpleMemoryController as MemoryController
-
 from supabase import create_client
 
 logger = logging.getLogger(__name__)
@@ -165,6 +164,7 @@ async def initialize_memory_controller() -> bool:
     """Initialize memory controller."""
     try:
         from backend.memory import SimpleMemoryController as MemoryController
+
         controller = MemoryController()
         return controller is not None
 
@@ -177,7 +177,9 @@ async def initialize_cognitive_engine() -> bool:
     """Initialize cognitive engine."""
     try:
         # Skip cognitive engine for now - it's complex and not critical for basic functionality
-        logger.info("Cognitive engine initialization skipped (not critical for startup)")
+        logger.info(
+            "Cognitive engine initialization skipped (not critical for startup)"
+        )
         return True
 
     except Exception as e:

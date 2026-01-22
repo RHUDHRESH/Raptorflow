@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from backend.config.settings import get_settings
+
 from ..infrastructure.bigquery import BigQueryClient
 from ..redis_core.client import RedisClient
 from ..redis_core.metrics import RedisMetrics

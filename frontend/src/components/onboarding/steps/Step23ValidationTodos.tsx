@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    PAPER TERMINAL ΓÇö Step 22: Validation Tasks (Reality Check)
-   
+
    PURPOSE: 5 Non-Content Tasks to "Get in Tune".
    - Simple, Checklist UI.
    - Minimalist.
@@ -64,7 +64,7 @@ export default function Step23ValidationTodos() {
                     allData[`step_${i}`] = stepData;
                 }
             }
-            
+
             const response = await fetch('/api/onboarding/launch-readiness', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -73,7 +73,7 @@ export default function Step23ValidationTodos() {
                     onboarding_data: allData
                 })
             });
-            
+
             const data = await response.json();
             if (data.success && data.launch_readiness) {
                 setLaunchReadiness(data.launch_readiness);
@@ -96,12 +96,12 @@ export default function Step23ValidationTodos() {
                     allData[`step_${i}`] = stepData;
                 }
             }
-            
+
             await generateFromOnboarding(allData);
         } catch (error) {
             console.error('Failed to generate BCM:', error);
         }
-        
+
         updateStepStatus(22, "complete"); // Map to 22
     };
 
@@ -116,8 +116,8 @@ export default function Step23ValidationTodos() {
                     <ListTodo size={14} />
                     <span className="font-serif italic text-sm">"Get out of the building. Content comes later."</span>
                 </div>
-                <BlueprintButton 
-                    onClick={generateLaunchReadiness} 
+                <BlueprintButton
+                    onClick={generateLaunchReadiness}
                     disabled={isGenerating}
                     size="sm"
                     className="mt-2"

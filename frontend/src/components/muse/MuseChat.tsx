@@ -104,7 +104,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                         content: msg.content,
                         timestamp: new Date(msg.timestamp).toISOString()
                     })),
-                    context: { 
+                    context: {
                         platform: "Raptorflow",
                         bcm: bcmContext
                     },
@@ -173,7 +173,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     task: task,
-                    context: { 
+                    context: {
                         platform: "Raptorflow",
                         bcm: bcmContext
                     },

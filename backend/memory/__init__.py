@@ -8,6 +8,6 @@ from .models import MemoryChunk, MemoryType
 
 __all__ = [
     "MemoryType",
-    "MemoryChunk", 
+    "MemoryChunk",
     "MemoryController",
 ]

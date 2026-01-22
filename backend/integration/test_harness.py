@@ -11,7 +11,6 @@ from typing import Any, Dict, List, Optional
 from backend.agents.dispatcher import AgentDispatcher
 from backend.cognitive import CognitiveEngine
 from backend.memory.controller import MemoryController
-
 from supabase import Client
 
 logger = logging.getLogger(__name__)

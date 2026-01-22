@@ -22,7 +22,11 @@ from backend.agents.specialists.move_strategist import MoveStrategist
 from backend.agents.specialists.onboarding_orchestrator import OnboardingOrchestrator
 
 # Import workflow classes
-from backend.agents.workflows.base_workflow import BaseWorkflow, WorkflowState, WorkflowStatus
+from backend.agents.workflows.base_workflow import (
+    BaseWorkflow,
+    WorkflowState,
+    WorkflowStatus,
+)
 from backend.agents.workflows.content_workflow import ContentWorkflow
 from backend.agents.workflows.onboarding_workflow import OnboardingWorkflow
 from backend.agents.workflows.strategy_workflow import StrategyWorkflow
@@ -108,7 +112,9 @@ class TestWorkflowStatePersistence:
                 success = workflow.initialize(self.agent_registry)
                 if success:
                     self.workflows[workflow_name] = workflow
-                    logger.info(f"Γ£à {workflow_name} workflow initialized successfully")
+                    logger.info(
+                        f"Γ£à {workflow_name} workflow initialized successfully"
+                    )
                 else:
                     logger.error(f"Γ¥î {workflow_name} workflow initialization failed")
             except Exception as e:

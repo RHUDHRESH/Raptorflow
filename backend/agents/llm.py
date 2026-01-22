@@ -16,7 +16,12 @@ logger = logging.getLogger(__name__)
 
 # Updated langchain imports for compatibility
 try:
-    from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
+    from langchain_core.messages import (
+        AIMessage,
+        BaseMessage,
+        HumanMessage,
+        SystemMessage,
+    )
     from langchain_google_vertexai import ChatVertexAI
 except ImportError:
     # Fallback if langchain_google_vertexai is not available
@@ -57,28 +62,36 @@ class VertexAILLM:
         try:
             # Get configuration with fallback handling
             config = get_config()
-            
+
             # Enhanced project ID resolution
-            project_id = getattr(config, 'GCP_PROJECT_ID', None) or os.getenv("GOOGLE_PROJECT_ID")
+            project_id = getattr(config, "GCP_PROJECT_ID", None) or os.getenv(
+                "GOOGLE_PROJECT_ID"
+            )
             if not project_id:
                 raise LLMError(
                     "GOOGLE_PROJECT_ID not found in config or environment variables",
                     error_code="MISSING_PROJECT_ID",
                     details={"model_tier": model_tier.value},
                 )
-            
+
             # Enhanced region resolution
-            location = getattr(config, 'GCP_REGION', None) or os.getenv("GOOGLE_REGION", "us-central1")
-            
+            location = getattr(config, "GCP_REGION", None) or os.getenv(
+                "GOOGLE_REGION", "us-central1"
+            )
+
             # Initialize Vertex AI with retry logic
             max_retries = 3
             for attempt in range(max_retries):
                 try:
                     vertexai.init(project=project_id, location=location)
-                    logger.info(f"Vertex AI initialized successfully (attempt {attempt + 1})")
+                    logger.info(
+                        f"Vertex AI initialized successfully (attempt {attempt + 1})"
+                    )
                     break
                 except Exception as e:
-                    logger.error(f"Vertex AI init failed (attempt {attempt + 1}/{max_retries}): {e}")
+                    logger.error(
+                        f"Vertex AI init failed (attempt {attempt + 1}/{max_retries}): {e}"
+                    )
                     if attempt == max_retries - 1:
                         raise LLMError(
                             f"Failed to initialize Vertex AI after {max_retries} attempts: {e}",
@@ -91,7 +104,7 @@ class VertexAILLM:
                             },
                         )
                     time.sleep(1)  # Wait before retry
-            
+
         except LLMError:
             # Re-raise LLM errors
             raise
@@ -107,11 +120,11 @@ class VertexAILLM:
         try:
             # Create LangChain ChatVertexAI instance with enhanced configuration
             config = get_config()
-            
+
             # Enhanced timeout and token limits
-            timeout = getattr(config, 'AGENT_TIMEOUT_SECONDS', 120)
-            max_tokens = getattr(config, 'MAX_TOKENS_PER_REQUEST', 8192)
-            
+            timeout = getattr(config, "AGENT_TIMEOUT_SECONDS", 120)
+            max_tokens = getattr(config, "MAX_TOKENS_PER_REQUEST", 8192)
+
             self.llm = ChatVertexAI(
                 model_name=self.model_name,
                 temperature=0.7,
@@ -121,10 +134,10 @@ class VertexAILLM:
                 max_retries=2,
                 request_timeout=timeout - 10,  # Slightly less than overall timeout
             )
-            
+
             self._initialized = True
             logger.info(f"ChatVertexAI instance created for model: {self.model_name}")
-            
+
         except Exception as e:
             self._init_error = str(e)
             logger.error(f"Failed to create ChatVertexAI instance: {e}")
@@ -158,7 +171,7 @@ class VertexAILLM:
                 error_code="NOT_INITIALIZED",
                 details={"model_tier": self.model_tier.value},
             )
-        
+
         start_time = time.time()
 
         try:
@@ -170,20 +183,24 @@ class VertexAILLM:
 
             # Enhanced parameter handling
             runtime_config = {}
-            
+
             # Temperature Modulation with validation
             current_temp = getattr(self.llm, "temperature", 0.7)
             if kwargs.get("creative_mode"):
-                runtime_config["temperature"] = min(1.0, current_temp + 0.2)  # Cap at 1.0
+                runtime_config["temperature"] = min(
+                    1.0, current_temp + 0.2
+                )  # Cap at 1.0
             elif kwargs.get("analytical_mode"):
-                runtime_config["temperature"] = max(0.0, current_temp - 0.5)  # Floor at 0.0
-            
+                runtime_config["temperature"] = max(
+                    0.0, current_temp - 0.5
+                )  # Floor at 0.0
+
             # Token Limit Boost with validation
             current_max_tokens = getattr(self.llm, "max_output_tokens", 8192)
             if kwargs.get("strategy_mode"):
                 # Double capacity for deep strategy with safety cap
                 runtime_config["max_output_tokens"] = min(32768, current_max_tokens * 2)
-            
+
             # Apply overrides if any
             if runtime_config:
                 runnable = self.llm.bind(**runtime_config)
@@ -194,7 +211,7 @@ class VertexAILLM:
             try:
                 response = await asyncio.wait_for(
                     runnable.ainvoke(messages),
-                    timeout=getattr(get_config(), 'AGENT_TIMEOUT_SECONDS', 120)
+                    timeout=getattr(get_config(), "AGENT_TIMEOUT_SECONDS", 120),
                 )
             except asyncio.TimeoutError:
                 raise LLMError(
@@ -202,9 +219,9 @@ class VertexAILLM:
                     error_code="GENERATION_TIMEOUT",
                     details={"model_tier": self.model_tier.value},
                 )
-            
+
             content = response.content
-            
+
             # Track usage
             latency_ms = int((time.time() - start_time) * 1000)
             self._track_usage(response, latency_ms)
@@ -230,16 +247,17 @@ class VertexAILLM:
         # 1. Strip markdown code blocks
         if "```" in json_str:
             json_str = json_str.replace("```json", "").replace("```", "").strip()
-            
+
         # 2. Fix trailing commas (common in lists/dicts)
         import re
+
         json_str = re.sub(r",\s*([\]}])", r"\1", json_str)
-        
+
         # 3. Replace single quotes with double quotes (dangerous but often needed)
         # Only do this if we are desperate and it looks like a dict
         if "'" in json_str and '"' not in json_str:
-             json_str = json_str.replace("'", '"')
-             
+            json_str = json_str.replace("'", '"')
+
         return json_str
 
     async def generate_structured(
@@ -480,11 +498,15 @@ def validate_llm_setup() -> Dict[str, Any]:
     """Validate LLM setup and return status with enhanced error handling."""
     try:
         config = get_config()
-        
+
         # Check configuration with proper attribute names
-        project_id = getattr(config, 'GCP_PROJECT_ID', None) or os.getenv("GOOGLE_PROJECT_ID")
-        region = getattr(config, 'GCP_REGION', None) or os.getenv("GOOGLE_REGION", "us-central1")
-        
+        project_id = getattr(config, "GCP_PROJECT_ID", None) or os.getenv(
+            "GOOGLE_PROJECT_ID"
+        )
+        region = getattr(config, "GCP_REGION", None) or os.getenv(
+            "GOOGLE_REGION", "us-central1"
+        )
+
         if not project_id:
             return {
                 "status": "error",
@@ -492,7 +514,7 @@ def validate_llm_setup() -> Dict[str, Any]:
                 "provider": "vertexai",
                 "missing_fields": ["GOOGLE_PROJECT_ID"],
             }
-        
+
         # Test LLM initialization with error handling
         try:
             llm = get_llm(ModelTier.FLASH_LITE)
@@ -512,7 +534,7 @@ def validate_llm_setup() -> Dict[str, Any]:
                 "provider": "vertexai",
                 "error_details": str(e),
             }
-            
+
     except Exception as e:
         return {
             "status": "error",

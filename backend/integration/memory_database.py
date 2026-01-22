@@ -7,12 +7,13 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from backend.memory.controller import MemoryController
+from supabase import Client
+
 # Vectorizers are legacy or moved - commenting out to allow system to boot
 # from backend.memory.vectorizers.foundation import FoundationVectorizer
 # from backend.memory.vectorizers.icp import ICPVectorizer
 # from backend.memory.vectorizers.move import MoveVectorizer
 
-from supabase import Client
 
 logger = logging.getLogger(__name__)
 

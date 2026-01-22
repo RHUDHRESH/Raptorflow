@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional
 
 from backend.services.email_service import EmailService
 from backend.services.notification_service import NotificationService
+
 from ..types import ApprovalRequestedEvent, Event, EventType, UsageLimitReachedEvent
 
 logger = logging.getLogger(__name__)

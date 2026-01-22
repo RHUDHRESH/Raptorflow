@@ -57,7 +57,7 @@ export const useMuseStore = create<MuseStoreState>()(
                         content_type: asset.type.toLowerCase(),
                         context: { source: asset.source }
                     }) as any;
-                    
+
                     set((state) => ({
                         assets: [
                             {

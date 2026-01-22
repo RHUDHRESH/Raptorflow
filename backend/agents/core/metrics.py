@@ -14,8 +14,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-from ..base import BaseAgent
 from config import ModelTier
+
+from ..base import BaseAgent
 from ..exceptions import MetricsError
 
 logger = logging.getLogger(__name__)

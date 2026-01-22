@@ -9,13 +9,15 @@ No external API dependencies.
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from .base import WebTool, ToolResult, ToolCategory
 from backend.services.search.orchestrator import SOTASearchOrchestrator
 
+from .base import ToolCategory, ToolResult, WebTool
+
 logger = logging.getLogger(__name__)
+
 
 class WebSearchTool(WebTool):
     """
@@ -45,13 +47,10 @@ class WebSearchTool(WebTool):
         limit = min(kwargs.get("num_results", 10), 50)
 
         if not query:
-            return {
-                "success": False,
-                "error": "Empty search query"
-            }
+            return {"success": False, "error": "Empty search query"}
 
         logger.info(f"Machine Search: '{query}' (limit={limit})")
-        
+
         orchestrator = self._get_orchestrator()
         results = await orchestrator.query(query, limit=limit)
 
@@ -63,8 +62,8 @@ class WebSearchTool(WebTool):
             "timestamp": datetime.now().isoformat(),
             "metadata": {
                 "machine_id": "RF-SEARCH-SOTA-01",
-                "processed_at": datetime.now().isoformat()
-            }
+                "processed_at": datetime.now().isoformat(),
+            },
         }
 
     async def search_multiple_engines(self, query: str, **kwargs) -> Dict[str, Any]:
@@ -75,6 +74,7 @@ class WebSearchTool(WebTool):
         """Cleanup orchestrator resources."""
         if self._orchestrator:
             await self._orchestrator.close()
+
 
 # Export for dynamic loading
 __all__ = ["WebSearchTool"]

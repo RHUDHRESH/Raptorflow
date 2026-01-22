@@ -10,8 +10,9 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..base import BaseAgent
 from config import ModelTier
+
+from ..base import BaseAgent
 from ..exceptions import RoutingError, ValidationError
 from ..state import AgentState
 from .metrics import AgentMetricsCollector

@@ -12,8 +12,9 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
-from ..base import BaseAgent
 from backend.agents.config import ModelTier
+
+from ..base import BaseAgent
 from ..exceptions import OrchestrationError, ValidationError
 from ..state import AgentState
 from .dispatcher import AgentDispatcher, DispatchRequest, DispatchResult

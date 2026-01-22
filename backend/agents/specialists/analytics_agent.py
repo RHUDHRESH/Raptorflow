@@ -10,8 +10,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..base import BaseAgent
 from backend.agents.config import ModelTier
+
+from ..base import BaseAgent
 from ..exceptions import DatabaseError, ValidationError
 from ..state import AgentState, add_message, update_state
 
@@ -832,7 +833,9 @@ Format the response as a structured analytics report with clear sections and sup
 
         return comparisons
 
-    async def _generate_forecasts(self, request: AnalyticsRequest) -> List[Dict[str, Any]]:
+    async def _generate_forecasts(
+        self, request: AnalyticsRequest
+    ) -> List[Dict[str, Any]]:
         """Generate forecast analysis."""
         forecasts = []
 
@@ -843,35 +846,51 @@ Format the response as a structured analytics report with clear sections and sup
 
         try:
             if forecast_skill:
-                logger.info("Swarm: Forecasting performance with ForecastOracleSkill...")
+                logger.info(
+                    "Swarm: Forecasting performance with ForecastOracleSkill..."
+                )
                 # We can forecast revenue, conversions, or ROI. Let's do revenue as primary.
-                forecast_res = await forecast_skill.execute({
-                    "agent": self,
-                    "metric": "revenue",
-                    "historical_data": list(range(100, 200, 10)) # Mock historical for now
-                })
-                
+                forecast_res = await forecast_skill.execute(
+                    {
+                        "agent": self,
+                        "metric": "revenue",
+                        "historical_data": list(
+                            range(100, 200, 10)
+                        ),  # Mock historical for now
+                    }
+                )
+
                 if "forecast" in forecast_res:
                     f_data = forecast_res["forecast"]
-                    
+
                     # Add Revenue Forecast
-                    forecasts.append({
-                        "metric": "revenue",
-                        "predicted_value": f_data.get("predicted_value", 0),
-                        "confidence_interval": f_data.get("confidence_interval", [0, 0]),
-                        "time_horizon": "30 days",
-                        "accuracy": f_data.get("confidence_score", 0.8),
-                        "model": "swarm_ensemble"
-                    })
-                    
+                    forecasts.append(
+                        {
+                            "metric": "revenue",
+                            "predicted_value": f_data.get("predicted_value", 0),
+                            "confidence_interval": f_data.get(
+                                "confidence_interval", [0, 0]
+                            ),
+                            "time_horizon": "30 days",
+                            "accuracy": f_data.get("confidence_score", 0.8),
+                            "model": "swarm_ensemble",
+                        }
+                    )
+
                     # Create a second forecast for conversions (derived or separate call)
-                    forecasts.append({
-                        "metric": "conversions",
-                        "predicted_value": f_data.get("predicted_value", 0) * 0.02, # naive derivation
-                        "confidence_interval": [x * 0.02 for x in f_data.get("confidence_interval", [0, 0])],
-                        "time_horizon": "30 days",
-                        "accuracy": f_data.get("confidence_score", 0.8) * 0.9
-                    })
+                    forecasts.append(
+                        {
+                            "metric": "conversions",
+                            "predicted_value": f_data.get("predicted_value", 0)
+                            * 0.02,  # naive derivation
+                            "confidence_interval": [
+                                x * 0.02
+                                for x in f_data.get("confidence_interval", [0, 0])
+                            ],
+                            "time_horizon": "30 days",
+                            "accuracy": f_data.get("confidence_score", 0.8) * 0.9,
+                        }
+                    )
 
         except Exception as e:
             logger.warning(f"ForecastOracleSkill failed: {e}")

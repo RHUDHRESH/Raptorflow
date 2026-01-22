@@ -46,8 +46,8 @@ class MoveService:
             payload={
                 "move_id": created_move.get("id"),
                 "name": created_move.get("name"),
-                "category": created_move.get("category")
-            }
+                "category": created_move.get("category"),
+            },
         )
 
         return created_move
@@ -66,14 +66,14 @@ class MoveService:
             raise ValidationError("Move is already active")
 
         updated = await self.repository.start_move(move_id, workspace_id)
-        
+
         await bcm_evolution.record_interaction(
             workspace_id=workspace_id,
             agent_name="MoveService",
             interaction_type="MOVE_STARTED",
-            payload={"move_id": move_id, "name": move.get("name")}
+            payload={"move_id": move_id, "name": move.get("name")},
         )
-        
+
         return updated
 
     async def pause_move(
@@ -104,8 +104,10 @@ class MoveService:
         if move.get("status") == "completed":
             raise ValidationError("Move is already completed")
 
-        completed_move = await self.repository.complete_move(move_id, workspace_id, results)
-        
+        completed_move = await self.repository.complete_move(
+            move_id, workspace_id, results
+        )
+
         # Record milestone via unified utility
         await bcm_evolution.record_interaction(
             workspace_id=workspace_id,
@@ -114,8 +116,8 @@ class MoveService:
             payload={
                 "move_id": move_id,
                 "title": move.get("name", "Unknown Move"),
-                "results": results or {}
-            }
+                "results": results or {},
+            },
         )
 
         return completed_move
@@ -131,17 +133,14 @@ class MoveService:
             raise ValidationError("Move not found")
 
         tasks = await self.repository.generate_tasks(move_id, workspace_id)
-        
+
         await bcm_evolution.record_interaction(
             workspace_id=workspace_id,
             agent_name="MoveService",
             interaction_type="TASK_GENERATION",
-            payload={
-                "move_id": move_id,
-                "task_count": len(tasks)
-            }
+            payload={"move_id": move_id, "task_count": len(tasks)},
         )
-        
+
         return tasks
 
     async def list_moves(
@@ -171,21 +170,29 @@ class MoveService:
 
         # Parallel fetching for performance
         tasks = []
-        
+
         # Get campaign details if associated
         if move.get("campaign_id"):
-            tasks.append(self.campaign_repository.get_by_id(move["campaign_id"], workspace_id))
+            tasks.append(
+                self.campaign_repository.get_by_id(move["campaign_id"], workspace_id)
+            )
         else:
             tasks.append(asyncio.sleep(0, result=None))
 
         # Get target ICP details if specified
         if move.get("target_icp_id"):
-            tasks.append(self.supabase.table("icp_profiles").select("*").eq("id", move["target_icp_id"]).single().execute())
+            tasks.append(
+                self.supabase.table("icp_profiles")
+                .select("*")
+                .eq("id", move["target_icp_id"])
+                .single()
+                .execute()
+            )
         else:
             tasks.append(asyncio.sleep(0, result=None))
 
         results = await asyncio.gather(*tasks)
-        
+
         move["campaign"] = results[0]
         if results[1] and hasattr(results[1], "data"):
             move["target_icp"] = results[1].data

@@ -17,7 +17,7 @@ export default function OnboardingPage() {
 
     const checkStatus = async () => {
       const workspaceId = workspace?.workspaceId;
-      
+
       // If they have a workspace and onboarding is active, redirect to dashboard
       // Note: we check the active status from user profile or metadata if available
       const anyUser = user as any;

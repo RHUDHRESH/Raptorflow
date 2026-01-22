@@ -32,44 +32,44 @@ from .analytics_agent import AnalyticsAgent
 from .blackbox_strategist import BlackboxStrategist
 from .blog_writer import BlogWriter
 from .campaign_planner import CampaignPlanner
+from .category_advisor import CategoryAdvisor
+from .channel_recommender import ChannelRecommender
+from .channel_strategy_optimizer import ChannelStrategyOptimizer
+from .competitor_analyzer import CompetitorAnalyzer
 from .competitor_intel import CompetitorIntelAgent
 from .content_creator import ContentCreator
+from .contradiction_detector import ContradictionDetector
 from .daily_wins import DailyWinsGenerator
 from .email_specialist import EmailSpecialist
-from .evidence_processor import EvidenceProcessor
-from .fact_extractor import FactExtractor
-from .icp_architect import ICPArchitect
-from .market_research import MarketResearch
-from .move_strategist import MoveStrategist
-
-# Import all specialist agents
-from .onboarding_orchestrator import OnboardingOrchestrator
-from .persona_simulator import PersonaSimulator
-from .quality_checker import QualityChecker
-from .revision_agent import RevisionAgent
-from .social_media_agent import SocialMediaAgent
-from .trend_analyzer import TrendAnalyzer
 
 # 23-step onboarding specialist agents
 from .evidence_classifier import EvidenceClassifier
+from .evidence_processor import EvidenceProcessor
 from .extraction_orchestrator import ExtractionOrchestrator
-from .contradiction_detector import ContradictionDetector
-from .reddit_researcher import RedditResearcher
-from .perceptual_map_generator import PerceptualMapGenerator
-from .neuroscience_copywriter import NeuroscienceCopywriter
-from .channel_recommender import ChannelRecommender
-from .category_advisor import CategoryAdvisor
-from .market_size_calculator import MarketSizeCalculator
-from .competitor_analyzer import CompetitorAnalyzer
+from .fact_extractor import FactExtractor
 from .focus_sacrifice_engine import FocusSacrificeEngine
-from .proof_point_validator import ProofPointValidator
-from .truth_sheet_generator import TruthSheetGenerator
-from .messaging_rules_engine import MessagingRulesEngine
-from .soundbites_generator import SoundbitesGenerator
+from .icp_architect import ICPArchitect
 from .icp_deep_generator import ICPDeepGenerator
-from .positioning_statement_generator import PositioningStatementGenerator
 from .launch_readiness_checker import LaunchReadinessChecker
-from .channel_strategy_optimizer import ChannelStrategyOptimizer
+from .market_research import MarketResearch
+from .market_size_calculator import MarketSizeCalculator
+from .messaging_rules_engine import MessagingRulesEngine
+from .move_strategist import MoveStrategist
+from .neuroscience_copywriter import NeuroscienceCopywriter
+
+# Import all specialist agents
+from .onboarding_orchestrator import OnboardingOrchestrator
+from .perceptual_map_generator import PerceptualMapGenerator
+from .persona_simulator import PersonaSimulator
+from .positioning_statement_generator import PositioningStatementGenerator
+from .proof_point_validator import ProofPointValidator
+from .quality_checker import QualityChecker
+from .reddit_researcher import RedditResearcher
+from .revision_agent import RevisionAgent
+from .social_media_agent import SocialMediaAgent
+from .soundbites_generator import SoundbitesGenerator
+from .trend_analyzer import TrendAnalyzer
+from .truth_sheet_generator import TruthSheetGenerator
 
 # Specialist registry
 SPECIALIST_REGISTRY: Dict[str, Type] = {

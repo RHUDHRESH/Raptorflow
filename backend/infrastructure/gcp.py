@@ -15,8 +15,9 @@ from typing import Any, Dict, List, Optional
 import google.cloud.resourcemanager_v3 as resource_manager
 from google.auth import default
 from google.auth.exceptions import DefaultCredentialsError
-from google.cloud import bigquery, pubsub_v1, storage, tasks_v2
+from google.cloud import bigquery
 from google.cloud import logging as cloud_logging
+from google.cloud import pubsub_v1, storage, tasks_v2
 from google.oauth2 import service_account
 
 logger = logging.getLogger(__name__)
@@ -329,12 +330,11 @@ class GCPClient:
         """Get Cloud Logging client."""
         if self.logging_client:
             return self.logging_client
-        
+
         if self.is_authenticated():
             try:
                 self.logging_client = cloud_logging.Client(
-                    project=self.config.project_id,
-                    credentials=self.config.credentials
+                    project=self.config.project_id, credentials=self.config.credentials
                 )
                 return self.logging_client
             except Exception as e:

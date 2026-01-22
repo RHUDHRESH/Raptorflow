@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from backend.core.supabase_mgr import get_supabase_client
-
 from supabase import Client
 
 logger = logging.getLogger(__name__)

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    PAPER TERMINAL ΓÇö Step 13: Positioning Statements
-   
+
    Theme: "The Manifesto"
    Refactored for Quiet Luxury:
    - "Document" aesthetic (Paper background, serif text).
@@ -84,9 +84,9 @@ export default function Step13PositioningStatements() {
                     copy_types: ['headline', 'tagline', 'value_proposition'],
                 })
             });
-            
+
             const result = await response.json();
-            
+
             // Map AI variants to our statement format
             if (result.variants && result.variants.length > 0) {
                 const updatedStatements = statements.map((stmt, idx) => {

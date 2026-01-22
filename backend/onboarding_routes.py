@@ -15,9 +15,10 @@ from pydantic import BaseModel
 # Core system imports
 from backend.core.session import get_session_manager
 from backend.core.supabase_mgr import get_supabase_admin
-from backend.services.sota_ocr.service import create_sota_ocr_service, DEFAULT_CONFIG as OCR_CONFIG
-from backend.services.titan.orchestrator import TitanOrchestrator
 from backend.services.search.orchestrator import SOTASearchOrchestrator
+from backend.services.sota_ocr.service import DEFAULT_CONFIG as OCR_CONFIG
+from backend.services.sota_ocr.service import create_sota_ocr_service
+from backend.services.titan.orchestrator import TitanOrchestrator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -30,6 +31,7 @@ router = APIRouter(prefix="/api/v1/onboarding", tags=["onboarding"])
 session_manager = get_session_manager()
 ocr_service = create_sota_ocr_service(OCR_CONFIG)
 titan_engine = TitanOrchestrator()
+
 
 # Pydantic models
 class StepUpdateRequest(BaseModel):
@@ -72,7 +74,7 @@ async def scrape_website(url: str) -> Dict[str, Any]:
             query=f"Extract business facts from {url}",
             mode="RESEARCH",
             focus_areas=["company profile", "pricing", "features"],
-            use_stealth=True
+            use_stealth=True,
         )
 
         if result and "results" in result:
@@ -80,10 +82,12 @@ async def scrape_website(url: str) -> Dict[str, Any]:
             return {
                 "status": "success",
                 "title": top_result.get("title", ""),
-                "content": top_result.get("full_content", top_result.get("snippet", "")),
+                "content": top_result.get(
+                    "full_content", top_result.get("snippet", "")
+                ),
                 "url": url,
                 "source": "titan_intelligence",
-                "intelligence_map": result.get("intelligence_map")
+                "intelligence_map": result.get("intelligence_map"),
             }
         else:
             return {"status": "error", "error": "No content found for URL via Titan"}
@@ -128,8 +132,10 @@ async def run_step_processing(session_id: str, step_id: int):
     """Trigger real AI processing for onboarding steps"""
     try:
         session_data = await get_onboarding_session(session_id)
-        logger.info(f"Triggered AI processing for step {step_id} in session {session_id}")
-        
+        logger.info(
+            f"Triggered AI processing for step {step_id} in session {session_id}"
+        )
+
         if step_id == 2:
             # Step 2: Auto-Extraction using Titan Intelligence
             # Aggregate all evidence from vault
@@ -144,64 +150,73 @@ async def run_step_processing(session_id: str, step_id: int):
                     evidence_text += item["scrape_result"].get("content", "")
 
             if not evidence_text:
-                return {"success": False, "message": "No evidence found in vault to process"}
+                return {
+                    "success": False,
+                    "message": "No evidence found in vault to process",
+                }
 
             # Execute Titan extraction
             titan_result = await titan_engine.execute(
                 query=f"Identify company profile, core category, and primary ICP from this evidence: {evidence_text[:5000]}",
                 mode="DEEP",
-                focus_areas=["B2B SaaS", "Value Proposition", "ICP Demographics"]
+                focus_areas=["B2B SaaS", "Value Proposition", "ICP Demographics"],
             )
 
             # Map Titan results to expected facts format
             intel = titan_result.get("intelligence_map", {})
             facts = []
-            
+
             # Extract Company Name
             if intel.get("summary"):
-                facts.append({
-                    "id": str(uuid.uuid4())[:8],
-                    "category": "Company",
-                    "label": "Intelligence Summary",
-                    "value": intel["summary"],
-                    "confidence": 95,
-                    "status": "extracted",
-                    "code": "F-INTEL"
-                })
+                facts.append(
+                    {
+                        "id": str(uuid.uuid4())[:8],
+                        "category": "Company",
+                        "label": "Intelligence Summary",
+                        "value": intel["summary"],
+                        "confidence": 95,
+                        "status": "extracted",
+                        "code": "F-INTEL",
+                    }
+                )
 
             for i, finding in enumerate(intel.get("key_findings", [])):
-                facts.append({
-                    "id": f"f{i}",
-                    "category": "Evidence",
-                    "label": f"Insight {i+1}",
-                    "value": finding,
-                    "confidence": 90,
-                    "status": "extracted",
-                    "code": f"F-00{i+1}"
-                })
+                facts.append(
+                    {
+                        "id": f"f{i}",
+                        "category": "Evidence",
+                        "label": f"Insight {i+1}",
+                        "value": finding,
+                        "confidence": 90,
+                        "status": "extracted",
+                        "code": f"F-00{i+1}",
+                    }
+                )
 
             if "steps" not in session_data:
                 session_data["steps"] = {}
-                
+
             session_data["steps"]["2"] = {
                 "data": {
                     "facts": facts,
                     "warnings": [],
                     "extractionComplete": True,
-                    "summary": intel.get("summary", "Extraction complete using Titan SOTA Engine."),
-                    "raw_intelligence": intel
+                    "summary": intel.get(
+                        "summary", "Extraction complete using Titan SOTA Engine."
+                    ),
+                    "raw_intelligence": intel,
                 },
                 "updated_at": datetime.utcnow().isoformat(),
-                "version": 1
+                "version": 1,
             }
-            
+
             await save_onboarding_session(session_id, session_data)
-            
+
         return {
             "success": True,
             "message": f"AI processing completed for step {step_id}",
             "session_id": session_id,
-            "step_id": step_id
+            "step_id": step_id,
         }
     except Exception as e:
         logger.error(f"Error in AI step processing: {e}")
@@ -219,8 +234,7 @@ async def upload_file(
 
         # Process with industrial SOTA OCR
         ocr_response = await ocr_service.process_document(
-            file_data=file_content,
-            filename=file.filename
+            file_data=file_content, filename=file.filename
         )
 
         file_info = {
@@ -234,7 +248,7 @@ async def upload_file(
                 "extracted_text": ocr_response.extracted_text,
                 "confidence": ocr_response.confidence_score,
                 "model_used": ocr_response.model_used,
-                "page_count": ocr_response.page_count
+                "page_count": ocr_response.page_count,
             },
         }
 
@@ -251,7 +265,7 @@ async def upload_file(
             "filename": file.filename,
             "ocr_processed": True,
             "confidence": ocr_response.confidence_score,
-            "model": ocr_response.model_used
+            "model": ocr_response.model_used,
         }
     except Exception as e:
         logger.error(f"SOTA OCR processing failed: {e}")
@@ -284,7 +298,7 @@ async def process_url(session_id: str, request: URLProcessRequest):
             "url": request.url,
             "scraped": scrape_result["status"] == "success",
             "title": scrape_result.get("title", ""),
-            "intelligence_detected": "intelligence_map" in scrape_result
+            "intelligence_detected": "intelligence_map" in scrape_result,
         }
     except Exception as e:
         logger.error(f"Error processing URL: {e}")
@@ -332,11 +346,11 @@ async def finalize_onboarding(session_id: str):
     """Finalize onboarding and update production status"""
     try:
         session_data = await get_onboarding_session(session_id)
-        
+
         # 1. Aggregation
         steps = session_data.get("steps", {})
         vault = session_data.get("vault", {})
-        
+
         business_context = {
             "version": "2.0",
             "generated_at": datetime.utcnow().isoformat(),
@@ -344,23 +358,25 @@ async def finalize_onboarding(session_id: str):
             "company_profile": steps.get("1", {}).get("data", {}),
             "intelligence": {
                 "evidence_count": len(vault),
-                "facts": steps.get("2", {}).get("data", {}).get("facts", [])
-            }
+                "facts": steps.get("2", {}).get("data", {}).get("facts", []),
+            },
         }
-        
+
         # 2. Persistence (Production GCS/DB)
         # Future: Save business_context to GCS Evidence Vault
-        
+
         # 3. Update Supabase Status
         try:
             supabase = get_supabase_admin()
             user_id = session_data.get("user_id") or session_id
-            
-            supabase.table("profiles").update({
-                "onboarding_status": "active",
-                "onboarding_completed_at": datetime.utcnow().isoformat()
-            }).eq("id", user_id).execute()
-            
+
+            supabase.table("profiles").update(
+                {
+                    "onboarding_status": "active",
+                    "onboarding_completed_at": datetime.utcnow().isoformat(),
+                }
+            ).eq("id", user_id).execute()
+
             logger.info(f"User {user_id} marked as active in production")
         except Exception as se:
             logger.error(f"Supabase update failed: {se}")
@@ -368,7 +384,7 @@ async def finalize_onboarding(session_id: str):
         return {
             "success": True,
             "message": "Onboarding finalized with industrial intelligence.",
-            "facts_extracted": len(business_context["intelligence"]["facts"])
+            "facts_extracted": len(business_context["intelligence"]["facts"]),
         }
 
     except Exception as e:

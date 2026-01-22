@@ -7,8 +7,9 @@ from typing import Any, Dict, List, Literal
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
-from ..state import AgentState
 from backend.services.titan.tool import TitanIntelligenceTool
+
+from ..state import AgentState
 
 
 class ResearchState(AgentState):
@@ -43,24 +44,22 @@ async def titan_research_node(state: ResearchState) -> ResearchState:
         titan = TitanIntelligenceTool()
 
         # Map depth to Titan modes
-        mode_map = {
-            "basic": "LITE",
-            "comprehensive": "RESEARCH",
-            "deep": "DEEP"
-        }
+        mode_map = {"basic": "LITE", "comprehensive": "RESEARCH", "deep": "DEEP"}
         mode = mode_map.get(state.get("research_depth"), "RESEARCH")
 
         result = await titan._arun(
             query=state["research_query"],
             mode=mode,
-            focus_areas=state.get("research_categories", [])
+            focus_areas=state.get("research_categories", []),
         )
 
         if result.success:
             titan_data = result.data
             state["research_findings"] = titan_data.get("intelligence_map", {})
             state["sources_found"] = titan_data.get("results", [])
-            state["synthesis_summary"] = titan_data.get("intelligence_map", {}).get("summary", "No summary available.")
+            state["synthesis_summary"] = titan_data.get("intelligence_map", {}).get(
+                "summary", "No summary available."
+            )
             state["research_status"] = "completed"
         else:
             state["error"] = f"Titan research failed: {result.error}"

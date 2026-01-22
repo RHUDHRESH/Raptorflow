@@ -24,6 +24,7 @@ __all__ = [
 # Vertex AI service - only import if available
 try:
     from .vertex_ai_service import vertex_ai_service
+
     __all__.append("vertex_ai_service")
 except ImportError:
     # Vertex AI dependencies not available

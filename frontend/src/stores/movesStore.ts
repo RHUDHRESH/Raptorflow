@@ -106,7 +106,7 @@ export const useMovesStore = create<MovesState>()(
                         start_date: move.startDate,
                         end_date: move.endDate
                     }) as any;
-                    
+
                     set((state) => ({
                         moves: [...state.moves, { ...move, id: response.id }],
                     }));
@@ -311,7 +311,7 @@ export const useMovesStore = create<MovesState>()(
                         convert_to_move: true,
                         move_name: data.name
                     }) as any;
-                    
+
                     const moveId = response.move_id || `mov-${Date.now()}`;
                     // Re-fetch moves to show the new one
                     await get().fetchMoves();

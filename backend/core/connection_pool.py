@@ -10,8 +10,9 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from weakref import WeakSet
 
-from .database_config import DB_CONFIG
 from supabase import Client, create_client
+
+from .database_config import DB_CONFIG
 
 logger = logging.getLogger(__name__)
 

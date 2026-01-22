@@ -15,10 +15,13 @@ try:
 except ImportError:
     # Fallback for testing without full dependencies
     ValidationError = Exception
+
     def get_supabase_client():
         return None
+
     class BillingRepository:
         pass
+
     class UsageRecordRepository:
         pass
 

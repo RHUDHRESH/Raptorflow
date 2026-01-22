@@ -13,11 +13,10 @@ from backend.agents.dispatcher import AgentDispatcher
 from backend.agents.state import AgentState
 from backend.cognitive import CognitiveEngine
 from backend.memory.controller import MemoryController
-
-from supabase import Client
 from backend.services.onboarding_state_service import OnboardingStateService, StepStatus
 from backend.services.onboarding_validator import OnboardingValidator
 from backend.services.upstash_client import UpstashClient
+from supabase import Client
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +42,7 @@ class OnboardingWorkflow:
         self.cognitive_engine = cognitive_engine
         self.agent_dispatcher = agent_dispatcher
         self.redis_client = redis_client
-        
+
         # Initialize state management and validation
         self.state_service = OnboardingStateService(db_client, redis_client)
         self.validator = OnboardingValidator()
@@ -81,7 +80,7 @@ class OnboardingWorkflow:
             Step execution result with state information
         """
         lock_owner = f"workflow_{self.workflow_id}"
-        
+
         try:
             logger.info(
                 f"Executing onboarding step: {step} for workspace {workspace_id}"
@@ -94,26 +93,30 @@ class OnboardingWorkflow:
                     "success": False,
                     "step": step,
                     "error": "Validation failed",
-                    "validation_errors": validation_errors
+                    "validation_errors": validation_errors,
                 }
 
             # Check if step can be executed
-            can_execute, reason = await self.state_service.can_execute_step(workspace_id, step)
+            can_execute, reason = await self.state_service.can_execute_step(
+                workspace_id, step
+            )
             if not can_execute:
                 return {
                     "success": False,
                     "step": step,
                     "error": "Step cannot be executed",
-                    "reason": reason
+                    "reason": reason,
                 }
 
             # Acquire workspace lock
-            lock_acquired = await self.state_service.acquire_lock(workspace_id, lock_owner)
+            lock_acquired = await self.state_service.acquire_lock(
+                workspace_id, lock_owner
+            )
             if not lock_acquired:
                 return {
                     "success": False,
                     "step": step,
-                    "error": "Workspace is locked by another operation"
+                    "error": "Workspace is locked by another operation",
                 }
 
             # Update step status to IN_PROGRESS
@@ -136,7 +139,10 @@ class OnboardingWorkflow:
                 )
             else:
                 await self.state_service.update_step_state(
-                    workspace_id, step, StepStatus.FAILED, error_message=result.get("error")
+                    workspace_id,
+                    step,
+                    StepStatus.FAILED,
+                    error_message=result.get("error"),
                 )
 
             # Release lock
@@ -152,117 +158,151 @@ class OnboardingWorkflow:
                 "result": result,
                 "next_step": next_step,
                 "progress": progress,
-                "workspace_id": workspace_id
+                "workspace_id": workspace_id,
             }
 
         except Exception as e:
             logger.error(f"Error executing onboarding step {step}: {e}")
-            
+
             # Ensure lock is released on error
             try:
                 await self.state_service.release_lock(workspace_id, lock_owner)
             except:
                 pass
-            
+
             return {
                 "success": False,
                 "step": step,
                 "error": str(e),
-                "workspace_id": workspace_id
+                "workspace_id": workspace_id,
             }
 
     async def _execute_step_with_retry(
-        self, workspace_id: str, step: str, data: Dict[str, Any], context: Dict[str, Any]
+        self,
+        workspace_id: str,
+        step: str,
+        data: Dict[str, Any],
+        context: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Execute step with retry mechanism and error handling.
         """
         max_retries = 3
         retry_delay = 1  # seconds
-        
+
         for attempt in range(max_retries):
             try:
                 # Execute step based on type
                 if step == "evidence_upload":
-                    result = await self._handle_evidence_upload(workspace_id, data, context)
+                    result = await self._handle_evidence_upload(
+                        workspace_id, data, context
+                    )
                 elif step == "evidence_extraction":
-                    result = await self._handle_evidence_extraction(workspace_id, data, context)
+                    result = await self._handle_evidence_extraction(
+                        workspace_id, data, context
+                    )
                 elif step == "business_classification":
-                    result = await self._handle_business_classification(workspace_id, data, context)
+                    result = await self._handle_business_classification(
+                        workspace_id, data, context
+                    )
                 elif step == "industry_analysis":
-                    result = await self._handle_industry_analysis(workspace_id, data, context)
+                    result = await self._handle_industry_analysis(
+                        workspace_id, data, context
+                    )
                 elif step == "competitor_analysis":
-                    result = await self._handle_competitor_analysis(workspace_id, data, context)
+                    result = await self._handle_competitor_analysis(
+                        workspace_id, data, context
+                    )
                 elif step == "value_proposition":
-                    result = await self._handle_value_proposition(workspace_id, data, context)
+                    result = await self._handle_value_proposition(
+                        workspace_id, data, context
+                    )
                 elif step == "target_audience":
-                    result = await self._handle_target_audience(workspace_id, data, context)
+                    result = await self._handle_target_audience(
+                        workspace_id, data, context
+                    )
                 elif step == "messaging_framework":
-                    result = await self._handle_messaging_framework(workspace_id, data, context)
+                    result = await self._handle_messaging_framework(
+                        workspace_id, data, context
+                    )
                 elif step == "foundation_creation":
-                    result = await self._handle_foundation_creation(workspace_id, data, context)
+                    result = await self._handle_foundation_creation(
+                        workspace_id, data, context
+                    )
                 elif step == "icp_generation":
-                    result = await self._handle_icp_generation(workspace_id, data, context)
+                    result = await self._handle_icp_generation(
+                        workspace_id, data, context
+                    )
                 elif step == "move_planning":
-                    result = await self._handle_move_planning(workspace_id, data, context)
+                    result = await self._handle_move_planning(
+                        workspace_id, data, context
+                    )
                 elif step == "campaign_setup":
-                    result = await self._handle_campaign_setup(workspace_id, data, context)
+                    result = await self._handle_campaign_setup(
+                        workspace_id, data, context
+                    )
                 elif step == "onboarding_complete":
-                    result = await self._handle_onboarding_complete(workspace_id, data, context)
+                    result = await self._handle_onboarding_complete(
+                        workspace_id, data, context
+                    )
                 else:
                     result = {"success": False, "error": f"Unknown step: {step}"}
-                
+
                 # If successful, return result
                 if result.get("success", False):
                     return result
-                
+
                 # If this is the last attempt, return the error
                 if attempt == max_retries - 1:
                     return result
-                
+
                 # Wait before retry
                 await asyncio.sleep(retry_delay * (attempt + 1))
-                
+
             except Exception as e:
                 logger.error(f"Step {step} attempt {attempt + 1} failed: {e}")
-                
+
                 # If this is the last attempt, return the error
                 if attempt == max_retries - 1:
                     return {"success": False, "error": str(e)}
-                
+
                 # Wait before retry
                 await asyncio.sleep(retry_delay * (attempt + 1))
-        
+
         return {"success": False, "error": "Max retries exceeded"}
-    
-    async def _get_workspace_context_with_data(self, workspace_id: str) -> Dict[str, Any]:
+
+    async def _get_workspace_context_with_data(
+        self, workspace_id: str
+    ) -> Dict[str, Any]:
         """
         Get workspace context with accumulated data from completed steps.
         """
         try:
             # Get base context
             base_context = await self._get_workspace_context(workspace_id)
-            
+
             # Get completed step data
             state = await self.state_service.get_state(workspace_id)
             if not state:
                 return base_context
-            
+
             # Accumulate data from completed steps
             accumulated_data = {}
             for step_id, step_state in state.steps.items():
                 if step_state.status == StepStatus.COMPLETED and step_state.result_data:
                     accumulated_data[step_id] = step_state.result_data
-            
+
             # Merge with base context
             base_context["accumulated_data"] = accumulated_data
             return base_context
-            
+
         except Exception as e:
             logger.error(f"Error getting workspace context with data: {e}")
             return await self._get_workspace_context(workspace_id)
-    
-    async def _determine_next_step(self, workspace_id: str, current_step: str) -> Optional[str]:
+
+    async def _determine_next_step(
+        self, workspace_id: str, current_step: str
+    ) -> Optional[str]:
         """
         Determine the next available step based on dependencies and completion status.
         """
@@ -270,28 +310,30 @@ class OnboardingWorkflow:
             state = await self.state_service.get_state(workspace_id)
             if not state:
                 return None
-            
+
             # Find next step that can be executed
             for step_id in self.steps:
                 if step_id == current_step:
                     continue
-                
+
                 # Skip if already completed
                 step_state = state.steps.get(step_id)
                 if step_state and step_state.status == StepStatus.COMPLETED:
                     continue
-                
+
                 # Check if can execute
-                can_execute, _ = await self.state_service.can_execute_step(workspace_id, step_id)
+                can_execute, _ = await self.state_service.can_execute_step(
+                    workspace_id, step_id
+                )
                 if can_execute:
                     return step_id
-            
+
             return None
-            
+
         except Exception as e:
             logger.error(f"Error determining next step: {e}")
             return None
-    
+
     async def resume_onboarding(self, workspace_id: str) -> Dict[str, Any]:
         """
         Resume onboarding from current state.
@@ -301,7 +343,7 @@ class OnboardingWorkflow:
         except Exception as e:
             logger.error(f"Error resuming onboarding: {e}")
             return {"success": False, "error": str(e)}
-    
+
     async def get_onboarding_status(self, workspace_id: str) -> Dict[str, Any]:
         """
         Get comprehensive onboarding status.
@@ -804,33 +846,37 @@ class OnboardingWorkflow:
 
             # Delete original OCR-processed files
             for file in files_result.data:
-                if file.get('extracted_data') and file.get('status') == 'processed':
-                    await self.db_client.storage.remove(file['original_path'])
+                if file.get("extracted_data") and file.get("status") == "processed":
+                    await self.db_client.storage.remove(file["original_path"])
 
             # Generate onboarding summary
             summary = await self._generate_onboarding_summary(workspace_id)
-            
+
             # Generate and write businesscontext.json
-            from backend.integration.context_builder import build_business_context_manifest
+            from backend.integration.context_builder import (
+                build_business_context_manifest,
+            )
+
             bcm = await build_business_context_manifest(
                 workspace_id=workspace_id,
                 db_client=self.db_client,
                 memory_controller=self.memory_controller,
                 version_major=1,
                 version_minor=0,
-                version_patch=0
+                version_patch=0,
             )
-            
+
             import json
+
             file_path = "businesscontext.json"
-            with open(file_path, 'w') as f:
-                json.dump(bcm['content'], f, indent=2)
+            with open(file_path, "w") as f:
+                json.dump(bcm["content"], f, indent=2)
 
             return {
                 "success": True,
                 "onboarding_complete": True,
                 "summary": summary,
-                "businesscontext_file": file_path
+                "businesscontext_file": file_path,
             }
 
         except Exception as e:

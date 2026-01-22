@@ -121,8 +121,9 @@ class RedisProductionManager:
             # Test connection
             # Check if client is async or sync
             import inspect
+
             is_async = inspect.iscoroutinefunction(self.client.ping)
-            
+
             if is_async:
                 # For async clients
                 await self.client.ping()
@@ -148,7 +149,7 @@ class RedisProductionManager:
 
             # Basic connectivity test
             start_time = datetime.utcnow()
-            if hasattr(self.client, 'ping'):
+            if hasattr(self.client, "ping"):
                 # Async client
                 await self.client.ping()
             else:
@@ -159,7 +160,7 @@ class RedisProductionManager:
             # Performance test
             start_time = datetime.utcnow()
             test_key = "health_check_test"
-            if hasattr(self.client, 'set'):
+            if hasattr(self.client, "set"):
                 # Async client
                 await self.client.set(test_key, "test_value", ex=10)
                 value = await self.client.get(test_key)
@@ -173,7 +174,7 @@ class RedisProductionManager:
 
             # Memory info (only available with standard Redis)
             memory_usage = "unknown"
-            if hasattr(self.client, 'info'):
+            if hasattr(self.client, "info"):
                 info = await self.client.info()
                 memory_usage = info.get("used_memory_human", "unknown")
 
@@ -332,10 +333,12 @@ class RedisProductionManager:
                 # Update metrics
                 if self.client:
                     # Only update basic metrics for Upstash (no info command)
-                    if hasattr(self.client, 'info'):
+                    if hasattr(self.client, "info"):
                         # Standard Redis
                         info = await self.client.info()
-                        self.metrics["connected_clients"] = info.get("connected_clients", 0)
+                        self.metrics["connected_clients"] = info.get(
+                            "connected_clients", 0
+                        )
                         self.metrics["memory_usage"] = info.get("used_memory", 0)
                         self.metrics["uptime"] = info.get("uptime_in_seconds", 0)
                     else:
@@ -354,7 +357,7 @@ class RedisProductionManager:
 
                 if self.client:
                     # Ping Redis
-                    if hasattr(self.client, 'ping'):
+                    if hasattr(self.client, "ping"):
                         # Async client
                         await self.client.ping()
                     else:
@@ -369,7 +372,7 @@ class RedisProductionManager:
     async def close(self) -> None:
         """Close Redis connection"""
         if self.client:
-            if hasattr(self.client, 'close'):
+            if hasattr(self.client, "close"):
                 # Async client
                 await self.client.close()
             else:

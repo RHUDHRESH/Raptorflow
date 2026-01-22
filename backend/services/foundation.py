@@ -8,14 +8,14 @@ from typing import Any, Dict, List, Optional
 
 from backend.core.models import User
 from backend.core.supabase_mgr import get_supabase_client
+from backend.db.campaigns import CampaignRepository
 from backend.db.foundations import FoundationRepository
 from backend.db.icps import ICPRepository
-from backend.db.moves import MoveRepository
-from backend.db.campaigns import CampaignRepository
 from backend.db.messaging import MessagingRepository
-from backend.services.business_context_generator import get_business_context_generator
-from backend.schemas import RICP, MessagingStrategy
+from backend.db.moves import MoveRepository
 from backend.redis_core.cache import cached
+from backend.schemas import RICP, MessagingStrategy
+from backend.services.business_context_generator import get_business_context_generator
 
 
 class FoundationService:
@@ -28,7 +28,9 @@ class FoundationService:
         self.supabase = get_supabase_client()
 
     @cached(ttl=3600, cache_type="foundation")
-    async def get_foundation(self, workspace_id: str = None) -> Optional[Dict[str, Any]]:
+    async def get_foundation(
+        self, workspace_id: str = None
+    ) -> Optional[Dict[str, Any]]:
         """
         Get foundation for workspace
 
@@ -67,20 +69,22 @@ class FoundationService:
                 stage = market_soph.get("stage", 3)
             else:
                 stage = 3
-                
-            ricps.append(RICP(
-                id=str(item.get("id")),
-                name=item.get("name", "Unknown"),
-                persona_name=item.get("persona_name"),
-                avatar=item.get("avatar", "≡ƒæñ"),
-                demographics=item.get("demographics", {}),
-                psychographics=item.get("psychographics", {}),
-                market_sophistication=stage,
-                confidence=item.get("confidence", 0),
-                created_at=item.get("created_at"),
-                updated_at=item.get("updated_at")
-            ))
-        
+
+            ricps.append(
+                RICP(
+                    id=str(item.get("id")),
+                    name=item.get("name", "Unknown"),
+                    persona_name=item.get("persona_name"),
+                    avatar=item.get("avatar", "≡ƒæñ"),
+                    demographics=item.get("demographics", {}),
+                    psychographics=item.get("psychographics", {}),
+                    market_sophistication=stage,
+                    confidence=item.get("confidence", 0),
+                    created_at=item.get("created_at"),
+                    updated_at=item.get("updated_at"),
+                )
+            )
+
         foundation["ricps"] = ricps
         foundation["icp_count"] = len(ricps)
 
@@ -147,7 +151,9 @@ class FoundationService:
 
         return True
 
-    async def update_foundation(self, workspace_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_foundation(
+        self, workspace_id: str, data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Updates foundation data for a workspace.
 
@@ -163,19 +169,20 @@ class FoundationService:
 
         # Update in repository
         result = await self.repository.upsert(workspace_id, data)
-        
+
         # Invalidate Cache
         from backend.redis_core.cache import CacheService
+
         cache = CacheService()
-        
+
         # 1. Clear Foundation Cache
         await cache.delete(workspace_id, "get_foundation")
         await cache.delete(workspace_id, "get_foundation_with_metrics")
-        
+
         # 2. Clear Dependent Caches (ICPs, Moves, Campaigns, AI results)
         # We clear the whole workspace cache because Foundation is the root source of truth
         await cache.clear_workspace(workspace_id)
-        
+
         return result
 
     async def delete_foundation(self, workspace_id: str) -> bool:

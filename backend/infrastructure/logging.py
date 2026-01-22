@@ -20,8 +20,8 @@ from typing import Any, Dict, List, Optional
 from google.api_core import exceptions
 from google.cloud import logging as cloud_logging
 from google.cloud.logging import Client as LoggingClient
-from google.cloud.logging import handlers as cloud_handlers
 from google.cloud.logging import LogEntry
+from google.cloud.logging import handlers as cloud_handlers
 
 from .gcp import get_gcp_client
 
@@ -106,7 +106,9 @@ class CloudLogging:
         self.client = self.gcp_client.get_logging_client()
 
         if not self.client:
-            self.logger.warning("Cloud Logging client not available, using standard logging")
+            self.logger.warning(
+                "Cloud Logging client not available, using standard logging"
+            )
 
         # Project ID
         self.project_id = self.gcp_client.get_project_id()

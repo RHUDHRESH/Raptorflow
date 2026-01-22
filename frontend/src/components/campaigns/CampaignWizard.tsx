@@ -111,7 +111,7 @@ export function CampaignWizard({ isOpen, onClose, onComplete }: CampaignWizardPr
         const companyName = bcm?.foundation?.company || "Your Company";
         const brandVoice = bcm?.messaging?.brand_voice?.tone?.join(', ') || "Professional";
         const valueProps = bcm?.messaging?.value_props || [];
-        
+
         onComplete({
             name: `${companyName}: ${formData.objective} Campaign`,
             goal: formData.context || `${formData.objective} for ${companyName}`,

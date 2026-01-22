@@ -38,7 +38,7 @@ export default function FoundationPage() {
 
   useEffect(() => {
     fetchFoundation();
-    
+
     if (!pageRef.current) return;
     const header = pageRef.current.querySelector("[data-header]");
     if (header) gsap.fromTo(header, { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.5 });
@@ -106,7 +106,7 @@ export default function FoundationPage() {
               <div className="h-px w-12 bg-[var(--structure)]" />
               <span className="font-technical text-[var(--ink-muted)]">ICP</span>
             </div>
-            <SecondaryButton 
+            <SecondaryButton
               className="h-9 text-xs"
               onClick={() => setIsDeriveModalOpen(true)}
             >

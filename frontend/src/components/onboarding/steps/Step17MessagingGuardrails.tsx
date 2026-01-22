@@ -11,7 +11,7 @@ import { toast } from "sonner"; // Assuming sonner or generic toast
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    PAPER TERMINAL ΓÇö Step 17: Messaging Guardrails (Step 16 in file naming)
-   
+
    PURPOSE: "No Scroll" Guardrails Editor.
    - 3 Do's, 3 Don'ts (Pre-filled based on Strategy).
    - Validation Mock: "Not Recommended" pop-up.
@@ -56,7 +56,7 @@ export default function Step16MessagingGuardrails() {
         try {
             const foundationData = getStepById(0)?.data as { company_info?: any } | undefined;
             const positioningData = getStepById(12)?.data as { positioning?: any } | undefined;
-            
+
             const response = await fetch('/api/onboarding/messaging-rules', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -66,7 +66,7 @@ export default function Step16MessagingGuardrails() {
                     positioning: positioningData?.positioning || {}
                 })
             });
-            
+
             const data = await response.json();
             if (data.success && data.messaging_rules?.rules) {
                 const aiDos = data.messaging_rules.rules
@@ -78,7 +78,7 @@ export default function Step16MessagingGuardrails() {
                         type: "do" as const,
                         isCustom: false
                     }));
-                
+
                 const aiDonts = data.messaging_rules.rules
                     .filter((r: any) => r.category === 'claims' || r.category === 'legal')
                     .slice(0, 3)
@@ -88,7 +88,7 @@ export default function Step16MessagingGuardrails() {
                         type: "dont" as const,
                         isCustom: false
                     }));
-                
+
                 setDos([...DEFAULT_DOS, ...aiDos]);
                 setDonts([...DEFAULT_DONTS, ...aiDonts]);
                 updateStepData(17, { dos: [...DEFAULT_DOS, ...aiDos], donts: [...DEFAULT_DONTS, ...aiDonts], confirmed: false });
@@ -164,8 +164,8 @@ export default function Step16MessagingGuardrails() {
                     <Shield size={14} />
                     <span className="font-serif italic text-sm">"Define the rules of engagement."</span>
                 </div>
-                <BlueprintButton 
-                    onClick={generateMessagingRules} 
+                <BlueprintButton
+                    onClick={generateMessagingRules}
                     disabled={isGenerating}
                     size="sm"
                     className="mt-2"

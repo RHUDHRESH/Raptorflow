@@ -258,7 +258,7 @@ export default function Step4ValidateTruthSheet() {
         try {
             const step1Data = getStepById(1)?.data as { evidence?: any[] } | undefined;
             const evidenceList = step1Data?.evidence || [];
-            
+
             const response = await fetch('/api/onboarding/truth-sheet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -268,7 +268,7 @@ export default function Step4ValidateTruthSheet() {
                     existing_entries: items.filter(i => i.status === 'edited' || i.status === 'confirmed')
                 })
             });
-            
+
             const data = await response.json();
             if (data.success && data.truth_sheet?.entries) {
                 const newItems: TruthItem[] = data.truth_sheet.entries.map((entry: any, i: number) => ({

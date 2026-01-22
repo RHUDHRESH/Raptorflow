@@ -47,7 +47,7 @@ export class VertexAIService {
     try {
       // Get auth token
       const token = await this.getAuthToken();
-      
+
       const response = await fetch(`${this.backendUrl}/api/v1/ai/generate`, {
         method: 'POST',
         headers: {
@@ -67,7 +67,7 @@ export class VertexAIService {
       }
 
       const result = await response.json();
-      
+
       // Track cost
       const tokens = result.usage?.total_tokens || 0;
       const cost = calculateCost(tokens, universalModel);
@@ -77,7 +77,7 @@ export class VertexAIService {
         cost,
         operation: 'ai_generate'
       });
-      
+
       return {
         content: result.content,
         model: universalModel,

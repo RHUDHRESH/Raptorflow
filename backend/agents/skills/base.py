@@ -3,8 +3,8 @@ Base classes for skills system.
 """
 
 import logging
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -83,7 +83,7 @@ class Skill(ABC):
                 f"[AUTONOMY] Skill '{self.name}' requested tools {missing_tools} not in agent's primary list. "
                 "Allowing execution under assumption of dynamic tool loading."
             )
-            return True # WAS False. Now True. Power to the agents.
+            return True  # WAS False. Now True. Power to the agents.
         return True
 
     def meets_prerequisites(self, agent_skills: List[str]) -> bool:
@@ -103,10 +103,11 @@ class Skill(ABC):
         """
         pass
 
+
 @dataclass
 class LegacySkill(Skill):
     """Legacy skill implementation for backward compatibility."""
-    
+
     async def execute(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Default execution for legacy skills (returns empty)."""
         logger.warning(f"Executing legacy skill {self.name} which has no logic.")

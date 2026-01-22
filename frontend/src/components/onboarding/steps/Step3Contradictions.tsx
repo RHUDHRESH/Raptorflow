@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    PHASE 01: FOUNDATION ΓÇö Step 3: Consistency Audit
-   
+
    "Quiet Luxury: Surgery on Strategy."
    Detecting internal logical violations (e.g. Premium claim vs Low price).
    ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
@@ -62,9 +62,9 @@ export default function Step3Contradictions() {
                     facts: step2Data?.facts || [],
                 })
             });
-            
+
             const result = await response.json();
-            
+
             // Map API response to our Issue format
             const apiIssues: Issue[] = (result.contradictions || []).map((c: any, idx: number) => ({
                 id: c.id || `${idx + 1}`,
@@ -77,7 +77,7 @@ export default function Step3Contradictions() {
                 resolved: false,
                 code: c.id || `CONTR-${idx + 1}`,
             }));
-            
+
             const issuesToUse = apiIssues.length > 0 ? apiIssues : generateMockIssues();
             setIssues(issuesToUse);
             updateStepData(3, { issues: issuesToUse });

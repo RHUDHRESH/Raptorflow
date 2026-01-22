@@ -1,13 +1,13 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -33,7 +33,7 @@ export default function AnalyticsPage() {
           apiClient.getMovesPerformance(),
           apiClient.getMusePerformance()
         ]);
-        
+
         setMovesData(movesRes.stats);
         setMuseData(museRes.stats);
       } catch (error) {
@@ -42,7 +42,7 @@ export default function AnalyticsPage() {
         setIsLoading(false);
       }
     }
-    
+
     fetchAnalytics();
   }, []);
 
@@ -71,7 +71,7 @@ export default function AnalyticsPage() {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: 'var(--muted)'}} />
                   <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: 'var(--muted)'}} />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ backgroundColor: 'var(--paper)', border: '1px solid var(--border)', borderRadius: '8px' }}
                     itemStyle={{ color: 'var(--ink)' }}
                   />

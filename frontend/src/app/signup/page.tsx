@@ -92,8 +92,8 @@ export default function SignupPage() {
                             key={tier.planId}
                             onClick={() => agreed && handleSelect(tier.planId, tier.name, tier.priceValue)}
                             className={`
-                                relative group cursor-pointer 
-                                bg-[var(--paper)] rounded-[var(--radius-md)] p-4 
+                                relative group cursor-pointer
+                                bg-[var(--paper)] rounded-[var(--radius-md)] p-4
                                 border transition-all duration-200
                                 ${tier.popular ? 'border-[var(--ink)] shadow-sm' : 'border-[var(--border)]'}
                                 ${selectedTier === tier.planId ? 'ring-1 ring-[var(--ink)]' : ''}

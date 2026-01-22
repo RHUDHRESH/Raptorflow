@@ -11,6 +11,7 @@ import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,10 +20,20 @@ load_dotenv()
 import redis
 import vertexai
 
+# Import job scheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
+# GCP Imports
+from google.cloud import aiplatform, bigquery, storage
+from jobs import file_cleanup
+
 # Import API routers
-from backend.api.v1 import (
+from backend.api.v1 import (  # episodes,
     admin,
     agents,
+    ai_proxy,
     analytics,
     analytics_v2,
     approvals,
@@ -36,7 +47,7 @@ from backend.api.v1 import (
     dashboard,
     database_automation,
     database_health,
-    # episodes,
+    evolution,
     foundation,
     graph,
     health_simple,
@@ -48,58 +59,60 @@ from backend.api.v1 import (
     muse_vertex_ai,
     ocr,
     onboarding,
-    onboarding_v2,
     onboarding_universal,
+    onboarding_v2,
     payments,
     payments_v2,
     redis_metrics,
+    search,
     sessions,
     storage,
+    titan,
     usage,
     users,
     workspaces,
-    ai_proxy,
-    search,
-    titan,
-    evolution,
 )
+from backend.core.database_automation import (
+    start_database_automation,
+    stop_database_automation,
+)
+
+# Import database automation
+from backend.core.database_integration import shutdown_database, startup_database
+from backend.core.database_scaling import start_database_scaling, stop_database_scaling
 from backend.core.posthog import add_posthog_middleware
-from backend.core.prometheus_metrics import PrometheusMiddleware, init_prometheus_metrics
+from backend.core.prometheus_metrics import (
+    PrometheusMiddleware,
+    init_prometheus_metrics,
+)
 
 # Import monitoring
 from backend.core.sentry import init_sentry
 
 # Import dependencies
-from backend.dependencies import get_cognitive_engine, get_db, get_memory_controller, get_redis
-from fastapi import Depends, FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-
-# GCP Imports
-from google.cloud import aiplatform, bigquery, storage
+from backend.dependencies import (
+    get_cognitive_engine,
+    get_db,
+    get_memory_controller,
+    get_redis,
+)
 from backend.middleware.compression import add_compression_middleware
 from backend.middleware.errors import ErrorMiddleware
 from backend.middleware.logging import LoggingMiddleware
-
 from backend.middleware.metrics import MetricsMiddleware
 from backend.middleware.rate_limit import create_rate_limit_middleware
+from backend.redis_services_activation import (
+    activate_redis_services,
+    deactivate_redis_services,
+)
+from backend.services.bcm_sweeper import BCMSweeper
+
+# Import payment status service
+from backend.services.payment_status_service import PaymentStatusService
 from backend.shutdown import cleanup_app
 
 # Import startup/shutdown
 from backend.startup import initialize_app
-from backend.redis_services_activation import activate_redis_services, deactivate_redis_services
-
-# Import database automation
-from backend.core.database_integration import startup_database, shutdown_database
-from backend.core.database_automation import start_database_automation, stop_database_automation
-from backend.core.database_scaling import start_database_scaling, stop_database_scaling
-
-# Import payment status service
-from backend.services.payment_status_service import PaymentStatusService
-from backend.services.bcm_sweeper import BCMSweeper
-
-# Import job scheduler
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from jobs import file_cleanup
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -120,7 +133,9 @@ async def lifespan(app: FastAPI):
     # Activate Redis services
     redis_activated = await activate_redis_services()
     if not redis_activated:
-        logger.warning("ΓÜá∩╕Å Redis services activation failed, continuing without Redis")
+        logger.warning(
+            "ΓÜá∩╕Å Redis services activation failed, continuing without Redis"
+        )
 
     # Initialize database systems
     logger.info("≡ƒùä∩╕Å Initializing database systems...")
@@ -129,7 +144,9 @@ async def lifespan(app: FastAPI):
         if db_startup.get("status") == "success":
             logger.info("Γ£à Database systems initialized")
         else:
-            logger.warning(f"ΓÜá∩╕Å Database initialization warnings: {db_startup.get('errors', [])}")
+            logger.warning(
+                f"ΓÜá∩╕Å Database initialization warnings: {db_startup.get('errors', [])}"
+            )
     except Exception as e:
         logger.error(f"Γ¥î Database initialization failed: {e}")
         # Continue without database for now
@@ -158,7 +175,7 @@ async def lifespan(app: FastAPI):
 
     # Shutdown sequence
     logger.info("≡ƒ¢æ Shutting down RaptorFlow Backend...")
-    
+
     # Stop database automation
     logger.info("≡ƒñû Stopping database automation...")
     try:
@@ -167,7 +184,7 @@ async def lifespan(app: FastAPI):
         logger.info("Γ£à Database automation stopped")
     except Exception as e:
         logger.warning(f"ΓÜá∩╕Å Database automation shutdown failed: {e}")
-    
+
     # Shutdown database systems
     logger.info("≡ƒùä∩╕Å Shutting down database systems...")
     try:
@@ -175,10 +192,10 @@ async def lifespan(app: FastAPI):
         logger.info("Γ£à Database systems shutdown")
     except Exception as e:
         logger.warning(f"ΓÜá∩╕Å Database shutdown failed: {e}")
-    
+
     # Deactivate Redis services
     await deactivate_redis_services()
-    
+
     shutdown_report = await cleanup_app()
     if shutdown_report.success:
         logger.info("Γ£à Shutdown completed successfully")
@@ -191,48 +208,48 @@ app = FastAPI(
     title="RaptorFlow Backend API",
     description="""
     ## RaptorFlow Marketing OS Backend API
-    
+
     A comprehensive backend system for marketing operations automation, featuring:
-    
+
     ### ≡ƒÜÇ Core Features
     - **AI-Powered Agents**: Intelligent marketing agents for content creation, research, and campaign management
     - **ICP Generation**: Automated Ideal Customer Profile creation with AI-driven insights
     - **Campaign Management**: End-to-end campaign lifecycle management with analytics
     - **Memory Systems**: Advanced episodic and semantic memory for context-aware interactions
     - **Real-time Analytics**: Comprehensive tracking and reporting capabilities
-    
+
     ### ≡ƒöº Infrastructure
     - **Background Processing**: Celery-based task queues for scalable operations
     - **Circuit Breakers**: Resilient external API integration with automatic recovery
     - **Database Migrations**: Automated schema management and versioning
     - **Rate Limiting**: Redis-based request throttling and protection
     - **Error Monitoring**: Sentry integration for comprehensive error tracking
-    
+
     ### ≡ƒôè Monitoring & Analytics
     - **Health Checks**: Deep system health monitoring for all components
     - **Performance Metrics**: Prometheus integration for operational metrics
     - **User Analytics**: PostHog integration for behavior tracking
     - **Security Auditing**: Comprehensive authentication and authorization logging
-    
+
     ### ≡ƒ¢í∩╕Å Security Features
     - **JWT Authentication**: Supabase-based user authentication with refresh tokens
     - **Row-Level Security**: Database-level access control via RLS policies
     - **CORS Protection**: Strict domain whitelisting for API access
     - **Secret Management**: Google Secret Manager integration for secure credential storage
-    
+
     ---
-    
+
     **Base URL**: `https://api.raptorflow.com`
     **API Version**: v1
     **Documentation**: This interactive API documentation
     **Health Status**: `/api/v1/health/detailed`
-    
+
     **Authentication**: Bearer JWT tokens required for most endpoints
     **Rate Limits**: 100 requests/minute per user (configurable)
-    
+
     ---
-    
-    *For production deployment guides and detailed architecture documentation, 
+
+    *For production deployment guides and detailed architecture documentation,
     see the project repository README.*
     """,
     version="1.0.0",
@@ -242,50 +259,38 @@ app = FastAPI(
     openapi_tags=[
         {
             "name": "authentication",
-            "description": "User authentication and authorization operations"
+            "description": "User authentication and authorization operations",
         },
-        {
-            "name": "users",
-            "description": "User profile and preference management"
-        },
+        {"name": "users", "description": "User profile and preference management"},
         {
             "name": "workspaces",
-            "description": "Workspace management and collaboration features"
+            "description": "Workspace management and collaboration features",
         },
-        {
-            "name": "agents",
-            "description": "AI-powered marketing agents and automation"
-        },
+        {"name": "agents", "description": "AI-powered marketing agents and automation"},
         {
             "name": "icps",
-            "description": "Ideal Customer Profile generation and management"
+            "description": "Ideal Customer Profile generation and management",
         },
         {
             "name": "campaigns",
-            "description": "Marketing campaign creation and management"
+            "description": "Marketing campaign creation and management",
         },
-        {
-            "name": "analytics",
-            "description": "Performance analytics and reporting"
-        },
+        {"name": "analytics", "description": "Performance analytics and reporting"},
         {
             "name": "memory",
-            "description": "Memory systems for context-aware interactions"
+            "description": "Memory systems for context-aware interactions",
         },
-        {
-            "name": "health",
-            "description": "System health monitoring and diagnostics"
-        }
+        {"name": "health", "description": "System health monitoring and diagnostics"},
     ],
     contact={
         "name": "RaptorFlow API Support",
         "email": "api-support@raptorflow.com",
-        "url": "https://raptorflow.com/support"
+        "url": "https://raptorflow.com/support",
     },
     license_info={
         "name": "MIT License",
-        "url": "https://github.com/RHUDHRESH/Raptorflow/blob/main/LICENSE"
-    }
+        "url": "https://github.com/RHUDHRESH/Raptorflow/blob/main/LICENSE",
+    },
 )
 
 # Initialize Sentry error tracking
@@ -315,14 +320,25 @@ app.add_middleware(ErrorMiddleware)
 # Production CORS configuration - no development fallbacks
 allowed_origins = os.getenv("ALLOWED_ORIGINS")
 if not allowed_origins:
-    allowed_origins = ["https://raptorflow.in", "https://www.raptorflow.in", "https://app.raptorflow.in", "http://localhost:3000"]
+    allowed_origins = [
+        "https://raptorflow.in",
+        "https://www.raptorflow.in",
+        "https://app.raptorflow.in",
+        "http://localhost:3000",
+    ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["Content-Type", "Authorization", "X-Requested-With", "sentry-trace", "baggage"],
+    allow_headers=[
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "sentry-trace",
+        "baggage",
+    ],
 )
 
 # Add rate limiting middleware if enabled
@@ -350,9 +366,15 @@ app.include_router(moves.router, prefix="/api/v1/moves", tags=["moves"])
 app.include_router(muse_vertex_ai.router, prefix="/api/v1", tags=["muse"])
 app.include_router(onboarding.router, prefix="/api/v1/onboarding", tags=["onboarding"])
 app.include_router(onboarding_v2.router, prefix="/api/v1", tags=["onboarding-v2"])
-app.include_router(onboarding_universal.router, prefix="/api/v1/onboarding-universal", tags=["onboarding-universal"])
+app.include_router(
+    onboarding_universal.router,
+    prefix="/api/v1/onboarding-universal",
+    tags=["onboarding-universal"],
+)
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
-app.include_router(analytics_v2.router, prefix="/api/v1/analytics-v2", tags=["analytics"])
+app.include_router(
+    analytics_v2.router, prefix="/api/v1/analytics-v2", tags=["analytics"]
+)
 app.include_router(memory.router, prefix="/api/v1/memory", tags=["memory"])
 app.include_router(graph.router, prefix="/api/v1/graph", tags=["graph"])
 app.include_router(sessions.router, prefix="/api/v1/sessions", tags=["sessions"])
@@ -368,9 +390,12 @@ app.include_router(config.router, prefix="/api/v1", tags=["configuration"])
 app.include_router(redis_metrics.router, prefix="/api/v1", tags=["redis-metrics"])
 # Add database health and automation routers
 app.include_router(database_health.router, prefix="/api/v1", tags=["database"])
-app.include_router(database_automation.router, prefix="/api/v1", tags=["database-automation"])
+app.include_router(
+    database_automation.router, prefix="/api/v1", tags=["database-automation"]
+)
 # Add simple health router as fallback
 from backend.api.v1 import health_simple
+
 app.include_router(health_simple.router, prefix="/api/v1", tags=["health"])
 app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
 app.include_router(payments_v2.router, tags=["payments-v2"])  # Official PhonePe SDK
@@ -380,7 +405,9 @@ app.include_router(ai_proxy.router, prefix="/api/v1", tags=["ai-proxy"])
 app.include_router(usage.router, tags=["usage"])
 # Add enhanced storage management router
 app.include_router(storage.router, prefix="/api/v1", tags=["storage"])
-app.include_router(context.router, prefix="/api/v1/context", tags=["context"])  # New context router
+app.include_router(
+    context.router, prefix="/api/v1/context", tags=["context"]
+)  # New context router
 app.include_router(evolution.router, prefix="/api/v1/evolution", tags=["evolution"])
 app.include_router(ocr.router, prefix="/api/v1", tags=["ocr"])
 app.include_router(search.router, prefix="/api/v1/search", tags=["search"])
@@ -420,6 +447,7 @@ async def health_check():
 
         # Check Redis services
         from redis_services_activation import health_check_redis_services
+
         redis_services_health = await health_check_redis_services()
 
         return {
@@ -444,11 +472,11 @@ async def health_check():
 async def startup_event():
     scheduler = AsyncIOScheduler()
     scheduler.add_job(file_cleanup.delete_expired_originals, "cron", hour=3)
-    
+
     # Schedule BCM Semantic Sweep (Daily at 4 AM)
     sweeper = BCMSweeper()
     scheduler.add_job(sweeper.sweep_all_workspaces, "cron", hour=4)
-    
+
     scheduler.start()
 
 

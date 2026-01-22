@@ -17,7 +17,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    PHASE 01: FOUNDATION ΓÇö Step 1: Evidence Vault
-   
+
    "Quiet Luxury: Decisive, Calm, Expensive."
    Updated for compact layout and auto-recognition.
    ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
@@ -77,7 +77,7 @@ export default function Step1EvidenceVault() {
         const hasEvidence = evidence.length > 0;
         // Always set status based on presence. If present -> complete.
         // If not -> in-progress (so they can still see it, but sidebar might show incomplete)
-        // Ideally, we want to allow them to "Continue" even if "in-progress" if they really want to, 
+        // Ideally, we want to allow them to "Continue" even if "in-progress" if they really want to,
         // but OnboardingShell blocks unless complete. So we mark complete if > 0.
         if (hasEvidence) {
             updateStepStatus(1, "complete");

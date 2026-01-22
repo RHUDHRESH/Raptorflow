@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    PHASE 01: FOUNDATION ΓÇö Step 2: Insights Summary
-   
+
    "Quiet Luxury: Here's what we found."
    Automatic synthesis of the Evidence Vault.
    ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
@@ -87,9 +87,9 @@ export default function Step2AutoExtraction() {
                             evidence_list: evidenceList,
                         })
                     });
-                    
+
                     const result = await response.json();
-                    
+
                     // Map API response to our fact format
                     const extractedFacts: ExtractedFact[] = (result.facts || []).map((f: any, idx: number) => ({
                         id: f.id || `${idx + 1}`,
@@ -101,7 +101,7 @@ export default function Step2AutoExtraction() {
                         status: f.status || 'pending',
                         code: f.id || `EX-${idx + 1}`,
                     }));
-                    
+
                     const factsToUse = extractedFacts.length > 0 ? extractedFacts : generateMockFacts();
                     setFacts(factsToUse);
                     updateStepData(2, { facts: factsToUse });
@@ -115,13 +115,13 @@ export default function Step2AutoExtraction() {
                 }
                 setIsAnalyzing(false);
             };
-            
+
             runExtraction();
         } else {
             setIsAnalyzing(false);
         }
     }, [stepData, facts.length, session, updateStepData, updateStepStatus, fetchVaultEvidence]);
-    
+
     const mapCategoryToLocal = (category: string): string => {
         const mapping: Record<string, string> = {
             'Company': 'identity',

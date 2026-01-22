@@ -10,8 +10,9 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from ..base import BaseAgent
 from backend.agents.config import ModelTier
+
+from ..base import BaseAgent
 from ..exceptions import DatabaseError, ValidationError
 from ..state import AgentState, add_message, update_state
 
@@ -590,7 +591,9 @@ Always focus on creating practical, executable campaigns that align with busines
             )
 
             # Create content strategy (Enhanced with Swarm FunnelBlueprint)
-            content_strategy = await self._create_content_strategy_with_swarm(campaign_type, request)
+            content_strategy = await self._create_content_strategy_with_swarm(
+                campaign_type, request
+            )
 
             # Create measurement plan
             measurement_plan = self._create_measurement_plan(template, objective)
@@ -847,7 +850,6 @@ Always focus on creating practical, executable campaigns that align with busines
             "content_distribution": ["social", "email", "website"],
             "content_calendar": "to_be_developed",
         }
-
 
         return {
             "content_types": content_types.get(

@@ -15,13 +15,14 @@ from typing import Any, Dict, List
 # Add backend to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from backend.config.settings import get_settings
 from infrastructure.gcp import GCPClient
 from infrastructure.secrets import SecretsManager
 from infrastructure.storage import CloudStorage
 from monitoring.health import HealthAggregator
 from redis.client import RedisClient
 from redis.config import RedisConfig, validate_redis_config
+
+from backend.config.settings import get_settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

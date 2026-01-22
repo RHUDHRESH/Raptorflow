@@ -11,10 +11,13 @@ from backend.core.supabase_mgr import get_supabase_client
 from backend.db.foundations import FoundationRepository
 from backend.db.icps import ICPRepository
 from backend.db.moves import MoveRepository
-from backend.services.business_context_generator import get_business_context_generator
-from backend.services.business_context_graph import get_business_context_graph, create_initial_workflow_state
-from backend.schemas import RICP
 from backend.redis_core.cache import cached
+from backend.schemas import RICP
+from backend.services.business_context_generator import get_business_context_generator
+from backend.services.business_context_graph import (
+    create_initial_workflow_state,
+    get_business_context_graph,
+)
 
 
 class ICPService:
@@ -27,7 +30,10 @@ class ICPService:
         self.graph = get_business_context_graph()
 
     async def derive_trinity(
-        self, workspace_id: str, cohort_name: str, context_override: Optional[str] = None
+        self,
+        workspace_id: str,
+        cohort_name: str,
+        context_override: Optional[str] = None,
     ) -> RICP:
         """
         Derive the Trinity (Cohort, ICP, Persona) for a specific cohort.
@@ -35,31 +41,34 @@ class ICPService:
         # 1. Get foundation context
         foundation = await self.foundation_repository.get_by_workspace(workspace_id)
         if not foundation:
-            raise ValidationError("Foundation data must be established before deriving cohorts")
+            raise ValidationError(
+                "Foundation data must be established before deriving cohorts"
+            )
 
         # 2. Prepare state for graph
         # We simulate an icp_list with just the desired cohort name
         icp_input = {
             "name": cohort_name,
-            "description": context_override or f"A target segment named {cohort_name} for {foundation.get('company_name')}"
+            "description": context_override
+            or f"A target segment named {cohort_name} for {foundation.get('company_name')}",
         }
-        
+
         state = create_initial_workflow_state(
             workspace_id=workspace_id,
-            user_id="system", # Derived by system
+            user_id="system",  # Derived by system
             foundation_data=foundation,
-            icp_list=[icp_input]
+            icp_list=[icp_input],
         )
 
         # 3. Run the RICP/ICP enhancement node directly or run full graph
         # Since we only want the RICP for this cohort, we'll use the enhance_icp_node
         result = await self.graph.enhance_icp_node(state)
-        
+
         if not result["context_data"].ricps:
             return self.graph.get_fallback_icp(icp_input)
 
         ricp = result["context_data"].ricps[0]
-        
+
         # 4. Save to database
         db_data = {
             "name": ricp.name,
@@ -69,21 +78,22 @@ class ICPService:
             "psychographics": ricp.psychographics.model_dump(),
             "market_sophistication": {
                 "stage": ricp.market_sophistication,
-                "stage_name": self._get_sophistication_name(ricp.market_sophistication)
+                "stage_name": self._get_sophistication_name(ricp.market_sophistication),
             },
             "confidence": ricp.confidence,
-            "fit_score": ricp.confidence, # Map confidence to fit score for legacy
-            "summary": f"{ricp.name}: {ricp.psychographics.identity}"
+            "fit_score": ricp.confidence,  # Map confidence to fit score for legacy
+            "summary": f"{ricp.name}: {ricp.psychographics.identity}",
         }
-        
+
         created = await self.repository.create(workspace_id, db_data)
-        
+
         # Update ricp ID with database ID
         ricp.id = created.get("id", ricp.id)
 
         # Record interaction in BCM Ledger
         try:
             from backend.services.bcm_integration import bcm_evolution
+
             await bcm_evolution.record_interaction(
                 workspace_id=workspace_id,
                 agent_name="ICPService",
@@ -91,13 +101,14 @@ class ICPService:
                 payload={
                     "cohort_name": cohort_name,
                     "icp_id": ricp.id,
-                    "confidence": ricp.confidence
-                }
+                    "confidence": ricp.confidence,
+                },
             )
         except Exception as e:
             import logging
+
             logging.getLogger(__name__).error(f"Failed to ledger ICP derivation: {e}")
-        
+
         return ricp
 
     def _get_sophistication_name(self, stage: int) -> str:
@@ -106,7 +117,7 @@ class ICPService:
             2: "Problem Aware",
             3: "Solution Aware",
             4: "Product Aware",
-            5: "Most Aware"
+            5: "Most Aware",
         }.get(stage, "Unknown")
 
     async def create_icp(
@@ -255,13 +266,14 @@ class ICPService:
                 raise ValidationError("Fit score must be an integer between 0 and 100")
 
         result = await self.repository.update(icp_id, workspace_id, data)
-        
+
         if result:
             # Invalidate ICP related caches
             from backend.redis_core.cache import CacheService
+
             cache = CacheService()
             await cache.invalidate_pattern(workspace_id, "icps*")
-            
+
         return result
 
     async def delete_icp(self, icp_id: str, workspace_id: str) -> bool:

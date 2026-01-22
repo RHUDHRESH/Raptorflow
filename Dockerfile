@@ -19,8 +19,8 @@ COPY backend/ ./backend/
 COPY frontend/package*.json ./frontend/
 WORKDIR /app/frontend
 RUN npm install --legacy-peer-deps
-COPY frontend/ ./ 
-# We skip full build here to keep image smaller for "test ride", 
+COPY frontend/ ./
+# We skip full build here to keep image smaller for "test ride",
 # entrypoint will run dev server or we can build if needed.
 
 WORKDIR /app

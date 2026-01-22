@@ -5,9 +5,17 @@ Configuration management for Raptorflow backend.
 from .cors_config import get_cors_config
 from .feature_flags import FeatureFlags
 from .logging_config import configure_logging, get_logger
-from .settings import Environment, ModelTier, Settings, get_settings, LLMProvider, reload_settings
+from .settings import (
+    Environment,
+    LLMProvider,
+    ModelTier,
+    Settings,
+    get_settings,
+    reload_settings,
+)
 
 settings = get_settings()
+
 
 # Add missing functions for backward compatibility
 def get_config():

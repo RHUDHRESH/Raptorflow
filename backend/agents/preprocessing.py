@@ -77,6 +77,7 @@ class ContextLoader:
         self.database_tool = DatabaseTool()
         self.tool_registry = get_tool_registry()
         from backend.services.bcm_projector import BCMProjector
+
         self.bcm_projector = BCMProjector()
 
     async def load_context(
@@ -94,11 +95,13 @@ class ContextLoader:
             try:
                 # We use a default UCID or retrieve the active one from workspace
                 # For now, we'll project the latest unified state
-                evolved_bcm = await self.bcm_projector.get_latest_state(workspace_id, ucid="RF-BASELINE")
+                evolved_bcm = await self.bcm_projector.get_latest_state(
+                    workspace_id, ucid="RF-BASELINE"
+                )
                 context["evolved_bcm"] = evolved_bcm.model_dump()
                 context["evolution_index"] = evolved_bcm.history.evolution_index
                 context["evolved_insights"] = evolved_bcm.evolved_insights
-                
+
                 # Ground foundation fields in evolved BCM
                 context["company_name"] = evolved_bcm.identity.name
                 context["industry"] = evolved_bcm.identity.industry

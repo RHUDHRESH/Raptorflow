@@ -71,7 +71,8 @@ class StorageConfig:
     def from_env(cls) -> "StorageConfig":
         """Create configuration from environment variables."""
         return cls(
-            bucket_name=os.getenv("GCP_STORAGE_BUCKET") or os.getenv("GCS_BUCKET_NAME", ""),
+            bucket_name=os.getenv("GCP_STORAGE_BUCKET")
+            or os.getenv("GCS_BUCKET_NAME", ""),
             default_storage_class=StorageClass(
                 os.getenv("GCP_STORAGE_CLASS", "STANDARD")
             ),

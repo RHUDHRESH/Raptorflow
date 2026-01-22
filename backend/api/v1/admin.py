@@ -99,10 +99,7 @@ async def get_system_stats(admin_verified: bool = Depends(verify_admin_access)):
         try:
             memory_controller = MemoryController()
             # Simplified stats for now since interface changed
-            stats["memory"] = {
-                "status": "active",
-                "engine": "simple_memory_controller"
-            }
+            stats["memory"] = {"status": "active", "engine": "simple_memory_controller"}
         except Exception as e:
             logger.warning(f"Could not get memory stats: {e}")
             stats["memory"] = {"error": str(e)}
@@ -204,7 +201,7 @@ async def trigger_reindexing(
                 # Interface changed, simplified for now
                 results["memory"] = {
                     "status": "success",
-                    "message": "Reindexing not supported in simplified controller"
+                    "message": "Reindexing not supported in simplified controller",
                 }
             except Exception as e:
                 results["memory"] = {"error": str(e), "status": "failed"}
@@ -281,7 +278,7 @@ async def trigger_backup(
                 # Simplified for now since we just need to fix imports
                 results["redis"] = {
                     "status": "success",
-                    "message": "Backup triggered via BackupManager"
+                    "message": "Backup triggered via BackupManager",
                 }
             except Exception as e:
                 results["redis"] = {"error": str(e), "status": "failed"}
@@ -394,7 +391,9 @@ async def toggle_maintenance_mode(
 
 
 @router.get("/admin/feature-flags")
-async def get_feature_flags_endpoint(admin_verified: bool = Depends(verify_admin_access)):
+async def get_feature_flags_endpoint(
+    admin_verified: bool = Depends(verify_admin_access),
+):
     """
     Get all feature flags.
     """

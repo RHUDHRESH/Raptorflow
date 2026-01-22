@@ -268,23 +268,24 @@ class Settings(BaseSettings):
     def get_llm_config(self) -> Dict[str, Any]:
         """Get LLM provider configuration."""
         import os
-        
+
         provider = os.getenv("LLM_PROVIDER", "google")
-        
+
         if provider == "openai":
             return {
                 "provider": "openai",
                 "api_key": self.OPENAI_API_KEY,
-                "model": self.OPENAI_MODEL
+                "model": self.OPENAI_MODEL,
             }
         else:
             # Default to Google Vertex AI
             return {
                 "provider": "google",
-                "api_key": os.getenv("VERTEX_AI_API_KEY") or os.getenv("GOOGLE_API_KEY"),
+                "api_key": os.getenv("VERTEX_AI_API_KEY")
+                or os.getenv("GOOGLE_API_KEY"),
                 "project_id": self.VERTEX_AI_PROJECT_ID,
                 "location": self.VERTEX_AI_LOCATION,
-                "model": self.VERTEX_AI_MODEL
+                "model": self.VERTEX_AI_MODEL,
             }
 
 

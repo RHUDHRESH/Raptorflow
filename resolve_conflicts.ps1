@@ -9,7 +9,7 @@ Write-Host "Found $($conflictedFiles.Count) conflicted files"
 
 foreach ($file in $conflictedFiles) {
     Write-Host "Resolving: $file"
-    
+
     # Check if file exists in stage 2 (theirs)
     try {
         $null = git show :2:$file

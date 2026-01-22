@@ -52,12 +52,13 @@ class ToolRegistry:
 
         # Register Database Tool
         self.register(DatabaseTool(), "database")
-        
+
         # Register Titan as the primary web_search tool
         try:
             from backend.services.titan.tool import TitanIntelligenceTool
+
             titan = TitanIntelligenceTool()
-            titan.name = "web_search" # Alias Titan as 'web_search' for agents
+            titan.name = "web_search"  # Alias Titan as 'web_search' for agents
             self.register(titan, "search")
             logger.info("Titan SOTA Engine registered as primary 'web_search' tool.")
         except Exception as e:

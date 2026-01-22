@@ -168,7 +168,7 @@ export const useFoundationStore = create<FoundationStore>()(
                 try {
                     const response = await api.get('/foundation/');
                     const data = response.data as any;
-                    
+
                     set({
                         ricps: data.ricps || [],
                         messaging: data.messaging || null,

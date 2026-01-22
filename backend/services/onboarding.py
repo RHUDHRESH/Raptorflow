@@ -158,20 +158,26 @@ class OnboardingService:
             "current_step": 13,  # Final step
         }
 
-        updated_session = await self.repository.update_step(workspace_id, 13, update_data)
+        updated_session = await self.repository.update_step(
+            workspace_id, 13, update_data
+        )
 
         # Record initial baseline in BCM Ledger
         try:
             from backend.services.bcm_integration import bcm_evolution
+
             await bcm_evolution.record_strategic_shift(
                 workspace_id=workspace_id,
                 ucid="RF-BASELINE",
                 reason="Initial Onboarding Completion",
-                updates=session.get("step_data", {})
+                updates=session.get("step_data", {}),
             )
         except Exception as e:
             import logging
-            logging.getLogger(__name__).error(f"Failed to ledger onboarding completion: {e}")
+
+            logging.getLogger(__name__).error(
+                f"Failed to ledger onboarding completion: {e}"
+            )
 
         return updated_session
 
@@ -325,7 +331,7 @@ class OnboardingService:
         if evidence.get("content_type") == "ocr":
             file_record = await self.evidence_repository.get_file_record(evidence_id)
             if file_record:
-                file_record['retention_date'] = datetime.utcnow() + timedelta(days=7)
+                file_record["retention_date"] = datetime.utcnow() + timedelta(days=7)
                 await self.evidence_repository.update_file_record(file_record)
 
         return await self.evidence_repository.mark_processed(evidence_id, key_topics)

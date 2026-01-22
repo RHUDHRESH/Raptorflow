@@ -262,11 +262,14 @@ def health_check():
 
 # Package initialization
 try:
-    import os
     import logging
+    import os
+
     if os.getenv("RAPTORFLOW_SKIP_INIT", "false").lower() == "true":
         logger = logging.getLogger(__name__)
-        logger.info("Skipping Raptorflow system initialization (RAPTORFLOW_SKIP_INIT=true)")
+        logger.info(
+            "Skipping Raptorflow system initialization (RAPTORFLOW_SKIP_INIT=true)"
+        )
         system_components = None
     else:
         # Initialize system on import
@@ -281,6 +284,7 @@ try:
 except Exception as e:
     # Log initialization error
     import logging
+
     logger = logging.getLogger(__name__)
     logger.critical(f"Failed to initialize Raptorflow backend: {e}")
 

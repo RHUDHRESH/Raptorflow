@@ -3,8 +3,9 @@ Reasoning Telemetry Service: Persists AI reasoning traces for audit and API visi
 """
 
 import logging
-from typing import Any, Dict, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from backend.core.supabase_mgr import get_supabase_client
 from backend.services.bcm_integration import bcm_evolution
 
@@ -17,7 +18,9 @@ class ReasoningTelemetry:
     def __init__(self):
         self.supabase = get_supabase_client()
 
-    async def log_reasoning(self, workspace_id: str, agent_name: str, task_id: str, trace: Dict[str, Any]) -> bool:
+    async def log_reasoning(
+        self, workspace_id: str, agent_name: str, task_id: str, trace: Dict[str, Any]
+    ) -> bool:
         """
         Persists a reasoning trace to the database and BCM Ledger.
         """
@@ -27,7 +30,7 @@ class ReasoningTelemetry:
                 "agent_name": agent_name,
                 "task_id": task_id,
                 "trace": trace,
-                "created_at": datetime.utcnow().isoformat()
+                "created_at": datetime.utcnow().isoformat(),
             }
 
             # Using Supabase JSONB for persistence
@@ -38,10 +41,7 @@ class ReasoningTelemetry:
                 workspace_id=workspace_id,
                 agent_name=agent_name,
                 interaction_type="AI_REASONING",
-                payload={
-                    "task_id": task_id,
-                    "reasoning_length": len(str(trace))
-                }
+                payload={"task_id": task_id, "reasoning_length": len(str(trace))},
             )
 
             return True
@@ -54,7 +54,13 @@ class ReasoningTelemetry:
         Retrieves a reasoning trace for a specific task.
         """
         try:
-            res = await self.supabase.table("agent_reasoning_logs").select("reasoning_trace").eq("task_id", task_id).single().execute()
+            res = (
+                await self.supabase.table("agent_reasoning_logs")
+                .select("reasoning_trace")
+                .eq("task_id", task_id)
+                .single()
+                .execute()
+            )
             return res.data.get("reasoning_trace") if res.data else None
         except Exception as e:
             logger.error(f"Failed to retrieve trace: {e}")

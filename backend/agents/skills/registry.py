@@ -8,27 +8,43 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from .base import Skill, SkillAssessment, SkillCategory, SkillLevel, SkillPath
+from .implementations import (
+    ConflictResolverSkill,
+    MultiChannelAdaptationSkill,
+    NarrativeContinuitySkill,
+    NeuroscienceCopywritingSkill,
+)
+
 # Import specific skill implementations
 from .implementations.content import ContentGenerationSkill, SEOAnalysisSkill
-from .implementations.strategy import (
-    StrategyEvaluationSkill, PersonaBuilderSkill, GapAnalysisSkill, 
-    PricingArchitectSkill, FunnelBlueprintSkill, BrandVoiceGuardSkill
-)
-from .implementations.research import (
-    WebDeepDiveSkill, CompetitorScoutSkill, TrendSpotterSkill, 
-    KeywordDominanceSkill, SentimentGaugeSkill
-)
 from .implementations.marketing import (
-    SocialPulseSkill, ViralHookSkill, EmailSequenceSkill, 
-    AdCreativeSkill, VisualPromptSkill
+    AdCreativeSkill,
+    EmailSequenceSkill,
+    SocialPulseSkill,
+    ViralHookSkill,
+    VisualPromptSkill,
 )
 from .implementations.operations import (
-    CopyPolisherSkill, DataSynthesizerSkill, ReportArchitectSkill, 
-    ForecastOracleSkill, ConversionAuditSkill
+    ConversionAuditSkill,
+    CopyPolisherSkill,
+    DataSynthesizerSkill,
+    ForecastOracleSkill,
+    ReportArchitectSkill,
 )
-from .implementations import (
-    NeuroscienceCopywritingSkill, NarrativeContinuitySkill, MultiChannelAdaptationSkill,
-    ConflictResolverSkill
+from .implementations.research import (
+    CompetitorScoutSkill,
+    KeywordDominanceSkill,
+    SentimentGaugeSkill,
+    TrendSpotterSkill,
+    WebDeepDiveSkill,
+)
+from .implementations.strategy import (
+    BrandVoiceGuardSkill,
+    FunnelBlueprintSkill,
+    GapAnalysisSkill,
+    PersonaBuilderSkill,
+    PricingArchitectSkill,
+    StrategyEvaluationSkill,
 )
 
 logger = logging.getLogger(__name__)
@@ -66,7 +82,7 @@ class SkillsRegistry:
         self.register_skill(SentimentGaugeSkill())
 
         # --- BATCH 2: Strategy & Planning ---
-        self.register_skill(StrategyEvaluationSkill()) # Already existed
+        self.register_skill(StrategyEvaluationSkill())  # Already existed
         self.register_skill(PersonaBuilderSkill())
         self.register_skill(GapAnalysisSkill())
         self.register_skill(PricingArchitectSkill())
@@ -74,8 +90,8 @@ class SkillsRegistry:
         self.register_skill(BrandVoiceGuardSkill())
 
         # --- BATCH 3: Marketing & Content ---
-        self.register_skill(ContentGenerationSkill()) # Already existed
-        self.register_skill(SEOAnalysisSkill()) # Already existed
+        self.register_skill(ContentGenerationSkill())  # Already existed
+        self.register_skill(SEOAnalysisSkill())  # Already existed
         self.register_skill(SocialPulseSkill())
         self.register_skill(ViralHookSkill())
         self.register_skill(EmailSequenceSkill())
@@ -138,41 +154,41 @@ class SkillsRegistry:
     def find_skills_for_task(self, task_description: str) -> List[Skill]:
         """
         Find skills suitable for a specific task.
-        
+
         Args:
             task_description: A natural language description of the task.
-            
+
         Returns:
             List of matching Skill objects, ordered by relevance (heuristic).
         """
         task_tokens = set(task_description.lower().split())
         matches = []
-        
+
         for skill in self._skills.values():
             score = 0
-            
+
             # Check name (high weight)
             if skill.name in task_description.lower():
                 score += 5
-            
+
             # Check capabilities (medium weight)
             if skill.capabilities:
                 for cap in skill.capabilities:
                     cap_tokens = set(cap.lower().split())
                     if task_tokens & cap_tokens:
                         score += 2
-            
+
             # Check description (low weight)
             desc_tokens = set(skill.description.lower().split())
             common = len(task_tokens & desc_tokens)
             score += common * 0.5
-            
+
             if score > 0:
                 matches.append((score, skill))
-        
+
         # Sort by score descending
         matches.sort(key=lambda x: x[0], reverse=True)
-        
+
         return [m[1] for m in matches]
 
     def assess_agent_skills(

@@ -28,14 +28,15 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 import structlog
 
-# Local imports
-from ..base import BaseAgent
 from backend.agents.config import ModelTier
-from ..state import AgentState
 from backend.core.session import get_session_manager
 
 # Import Vertex AI service
 from backend.services.vertex_ai_service import vertex_ai_service
+
+# Local imports
+from ..base import BaseAgent
+from ..state import AgentState
 
 logger = structlog.get_logger(__name__)
 
@@ -204,12 +205,12 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
 
     async def execute(self, state: AgentState) -> AgentState:
         """Execute onboarding step with real AI processing"""
-        
+
         try:
             # Get workspace and user from state
             workspace_id = state.get("workspace_id", "default")
             user_id = state.get("user_id", "system")
-            
+
             # Extract user input
             user_input = self._extract_user_input(state)
             if not user_input:
@@ -228,34 +229,46 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
                     workspace_id=workspace_id,
                     user_id=user_id,
                     max_tokens=2000,
-                    temperature=0.7
+                    temperature=0.7,
                 )
-                
+
                 if ai_response["status"] == "success":
                     # Process AI response based on action
                     if action == "start_onboarding":
-                        result = await self._process_start_onboarding_response(ai_response["text"], state)
+                        result = await self._process_start_onboarding_response(
+                            ai_response["text"], state
+                        )
                     elif action == "check_progress":
-                        result = await self._process_progress_response(ai_response["text"], state)
+                        result = await self._process_progress_response(
+                            ai_response["text"], state
+                        )
                     elif action == "next_steps":
-                        result = await self._process_next_steps_response(ai_response["text"], state)
+                        result = await self._process_next_steps_response(
+                            ai_response["text"], state
+                        )
                     else:
-                        result = await self._process_general_guidance_response(ai_response["text"], state)
-                    
+                        result = await self._process_general_guidance_response(
+                            ai_response["text"], state
+                        )
+
                     # Add AI metadata to result
                     result["ai_metadata"] = {
                         "tokens_used": ai_response["total_tokens"],
                         "cost": ai_response["cost_usd"],
                         "model": ai_response["model"],
-                        "generation_time": ai_response["generation_time_seconds"]
+                        "generation_time": ai_response["generation_time_seconds"],
                     }
                 else:
                     # Fallback to mock if AI fails
-                    logger.warning(f"Vertex AI failed: {ai_response.get('error')}, using fallback")
+                    logger.warning(
+                        f"Vertex AI failed: {ai_response.get('error')}, using fallback"
+                    )
                     result = await self._get_fallback_response(action, state)
             else:
                 # Fallback if Vertex AI not available
-                logger.warning("Vertex AI service not available, using fallback responses")
+                logger.warning(
+                    "Vertex AI service not available, using fallback responses"
+                )
                 result = await self._get_fallback_response(action, state)
 
             # Format response
@@ -295,9 +308,9 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
         session_id = state.get("session_id") or str(uuid.uuid4())
         workspace_id = state.get("workspace_id", "default")
         user_id = state.get("user_id", "system")
-        
+
         session_manager = get_session_manager()
-        
+
         # Initialize session in Redis
         initial_data = {
             "user_id": user_id,
@@ -306,13 +319,13 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
             "status": OnboardingStatus.IN_PROGRESS.value,
             "steps": {},
             "vault": {},
-            "metadata": {"started_via": "agent"}
+            "metadata": {"started_via": "agent"},
         }
-        
-        # We don't call create_session here as it generates its own ID, 
+
+        # We don't call create_session here as it generates its own ID,
         # instead we use update_session_data or just use the manager to store
         await session_manager.update_session_data(session_id, initial_data)
-        
+
         return {
             "action": "start_onboarding",
             "session_id": session_id,
@@ -332,19 +345,21 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
         session_id = state.get("session_id")
         if not session_id:
             return {"action": "check_progress", "error": "No active session ID found"}
-            
+
         session_manager = get_session_manager()
         session = await session_manager.validate_session(session_id)
-        
+
         if not session or not session.data:
             return {"action": "check_progress", "error": "Session data not found"}
-            
+
         data = session.data
         steps = data.get("steps", {})
         completed_count = len(steps)
         total_milestones = len(self.milestones)
-        progress_pct = (completed_count / total_milestones) * 100 if total_milestones > 0 else 0
-        
+        progress_pct = (
+            (completed_count / total_milestones) * 100 if total_milestones > 0 else 0
+        )
+
         return {
             "action": "check_progress",
             "current_stage": data.get("current_stage", "initial_setup"),
@@ -357,14 +372,14 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
     def _determine_next_milestone(self, completed_steps: Dict[str, Any]) -> str:
         """Helper to determine the next milestone based on completed steps."""
         # Simple logic: first step ID (as string) not in completed_steps
-        for i in range(1, 20): # Check steps 1 to 20
+        for i in range(1, 20):  # Check steps 1 to 20
             if str(i) not in completed_steps:
                 milestone_map = {
                     "1": "Account Setup",
                     "2": "Foundation Data",
                     "9": "Category Definition",
                     "10": "Capability Mapping",
-                    "16": "ICP Creation"
+                    "16": "ICP Creation",
                 }
                 return milestone_map.get(str(i), f"Step {i}")
         return "Finalization"
@@ -403,7 +418,7 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
         # If we have an AI response, use it directly
         if "ai_response" in result:
             return result["ai_response"]
-        
+
         # Otherwise, use the original formatting logic
         response = f"**Onboarding Guidance**\n\n"
 
@@ -741,15 +756,17 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
         """Calculate estimated improvement from optimizations."""
         return "25% faster completion"  # Simplified
 
-    def _prepare_prompt_for_step(self, action: str, state: AgentState, user_input: str) -> str:
+    def _prepare_prompt_for_step(
+        self, action: str, state: AgentState, user_input: str
+    ) -> str:
         """Prepare prompt for Vertex AI based on action and state."""
         base_prompt = f"""You are an expert onboarding specialist for Raptorflow, a marketing automation platform.
-        
+
 User request: {user_input}
 Action type: {action}
 
 """
-        
+
         if action == "start_onboarding":
             base_prompt += """Generate a comprehensive onboarding plan that includes:
 1. Welcome message and timeline
@@ -759,7 +776,7 @@ Action type: {action}
 5. What the user should prepare
 
 Be encouraging and specific. Format as a helpful response."""
-        
+
         elif action == "check_progress":
             base_prompt += """Provide a progress update that includes:
 1. Current stage assessment
@@ -769,7 +786,7 @@ Be encouraging and specific. Format as a helpful response."""
 5. Any recommendations
 
 Be informative and motivating."""
-        
+
         elif action == "next_steps":
             base_prompt += """Generate next steps guidance that includes:
 1. Immediate actions to take
@@ -779,7 +796,7 @@ Be informative and motivating."""
 5. Timeline expectations
 
 Be actionable and clear."""
-        
+
         else:
             base_prompt += """Provide helpful onboarding guidance that addresses:
 1. The user's specific question
@@ -789,10 +806,12 @@ Be actionable and clear."""
 5. Best practices
 
 Be supportive and comprehensive."""
-        
+
         return base_prompt
 
-    async def _process_start_onboarding_response(self, ai_text: str, state: AgentState) -> Dict[str, Any]:
+    async def _process_start_onboarding_response(
+        self, ai_text: str, state: AgentState
+    ) -> Dict[str, Any]:
         """Process AI response for start onboarding."""
         return {
             "action": "start_onboarding",
@@ -800,7 +819,7 @@ Be supportive and comprehensive."""
             "ai_response": ai_text,
             "next_steps": [
                 "Complete account setup",
-                "Provide business information", 
+                "Provide business information",
                 "Create ICP profiles",
                 "Configure workflows",
             ],
@@ -808,7 +827,9 @@ Be supportive and comprehensive."""
             "milestones": len(self.milestones),
         }
 
-    async def _process_progress_response(self, ai_text: str, state: AgentState) -> Dict[str, Any]:
+    async def _process_progress_response(
+        self, ai_text: str, state: AgentState
+    ) -> Dict[str, Any]:
         """Process AI response for progress check."""
         return {
             "action": "check_progress",
@@ -820,7 +841,9 @@ Be supportive and comprehensive."""
             "next_milestone": "ICP Development",
         }
 
-    async def _process_next_steps_response(self, ai_text: str, state: AgentState) -> Dict[str, Any]:
+    async def _process_next_steps_response(
+        self, ai_text: str, state: AgentState
+    ) -> Dict[str, Any]:
         """Process AI response for next steps."""
         return {
             "action": "next_steps",
@@ -832,12 +855,14 @@ Be supportive and comprehensive."""
             ],
             "upcoming_milestones": [
                 "ICP Development",
-                "Workflow Configuration", 
+                "Workflow Configuration",
                 "Team Training",
             ],
         }
 
-    async def _process_general_guidance_response(self, ai_text: str, state: AgentState) -> Dict[str, Any]:
+    async def _process_general_guidance_response(
+        self, ai_text: str, state: AgentState
+    ) -> Dict[str, Any]:
         """Process AI response for general guidance."""
         return {
             "action": "general_guidance",
@@ -850,7 +875,9 @@ Be supportive and comprehensive."""
             ],
         }
 
-    async def _get_fallback_response(self, action: str, state: AgentState) -> Dict[str, Any]:
+    async def _get_fallback_response(
+        self, action: str, state: AgentState
+    ) -> Dict[str, Any]:
         """Get fallback response when AI is unavailable."""
         if action == "start_onboarding":
             return await self._start_onboarding(state)

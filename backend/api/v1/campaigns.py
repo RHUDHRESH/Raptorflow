@@ -2,8 +2,8 @@
 Campaigns API endpoints with AI processing
 """
 
-from typing import Any, Dict, List, Optional
 import logging
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -16,6 +16,7 @@ from backend.db.campaigns import CampaignRepository
 # Import Vertex AI client for AI processing
 try:
     from backend.services.vertex_ai_client import get_vertex_ai_client
+
     vertex_ai_client = get_vertex_ai_client()
 except ImportError:
     logging.warning("Vertex AI client not available for campaigns")
@@ -121,7 +122,7 @@ async def create_campaign(
         "budget_usd": campaign_data.budget_usd,
         "status": "planning",
         "start_date": campaign_data.start_date,
-        "end_date": campaign_data.end_date
+        "end_date": campaign_data.end_date,
     }
 
     # Add AI-generated campaign strategy if Vertex AI is available
@@ -137,36 +138,39 @@ async def create_campaign(
                     .in_("id", campaign_data.target_icps)
                     .execute()
                 )
-                
+
                 if icp_result.data:
-                    icp_context = "\nTarget ICPs:\n" + "\n".join([
-                        f"- {icp.get('name', '')}: {icp.get('description', '')}"
-                        for icp in icp_result.data[:3]  # Limit to 3 ICPs
-                    ])
+                    icp_context = "\nTarget ICPs:\n" + "\n".join(
+                        [
+                            f"- {icp.get('name', '')}: {icp.get('description', '')}"
+                            for icp in icp_result.data[:3]  # Limit to 3 ICPs
+                        ]
+                    )
 
             # Generate AI campaign strategy
             ai_prompt = f"""
             You are an expert marketing strategist. Create a campaign strategy for:
-            
+
             Campaign: {campaign_data.name}
             Description: {campaign_data.description}
             Budget: ${campaign_data.budget_usd or 'Not specified'}
             {icp_context}
-            
+
             Provide:
             1. Key objectives (3-5)
             2. Target audience insights
             3. Recommended channels
             4. Success metrics
             5. Timeline suggestion
-            
+
             Return as JSON with keys: objectives, audience_insights, channels, success_metrics, timeline
             """
-            
+
             ai_response = await vertex_ai_client.generate_text(ai_prompt)
-            
+
             if ai_response:
                 import json
+
                 try:
                     ai_strategy = json.loads(ai_response)
                     campaign_insert["ai_strategy"] = ai_strategy
@@ -175,7 +179,7 @@ async def create_campaign(
                     # Fallback if JSON parsing fails
                     campaign_insert["ai_strategy"] = {"raw_response": ai_response[:500]}
                     campaign_insert["ai_generated_at"] = "now"
-                    
+
         except Exception as e:
             logging.warning(f"AI strategy generation failed: {e}")
 
@@ -628,41 +632,42 @@ async def archive_campaign(
 
     return {"message": "Campaign archived successfully", "campaign_id": campaign_id}
 
+
 @router.get("/calendar/events")
 async def get_campaign_calendar(
     auth_context: AuthContext = Depends(get_auth_context),
     start_date: Optional[str] = None,
-    end_date: Optional[str] = None
+    end_date: Optional[str] = None,
 ):
     """
     Retrieve all campaign-related events for the calendar view.
     """
     supabase = get_supabase_client()
-    
+
     # 1. Fetch campaigns within range (or all if not specified)
-    query = supabase.table("campaigns") \
-        .select("id, name, status, start_date, end_date") \
+    query = (
+        supabase.table("campaigns")
+        .select("id, name, status, start_date, end_date")
         .eq("workspace_id", auth_context.workspace_id)
-    
+    )
+
     if start_date:
         query = query.gte("start_date", start_date)
     if end_date:
         query = query.lte("end_date", end_date)
-        
+
     campaigns_res = await query.execute()
-    
+
     # 2. Fetch moves associated with campaigns
     campaign_ids = [c["id"] for c in campaigns_res.data] if campaigns_res.data else []
     moves = []
     if campaign_ids:
-        moves_res = await supabase.table("moves") \
-            .select("id, name, campaign_id, status, start_date, end_date") \
-            .in_("campaign_id", campaign_ids) \
+        moves_res = (
+            await supabase.table("moves")
+            .select("id, name, campaign_id, status, start_date, end_date")
+            .in_("campaign_id", campaign_ids)
             .execute()
+        )
         moves = moves_res.data or []
-        
-    return {
-        "success": True,
-        "campaigns": campaigns_res.data or [],
-        "moves": moves
-    }
+
+    return {"success": True, "campaigns": campaigns_res.data or [], "moves": moves}

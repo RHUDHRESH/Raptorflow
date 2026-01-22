@@ -11,7 +11,11 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, R
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
-from backend.agents.exceptions import AuthenticationError, ValidationError, WorkspaceError
+from backend.agents.exceptions import (
+    AuthenticationError,
+    ValidationError,
+    WorkspaceError,
+)
 from backend.config import validate_config
 from backend.core.validation import validate_agent_request
 
@@ -33,6 +37,7 @@ def get_dispatcher():
     global _dispatcher
     if _dispatcher is None:
         from agents.dispatcher import AgentDispatcher
+
         _dispatcher = AgentDispatcher()
     return _dispatcher
 
@@ -42,6 +47,7 @@ def get_context_loader():
     global _context_loader
     if _context_loader is None:
         from agents.preprocessing import ContextLoader
+
         _context_loader = ContextLoader()
     return _context_loader
 
@@ -207,7 +213,7 @@ async def execute_agent(
         # Enhanced validation
         client_ip = http_request.client.host if http_request.client else None
         validated_request = validate_agent_request(request.dict(), client_ip)
-        
+
         # Validate configuration
         if not validate_config():
             raise HTTPException(
@@ -335,24 +341,24 @@ async def health_check():
     try:
         # Use enhanced health monitoring
         from core.health import run_health_checks
-        
+
         health = await run_health_checks()
-        
+
         # Get dispatcher for agent-specific checks
         dispatcher = get_dispatcher()
-        
+
         # Agent-specific health checks
         agent_health_status = await _check_agent_health(dispatcher)
-        
+
         # Check skill registry health
         skill_registry_health = await _check_skill_registry_health(dispatcher)
-        
-        # Check tool registry health  
+
+        # Check tool registry health
         tool_registry_health = await _check_tool_registry_health(dispatcher)
-        
+
         # Check LLM availability
         llm_health = await _check_llm_health()
-        
+
         return HealthResponse(
             status=health.status.value,
             timestamp=health.timestamp.isoformat(),
@@ -361,10 +367,12 @@ async def health_check():
                 "agent_health": agent_health_status,
                 "skill_registry": skill_registry_health,
                 "tool_registry": tool_registry_health,
-                "llm_availability": llm_health
+                "llm_availability": llm_health,
             },
             context_loader_status={},
-            registered_agents=len(dispatcher.registry.list_agents()) if dispatcher.registry else 0,
+            registered_agents=(
+                len(dispatcher.registry.list_agents()) if dispatcher.registry else 0
+            ),
         )
 
     except Exception as e:
@@ -491,53 +499,53 @@ async def clear_history(
 async def _check_agent_health(dispatcher) -> Dict[str, Any]:
     """Check health of individual agents."""
     try:
-        if not dispatcher or not hasattr(dispatcher, 'registry'):
+        if not dispatcher or not hasattr(dispatcher, "registry"):
             return {"status": "unhealthy", "error": "Dispatcher not available"}
-        
+
         agents = dispatcher.registry.list_agents() if dispatcher.registry else []
         healthy_agents = []
         unhealthy_agents = []
-        
+
         for agent_name in agents:
             try:
                 # Try to get agent instance and check health
                 agent_info = dispatcher.get_agent_info(agent_name)
                 if agent_info:
                     # Check if agent has required components
-                    has_tools = bool(agent_info.get('tools', []))
-                    has_skills = bool(agent_info.get('skills', []))
-                    has_llm = agent_info.get('model_tier') is not None
-                    
+                    has_tools = bool(agent_info.get("tools", []))
+                    has_skills = bool(agent_info.get("skills", []))
+                    has_llm = agent_info.get("model_tier") is not None
+
                     if has_tools and has_skills and has_llm:
                         healthy_agents.append(agent_name)
                     else:
-                        unhealthy_agents.append({
-                            "agent": agent_name,
-                            "issues": [
-                                "No tools" if not has_tools else None,
-                                "No skills" if not has_skills else None,
-                                "No LLM" if not has_llm else None
-                            ]
-                        })
+                        unhealthy_agents.append(
+                            {
+                                "agent": agent_name,
+                                "issues": [
+                                    "No tools" if not has_tools else None,
+                                    "No skills" if not has_skills else None,
+                                    "No LLM" if not has_llm else None,
+                                ],
+                            }
+                        )
                 else:
-                    unhealthy_agents.append({
-                        "agent": agent_name,
-                        "issues": ["Agent info not available"]
-                    })
+                    unhealthy_agents.append(
+                        {"agent": agent_name, "issues": ["Agent info not available"]}
+                    )
             except Exception as e:
-                unhealthy_agents.append({
-                    "agent": agent_name,
-                    "issues": [f"Health check failed: {str(e)}"]
-                })
-        
+                unhealthy_agents.append(
+                    {"agent": agent_name, "issues": [f"Health check failed: {str(e)}"]}
+                )
+
         return {
             "status": "healthy" if len(unhealthy_agents) == 0 else "degraded",
             "total_agents": len(agents),
             "healthy_agents": len(healthy_agents),
             "unhealthy_agents": len(unhealthy_agents),
-            "unhealthy_details": unhealthy_agents
+            "unhealthy_details": unhealthy_agents,
         }
-        
+
     except Exception as e:
         return {"status": "unhealthy", "error": str(e)}
 
@@ -545,34 +553,34 @@ async def _check_agent_health(dispatcher) -> Dict[str, Any]:
 async def _check_skill_registry_health(dispatcher) -> Dict[str, Any]:
     """Check health of skill registry."""
     try:
-        if not dispatcher or not hasattr(dispatcher, 'skills_registry'):
+        if not dispatcher or not hasattr(dispatcher, "skills_registry"):
             return {"status": "unhealthy", "error": "Skills registry not available"}
-        
+
         skills_registry = dispatcher.skills_registry
         if not skills_registry:
             return {"status": "unhealthy", "error": "Skills registry is None"}
-        
+
         # Get all available skills
         try:
             all_skills = skills_registry.list_all_skills()
             skill_count = len(all_skills)
-            
+
             # Check skill categories
             categories = set()
             for skill in all_skills:
-                if hasattr(skill, 'category'):
+                if hasattr(skill, "category"):
                     categories.add(skill.category.value)
-            
+
             return {
                 "status": "healthy",
                 "total_skills": skill_count,
                 "categories": list(categories),
-                "sample_skills": [skill.name for skill in all_skills[:5]]
+                "sample_skills": [skill.name for skill in all_skills[:5]],
             }
-            
+
         except Exception as e:
             return {"status": "degraded", "error": f"Skills registry error: {str(e)}"}
-            
+
     except Exception as e:
         return {"status": "unhealthy", "error": str(e)}
 
@@ -580,47 +588,47 @@ async def _check_skill_registry_health(dispatcher) -> Dict[str, Any]:
 async def _check_tool_registry_health(dispatcher) -> Dict[str, Any]:
     """Check health of tool registry."""
     try:
-        if not dispatcher or not hasattr(dispatcher, 'tool_registry'):
+        if not dispatcher or not hasattr(dispatcher, "tool_registry"):
             return {"status": "unhealthy", "error": "Tool registry not available"}
-        
+
         tool_registry = dispatcher.tool_registry
         if not tool_registry:
             return {"status": "unhealthy", "error": "Tool registry is None"}
-        
+
         # Get all available tools
         try:
             all_tools = tool_registry.list_tools()
             tool_count = len(all_tools)
-            
+
             # Check critical tools
             critical_tools = ["database", "web_search", "file_system"]
             available_critical = []
             missing_critical = []
-            
+
             for tool_name in critical_tools:
                 tool = tool_registry.get(tool_name)
                 if tool:
                     available_critical.append(tool_name)
                 else:
                     missing_critical.append(tool_name)
-            
+
             status = "healthy"
             if len(missing_critical) > 0:
                 status = "degraded"
             if len(available_critical) == 0:
                 status = "unhealthy"
-            
+
             return {
                 "status": status,
                 "total_tools": tool_count,
                 "critical_tools_available": available_critical,
                 "critical_tools_missing": missing_critical,
-                "sample_tools": [tool.name for tool in all_tools[:5]]
+                "sample_tools": [tool.name for tool in all_tools[:5]],
             }
-            
+
         except Exception as e:
             return {"status": "degraded", "error": f"Tool registry error: {str(e)}"}
-            
+
     except Exception as e:
         return {"status": "unhealthy", "error": str(e)}
 
@@ -628,50 +636,49 @@ async def _check_tool_registry_health(dispatcher) -> Dict[str, Any]:
 async def _check_llm_health() -> Dict[str, Any]:
     """Check LLM availability and configuration."""
     try:
-        from agents.llm import get_llm, LLMManager
-        
+        from agents.llm import LLMManager, get_llm
+
         # Try to get LLM instances for different tiers
         tiers = ["flash_lite", "flash", "pro"]
         tier_status = {}
-        
+
         for tier in tiers:
             try:
                 llm = get_llm(tier)
                 if llm:
                     # Test basic functionality
-                    if hasattr(llm, 'health_check'):
+                    if hasattr(llm, "health_check"):
                         is_healthy = await llm.health_check()
                     else:
                         # Basic check - see if we can access the LLM
                         is_healthy = bool(llm)
-                    
+
                     tier_status[tier] = {
                         "status": "healthy" if is_healthy else "unhealthy",
-                        "available": bool(llm)
+                        "available": bool(llm),
                     }
                 else:
-                    tier_status[tier] = {
-                        "status": "unavailable",
-                        "available": False
-                    }
+                    tier_status[tier] = {"status": "unavailable", "available": False}
             except Exception as e:
                 tier_status[tier] = {
                     "status": "error",
                     "available": False,
-                    "error": str(e)
+                    "error": str(e),
                 }
-        
+
         # Overall LLM health
-        healthy_tiers = [t for t, status in tier_status.items() if status["status"] == "healthy"]
+        healthy_tiers = [
+            t for t, status in tier_status.items() if status["status"] == "healthy"
+        ]
         overall_status = "healthy" if len(healthy_tiers) > 0 else "unhealthy"
-        
+
         return {
             "status": overall_status,
             "tiers": tier_status,
             "healthy_tiers": healthy_tiers,
-            "total_tiers": len(tiers)
+            "total_tiers": len(tiers),
         }
-        
+
     except ImportError:
         return {"status": "unhealthy", "error": "LLM module not available"}
     except Exception as e:

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    PAPER TERMINAL ΓÇö Step 14: Focus & Sacrifice (Smart Logic)
-   
+
    PURPOSE: "No Scroll" Decision Grid with STRATEGIC LOGIC.
    - Forces choices based on Step 9 (Category Path).
    - "David vs Goliath" -> MUST Focus on 'Early Stage', MUST Sacrifice 'Enterprise'.
@@ -149,7 +149,7 @@ export default function Step14FocusSacrifice() {
                         positioning: getStepById(9)?.data || {}
                     })
                 });
-                
+
                 const data = await response.json();
                 if (data.success && data.focus_sacrifice?.lightbulb_insights) {
                     setAiInsights(data.focus_sacrifice.lightbulb_insights);
@@ -160,7 +160,7 @@ export default function Step14FocusSacrifice() {
                 setIsLoadingInsights(false);
             }
         };
-        
+
         fetchAIInsights();
     }, [session?.sessionId]);
 

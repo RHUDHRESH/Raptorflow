@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 
 from backend.core.auth import get_current_user, get_workspace_id
 from backend.core.models import User
+
 from ...memory.graph_memory import GraphMemory
 from ...memory.graph_models import (
     EntityType,

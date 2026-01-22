@@ -139,10 +139,10 @@ class SessionManager:
         try:
             key = f"{self.session_prefix}{session_id}"
             session_data = await self.redis.get_json(key)
-            
+
             if not session_data:
                 return False
-                
+
             session_data["data"] = data
             await self.redis.set_json(key, session_data, ex=self.session_ttl)
             return True

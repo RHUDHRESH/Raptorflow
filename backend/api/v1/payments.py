@@ -8,17 +8,18 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+from db.repositories.payment import PaymentRepository
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 
-from db.repositories.payment import PaymentRepository
 from backend.services.email import email_service
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 # Import official SDK gateway
-from backend.services.phonepe_sdk_gateway import phonepe_sdk_gateway, PaymentRequest as SDKPaymentRequest
+from backend.services.phonepe_sdk_gateway import PaymentRequest as SDKPaymentRequest
+from backend.services.phonepe_sdk_gateway import phonepe_sdk_gateway
 
 # Create router
 router = APIRouter(prefix="/api/payments", tags=["payments"])
@@ -102,7 +103,9 @@ class SecurityStatusResponse(BaseModel):
 
 @router.post("/initiate", response_model=PaymentInitiateResponse)
 async def initiate_payment(
-    request: PaymentInitiateRequest, background_tasks: BackgroundTasks, http_request: Request
+    request: PaymentInitiateRequest,
+    background_tasks: BackgroundTasks,
+    http_request: Request,
 ):
     """
     Initiate a new payment transaction with foolproof security
@@ -120,7 +123,7 @@ async def initiate_payment(
         customer_info = None
         if request.customer_info:
             customer_info = request.customer_info.dict()
-            
+
             # Add IP and user agent from request
             customer_info["ip_address"] = http_request.client.host
             customer_info["user_agent"] = http_request.headers.get("user-agent")
@@ -134,7 +137,7 @@ async def initiate_payment(
             "enable_rate_limiting": True,
             "enable_circuit_breaker": True,
             "enable_audit_logging": True,
-            "enable_fingerprinting": True
+            "enable_fingerprinting": True,
         }
 
         if request.security_context:
@@ -150,7 +153,7 @@ async def initiate_payment(
                 customer_info=customer_info,
                 metadata=request.metadata,
                 user_id=request.customer_info.id if request.customer_info else None,
-                idempotency_key=request.idempotency_key
+                idempotency_key=request.idempotency_key,
             )
         )
 
@@ -168,13 +171,12 @@ async def initiate_payment(
                 "customer_email": customer_info.get("email") if customer_info else None,
                 "customer_name": customer_info.get("name") if customer_info else None,
                 "metadata": request.metadata,
-                "security_metadata": response.security_metadata
+                "security_metadata": response.security_metadata,
             }
-            
+
             # Create transaction record with enhanced security
             await payment_repo.create_transaction(
-                txn_data, 
-                user_id=customer_info.get("id") if customer_info else None
+                txn_data, user_id=customer_info.get("id") if customer_info else None
             )
 
             # Add background task to log payment event
@@ -182,10 +184,7 @@ async def initiate_payment(
                 log_payment_event,
                 "PAYMENT_INITIATED",
                 response.transaction_id,
-                {
-                    "response": response.__dict__,
-                    "security_context": security_context
-                }
+                {"response": response.__dict__, "security_context": security_context},
             )
 
             return PaymentInitiateResponse(**response.__dict__)
@@ -216,7 +215,7 @@ async def get_payment_status(merchant_order_id: str):
                 await payment_repo.update_status(
                     transaction_id=response.phonepe_transaction_id or "",
                     status=response.status,
-                    payment_instrument=None
+                    payment_instrument=None,
                 )
 
             return PaymentStatusResponse(**response.__dict__)
@@ -256,7 +255,7 @@ async def handle_webhook(request: Request, background_tasks: BackgroundTasks):
             # DB LOGGING: Log webhook receipt
             webhook_id = str(uuid.uuid4())
             callback_data = validation_result.get("callback")
-            
+
             await payment_repo.log_webhook(
                 webhook_id,
                 "PAYMENT_CALLBACK",
@@ -286,17 +285,17 @@ async def refund_payment(request: RefundRequest, background_tasks: BackgroundTas
     Process a refund for a transaction using current SDK
     """
     try:
-        # In v2 SDK, refund might need a different request builder, 
+        # In v2 SDK, refund might need a different request builder,
         # but the gateway already encapsulates it.
         # We need a proper RefundRequestData object for the gateway
         from backend.services.phonepe_sdk_gateway import RefundRequestData
-        
+
         response = await phonepe_sdk_gateway.process_refund(
             RefundRequestData(
                 merchant_order_id=request.merchant_order_id,
                 refund_amount=request.refund_amount,
                 refund_reason=request.refund_reason,
-                user_id=request.user_id
+                user_id=request.user_id,
             )
         )
 
@@ -306,7 +305,8 @@ async def refund_payment(request: RefundRequest, background_tasks: BackgroundTas
             # DB LOGGING: Create refund record
             refund_data = {
                 "refund_id": response.refund_id,
-                "merchant_refund_id": response.merchant_refund_id or f"RF-{uuid.uuid4().hex[:8]}",
+                "merchant_refund_id": response.merchant_refund_id
+                or f"RF-{uuid.uuid4().hex[:8]}",
                 "refund_amount": request.refund_amount,
                 "refund_reason": request.refund_reason,
                 "status": "PROCESSING",
@@ -319,7 +319,10 @@ async def refund_payment(request: RefundRequest, background_tasks: BackgroundTas
 
             # Add background task to log refund
             background_tasks.add_task(
-                log_payment_event, "REFUND_INITIATED", response.refund_id, response.__dict__
+                log_payment_event,
+                "REFUND_INITIATED",
+                response.refund_id,
+                response.__dict__,
             )
 
             return RefundResponse(**response.__dict__)

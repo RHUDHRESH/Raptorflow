@@ -10,7 +10,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from backend.core.auth import get_current_user
-from backend.core.database import get_supabase_client, get_database_service
+from backend.core.database import get_database_service, get_supabase_client
+
 from ..memory import (
     EpisodicMemory,
     GraphMemory,
@@ -100,7 +101,9 @@ async def store_memory(
             database_service = await get_database_service()
             if database_service:
                 # Use new database service for memory operations
-                vector_memory = VectorMemory(supabase_client=supabase, database_service=database_service)
+                vector_memory = VectorMemory(
+                    supabase_client=supabase, database_service=database_service
+                )
             else:
                 # Fall back to direct Supabase client
                 vector_memory = VectorMemory(supabase_client=supabase)
@@ -154,7 +157,9 @@ async def search_memory(
             database_service = await get_database_service()
             if database_service:
                 # Use new database service for memory operations
-                vector_memory = VectorMemory(supabase_client=supabase, database_service=database_service)
+                vector_memory = VectorMemory(
+                    supabase_client=supabase, database_service=database_service
+                )
             else:
                 # Fall back to direct Supabase client
                 vector_memory = VectorMemory(supabase_client=supabase)
@@ -212,7 +217,9 @@ async def get_memory_stats(
             database_service = await get_database_service()
             if database_service:
                 # Use new database service for memory operations
-                vector_memory = VectorMemory(supabase_client=supabase, database_service=database_service)
+                vector_memory = VectorMemory(
+                    supabase_client=supabase, database_service=database_service
+                )
             else:
                 # Fall back to direct Supabase client
                 vector_memory = VectorMemory(supabase_client=supabase)
@@ -248,7 +255,9 @@ async def delete_memory(
         database_service = await get_database_service()
         if database_service:
             # Use new database service for memory operations
-            vector_memory = VectorMemory(supabase_client=supabase, database_service=database_service)
+            vector_memory = VectorMemory(
+                supabase_client=supabase, database_service=database_service
+            )
         else:
             # Fall back to direct Supabase client
             vector_memory = VectorMemory(supabase_client=supabase)

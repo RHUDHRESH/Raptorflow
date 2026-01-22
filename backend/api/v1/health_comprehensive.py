@@ -9,15 +9,16 @@ import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from backend.core.circuit_breaker import get_resilient_client
-from backend.core.redis import get_redis_client
-from backend.core.sentry import get_health_status
-from backend.core.posthog import get_health_status as get_posthog_health
-from backend.core.celery_manager import get_celery_health
-from backend.core.migrations import get_migration_health
-from backend.dependencies import get_db, get_redis
 from fastapi import APIRouter, HTTPException, status
 from infrastructure.secrets import get_secrets_manager
+
+from backend.core.celery_manager import get_celery_health
+from backend.core.circuit_breaker import get_resilient_client
+from backend.core.migrations import get_migration_health
+from backend.core.posthog import get_health_status as get_posthog_health
+from backend.core.redis import get_redis_client
+from backend.core.sentry import get_health_status
+from backend.dependencies import get_db, get_redis
 
 logger = logging.getLogger(__name__)
 
@@ -93,11 +94,12 @@ async def check_redis_only():
     """Redis-specific health check endpoint"""
     try:
         from redis_core.client import get_redis
+
         redis_client = get_redis()
-        
+
         # Test Redis connection
         is_healthy = await redis_client.ping()
-        
+
         if is_healthy:
             # Get basic Redis info
             try:
@@ -106,7 +108,7 @@ async def check_redis_only():
                 await redis_client.set(test_key, "test_value", ex=10)
                 value = await redis_client.get(test_key)
                 await redis_client.delete(test_key)
-                
+
                 return {
                     "status": "healthy",
                     "timestamp": datetime.now().isoformat(),
@@ -114,7 +116,7 @@ async def check_redis_only():
                         "connection": "ok",
                         "basic_operations": "ok" if value == "test_value" else "failed",
                         "test_value": value,
-                    }
+                    },
                 }
             except Exception as e:
                 return {
@@ -123,24 +125,21 @@ async def check_redis_only():
                     "details": {
                         "connection": "ok",
                         "basic_operations": "failed",
-                        "error": str(e)
-                    }
+                        "error": str(e),
+                    },
                 }
         else:
             return {
                 "status": "unhealthy",
                 "timestamp": datetime.now().isoformat(),
-                "details": {
-                    "connection": "failed",
-                    "error": "Redis ping failed"
-                }
+                "details": {"connection": "failed", "error": "Redis ping failed"},
             }
-            
+
     except Exception as e:
         return {
             "status": "unhealthy",
             "timestamp": datetime.now().isoformat(),
-            "error": str(e)
+            "error": str(e),
         }
 
 

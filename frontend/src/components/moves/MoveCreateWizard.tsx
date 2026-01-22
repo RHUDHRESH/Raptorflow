@@ -34,7 +34,7 @@ const getCohortsFromBCM = (bcm: any) => {
             description: icp.demographics?.role || 'Target audience segment'
         }));
     }
-    
+
     // Fallback mock data
     return [
         { id: "COH-01", name: "Enterprise Decision Makers", description: "C-level at 500+ companies" },
@@ -98,7 +98,7 @@ export function MoveCreateWizard({ isOpen, onClose, onComplete }: MoveCreateWiza
                 try {
                     const goal = `Objective: ${MOVE_CATEGORIES[category!].name}. Context: ${contextDesc}. Answers: ${JSON.stringify(answers)}`;
                     const response = await apiClient.createBlueprint(goal);
-                    
+
                     if (response.data) {
                         setBrief(response.data.brief);
                         setExecution(response.data.execution_plan || []);
@@ -400,7 +400,7 @@ function generateMockBrief(category: MoveCategory, context: string, icp: string,
     const brandVoice = bcm?.messaging?.brand_voice?.tone?.join(', ') || "Professional & Authoritative";
     const valueProps = bcm?.messaging?.value_props || [];
     const company = bcm?.foundation?.company || "Your Company";
-    
+
     return {
         name: `${MOVE_CATEGORIES[category].name} Sprint`,
         category,

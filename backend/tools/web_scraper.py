@@ -18,13 +18,13 @@ Features:
 """
 
 import asyncio
-from enum import Enum
 import json
 import re
 import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 from urllib.parse import urljoin, urlparse
@@ -41,16 +41,29 @@ try:
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.webdriver.support.ui import WebDriverWait
+
     SELENIUM_AVAILABLE = True
 except ImportError:
     SELENIUM_AVAILABLE = False
-    class WebDriverException(Exception): pass
-    class TimeoutException(Exception): pass
+
+    class WebDriverException(Exception):
+        pass
+
+    class TimeoutException(Exception):
+        pass
+
 
 from backend.config import settings
 
 # Local imports
-from .base import ToolCategory, ToolError, ToolResult, ToolStatus, ToolTimeoutError, WebTool
+from .base import (
+    ToolCategory,
+    ToolError,
+    ToolResult,
+    ToolStatus,
+    ToolTimeoutError,
+    WebTool,
+)
 
 logger = structlog.get_logger(__name__)
 

@@ -3,11 +3,13 @@ Pytest configuration and fixtures for Raptorflow backend tests.
 """
 
 import asyncio
+from io import BytesIO
 from typing import AsyncGenerator, Generator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 import pytest_asyncio
+from fastapi import UploadFile
 
 from ..events.bus import EventBus
 from ..infrastructure.storage import CloudStorage
@@ -20,20 +22,20 @@ from ..redis_core.session import SessionService
 from ..redis_core.session_models import SessionData
 from ..redis_core.usage import UsageTracker
 from ..webhooks.handler import WebhookHandler
-from fastapi import UploadFile
-from io import BytesIO
 
 
 @pytest.fixture
 def sample_upload_file():
     """Create a sample UploadFile for testing."""
-    def _create_file(filename="test.pdf", content=b"fake pdf content", content_type="application/pdf"):
+
+    def _create_file(
+        filename="test.pdf", content=b"fake pdf content", content_type="application/pdf"
+    ):
         file_obj = BytesIO(content)
         return UploadFile(
-            filename=filename,
-            file=file_obj,
-            headers={"content-type": content_type}
+            filename=filename, file=file_obj, headers={"content-type": content_type}
         )
+
     return _create_file
 
 

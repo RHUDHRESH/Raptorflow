@@ -10,8 +10,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from ..base import BaseAgent
 from backend.agents.config import ModelTier
+
+from ..base import BaseAgent
 from ..exceptions import DatabaseError, ValidationError
 from ..state import AgentState, add_message, update_state
 
@@ -1109,9 +1110,7 @@ Always focus on creating authentic, data-driven persona simulations that help un
         response += (
             f"ΓÇó Industry: {report.persona_profile.demographics['industry'].title()}\n"
         )
-        response += (
-            f"ΓÇó Experience: {report.persona_profile.demographics['experience']} years\n"
-        )
+        response += f"ΓÇó Experience: {report.persona_profile.demographics['experience']} years\n"
         response += f"ΓÇó Communication Style: {report.persona_profile.communication_style.title()}\n\n"
 
         response += f"**Key Motivations:**\n"

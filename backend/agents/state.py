@@ -213,10 +213,11 @@ def get_redis_client():
     """Get Redis client for state persistence."""
     if not redis:
         return None
-    
+
     try:
         # Try to get Redis URL from environment
         import os
+
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
         client = redis.from_url(redis_url, decode_responses=True)
         # Test connection
@@ -232,14 +233,14 @@ def persist_state(state: AgentState, ttl: int = 3600) -> bool:
         client = get_redis_client()
         if not client:
             return False
-        
+
         key = f"agent_state:{state['workspace_id']}:{state['user_id']}:{state['session_id']}"
-        
+
         # Convert datetime objects to strings for JSON serialization
         state_copy = state.copy()
-        state_copy['created_at'] = state['created_at'].isoformat()
-        state_copy['updated_at'] = state['updated_at'].isoformat()
-        
+        state_copy["created_at"] = state["created_at"].isoformat()
+        state_copy["updated_at"] = state["updated_at"].isoformat()
+
         # Store as JSON
         client.setex(key, ttl, json.dumps(state_copy))
         return True
@@ -247,25 +248,27 @@ def persist_state(state: AgentState, ttl: int = 3600) -> bool:
         return False
 
 
-def retrieve_state(workspace_id: str, user_id: str, session_id: str) -> Optional[AgentState]:
+def retrieve_state(
+    workspace_id: str, user_id: str, session_id: str
+) -> Optional[AgentState]:
     """Retrieve agent state from Redis."""
     try:
         client = get_redis_client()
         if not client:
             return None
-        
+
         key = f"agent_state:{workspace_id}:{user_id}:{session_id}"
         data = client.get(key)
-        
+
         if not data:
             return None
-        
+
         state = json.loads(data)
-        
+
         # Convert string timestamps back to datetime objects
-        state['created_at'] = datetime.fromisoformat(state['created_at'])
-        state['updated_at'] = datetime.fromisoformat(state['updated_at'])
-        
+        state["created_at"] = datetime.fromisoformat(state["created_at"])
+        state["updated_at"] = datetime.fromisoformat(state["updated_at"])
+
         return state
     except Exception:
         return None
@@ -277,7 +280,7 @@ def clear_state(workspace_id: str, user_id: str, session_id: str) -> bool:
         client = get_redis_client()
         if not client:
             return False
-        
+
         key = f"agent_state:{workspace_id}:{user_id}:{session_id}"
         client.delete(key)
         return True
@@ -291,17 +294,17 @@ def get_user_sessions(workspace_id: str, user_id: str) -> List[str]:
         client = get_redis_client()
         if not client:
             return []
-        
+
         pattern = f"agent_state:{workspace_id}:{user_id}:*"
         keys = client.keys(pattern)
-        
+
         # Extract session IDs from keys
         sessions = []
         for key in keys:
             parts = key.split(":")
             if len(parts) >= 4:
                 sessions.append(parts[3])
-        
+
         return sessions
     except Exception:
         return []
@@ -313,19 +316,19 @@ def cleanup_expired_states() -> int:
         client = get_redis_client()
         if not client:
             return 0
-        
+
         # Redis automatically handles TTL expiration
         # This function can be used for manual cleanup if needed
         pattern = "agent_state:*"
         keys = client.keys(pattern)
-        
+
         expired_count = 0
         for key in keys:
             ttl = client.ttl(key)
             if ttl == -1:  # No TTL set, set one
                 client.expire(key, 3600)  # 1 hour default
                 expired_count += 1
-        
+
         return expired_count
     except Exception:
         return 0

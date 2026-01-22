@@ -37,7 +37,7 @@ export default function PaymentTestPage() {
                         <h3 className="font-technical text-lg text-[var(--ink)] mb-4">
                             2026 TEST SCENARIOS
                         </h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">    
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                     <PhonePePaymentInitiation amount={100} planSlug="test-starter" billingCycle="monthly" />
                                                     <PhonePePaymentInitiation amount={500} planSlug="test-pro" billingCycle="monthly" />
                                                     <PhonePePaymentInitiation amount={1000} planSlug="test-enterprise" billingCycle="monthly" />

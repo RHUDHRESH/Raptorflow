@@ -18,4 +18,3 @@ export default function RootPage() {
   if (USE_V3) return <LandingPageV3 />;
   return USE_V2 ? <LandingPageV2 /> : <LandingPage />;
 }
-

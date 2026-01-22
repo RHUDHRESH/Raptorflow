@@ -201,9 +201,9 @@ export default function Step5BrandAudit() {
             const response = await fetch('/api/onboarding/brand-audit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     session_id: session.sessionId,
-                    evidence_list: evidenceList 
+                    evidence_list: evidenceList
                 }),
             });
 

@@ -175,7 +175,7 @@ export default function DailyWinsPage() {
 
     const markAsDone = async () => {
         if (!contentWin) return;
-        
+
         try {
             if (!workspace?.workspaceId) return;
 

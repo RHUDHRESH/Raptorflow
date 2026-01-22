@@ -10,8 +10,8 @@ from pydantic import BaseModel
 
 from backend.core.auth import get_current_user, get_workspace_id
 from backend.core.models import User
-from backend.services.foundation import FoundationService
 from backend.schemas import RICP, MessagingStrategy
+from backend.services.foundation import FoundationService
 
 router = APIRouter(prefix="/foundation", tags=["foundation"])
 

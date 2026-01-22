@@ -40,44 +40,72 @@ import tiktoken
 try:
     from langchain_core.caches import BaseCache
 except ImportError:
-    class BaseCache: pass
+
+    class BaseCache:
+        pass
+
 
 try:
     from langchain.callbacks.base import BaseCallbackHandler
 except ImportError:
-    class BaseCallbackHandler: pass
+
+    class BaseCallbackHandler:
+        pass
+
 
 try:
     from langchain.chat_models.base import BaseChatModel
 except ImportError:
-    class BaseChatModel: pass
+
+    class BaseChatModel:
+        pass
+
 
 try:
     from langchain.globals import set_llm_cache
 except ImportError:
-    def set_llm_cache(cache): pass
+
+    def set_llm_cache(cache):
+        pass
+
 
 try:
     from langchain.llms.base import LLM
 except ImportError:
-    class LLM: pass
+
+    class LLM:
+        pass
+
 
 try:
     from langchain.memory import ConversationBufferMemory
 except ImportError:
-    class ConversationBufferMemory: pass
+
+    class ConversationBufferMemory:
+        pass
+
 
 try:
     from langchain.schema import AIMessage, HumanMessage, SystemMessage
 except ImportError:
-    class AIMessage: pass
-    class HumanMessage: pass
-    class SystemMessage: pass
+
+    class AIMessage:
+        pass
+
+    class HumanMessage:
+        pass
+
+    class SystemMessage:
+        pass
+
 
 try:
     from langchain_core.messages import ChatMessage
 except ImportError:
-    class ChatMessage: pass
+
+    class ChatMessage:
+        pass
+
 
 # Local imports
 from .config import LLMProvider, settings
@@ -223,7 +251,7 @@ class LLMCache(BaseCache):
             try:
                 # This is a bit dangerous on large Redis, but for dev/test it's fine
                 # In prod, we'd use namespaces
-                pass 
+                pass
             except Exception:
                 pass
 
@@ -448,6 +476,7 @@ class GoogleProvider(BaseLLMProvider):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         import google.generativeai as genai
+
         self.api_key = config.get("api_key")
         genai.configure(api_key=self.api_key)
         self.client = genai
@@ -472,7 +501,7 @@ class GoogleProvider(BaseLLMProvider):
                     "temperature": request.temperature,
                     "max_output_tokens": request.max_tokens,
                     "top_p": request.top_p,
-                }
+                },
             )
 
             content = response.text
@@ -481,7 +510,7 @@ class GoogleProvider(BaseLLMProvider):
                 "\n".join([msg.content for msg in request.messages]), model_name
             )
             completion_tokens = self.count_tokens(content, model_name)
-            
+
             return LLMResponse(
                 content=content,
                 model=model_name,
@@ -665,6 +694,7 @@ class LLMManager:
 
     def __init__(self):
         from .redis_core.client import get_redis
+
         self.providers = {}
         self.default_provider = None
         self.token_counter = TokenCounter()
@@ -696,7 +726,7 @@ class LLMManager:
             raise ValueError(f"Provider not available: {provider_name}")
 
         provider = self.providers[provider_name]
-        
+
         # Apply tier mapping for Google
         if provider_name == "google":
             tier_map = {"LITE": "gemini-1.5-flash", "PRO": "gemini-1.5-pro"}
@@ -737,7 +767,7 @@ class LLMManager:
             raise ValueError(f"Provider not available: {provider_name}")
 
         provider = self.providers[provider_name]
-        
+
         # Apply tier mapping for Google
         if provider_name == "google":
             tier_map = {"LITE": "gemini-1.5-flash", "PRO": "gemini-1.5-pro"}

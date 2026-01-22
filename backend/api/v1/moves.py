@@ -268,27 +268,24 @@ async def get_active_moves(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.get("/calendar/events")
 async def get_moves_calendar(
     workspace_id: str = Depends(get_workspace_id),
     start_date: Optional[str] = None,
-    end_date: Optional[str] = None
+    end_date: Optional[str] = None,
 ):
     """
     Retrieve all move events for the calendar view.
     """
     move_service = MoveService()
-    
+
     # 1. Fetch moves within range
     all_moves = await move_service.list_moves(workspace_id)
-    
+
     # Simple filtering for now
     calendar_moves = [
-        m for m in all_moves 
-        if m.get("start_date") or m.get("completed_at")
+        m for m in all_moves if m.get("start_date") or m.get("completed_at")
     ]
-    
-    return {
-        "success": True,
-        "moves": calendar_moves
-    }
+
+    return {"success": True, "moves": calendar_moves}

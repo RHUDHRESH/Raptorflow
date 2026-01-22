@@ -51,7 +51,7 @@ function MusePageContent() {
 
     const handleTemplateSubmit = async (content: string) => {
         if (!selectedTemplate) return;
-        
+
         await addAsset({
             title: `Draft: ${selectedTemplate.title}`,
             content,
@@ -59,7 +59,7 @@ function MusePageContent() {
             tags: [...selectedTemplate.tags, "Template"],
             source: "Template"
         });
-        
+
         setSelectedTemplate(null);
         setActiveTab("library");
     };
@@ -93,9 +93,9 @@ function MusePageContent() {
                         <h1 className="text-3xl font-bold text-[var(--ink)] tracking-tight">Muse</h1>
                         <p className="text-[var(--ink-muted)] mt-1">Strategic Content Operating System</p>
                     </div>
-                    <BlueprintTabs 
-                        tabs={tabs} 
-                        activeTab={activeTab} 
+                    <BlueprintTabs
+                        tabs={tabs}
+                        activeTab={activeTab}
                         onChange={setActiveTab}
                         className="w-auto"
                     />
@@ -113,9 +113,9 @@ function MusePageContent() {
 
                     {activeTab === "templates" && (
                         <TabContent>
-                            <TemplateSelector 
-                                onSelect={setSelectedTemplate} 
-                                onClose={() => setActiveTab("chat")} 
+                            <TemplateSelector
+                                onSelect={setSelectedTemplate}
+                                onClose={() => setActiveTab("chat")}
                             />
                         </TabContent>
                     )}
@@ -144,7 +144,7 @@ function MusePageContent() {
 
             {/* Quick Actions Bar */}
             <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-                <QuickActionsBar 
+                <QuickActionsBar
                     onNewChat={handleNewChat}
                     onUseTemplate={handleUseTemplate}
                     onExport={handleExport}

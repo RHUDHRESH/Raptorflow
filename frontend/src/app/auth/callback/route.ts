@@ -61,7 +61,7 @@ export async function GET(request: Request) {
         // Create profile if it doesn't exist
         if (profileError && profileError.code === 'PGRST116') {
           console.log('Creating new user profile for:', session.user.email)
-          
+
           const { error: insertError } = await supabase
             .from('user_profiles')
             .insert({

@@ -9,10 +9,11 @@ import sys
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
+from pydantic import BaseModel
+
 from backend.agents.base import BaseAgent
 from backend.agents.config import ModelTier
 from backend.agents.state import create_initial_state
-from pydantic import BaseModel
 
 
 class TestAgent(BaseAgent):

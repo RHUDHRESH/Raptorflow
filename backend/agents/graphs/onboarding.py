@@ -16,7 +16,7 @@ class OnboardingState(AgentState):
 
     current_step: Literal[
         "evidence_vault",
-        "auto_extraction", 
+        "auto_extraction",
         "contradiction_check",
         "reddit_research",
         "competitor_analysis",
@@ -62,7 +62,7 @@ class OnboardingStepHandler:
         self.step_order = [
             "evidence_vault",
             "auto_extraction",
-            "contradiction_check", 
+            "contradiction_check",
             "reddit_research",
             "competitor_analysis",
             "category_paths",
@@ -764,7 +764,9 @@ class OnboardingGraph:
         workflow.add_node("handle_icp_generation", handle_icp_generation)
         workflow.add_node("handle_truth_sheet", handle_truth_sheet)
         workflow.add_node("handle_proof_points", handle_proof_points)
-        workflow.add_node("handle_positioning_statements", handle_positioning_statements)
+        workflow.add_node(
+            "handle_positioning_statements", handle_positioning_statements
+        )
         workflow.add_node("handle_messaging_rules", handle_messaging_rules)
         workflow.add_node("handle_soundbites_merge", handle_soundbites_merge)
         workflow.add_node("handle_icp_deep", handle_icp_deep)
@@ -789,67 +791,119 @@ class OnboardingGraph:
         workflow.add_conditional_edges(
             "handle_evidence_vault",
             should_continue_onboarding,
-            {"handle_auto_extraction": "handle_auto_extraction", "await_input": END, END: END},
+            {
+                "handle_auto_extraction": "handle_auto_extraction",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_auto_extraction",
             should_continue_onboarding,
-            {"handle_contradiction_check": "handle_contradiction_check", "await_input": END, END: END},
+            {
+                "handle_contradiction_check": "handle_contradiction_check",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_contradiction_check",
             should_continue_onboarding,
-            {"handle_reddit_research": "handle_reddit_research", "await_input": END, END: END},
+            {
+                "handle_reddit_research": "handle_reddit_research",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_reddit_research",
             should_continue_onboarding,
-            {"handle_competitor_analysis": "handle_competitor_analysis", "await_input": END, END: END},
+            {
+                "handle_competitor_analysis": "handle_competitor_analysis",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_competitor_analysis",
             should_continue_onboarding,
-            {"handle_category_paths": "handle_category_paths", "await_input": END, END: END},
+            {
+                "handle_category_paths": "handle_category_paths",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_category_paths",
             should_continue_onboarding,
-            {"handle_capability_rating": "handle_capability_rating", "await_input": END, END: END},
+            {
+                "handle_capability_rating": "handle_capability_rating",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_capability_rating",
             should_continue_onboarding,
-            {"handle_perceptual_map": "handle_perceptual_map", "await_input": END, END: END},
+            {
+                "handle_perceptual_map": "handle_perceptual_map",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_perceptual_map",
             should_continue_onboarding,
-            {"handle_neuroscience_copy": "handle_neuroscience_copy", "await_input": END, END: END},
+            {
+                "handle_neuroscience_copy": "handle_neuroscience_copy",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_neuroscience_copy",
             should_continue_onboarding,
-            {"handle_focus_sacrifice": "handle_focus_sacrifice", "await_input": END, END: END},
+            {
+                "handle_focus_sacrifice": "handle_focus_sacrifice",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_focus_sacrifice",
             should_continue_onboarding,
-            {"handle_icp_generation": "handle_icp_generation", "await_input": END, END: END},
+            {
+                "handle_icp_generation": "handle_icp_generation",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_icp_generation",
             should_continue_onboarding,
-            {"handle_messaging_rules": "handle_messaging_rules", "await_input": END, END: END},
+            {
+                "handle_messaging_rules": "handle_messaging_rules",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_messaging_rules",
             should_continue_onboarding,
-            {"handle_soundbites_merge": "handle_soundbites_merge", "await_input": END, END: END},
+            {
+                "handle_soundbites_merge": "handle_soundbites_merge",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_soundbites_merge",
             should_continue_onboarding,
-            {"handle_channel_strategy": "handle_channel_strategy", "await_input": END, END: END},
+            {
+                "handle_channel_strategy": "handle_channel_strategy",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_channel_strategy",
@@ -874,37 +928,65 @@ class OnboardingGraph:
         workflow.add_conditional_edges(
             "handle_icp_cohorts",
             should_continue_onboarding,
-            {"handle_market_research": "handle_market_research", "await_input": END, END: END},
+            {
+                "handle_market_research": "handle_market_research",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_market_research",
             should_continue_onboarding,
-            {"handle_competitor_analysis": "handle_competitor_analysis", "await_input": END, END: END},
+            {
+                "handle_competitor_analysis": "handle_competitor_analysis",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_differentiators",
             should_continue_onboarding,
-            {"handle_proof_points": "handle_proof_points", "await_input": END, END: END},
+            {
+                "handle_proof_points": "handle_proof_points",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_proof_points",
             should_continue_onboarding,
-            {"handle_muse_calibration": "handle_muse_calibration", "await_input": END, END: END},
+            {
+                "handle_muse_calibration": "handle_muse_calibration",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_muse_calibration",
             should_continue_onboarding,
-            {"handle_move_strategy": "handle_move_strategy", "await_input": END, END: END},
+            {
+                "handle_move_strategy": "handle_move_strategy",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_move_strategy",
             should_continue_onboarding,
-            {"handle_campaign_planning": "handle_campaign_planning", "await_input": END, END: END},
+            {
+                "handle_campaign_planning": "handle_campaign_planning",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_campaign_planning",
             should_continue_onboarding,
-            {"handle_blackbox_activation": "handle_blackbox_activation", "await_input": END, END: END},
+            {
+                "handle_blackbox_activation": "handle_blackbox_activation",
+                "await_input": END,
+                END: END,
+            },
         )
         workflow.add_conditional_edges(
             "handle_blackbox_activation",

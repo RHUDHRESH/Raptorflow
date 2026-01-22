@@ -32,7 +32,7 @@ def job(
     timezone: str = "UTC",
     enabled: bool = True,
     description: str = "",
-    tags: Optional[list] = None
+    tags: Optional[list] = None,
 ):
     """Decorator to convert a function into a schedulable job.
 
@@ -54,6 +54,7 @@ def job(
     Returns:
         Decorated function
     """
+
     def decorator(func: Callable) -> Callable:
         """Decorator implementation."""
         # Auto-generate job name if not provided
@@ -88,7 +89,7 @@ def job(
                     timezone=timezone,
                     enabled=enabled,
                     description=description,
-                    tags=tags
+                    tags=tags,
                 )
                 job_config = scheduler.get_job(job_name)
 
@@ -119,7 +120,7 @@ def cron_job(
     timezone: str = "UTC",
     enabled: bool = True,
     description: str = "",
-    tags: Optional[list] = None
+    tags: Optional[list] = None,
 ):
     """Decorator to create a cron-based scheduled job.
 
@@ -154,7 +155,7 @@ def cron_job(
         timezone=timezone,
         enabled=enabled,
         description=description,
-        tags=tags
+        tags=tags,
     )
 
 
@@ -170,7 +171,7 @@ def interval_job(
     timezone: str = "UTC",
     enabled: bool = True,
     description: str = "",
-    tags: Optional[list] = None
+    tags: Optional[list] = None,
 ):
     """Decorator to create an interval-based scheduled job.
 
@@ -213,7 +214,7 @@ def interval_job(
         timezone=timezone,
         enabled=enabled,
         description=description,
-        tags=tags
+        tags=tags,
     )
 
 
@@ -230,7 +231,7 @@ def daily_job(
     timezone: str = "UTC",
     enabled: bool = True,
     description: str = "",
-    tags: Optional[list] = None
+    tags: Optional[list] = None,
 ):
     """Decorator to create a daily scheduled job.
 
@@ -266,7 +267,7 @@ def daily_job(
         timezone=timezone,
         enabled=enabled,
         description=description,
-        tags=tags
+        tags=tags,
     )
 
 
@@ -282,7 +283,7 @@ def hourly_job(
     timezone: str = "UTC",
     enabled: bool = True,
     description: str = "",
-    tags: Optional[list] = None
+    tags: Optional[list] = None,
 ):
     """Decorator to create an hourly scheduled job.
 
@@ -317,15 +318,15 @@ def hourly_job(
         timezone=timezone,
         enabled=enabled,
         description=description,
-        tags=tags
+        tags=tags,
     )
 
 
 def weekly_job(
     day_of_week: int = 0,  # 0=Monday, 6=Sunday
-        hour: int = 0,
-        minute: int = 0,
-        queue: str = "default",
+    hour: int = 0,
+    minute: int = 0,
+    queue: str = "default",
     retries: int = 3,
     timeout: int = 300,
     max_instances: int = 1,
@@ -335,7 +336,7 @@ def weekly_job(
     timezone: str = "UTC",
     enabled: bool = True,
     description: str = "",
-    tags: Optional[list] = None
+    tags: Optional[list] = None,
 ):
     """Decorator to create a weekly scheduled job.
 
@@ -375,15 +376,15 @@ def weekly_job(
         timezone=timezone,
         enabled=enabled,
         description=description,
-        tags=tags
+        tags=tags,
     )
 
 
 def monthly_job(
     day: int = 1,
-        hour: int = 0,
-        minute: int = 0,
-        queue: str = "default",
+    hour: int = 0,
+    minute: int = 0,
+    queue: str = "default",
     retries: int = 3,
     timeout: int = 300,
     max_instances: int = 1,
@@ -393,7 +394,7 @@ def monthly_job(
     timezone: str = "UTC",
     enabled: bool = True,
     description: str = "",
-    tags: Optional[list] = None
+    tags: Optional[list] = None,
 ):
     """Decorator to create a monthly scheduled job.
 
@@ -430,7 +431,7 @@ def monthly_job(
         timezone=timezone,
         enabled=enabled,
         description=description,
-        tags=tags
+        tags=tags,
     )
 
 
@@ -445,7 +446,7 @@ def background_job(
     timezone: str = "UTC",
     enabled: bool = True,
     description: str = "",
-    tags: Optional[list] = None
+    tags: Optional[list] = None,
 ):
     """Decorator for long-running background jobs.
 
@@ -477,7 +478,7 @@ def background_job(
         timezone=timezone,
         enabled=enabled,
         description=description,
-        tags=tags
+        tags=tags,
     )
 
 
@@ -492,7 +493,7 @@ def critical_job(
     timezone: str = "UTC",
     enabled: bool = True,
     description: str = "",
-    tags: Optional[list] = None
+    tags: Optional[list] = None,
 ):
     """Decorator for critical system jobs.
 
@@ -524,7 +525,7 @@ def critical_job(
         timezone=timezone,
         enabled=enabled,
         description=description,
-        tags=tags
+        tags=tags,
     )
 
 
@@ -540,7 +541,7 @@ def user_job(
     timezone: str = "UTC",
     enabled: bool = True,
     description: str = "",
-    tags: Optional[list] = None
+    tags: Optional[list] = None,
 ):
     """Decorator for user-specific jobs.
 
@@ -561,8 +562,10 @@ def user_job(
     Returns:
         Decorated function
     """
+
     def decorator(func: Callable) -> Callable:
         """Decorator implementation."""
+
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             # Add user_id to kwargs if not present
@@ -593,7 +596,7 @@ def workspace_job(
     timezone: str = "UTC",
     enabled: bool = True,
     description: str = "",
-    tags: Optional[list] = None
+    tags: Optional[list] = None,
 ):
     """Decorator for workspace-specific jobs.
 
@@ -614,8 +617,10 @@ def workspace_job(
     Returns:
         Decorated function
     """
+
     def decorator(func: Callable) -> Callable:
         """Decorator implementation."""
+
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             # Add workspace_id to kwargs if not present
@@ -635,11 +640,7 @@ def workspace_job(
 
 
 # Convenience function for manual job execution
-async def execute_job(
-    job_name: str,
-    *args,
-    **kwargs
-) -> JobResult:
+async def execute_job(job_name: str, *args, **kwargs) -> JobResult:
     """Execute a job manually."""
     scheduler = get_job_scheduler()
     return await scheduler.run_job_now(job_name)
@@ -699,9 +700,10 @@ def job_context(job_name: str, job_id: str, **context):
 def handle_errors(
     default_error: str = "Unknown error occurred",
     retry_on: List[Exception] = None,
-    log_errors: bool = True
+    log_errors: bool = True,
 ):
     """Decorator to handle job errors with retry logic."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -713,19 +715,20 @@ def handle_errors(
                 # Check if error should be retried
                 should_retry = False
                 if retry_on:
-                    should_retry = any(isinstance(e, error_type) for error_type in retry_on)
+                    should_retry = any(
+                        isinstance(e, error_type) for error_type in retry_on
+                    )
 
                 if should_retry:
                     context.add_context(
                         error_type=type(e).__name__,
                         error_message=str(e),
-                        retry_count=context.get("retry_count", 0) + 1
+                        retry_count=context.get("retry_count", 0) + 1,
                     )
                     raise  # Re-raise to trigger retry
                 else:
                     context.add_context(
-                        error_type=type(e).__name__,
-                        error_message=str(e)
+                        error_type=type(e).__name__, error_message=str(e)
                     )
 
                 # Log error if enabled
@@ -740,7 +743,7 @@ def handle_errors(
                     error=str(e),
                     started_at=context.start_time,
                     completed_at=datetime.utcnow(),
-                    retry_count=context.get("retry_count", 0)
+                    retry_count=context.get("retry_count", 0),
                 )
 
         return wrapper
@@ -749,11 +752,9 @@ def handle_errors(
 
 
 # Timeout handling decorator
-def timeout_handler(
-    default_timeout: int = 300,
-    on_timeout: Optional[Callable] = None
-):
+def timeout_handler(default_timeout: int = 300, on_timeout: Optional[Callable] = None):
     """Decorator to handle job timeouts."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -762,14 +763,13 @@ def timeout_handler(
             try:
                 # Execute with timeout
                 result = await asyncio.wait_for(
-                    func(*args, **kwargs),
-                    timeout=default_timeout
+                    func(*args, **kwargs), timeout=default_timeout
                 )
                 return result
             except asyncio.TimeoutError:
                 context.add_context(
                     error_type="TimeoutError",
-                    error_message=f"Job timed out after {default_timeout} seconds"
+                    error_message=f"Job timed out after {default_timeout} seconds",
                 )
 
                 if on_timeout:
@@ -783,7 +783,7 @@ def timeout_handler(
                     error=f"Job timed out after {default_timeout} seconds",
                     started_at=context.start_time,
                     completed_at=datetime.utcnow(),
-                    retry_count=context.get("retry_count", 0)
+                    retry_count=context.get("retry_count", 0),
                 )
 
         return wrapper
@@ -793,10 +793,10 @@ def timeout_handler(
 
 # Resource cleanup decorator
 def cleanup_resources(
-    resources: List[str] = None,
-    cleanup_func: Optional[Callable] = None
+    resources: List[str] = None, cleanup_func: Optional[Callable] = None
 ):
     """Decorator to cleanup resources after job execution."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -811,7 +811,7 @@ def cleanup_resources(
                 elif resources:
                     # Basic resource cleanup
                     for resource in resources:
-                        if hasattr(resource, 'close'):
+                        if hasattr(resource, "close"):
                             try:
                                 await resource.close()
                             except Exception:
@@ -827,11 +827,10 @@ def cleanup_resources(
 
 # Progress tracking decorator
 def track_progress(
-    total_steps: int,
-    step_description: str = "Processing",
-    log_progress: bool = True
+    total_steps: int, step_description: str = "Processing", log_progress: bool = True
 ):
     """Decorator to track job progress."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -843,7 +842,7 @@ def track_progress(
                 total_steps=total_steps,
                 current_step=current_step,
                 step_description=step_description,
-                progress_percentage=0.0
+                progress_percentage=0.0,
             )
 
             try:
@@ -856,20 +855,20 @@ def track_progress(
                     total_steps=total_steps,
                     current_step=current_step,
                     step_description="Completed",
-                    progress_percentage=100.0
+                    progress_percentage=100.0,
                 )
 
                 return result
 
             except Exception as e:
-                    # Mark as failed
-                    context.add_context(
-                        total_steps=total_steps,
-                        current_step=current_step,
-                        step_description=f"Failed: {str(e)}",
-                        progress_percentage=(current_step / total_steps) * 100
-                    )
-                    raise
+                # Mark as failed
+                context.add_context(
+                    total_steps=total_steps,
+                    current_step=current_step,
+                    step_description=f"Failed: {str(e)}",
+                    progress_percentage=(current_step / total_steps) * 100,
+                )
+                raise
 
         return wrapper
 
@@ -882,9 +881,10 @@ def retry(
     base_delay: float = 1.0,
     max_delay: float = 60.0,
     backoff_factor: float = 2.0,
-    jitter: bool = True
+    jitter: bool = True,
 ):
     """Decorator to retry failed operations with exponential backoff."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -899,14 +899,12 @@ def retry(
                         raise e
 
                     # Calculate delay with jitter
-                    delay = base_delay * (backoff_factor ** attempt)
+                    delay = base_delay * (backoff_factor**attempt)
                     if jitter:
-                        delay *= (0.5 + (hash(str(attempt)) % 100) / 100)
+                        delay *= 0.5 + (hash(str(attempt)) % 100) / 100
 
                     context.add_context(
-                        retry_count=attempt + 1,
-                        last_error=str(e),
-                        retry_delay=delay
+                        retry_count=attempt + 1, last_error=str(e), retry_delay=delay
                     )
 
                     # Log retry attempt
@@ -929,9 +927,10 @@ def batch_job(
     queue: str = "batch",
     retries: int = 3,
     timeout: int = 600,
-    max_instances: int = 1
+    max_instances: int = 1,
 ):
     """Decorator for batch processing jobs."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -943,13 +942,13 @@ def batch_job(
                 results = []
 
                 for i in range(0, len(items), batch_size):
-                    batch = items[i:i + batch_size]
+                    batch = items[i : i + batch_size]
 
                     context.add_context(
                         batch_number=i // batch_size + 1,
                         total_batches=(len(items) + batch_size - 1) // batch_size,
                         current_item=i,
-                        items_in_batch=len(batch)
+                        items_in_batch=len(batch),
                     )
 
                     # Execute batch
@@ -972,9 +971,10 @@ def priority_job(
     queue: str = "priority",
     retries: int = 3,
     timeout: int = 300,
-    max_instances: int = 1
+    max_instances: int = 1,
 ):
     """Decorator for priority jobs."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -991,14 +991,17 @@ def conditional_job(
     queue: str = "conditional",
     retries: int = 1,
     timeout: int = 300,
-    max_instances: int = 1
+    max_instances: int = 1,
 ):
     """Decorator for conditional job execution."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             # Check condition
-            should_run = condition(*args, **kwargs) if callable(condition) else condition
+            should_run = (
+                condition(*args, **kwargs) if callable(condition) else condition
+            )
 
             if not should_run:
                 return JobResult(
@@ -1007,7 +1010,7 @@ def conditional_job(
                     status=JobStatus.SKIPPED,
                     error="Condition not met",
                     started_at=datetime.utcnow(),
-                    completed_at=datetime.utcnow()
+                    completed_at=datetime.utcnow(),
                 )
 
             return await func(*args, **kwargs)

@@ -8,14 +8,18 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from backend.agents.dispatcher import AgentDispatcher
 from backend.agents.specialists.blackbox_strategist import BlackboxStrategist
+from backend.cognitive import CognitiveEngine
 from backend.core.auth import get_current_user
 from backend.core.database import get_db
-from backend.dependencies import get_memory_controller, get_cognitive_engine, get_agent_dispatcher
-from backend.workflows.blackbox import BlackboxWorkflow
+from backend.dependencies import (
+    get_agent_dispatcher,
+    get_cognitive_engine,
+    get_memory_controller,
+)
 from backend.memory.controller import MemoryController
-from backend.cognitive import CognitiveEngine
-from backend.agents.dispatcher import AgentDispatcher
+from backend.workflows.blackbox import BlackboxWorkflow
 
 router = APIRouter(prefix="/blackbox", tags=["blackbox"])
 
@@ -135,18 +139,18 @@ async def generate_strategy(
             db_client=db,
             memory_controller=memory_controller,
             cognitive_engine=cognitive_engine,
-            agent_dispatcher=agent_dispatcher
+            agent_dispatcher=agent_dispatcher,
         )
 
         # Generate strategy using BlackboxWorkflow
         result = await workflow.generate_strategy(
-            workspace_id=request.workspace_id,
-            volatility_level=request.risk_tolerance
+            workspace_id=request.workspace_id, volatility_level=request.risk_tolerance
         )
 
         if not result.get("success"):
             raise HTTPException(
-                status_code=500, detail=f"Strategy generation failed: {result.get('error')}"
+                status_code=500,
+                detail=f"Strategy generation failed: {result.get('error')}",
             )
 
         strategy_id = result["strategy_id"]
@@ -308,7 +312,7 @@ async def accept_strategy(
             db_client=db,
             memory_controller=memory_controller,
             cognitive_engine=cognitive_engine,
-            agent_dispatcher=agent_dispatcher
+            agent_dispatcher=agent_dispatcher,
         )
 
         # Mark as accepted in database

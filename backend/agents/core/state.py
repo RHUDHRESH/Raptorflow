@@ -16,8 +16,10 @@ from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
-from ..base import BaseAgent
+
 from backend.agents.config import ModelTier
+
+from ..base import BaseAgent
 from ..exceptions import StateError, ValidationError
 from ..memory.controller import SimpleMemoryController
 
@@ -137,28 +139,32 @@ class StateLock:
 @dataclass
 class AgentState:
     """Represents the state of an agent."""
-    
+
     agent_id: str
     state_data: Dict[str, Any]
     status: str = "active"
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'agent_id': self.agent_id,
-            'state_data': self.state_data,
-            'status': self.status,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            "agent_id": self.agent_id,
+            "state_data": self.state_data,
+            "status": self.status,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
         }
 
 
 class AgentStateManager:
     """Enhanced agent state manager with improved error handling, recovery, and synchronization."""
 
-    def __init__(self, config: StateConfig = None, memory_controller: Optional[SimpleMemoryController] = None):
+    def __init__(
+        self,
+        config: StateConfig = None,
+        memory_controller: Optional[SimpleMemoryController] = None,
+    ):
         self.config = config or StateConfig()
         self.memory_controller = memory_controller
 
@@ -194,7 +200,7 @@ class AgentStateManager:
             "transitions_recorded": 0,
             "errors_recovered": 0,
             "backup_operations": 0,
-            "sync_operations": 0
+            "sync_operations": 0,
         }
 
         # Error recovery configuration
@@ -325,14 +331,20 @@ class AgentStateManager:
                     return state_id
 
             except Exception as e:
-                logger.error(f"State creation failed (attempt {attempt + 1}/{max_retries}): {e}")
+                logger.error(
+                    f"State creation failed (attempt {attempt + 1}/{max_retries}): {e}"
+                )
                 if attempt < max_retries - 1:
                     await asyncio.sleep(retry_delay)
                     continue
                 else:
                     # Final attempt failed
-                    logger.error(f"State creation failed after {max_retries} attempts: {e}")
-                    raise StateError(f"Failed to create state after {max_retries} attempts: {e}")
+                    logger.error(
+                        f"State creation failed after {max_retries} attempts: {e}"
+                    )
+                    raise StateError(
+                        f"Failed to create state after {max_retries} attempts: {e}"
+                    )
 
     async def get_state(
         self, state_id: str, include_metadata: bool = False
@@ -365,13 +377,19 @@ class AgentStateManager:
                         return self._states[state_id].copy()
 
             except Exception as e:
-                logger.error(f"State retrieval failed (attempt {attempt + 1}/{max_retries}): {e}")
+                logger.error(
+                    f"State retrieval failed (attempt {attempt + 1}/{max_retries}): {e}"
+                )
                 if attempt < max_retries - 1:
                     await asyncio.sleep(retry_delay)
                     continue
                 else:
-                    logger.error(f"State retrieval failed after {max_retries} attempts: {e}")
-                    raise StateError(f"Failed to retrieve state after {max_retries} attempts: {e}")
+                    logger.error(
+                        f"State retrieval failed after {max_retries} attempts: {e}"
+                    )
+                    raise StateError(
+                        f"Failed to retrieve state after {max_retries} attempts: {e}"
+                    )
 
     async def update_state(
         self,
@@ -391,7 +409,10 @@ class AgentStateManager:
                     if state_id not in self._states:
                         raise StateError(f"State not found: {state_id}")
 
-                    if state_id in self._locks and not self._locks[state_id].is_expired():
+                    if (
+                        state_id in self._locks
+                        and not self._locks[state_id].is_expired()
+                    ):
                         raise StateError(f"State is locked: {state_id}")
 
                     # Record transition
@@ -439,7 +460,9 @@ class AgentStateManager:
 
                     # Create snapshot if configured
                     if self.config.backup_enabled and new_metadata.version % 5 == 0:
-                        await self._create_snapshot(state_id, f"Version {new_metadata.version}")
+                        await self._create_snapshot(
+                            state_id, f"Version {new_metadata.version}"
+                        )
 
                     # Persist to backend with retry logic
                     await self._persist_state_with_retry(state_id)
@@ -463,17 +486,25 @@ class AgentStateManager:
                         },
                     )
 
-                    logger.info(f"Updated state: {state_id} to version {new_metadata.version}")
+                    logger.info(
+                        f"Updated state: {state_id} to version {new_metadata.version}"
+                    )
                     return True
 
             except Exception as e:
-                logger.error(f"State update failed (attempt {attempt + 1}/{max_retries}): {e}")
+                logger.error(
+                    f"State update failed (attempt {attempt + 1}/{max_retries}): {e}"
+                )
                 if attempt < max_retries - 1:
                     await asyncio.sleep(retry_delay)
                     continue
                 else:
-                    logger.error(f"State update failed after {max_retries} attempts: {e}")
-                    raise StateError(f"Failed to update state after {max_retries} attempts: {e}")
+                    logger.error(
+                        f"State update failed after {max_retries} attempts: {e}"
+                    )
+                    raise StateError(
+                        f"Failed to update state after {max_retries} attempts: {e}"
+                    )
 
     async def delete_state(self, state_id: str, user_id: str) -> bool:
         """Delete state with enhanced error handling."""
@@ -513,9 +544,21 @@ class AgentStateManager:
                         "state_deleted",
                         {
                             "state_id": state_id,
-                            "state_type": self._metadata[state_id].state_type.value if state_id in self._metadata else StateType.AGENT_STATE,
-                            "owner_id": self._metadata[state_id].owner_id if state_id in self._metadata else "",
-                            "workspace_id": self._metadata[state_id].workspace_id if state_id in self._metadata else "",
+                            "state_type": (
+                                self._metadata[state_id].state_type.value
+                                if state_id in self._metadata
+                                else StateType.AGENT_STATE
+                            ),
+                            "owner_id": (
+                                self._metadata[state_id].owner_id
+                                if state_id in self._metadata
+                                else ""
+                            ),
+                            "workspace_id": (
+                                self._metadata[state_id].workspace_id
+                                if state_id in self._metadata
+                                else ""
+                            ),
                             "user_id": user_id,
                         },
                     )
@@ -524,13 +567,19 @@ class AgentStateManager:
                     return True
 
             except Exception as e:
-                logger.error(f"State deletion failed (attempt {attempt + 1}/{max_retries}): {e}")
+                logger.error(
+                    f"State deletion failed (attempt {attempt + 1}/{max_retries}): {e}"
+                )
                 if attempt < max_retries - 1:
                     await asyncio.sleep(retry_delay)
                     continue
                 else:
-                    logger.error(f"State deletion failed after {max_retries} attempts: {e}")
-                    raise StateError(f"Failed to delete state after {max_retries} attempts: {e}")
+                    logger.error(
+                        f"State deletion failed after {max_retries} attempts: {e}"
+                    )
+                    raise StateError(
+                        f"Failed to delete state after {max_retries} attempts: {e}"
+                    )
 
     async def _persist_state_with_retry(self, state_id: str):
         """Persist state with retry logic."""
@@ -543,7 +592,9 @@ class AgentStateManager:
                 return  # Success
 
             except Exception as e:
-                logger.error(f"State persistence failed (attempt {attempt + 1}/{max_retries}): {e}")
+                logger.error(
+                    f"State persistence failed (attempt {attempt + 1}/{max_retries}): {e}"
+                )
                 if attempt < max_retries - 1:
                     await asyncio.sleep(retry_delay)
                 else:
@@ -554,7 +605,9 @@ class AgentStateManager:
                         self._metadata[state_id] = metadata
                         self._stats["errors_recovered"] += 1
 
-                    logger.error(f"State persistence failed after {max_retries} attempts: {e}")
+                    logger.error(
+                        f"State persistence failed after {max_retries} attempts: {e}"
+                    )
                     # Continue to next operation
                     return
 
@@ -581,14 +634,12 @@ class AgentStateManager:
             if self.memory_controller:
                 memory_key = f"state:{state_id}"
                 await self.memory_controller.store_memory(
-                    memory_key,
-                    json.dumps(state_data),
-                    memory_type="vector"
+                    memory_key, json.dumps(state_data), memory_type="vector"
                 )
                 await self.memory_controller.store_memory(
                     f"metadata:{state_id}",
                     json.dumps(asdict(metadata)),
-                    memory_type="vector"
+                    memory_type="vector",
                 )
 
             # Persist to backend
