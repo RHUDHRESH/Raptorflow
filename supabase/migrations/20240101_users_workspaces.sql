@@ -1,4 +1,4 @@
--- Users and Workspaces tables with RLS
+﻿-- Users and Workspaces tables with RLS
 -- Migration: 20240101_users_workspaces.sql
 
 -- Users table (extends Supabase auth.users)

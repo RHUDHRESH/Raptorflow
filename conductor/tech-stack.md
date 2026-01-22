@@ -1,4 +1,4 @@
-# Technology Stack — RaptorFlow
+﻿# Technology Stack ΓÇö RaptorFlow
 
 ## Frontend Core
 - **Framework:** [Next.js](https://nextjs.org/) (App Router)

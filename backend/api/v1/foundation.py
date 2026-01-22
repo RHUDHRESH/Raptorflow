@@ -1,4 +1,4 @@
-"""
+﻿"""
 Foundation API endpoints
 Handles HTTP requests for foundation operations
 """

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Comprehensive health monitoring system for the agent system.
 Provides real-time health checks, metrics collection, and alerting.
 """

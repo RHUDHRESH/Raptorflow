@@ -1,4 +1,4 @@
-"""
+﻿"""
 Blackbox Strategies repository for database operations
 """
 

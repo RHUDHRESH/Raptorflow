@@ -1,4 +1,4 @@
-"""
+﻿"""
 Billing integration for usage tracking.
 Tracks all token usage and manages budget enforcement.
 """

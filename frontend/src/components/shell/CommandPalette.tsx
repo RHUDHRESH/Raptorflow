@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -6,10 +6,10 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Search, LayoutGrid, Zap, Flag, Target, BarChart3, Settings, HelpCircle, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   COMMAND PALETTE — Global Navigation & Search
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   COMMAND PALETTE ΓÇö Global Navigation & Search
    Accessible via Cmd+K or search bar click.
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface CommandPaletteProps {
     open: boolean;
@@ -149,7 +149,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                                                             {item.desc}
                                                         </div>
                                                     </div>
-                                                    {isSelected && <span className="text-[10px] opacity-70">↵</span>}
+                                                    {isSelected && <span className="text-[10px] opacity-70">Γå╡</span>}
                                                 </button>
                                             );
                                         })}

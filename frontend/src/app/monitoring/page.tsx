@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Monitoring Page Component
  * Performance monitoring interface
  */

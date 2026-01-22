@@ -1,4 +1,4 @@
-"""
+﻿"""
 ResearchWorkflow - End-to-end research orchestration.
 Handles research execution, findings storage, and result presentation.
 """

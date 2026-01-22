@@ -1,4 +1,4 @@
-"""
+﻿"""
 Redis services wrapper to avoid import conflicts.
 This file prevents collision with the standard redis package.
 """

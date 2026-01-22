@@ -1,4 +1,4 @@
-"""
+﻿"""
 AnalyticsAgent specialist agent for Raptorflow marketing automation.
 Handles data analysis, performance metrics, and insights generation.
 """
@@ -1010,7 +1010,7 @@ Format the response as a structured analytics report with clear sections and sup
 
     def _format_analytics_response(self, report: AnalyticsReport) -> str:
         """Format analytics response for user."""
-        response = f"✅ **{report.report_title}**\n\n"
+        response = f"Γ£à **{report.report_title}**\n\n"
         response += f"**Type:** {report.analysis_type.title()}\n"
         response += f"**Data Source:** {report.data_source.title()}\n"
         response += f"**Period:** {report.time_period.title()}\n"
@@ -1023,17 +1023,17 @@ Format the response as a structured analytics report with clear sections and sup
 
         response += f"**Key Metrics:**\n"
         for metric in report.key_metrics[:3]:
-            response += f"• {metric.name}: {metric.value}{metric.unit} ({metric.trend} {metric.change_percentage:+.1f}%)\n"
+            response += f"ΓÇó {metric.name}: {metric.value}{metric.unit} ({metric.trend} {metric.change_percentage:+.1f}%)\n"
 
         if report.insights:
             response += f"\n**Key Insights:**\n"
             for insight in report.insights[:2]:
-                response += f"• {insight.title}: {insight.description[:80]}...\n"
+                response += f"ΓÇó {insight.title}: {insight.description[:80]}...\n"
 
         if report.recommendations:
             response += f"\n**Recommendations:**\n"
             for recommendation in report.recommendations[:3]:
-                response += f"• {recommendation}\n"
+                response += f"ΓÇó {recommendation}\n"
 
         return response
 

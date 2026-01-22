@@ -1,4 +1,4 @@
-"""
+﻿"""
 Intent router with entity extraction using FLASH model.
 """
 
@@ -81,11 +81,11 @@ Available tools: titan_intelligence_engine, web_search, database, content_gen, t
 Complexity levels: simple, moderate, complex
 
 Examples:
-- "Help me get started" → primary_intent: onboarding, complexity: simple, no clarification needed
-- "Write a blog post about AI trends for Q1" → primary_intent: content_creation, entities: [AI trends, Q1], complexity: moderate
-- "Create a 6-month marketing strategy with budget $50k" → primary_intent: strategy_planning, entities: [6 months, $50k], complexity: complex
-- "Research competitors in SaaS industry" → primary_intent: research, entities: [SaaS industry], required_tools: [web_search]
-- "Show me last month's campaign performance" → primary_intent: analytics, required_data: [campaign metrics], complexity: moderate
+- "Help me get started" ΓåÆ primary_intent: onboarding, complexity: simple, no clarification needed
+- "Write a blog post about AI trends for Q1" ΓåÆ primary_intent: content_creation, entities: [AI trends, Q1], complexity: moderate
+- "Create a 6-month marketing strategy with budget $50k" ΓåÆ primary_intent: strategy_planning, entities: [6 months, $50k], complexity: complex
+- "Research competitors in SaaS industry" ΓåÆ primary_intent: research, entities: [SaaS industry], required_tools: [web_search]
+- "Show me last month's campaign performance" ΓåÆ primary_intent: analytics, required_data: [campaign metrics], complexity: moderate
 
 User request: {query}
 

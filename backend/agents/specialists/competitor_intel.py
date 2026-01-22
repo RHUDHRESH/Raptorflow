@@ -1,4 +1,4 @@
-"""
+﻿"""
 CompetitorIntelAgent specialist agent for Raptorflow marketing automation.
 Handles competitor analysis, market intelligence, and competitive positioning.
 """
@@ -1063,7 +1063,7 @@ Always focus on providing strategic, actionable intelligence that helps improve 
 
     def _format_intel_response(self, report: CompetitorIntelReport) -> str:
         """Format intelligence report response for user."""
-        response = f"🔍 **Competitor Intelligence Report**\n\n"
+        response = f"≡ƒöì **Competitor Intelligence Report**\n\n"
         response += f"**Analysis Type:** {report.analysis_type.title()}\n"
         response += f"**Industry:** {report.industry.title()}\n"
         response += f"**Competitors Analyzed:** {len(report.competitors)}\n"
@@ -1071,7 +1071,7 @@ Always focus on providing strategic, actionable intelligence that helps improve 
 
         response += f"**Competitors Overview:**\n"
         for competitor in report.competitors:
-            response += f"• {competitor.name} ({competitor.market_position}, {competitor.market_share:.1f}% market share)\n"
+            response += f"ΓÇó {competitor.name} ({competitor.market_position}, {competitor.market_share:.1f}% market share)\n"
         response += "\n"
 
         response += f"**Key Insights:**\n"
@@ -1080,17 +1080,17 @@ Always focus on providing strategic, actionable intelligence that helps improve 
             report.insights, key=lambda x: {"high": 0, "medium": 1, "low": 2}[x.impact]
         )[:5]
         for insight in top_insights:
-            response += f"• {insight.category.title()}: {insight.description}\n"
+            response += f"ΓÇó {insight.category.title()}: {insight.description}\n"
         response += "\n"
 
         response += f"**Strategic Recommendations:**\n"
         for recommendation in report.strategic_recommendations:
-            response += f"• {recommendation}\n"
+            response += f"ΓÇó {recommendation}\n"
         response += "\n"
 
         response += f"**Market Positioning:**\n"
-        response += f"• Most competitors positioned in Value and Premium quadrants\n"
-        response += f"• Opportunity exists in Budget and Luxury segments\n\n"
+        response += f"ΓÇó Most competitors positioned in Value and Premium quadrants\n"
+        response += f"ΓÇó Opportunity exists in Budget and Luxury segments\n\n"
 
         response += f"**Key Opportunities:** {len(report.opportunities)}\n"
         response += f"**Major Threats:** {len(report.threats)}\n"
@@ -1100,11 +1100,11 @@ Always focus on providing strategic, actionable intelligence that helps improve 
 
         response += f"**Performance Benchmarks:**\n"
         response += (
-            f"• Avg Domain Authority: {report.seo_analysis.domain_authority:.1f}\n"
+            f"ΓÇó Avg Domain Authority: {report.seo_analysis.domain_authority:.1f}\n"
         )
         response += (
-            f"• Avg Monthly Traffic: {report.seo_analysis.monthly_organic_traffic:,}\n"
+            f"ΓÇó Avg Monthly Traffic: {report.seo_analysis.monthly_organic_traffic:,}\n"
         )
-        response += f"• Avg Engagement Rate: {report.social_analysis.platforms.get('LinkedIn', {}).get('engagement_rate', 0):.2%}\n"
+        response += f"ΓÇó Avg Engagement Rate: {report.social_analysis.platforms.get('LinkedIn', {}).get('engagement_rate', 0):.2%}\n"
 
         return response

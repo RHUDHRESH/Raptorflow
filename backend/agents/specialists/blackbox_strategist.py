@@ -1,4 +1,4 @@
-"""
+﻿"""
 BlackboxStrategist specialist agent for Raptorflow marketing automation.
 Handles advanced strategic planning, complex problem-solving, and innovative solutions.
 """
@@ -1172,7 +1172,7 @@ Format the response as a structured strategic recommendation with clear sections
         self, recommendation: StrategicRecommendation
     ) -> str:
         """Format strategic response for user."""
-        response = f"✅ **{recommendation.title}**\n\n"
+        response = f"Γ£à **{recommendation.title}**\n\n"
         response += (
             f"**Primary Approach:** {recommendation.primary_option.approach.title()}\n"
         )
@@ -1184,22 +1184,22 @@ Format the response as a structured strategic recommendation with clear sections
         response += f"**Executive Summary:**\n{recommendation.executive_summary}\n\n"
 
         response += f"**Primary Option:** {recommendation.primary_option.name}\n"
-        response += f"• Feasibility: {recommendation.primary_option.feasibility:.1%}\n"
-        response += f"• Impact: {recommendation.primary_option.impact:.1%}\n"
-        response += f"• Risk: {recommendation.primary_option.risk:.1%}\n\n"
+        response += f"ΓÇó Feasibility: {recommendation.primary_option.feasibility:.1%}\n"
+        response += f"ΓÇó Impact: {recommendation.primary_option.impact:.1%}\n"
+        response += f"ΓÇó Risk: {recommendation.primary_option.risk:.1%}\n\n"
 
         response += f"**Implementation Phases:**\n"
         for phase in recommendation.implementation_phases:
-            response += f"• {phase['name']}: Month {phase['start_month']}-{phase['end_month']}\n"
+            response += f"ΓÇó {phase['name']}: Month {phase['start_month']}-{phase['end_month']}\n"
 
         response += f"\n**Key Success Factors:**\n"
         for factor in recommendation.primary_option.success_factors[:3]:
-            response += f"• {factor}\n"
+            response += f"ΓÇó {factor}\n"
 
         response += f"\n**Next Steps:**\n"
-        response += f"• Review and approve strategic recommendation\n"
-        response += f"• Form implementation team\n"
-        response += f"• Begin planning phase\n"
+        response += f"ΓÇó Review and approve strategic recommendation\n"
+        response += f"ΓÇó Form implementation team\n"
+        response += f"ΓÇó Begin planning phase\n"
 
         return response
 

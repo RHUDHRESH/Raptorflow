@@ -1,4 +1,4 @@
-"""
+﻿"""
 Job decorators for Raptorflow background jobs.
 
 Provides @job decorator for converting functions

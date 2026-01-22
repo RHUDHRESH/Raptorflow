@@ -1,4 +1,4 @@
-"""
+﻿"""
 Monitoring dashboard data provider for Raptorflow backend.
 Provides data for system status, agent metrics, and usage analytics.
 """

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Redis integration for agent sessions.
 Persists and restores agent state from Redis for checkpoint/resume functionality.
 """

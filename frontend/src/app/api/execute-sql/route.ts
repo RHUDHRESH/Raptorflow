@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 
 // Note: This route doesn't actually use the Supabase client directly,
 // it uses fetch to call the RPC endpoint. Removed unused import.

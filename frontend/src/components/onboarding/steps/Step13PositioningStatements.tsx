@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import gsap from "gsap";
@@ -7,15 +7,15 @@ import { useOnboardingStore } from "@/stores/onboardingStore";
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { cn } from "@/lib/utils";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   PAPER TERMINAL — Step 13: Positioning Statements
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   PAPER TERMINAL ΓÇö Step 13: Positioning Statements
    
    Theme: "The Manifesto"
    Refactored for Quiet Luxury:
    - "Document" aesthetic (Paper background, serif text).
    - Clear distinction between "Template/Structure" (Tech Mono) and "Content" (Serif).
    - Focus on drafting the core brand message.
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface PositioningStatement {
     id: string;
@@ -190,13 +190,13 @@ export default function Step13PositioningStatements() {
                                         <Quote size={14} className="text-[var(--ink)]" />
                                     </div>
                                     <span className="font-technical text-[10px] uppercase tracking-widest text-[var(--muted)]">
-                                        {stmt.code} • {stmt.label}
+                                        {stmt.code} ΓÇó {stmt.label}
                                     </span>
                                     {stmt.neuroscienceScore && (
                                         <div className="flex items-center gap-2 px-2 py-1 bg-[var(--success)]/10 rounded">
                                             <Brain size={10} className="text-[var(--success)]" />
                                             <span className="font-technical text-[9px] text-[var(--success)]">
-                                                {stmt.neuroscienceScore}% • {stmt.principle?.toUpperCase()}
+                                                {stmt.neuroscienceScore}% ΓÇó {stmt.principle?.toUpperCase()}
                                             </span>
                                         </div>
                                     )}

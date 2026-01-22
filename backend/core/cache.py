@@ -1,4 +1,4 @@
-"""
+﻿"""
 Agent response caching system.
 Provides intelligent caching for agent responses to identical requests.
 """

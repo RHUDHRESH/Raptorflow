@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -12,7 +12,7 @@ export const runtime = 'edge';
 const TIERS = [
     {
         name: "Ascent",
-        price: "₹5,000",
+        price: "Γé╣5,000",
         priceValue: 500000,
         planId: "PLN-ASC",
         desc: "Foundation for data-driven entry.",
@@ -21,7 +21,7 @@ const TIERS = [
     },
     {
         name: "Glide",
-        price: "₹7,000",
+        price: "Γé╣7,000",
         priceValue: 700000,
         planId: "PLN-GLD",
         desc: "Scale with algorithmic precision.",
@@ -30,7 +30,7 @@ const TIERS = [
     },
     {
         name: "Soar",
-        price: "₹10,000",
+        price: "Γé╣10,000",
         priceValue: 1000000,
         planId: "PLN-SOA",
         desc: "Category dominance.",

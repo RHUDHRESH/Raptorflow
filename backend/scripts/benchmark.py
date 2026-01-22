@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Benchmark script for Raptorflow backend.
 Tests key operations and measures performance.
@@ -728,10 +728,10 @@ class BenchmarkScript:
         print("DETAILED BENCHMARKS:")
         for benchmark_name, result in report["benchmarks"].items():
             status_icon = {
-                "success": "✅",
-                "partial": "⚠️",
-                "failed": "❌",
-            }.get(result["status"], "❓")
+                "success": "Γ£à",
+                "partial": "ΓÜá∩╕Å",
+                "failed": "Γ¥î",
+            }.get(result["status"], "Γ¥ô")
 
             print(f"  {status_icon} {benchmark_name.upper()}: {result['status']}")
 

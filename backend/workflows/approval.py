@@ -1,4 +1,4 @@
-"""
+﻿"""
 ApprovalWorkflow - End-to-end approval orchestration.
 Handles approval requests, processing, timeout handling, and HITL integration.
 """

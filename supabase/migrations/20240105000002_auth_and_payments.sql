@@ -1,4 +1,4 @@
--- Consolidated Authentication and Payments Schema
+﻿-- Consolidated Authentication and Payments Schema
 -- This file consolidates all necessary tables for Raptorflow
 
 -- ==========================================

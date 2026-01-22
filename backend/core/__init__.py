@@ -1,4 +1,4 @@
-# Core module exports
+﻿# Core module exports
 from .auth import AuthenticatedUser, get_current_user, get_workspace_id
 from .middleware import AuthMiddleware
 from .models import AuthContext, User, Workspace

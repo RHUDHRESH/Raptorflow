@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo } from "react";
 import { Move, MOVE_CATEGORIES } from "./types";
@@ -29,10 +29,10 @@ import {
     subMonths
 } from "date-fns";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   MOVES CALENDAR — Enhanced Quiet Luxury Version
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   MOVES CALENDAR ΓÇö Enhanced Quiet Luxury Version
    Clean timeline with month/week toggle and better move visualization
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface MovesCalendarProps {
     moves: Move[];
@@ -293,7 +293,7 @@ export function MovesCalendar({ moves, onMoveClick }: MovesCalendarProps) {
                                             <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
                                                 <Clock size={10} />
                                                 {startDate && format(startDate, 'MMM d')} - {endDate && format(endDate, 'MMM d')}
-                                                <span className="text-[var(--border)]">•</span>
+                                                <span className="text-[var(--border)]">ΓÇó</span>
                                                 {move.duration} days
                                             </div>
                                         </div>

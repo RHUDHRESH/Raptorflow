@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from 'react';
 import {
@@ -608,7 +608,7 @@ export function CustomReportingEngine() {
               {/* Actions */}
               <div className="flex items-center justify-between pt-4 border-t border-[var(--structure-subtle)]">
                 <div className="text-xs text-[var(--ink-muted)]">
-                  Created {formatDistanceToNow(template.createdAt, { addSuffix: true })} •
+                  Created {formatDistanceToNow(template.createdAt, { addSuffix: true })} ΓÇó
                   Modified {formatDistanceToNow(template.lastModified, { addSuffix: true })}
                 </div>
 
@@ -736,7 +736,7 @@ export function CustomReportingEngine() {
                   <>Generated {formatDistanceToNow(report.generatedAt, { addSuffix: true })}</>
                 )}
                 {report.expiresAt && (
-                  <> • Expires {formatDistanceToNow(report.expiresAt, { addSuffix: true })}</>
+                  <> ΓÇó Expires {formatDistanceToNow(report.expiresAt, { addSuffix: true })}</>
                 )}
               </div>
 
@@ -834,12 +834,12 @@ export function CustomReportingEngine() {
                   <Clock size={16} className="text-[var(--ink-ghost)]" />
                   <span className="capitalize">{scheduled.schedule.frequency}</span>
                   {scheduled.schedule.dayOfWeek && (
-                    <span> • Day {scheduled.schedule.dayOfWeek}</span>
+                    <span> ΓÇó Day {scheduled.schedule.dayOfWeek}</span>
                   )}
                   {scheduled.schedule.dayOfMonth && (
-                    <span> • Day {scheduled.schedule.dayOfMonth}</span>
+                    <span> ΓÇó Day {scheduled.schedule.dayOfMonth}</span>
                   )}
-                  <span> • {scheduled.schedule.time}</span>
+                  <span> ΓÇó {scheduled.schedule.time}</span>
                 </div>
               </div>
             </div>
@@ -886,7 +886,7 @@ export function CustomReportingEngine() {
             <div className="flex items-center justify-between pt-4 border-t border-[var(--structure-subtle)]">
               <div className="text-sm text-[var(--ink-muted)]">
                 {scheduled.lastRun && (
-                  <span>Last run {formatDistanceToNow(scheduled.lastRun, { addSuffix: true })} • </span>
+                  <span>Last run {formatDistanceToNow(scheduled.lastRun, { addSuffix: true })} ΓÇó </span>
                 )}
                 Next run {formatDistanceToNow(scheduled.nextRun, { addSuffix: true })}
               </div>

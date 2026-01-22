@@ -1,4 +1,4 @@
-"""
+﻿"""
 Test script to verify BaseAgent instantiation and LLM response.
 """
 
@@ -47,13 +47,13 @@ async def test_agent_instantiation():
             model_tier=ModelTier.FLASH_LITE,
         )
 
-        print(f"✓ Agent instantiated: {agent.name}")
-        print(f"✓ Model tier: {agent.model_tier}")
-        print(f"✓ System prompt: {agent.get_system_prompt()}")
+        print(f"Γ£ô Agent instantiated: {agent.name}")
+        print(f"Γ£ô Model tier: {agent.model_tier}")
+        print(f"Γ£ô System prompt: {agent.get_system_prompt()}")
 
         return agent
     except Exception as e:
-        print(f"✗ Failed to instantiate agent: {e}")
+        print(f"Γ£ù Failed to instantiate agent: {e}")
         return None
 
 
@@ -73,19 +73,19 @@ async def test_llm_response(agent):
 
         # Check result
         if result_state.get("error"):
-            print(f"✗ Agent execution failed: {result_state['error']}")
+            print(f"Γ£ù Agent execution failed: {result_state['error']}")
             return False
 
         output = result_state.get("output")
         if output and "echo" in output:
-            print(f"✓ LLM responded: {output['echo']}")
+            print(f"Γ£ô LLM responded: {output['echo']}")
             return True
         else:
-            print(f"✗ Unexpected output: {output}")
+            print(f"Γ£ù Unexpected output: {output}")
             return False
 
     except Exception as e:
-        print(f"✗ LLM response test failed: {e}")
+        print(f"Γ£ù LLM response test failed: {e}")
         return False
 
 
@@ -108,15 +108,15 @@ async def test_cost_tracking(agent):
         cost_after = agent.llm.get_total_cost()
 
         if len(usage_after) > len(usage_before):
-            print(f"✓ Usage tracked: {len(usage_after)} calls")
-            print(f"✓ Cost tracked: ${cost_after:.6f}")
+            print(f"Γ£ô Usage tracked: {len(usage_after)} calls")
+            print(f"Γ£ô Cost tracked: ${cost_after:.6f}")
             return True
         else:
-            print("✗ No usage tracked")
+            print("Γ£ù No usage tracked")
             return False
 
     except Exception as e:
-        print(f"✗ Cost tracking test failed: {e}")
+        print(f"Γ£ù Cost tracking test failed: {e}")
         return False
 
 
@@ -127,7 +127,7 @@ async def main():
     # Test instantiation
     agent = await test_agent_instantiation()
     if not agent:
-        print("\n❌ Cannot proceed with LLM tests")
+        print("\nΓ¥î Cannot proceed with LLM tests")
         return False
 
     # Test LLM response
@@ -138,15 +138,15 @@ async def main():
 
     # Summary
     print("\n=== Test Summary ===")
-    print(f"Agent Instantiation: ✓")
-    print(f"LLM Response: {'✓' if llm_test else '✗'}")
-    print(f"Cost Tracking: {'✓' if cost_test else '✗'}")
+    print(f"Agent Instantiation: Γ£ô")
+    print(f"LLM Response: {'Γ£ô' if llm_test else 'Γ£ù'}")
+    print(f"Cost Tracking: {'Γ£ô' if cost_test else 'Γ£ù'}")
 
     if llm_test and cost_test:
-        print("\n✅ All tests passed!")
+        print("\nΓ£à All tests passed!")
         return True
     else:
-        print("\n❌ Some tests failed")
+        print("\nΓ¥î Some tests failed")
         return False
 
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     missing_vars = [var for var in required_vars if not os.getenv(var)]
 
     if missing_vars:
-        print(f"❌ Missing environment variables: {', '.join(missing_vars)}")
+        print(f"Γ¥î Missing environment variables: {', '.join(missing_vars)}")
         print("Please set these variables and run again.")
         sys.exit(1)
 

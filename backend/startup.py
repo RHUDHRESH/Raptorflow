@@ -1,4 +1,4 @@
-"""
+﻿"""
 Startup sequence for RaptorFlow backend.
 Initializes all services and verifies connections.
 """
@@ -309,14 +309,14 @@ async def initialize() -> StartupReport:
                         service_name, "initialized", {"duration_seconds": duration}
                     )
                     logger.info(
-                        f"✓ {service_name} initialized successfully in {duration:.2f}s"
+                        f"Γ£ô {service_name} initialized successfully in {duration:.2f}s"
                     )
                 else:
                     report.add_service_status(
                         service_name, "failed", {"duration_seconds": duration}
                     )
                     report.add_error(f"Failed to initialize {service_name}")
-                    logger.error(f"✗ {service_name} initialization failed")
+                    logger.error(f"Γ£ù {service_name} initialization failed")
 
             except Exception as e:
                 duration = time.time() - start_time
@@ -326,18 +326,18 @@ async def initialize() -> StartupReport:
                     {"duration_seconds": duration, "error": str(e)},
                 )
                 report.add_error(f"Error initializing {service_name}: {e}")
-                logger.error(f"✗ {service_name} initialization error: {e}")
+                logger.error(f"Γ£ù {service_name} initialization error: {e}")
 
         # Finalize report
         report.finalize()
 
         if report.success:
             logger.info(
-                f"✓ All services initialized successfully in {report.duration:.2f}s"
+                f"Γ£ô All services initialized successfully in {report.duration:.2f}s"
             )
         else:
             logger.error(
-                f"✗ Startup completed with {len(report.errors)} errors in {report.duration:.2f}s"
+                f"Γ£ù Startup completed with {len(report.errors)} errors in {report.duration:.2f}s"
             )
 
         return report

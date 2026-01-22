@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, StopCircle, Sparkles } from "lucide-react";
@@ -57,13 +57,13 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
 
             if (data.status === 'available') {
                 setApiStatus('connected');
-                console.log('✅ Muse API connected:', data.model);
+                console.log('Γ£à Muse API connected:', data.model);
             } else {
                 setApiStatus('error');
             }
         } catch (error) {
             setApiStatus('error');
-            console.error('❌ API connection failed:', error);
+            console.error('Γ¥î API connection failed:', error);
         }
     };
 
@@ -319,19 +319,19 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                                         onClick={() => handleSuggestionClick("How can I improve my email marketing campaigns?")}
                                         className="px-4 py-2 bg-[var(--paper)] border border-[var(--ink)] rounded-[var(--radius)] text-sm text-[var(--ink)] hover:bg-[var(--muted)] transition-colors"
                                     >
-                                        💬 Email Marketing
+                                        ≡ƒÆ¼ Email Marketing
                                     </button>
                                     <button
                                         onClick={() => handleSuggestionClick("Create a social media content calendar")}
                                         className="px-4 py-2 bg-[var(--paper)] border border-[var(--ink)] rounded-[var(--radius)] text-sm text-[var(--ink)] hover:bg-[var(--muted)] transition-colors"
                                     >
-                                        📅 Content Calendar
+                                        ≡ƒôà Content Calendar
                                     </button>
                                     <button
                                         onClick={() => handleSuggestionClick("What are the best practices for landing page optimization?")}
                                         className="px-4 py-2 bg-[var(--paper)] border border-[var(--ink)] rounded-[var(--radius)] text-sm text-[var(--ink)] hover:bg-[var(--muted)] transition-colors"
                                     >
-                                        🎯 Landing Pages
+                                        ≡ƒÄ» Landing Pages
                                     </button>
                                 </div>
                             </div>
@@ -383,7 +383,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                                             {message.tokens_used && (
                                                 <>
                                                     <span>Tokens: {message.tokens_used}</span>
-                                                    <span className="text-[var(--ink)]">•</span>
+                                                    <span className="text-[var(--ink)]">ΓÇó</span>
                                                 </>
                                             )}
                                             {message.cost_usd && (
@@ -403,7 +403,7 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                                                 onClick={() => handleSuggestionClick(suggestion)}
                                                 className="block w-full text-left px-3 py-2 bg-[var(--muted)] border border-[var(--border)] rounded-[var(--radius)] text-xs text-[var(--ink)] hover:bg-[var(--surface)] hover:border-[var(--ink)] transition-colors"
                                             >
-                                                💡 {suggestion}
+                                                ≡ƒÆí {suggestion}
                                             </button>
                                         ))}
                                     </div>
@@ -470,25 +470,25 @@ export default function MuseChat({ initialContext }: MuseChatProps) {
                             onClick={() => handleSuggestionClick("Write an email about")}
                             className="px-3 py-1.5 bg-[var(--paper)] border border-[var(--ink)] rounded-[var(--radius)] text-xs text-[var(--muted)] hover:border-[var(--blueprint)] hover:text-[var(--blueprint)] transition-colors"
                         >
-                            📧 Email
+                            ≡ƒôº Email
                         </button>
                         <button
                             onClick={() => handleSuggestionClick("Create a LinkedIn post")}
                             className="px-3 py-1.5 bg-[var(--paper)] border border-[var(--ink)] rounded-[var(--radius)] text-xs text-[var(--muted)] hover:border-[var(--blueprint)] hover:text-[var(--blueprint)] transition-colors"
                         >
-                            💼 LinkedIn
+                            ≡ƒÆ╝ LinkedIn
                         </button>
                         <button
                             onClick={() => handleSuggestionClick("Generate a blog outline")}
                             className="px-3 py-1.5 bg-[var(--paper)] border border-[var(--ink)] rounded-[var(--radius)] text-xs text-[var(--muted)] hover:border-[var(--blueprint)] hover:text-[var(--blueprint)] transition-colors"
                         >
-                            📝 Blog
+                            ≡ƒô¥ Blog
                         </button>
                         <button
                             onClick={() => handleSuggestionClick("Create marketing campaign")}
                             className="px-3 py-1.5 bg-[var(--paper)] border border-[var(--ink)] rounded-[var(--radius)] text-xs text-[var(--muted)] hover:border-[var(--blueprint)] hover:text-[var(--blueprint)] transition-colors"
                         >
-                            📢 Campaign
+                            ≡ƒôó Campaign
                         </button>
                     </div>
 

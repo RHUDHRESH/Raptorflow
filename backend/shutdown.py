@@ -1,4 +1,4 @@
-"""
+﻿"""
 Shutdown sequence for RaptorFlow backend.
 Gracefully closes connections and saves state.
 """
@@ -235,14 +235,14 @@ async def cleanup() -> ShutdownReport:
                         operation_name, "completed", {"duration_seconds": duration}
                     )
                     logger.info(
-                        f"✓ {operation_name} completed successfully in {duration:.2f}s"
+                        f"Γ£ô {operation_name} completed successfully in {duration:.2f}s"
                     )
                 else:
                     report.add_operation_status(
                         operation_name, "failed", {"duration_seconds": duration}
                     )
                     report.add_error(f"Failed to complete {operation_name}")
-                    logger.error(f"✗ {operation_name} cleanup failed")
+                    logger.error(f"Γ£ù {operation_name} cleanup failed")
 
             except Exception as e:
                 duration = time.time() - start_time
@@ -252,18 +252,18 @@ async def cleanup() -> ShutdownReport:
                     {"duration_seconds": duration, "error": str(e)},
                 )
                 report.add_error(f"Error during {operation_name} cleanup: {e}")
-                logger.error(f"✗ {operation_name} cleanup error: {e}")
+                logger.error(f"Γ£ù {operation_name} cleanup error: {e}")
 
         # Finalize report
         report.finalize()
 
         if report.success:
             logger.info(
-                f"✓ All cleanup operations completed successfully in {report.duration:.2f}s"
+                f"Γ£ô All cleanup operations completed successfully in {report.duration:.2f}s"
             )
         else:
             logger.error(
-                f"✗ Shutdown completed with {len(report.errors)} errors in {report.duration:.2f}s"
+                f"Γ£ù Shutdown completed with {len(report.errors)} errors in {report.duration:.2f}s"
             )
 
         return report

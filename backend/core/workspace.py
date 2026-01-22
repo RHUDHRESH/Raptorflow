@@ -1,4 +1,4 @@
-"""
+﻿"""
 Workspace management functions
 Handles workspace resolution and validation
 """

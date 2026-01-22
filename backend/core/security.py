@@ -1,4 +1,4 @@
-"""
+﻿"""
 Comprehensive security validation system for agent operations.
 Provides security checks, threat detection, and protection mechanisms.
 """

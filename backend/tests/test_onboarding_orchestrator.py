@@ -1,4 +1,4 @@
-"""
+﻿"""
 Test script to verify OnboardingOrchestrator functionality.
 """
 
@@ -20,7 +20,7 @@ async def test_onboarding_step_detection():
     try:
         # Create agent instance
         agent = OnboardingOrchestrator()
-        print(f"✓ OnboardingOrchestrator instantiated: {agent.name}")
+        print(f"Γ£ô OnboardingOrchestrator instantiated: {agent.name}")
 
         # Test 1: New user should start at step 1
         print("\nTest 1: New user step detection")
@@ -33,7 +33,7 @@ async def test_onboarding_step_detection():
             current_step.step_number == 1
         ), f"Expected step 1, got step {current_step.step_number}"
         print(
-            f"✓ New user correctly starts at step {current_step.step_number}: {current_step.name}"
+            f"Γ£ô New user correctly starts at step {current_step.step_number}: {current_step.name}"
         )
 
         # Test 2: User mentioning step number
@@ -47,7 +47,7 @@ async def test_onboarding_step_detection():
         assert (
             current_step.step_number == 3
         ), f"Expected step 3, got step {current_step.step_number}"
-        print(f"✓ User mentioning 'step 3' correctly detected: {current_step.name}")
+        print(f"Γ£ô User mentioning 'step 3' correctly detected: {current_step.name}")
 
         # Test 3: User mentioning step name
         print("\nTest 3: User mentioning step name")
@@ -61,13 +61,13 @@ async def test_onboarding_step_detection():
             current_step.step_number == 2
         ), f"Expected step 2, got step {current_step.step_number}"
         print(
-            f"✓ User mentioning 'company information' correctly detected: {current_step.name}"
+            f"Γ£ô User mentioning 'company information' correctly detected: {current_step.name}"
         )
 
         return True
 
     except Exception as e:
-        print(f"✗ Step detection test failed: {e}")
+        print(f"Γ£ù Step detection test failed: {e}")
         return False
 
 
@@ -87,7 +87,7 @@ async def test_step_guidance():
         result = await agent.execute(state)
 
         if result.get("error"):
-            print(f"✗ Step guidance failed: {result['error']}")
+            print(f"Γ£ù Step guidance failed: {result['error']}")
             return False
 
         output = result.get("output")
@@ -97,10 +97,10 @@ async def test_step_guidance():
         assert "required_fields" in output, "Missing required_fields in output"
         assert "step_name" in output, "Missing step_name in output"
 
-        print(f"✓ Step 1 guidance generated correctly")
-        print(f"✓ Step name: {output['step_name']}")
-        print(f"✓ Required fields: {output['required_fields']}")
-        print(f"✓ Estimated time: {output['estimated_time']} minutes")
+        print(f"Γ£ô Step 1 guidance generated correctly")
+        print(f"Γ£ô Step name: {output['step_name']}")
+        print(f"Γ£ô Required fields: {output['required_fields']}")
+        print(f"Γ£ô Estimated time: {output['estimated_time']} minutes")
 
         # Test guidance for step with some data
         print("\nTest: Step guidance with partial data")
@@ -113,16 +113,16 @@ async def test_step_guidance():
         result2 = await agent.execute(state2)
 
         if result2.get("error"):
-            print(f"✗ Step guidance with data failed: {result2['error']}")
+            print(f"Γ£ù Step guidance with data failed: {result2['error']}")
             return False
 
         output2 = result2.get("output")
-        print(f"✓ Step guidance with partial data works")
+        print(f"Γ£ô Step guidance with partial data works")
 
         return True
 
     except Exception as e:
-        print(f"✗ Step guidance test failed: {e}")
+        print(f"Γ£ù Step guidance test failed: {e}")
         return False
 
 
@@ -140,7 +140,7 @@ async def test_progress_tracking():
 
         initial_progress = agent._calculate_progress(state)
         assert initial_progress == 0.0, f"Expected 0% progress, got {initial_progress}%"
-        print(f"✓ Initial progress: {initial_progress}%")
+        print(f"Γ£ô Initial progress: {initial_progress}%")
 
         # Test progress after completing steps
         state = agent._mark_step_completed(state, 1)
@@ -152,19 +152,19 @@ async def test_progress_tracking():
         assert (
             abs(updated_progress - expected_progress) < 0.1
         ), f"Expected {expected_progress}%, got {updated_progress}%"
-        print(f"✓ Progress after 3 steps: {updated_progress:.1f}%")
+        print(f"Γ£ô Progress after 3 steps: {updated_progress:.1f}%")
 
         # Test step completion detection
         assert agent._is_step_completed(state, 1), "Step 1 should be completed"
         assert agent._is_step_completed(state, 2), "Step 2 should be completed"
         assert agent._is_step_completed(state, 3), "Step 3 should be completed"
         assert not agent._is_step_completed(state, 4), "Step 4 should not be completed"
-        print("✓ Step completion detection works correctly")
+        print("Γ£ô Step completion detection works correctly")
 
         return True
 
     except Exception as e:
-        print(f"✗ Progress tracking test failed: {e}")
+        print(f"Γ£ù Progress tracking test failed: {e}")
         return False
 
 
@@ -189,7 +189,7 @@ async def test_state_persistence():
             "current_onboarding_step" in state1
         ), "State not updated with current step"
         assert "onboarding_progress" in state1, "State not updated with progress"
-        print("✓ State updated after first interaction")
+        print("Γ£ô State updated after first interaction")
 
         # Execute second interaction
         result2 = await agent.execute(state1)
@@ -202,12 +202,12 @@ async def test_state_persistence():
         assert len(state2.get("messages", [])) > len(
             state1.get("messages", [])
         ), "Messages not persisted"
-        print("✓ State persists across interactions")
+        print("Γ£ô State persists across interactions")
 
         return True
 
     except Exception as e:
-        print(f"✗ State persistence test failed: {e}")
+        print(f"Γ£ù State persistence test failed: {e}")
         return False
 
 
@@ -243,21 +243,21 @@ async def test_onboarding_summary():
             summary["estimated_remaining_time"] > 0
         ), "Should have estimated remaining time"
 
-        print(f"✓ Summary generated correctly")
-        print(f"✓ Total steps: {summary['total_steps']}")
-        print(f"✓ Completed steps: {summary['completed_steps']}")
-        print(f"✓ Progress: {summary['progress_percentage']:.1f}%")
+        print(f"Γ£ô Summary generated correctly")
+        print(f"Γ£ô Total steps: {summary['total_steps']}")
+        print(f"Γ£ô Completed steps: {summary['completed_steps']}")
+        print(f"Γ£ô Progress: {summary['progress_percentage']:.1f}%")
         print(
-            f"✓ Current step: {summary['current_step']} - {summary['current_step_name']}"
+            f"Γ£ô Current step: {summary['current_step']} - {summary['current_step_name']}"
         )
         print(
-            f"✓ Estimated remaining time: {summary['estimated_remaining_time']} minutes"
+            f"Γ£ô Estimated remaining time: {summary['estimated_remaining_time']} minutes"
         )
 
         return True
 
     except Exception as e:
-        print(f"✗ Onboarding summary test failed: {e}")
+        print(f"Γ£ù Onboarding summary test failed: {e}")
         return False
 
 
@@ -276,17 +276,17 @@ async def main():
 
     # Summary
     print("\n=== Test Summary ===")
-    print(f"Step Detection: {'✓' if test_results[0] else '✗'}")
-    print(f"Step Guidance: {'✓' if test_results[1] else '✗'}")
-    print(f"Progress Tracking: {'✓' if test_results[2] else '✗'}")
-    print(f"State Persistence: {'✓' if test_results[3] else '✗'}")
-    print(f"Onboarding Summary: {'✓' if test_results[4] else '✗'}")
+    print(f"Step Detection: {'Γ£ô' if test_results[0] else 'Γ£ù'}")
+    print(f"Step Guidance: {'Γ£ô' if test_results[1] else 'Γ£ù'}")
+    print(f"Progress Tracking: {'Γ£ô' if test_results[2] else 'Γ£ù'}")
+    print(f"State Persistence: {'Γ£ô' if test_results[3] else 'Γ£ù'}")
+    print(f"Onboarding Summary: {'Γ£ô' if test_results[4] else 'Γ£ù'}")
 
     if all(test_results):
-        print("\n✅ All OnboardingOrchestrator tests passed!")
+        print("\nΓ£à All OnboardingOrchestrator tests passed!")
         return True
     else:
-        print("\n❌ Some OnboardingOrchestrator tests failed")
+        print("\nΓ¥î Some OnboardingOrchestrator tests failed")
         return False
 
 

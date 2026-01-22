@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
@@ -14,13 +14,13 @@ import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { BlueprintProgress } from "@/components/ui/BlueprintProgress";
 import { StepLoadingState, StepEmptyState } from "../StepStates";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   PAPER TERMINAL — Step 5: Brand Audit
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   PAPER TERMINAL ΓÇö Step 5: Brand Audit
 
    PURPOSE: Evaluate existing brand assets.
    - "Quiet Luxury" Refactor: Eliminate colorful backgrounds ("fruit salad").
    - Use rigorous lines, serif headings, and minimal color indicators.
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 // Types
 interface AuditDimension {
@@ -395,7 +395,7 @@ export default function Step5BrandAudit() {
 
             <div className="flex justify-center pt-8 border-t border-[var(--border-subtle)]">
                 <span className="font-technical text-[10px] text-[var(--muted)] uppercase tracking-widest">
-                    Generated {new Date().toLocaleDateString()} • RaptorFlow Intelligence
+                    Generated {new Date().toLocaleDateString()} ΓÇó RaptorFlow Intelligence
                 </span>
             </div>
         </div>

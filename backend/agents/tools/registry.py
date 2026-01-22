@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tool registry for managing Raptorflow agent tools.
 """
 

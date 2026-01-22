@@ -1,4 +1,4 @@
-"""
+﻿"""
 Enhanced performance tests for RaptorFlow backend.
 Tests session management, performance optimization, and resource pooling under load.
 """

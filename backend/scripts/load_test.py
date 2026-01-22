@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Load testing script for Raptorflow backend.
 Uses Locust to simulate concurrent users and measure performance.

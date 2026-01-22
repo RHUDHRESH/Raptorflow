@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from 'next/navigation';
 import { X, RefreshCw } from 'lucide-react';
@@ -55,10 +55,10 @@ export default function PaymentFailedPage() {
           <div className="bg-[var(--surface)] border border-[var(--structure)] rounded-[var(--radius)] p-4 mb-8 text-left">
             <p className="text-sm font-semibold text-[var(--ink)] mb-2">What you can do:</p>
             <ul className="text-sm text-[var(--secondary)] space-y-1">
-              <li>• Check your internet connection</li>
-              <li>• Ensure sufficient funds in your account</li>
-              <li>• Try a different payment method</li>
-              <li>• Contact your bank if the issue persists</li>
+              <li>ΓÇó Check your internet connection</li>
+              <li>ΓÇó Ensure sufficient funds in your account</li>
+              <li>ΓÇó Try a different payment method</li>
+              <li>ΓÇó Contact your bank if the issue persists</li>
             </ul>
           </div>
 

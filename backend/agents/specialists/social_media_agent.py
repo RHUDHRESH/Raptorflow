@@ -1,4 +1,4 @@
-"""
+﻿"""
 SocialMediaAgent specialist agent for Raptorflow marketing automation.
 Handles social media content creation, platform optimization, and engagement strategies.
 """
@@ -973,7 +973,7 @@ The content should be authentic, engaging, and optimized for {request.platform} 
 
     def _format_social_response(self, post: SocialMediaPost) -> str:
         """Format social media post response for user."""
-        response = f"📱 **Social Media Post Created**\n\n"
+        response = f"≡ƒô▒ **Social Media Post Created**\n\n"
         response += f"**Platform:** {post.platform.title()}\n"
         response += f"**Content Type:** {post.content_type.title()}\n"
         response += f"**Engagement Prediction:** {post.engagement_prediction:.1%}\n"
@@ -991,24 +991,24 @@ The content should be authentic, engaging, and optimized for {request.platform} 
         if post.media_requirements:
             response += f"**Media Requirements:**\n"
             for requirement in post.media_requirements:
-                response += f"• {requirement}\n"
+                response += f"ΓÇó {requirement}\n"
             response += "\n"
 
         response += f"**Content Calendar:**\n"
         response += (
-            f"• Posting Frequency: {post.content_calendar['posting_frequency']}\n"
+            f"ΓÇó Posting Frequency: {post.content_calendar['posting_frequency']}\n"
         )
         response += (
-            f"• Optimal Days: {', '.join(post.content_calendar['optimal_days'])}\n"
+            f"ΓÇó Optimal Days: {', '.join(post.content_calendar['optimal_days'])}\n"
         )
-        response += f"• Content Series: {', '.join(post.content_calendar['content_series'])}\n\n"
+        response += f"ΓÇó Content Series: {', '.join(post.content_calendar['content_series'])}\n\n"
 
         response += f"**Predicted Performance:**\n"
-        response += f"• Likes: {post.performance_metrics['likes']:,}\n"
-        response += f"• Comments: {post.performance_metrics['comments']:,}\n"
-        response += f"• Shares: {post.performance_metrics['shares']:,}\n"
+        response += f"ΓÇó Likes: {post.performance_metrics['likes']:,}\n"
+        response += f"ΓÇó Comments: {post.performance_metrics['comments']:,}\n"
+        response += f"ΓÇó Shares: {post.performance_metrics['shares']:,}\n"
         response += (
-            f"• Engagement Rate: {post.performance_metrics['engagement_rate']:.2%}\n"
+            f"ΓÇó Engagement Rate: {post.performance_metrics['engagement_rate']:.2%}\n"
         )
 
         return response

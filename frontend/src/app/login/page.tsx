@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import LoginForm from '@/components/auth/LoginForm';
 import AuthLayout from '@/components/auth/AuthLayout';

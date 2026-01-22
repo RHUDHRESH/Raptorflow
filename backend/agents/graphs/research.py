@@ -1,4 +1,4 @@
-"""
+﻿"""
 Research workflow graph for market research and data gathering powered by Titan.
 """
 

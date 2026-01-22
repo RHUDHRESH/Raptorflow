@@ -1,4 +1,4 @@
-import { MoveType, MoveConfig, ScheduleConfig } from '@/types/campaign';
+﻿import { MoveType, MoveConfig, ScheduleConfig } from '@/types/campaign';
 
 interface SocialAutomationConfig {
   autoRespond: boolean;
@@ -63,7 +63,7 @@ export const emailSequenceMoves = [
       personalization: ['firstName', 'company'],
       tracking: true
     } as MoveConfig,
-    icon: '📧',
+    icon: '≡ƒôº',
     difficulty: 'beginner',
     estimatedTime: '30 minutes setup'
   },
@@ -107,7 +107,7 @@ export const emailSequenceMoves = [
       scoring: true,
       segmentation: 'behavior-based'
     } as MoveConfig,
-    icon: '🌱',
+    icon: '≡ƒî▒',
     difficulty: 'intermediate',
     estimatedTime: '1 hour setup'
   },
@@ -142,7 +142,7 @@ export const emailSequenceMoves = [
       dynamicContent: true,
       urgency: true
     } as MoveConfig,
-    icon: '🛒',
+    icon: '≡ƒ¢Æ',
     difficulty: 'intermediate',
     estimatedTime: '45 minutes setup'
   }
@@ -172,7 +172,7 @@ export const socialMediaMoves = [
         engageWithFollowers: true
       }
     } as MoveConfig,
-    icon: '📅',
+    icon: '≡ƒôà',
     difficulty: 'intermediate',
     estimatedTime: '2 hours setup'
   },
@@ -207,7 +207,7 @@ export const socialMediaMoves = [
       paidAmplification: true,
       influencerOutreach: true
     } as MoveConfig,
-    icon: '🚀',
+    icon: '≡ƒÜÇ',
     difficulty: 'advanced',
     estimatedTime: '4 hours setup'
   },
@@ -235,7 +235,7 @@ export const socialMediaMoves = [
         'a/bTest': true
       }
     } as MoveConfig,
-    icon: '💬',
+    icon: '≡ƒÆ¼',
     difficulty: 'beginner',
     estimatedTime: '1 hour setup'
   }
@@ -273,7 +273,7 @@ export const contentCreationMoves = [
         podcast: true
       }
     } as MoveConfig,
-    icon: '📝',
+    icon: '≡ƒô¥',
     difficulty: 'intermediate',
     estimatedTime: '8 hours total'
   },
@@ -308,7 +308,7 @@ export const contentCreationMoves = [
         crossPromotion: true
       }
     } as MoveConfig,
-    icon: '🎥',
+    icon: '≡ƒÄÑ',
     difficulty: 'advanced',
     estimatedTime: '20 hours total'
   },
@@ -342,7 +342,7 @@ export const contentCreationMoves = [
         scoring: true
       }
     } as MoveConfig,
-    icon: '🎁',
+    icon: '≡ƒÄü',
     difficulty: 'intermediate',
     estimatedTime: '12 hours total'
   }
@@ -400,7 +400,7 @@ export const outreachMoves = [
         bookings: true
       }
     } as MoveConfig,
-    icon: '📨',
+    icon: '≡ƒô¿',
     difficulty: 'advanced',
     estimatedTime: '6 hours setup'
   },
@@ -449,7 +449,7 @@ export const outreachMoves = [
         personalization: true
       }
     } as MoveConfig,
-    icon: '💼',
+    icon: '≡ƒÆ╝',
     difficulty: 'intermediate',
     estimatedTime: '4 hours setup'
   },
@@ -481,7 +481,7 @@ export const outreachMoves = [
         roi: true
       }
     } as MoveConfig,
-    icon: '🤝',
+    icon: '≡ƒñ¥',
     difficulty: 'advanced',
     estimatedTime: '8 hours setup'
   }
@@ -520,7 +520,7 @@ export const analyticsMoves = [
         format: ['web', 'pdf', 'email']
       }
     } as MoveConfig,
-    icon: '📊',
+    icon: '≡ƒôè',
     difficulty: 'intermediate',
     estimatedTime: '4 hours setup'
   },
@@ -554,7 +554,7 @@ export const analyticsMoves = [
         resultLibrary: true
       }
     } as MoveConfig,
-    icon: '🧪',
+    icon: '≡ƒº¬',
     difficulty: 'advanced',
     estimatedTime: '6 hours setup'
   },
@@ -587,7 +587,7 @@ export const analyticsMoves = [
         optimization: true
       }
     } as MoveConfig,
-    icon: '🎯',
+    icon: '≡ƒÄ»',
     difficulty: 'expert',
     estimatedTime: '10 hours setup'
   }

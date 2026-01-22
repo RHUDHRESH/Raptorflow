@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
@@ -122,7 +122,7 @@ export default function DashboardPage() {
           data-fade
           className="mt-16 text-center text-[10px] font-mono text-[var(--ink-muted)] uppercase tracking-widest"
         >
-          RaptorFlow OS v4.2 • Secure
+          RaptorFlow OS v4.2 ΓÇó Secure
         </div>
       </div>
     </div>

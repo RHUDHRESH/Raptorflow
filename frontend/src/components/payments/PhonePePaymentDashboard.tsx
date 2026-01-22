@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
@@ -9,14 +9,14 @@ import { BlueprintTable } from "@/components/ui/BlueprintTable";
 import type { Column } from "@/components/ui/BlueprintTable";
 import { BlueprintKPI } from "@/components/ui/BlueprintKPI";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   PHONEPE PAYMENT DASHBOARD — Complete Payment Management Interface
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   PHONEPE PAYMENT DASHBOARD ΓÇö Complete Payment Management Interface
    Features:
    - Payment history and analytics
    - Transaction filtering and search
    - Real-time statistics
    - Technical blueprint design system
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface PaymentTransaction extends Record<string, unknown> {
     id: string;
@@ -264,7 +264,7 @@ export function PhonePePaymentDashboard({ className }: { className?: string }) {
             <BlueprintCard className={className}>
                 <div className="text-center py-12">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-[var(--blueprint-light)] rounded-full border-2 border-[var(--blueprint)] mb-4">
-                        <div className="w-8 h-8 text-[var(--blueprint)] animate-spin">⚙️</div>
+                        <div className="w-8 h-8 text-[var(--blueprint)] animate-spin">ΓÜÖ∩╕Å</div>
                     </div>
                     <h3 className="font-technical text-lg text-[var(--ink)] mb-2">Loading Payment Data</h3>
                     <p className="text-sm text-[var(--ink)]/60 font-mono">Fetching transactions...</p>
@@ -387,7 +387,7 @@ export function PhonePePaymentDashboard({ className }: { className?: string }) {
             {/* Footer */}
             <div className="text-center py-4">
                 <div className="text-xs font-technical text-[var(--ink)]/60">
-                    PHONEPE GATEWAY v2.0 • SECURE • ENCRYPTED • PCI-DSS COMPLIANT
+                    PHONEPE GATEWAY v2.0 ΓÇó SECURE ΓÇó ENCRYPTED ΓÇó PCI-DSS COMPLIANT
                 </div>
             </div>
         </div>

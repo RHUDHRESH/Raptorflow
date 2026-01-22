@@ -1,4 +1,4 @@
-"""
+﻿"""
 Health checking system for Raptorflow backend.
 Provides comprehensive health checks for all system components.
 """

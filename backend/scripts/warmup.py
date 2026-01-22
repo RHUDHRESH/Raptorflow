@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Warmup script for Raptorflow backend.
 Initializes models, primes caches, and verifies connections.
@@ -555,10 +555,10 @@ class WarmupScript:
         print("WARMUP STEPS:")
         for step_name, result in report["steps"].items():
             status_icon = {
-                "success": "✅",
-                "partial": "⚠️",
-                "failed": "❌",
-            }.get(result["status"], "❓")
+                "success": "Γ£à",
+                "partial": "ΓÜá∩╕Å",
+                "failed": "Γ¥î",
+            }.get(result["status"], "Γ¥ô")
 
             print(f"  {status_icon} {step_name.upper()}: {result['status']}")
 
@@ -571,7 +571,7 @@ class WarmupScript:
         if summary["issues"]:
             print("ISSUES:")
             for issue in summary["issues"]:
-                print(f"  ❌ {issue['step']}: {issue['error']}")
+                print(f"  Γ¥î {issue['step']}: {issue['error']}")
             print()
 
         print("=" * 60)

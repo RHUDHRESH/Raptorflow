@@ -1,4 +1,4 @@
-"""
+﻿"""
 ICP service for business logic operations
 Handles ICP-related business logic and validation
 """

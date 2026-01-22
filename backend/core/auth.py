@@ -1,4 +1,4 @@
-"""
+﻿"""
 Authentication functions for FastAPI
 Handles JWT extraction, user authentication, and workspace resolution
 """

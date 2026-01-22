@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
     RICP,
@@ -9,17 +9,17 @@ import {
 } from '@/types/foundation';
 import { api } from '@/lib/api/client';
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   FOUNDATION STORE — RICP & Messaging State Management
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   FOUNDATION STORE ΓÇö RICP & Messaging State Management
    Persisted to localStorage for demo purposes
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 // Sample RICP: "Ambitious SaaS Founder" (Sarah)
 const SAMPLE_RICP: RICP = {
     id: 'ricp-001',
     name: 'Ambitious SaaS Founder',
     personaName: 'Sarah',
-    avatar: '👩‍💻',
+    avatar: '≡ƒæ⌐ΓÇì≡ƒÆ╗',
     demographics: {
         ageRange: '32-45 years old',
         income: '$150,000 - $400,000',
@@ -74,7 +74,7 @@ const SAMPLE_MESSAGING: CoreMessaging = {
         problemExternal: 'Plateaued growth despite a great product',
         problemInternal: 'Feeling overwhelmed and out of control with marketing',
         problemPhilosophical: 'Marketing shouldn\'t be this hard for smart people',
-        guide: 'RaptorFlow — the calm, surgical marketing operating system',
+        guide: 'RaptorFlow ΓÇö the calm, surgical marketing operating system',
         plan: ['Define your Foundation', 'Create tactical Moves', 'Execute with the calendar', 'Track and iterate'],
         callToAction: 'Start your first Move',
         transitionalCTA: 'See how it works',

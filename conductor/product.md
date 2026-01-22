@@ -1,7 +1,7 @@
-# Initial Concept
-RaptorFlow is a "Founder Marketing Operating System" powered by a SOTA Cognitive Intelligence Engine. It converts messy business context into clear positioning, a 90-day marketing war plan, weekly execution moves, and tracked outcomes. It aims for a calm, expensive, and decisive feel—"ChatGPT simplicity + MasterClass polish + Editorial restraint."
+﻿# Initial Concept
+RaptorFlow is a "Founder Marketing Operating System" powered by a SOTA Cognitive Intelligence Engine. It converts messy business context into clear positioning, a 90-day marketing war plan, weekly execution moves, and tracked outcomes. It aims for a calm, expensive, and decisive feelΓÇö"ChatGPT simplicity + MasterClass polish + Editorial restraint."
 
-# Product Guide — RaptorFlow
+# Product Guide ΓÇö RaptorFlow
 
 ## Vision
 RaptorFlow is the **Founder Marketing Operating System**. It is designed to replace "marketing by vibes" with a rigorous, surgical system powered by a consolidated, multi-tier backend architecture (Module > Service > Domain).

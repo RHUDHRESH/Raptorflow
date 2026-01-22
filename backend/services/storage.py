@@ -1,4 +1,4 @@
-"""
+﻿"""
 Enhanced Google Cloud Storage Service
 Handles file uploads, validation, CDN, security scanning, and image processing
 """

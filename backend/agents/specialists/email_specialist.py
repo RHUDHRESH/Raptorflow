@@ -1,4 +1,4 @@
-"""
+﻿"""
 EmailSpecialist specialist agent for Raptorflow marketing automation.
 Handles email campaign creation, optimization, and performance analysis.
 """
@@ -737,13 +737,13 @@ The content should be engaging, valuable, and drive action. Use proper formattin
         """Generate call to action."""
         cta_templates = {
             "conversion": [
-                "Shop Now →",
+                "Shop Now ΓåÆ",
                 "Get Started Today",
                 "Claim Your Offer",
                 "Buy Now",
             ],
             "engagement": [
-                "Learn More →",
+                "Learn More ΓåÆ",
                 "Read Full Article",
                 "Watch Video",
                 "Explore More",
@@ -1006,7 +1006,7 @@ The {company_name} Team
             )
 
         # CTA variants
-        cta_variants = ["Shop Now →", "Get Started Today", "Learn More →"]
+        cta_variants = ["Shop Now ΓåÆ", "Get Started Today", "Learn More ΓåÆ"]
 
         for i, variant in enumerate(cta_variants[:1]):
             variants.append(
@@ -1090,7 +1090,7 @@ The {company_name} Team
 
     def _format_campaign_response(self, campaign: EmailCampaign) -> str:
         """Format email campaign response for user."""
-        response = f"📧 **Email Campaign Created**\n\n"
+        response = f"≡ƒôº **Email Campaign Created**\n\n"
         response += f"**Campaign Name:** {campaign.campaign_name}\n"
         response += f"**Campaign Type:** {campaign.campaign_type.title()}\n"
         response += f"**Objective:** {campaign.objective.title()}\n"
@@ -1111,7 +1111,7 @@ The {company_name} Team
         if campaign.optimization_recommendations:
             response += f"**Optimization Recommendations:**\n"
             for recommendation in campaign.optimization_recommendations:
-                response += f"• {recommendation}\n"
+                response += f"ΓÇó {recommendation}\n"
             response += "\n"
 
         if campaign.a_b_test_variants:

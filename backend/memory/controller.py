@@ -1,4 +1,4 @@
-"""
+﻿"""
 Simplified memory controller with intelligent cleanup and optimization.
 Replaces over-engineered 4-memory system with a simple Redis-based approach.
 Only maintains 2 memory types: vector (for search) and working (for context).

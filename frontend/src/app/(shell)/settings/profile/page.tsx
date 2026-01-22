@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { useAuth } from "@/components/auth/AuthProvider";

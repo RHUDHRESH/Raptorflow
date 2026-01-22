@@ -1,4 +1,4 @@
-"""
+﻿"""
 Production RaptorFlow Backend with Agent System Integration
 Enterprise-ready, 100% functional, no fallbacks
 """
@@ -57,33 +57,33 @@ async def lifespan(app: FastAPI):
     """Manage application lifecycle."""
     global dispatcher, workflow_graph, tool_registry, config
 
-    logger.info("🚀 Starting RaptorFlow Agent System...")
+    logger.info("≡ƒÜÇ Starting RaptorFlow Agent System...")
 
     try:
         # Step 1: Validate configuration
-        logger.info("📋 Validating configuration...")
+        logger.info("≡ƒôï Validating configuration...")
         config = get_config()
         if not validate_config():
             raise ConfigurationError("Configuration validation failed")
-        logger.info("✅ Configuration validated")
+        logger.info("Γ£à Configuration validated")
 
         # Step 2: Initialize tool registry
-        logger.info("🔧 Initializing tool registry...")
+        logger.info("≡ƒöº Initializing tool registry...")
         tool_registry = get_tool_registry()
         tool_registry.initialize_default_tools()
         logger.info(
-            f"✅ Tool registry initialized with {len(tool_registry.list_tools())} tools"
+            f"Γ£à Tool registry initialized with {len(tool_registry.list_tools())} tools"
         )
 
         # Step 3: Initialize agent dispatcher
-        logger.info("🤖 Initializing agent dispatcher...")
+        logger.info("≡ƒñû Initializing agent dispatcher...")
         dispatcher = AgentDispatcher()
         logger.info(
-            f"✅ Agent dispatcher initialized with {len(dispatcher.registry.list_agents())} agents"
+            f"Γ£à Agent dispatcher initialized with {len(dispatcher.registry.list_agents())} agents"
         )
 
         # Step 4: Initialize workflow graph
-        logger.info("📊 Initializing workflow graph...")
+        logger.info("≡ƒôè Initializing workflow graph...")
         preprocessor = RequestPreprocessor()
         routing_pipeline = RoutingPipeline()
         quality_checker = QualityChecker()
@@ -94,31 +94,31 @@ async def lifespan(app: FastAPI):
             dispatcher=dispatcher,
             quality_checker=quality_checker,
         )
-        logger.info("✅ Workflow graph initialized")
+        logger.info("Γ£à Workflow graph initialized")
 
         # Step 5: Warmup LLM models
-        logger.info("🧠 Warming up LLM models...")
+        logger.info("≡ƒºá Warming up LLM models...")
         from agents.config import ModelTier
 
         for tier in [ModelTier.FLASH_LITE, ModelTier.FLASH, ModelTier.PRO]:
             try:
                 llm = get_llm(tier)
-                logger.info(f"✅ {tier.value} model ready")
+                logger.info(f"Γ£à {tier.value} model ready")
             except Exception as e:
-                logger.warning(f"⚠️ Failed to warm up {tier.value}: {e}")
+                logger.warning(f"ΓÜá∩╕Å Failed to warm up {tier.value}: {e}")
 
-        logger.info("🎉 RaptorFlow Agent System started successfully!")
+        logger.info("≡ƒÄë RaptorFlow Agent System started successfully!")
 
         yield
 
     except Exception as e:
-        logger.error(f"❌ Failed to start agent system: {e}")
+        logger.error(f"Γ¥î Failed to start agent system: {e}")
         raise
 
     finally:
-        logger.info("🛑 Shutting down RaptorFlow Agent System...")
+        logger.info("≡ƒ¢æ Shutting down RaptorFlow Agent System...")
         # Cleanup if needed
-        logger.info("✅ Shutdown complete")
+        logger.info("Γ£à Shutdown complete")
 
 
 # Create FastAPI app
@@ -425,7 +425,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     host = os.environ.get("HOST", "0.0.0.0")
 
-    logger.info(f"🌟 Starting RaptorFlow Agent System on {host}:{port}")
+    logger.info(f"≡ƒîƒ Starting RaptorFlow Agent System on {host}:{port}")
 
     uvicorn.run(
         "main_production:app",

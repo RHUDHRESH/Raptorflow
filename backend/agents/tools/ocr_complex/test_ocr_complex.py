@@ -1,4 +1,4 @@
-"""
+﻿"""
 TEST SUITE FOR OCR COMPLEX
 Comprehensive tests with real document verification
 No graceful failures - tests must pass or explicitly fail
@@ -232,7 +232,7 @@ def run_integration_tests():
             result = ocr.process_document(doc)
 
             if result["success"]:
-                print(f"✓ Success - Processing time: {result['processing_time']:.2f}s")
+                print(f"Γ£ô Success - Processing time: {result['processing_time']:.2f}s")
                 print(
                     f"  Content length: {len(result['final_output']['extracted_content']['text'])}"
                 )
@@ -240,7 +240,7 @@ def run_integration_tests():
                     f"  Confidence: {result['final_output']['document_info']['confidence']:.2f}"
                 )
             else:
-                print(f"✗ Failed - {result['error']}")
+                print(f"Γ£ù Failed - {result['error']}")
         else:
             print(f"Skipping {doc} (not found)")
 

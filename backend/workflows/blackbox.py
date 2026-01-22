@@ -1,4 +1,4 @@
-"""
+﻿"""
 BlackboxWorkflow - End-to-end blackbox strategy orchestration.
 Handles bold strategy generation, review, and conversion to actionable moves.
 """

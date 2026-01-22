@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useEffect } from "react";
 import gsap from "gsap";
@@ -55,7 +55,7 @@ export default function NotificationsPage() {
                                     note.type === 'warning' ? 'bg-[var(--warning-light)] text-[var(--warning)]' :
                                         'bg-[var(--blueprint-light)] text-[var(--blueprint)]'
                                 }`}>
-                                <span className="text-base">🔔</span>
+                                <span className="text-base">≡ƒöö</span>
                             </div>
                             <div className="flex-1">
                                 <div className="flex justify-between items-start mb-1">
@@ -66,7 +66,7 @@ export default function NotificationsPage() {
                             </div>
                             <div className="opacity-0 group-hover:opacity-100 transition-opacity self-center">
                                 <button className="p-2 text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--border)] rounded-[var(--radius-sm)]">
-                                    <span>✅</span>
+                                    <span>Γ£à</span>
                                 </button>
                             </div>
                         </div>

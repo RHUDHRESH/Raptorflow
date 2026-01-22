@@ -1,4 +1,4 @@
-"""
+﻿"""
 TrendAnalyzer specialist agent for Raptorflow marketing automation.
 Handles trend analysis, market forecasting, and predictive insights.
 """
@@ -1129,7 +1129,7 @@ Always focus on providing accurate, actionable trend intelligence that helps ant
 
     def _format_trend_response(self, report: TrendAnalysisReport) -> str:
         """Format trend analysis response for user."""
-        response = f"📈 **Trend Analysis Report**\n\n"
+        response = f"≡ƒôê **Trend Analysis Report**\n\n"
         response += f"**Analysis Type:** {report.analysis_type.title()}\n"
         response += f"**Industry:** {report.industry.title()}\n"
         response += (
@@ -1141,19 +1141,19 @@ Always focus on providing accurate, actionable trend intelligence that helps ant
 
         response += f"**Key Insights:**\n"
         for insight in report.key_insights:
-            response += f"• {insight}\n"
+            response += f"ΓÇó {insight}\n"
         response += "\n"
 
         response += f"**Trends Identified:**\n"
-        response += f"• Market Trends: {len(report.market_trends)}\n"
-        response += f"• Content Trends: {len(report.content_trends)}\n"
-        response += f"• Social Trends: {len(report.social_trends)}\n"
-        response += f"• Consumer Trends: {len(report.consumer_trends)}\n"
-        response += f"• Technology Trends: {len(report.technology_trends)}\n\n"
+        response += f"ΓÇó Market Trends: {len(report.market_trends)}\n"
+        response += f"ΓÇó Content Trends: {len(report.content_trends)}\n"
+        response += f"ΓÇó Social Trends: {len(report.social_trends)}\n"
+        response += f"ΓÇó Consumer Trends: {len(report.consumer_trends)}\n"
+        response += f"ΓÇó Technology Trends: {len(report.technology_trends)}\n\n"
 
         response += f"**Strategic Recommendations:**\n"
         for recommendation in report.strategic_recommendations:
-            response += f"• {recommendation}\n"
+            response += f"ΓÇó {recommendation}\n"
         response += "\n"
 
         response += f"**Forecasts Generated:** {len(report.forecasts)}\n"
@@ -1164,6 +1164,6 @@ Always focus on providing accurate, actionable trend intelligence that helps ant
             "high_impact_high_probability", []
         )
         for opportunity in high_impact_high_prob[:3]:
-            response += f"• {opportunity['name']} ({opportunity['type']})\n"
+            response += f"ΓÇó {opportunity['name']} ({opportunity['type']})\n"
 
         return response

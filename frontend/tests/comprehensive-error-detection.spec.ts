@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+﻿import { test, expect } from '@playwright/test';
 
 const routes = [
   // Main routes
@@ -138,7 +138,7 @@ test.describe('Comprehensive Page Error Detection', () => {
           });
         }
 
-        console.log(`✅ Route ${route} loaded successfully`);
+        console.log(`Γ£à Route ${route} loaded successfully`);
 
       } catch (error) {
         errors.push({
@@ -146,14 +146,14 @@ test.describe('Comprehensive Page Error Detection', () => {
           error: error instanceof Error ? error.message : String(error),
           type: 'timeout'
         });
-        console.log(`❌ Route ${route} failed: ${error}`);
+        console.log(`Γ¥î Route ${route} failed: ${error}`);
       }
     }
 
     // Print all errors at the end
     console.log('\n=== ERROR SUMMARY ===');
     if (errors.length === 0) {
-      console.log('🎉 No errors found!');
+      console.log('≡ƒÄë No errors found!');
     } else {
       console.log(`Found ${errors.length} errors:\n`);
       errors.forEach((error, index) => {

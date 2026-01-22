@@ -1,4 +1,4 @@
-"""
+﻿"""
 Google Cloud Logging integration for Raptorflow.
 
 Provides structured logging with Cloud Logging integration,

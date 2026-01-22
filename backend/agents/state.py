@@ -1,4 +1,4 @@
-"""
+﻿"""
 Agent state management and context classes with persistence.
 """
 

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Automated database migration runner for RaptorFlow
 Handles Supabase database schema migrations with version tracking
 """

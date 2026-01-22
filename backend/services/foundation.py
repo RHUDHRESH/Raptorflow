@@ -1,4 +1,4 @@
-"""
+﻿"""
 Foundation service for business logic operations
 Handles foundation-related business logic and validation
 """
@@ -72,7 +72,7 @@ class FoundationService:
                 id=str(item.get("id")),
                 name=item.get("name", "Unknown"),
                 persona_name=item.get("persona_name"),
-                avatar=item.get("avatar", "👤"),
+                avatar=item.get("avatar", "≡ƒæñ"),
                 demographics=item.get("demographics", {}),
                 psychographics=item.get("psychographics", {}),
                 market_sophistication=stage,

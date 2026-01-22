@@ -1,4 +1,4 @@
-"""
+﻿"""
 Daily Wins repository for database operations
 """
 

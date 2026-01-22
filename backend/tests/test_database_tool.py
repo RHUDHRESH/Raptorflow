@@ -1,4 +1,4 @@
-"""
+﻿"""
 Test script to verify DatabaseTool workspace isolation.
 """
 
@@ -20,7 +20,7 @@ async def test_database_tool_workspace_isolation():
     try:
         # Create tool instance
         tool = DatabaseTool()
-        print(f"✓ DatabaseTool instantiated: {tool.name}")
+        print(f"Γ£ô DatabaseTool instantiated: {tool.name}")
 
         # Test 1: Query without workspace_id should fail
         print("\nTesting query without workspace_id...")
@@ -29,12 +29,12 @@ async def test_database_tool_workspace_isolation():
                 table="foundations", workspace_id="", limit=5  # Empty workspace_id
             )
             if not result1.success and "workspace_id is required" in result1.error:
-                print("✓ Query without workspace_id properly rejected")
+                print("Γ£ô Query without workspace_id properly rejected")
             else:
-                print("✗ Query without workspace_id not properly rejected")
+                print("Γ£ù Query without workspace_id not properly rejected")
                 return False
         except Exception as e:
-            print(f"✗ Unexpected error: {e}")
+            print(f"Γ£ù Unexpected error: {e}")
             return False
 
         # Test 2: Query with valid workspace_id should succeed
@@ -46,10 +46,10 @@ async def test_database_tool_workspace_isolation():
 
         if result2.success:
             data = result2.data
-            print(f"✓ Query succeeded")
-            print(f"✓ Table: {data['table']}")
-            print(f"✓ Workspace ID: {data['workspace_id']}")
-            print(f"✓ Total count: {data['total_count']}")
+            print(f"Γ£ô Query succeeded")
+            print(f"Γ£ô Table: {data['table']}")
+            print(f"Γ£ô Workspace ID: {data['workspace_id']}")
+            print(f"Γ£ô Total count: {data['total_count']}")
 
             # Verify all results have the correct workspace_id
             all_correct_workspace = all(
@@ -58,9 +58,9 @@ async def test_database_tool_workspace_isolation():
             )
 
             if all_correct_workspace:
-                print("✓ All results filtered by workspace_id")
+                print("Γ£ô All results filtered by workspace_id")
             else:
-                print("✗ Some results have incorrect workspace_id")
+                print("Γ£ù Some results have incorrect workspace_id")
                 return False
 
             # Test 3: Query with filters should work
@@ -74,7 +74,7 @@ async def test_database_tool_workspace_isolation():
 
             if result3.success:
                 filtered_data = result3.data
-                print(f"✓ Filtered query succeeded")
+                print(f"Γ£ô Filtered query succeeded")
 
                 # Verify all results have the filter value
                 all_filtered = all(
@@ -82,16 +82,16 @@ async def test_database_tool_workspace_isolation():
                 )
 
                 if all_filtered:
-                    print("✓ All results match filter criteria")
+                    print("Γ£ô All results match filter criteria")
                 else:
-                    print("✗ Some results don't match filter criteria")
+                    print("Γ£ù Some results don't match filter criteria")
                     return False
             else:
-                print(f"✗ Filtered query failed: {result3.error}")
+                print(f"Γ£ù Filtered query failed: {result3.error}")
                 return False
 
         else:
-            print(f"✗ Query with workspace_id failed: {result2.error}")
+            print(f"Γ£ù Query with workspace_id failed: {result2.error}")
             return False
 
         # Test 4: Query with invalid table should fail
@@ -101,9 +101,9 @@ async def test_database_tool_workspace_isolation():
         )
 
         if not result4.success and "Invalid table" in result4.error:
-            print("✓ Invalid table properly rejected")
+            print("Γ£ô Invalid table properly rejected")
         else:
-            print("✗ Invalid table not properly rejected")
+            print("Γ£ù Invalid table not properly rejected")
             return False
 
         # Test 5: Verify available tables
@@ -120,16 +120,16 @@ async def test_database_tool_workspace_isolation():
         ]
 
         if all(table in tables for table in expected_tables):
-            print(f"✓ All expected tables available: {tables}")
+            print(f"Γ£ô All expected tables available: {tables}")
         else:
             missing = [t for t in expected_tables if t not in tables]
-            print(f"✗ Missing tables: {missing}")
+            print(f"Γ£ù Missing tables: {missing}")
             return False
 
         return True
 
     except Exception as e:
-        print(f"✗ DatabaseTool test failed: {e}")
+        print(f"Γ£ù DatabaseTool test failed: {e}")
         return False
 
 
@@ -142,17 +142,17 @@ async def test_workspace_isolation_explanation():
         explanation = tool.explain_workspace_isolation()
 
         if "workspace_id" in explanation and "RLS policies" in explanation:
-            print("✓ Workspace isolation explanation is comprehensive")
+            print("Γ£ô Workspace isolation explanation is comprehensive")
             print(
-                f"✓ Key points: workspace_id filtering, RLS policies, no cross-workspace leakage"
+                f"Γ£ô Key points: workspace_id filtering, RLS policies, no cross-workspace leakage"
             )
             return True
         else:
-            print("✗ Workspace isolation explanation is incomplete")
+            print("Γ£ù Workspace isolation explanation is incomplete")
             return False
 
     except Exception as e:
-        print(f"✗ Explanation test failed: {e}")
+        print(f"Γ£ù Explanation test failed: {e}")
         return False
 
 
@@ -168,14 +168,14 @@ async def main():
 
     # Summary
     print("\n=== Test Summary ===")
-    print(f"Workspace Isolation: {'✓' if isolation_test else '✗'}")
-    print(f"Explanation: {'✓' if explanation_test else '✗'}")
+    print(f"Workspace Isolation: {'Γ£ô' if isolation_test else 'Γ£ù'}")
+    print(f"Explanation: {'Γ£ô' if explanation_test else 'Γ£ù'}")
 
     if isolation_test and explanation_test:
-        print("\n✅ All DatabaseTool tests passed!")
+        print("\nΓ£à All DatabaseTool tests passed!")
         return True
     else:
-        print("\n❌ Some DatabaseTool tests failed")
+        print("\nΓ¥î Some DatabaseTool tests failed")
         return False
 
 

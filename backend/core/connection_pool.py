@@ -1,4 +1,4 @@
-"""
+﻿"""
 Optimized database connection pooling for RaptorFlow
 Manages Supabase client connections with pooling and health checks
 """

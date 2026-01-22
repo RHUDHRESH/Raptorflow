@@ -1,4 +1,4 @@
-"""
+﻿"""
 Muse API - Legacy fallback endpoint.
 
 Kept minimal to avoid import-time failures while the primary Muse Vertex AI

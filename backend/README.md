@@ -1,8 +1,8 @@
-# RaptorFlow Backend
+﻿# RaptorFlow Backend
 
 The intelligent core of the RaptorFlow Marketing Operating System.
 
-## 🏗️ Architecture
+## ≡ƒÅù∩╕Å Architecture
 
 The backend is built with **FastAPI** and orchestrates complex AI workflows using **LangGraph** and **Vertex AI**.
 
@@ -18,7 +18,7 @@ The backend is built with **FastAPI** and orchestrates complex AI workflows usin
   - **Google Cloud Storage**: For document storage and evidence vault.
   - **Vertex AI**: Main AI provider.
 
-## 🚀 Getting Started
+## ≡ƒÜÇ Getting Started
 
 ### Prerequisites
 
@@ -45,14 +45,14 @@ cp .env.example .env
 pytest backend/tests/unit
 ```
 
-### 🧠 Cognitive Engine (LangGraph)
+### ≡ƒºá Cognitive Engine (LangGraph)
 - **Stateful Workflows**: Multi-node business analysis using LangGraph.
 - **Deep Insights**: Automated SWOT, PESTEL, Value Chain, and Brand Archetype analysis.
 - **Enhanced ICPs**: AI-generated behavioral architecture for target segments.
 - **Safe Generation**: Strict Pydantic validation with safe fallbacks and retry logic.
 - **Model**: Gemini 1.5 Pro via Vertex AI.
 
-### 📁 Document Service
+### ≡ƒôü Document Service
 - **Secure Storage**: Integrated with Google Cloud Storage.
 - **Safe Processing**: libmagic-based validation and virus scanning (optional).
 - **Asynchronous**: Fully async/await implementation for high performance.

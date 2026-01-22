@@ -1,4 +1,4 @@
-"""
+﻿"""
 Skills registry for managing agent skills.
 """
 

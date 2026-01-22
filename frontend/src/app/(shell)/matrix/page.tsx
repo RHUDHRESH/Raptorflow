@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
@@ -24,10 +24,10 @@ import { BlueprintChart } from "@/components/ui/BlueprintChart";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { BlueprintTabs } from "@/components/ui/BlueprintTabs";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   PAPER TERMINAL — Matrix (Analytics)
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   PAPER TERMINAL ΓÇö Matrix (Analytics)
    High-density performance reporting
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 const TABS = [
     { id: "overview", label: "Overview", code: "VIEW-01" },
@@ -78,10 +78,10 @@ function MatrixPageContent() {
                     </div>
                     <div className="flex items-center gap-3">
                         <SecondaryButton>
-                            <span className="text-base">📅</span> Last 30 Days <span className="text-base">↓</span>
+                            <span className="text-base">≡ƒôà</span> Last 30 Days <span className="text-base">Γåô</span>
                         </SecondaryButton>
                         <BlueprintButton label="EXP">
-                            <span className="text-base">📥</span> Export Report
+                            <span className="text-base">≡ƒôÑ</span> Export Report
                         </BlueprintButton>
                     </div>
                 </div>
@@ -179,7 +179,7 @@ function MatrixPageContent() {
                                 <div key={i} className="flex items-center justify-between px-5 py-3 hover:bg-[var(--canvas)] transition-colors">
                                     <div className="flex items-center gap-3">
                                         <div className="w-6 h-6 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center">
-                                            <span className="text-[var(--muted)] text-lg">👥</span>
+                                            <span className="text-[var(--muted)] text-lg">≡ƒæÑ</span>
                                         </div>
                                         <span className="text-sm text-[var(--ink)]">{c.user}</span>
                                     </div>

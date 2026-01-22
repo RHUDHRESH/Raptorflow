@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
@@ -7,15 +7,15 @@ import PhonePePaymentInitiation from "@/components/payments/PhonePePaymentInitia
 import PhonePePaymentStatusTracker from "@/components/payments/PhonePePaymentStatusTracker";
 import PhonePePaymentDashboard from "@/components/payments/PhonePePaymentDashboard";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   PHONEPE PAYMENT TEST PAGE — Complete 2026 Integration Testing
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   PHONEPE PAYMENT TEST PAGE ΓÇö Complete 2026 Integration Testing
    Features:
    - End-to-end payment flow testing
    - Component showcase
    - Integration validation
    - Technical blueprint aesthetic
    - Latest 2026 PhonePe authentication
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 export default function PaymentTestPage() {
     return (
@@ -27,7 +27,7 @@ export default function PaymentTestPage() {
                         PHONEPE PAYMENT GATEWAY 2026
                     </h1>
                     <p className="text-sm text-[var(--ink)]/60 font-mono">
-                        Complete Integration Test Suite • Raptorflow Payment System • Current Year 2026
+                        Complete Integration Test Suite ΓÇó Raptorflow Payment System ΓÇó Current Year 2026
                     </p>
                 </div>
 
@@ -190,8 +190,8 @@ export default function PaymentTestPage() {
                 {/* Footer */}
                 <div className="text-center py-8 border-t border-[var(--ink)]/20">
                     <div className="text-xs font-technical text-[var(--ink)]/60">
-                        PHONEPE GATEWAY INTEGRATION 2026 • RAPTORFLOW PAYMENT SYSTEM •
-                        SECURE • ENCRYPTED • PRODUCTION READY • CLIENT ID + CLIENT SECRET AUTH
+                        PHONEPE GATEWAY INTEGRATION 2026 ΓÇó RAPTORFLOW PAYMENT SYSTEM ΓÇó
+                        SECURE ΓÇó ENCRYPTED ΓÇó PRODUCTION READY ΓÇó CLIENT ID + CLIENT SECRET AUTH
                     </div>
                 </div>
             </div>

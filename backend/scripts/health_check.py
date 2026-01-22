@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Health check script for Raptorflow backend.
 Runs comprehensive health checks and returns status for CI/CD.
@@ -372,10 +372,10 @@ class HealthCheckScript:
         print("DETAILED CHECKS:")
         for check_name, result in report["checks"].items():
             status_icon = {
-                "healthy": "✅",
-                "degraded": "⚠️",
-                "unhealthy": "❌",
-            }.get(result["status"], "❓")
+                "healthy": "Γ£à",
+                "degraded": "ΓÜá∩╕Å",
+                "unhealthy": "Γ¥î",
+            }.get(result["status"], "Γ¥ô")
 
             print(f"  {status_icon} {check_name.upper()}: {result['status']}")
 
@@ -392,7 +392,7 @@ class HealthCheckScript:
         if summary["critical_issues"]:
             print("CRITICAL ISSUES:")
             for issue in summary["critical_issues"]:
-                print(f"  ❌ {issue['check']}: {issue['error']}")
+                print(f"  Γ¥î {issue['check']}: {issue['error']}")
             print()
 
         print("=" * 60)

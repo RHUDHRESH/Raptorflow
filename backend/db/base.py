@@ -1,4 +1,4 @@
-"""
+﻿"""
 Base repository class with workspace filtering
 All repositories inherit from this to ensure workspace isolation
 """

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import gsap from "gsap";
@@ -8,14 +8,14 @@ import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButto
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { cn } from "@/lib/utils";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   PAPER TERMINAL — Step 18: Soundbites Library (Copy Refinement)
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   PAPER TERMINAL ΓÇö Step 18: Soundbites Library (Copy Refinement)
    
    PURPOSE: "No Scroll" Copy Editor.
    - Core Fields: Problem, Agitation, Mechanism, Social Proof, Expertise, Transformation, CTA.
    - Logic: "Approve" or "Improve".
    - Shows previously collected data as a starting point.
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface Soundbite {
     id: string;
@@ -26,7 +26,7 @@ interface Soundbite {
 
 const DEFAULT_SOUNDBITES: Soundbite[] = [
     { id: "problem", label: "Problem Statement", content: "Founders are wasting 20h/week on marketing that doesn't convert.", status: "draft" },
-    { id: "agitation", label: "Agitation", content: "That's time stolen from product, hiring, and deep work—essentially bleeding runway.", status: "draft" },
+    { id: "agitation", label: "Agitation", content: "That's time stolen from product, hiring, and deep workΓÇöessentially bleeding runway.", status: "draft" },
     { id: "mechanism", label: "Unique Mechanism", content: "A 5-Step Narrative Engine that turns raw context into publish-ready assets automatically.", status: "draft" },
     { id: "proof", label: "Social Proof", content: "Trusted by 50+ Series A founders who reclaimed their calendars.", status: "draft" },
     { id: "transformation", label: "Transformation", content: "From 'Guessing & Stressing' to 'Executing with Surgical Precision'.", status: "draft" },

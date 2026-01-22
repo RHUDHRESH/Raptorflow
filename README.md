@@ -1,4 +1,4 @@
-# 🚀 RaptorFlow - Marketing Operating System
+﻿# ≡ƒÜÇ RaptorFlow - Marketing Operating System
 
 > **The complete marketing operating system for founders and marketing teams**
 
@@ -7,23 +7,23 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC)](https://tailwindcss.com/)
 
-## 🎯 Overview
+## ≡ƒÄ» Overview
 
 RaptorFlow is a comprehensive marketing operating system designed specifically for founders and marketing teams. It provides everything you need to manage your entire marketing workflow - from strategic foundation to AI-powered content generation, campaign management, and advanced analytics.
 
-### ✨ Key Features
+### Γ£¿ Key Features
 
-- 🏗️ **Marketing Foundation** - Build your strategic marketing pillars
-- 👥 **Customer Cohorts** - Manage and analyze customer segments
-- ⚡ **Marketing Moves** - Track weekly marketing execution
-- 📢 **Campaign Management** - Run multi-channel marketing campaigns
-- 🤖 **AI Content Generation** - Create marketing content with AI
-- 📊 **Advanced Analytics** - Get insights and predictive analytics
-- 🔔 **Real-time Notifications** - Stay updated with live alerts
-- ⚙️ **Comprehensive Settings** - Customize your experience
-- 📚 **Help Center** - Get support and learn best practices
+- ≡ƒÅù∩╕Å **Marketing Foundation** - Build your strategic marketing pillars
+- ≡ƒæÑ **Customer Cohorts** - Manage and analyze customer segments
+- ΓÜí **Marketing Moves** - Track weekly marketing execution
+- ≡ƒôó **Campaign Management** - Run multi-channel marketing campaigns
+- ≡ƒñû **AI Content Generation** - Create marketing content with AI
+- ≡ƒôè **Advanced Analytics** - Get insights and predictive analytics
+- ≡ƒöö **Real-time Notifications** - Stay updated with live alerts
+- ΓÜÖ∩╕Å **Comprehensive Settings** - Customize your experience
+- ≡ƒôÜ **Help Center** - Get support and learn best practices
 
-## 🚀 Quick Start
+## ≡ƒÜÇ Quick Start
 
 ### Prerequisites
 - Node.js 18+
@@ -57,7 +57,7 @@ npm run dev
 5. **Open your browser**
 Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 🏗️ Architecture
+## ≡ƒÅù∩╕Å Architecture
 
 ### Frontend Stack
 - **Next.js 16** - React framework with App Router
@@ -73,16 +73,16 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 - **Real-time updates** - WebSocket connections
 - **Error handling** - Graceful degradation
 
-## 📱 Features Deep Dive
+## ≡ƒô▒ Features Deep Dive
 
-### 🏗️ Marketing Foundation
+### ≡ƒÅù∩╕Å Marketing Foundation
 Build your marketing strategy with four key pillars:
 - **Positioning** - Define your market position
 - **ICP** - Identify your ideal customer profile
 - **Messaging** - Craft compelling messages
 - **Channel Strategy** - Choose the right channels
 
-### 🧠 Cognitive Engine (Advanced Business Context)
+### ≡ƒºá Cognitive Engine (Advanced Business Context)
 The core of RaptorFlow's intelligence is a stateful LangGraph-based analysis engine:
 - **Stateful Workflows** - Multi-node graph orchestration for deep business analysis.
 - **Gemini 1.5 Pro** - Powered by Google's latest long-context LLM via Vertex AI.
@@ -91,67 +91,67 @@ The core of RaptorFlow's intelligence is a stateful LangGraph-based analysis eng
 - **Enhanced ICPs** - Automatic enhancement of Ideal Customer Profiles with psychographic insights.
 - **Messaging Strategy** - AI-generated core messaging and objection handling frameworks.
 
-### 👥 Customer Cohorts
+### ≡ƒæÑ Customer Cohorts
 Manage customer segments with detailed analytics:
 - **Segment definitions** - Detailed customer profiles
 - **Pain points** - Customer challenges and needs
 - **Channel preferences** - Where to reach each segment
 - **Engagement metrics** - Track interaction rates
 
-### ⚡ Marketing Moves
+### ΓÜí Marketing Moves
 Execute weekly marketing activities:
 - **Task management** - Track individual marketing tasks
 - **Progress tracking** - Monitor completion rates
 - **Time estimation** - Plan your workload
 - **Status management** - Update task states in real-time
 
-### 📢 Campaign Management
+### ≡ƒôó Campaign Management
 Run successful multi-channel campaigns:
 - **Campaign planning** - Set goals and budgets
 - **Multi-channel execution** - LinkedIn, Email, Social Media
 - **Performance tracking** - Monitor CTR, CPL, conversions
 - **Budget management** - Track spend and ROI
 
-### 🤖 AI Content Generation (Muse)
+### ≡ƒñû AI Content Generation (Muse)
 Create marketing content with AI:
 - **Content templates** - LinkedIn posts, emails, blog posts
 - **Custom prompts** - Generate specific content types
 - **Engagement tracking** - Monitor content performance
 - **Content library** - Manage generated content
 
-### 📊 Advanced Analytics
+### ≡ƒôè Advanced Analytics
 Get deep insights into your marketing:
 - **Performance metrics** - Revenue, leads, conversions
 - **Predictive analytics** - Forecast future performance
 - **AI insights** - Get actionable recommendations
 - **Funnel analysis** - Optimize conversion rates
 
-### 🔔 Real-time Notifications
+### ≡ƒöö Real-time Notifications
 Stay updated with live notifications:
 - **Campaign updates** - Get notified about campaign changes
 - **Task completions** - Track move completions
 - **System alerts** - Monitor system health
 - **Custom notifications** - Set up your own alerts
 
-## 🛠️ Development
+## ≡ƒ¢á∩╕Å Development
 
 ### Project Structure
 ```
 raptorflow/
-├── frontend/                 # Next.js frontend application
-│   ├── src/
-│   │   ├── app/             # App Router pages
-│   │   ├── components/      # Reusable components
-│   │   ├── lib/            # Utilities and API clients
-│   │   └── styles/          # Global styles
-│   ├── public/              # Static assets
-│   └── package.json
-├── backend/                  # FastAPI backend (optional)
-│   ├── api/                 # API endpoints
-│   ├── agents/              # AI agents
-│   ├── skills/              # Marketing skills
-│   └── tools/               # Integration tools
-└── docs/                    # Documentation
+Γö£ΓöÇΓöÇ frontend/                 # Next.js frontend application
+Γöé   Γö£ΓöÇΓöÇ src/
+Γöé   Γöé   Γö£ΓöÇΓöÇ app/             # App Router pages
+Γöé   Γöé   Γö£ΓöÇΓöÇ components/      # Reusable components
+Γöé   Γöé   Γö£ΓöÇΓöÇ lib/            # Utilities and API clients
+Γöé   Γöé   ΓööΓöÇΓöÇ styles/          # Global styles
+Γöé   Γö£ΓöÇΓöÇ public/              # Static assets
+Γöé   ΓööΓöÇΓöÇ package.json
+Γö£ΓöÇΓöÇ backend/                  # FastAPI backend (optional)
+Γöé   Γö£ΓöÇΓöÇ api/                 # API endpoints
+Γöé   Γö£ΓöÇΓöÇ agents/              # AI agents
+Γöé   Γö£ΓöÇΓöÇ skills/              # Marketing skills
+Γöé   ΓööΓöÇΓöÇ tools/               # Integration tools
+ΓööΓöÇΓöÇ docs/                    # Documentation
 ```
 
 ### Available Scripts
@@ -193,7 +193,7 @@ NEXT_PUBLIC_GA_ID=your-google-analytics-id
 NEXT_PUBLIC_SENTRY_DSN=your-sentry-dsn
 ```
 
-## 🚀 Deployment
+## ≡ƒÜÇ Deployment
 
 ### Vercel (Recommended)
 ```bash
@@ -224,7 +224,7 @@ npm run export
 
 For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./frontend/DEPLOYMENT_GUIDE.md).
 
-## 📊 Performance
+## ≡ƒôè Performance
 
 ### Core Metrics
 - **Page Load Time**: < 2 seconds
@@ -239,7 +239,7 @@ For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./frontend/DEPLO
 - Efficient bundle size management
 - CDN-ready static assets
 
-## 🔒 Security
+## ≡ƒöÆ Security
 
 ### Implemented Measures
 - HTTPS enforcement in production
@@ -256,7 +256,7 @@ For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./frontend/DEPLO
 - API key management
 - User data encryption
 
-## 🤝 Contributing
+## ≡ƒñ¥ Contributing
 
 We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
 
@@ -273,14 +273,14 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 - Write meaningful commit messages
 - Add documentation for new features
 
-## 📚 Documentation
+## ≡ƒôÜ Documentation
 
 - [API Documentation](./docs/api.md)
 - [Component Library](./docs/components.md)
 - [Deployment Guide](./frontend/DEPLOYMENT_GUIDE.md)
 - [Troubleshooting](./docs/troubleshooting.md)
 
-## 🆘 Support
+## ≡ƒåÿ Support
 
 ### Getting Help
 - **Help Center**: Built-in documentation and tutorials
@@ -293,11 +293,11 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 - **Feature Requests**: Submit via GitHub Discussions
 - **Security Issues**: Email security@raptorflow.com
 
-## 📄 License
+## ≡ƒôä License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## ≡ƒÖÅ Acknowledgments
 
 - **Next.js Team** - For the amazing React framework
 - **Tailwind CSS** - For the utility-first CSS framework
@@ -305,7 +305,7 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 - **Shadcn/ui** - For the beautiful component library
 - **Our Contributors** - For making this project possible
 
-## 🎯 Roadmap
+## ≡ƒÄ» Roadmap
 
 ### Upcoming Features
 - [ ] Advanced AI content generation
@@ -322,7 +322,7 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 - **v1.5.0** - Added AI content generation
 - **v1.0.0** - Initial release with basic features
 
-## 📞 Contact
+## ≡ƒô₧ Contact
 
 - **Website**: [https://raptorflow.com](https://raptorflow.com)
 - **Email**: hello@raptorflow.com
@@ -332,6 +332,6 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 ---
 
 <div align="center">
-  <p>Made with ❤️ by the RaptorFlow Team</p>
+  <p>Made with Γ¥ñ∩╕Å by the RaptorFlow Team</p>
   <p>Empowering founders to build successful marketing operations</p>
 </div>

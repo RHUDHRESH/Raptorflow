@@ -1,4 +1,4 @@
-"""
+﻿"""
 Event type definitions for the Raptorflow event system.
 """
 

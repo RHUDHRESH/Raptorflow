@@ -1,4 +1,4 @@
-"""
+﻿"""
 Enhanced health check endpoints with advanced monitoring and predictive analytics.
 """
 

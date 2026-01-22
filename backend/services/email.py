@@ -1,4 +1,4 @@
-"""
+﻿"""
 Resend Email Service
 Handles transactional emails
 """

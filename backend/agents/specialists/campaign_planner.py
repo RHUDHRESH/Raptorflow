@@ -1,4 +1,4 @@
-"""
+﻿"""
 CampaignPlanner specialist agent for Raptorflow marketing automation.
 Handles comprehensive campaign planning, execution, and optimization.
 """
@@ -958,7 +958,7 @@ Always focus on creating practical, executable campaigns that align with busines
 
     def _format_campaign_response(self, campaign_plan: CampaignPlan) -> str:
         """Format campaign response for user."""
-        response = f"🚀 **Campaign Plan Created**\n\n"
+        response = f"≡ƒÜÇ **Campaign Plan Created**\n\n"
         response += f"**Campaign Name:** {campaign_plan.name}\n"
         response += f"**Type:** {campaign_plan.campaign_type.value.title()}\n"
         response += f"**Duration:** {campaign_plan.timeline.duration_days} days\n"
@@ -976,11 +976,11 @@ Always focus on creating practical, executable campaigns that align with busines
         response += f"**Active Channels:**\n"
         for channel in campaign_plan.channels:
             if channel.enabled:
-                response += f"• {channel.channel_name.title()}: ${channel.budget_allocation:,.2f}\n"
+                response += f"ΓÇó {channel.channel_name.title()}: ${channel.budget_allocation:,.2f}\n"
 
         response += f"\n**Key Milestones:**\n"
         for milestone in campaign_plan.timeline.milestones:
-            response += f"• {milestone['name']}: {milestone['date'][:10]}\n"
+            response += f"ΓÇó {milestone['name']}: {milestone['date'][:10]}\n"
 
         response += f"\n**Risk Assessment:** {campaign_plan.risk_assessment['risk_level'].title()} Risk\n"
         response += f"**Top Risks:** {', '.join([risk['risk'].replace('_', ' ').title() for risk in campaign_plan.risk_assessment['top_risks'][:2]])}\n"

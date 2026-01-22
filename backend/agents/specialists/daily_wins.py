@@ -1,4 +1,4 @@
-"""
+﻿"""
 DailyWinsGenerator specialist agent for Raptorflow marketing automation.
 Handles daily content creation, engagement, and momentum building.
 """
@@ -880,7 +880,7 @@ Create engaging content that drives interaction and builds brand momentum. The c
 
     def _format_win_response(self, daily_win: DailyWin) -> str:
         """Format daily win response for user."""
-        response = f"🏆 **Daily Win Generated**\n\n"
+        response = f"≡ƒÅå **Daily Win Generated**\n\n"
         response += f"**Title:** {daily_win.title}\n"
         response += f"**Content Type:** {daily_win.content_type.title()}\n"
         response += f"**Platform:** {daily_win.platform.title()}\n"
@@ -900,7 +900,7 @@ Create engaging content that drives interaction and builds brand momentum. The c
         if daily_win.follow_up_content:
             response += f"**Follow-up Ideas:**\n"
             for idea in daily_win.follow_up_content:
-                response += f"• {idea}\n"
+                response += f"ΓÇó {idea}\n"
             response += "\n"
 
         if daily_win.metrics_to_track:

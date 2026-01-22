@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+﻿import { Metadata } from 'next';
 import LandingPage from "@/components/landing/LandingPage";
 import LandingPageV2 from "@/components/landing/v2/LandingPageV2";
 

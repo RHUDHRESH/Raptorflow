@@ -1,4 +1,4 @@
-"""
+﻿"""
 Enhanced AgentStateManager for Raptorflow agent system.
 Manages agent state persistence, recovery, and synchronization with improved error handling.
 """

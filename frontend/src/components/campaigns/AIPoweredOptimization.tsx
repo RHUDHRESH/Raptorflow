@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from 'react';
 import {
@@ -691,7 +691,7 @@ export function AIPoweredOptimization() {
               <div className="text-xs text-[var(--ink-muted)]">Confidence</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-[var(--warning)]">±12%</div>
+              <div className="text-2xl font-bold text-[var(--warning)]">┬▒12%</div>
               <div className="text-xs text-[var(--ink-muted)]">Margin of Error</div>
             </div>
           </div>
@@ -788,7 +788,7 @@ export function AIPoweredOptimization() {
               <div className="text-sm text-[var(--ink-muted)]">
                 Running since {formatDistanceToNow(test.startDate, { addSuffix: true })}
                 {test.endDate && (
-                  <span> • Completed {formatDistanceToNow(test.endDate, { addSuffix: true })}</span>
+                  <span> ΓÇó Completed {formatDistanceToNow(test.endDate, { addSuffix: true })}</span>
                 )}
               </div>
 
@@ -908,7 +908,7 @@ export function AIPoweredOptimization() {
                       </div>
                       <div>
                         <div className="text-sm font-medium text-[var(--ink)]">
-                          {plan.from} → {plan.to}
+                          {plan.from} ΓåÆ {plan.to}
                         </div>
                         <div className="text-xs text-[var(--ink-muted)]">
                           ${plan.amount.toLocaleString()}

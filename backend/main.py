@@ -1,4 +1,4 @@
-"""
+﻿"""
 RaptorFlow Backend Service
 Runs on Google Cloud Run with GCP integrations
 """
@@ -109,81 +109,81 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
-    logger.info("🚀 Starting RaptorFlow Backend...")
+    logger.info("≡ƒÜÇ Starting RaptorFlow Backend...")
 
     # Startup sequence
     startup_report = await initialize_app()
     if not startup_report.success:
-        logger.error("❌ Startup failed")
+        logger.error("Γ¥î Startup failed")
         raise RuntimeError("Application startup failed")
 
     # Activate Redis services
     redis_activated = await activate_redis_services()
     if not redis_activated:
-        logger.warning("⚠️ Redis services activation failed, continuing without Redis")
+        logger.warning("ΓÜá∩╕Å Redis services activation failed, continuing without Redis")
 
     # Initialize database systems
-    logger.info("🗄️ Initializing database systems...")
+    logger.info("≡ƒùä∩╕Å Initializing database systems...")
     try:
         db_startup = await startup_database()
         if db_startup.get("status") == "success":
-            logger.info("✅ Database systems initialized")
+            logger.info("Γ£à Database systems initialized")
         else:
-            logger.warning(f"⚠️ Database initialization warnings: {db_startup.get('errors', [])}")
+            logger.warning(f"ΓÜá∩╕Å Database initialization warnings: {db_startup.get('errors', [])}")
     except Exception as e:
-        logger.error(f"❌ Database initialization failed: {e}")
+        logger.error(f"Γ¥î Database initialization failed: {e}")
         # Continue without database for now
 
     # Start payment status monitoring
-    logger.info("🔍 Starting payment status monitoring...")
+    logger.info("≡ƒöì Starting payment status monitoring...")
     try:
         status_service = PaymentStatusService()
         asyncio.create_task(status_service.monitor_payments())
-        logger.info("✅ Payment status monitoring started")
+        logger.info("Γ£à Payment status monitoring started")
     except Exception as e:
-        logger.warning(f"⚠️ Failed to start payment monitoring: {e}")
+        logger.warning(f"ΓÜá∩╕Å Failed to start payment monitoring: {e}")
 
     # Start database automation
-    logger.info("🤖 Starting database automation...")
+    logger.info("≡ƒñû Starting database automation...")
     try:
         await start_database_automation()
         await start_database_scaling()
-        logger.info("✅ Database automation started")
+        logger.info("Γ£à Database automation started")
     except Exception as e:
-        logger.warning(f"⚠️ Database automation failed: {e}")
+        logger.warning(f"ΓÜá∩╕Å Database automation failed: {e}")
 
-    logger.info("✅ Startup completed successfully")
+    logger.info("Γ£à Startup completed successfully")
 
     yield
 
     # Shutdown sequence
-    logger.info("🛑 Shutting down RaptorFlow Backend...")
+    logger.info("≡ƒ¢æ Shutting down RaptorFlow Backend...")
     
     # Stop database automation
-    logger.info("🤖 Stopping database automation...")
+    logger.info("≡ƒñû Stopping database automation...")
     try:
         await stop_database_automation()
         await stop_database_scaling()
-        logger.info("✅ Database automation stopped")
+        logger.info("Γ£à Database automation stopped")
     except Exception as e:
-        logger.warning(f"⚠️ Database automation shutdown failed: {e}")
+        logger.warning(f"ΓÜá∩╕Å Database automation shutdown failed: {e}")
     
     # Shutdown database systems
-    logger.info("🗄️ Shutting down database systems...")
+    logger.info("≡ƒùä∩╕Å Shutting down database systems...")
     try:
         await shutdown_database()
-        logger.info("✅ Database systems shutdown")
+        logger.info("Γ£à Database systems shutdown")
     except Exception as e:
-        logger.warning(f"⚠️ Database shutdown failed: {e}")
+        logger.warning(f"ΓÜá∩╕Å Database shutdown failed: {e}")
     
     # Deactivate Redis services
     await deactivate_redis_services()
     
     shutdown_report = await cleanup_app()
     if shutdown_report.success:
-        logger.info("✅ Shutdown completed successfully")
+        logger.info("Γ£à Shutdown completed successfully")
     else:
-        logger.warning("⚠️ Shutdown completed with warnings")
+        logger.warning("ΓÜá∩╕Å Shutdown completed with warnings")
 
 
 # Initialize FastAPI with lifespan
@@ -194,27 +194,27 @@ app = FastAPI(
     
     A comprehensive backend system for marketing operations automation, featuring:
     
-    ### 🚀 Core Features
+    ### ≡ƒÜÇ Core Features
     - **AI-Powered Agents**: Intelligent marketing agents for content creation, research, and campaign management
     - **ICP Generation**: Automated Ideal Customer Profile creation with AI-driven insights
     - **Campaign Management**: End-to-end campaign lifecycle management with analytics
     - **Memory Systems**: Advanced episodic and semantic memory for context-aware interactions
     - **Real-time Analytics**: Comprehensive tracking and reporting capabilities
     
-    ### 🔧 Infrastructure
+    ### ≡ƒöº Infrastructure
     - **Background Processing**: Celery-based task queues for scalable operations
     - **Circuit Breakers**: Resilient external API integration with automatic recovery
     - **Database Migrations**: Automated schema management and versioning
     - **Rate Limiting**: Redis-based request throttling and protection
     - **Error Monitoring**: Sentry integration for comprehensive error tracking
     
-    ### 📊 Monitoring & Analytics
+    ### ≡ƒôè Monitoring & Analytics
     - **Health Checks**: Deep system health monitoring for all components
     - **Performance Metrics**: Prometheus integration for operational metrics
     - **User Analytics**: PostHog integration for behavior tracking
     - **Security Auditing**: Comprehensive authentication and authorization logging
     
-    ### 🛡️ Security Features
+    ### ≡ƒ¢í∩╕Å Security Features
     - **JWT Authentication**: Supabase-based user authentication with refresh tokens
     - **Row-Level Security**: Database-level access control via RLS policies
     - **CORS Protection**: Strict domain whitelisting for API access

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
 import { RefreshCw, AlertTriangle } from "lucide-react";
@@ -23,7 +23,7 @@ export default function ErrorPage() {
       <div className="max-w-md w-full text-center space-y-8">
         {/* Error Icon */}
         <div className="mx-auto w-16 h-16 bg-[var(--error)]/10 rounded-full flex items-center justify-center">
-          <span className="text-[var(--error)] text-2xl">⚠️</span>
+          <span className="text-[var(--error)] text-2xl">ΓÜá∩╕Å</span>
         </div>
 
         {/* Error Message */}
@@ -41,7 +41,7 @@ export default function ErrorPage() {
             onClick={handleRetry}
             className="w-full"
           >
-            <span className="text-xl">🔄</span>
+            <span className="text-xl">≡ƒöä</span>
             Try Again
           </BlueprintButton>
 

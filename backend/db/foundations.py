@@ -1,4 +1,4 @@
-"""
+﻿"""
 Foundation repository for database operations
 Handles CRUD operations for foundation data
 """

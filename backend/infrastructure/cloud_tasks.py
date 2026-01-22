@@ -1,4 +1,4 @@
-"""
+﻿"""
 Google Cloud Tasks client for Raptorflow.
 
 Provides task scheduling, delayed execution, and

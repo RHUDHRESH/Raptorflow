@@ -1,4 +1,4 @@
-"""
+﻿"""
 Production-ready database health monitoring for RaptorFlow
 Checks database connectivity, RLS policies, and performance
 """

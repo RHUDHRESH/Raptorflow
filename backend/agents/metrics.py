@@ -1,4 +1,4 @@
-"""
+﻿"""
 Metrics collection and analysis for agent performance.
 """
 

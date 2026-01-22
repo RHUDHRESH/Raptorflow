@@ -1,4 +1,4 @@
-"""
+﻿"""
 Integration package for RaptorFlow backend.
 Provides cross-module integration and coordination.
 """

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from 'react';
 import {
@@ -524,11 +524,11 @@ export function PlayExecutionUI({ campaignId }: PlayExecutionUIProps) {
                                         step.status === PlayExecutionStatus.PENDING ? "bg-[var(--blueprint)] text-white" :
                                           "bg-[var(--ink-ghost)] text-[var(--ink)]"
                                 )}>
-                                  {step.status === PlayExecutionStatus.COMPLETED ? '✓' :
-                                    step.status === PlayExecutionStatus.RUNNING ? '▶' :
-                                      step.status === PlayExecutionStatus.FAILED ? '✕' :
-                                        step.status === PlayExecutionStatus.PENDING ? '⏸' :
-                                          '○'}
+                                  {step.status === PlayExecutionStatus.COMPLETED ? 'Γ£ô' :
+                                    step.status === PlayExecutionStatus.RUNNING ? 'Γû╢' :
+                                      step.status === PlayExecutionStatus.FAILED ? 'Γ£ò' :
+                                        step.status === PlayExecutionStatus.PENDING ? 'ΓÅ╕' :
+                                          'Γùï'}
                                 </div>
                               </div>
 

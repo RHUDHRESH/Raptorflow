@@ -1,4 +1,4 @@
-"""
+﻿"""
 Output processing pipeline.
 Runs quality checks, stores in database, updates memory, and triggers events.
 """

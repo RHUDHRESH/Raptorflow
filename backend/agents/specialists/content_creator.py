@@ -1,4 +1,4 @@
-"""
+﻿"""
 ContentCreator specialist agent for Raptorflow marketing automation.
 Handles content generation, optimization, and distribution.
 """
@@ -728,7 +728,7 @@ Generate the content in {request.format} format.
             score += 0.1
 
         # Emoji factor (for social media)
-        emoji_count = content.count("😊") + content.count("🎉") + content.count("🚀")
+        emoji_count = content.count("≡ƒÿè") + content.count("≡ƒÄë") + content.count("≡ƒÜÇ")
         if emoji_count > 0 and request.platform in ["twitter", "instagram", "linkedin"]:
             score += min(0.2, emoji_count * 0.05)
 
@@ -824,7 +824,7 @@ Generate the content in {request.format} format.
 
     def _format_content_response(self, result: ContentResult) -> str:
         """Format content response for user."""
-        response = f"✅ **{result.content_type.title()} Created**\n\n"
+        response = f"Γ£à **{result.content_type.title()} Created**\n\n"
         response += f"**Word Count:** {result.word_count}\n"
         response += f"**Estimated Read Time:** {result.estimated_read_time} minutes\n"
         response += f"**SEO Score:** {result.seo_score:.2f}/1.0\n"
@@ -837,7 +837,7 @@ Generate the content in {request.format} format.
         if result.suggestions:
             response += "**Suggestions:**\n"
             for suggestion in result.suggestions:
-                response += f"• {suggestion}\n"
+                response += f"ΓÇó {suggestion}\n"
 
         return response
 

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Mock cognitive engine for Raptorflow.
 """
 

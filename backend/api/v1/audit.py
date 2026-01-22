@@ -1,4 +1,4 @@
-"""
+﻿"""
 Audit trail API endpoints
 Provides access to audit logs and compliance reporting
 """

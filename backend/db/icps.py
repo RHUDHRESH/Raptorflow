@@ -1,4 +1,4 @@
-"""
+﻿"""
 ICP (Ideal Customer Profile) repository for database operations
 Handles CRUD operations for ICP data
 """

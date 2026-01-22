@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import gsap from "gsap";
@@ -13,15 +13,15 @@ import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButto
 import { StepLoadingState, StepEmptyState } from "../StepStates";
 import { cn } from "@/lib/utils";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   PAPER TERMINAL — Step 6: Market Intelligence
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   PAPER TERMINAL ΓÇö Step 6: Market Intelligence
    
    PURPOSE: Visualize the "Market Scraper" and gather real customer insights.
    - "Quiet Luxury" Refactor: "Intelligence Dossier" style.
    - Terminal-like "Scanning" visualization.
    - Focus on PAIN (problems) and DESIRE (outcomes).
    - Auto-detected competitors only (NO manual entry).
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface CustomerInsight {
     id: string;
@@ -79,7 +79,7 @@ function ScraperTerminal({ onComplete }: { onComplete: () => void }) {
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[var(--success)] to-transparent opacity-50 animate-pulse" />
             <div className="flex items-center gap-2 mb-4 border-b border-white/10 pb-2">
                 <Terminal size={12} className="text-[var(--success)]" />
-                <span className="text-white/60">RAPTOR_INTEL_CLI — v2.4.0</span>
+                <span className="text-white/60">RAPTOR_INTEL_CLI ΓÇö v2.4.0</span>
             </div>
             <div className="space-y-1.5 h-[200px] text-[var(--success)]/80">
                 {lines.map((line, i) => (
@@ -263,9 +263,9 @@ export default function Step7ResearchBrief() {
                     </p>
                     <div className="flex gap-2 justify-center mt-4 text-[10px] font-technical uppercase text-[var(--muted)]">
                         <span>Targeting: Reddit</span>
-                        <span>•</span>
+                        <span>ΓÇó</span>
                         <span>G2 Crowd</span>
-                        <span>•</span>
+                        <span>ΓÇó</span>
                         <span>Twitter/X</span>
                     </div>
                 </div>

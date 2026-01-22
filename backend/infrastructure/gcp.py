@@ -1,4 +1,4 @@
-"""
+﻿"""
 Google Cloud Platform (GCP) client singleton.
 
 Provides centralized access to GCP services with authentication,

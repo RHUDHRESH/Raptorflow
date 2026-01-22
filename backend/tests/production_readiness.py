@@ -1,4 +1,4 @@
-"""
+﻿"""
 Production readiness test suite for RaptorFlow Backend
 Comprehensive testing to ensure production readiness
 """
@@ -778,19 +778,19 @@ async def main():
             )
 
         if results["critical"] > 0:
-            print(f"\n⚠️  CRITICAL FAILURES:")
+            print(f"\nΓÜá∩╕Å  CRITICAL FAILURES:")
             for result in results["results"]:
                 if result["critical"]:
                     print(f"  - {result['name']}: {result['message']}")
 
         if results["failed"] > 0:
-            print(f"\n❌ FAILURES:")
+            print(f"\nΓ¥î FAILURES:")
             for result in results["results"]:
                 if result["status"] == "failed":
                     print(f"  - {result['name']}: {result['message']}")
 
         print(
-            f"\n✅ SUCCESS: {results['passed']}/{results['total_tests']} tests passed"
+            f"\nΓ£à SUCCESS: {results['passed']}/{results['total_tests']} tests passed"
         )
 
         # Exit with appropriate code

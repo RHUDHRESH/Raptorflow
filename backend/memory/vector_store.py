@@ -1,4 +1,4 @@
-"""
+﻿"""
 Vector memory store using Supabase and pgvector.
 
 This module provides the VectorMemory class for storing and retrieving

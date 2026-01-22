@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -19,15 +19,15 @@ declare global {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   PHONEPE PAYMENT INITIATION — Raptorflow Payment Gateway Component
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   PHONEPE PAYMENT INITIATION ΓÇö Raptorflow Payment Gateway Component
    Features:
    - Blueprint paper terminal aesthetic
    - Real-time payment status tracking
    - PhonePe SDK integration with proper error handling
    - Technical annotation and registration marks
    - UPI and Card payment methods
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface PaymentInitiationProps {
     amount: number;
@@ -332,7 +332,7 @@ export function PhonePePaymentInitiation({
                         <div className="flex items-center justify-between">
                             <span className="text-sm font-technical text-[var(--ink)]/60">AMOUNT</span>
                             <span className="text-2xl font-bold text-[var(--ink)]">
-                                ₹{amount.toLocaleString('en-IN')}
+                                Γé╣{amount.toLocaleString('en-IN')}
                             </span>
                         </div>
                         <div className="flex items-center justify-between mt-2">
@@ -457,7 +457,7 @@ export function PhonePePaymentInitiation({
                         className="w-full"
                         label="PAY-001"
                     >
-                        {isProcessing ? 'Processing...' : `Pay ₹${amount.toLocaleString('en-IN')} with PhonePe`}
+                        {isProcessing ? 'Processing...' : `Pay Γé╣${amount.toLocaleString('en-IN')} with PhonePe`}
                     </BlueprintButton>
                 </div>
             )}
@@ -525,7 +525,7 @@ export function PhonePePaymentInitiation({
                         </span>
                     </div>
                     <div className="text-xs font-technical text-[var(--blueprint)]">
-                        SECURE • ENCRYPTED • PCI-DSS
+                        SECURE ΓÇó ENCRYPTED ΓÇó PCI-DSS
                     </div>
                 </div>
             </div>

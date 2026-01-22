@@ -1,4 +1,4 @@
-"""
+﻿"""
 Muse Assets repository for database operations
 """
 

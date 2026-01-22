@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useEffect } from "react";
 import gsap from "gsap";
@@ -45,7 +45,7 @@ export default function StatusPage() {
       <BlueprintCard padding="lg" showCorners className="mb-8 border-[var(--success)]/20 bg-[var(--success)]/5" data-anim>
         <div className="align-center gap-4">
           <div className="p-3 bg-[var(--success)] rounded-full text-white shadow-lg shadow-[var(--success)]/20">
-            <span className="text-2xl">✅</span>
+            <span className="text-2xl">Γ£à</span>
           </div>
           <div>
             <h2 className="text-xl font-bold text-[var(--ink)]">All Systems Operational</h2>

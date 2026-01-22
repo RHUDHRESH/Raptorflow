@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Main Layout Component
  * Wraps the entire application with navigation and structure
  */

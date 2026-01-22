@@ -1,4 +1,4 @@
-"""
+﻿"""
 Database tests configuration and fixtures
 """
 

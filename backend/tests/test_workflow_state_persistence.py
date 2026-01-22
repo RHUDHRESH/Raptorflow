@@ -1,4 +1,4 @@
-"""
+﻿"""
 Test file to verify workflow state persists correctly.
 """
 
@@ -108,11 +108,11 @@ class TestWorkflowStatePersistence:
                 success = workflow.initialize(self.agent_registry)
                 if success:
                     self.workflows[workflow_name] = workflow
-                    logger.info(f"✅ {workflow_name} workflow initialized successfully")
+                    logger.info(f"Γ£à {workflow_name} workflow initialized successfully")
                 else:
-                    logger.error(f"❌ {workflow_name} workflow initialization failed")
+                    logger.error(f"Γ¥î {workflow_name} workflow initialization failed")
             except Exception as e:
-                logger.error(f"❌ {workflow_name} workflow initialization error: {e}")
+                logger.error(f"Γ¥î {workflow_name} workflow initialization error: {e}")
 
         logger.info(f"Initialized {len(self.workflows)} workflows")
 
@@ -145,7 +145,7 @@ class TestWorkflowStatePersistence:
                 }
 
                 logger.info(
-                    f"✅ {workflow_name} state saving {'successful' if state_saved and data_integrity else 'failed'}"
+                    f"Γ£à {workflow_name} state saving {'successful' if state_saved and data_integrity else 'failed'}"
                 )
 
             except Exception as e:
@@ -155,7 +155,7 @@ class TestWorkflowStatePersistence:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {workflow_name} state saving failed: {e}")
+                logger.error(f"Γ¥î {workflow_name} state saving failed: {e}")
 
     def _verify_state_integrity(self, workflow_state: WorkflowState) -> bool:
         """Verify state data integrity."""
@@ -240,7 +240,7 @@ class TestWorkflowStatePersistence:
                     }
 
                 logger.info(
-                    f"✅ {workflow_name} state loading {'successful' if fields_match else 'failed'}"
+                    f"Γ£à {workflow_name} state loading {'successful' if fields_match else 'failed'}"
                 )
 
             except Exception as e:
@@ -250,7 +250,7 @@ class TestWorkflowStatePersistence:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {workflow_name} state loading failed: {e}")
+                logger.error(f"Γ¥î {workflow_name} state loading failed: {e}")
 
     async def _test_state_recovery(self):
         """Test state recovery after interruption."""
@@ -283,7 +283,7 @@ class TestWorkflowStatePersistence:
                 }
 
                 logger.info(
-                    f"✅ {workflow_name} state recovery {'successful' if state_recovered and data_integrity else 'failed'}"
+                    f"Γ£à {workflow_name} state recovery {'successful' if state_recovered and data_integrity else 'failed'}"
                 )
 
             except Exception as e:
@@ -293,7 +293,7 @@ class TestWorkflowStatePersistence:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {workflow_name} state recovery failed: {e}")
+                logger.error(f"Γ¥î {workflow_name} state recovery failed: {e}")
 
     async def _test_state_consistency(self):
         """Test state consistency across workflow instances."""
@@ -338,7 +338,7 @@ class TestWorkflowStatePersistence:
             }
 
             logger.info(
-                f"✅ State consistency {'verified' if state_consistency else 'failed'}"
+                f"Γ£à State consistency {'verified' if state_consistency else 'failed'}"
             )
 
         except Exception as e:
@@ -348,7 +348,7 @@ class TestWorkflowStatePersistence:
                 "timestamp": datetime.now().isoformat(),
             }
 
-            logger.error(f"❌ State consistency test failed: {e}")
+            logger.error(f"Γ¥î State consistency test failed: {e}")
 
     def _compare_workflow_states(self, states: List[WorkflowState]) -> bool:
         """Compare workflow states for consistency."""
@@ -462,16 +462,16 @@ class TestWorkflowStatePersistence:
 
         logger.info("\nDetailed Results:")
         for test_name, result in self.test_results.items():
-            status_icon = "✅" if result["status"] == "PASS" else "❌"
+            status_icon = "Γ£à" if result["status"] == "PASS" else "Γ¥î"
             logger.info(f"{status_icon} {test_name}: {result['message']}")
 
         if failed_tests > 0:
             logger.info(
-                f"\n⚠️  {failed_tests} tests failed. Please review the errors above."
+                f"\nΓÜá∩╕Å  {failed_tests} tests failed. Please review the errors above."
             )
         else:
             logger.info(
-                "\n🎉 All tests passed! Workflow state persistence is working correctly."
+                "\n≡ƒÄë All tests passed! Workflow state persistence is working correctly."
             )
 
         logger.info("=" * 50)

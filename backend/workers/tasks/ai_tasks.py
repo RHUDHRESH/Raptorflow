@@ -1,4 +1,4 @@
-"""
+﻿"""
 AI-related background tasks for Celery
 Handles OpenAI API calls, agent processing, and other AI workloads
 """

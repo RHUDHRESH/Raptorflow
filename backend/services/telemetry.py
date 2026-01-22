@@ -1,4 +1,4 @@
-"""
+﻿"""
 Reasoning Telemetry Service: Persists AI reasoning traces for audit and API visibility.
 """
 

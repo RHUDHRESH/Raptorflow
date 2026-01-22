@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Production validation script for Raptorflow.
 
@@ -38,17 +38,17 @@ class ProductionValidator:
     def log_error(self, message: str):
         """Log an error."""
         self.errors.append(message)
-        logger.error(f"❌ {message}")
+        logger.error(f"Γ¥î {message}")
 
     def log_warning(self, message: str):
         """Log a warning."""
         self.warnings.append(message)
-        logger.warning(f"⚠️ {message}")
+        logger.warning(f"ΓÜá∩╕Å {message}")
 
     def log_success(self, message: str):
         """Log a success."""
         self.successes.append(message)
-        logger.info(f"✅ {message}")
+        logger.info(f"Γ£à {message}")
 
     def validate_environment_variables(self) -> bool:
         """Validate required environment variables."""
@@ -293,17 +293,17 @@ class ProductionValidator:
         print(f"Success Rate: {summary['success_rate']:.1f}%")
 
         if self.errors:
-            print(f"\n❌ ERRORS ({len(self.errors)}):")
+            print(f"\nΓ¥î ERRORS ({len(self.errors)}):")
             for error in self.errors:
                 print(f"  - {error}")
 
         if self.warnings:
-            print(f"\n⚠️ WARNINGS ({len(self.warnings)}):")
+            print(f"\nΓÜá∩╕Å WARNINGS ({len(self.warnings)}):")
             for warning in self.warnings:
                 print(f"  - {warning}")
 
         if self.successes:
-            print(f"\n✅ SUCCESSES ({len(self.successes)}):")
+            print(f"\nΓ£à SUCCESSES ({len(self.successes)}):")
             for success in self.successes:
                 print(f"  - {success}")
 
@@ -311,10 +311,10 @@ class ProductionValidator:
 
         # Exit code
         if summary["failed"] > 0:
-            print("🚨 PRODUCTION NOT READY - Fix errors before deploying")
+            print("≡ƒÜ¿ PRODUCTION NOT READY - Fix errors before deploying")
             sys.exit(1)
         else:
-            print("🎉 PRODUCTION READY - All checks passed")
+            print("≡ƒÄë PRODUCTION READY - All checks passed")
             sys.exit(0)
 
 

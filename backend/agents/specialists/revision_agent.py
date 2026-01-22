@@ -1,4 +1,4 @@
-"""
+﻿"""
 RevisionAgent specialist agent for Raptorflow marketing automation.
 Handles content revision, optimization, and iterative improvement.
 """
@@ -1056,7 +1056,7 @@ Always focus on making meaningful improvements that enhance content effectivenes
 
     def _format_revision_response(self, result: RevisionResult) -> str:
         """Format revision result response for user."""
-        response = f"✏️ **Content Revision Completed**\n\n"
+        response = f"Γ£Å∩╕Å **Content Revision Completed**\n\n"
         response += f"**Revision Type:** {result.metadata['revision_type'].title()}\n"
         response += f"**Content Type:** {result.metadata['content_type'].title()}\n"
         response += f"**Changes Made:** {result.revision_count}\n"
@@ -1065,27 +1065,27 @@ Always focus on making meaningful improvements that enhance content effectivenes
         )
 
         response += f"**Quality Scores:**\n"
-        response += f"• Original: {result.metrics.original_score:.1%}\n"
-        response += f"• Revised: {result.metrics.revised_score:.1%}\n\n"
+        response += f"ΓÇó Original: {result.metrics.original_score:.1%}\n"
+        response += f"ΓÇó Revised: {result.metrics.revised_score:.1%}\n\n"
 
         response += f"**Improvement Breakdown:**\n"
-        response += f"• Grammar: {result.metrics.grammar_improvement:+.1%}\n"
-        response += f"• Readability: {result.metrics.readability_improvement:+.1%}\n"
-        response += f"• SEO: {result.metrics.seo_improvement:+.1%}\n"
-        response += f"• Engagement: {result.metrics.engagement_improvement:+.1%}\n\n"
+        response += f"ΓÇó Grammar: {result.metrics.grammar_improvement:+.1%}\n"
+        response += f"ΓÇó Readability: {result.metrics.readability_improvement:+.1%}\n"
+        response += f"ΓÇó SEO: {result.metrics.seo_improvement:+.1%}\n"
+        response += f"ΓÇó Engagement: {result.metrics.engagement_improvement:+.1%}\n\n"
 
         if result.changes:
             response += f"**Key Changes:**\n"
             # Show top 5 changes
             top_changes = result.changes[:5]
             for change in top_changes:
-                response += f"• {change.reason}\n"
+                response += f"ΓÇó {change.reason}\n"
             response += "\n"
 
         if result.next_steps:
             response += f"**Next Steps:**\n"
             for step in result.next_steps:
-                response += f"• {step}\n"
+                response += f"ΓÇó {step}\n"
             response += "\n"
 
         response += f"**Revision Summary:**\n{result.revision_summary}\n\n"

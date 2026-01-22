@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import gsap from "gsap";
@@ -24,10 +24,10 @@ import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButto
 import { PageHeader } from "@/components/ui/PageHeader";
 import { toast } from "sonner";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   HELP CENTER — Documentation & Support
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   HELP CENTER ΓÇö Documentation & Support
    Clean blueprint style, no emojis, Lucide icons only
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 const QUICK_LINKS = [
   { title: "Getting Started", desc: "New to RaptorFlow? Start here.", icon: Book, href: "/welcome" },
@@ -41,7 +41,7 @@ const QUICK_LINKS = [
 const FAQS = [
   {
     q: "What is RaptorFlow?",
-    a: "RaptorFlow is a Marketing Operating System (MOS) designed for founders. It helps you define positioning, create tactical marketing moves, track campaigns, and measure results — all in one place."
+    a: "RaptorFlow is a Marketing Operating System (MOS) designed for founders. It helps you define positioning, create tactical marketing moves, track campaigns, and measure results ΓÇö all in one place."
   },
   {
     q: "How do Moves work?",

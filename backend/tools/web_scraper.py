@@ -1,4 +1,4 @@
-"""
+﻿"""
 Raptorflow Web Scraper Tool
 =============================
 

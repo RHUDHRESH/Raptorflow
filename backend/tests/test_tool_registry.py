@@ -1,4 +1,4 @@
-"""
+﻿"""
 Test file to verify tool registry manages tools correctly.
 """
 
@@ -87,7 +87,7 @@ class TestToolRegistry:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.info(f"✅ {tool_name} initialized and registered successfully")
+                logger.info(f"Γ£à {tool_name} initialized and registered successfully")
 
             except Exception as e:
                 self.test_results[f"{tool_name}_initialization"] = {
@@ -96,7 +96,7 @@ class TestToolRegistry:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {tool_name} initialization failed: {e}")
+                logger.error(f"Γ¥î {tool_name} initialization failed: {e}")
 
     async def test_tool_registration(self):
         """Test tool registration functionality."""
@@ -147,7 +147,7 @@ class TestToolRegistry:
             }
 
             logger.info(
-                f"✅ Tool registration {'successful' if registration_success else 'failed'}"
+                f"Γ£à Tool registration {'successful' if registration_success else 'failed'}"
             )
 
         except Exception as e:
@@ -157,7 +157,7 @@ class TestToolRegistry:
                 "timestamp": datetime.now().isoformat(),
             }
 
-            logger.error(f"❌ Tool registration test failed: {e}")
+            logger.error(f"Γ¥î Tool registration test failed: {e}")
 
     async def test_tool_retrieval(self):
         """Test tool retrieval functionality."""
@@ -208,7 +208,7 @@ class TestToolRegistry:
             }
 
             logger.info(
-                f"✅ Tool retrieval {'successful' if overall_success else 'failed'}"
+                f"Γ£à Tool retrieval {'successful' if overall_success else 'failed'}"
             )
 
         except Exception as e:
@@ -218,7 +218,7 @@ class TestToolRegistry:
                 "timestamp": datetime.now().isoformat(),
             }
 
-            logger.error(f"❌ Tool retrieval test failed: {e}")
+            logger.error(f"Γ¥î Tool retrieval test failed: {e}")
 
     async def test_tool_categories(self):
         """Test tool categorization functionality."""
@@ -267,7 +267,7 @@ class TestToolRegistry:
             }
 
             logger.info(
-                f"✅ Tool categories {'successful' if categories_exist and category_assignment_success else 'failed'}"
+                f"Γ£à Tool categories {'successful' if categories_exist and category_assignment_success else 'failed'}"
             )
 
         except Exception as e:
@@ -277,7 +277,7 @@ class TestToolRegistry:
                 "timestamp": datetime.now().isoformat(),
             }
 
-            logger.error(f"❌ Tool categories test failed: {e}")
+            logger.error(f"Γ¥î Tool categories test failed: {e}")
 
     async def test_tool_discovery(self):
         """Test tool discovery functionality."""
@@ -373,7 +373,7 @@ class TestToolRegistry:
             }
 
             logger.info(
-                f"✅ Tool discovery {'successful' if overall_success else 'failed'}"
+                f"Γ£à Tool discovery {'successful' if overall_success else 'failed'}"
             )
 
         except Exception as e:
@@ -383,7 +383,7 @@ class TestToolRegistry:
                 "timestamp": datetime.now().isoformat(),
             }
 
-            logger.error(f"❌ Tool discovery test failed: {e}")
+            logger.error(f"Γ¥î Tool discovery test failed: {e}")
 
     async def test_tool_removal(self):
         """Test tool removal functionality."""
@@ -443,7 +443,7 @@ class TestToolRegistry:
             }
 
             logger.info(
-                f"✅ Tool removal {'successful' if removal_results["overall"] else 'failed'}"
+                f"Γ£à Tool removal {'successful' if removal_results["overall"] else 'failed'}"
             )
 
         except Exception as e:
@@ -453,7 +453,7 @@ class TestToolRegistry:
                 "timestamp": datetime.now().isoformat(),
             }
 
-            logger.error(f"❌ Tool removal test failed: {e}")
+            logger.error(f"Γ¥î Tool removal test failed: {e}")
 
     async def test_concurrent_registry_access(self):
         """Test concurrent access to tool registry."""
@@ -510,7 +510,7 @@ class TestToolRegistry:
             }
 
             logger.info(
-                f"✅ Concurrent registry access {'successful' if concurrent_success else 'failed'}"
+                f"Γ£à Concurrent registry access {'successful' if concurrent_success else 'failed'}"
             )
 
         except Exception as e:
@@ -520,7 +520,7 @@ class TestToolRegistry:
                 "timestamp": datetime.now().isoformat(),
             }
 
-            logger.error(f"❌ Concurrent registry access test failed: {e}")
+            logger.error(f"Γ¥î Concurrent registry access test failed: {e}")
 
     async def _concurrent_registration_task(self, tool_name: str) -> Dict[str, Any]:
         """Concurrent registration task."""
@@ -603,15 +603,15 @@ class TestToolRegistry:
 
         logger.info("\nDetailed Results:")
         for test_name, result in self.test_results.items():
-            status_icon = "✅" if result["status"] == "PASS" else "❌"
+            status_icon = "Γ£à" if result["status"] == "PASS" else "Γ¥î"
             logger.info(f"{status_icon} {test_name}: {result['message']}")
 
         if failed_tests > 0:
             logger.info(
-                f"\n⚠️  {failed_tests} tests failed. Please review the errors above."
+                f"\nΓÜá∩╕Å  {failed_tests} tests failed. Please review the errors above."
             )
         else:
-            logger.info("\n🎉 All tests passed! Tool registry is working correctly.")
+            logger.info("\n≡ƒÄë All tests passed! Tool registry is working correctly.")
 
         logger.info("=" * 50)
 

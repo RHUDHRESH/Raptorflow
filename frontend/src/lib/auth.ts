@@ -1,4 +1,4 @@
-// SECURE Authentication utilities for Raptorflow
+﻿// SECURE Authentication utilities for Raptorflow
 // Replaces the insecure bypass implementation with proper Supabase auth
 
 import { createBrowserClient } from '@supabase/ssr';

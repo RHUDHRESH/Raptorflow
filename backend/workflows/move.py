@@ -1,4 +1,4 @@
-"""
+﻿"""
 MoveWorkflow - End-to-end move execution orchestration.
 Handles move creation, execution, and completion with full agent coordination.
 """

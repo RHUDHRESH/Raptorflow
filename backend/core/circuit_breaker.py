@@ -1,4 +1,4 @@
-"""
+﻿"""
 Circuit Breaker Manager for Payment System
 Implements circuit breaker pattern with fallback mechanisms
 Addresses critical circuit breaker vulnerabilities identified in red team audit

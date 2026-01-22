@@ -1,4 +1,4 @@
-"""
+﻿"""
 Integration between memory and database systems.
 Vectorizes database records and invalidates memory on changes.
 """

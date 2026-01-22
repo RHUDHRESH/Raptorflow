@@ -1,4 +1,4 @@
-"""
+﻿"""
 QualityChecker specialist agent for Raptorflow marketing automation.
 Handles content quality assessment, validation, and improvement recommendations.
 """
@@ -1058,24 +1058,24 @@ Always focus on providing constructive, specific feedback that helps improve con
 
     def _format_quality_response(self, report: QualityReport) -> str:
         """Format quality report response for user."""
-        response = f"🔍 **Quality Assessment Report**\n\n"
+        response = f"≡ƒöì **Quality Assessment Report**\n\n"
         response += f"**Content Type:** {report.content_type.title()}\n"
         response += f"**Quality Grade:** {report.quality_grade}\n"
         response += f"**Overall Score:** {report.quality_score.overall_score:.1%}\n\n"
 
         response += f"**Score Breakdown:**\n"
-        response += f"• Grammar: {report.quality_score.grammar_score:.1%}\n"
-        response += f"• Readability: {report.quality_score.readability_score:.1%}\n"
-        response += f"• SEO: {report.quality_score.seo_score:.1%}\n"
+        response += f"ΓÇó Grammar: {report.quality_score.grammar_score:.1%}\n"
+        response += f"ΓÇó Readability: {report.quality_score.readability_score:.1%}\n"
+        response += f"ΓÇó SEO: {report.quality_score.seo_score:.1%}\n"
         response += (
-            f"• Brand Alignment: {report.quality_score.brand_alignment_score:.1%}\n"
+            f"ΓÇó Brand Alignment: {report.quality_score.brand_alignment_score:.1%}\n"
         )
-        response += f"• Engagement Potential: {report.quality_score.engagement_potential:.1%}\n\n"
+        response += f"ΓÇó Engagement Potential: {report.quality_score.engagement_potential:.1%}\n\n"
 
         if report.strengths:
             response += f"**Strengths:**\n"
             for strength in report.strengths:
-                response += f"✓ {strength}\n"
+                response += f"Γ£ô {strength}\n"
             response += "\n"
 
         if report.issues:
@@ -1084,9 +1084,9 @@ Always focus on providing constructive, specific feedback that helps improve con
             high_issues = [i for i in report.issues if i.severity == "high"]
 
             if critical_issues:
-                response += f"🔴 Critical: {len(critical_issues)}\n"
+                response += f"≡ƒö┤ Critical: {len(critical_issues)}\n"
             if high_issues:
-                response += f"🟠 High: {len(high_issues)}\n"
+                response += f"≡ƒƒá High: {len(high_issues)}\n"
 
             # Show top 3 issues
             top_issues = sorted(
@@ -1097,13 +1097,13 @@ Always focus on providing constructive, specific feedback that helps improve con
             )[:3]
             response += f"\n**Top Issues:**\n"
             for issue in top_issues:
-                response += f"• {issue.description} ({issue.severity})\n"
+                response += f"ΓÇó {issue.description} ({issue.severity})\n"
             response += "\n"
 
         if report.improvement_recommendations:
             response += f"**Improvement Recommendations:**\n"
             for recommendation in report.improvement_recommendations:
-                response += f"• {recommendation}\n"
+                response += f"ΓÇó {recommendation}\n"
             response += "\n"
 
         if report.auto_fixes:

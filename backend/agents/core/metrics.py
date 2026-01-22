@@ -1,4 +1,4 @@
-"""
+﻿"""
 AgentMetricsCollector for Raptorflow agent system.
 Collects, aggregates, and provides metrics for agent operations.
 """

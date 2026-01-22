@@ -1,4 +1,4 @@
-"""
+﻿"""
 Billing jobs for Raptorflow.
 
 Provides background jobs for usage calculation,

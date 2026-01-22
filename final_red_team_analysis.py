@@ -1,4 +1,4 @@
-import os
+﻿import os
 import json
 import uuid
 from supabase import create_client
@@ -13,7 +13,7 @@ def run_red_team_audit():
     supabase_service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
     if not supabase_url or not supabase_service_key:
-        print("❌ Missing Supabase environment variables")
+        print("Γ¥î Missing Supabase environment variables")
         return
 
     client = create_client(supabase_url, supabase_service_key)
@@ -81,16 +81,16 @@ def run_red_team_audit():
     END $$;
     """
     
-    print("🛡️ Running RLS Red-Team Audit...")
+    print("≡ƒ¢í∩╕Å Running RLS Red-Team Audit...")
     try:
         # Use exec_sql RPC if it exists, otherwise we might need to use another method
         result = client.rpc("exec_sql", {"sql": test_sql}).execute()
-        print("✅ RLS Audit Successful: Isolation is enforced.")
+        print("Γ£à RLS Audit Successful: Isolation is enforced.")
     except Exception as e:
         if "RLS FAILURE" in str(e):
-            print(f"🚨 CRITICAL SECURITY VULNERABILITY: {e}")
+            print(f"≡ƒÜ¿ CRITICAL SECURITY VULNERABILITY: {e}")
         else:
-            print(f"⚠️ Audit encountered an error (Check if exec_sql exists): {e}")
+            print(f"ΓÜá∩╕Å Audit encountered an error (Check if exec_sql exists): {e}")
 
 if __name__ == "__main__":
     run_red_team_audit()

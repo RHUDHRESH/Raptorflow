@@ -1,4 +1,4 @@
-"""
+﻿"""
 PersonaSimulator specialist agent for Raptorflow marketing automation.
 Handles persona simulation, user behavior modeling, and customer journey mapping.
 """
@@ -1091,7 +1091,7 @@ Always focus on creating authentic, data-driven persona simulations that help un
 
     def _format_simulation_response(self, report: PersonaSimulationReport) -> str:
         """Format simulation response for user."""
-        response = f"🎭 **Persona Simulation Report**\n\n"
+        response = f"≡ƒÄ¡ **Persona Simulation Report**\n\n"
         response += (
             f"**Simulation Type:** {report.simulation_type.replace('_', ' ').title()}\n"
         )
@@ -1104,24 +1104,24 @@ Always focus on creating authentic, data-driven persona simulations that help un
         )
 
         response += f"**Persona Profile:**\n"
-        response += f"• Name: {report.persona_profile.name}\n"
-        response += f"• Role: {report.persona_profile.demographics['role'].title()}\n"
+        response += f"ΓÇó Name: {report.persona_profile.name}\n"
+        response += f"ΓÇó Role: {report.persona_profile.demographics['role'].title()}\n"
         response += (
-            f"• Industry: {report.persona_profile.demographics['industry'].title()}\n"
+            f"ΓÇó Industry: {report.persona_profile.demographics['industry'].title()}\n"
         )
         response += (
-            f"• Experience: {report.persona_profile.demographics['experience']} years\n"
+            f"ΓÇó Experience: {report.persona_profile.demographics['experience']} years\n"
         )
-        response += f"• Communication Style: {report.persona_profile.communication_style.title()}\n\n"
+        response += f"ΓÇó Communication Style: {report.persona_profile.communication_style.title()}\n\n"
 
         response += f"**Key Motivations:**\n"
         for motivation in report.persona_profile.motivations:
-            response += f"• {motivation.replace('_', ' ').title()}\n"
+            response += f"ΓÇó {motivation.replace('_', ' ').title()}\n"
         response += "\n"
 
         response += f"**Primary Pain Points:**\n"
         for pain_point in report.persona_profile.pain_points[:3]:
-            response += f"• {pain_point.replace('_', ' ').title()}\n"
+            response += f"ΓÇó {pain_point.replace('_', ' ').title()}\n"
         response += "\n"
 
         response += (
@@ -1139,12 +1139,12 @@ Always focus on creating authentic, data-driven persona simulations that help un
 
         response += f"\n**Key Insights:**\n"
         for insight in report.key_insights:
-            response += f"• {insight}\n"
+            response += f"ΓÇó {insight}\n"
         response += "\n"
 
         response += f"**Actionable Recommendations:**\n"
         for recommendation in report.actionable_recommendations:
-            response += f"• {recommendation}\n"
+            response += f"ΓÇó {recommendation}\n"
         response += "\n"
 
         response += f"**Predictive Model Accuracy:** {report.predictive_model['accuracy']:.1%}\n"

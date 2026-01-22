@@ -1,4 +1,4 @@
-"""
+﻿"""
 Authentication integration across all modules.
 Injects auth context into agent state and verifies workspace access.
 """

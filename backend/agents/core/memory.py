@@ -1,4 +1,4 @@
-"""
+﻿"""
 AgentMemoryManager for Raptorflow agent system.
 Manages agent memory, context persistence, and knowledge retrieval.
 """

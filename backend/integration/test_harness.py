@@ -1,4 +1,4 @@
-"""
+﻿"""
 Integration test harness.
 Runs comprehensive integration tests for all modules.
 """

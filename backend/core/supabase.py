@@ -1,4 +1,4 @@
-"""
+﻿"""
 Supabase client bridge.
 Maintained for backward compatibility.
 """

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Event bus integration for all modules.
 Wires all event handlers and manages cross-module communication.
 """

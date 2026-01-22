@@ -1,4 +1,4 @@
-"""
+﻿"""
 Test file to verify all specialist agents can be instantiated.
 """
 
@@ -83,7 +83,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.info(f"✅ {agent_name} instantiated successfully")
+                logger.info(f"Γ£à {agent_name} instantiated successfully")
 
             except Exception as e:
                 self.test_results[f"{agent_name}_instantiation"] = {
@@ -92,7 +92,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {agent_name} instantiation failed: {e}")
+                logger.error(f"Γ¥î {agent_name} instantiation failed: {e}")
 
     async def test_agent_properties(self):
         """Test agent properties and configurations."""
@@ -119,7 +119,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.info(f"✅ {agent_name} properties valid")
+                logger.info(f"Γ£à {agent_name} properties valid")
 
             except Exception as e:
                 self.test_results[f"{agent_name}_properties"] = {
@@ -128,7 +128,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {agent_name} properties test failed: {e}")
+                logger.error(f"Γ¥î {agent_name} properties test failed: {e}")
 
     async def test_agent_methods(self):
         """Test agent-specific methods."""
@@ -158,7 +158,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.info("✅ ContentCreator methods working")
+                logger.info("Γ£à ContentCreator methods working")
 
             except Exception as e:
                 self.test_results["ContentCreator_methods"] = {
@@ -167,7 +167,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ ContentCreator methods failed: {e}")
+                logger.error(f"Γ¥î ContentCreator methods failed: {e}")
 
         # Test MoveStrategist methods
         if "MoveStrategist" in self.agents:
@@ -194,7 +194,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.info("✅ MoveStrategist methods working")
+                logger.info("Γ£à MoveStrategist methods working")
 
             except Exception as e:
                 self.test_results["MoveStrategist_methods"] = {
@@ -203,7 +203,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ MoveStrategist methods failed: {e}")
+                logger.error(f"Γ¥î MoveStrategist methods failed: {e}")
 
         # Test MarketResearch methods
         if "MarketResearch" in self.agents:
@@ -230,7 +230,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.info("✅ MarketResearch methods working")
+                logger.info("Γ£à MarketResearch methods working")
 
             except Exception as e:
                 self.test_results["MarketResearch_methods"] = {
@@ -239,7 +239,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ MarketResearch methods failed: {e}")
+                logger.error(f"Γ¥î MarketResearch methods failed: {e}")
 
         # Test AnalyticsAgent methods
         if "AnalyticsAgent" in self.agents:
@@ -266,7 +266,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.info("✅ AnalyticsAgent methods working")
+                logger.info("Γ£à AnalyticsAgent methods working")
 
             except Exception as e:
                 self.test_results["AnalyticsAgent_methods"] = {
@@ -275,7 +275,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ AnalyticsAgent methods failed: {e}")
+                logger.error(f"Γ¥î AnalyticsAgent methods failed: {e}")
 
         # Test BlackboxStrategist methods
         if "BlackboxStrategist" in self.agents:
@@ -300,7 +300,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.info("✅ BlackboxStrategist methods working")
+                logger.info("Γ£à BlackboxStrategist methods working")
 
             except Exception as e:
                 self.test_results["BlackboxStrategist_methods"] = {
@@ -309,7 +309,7 @@ class TestSpecialistAgents:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ BlackboxStrategist methods failed: {e}")
+                logger.error(f"Γ¥î BlackboxStrategist methods failed: {e}")
 
     def print_test_results(self):
         """Print test results summary."""
@@ -330,15 +330,15 @@ class TestSpecialistAgents:
 
         logger.info("\nDetailed Results:")
         for test_name, result in self.test_results.items():
-            status_icon = "✅" if result["status"] == "PASS" else "❌"
+            status_icon = "Γ£à" if result["status"] == "PASS" else "Γ¥î"
             logger.info(f"{status_icon} {test_name}: {result['message']}")
 
         if failed_tests > 0:
             logger.info(
-                f"\n⚠️  {failed_tests} tests failed. Please review the errors above."
+                f"\nΓÜá∩╕Å  {failed_tests} tests failed. Please review the errors above."
             )
         else:
-            logger.info("\n🎉 All tests passed! Specialist agents are ready for use.")
+            logger.info("\n≡ƒÄë All tests passed! Specialist agents are ready for use.")
 
         logger.info("=" * 50)
 

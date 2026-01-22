@@ -1,4 +1,4 @@
-"""
+﻿"""
 Unified context builder for agents.
 Gathers context from memory, database, and session data.
 """

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Rate Limiting Manager for Payment System
 Implements token bucket algorithm with comprehensive monitoring
 Addresses critical rate limiting vulnerabilities identified in red team audit

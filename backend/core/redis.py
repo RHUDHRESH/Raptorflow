@@ -1,4 +1,4 @@
-"""
+﻿"""
 Core Redis client wrapper for production use.
 Provides hard failures for missing Redis configuration.
 """

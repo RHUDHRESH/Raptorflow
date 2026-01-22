@@ -1,4 +1,4 @@
-"""
+﻿"""
 Cross-module validation functions.
 Validates workspace consistency and agent state integrity.
 """

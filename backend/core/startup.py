@@ -1,4 +1,4 @@
-"""
+﻿"""
 Application startup module for Raptorflow backend.
 Handles initialization of all services and dependencies.
 """

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Authentication middleware for FastAPI
 Attaches user and workspace context to requests with audit logging and rate limiting
 """

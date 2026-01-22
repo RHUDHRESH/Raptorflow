@@ -1,4 +1,4 @@
--- Daily Wins table (product-specific)
+﻿-- Daily Wins table (product-specific)
 -- Migration: 20240109_daily_wins.sql
 -- Description: Daily achievements and wins tracking with workspace isolation
 

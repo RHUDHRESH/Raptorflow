@@ -1,4 +1,4 @@
-"""
+﻿"""
 Memory system event handlers.
 Handle events that trigger memory indexing, graph updates, and synchronization.
 """

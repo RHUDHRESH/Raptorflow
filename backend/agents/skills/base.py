@@ -1,4 +1,4 @@
-"""
+﻿"""
 Base classes for skills system.
 """
 

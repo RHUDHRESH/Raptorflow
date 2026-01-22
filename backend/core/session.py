@@ -1,4 +1,4 @@
-"""
+﻿"""
 Session management for RaptorFlow
 Handles user sessions with Redis backend
 """

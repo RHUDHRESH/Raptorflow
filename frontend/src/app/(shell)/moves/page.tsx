@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Plus, Calendar as CalendarIcon, Search, X, LayoutGrid, ListTodo, Zap } from "lucide-react";
@@ -13,10 +13,10 @@ import { BlueprintModal } from "@/components/ui/BlueprintModal";
 import { MoveIntelCenter } from "@/components/moves/MoveIntelCenter";
 import { cn } from "@/lib/utils";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   MOVES PAGE — QUIET LUXURY REDESIGN
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   MOVES PAGE ΓÇö QUIET LUXURY REDESIGN
    Clean tabbed layout with Today's Agenda, Gallery, and Calendar views
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 type ViewTab = 'agenda' | 'gallery' | 'calendar';
 
@@ -94,7 +94,7 @@ export default function MovesPage() {
                 Strategic Moves
               </h1>
               <p className="text-sm text-[var(--muted)] mt-1">
-                Your execution headquarters — {stats.active} active, {stats.draft} drafts, {stats.completed} completed
+                Your execution headquarters ΓÇö {stats.active} active, {stats.draft} drafts, {stats.completed} completed
               </p>
             </div>
 

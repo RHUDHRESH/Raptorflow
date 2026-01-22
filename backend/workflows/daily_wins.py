@@ -1,4 +1,4 @@
-"""
+﻿"""
 DailyWinsWorkflow - End-to-end daily wins orchestration.
 Handles daily win generation, expansion, and scheduling.
 """
@@ -591,7 +591,7 @@ class DailyWinsWorkflow:
     def _prepare_for_facebook(self, content: str, win: Dict[str, Any]) -> str:
         """Prepare content for Facebook."""
         # Facebook conversational tone
-        return f"{content}\n\n🎉 Today's Daily Win! #BusinessSuccess #Motivation"
+        return f"{content}\n\n≡ƒÄë Today's Daily Win! #BusinessSuccess #Motivation"
 
     def _prepare_for_email(self, content: str, win: Dict[str, Any]) -> str:
         """Prepare content for email."""

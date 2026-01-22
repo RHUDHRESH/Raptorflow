@@ -1,4 +1,4 @@
-"""
+﻿"""
 ICP Architect Specialist Agent
 Creates deep Ideal Customer Profiles using psychographics and market sophistication models.
 """

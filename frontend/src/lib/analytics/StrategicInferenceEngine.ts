@@ -1,4 +1,4 @@
-import { Move, MoveCategory } from "@/components/moves/types";
+﻿import { Move, MoveCategory } from "@/components/moves/types";
 import { differenceInDays, isAfter, subDays, parse } from "date-fns";
 
 export interface StrategicGap {

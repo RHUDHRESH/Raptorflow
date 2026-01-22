@@ -1,4 +1,4 @@
-"""
+﻿"""
 Billing service for business logic operations
 Handles billing-related business logic and validation
 """

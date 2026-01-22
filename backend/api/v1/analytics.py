@@ -1,4 +1,4 @@
-"""
+﻿"""
 Analytics API endpoints for usage, performance, and cost tracking.
 """
 

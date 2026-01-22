@@ -1,4 +1,4 @@
-import { CampaignTemplate, CampaignObjective, MoveType } from '@/types/campaign';
+﻿import { CampaignTemplate, CampaignObjective, MoveType } from '@/types/campaign';
 
 // Product Launch Templates
 export const productLaunchTemplates: CampaignTemplate[] = [
@@ -67,7 +67,7 @@ export const productLaunchTemplates: CampaignTemplate[] = [
           name: 'Launch Day Email',
           description: 'Big launch announcement to all lists',
           config: {
-            subject: '🎉 It\'s live! [Product Name] is here',
+            subject: '≡ƒÄë It\'s live! [Product Name] is here',
             template: 'announcement'
           },
           optional: false

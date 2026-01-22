@@ -1,4 +1,4 @@
-"""
+﻿"""
 Notification event handlers.
 Handle events that trigger user notifications, emails, and alerts.
 """

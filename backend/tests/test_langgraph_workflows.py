@@ -1,4 +1,4 @@
-"""
+﻿"""
 Test file to verify workflows execute correctly with LangGraph integration.
 """
 
@@ -106,11 +106,11 @@ class TestLangGraphWorkflows:
                 success = workflow.initialize(self.agent_registry)
                 if success:
                     self.workflows[workflow_name] = workflow
-                    logger.info(f"✅ {workflow_name} workflow initialized successfully")
+                    logger.info(f"Γ£à {workflow_name} workflow initialized successfully")
                 else:
-                    logger.error(f"❌ {workflow_name} workflow initialization failed")
+                    logger.error(f"Γ¥î {workflow_name} workflow initialization failed")
             except Exception as e:
-                logger.error(f"❌ {workflow_name} workflow initialization error: {e}")
+                logger.error(f"Γ¥î {workflow_name} workflow initialization error: {e}")
 
         logger.info(f"Initialized {len(self.workflows)} workflows")
 
@@ -141,7 +141,7 @@ class TestLangGraphWorkflows:
                 }
 
                 logger.info(
-                    f"✅ {workflow_name} initialization {'successful' if success else 'failed'}"
+                    f"Γ£à {workflow_name} initialization {'successful' if success else 'failed'}"
                 )
 
             except Exception as e:
@@ -151,7 +151,7 @@ class TestLangGraphWorkflows:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {workflow_name} initialization failed: {e}")
+                logger.error(f"Γ¥î {workflow_name} initialization failed: {e}")
 
     async def test_workflow_execution(self):
         """Test workflow execution."""
@@ -182,7 +182,7 @@ class TestLangGraphWorkflows:
                 }
 
                 logger.info(
-                    f"✅ {workflow_name} execution {'successful' if execution_success else 'failed'}"
+                    f"Γ£à {workflow_name} execution {'successful' if execution_success else 'failed'}"
                 )
 
             except Exception as e:
@@ -192,7 +192,7 @@ class TestLangGraphWorkflows:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {workflow_name} execution failed: {e}")
+                logger.error(f"Γ¥î {workflow_name} execution failed: {e}")
 
     def _prepare_test_data(self, workflow_name: str) -> Dict[str, Any]:
         """Prepare test data for workflow execution."""
@@ -270,7 +270,7 @@ class TestLangGraphWorkflows:
                 }
 
                 logger.info(
-                    f"✅ {workflow_name} state persistence {'successful' if state_persisted and data_persisted else 'failed'}"
+                    f"Γ£à {workflow_name} state persistence {'successful' if state_persisted and data_persisted else 'failed'}"
                 )
 
             except Exception as e:
@@ -280,7 +280,7 @@ class TestLangGraphWorkflows:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {workflow_name} state persistence failed: {e}")
+                logger.error(f"Γ¥î {workflow_name} state persistence failed: {e}")
 
     async def test_concurrent_execution(self):
         """Test concurrent workflow execution."""
@@ -352,7 +352,7 @@ class TestLangGraphWorkflows:
         }
 
         logger.info(
-            f"✅ Concurrent execution {'successful' if concurrent_success else 'failed'}"
+            f"Γ£à Concurrent execution {'successful' if concurrent_success else 'failed'}"
         )
 
     async def test_error_handling(self):
@@ -382,7 +382,7 @@ class TestLangGraphWorkflows:
                 }
 
                 logger.info(
-                    f"✅ {workflow_name} error handling {'successful' if error_handled else 'failed'}"
+                    f"Γ£à {workflow_name} error handling {'successful' if error_handled else 'failed'}"
                 )
 
             except Exception as e:
@@ -392,7 +392,7 @@ class TestLangGraphWorkflows:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {workflow_name} error handling failed: {e}")
+                logger.error(f"Γ¥î {workflow_name} error handling failed: {e}")
 
     def print_test_results(self):
         """Print test results summary."""
@@ -413,16 +413,16 @@ class TestLangGraphWorkflows:
 
         logger.info("\nDetailed Results:")
         for test_name, result in self.test_results.items():
-            status_icon = "✅" if result["status"] == "PASS" else "❌"
+            status_icon = "Γ£à" if result["status"] == "PASS" else "Γ¥î"
             logger.info(f"{status_icon} {test_name}: {result['message']}")
 
         if failed_tests > 0:
             logger.info(
-                f"\n⚠️  {failed_tests} tests failed. Please review the errors above."
+                f"\nΓÜá∩╕Å  {failed_tests} tests failed. Please review the errors above."
             )
         else:
             logger.info(
-                "\n🎉 All tests passed! LangGraph workflows are working correctly."
+                "\n≡ƒÄë All tests passed! LangGraph workflows are working correctly."
             )
 
         logger.info("=" * 50)

@@ -61,7 +61,7 @@ export default function CampaignDetailPage({ params }: { params: { id: string } 
     return (
         <div ref={pageRef} className="max-w-6xl mx-auto pb-12">
             <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--ink)] mb-6 transition-colors">
-                <span>←</span> Back to Campaigns
+                <ArrowLeft size={16} /> Back to Campaigns
             </button>
 
             {/* Header */}
@@ -75,8 +75,8 @@ export default function CampaignDetailPage({ params }: { params: { id: string } 
                     <p className="text-lg text-[var(--secondary)] max-w-2xl">{campaign.objective || "Dominating the market through strategic content and targeted outreach."}</p>
                 </div>
                 <div className="flex gap-3">
-                    <SecondaryButton><span>⋯</span></SecondaryButton>
-                    <BlueprintButton><span>+</span> Add Move</BlueprintButton>
+                    <SecondaryButton><MoreHorizontal size={16} /></SecondaryButton>
+                    <BlueprintButton><Plus size={16} /> Add Move</BlueprintButton>
                 </div>
             </div>
 
@@ -106,7 +106,7 @@ export default function CampaignDetailPage({ params }: { params: { id: string } 
                         <div className="space-y-3">
                             {[1, 2, 3].map((i) => (
                                 <div key={i} className="flex items-start gap-3 p-3 border border-[var(--border-subtle)] rounded-[var(--radius-sm)] bg-[var(--canvas)] hover:border-[var(--blueprint)] transition-colors cursor-pointer" onClick={() => router.push('/moves')}>
-                                    <div className="mt-0.5"><span className="text-[var(--muted)]">☑️</span></div>
+                                    <div className="mt-0.5"><CheckSquare size={16} className="text-[var(--muted)]" /></div>
                                     <div>
                                         <h4 className="text-sm font-medium text-[var(--ink)]">Direct Outreach to Top 50 Leads</h4>
                                         <p className="text-xs text-[var(--secondary)]">Using "Founder Story" template</p>

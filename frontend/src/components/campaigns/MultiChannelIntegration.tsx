@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from 'react';
 import {
@@ -554,7 +554,7 @@ export function MultiChannelIntegration() {
             {/* Rule Configuration */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
               <div>
-                <h4 className="text-sm font-medium text-[var(--ink)] mb-2">Source → Target</h4>
+                <h4 className="text-sm font-medium text-[var(--ink)] mb-2">Source ΓåÆ Target</h4>
                 <div className="flex items-center gap-2">
                   <div className="px-3 py-1 bg-[var(--surface)] rounded text-sm">
                     {channels.find(ch => ch.id === rule.sourceChannel)?.name || 'Unknown'}
@@ -606,7 +606,7 @@ export function MultiChannelIntegration() {
               <div className="text-sm text-[var(--ink-muted)]">
                 Last run {formatDistanceToNow(rule.lastRun, { addSuffix: true })}
                 {rule.nextRun && (
-                  <span> • Next run {formatDistanceToNow(rule.nextRun, { addSuffix: true })}</span>
+                  <span> ΓÇó Next run {formatDistanceToNow(rule.nextRun, { addSuffix: true })}</span>
                 )}
               </div>
 

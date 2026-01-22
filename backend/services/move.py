@@ -1,4 +1,4 @@
-"""
+﻿"""
 Move service for business logic operations
 Handles move-related business logic and validation
 """

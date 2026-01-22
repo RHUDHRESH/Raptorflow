@@ -1,4 +1,4 @@
-"""
+﻿"""
 Production-ready permission system for RaptorFlow
 Defines permission levels and checking functions with database backing
 """

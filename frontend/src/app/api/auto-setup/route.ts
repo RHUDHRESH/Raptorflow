@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 
 export async function POST() {
   const results: any = {
@@ -27,11 +27,11 @@ export async function POST() {
     });
 
     if (profilesCheck.ok && paymentsCheck.ok) {
-      results.steps.push('✅ Database tables exist and accessible');
+      results.steps.push('Γ£à Database tables exist and accessible');
       results.status = 'ready';
       results.success = true;
     } else {
-      results.steps.push('❌ Database tables missing');
+      results.steps.push('Γ¥î Database tables missing');
       results.status = 'needs_setup';
 
       // Provide clear instructions
@@ -89,7 +89,7 @@ export async function POST() {
         "3. Click 'Run' to execute",
         "4. After both tables are created, return here and click 'Test Again'",
         "",
-        "⚠️ IMPORTANT: Make sure you're logged into the correct Supabase project!"
+        "ΓÜá∩╕Å IMPORTANT: Make sure you're logged into the correct Supabase project!"
       ];
     }
 

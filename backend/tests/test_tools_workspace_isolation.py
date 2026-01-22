@@ -1,4 +1,4 @@
-"""
+﻿"""
 Test file to verify all tools work with workspace isolation.
 """
 
@@ -81,7 +81,7 @@ class TestToolsWorkspaceIsolation:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.info(f"✅ {tool_name} initialized successfully")
+                logger.info(f"Γ£à {tool_name} initialized successfully")
 
             except Exception as e:
                 self.test_results[f"{tool_name}_initialization"] = {
@@ -90,7 +90,7 @@ class TestToolsWorkspaceIsolation:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {tool_name} initialization failed: {e}")
+                logger.error(f"Γ¥î {tool_name} initialization failed: {e}")
 
     async def test_workspace_isolation(self):
         """Test workspace isolation functionality."""
@@ -136,7 +136,7 @@ class TestToolsWorkspaceIsolation:
                 }
 
                 logger.info(
-                    f"✅ {tool_name} workspace isolation {'verified' if isolation_verified else 'failed'}"
+                    f"Γ£à {tool_name} workspace isolation {'verified' if isolation_verified else 'failed'}"
                 )
 
             except Exception as e:
@@ -146,7 +146,7 @@ class TestToolsWorkspaceIsolation:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {tool_name} workspace isolation test failed: {e}")
+                logger.error(f"Γ¥î {tool_name} workspace isolation test failed: {e}")
 
     async def test_data_separation(self):
         """Test data separation between workspaces."""
@@ -190,7 +190,7 @@ class TestToolsWorkspaceIsolation:
                 }
 
                 logger.info(
-                    f"✅ {tool_name} data separation {'verified' if separation_verified else 'failed'}"
+                    f"Γ£à {tool_name} data separation {'verified' if separation_verified else 'failed'}"
                 )
 
             except Exception as e:
@@ -200,7 +200,7 @@ class TestToolsWorkspaceIsolation:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {tool_name} data separation test failed: {e}")
+                logger.error(f"Γ¥î {tool_name} data separation test failed: {e}")
 
     async def test_concurrent_access(self):
         """Test concurrent access to tools from different workspaces."""
@@ -245,7 +245,7 @@ class TestToolsWorkspaceIsolation:
                 }
 
                 logger.info(
-                    f"✅ {tool_name} concurrent access {'successful' if concurrent_success else 'failed'}"
+                    f"Γ£à {tool_name} concurrent access {'successful' if concurrent_success else 'failed'}"
                 )
 
             except Exception as e:
@@ -255,7 +255,7 @@ class TestToolsWorkspaceIsolation:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {tool_name} concurrent access test failed: {e}")
+                logger.error(f"Γ¥î {tool_name} concurrent access test failed: {e}")
 
     async def test_security_boundaries(self):
         """Test security boundaries between workspaces."""
@@ -318,7 +318,7 @@ class TestToolsWorkspaceIsolation:
                 }
 
                 logger.info(
-                    f"✅ {tool_name} security boundaries {'verified' if security_verified else 'failed'}"
+                    f"Γ£à {tool_name} security boundaries {'verified' if security_verified else 'failed'}"
                 )
 
             except Exception as e:
@@ -328,7 +328,7 @@ class TestToolsWorkspaceIsolation:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-                logger.error(f"❌ {tool_name} security boundaries test failed: {e}")
+                logger.error(f"Γ¥î {tool_name} security boundaries test failed: {e}")
 
     async def _execute_tool_with_workspace(
         self, tool: BaseTool, workspace_id: str
@@ -592,16 +592,16 @@ class TestToolsWorkspaceIsolation:
 
         logger.info("\nDetailed Results:")
         for test_name, result in self.test_results.items():
-            status_icon = "✅" if result["status"] == "PASS" else "❌"
+            status_icon = "Γ£à" if result["status"] == "PASS" else "Γ¥î"
             logger.info(f"{status_icon} {test_name}: {result['message']}")
 
         if failed_tests > 0:
             logger.info(
-                f"\n⚠️  {failed_tests} tests failed. Please review the errors above."
+                f"\nΓÜá∩╕Å  {failed_tests} tests failed. Please review the errors above."
             )
         else:
             logger.info(
-                "\n🎉 All tests passed! Tools are properly isolated by workspace."
+                "\n≡ƒÄë All tests passed! Tools are properly isolated by workspace."
             )
 
         logger.info("=" * 50)

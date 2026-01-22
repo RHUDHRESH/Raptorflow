@@ -1,4 +1,4 @@
-"""
+﻿"""
 FastAPI dependencies for dependency injection.
 Provides database, Redis, memory, and cognitive engine instances.
 """

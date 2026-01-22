@@ -1,4 +1,4 @@
-"""
+﻿"""
 MarketResearch specialist agent for Raptorflow marketing automation.
 Handles market analysis, competitor research, and trend identification.
 """
@@ -1221,7 +1221,7 @@ Format the response as a structured research report with clear sections and supp
 
     def _format_research_response(self, report: MarketResearchReport) -> str:
         """Format research response for user."""
-        response = f"✅ **{report.report_title}**\n\n"
+        response = f"Γ£à **{report.report_title}**\n\n"
         response += f"**Type:** {report.research_type.title()}\n"
         response += f"**Focus Area:** {report.focus_area.title()}\n"
         response += f"**Confidence Score:** {report.confidence_score:.1%}\n\n"
@@ -1230,17 +1230,17 @@ Format the response as a structured research report with clear sections and supp
 
         response += f"**Key Findings:**\n"
         for finding in report.key_findings[:3]:
-            response += f"• {finding.title}: {finding.description[:100]}...\n"
+            response += f"ΓÇó {finding.title}: {finding.description[:100]}...\n"
 
         if report.opportunities:
             response += f"\n**Opportunities:**\n"
             for opportunity in report.opportunities[:2]:
-                response += f"• {opportunity['title']}: {opportunity['potential_value']} potential\n"
+                response += f"ΓÇó {opportunity['title']}: {opportunity['potential_value']} potential\n"
 
         if report.recommendations:
             response += f"\n**Recommendations:**\n"
             for recommendation in report.recommendations[:3]:
-                response += f"• {recommendation}\n"
+                response += f"ΓÇó {recommendation}\n"
 
         return response
 

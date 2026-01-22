@@ -1,4 +1,4 @@
-"""
+﻿"""
 Event bus implementation using Redis pub/sub for distributed event handling.
 """
 

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Raptorflow Onboarding Orchestrator
 ==================================
 
@@ -707,7 +707,7 @@ Always be supportive, organized, and customer-focused in your onboarding guidanc
         self, milestone: OnboardingMilestone, customer_id: str
     ) -> str:
         """Generate milestone celebration message."""
-        return f"🎉 Congratulations! You've completed the {milestone.name} milestone!"
+        return f"≡ƒÄë Congratulations! You've completed the {milestone.name} milestone!"
 
     async def _analyze_performance_data(
         self, progress: OnboardingProgress, performance_data: Dict[str, Any]

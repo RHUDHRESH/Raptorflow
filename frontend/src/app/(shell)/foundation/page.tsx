@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import gsap from "gsap";
@@ -22,10 +22,10 @@ import { MessagingDetailModal } from "@/components/foundation/MessagingDetailMod
 import { DeriveCohortModal } from "@/components/foundation/DeriveCohortModal";
 import { RICP, CoreMessaging, MARKET_SOPHISTICATION_LABELS } from "@/types/foundation";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   FOUNDATION PAGE — RICP & Messaging System
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   FOUNDATION PAGE ΓÇö RICP & Messaging System
    Marketing fundamentals: positioning, ICPs/Cohorts, messaging, channels
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 export default function FoundationPage() {
   const pageRef = useRef<HTMLDivElement>(null);
@@ -62,7 +62,7 @@ export default function FoundationPage() {
             </div>
             <h1 className="font-serif text-4xl text-[var(--ink)]">Brand Foundation</h1>
             <p className="text-sm text-[var(--ink-secondary)] max-w-lg">
-              Your marketing fundamentals — positioning, ICPs, messaging, and channels.
+              Your marketing fundamentals ΓÇö positioning, ICPs, messaging, and channels.
             </p>
           </div>
         </div>
@@ -191,7 +191,7 @@ export default function FoundationPage() {
                     </div>
                   </div>
                 </div>
-                <span className="text-[var(--ink-muted)] group-hover:text-[var(--blueprint)] group-hover:translate-x-1 transition-all mt-2 text-xl">→</span>
+                <span className="text-[var(--ink-muted)] group-hover:text-[var(--blueprint)] group-hover:translate-x-1 transition-all mt-2 text-xl">ΓåÆ</span>
               </div>
             </BlueprintCard>
           )}
@@ -232,7 +232,7 @@ export default function FoundationPage() {
                         }`}
                     >
                       {channel.name}
-                      {channel.priority === 'primary' && <span className="ml-1.5 text-xs opacity-70">★</span>}
+                      {channel.priority === 'primary' && <span className="ml-1.5 text-xs opacity-70">Γÿà</span>}
                     </span>
                   ))}
                 </div>
@@ -282,9 +282,9 @@ export default function FoundationPage() {
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    RICP CARD COMPONENT
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface RICPCardProps {
   ricp: RICP;
@@ -315,7 +315,7 @@ function RICPCard({ ricp, index, onClick }: RICPCardProps) {
       {/* Header */}
       <div className="flex items-start gap-4 mb-4">
         <div className="w-12 h-12 rounded-xl bg-[var(--surface)] border border-[var(--structure)] flex items-center justify-center text-2xl group-hover:bg-[var(--blueprint-light)] group-hover:border-[var(--blueprint)]/30 transition-colors">
-          {ricp.avatar || "👤"}
+          {ricp.avatar || "≡ƒæñ"}
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-[var(--ink)] truncate">{ricp.name}</h3>
@@ -354,7 +354,7 @@ function RICPCard({ ricp, index, onClick }: RICPCardProps) {
       <div className="flex items-center justify-center gap-1 mt-4 pt-3 border-t border-[var(--structure-subtle)] text-[var(--ink-muted)] group-hover:text-[var(--blueprint)] transition-colors">
         <Eye size={16} strokeWidth={1.5} />
         <span className="text-xs font-medium">View Full RICP</span>
-        <span className="group-hover:translate-x-1 transition-transform text-xs">→</span>
+        <span className="group-hover:translate-x-1 transition-transform text-xs">ΓåÆ</span>
       </div>
     </div>
   );

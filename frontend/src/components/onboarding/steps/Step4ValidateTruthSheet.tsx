@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import gsap from "gsap";
@@ -14,13 +14,13 @@ import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { BlueprintModal } from "@/components/ui/BlueprintModal";
 import { StepEmptyState } from "../StepStates";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   PAPER TERMINAL — Step 4: Validate Truth Sheet
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   PAPER TERMINAL ΓÇö Step 4: Validate Truth Sheet
 
    PURPOSE: Review and lock validated facts as the "Business Truth Sheet v1"
    - "Quiet Luxury" Refactor: Looks like a legal/financial document.
    - High contrast, serif typography for document feel.
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface TruthItem {
     id: string;
@@ -129,7 +129,7 @@ function TruthItemRow({
                                 </button>
                                 {item.status !== "confirmed" && (
                                     <>
-                                        <span className="text-[var(--border)]">•</span>
+                                        <span className="text-[var(--border)]">ΓÇó</span>
                                         <button
                                             onClick={() => onConfirm(item.id)}
                                             className="text-[10px] uppercase font-technical text-[var(--success)] hover:underline"
@@ -138,7 +138,7 @@ function TruthItemRow({
                                         </button>
                                     </>
                                 )}
-                                <span className="text-[var(--border)]">•</span>
+                                <span className="text-[var(--border)]">ΓÇó</span>
                                 <button
                                     onClick={() => setShowNotes(!showNotes)}
                                     className="text-[10px] uppercase font-technical text-[var(--muted)] hover:text-[var(--ink)]"
@@ -424,7 +424,7 @@ export default function Step4ValidateTruthSheet() {
                 <div className="border-b-2 border-[var(--ink)] pb-6 mb-12 flex justify-between items-end">
                     <div>
                         <h1 className="font-serif text-4xl text-[var(--ink)] leading-none mb-2">Fundamental Truths</h1>
-                        <p className="font-technical text-xs tracking-[0.2em] text-[var(--muted)] uppercase">Confidential • Internal Use Only</p>
+                        <p className="font-technical text-xs tracking-[0.2em] text-[var(--muted)] uppercase">Confidential ΓÇó Internal Use Only</p>
                     </div>
                     <div className="text-right">
                         <span className="block font-technical text-xs text-[var(--muted)]">DATE: {new Date().toLocaleDateString()}</span>
@@ -437,7 +437,7 @@ export default function Step4ValidateTruthSheet() {
                     {Object.entries(grouped).map(([category, categoryItems], i) => (
                         <div key={category}>
                             <h3 className="font-technical text-xs font-bold text-[var(--ink)] uppercase tracking-widest border-b border-[var(--border-subtle)] pb-2 mb-4">
-                                Section {String(i + 1).padStart(2, "0")} • {category}
+                                Section {String(i + 1).padStart(2, "0")} ΓÇó {category}
                             </h3>
                             <div className="space-y-1">
                                 {categoryItems.map((item) => (

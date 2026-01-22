@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -16,7 +16,7 @@ export const runtime = 'edge';
 const PLANS = [
   {
     name: "Ascent",
-    price: "₹5,000",
+    price: "Γé╣5,000",
     priceValue: 500000, // in paise
     desc: "Foundation for high-growth founders.",
     features: [
@@ -33,7 +33,7 @@ const PLANS = [
   },
   {
     name: "Glide",
-    price: "₹7,000",
+    price: "Γé╣7,000",
     priceValue: 700000, // in paise
     desc: "Scale operations with AI precision.",
     features: [
@@ -51,7 +51,7 @@ const PLANS = [
   },
   {
     name: "Soar",
-    price: "₹10,000",
+    price: "Γé╣10,000",
     priceValue: 1000000, // in paise
     desc: "Dominance for category leaders.",
     features: [

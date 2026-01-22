@@ -1,4 +1,4 @@
-"""
+﻿"""
 AgentRegistry for Raptorflow agent system.
 Manages agent registration, discovery, and lifecycle management.
 """

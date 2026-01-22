@@ -1,4 +1,4 @@
--- PhonePe Payment Gateway Database Schema with RLS
+﻿-- PhonePe Payment Gateway Database Schema with RLS
 -- Complete schema for Raptorflow payment system
 
 -- Enable UUID extension if not already enabled

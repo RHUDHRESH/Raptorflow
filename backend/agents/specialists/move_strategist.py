@@ -1,4 +1,4 @@
-"""
+﻿"""
 MoveStrategist specialist agent for Raptorflow marketing automation.
 Handles strategic move planning, execution, and optimization.
 """
@@ -1020,7 +1020,7 @@ Format the response as a structured strategy with clear sections and actionable 
 
     def _format_strategy_response(self, strategy: MoveStrategy) -> str:
         """Format strategy response for user."""
-        response = f"✅ **{strategy.move_name} Strategy Created**\n\n"
+        response = f"Γ£à **{strategy.move_name} Strategy Created**\n\n"
         response += f"**Type:** {strategy.move_type.title()}\n"
         response += f"**Objective:** {strategy.objective.title()}\n"
         response += f"**Timeline:** {strategy.timeline_days} days\n"
@@ -1032,16 +1032,16 @@ Format the response as a structured strategy with clear sections and actionable 
         response += f"**Phases:**\n"
         for phase in strategy.phases:
             response += (
-                f"• {phase['name']}: Day {phase['start_day']}-{phase['end_day']}\n"
+                f"ΓÇó {phase['name']}: Day {phase['start_day']}-{phase['end_day']}\n"
             )
 
         response += f"\n**Key KPIs:**\n"
         for kpi in strategy.kpis[:3]:
-            response += f"• {kpi['name']}\n"
+            response += f"ΓÇó {kpi['name']}\n"
 
         response += f"\n**Next Steps:**\n"
         for step in strategy.next_steps[:3]:
-            response += f"• {step}\n"
+            response += f"ΓÇó {step}\n"
 
         return response
 

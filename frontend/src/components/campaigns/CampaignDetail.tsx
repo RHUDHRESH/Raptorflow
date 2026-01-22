@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from 'react';
 import {
@@ -353,7 +353,7 @@ export function CampaignDetail({ campaignId, onClose, onEdit }: CampaignDetailPr
                       <div className="flex-1">
                         <h4 className="text-sm font-semibold text-[var(--ink)]">{move.name}</h4>
                         <p className="text-xs text-[var(--ink-muted)] mt-1">
-                          {move.type} • {move.status}
+                          {move.type} ΓÇó {move.status}
                         </p>
                       </div>
                     </div>

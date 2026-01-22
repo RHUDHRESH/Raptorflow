@@ -1,4 +1,4 @@
-"""
+﻿"""
 Logging configuration for Raptorflow backend.
 Configures structured logging with JSON format, request tracking, and error reporting.
 """

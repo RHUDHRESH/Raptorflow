@@ -1,4 +1,4 @@
-"""
+﻿"""
 Base agent class for all Raptorflow agents.
 """
 

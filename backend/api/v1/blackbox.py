@@ -1,4 +1,4 @@
-"""
+﻿"""
 Blackbox strategy generation API endpoints.
 """
 

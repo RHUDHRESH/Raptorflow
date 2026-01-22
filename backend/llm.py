@@ -1,4 +1,4 @@
-"""
+﻿"""
 Raptorflow LLM Integration
 ==========================
 
@@ -264,7 +264,7 @@ class TokenCounter:
             encoder = self.get_encoder(model)
             return len(encoder.encode(text))
         except Exception:
-            # Fallback: rough estimation (1 token ≈ 4 characters)
+            # Fallback: rough estimation (1 token Γëê 4 characters)
             return len(text) // 4
 
     def count_messages_tokens(self, messages: List[LLMMessage], model: str) -> int:

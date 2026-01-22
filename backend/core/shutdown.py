@@ -1,4 +1,4 @@
-"""
+﻿"""
 Application shutdown module for Raptorflow backend.
 Handles graceful shutdown of all services and cleanup.
 """

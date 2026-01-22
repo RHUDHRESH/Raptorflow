@@ -1,4 +1,4 @@
-"""
+﻿"""
 Raptorflow Base Tool Classes
 ===========================
 

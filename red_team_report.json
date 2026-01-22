@@ -1,0 +1,90 @@
+{
+  "assessment_date": "2026-01-11T08:13:17.052550",
+  "vulnerabilities": [
+    {
+      "severity": "LOW",
+      "title": "Injection Resistance",
+      "description": "System resists injection attempts",
+      "evidence": "All 7 injection attempts blocked",
+      "fix_status": "FIXED",
+      "timestamp": "2026-01-11T08:10:54.602690"
+    },
+    {
+      "severity": "LOW",
+      "title": "Rate Limiting Present",
+      "description": "Some requests were limited",
+      "evidence": "Only 0/20 requests succeeded",
+      "fix_status": "FIXED",
+      "timestamp": "2026-01-11T08:12:15.907500"
+    },
+    {
+      "severity": "LOW",
+      "title": "Error Handling",
+      "description": "Exception for 50K character prompt",
+      "evidence": "HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /ai/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002475112C590>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "fix_status": "UNFIXED",
+      "timestamp": "2026-01-11T08:12:20.000662"
+    },
+    {
+      "severity": "LOW",
+      "title": "Error Handling",
+      "description": "Exception for 1000 number addition",
+      "evidence": "HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /ai/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002475112C800>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "fix_status": "UNFIXED",
+      "timestamp": "2026-01-11T08:12:24.093082"
+    },
+    {
+      "severity": "LOW",
+      "title": "Error Handling",
+      "description": "Exception for Complex multi-part reasoning",
+      "evidence": "HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /ai/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002475112EED0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "fix_status": "UNFIXED",
+      "timestamp": "2026-01-11T08:12:28.170858"
+    },
+    {
+      "severity": "LOW",
+      "title": "Error Handling",
+      "description": "Exception for Recursive generation",
+      "evidence": "HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /ai/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002475112F770>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "fix_status": "UNFIXED",
+      "timestamp": "2026-01-11T08:12:32.239044"
+    },
+    {
+      "severity": "LOW",
+      "title": "Concurrency Safe",
+      "description": "Concurrent access handled consistently",
+      "evidence": "All 0 requests used same model",
+      "fix_status": "FIXED",
+      "timestamp": "2026-01-11T08:13:17.047784"
+    }
+  ],
+  "fixes": [
+    {
+      "vulnerability": "Error Handling",
+      "severity": "LOW",
+      "fix": "# FIX: Review and implement proper security measures"
+    },
+    {
+      "vulnerability": "Error Handling",
+      "severity": "LOW",
+      "fix": "# FIX: Review and implement proper security measures"
+    },
+    {
+      "vulnerability": "Error Handling",
+      "severity": "LOW",
+      "fix": "# FIX: Review and implement proper security measures"
+    },
+    {
+      "vulnerability": "Error Handling",
+      "severity": "LOW",
+      "fix": "# FIX: Review and implement proper security measures"
+    }
+  ],
+  "summary": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 7,
+    "total": 7
+  }
+}

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+﻿import { createClient } from '@supabase/supabase-js';
 import { AI_CONFIG, validateModelUsage, getUniversalModel } from './ai-config';
 import { costTracker, calculateCost } from './cost-tracker';
 

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Health checks system for Raptorflow agent system.
 Monitors system health and detects issues.
 """

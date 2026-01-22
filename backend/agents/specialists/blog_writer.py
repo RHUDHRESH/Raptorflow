@@ -1,4 +1,4 @@
-"""
+﻿"""
 BlogWriter specialist agent for Raptorflow marketing automation.
 Handles blog content creation, SEO optimization, and thought leadership.
 """
@@ -1018,7 +1018,7 @@ The content should be comprehensive, well-researched, and provide genuine value 
 
     def _format_blog_response(self, post: BlogPost) -> str:
         """Format blog post response for user."""
-        response = f"📝 **Blog Post Created**\n\n"
+        response = f"≡ƒô¥ **Blog Post Created**\n\n"
         response += f"**Title:** {post.title}\n"
         response += f"**Content Type:** {post.metadata['content_type'].replace('_', ' ').title()}\n"
         response += f"**Word Count:** {post.word_count:,}\n"

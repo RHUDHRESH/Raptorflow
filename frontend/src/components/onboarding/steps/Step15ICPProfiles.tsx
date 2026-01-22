@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import gsap from "gsap";
@@ -9,14 +9,14 @@ import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { StepLoadingState } from "../StepStates";
 import { cn } from "@/lib/utils";
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   PAPER TERMINAL — Step 15: ICP Profiles (Deep Research)
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   PAPER TERMINAL ΓÇö Step 15: ICP Profiles (Deep Research)
    
    PURPOSE: "No Scroll" ICP Selector + Rich Detail View.
    - Horizontal "Player Cards" for selection phase.
    - Full-Screen Detail View with deep psychographics/demographics.
    - Data derived from Strategy (Step 9/13).
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface ICPProfile {
     id: string;
@@ -85,9 +85,9 @@ function ProfileCard({ profile, isPrimary, isSecondary, onSelect, onDetails }: a
     );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 // FULL SCREEN DETAIL OVERLAY
-// ═══════════════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function DetailOverlay({ profile, onClose, onSetPrimary, onSetSecondary, isPrimary, isSecondary }: any) {
     useEffect(() => {
         gsap.fromTo("#detail-content", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3 });
@@ -125,7 +125,7 @@ function DetailOverlay({ profile, onClose, onSetPrimary, onSetSecondary, isPrima
 
                     {/* Col 1: WHO THEY ARE */}
                     <div className="space-y-6">
-                        <h3 className="font-technical text-[10px] uppercase tracking-widest text-[var(--blueprint)] border-b pb-2">01 — Identity & Demographics</h3>
+                        <h3 className="font-technical text-[10px] uppercase tracking-widest text-[var(--blueprint)] border-b pb-2">01 ΓÇö Identity & Demographics</h3>
 
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
@@ -156,7 +156,7 @@ function DetailOverlay({ profile, onClose, onSetPrimary, onSetSecondary, isPrima
 
                     {/* Col 2: PSYCHOGRAPHICS */}
                     <div className="space-y-6">
-                        <h3 className="font-technical text-[10px] uppercase tracking-widest text-[var(--blueprint)] border-b pb-2">02 — The Inner Game</h3>
+                        <h3 className="font-technical text-[10px] uppercase tracking-widest text-[var(--blueprint)] border-b pb-2">02 ΓÇö The Inner Game</h3>
 
                         <div>
                             <span className="block text-[var(--muted)] text-[10px] uppercase mb-2">Core Beliefs</span>
@@ -171,7 +171,7 @@ function DetailOverlay({ profile, onClose, onSetPrimary, onSetSecondary, isPrima
                             <span className="block text-[var(--muted)] text-[10px] uppercase mb-2 text-[var(--error)]">Fears & Anxieties</span>
                             <ul className="space-y-2">
                                 {profile.psychographics.fears.map((f: string, i: number) => (
-                                    <li key={i} className="text-sm text-[var(--secondary)]">• {f}</li>
+                                    <li key={i} className="text-sm text-[var(--secondary)]">ΓÇó {f}</li>
                                 ))}
                             </ul>
                         </div>
@@ -179,7 +179,7 @@ function DetailOverlay({ profile, onClose, onSetPrimary, onSetSecondary, isPrima
 
                     {/* Col 3: BEHAVIORS & MARKET */}
                     <div className="space-y-6">
-                        <h3 className="font-technical text-[10px] uppercase tracking-widest text-[var(--blueprint)] border-b pb-2">03 — Behavior & Context</h3>
+                        <h3 className="font-technical text-[10px] uppercase tracking-widest text-[var(--blueprint)] border-b pb-2">03 ΓÇö Behavior & Context</h3>
 
                         <div>
                             <span className="block text-[var(--muted)] text-[10px] uppercase mb-2">Market Sophistication</span>
