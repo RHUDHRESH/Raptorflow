@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- Create custom types
 CREATE TYPE onboarding_status AS ENUM (
   'pending_workspace',
-  'pending_storage', 
+  'pending_storage',
   'pending_plan_selection',
   'pending_payment',
   'active',
@@ -37,48 +37,69 @@ CREATE TABLE users (
   full_name TEXT,
   avatar_url TEXT,
   phone TEXT,
-  
+
   -- Onboarding state (THIS IS THE SOURCE OF TRUTH)
   onboarding_status onboarding_status NOT NULL DEFAULT 'pending_workspace',
-  
+
   -- User role and permissions
   role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'super_admin', 'support', 'billing_admin')),
-  
+
   -- Account status
   is_active BOOLEAN DEFAULT true,
   is_banned BOOLEAN DEFAULT false,
   ban_reason TEXT,
   banned_at TIMESTAMPTZ,
   banned_by UUID REFERENCES users(id),
-  
+
   -- Admin notes
   notes TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   last_login_at TIMESTAMPTZ
 );
 
--- Workspaces table - One per user
+-- Workspaces table - Can have multiple members
 CREATE TABLE workspaces (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
-  
+
   -- GCS Storage information
   gcs_bucket_name TEXT,
   gcs_folder_path TEXT,
   storage_quota_bytes BIGINT DEFAULT 5368709120, -- 5GB default
   storage_used_bytes BIGINT DEFAULT 0,
-  
+
   -- Status
-  status TEXT NOT NULL DEFAULT 'provisioning' CHECK (status IN ('provisioning', 'active', 'suspended', 'deleted')),
-  
+  is_active BOOLEAN DEFAULT TRUE,
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Workspace Members table - Track team members
+CREATE TABLE workspace_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- Relations
+  workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+  -- Member details
+  role TEXT DEFAULT 'member' CHECK (role IN ('owner', 'admin', 'member')),
+  permissions JSONB DEFAULT '{}',
+
+  -- Status
+  is_active BOOLEAN DEFAULT TRUE,
+  invited_at TIMESTAMPTZ,
+  joined_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- Constraints
+  UNIQUE(workspace_id, user_id)
 );
 
 -- Plans table - Available subscription plans
@@ -88,21 +109,21 @@ CREATE TABLE plans (
   description TEXT,
   price_monthly_paise INTEGER NOT NULL,
   price_yearly_paise INTEGER NOT NULL,
-  
+
   -- Features (JSON for flexibility)
   features JSONB NOT NULL DEFAULT '{}',
-  
+
   -- Limits
   storage_limit_bytes BIGINT NOT NULL,
   api_calls_limit INTEGER,
   projects_limit INTEGER,
   team_members_limit INTEGER,
-  
+
   -- Display settings
   is_active BOOLEAN DEFAULT TRUE,
   display_order INTEGER DEFAULT 0,
   popular BOOLEAN DEFAULT FALSE,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -111,29 +132,29 @@ CREATE TABLE plans (
 CREATE TABLE subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  
+
   -- Plan details
   plan_id TEXT NOT NULL REFERENCES plans(id),
   plan_name TEXT NOT NULL,
   price_monthly_paise INTEGER NOT NULL,
-  
+
   -- Billing cycle
   billing_cycle billing_cycle NOT NULL DEFAULT 'monthly',
-  
+
   -- PhonePe specific
   phonepe_subscription_id TEXT,
   phonepe_customer_id TEXT,
   phonepe_transaction_id TEXT,
-  
+
   -- Status
   status subscription_status NOT NULL DEFAULT 'pending',
-  
+
   -- Dates
   current_period_start TIMESTAMPTZ,
   current_period_end TIMESTAMPTZ,
   cancelled_at TIMESTAMPTZ,
   trial_end TIMESTAMPTZ,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -146,28 +167,28 @@ CREATE TABLE payment_transactions (
   transaction_id TEXT UNIQUE NOT NULL, -- PhonePe transaction ID
   amount_paise INTEGER NOT NULL,
   currency TEXT DEFAULT 'INR',
-  
+
   -- Related entities
   subscription_id UUID REFERENCES subscriptions(id) ON DELETE CASCADE,
   plan_id TEXT REFERENCES plans(id),
   billing_cycle billing_cycle,
-  
+
   -- Status and details
   status TEXT NOT NULL DEFAULT 'initiated' CHECK (status IN (
     'initiated', 'pending', 'completed', 'failed', 'refunded', 'cancelled'
   )),
-  
+
   -- PhonePe response
   phonepe_response JSONB,
-  
+
   -- Refund information
   refund_amount_paise INTEGER DEFAULT 0,
   refund_id TEXT,
   refund_reason TEXT,
-  
+
   -- Metadata
   metadata JSONB DEFAULT '{}',
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -179,17 +200,17 @@ CREATE TABLE user_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   session_token TEXT UNIQUE NOT NULL,
-  
+
   -- Session details
   ip_address INET,
   user_agent TEXT,
   device_fingerprint TEXT,
-  
+
   -- Status
   is_active BOOLEAN DEFAULT true,
   revoked_at TIMESTAMPTZ,
   revoked_reason TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   last_accessed_at TIMESTAMPTZ DEFAULT NOW(),
@@ -199,33 +220,33 @@ CREATE TABLE user_sessions (
 -- Audit logs table - Track all important actions
 CREATE TABLE audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Actor information
   actor_id UUID REFERENCES users(id),
   actor_cin TEXT, -- Corporate Identification Number
   actor_role TEXT,
-  
+
   -- Action details
   action TEXT NOT NULL,
   action_category TEXT NOT NULL DEFAULT 'user',
   description TEXT,
-  
+
   -- Target information
   target_type TEXT,
   target_id UUID,
   target_cin TEXT,
-  
+
   -- Changes
   changes JSONB,
-  
+
   -- Status
   status TEXT DEFAULT 'success',
   error_message TEXT,
-  
+
   -- Metadata
   ip_address INET,
   user_agent TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -233,27 +254,27 @@ CREATE TABLE audit_logs (
 -- Admin actions table - Specific admin operations
 CREATE TABLE admin_actions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Admin information
   admin_id UUID NOT NULL REFERENCES users(id),
   admin_cin TEXT,
   admin_email TEXT,
-  
+
   -- Action details
   action_type TEXT NOT NULL,
   target_user_id UUID REFERENCES users(id),
   target_user_cin TEXT,
   target_user_email TEXT,
-  
+
   -- Details
   description TEXT,
   reason TEXT,
   changes JSONB,
-  
+
   -- Metadata
   ip_address INET,
   user_agent TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -261,24 +282,24 @@ CREATE TABLE admin_actions (
 -- Security events table - Track security-related events
 CREATE TABLE security_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Event details
   event_type TEXT NOT NULL,
   severity TEXT DEFAULT 'info' CHECK (severity IN ('info', 'warning', 'critical')),
-  
+
   -- User information
   user_id UUID REFERENCES users(id),
   user_cin TEXT,
   user_email TEXT,
-  
+
   -- Event details
   description TEXT,
   details JSONB,
-  
+
   -- Metadata
   ip_address INET,
   user_agent TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -291,9 +312,12 @@ CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_is_active ON users(is_active);
 CREATE INDEX idx_users_created_at ON users(created_at);
 
-CREATE INDEX idx_workspaces_user_id ON workspaces(user_id);
+CREATE INDEX idx_workspaces_owner_id ON workspaces(owner_id);
 CREATE INDEX idx_workspaces_slug ON workspaces(slug);
-CREATE INDEX idx_workspaces_status ON workspaces(status);
+CREATE INDEX idx_workspaces_is_active ON workspaces(is_active);
+
+CREATE INDEX idx_workspace_members_workspace_id ON workspace_members(workspace_id);
+CREATE INDEX idx_workspace_members_user_id ON workspace_members(user_id);
 
 CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX idx_subscriptions_status ON subscriptions(status);
@@ -341,14 +365,43 @@ CREATE TRIGGER update_payment_transactions_updated_at BEFORE UPDATE ON payment_t
 -- Create function to handle user creation from auth trigger
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRigger AS $$
+DECLARE
+  new_user_id UUID;
+  new_workspace_id UUID;
+  workspace_slug TEXT;
 BEGIN
+  -- Insert user record
   INSERT INTO public.users (auth_user_id, email, full_name, avatar_url)
   VALUES (
     NEW.id,
     NEW.email,
     NEW.raw_user_meta_data->>'full_name',
     NEW.raw_user_meta_data->>'avatar_url'
+  )
+  RETURNING id INTO new_user_id;
+
+  -- Generate unique workspace slug from email
+  workspace_slug := LOWER(REGEXP_REPLACE(SPLIT_PART(NEW.email, '@', 1), '[^a-zA-Z0-9]', '-', 'g')) || '-' || SUBSTR(MD5(NEW.id::TEXT), 1, 8);
+
+  -- Create default workspace for user
+  INSERT INTO public.workspaces (owner_id, name, slug, is_active)
+  VALUES (
+    new_user_id,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', SPLIT_PART(NEW.email, '@', 1)) || '''s Workspace',
+    workspace_slug,
+    TRUE
+  )
+  RETURNING id INTO new_workspace_id;
+
+  -- Add user as workspace member with owner role
+  INSERT INTO public.workspace_members (workspace_id, user_id, role, is_active)
+  VALUES (
+    new_workspace_id,
+    new_user_id,
+    'owner',
+    TRUE
   );
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -370,25 +423,25 @@ CREATE POLICY "Users can view own profile" ON users FOR SELECT USING (auth_user_
 CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth_user_id = auth.uid());
 CREATE POLICY "Admins can view all users" ON users FOR SELECT USING (
   EXISTS (
-    SELECT 1 FROM users 
-    WHERE auth_user_id = auth.uid() 
+    SELECT 1 FROM users
+    WHERE auth_user_id = auth.uid()
     AND role IN ('admin', 'super_admin', 'support', 'billing_admin')
   )
 );
 CREATE POLICY "Admins can update users" ON users FOR UPDATE USING (
   EXISTS (
-    SELECT 1 FROM users 
-    WHERE auth_user_id = auth.uid() 
+    SELECT 1 FROM users
+    WHERE auth_user_id = auth.uid()
     AND role IN ('admin', 'super_admin')
   )
 );
 
 -- Workspaces policies
 CREATE POLICY "Users can view own workspace" ON workspaces FOR SELECT USING (
-  user_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
+  owner_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
 );
 CREATE POLICY "Users can update own workspace" ON workspaces FOR UPDATE USING (
-  user_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
+  owner_id = (SELECT id FROM users WHERE auth_user_id = auth.uid())
 );
 
 -- Subscriptions policies
@@ -397,8 +450,8 @@ CREATE POLICY "Users can view own subscription" ON subscriptions FOR SELECT USIN
 );
 CREATE POLICY "Admins can view all subscriptions" ON subscriptions FOR SELECT USING (
   EXISTS (
-    SELECT 1 FROM users 
-    WHERE auth_user_id = auth.uid() 
+    SELECT 1 FROM users
+    WHERE auth_user_id = auth.uid()
     AND role IN ('admin', 'super_admin', 'billing_admin')
   )
 );
@@ -409,8 +462,8 @@ CREATE POLICY "Users can view own transactions" ON payment_transactions FOR SELE
 );
 CREATE POLICY "Admins can view all transactions" ON payment_transactions FOR SELECT USING (
   EXISTS (
-    SELECT 1 FROM users 
-    WHERE auth_user_id = auth.uid() 
+    SELECT 1 FROM users
+    WHERE auth_user_id = auth.uid()
     AND role IN ('admin', 'super_admin', 'billing_admin')
   )
 );

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Check, ArrowRight } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { BlueprintCard } from '@/components/ui/BlueprintCard';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 const BlueprintButton = dynamic(() => import('@/components/ui/BlueprintButton').then(mod => ({ default: mod.BlueprintButton })), { ssr: false });
 

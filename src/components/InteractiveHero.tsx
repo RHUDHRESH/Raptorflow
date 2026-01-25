@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { BlueprintCard, CardFooter } from "@/components/ui/BlueprintCard";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    INTERACTIVE HERO SECTION - Client Component

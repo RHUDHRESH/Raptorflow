@@ -1,6 +1,6 @@
 /**
  * 🔐 OAUTH BUTTON - Quiet Luxury Edition
- * 
+ *
  * Google OAuth integration using Supabase Auth.
  * Clean, premium design following RaptorFlow guidelines.
  */
@@ -98,10 +98,19 @@ export function OAuthButton({
                 return;
             }
 
+            // Generate CSRF state token
+            const stateToken = crypto.randomUUID();
+
+            // Store state in cookie for server-side validation
+            if (typeof window !== 'undefined') {
+                document.cookie = `oauth_state=${stateToken}; path=/; max-age=600; SameSite=Lax; Secure`;
+                document.cookie = `oauth_redirect=${encodeURIComponent(redirectTo)}; path=/; max-age=600; SameSite=Lax; Secure`;
+            }
+
             const { error: authError } = await supabase.auth.signInWithOAuth({
                 provider: provider,
                 options: {
-                    redirectTo: `${window.location.origin}${redirectTo}`,
+                    redirectTo: `${window.location.origin}/auth/callback?state=${stateToken}`,
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'consent',

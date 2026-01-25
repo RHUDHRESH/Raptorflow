@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export interface OnboardingStep {
   id: string;
@@ -55,58 +55,58 @@ export class OnboardingSyncError extends Error {
 export const useOnboardingSync = () => {
   const { workspace } = useWorkspace();
   const { user } = useAuth();
-  
+
   const [state, setState] = useState<OnboardingState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  
+
   const websocketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // WebSocket connection
   const connectWebSocket = useCallback(() => {
     if (!workspace?.id || !user) return;
-    
+
     const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'}/api/v1/onboarding/ws/${workspace.id}`;
     const ws = new WebSocket(wsUrl);
-    
+
     ws.onopen = () => {
       console.log('Onboarding WebSocket connected');
       setIsConnected(true);
       setError(null);
-      
+
       // Start heartbeat
       heartbeatIntervalRef.current = setInterval(() => {
         ws.send(JSON.stringify({ type: 'ping' }));
       }, 30000);
     };
-    
+
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        
+
         switch (message.type) {
           case 'step_completed':
             console.log('Step completed:', message.step_id);
             // Refresh state
             fetchState();
             break;
-            
+
           case 'step_reset':
             console.log('Step reset:', message.step_id);
             fetchState();
             break;
-            
+
           case 'status_update':
             setState(message.data);
             break;
-            
+
           case 'pong':
             // Heartbeat response
             break;
-            
+
           default:
             console.log('Unknown WebSocket message:', message);
         }
@@ -114,16 +114,16 @@ export const useOnboardingSync = () => {
         console.error('Error parsing WebSocket message:', err);
       }
     };
-    
+
     ws.onclose = (event) => {
       console.log('Onboarding WebSocket disconnected:', event.code, event.reason);
       setIsConnected(false);
-      
+
       // Clear heartbeat
       if (heartbeatIntervalRef.current) {
         clearInterval(heartbeatIntervalRef.current);
       }
-      
+
       // Reconnect after delay
       if (event.code !== 1000) { // Not a normal closure
         reconnectTimeoutRef.current = setTimeout(() => {
@@ -131,19 +131,19 @@ export const useOnboardingSync = () => {
         }, 5000);
       }
     };
-    
+
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
       setError('WebSocket connection error');
     };
-    
+
     websocketRef.current = ws;
   }, [workspace?.id, user]);
-  
+
   // Fetch current state
   const fetchState = useCallback(async () => {
     if (!workspace?.id) return;
-    
+
     try {
       setLoading(true);
       const response = await fetch(`/api/v1/onboarding/status?workspace_id=${workspace.id}`, {
@@ -151,11 +151,11 @@ export const useOnboardingSync = () => {
           'Authorization': `Bearer ${await user?.getIdToken()}`,
         },
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       setState(data);
       setError(null);
@@ -166,13 +166,13 @@ export const useOnboardingSync = () => {
       setLoading(false);
     }
   }, [workspace?.id, user]);
-  
+
   // Execute step
   const executeStep = useCallback(async (stepId: string, data: any): Promise<StepExecutionResult> => {
     if (!workspace?.id) {
       throw new OnboardingSyncError('No workspace selected', 'NO_WORKSPACE');
     }
-    
+
     try {
       const response = await fetch('/api/v1/onboarding/step', {
         method: 'POST',
@@ -186,7 +186,7 @@ export const useOnboardingSync = () => {
           workspace_id: workspace.id,
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new OnboardingSyncError(
@@ -195,14 +195,14 @@ export const useOnboardingSync = () => {
           errorData
         );
       }
-      
+
       const result = await response.json();
-      
+
       // Update local state
       if (result.progress) {
         setState(result.progress);
       }
-      
+
       return result;
     } catch (err) {
       if (err instanceof OnboardingSyncError) {
@@ -214,13 +214,13 @@ export const useOnboardingSync = () => {
       );
     }
   }, [workspace?.id, user]);
-  
+
   // Resume onboarding
   const resumeOnboarding = useCallback(async () => {
     if (!workspace?.id) {
       throw new OnboardingSyncError('No workspace selected', 'NO_WORKSPACE');
     }
-    
+
     try {
       const response = await fetch('/api/v1/onboarding/resume', {
         method: 'POST',
@@ -232,7 +232,7 @@ export const useOnboardingSync = () => {
           workspace_id: workspace.id,
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new OnboardingSyncError(
@@ -240,14 +240,14 @@ export const useOnboardingSync = () => {
           errorData.code || 'HTTP_ERROR'
         );
       }
-      
+
       const result = await response.json();
-      
+
       // Update local state
       if (result.progress) {
         setState(result.progress);
       }
-      
+
       return result;
     } catch (err) {
       if (err instanceof OnboardingSyncError) {
@@ -259,24 +259,24 @@ export const useOnboardingSync = () => {
       );
     }
   }, [workspace?.id, user]);
-  
+
   // Get next step
   const getNextStep = useCallback(async () => {
     if (!workspace?.id) {
       throw new OnboardingSyncError('No workspace selected', 'NO_WORKSPACE');
     }
-    
+
     try {
       const response = await fetch(`/api/v1/onboarding/next-step?workspace_id=${workspace.id}`, {
         headers: {
           'Authorization': `Bearer ${await user?.getIdToken()}`,
         },
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (err) {
       throw new OnboardingSyncError(
@@ -285,24 +285,24 @@ export const useOnboardingSync = () => {
       );
     }
   }, [workspace?.id, user]);
-  
+
   // Get step data
   const getStepData = useCallback(async (stepId: string) => {
     if (!workspace?.id) {
       throw new OnboardingSyncError('No workspace selected', 'NO_WORKSPACE');
     }
-    
+
     try {
       const response = await fetch(`/api/v1/onboarding/step-data/${stepId}?workspace_id=${workspace.id}`, {
         headers: {
           'Authorization': `Bearer ${await user?.getIdToken()}`,
         },
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (err) {
       throw new OnboardingSyncError(
@@ -311,13 +311,13 @@ export const useOnboardingSync = () => {
       );
     }
   }, [workspace?.id, user]);
-  
+
   // Reset step (for debugging)
   const resetStep = useCallback(async (stepId: string) => {
     if (!workspace?.id) {
       throw new OnboardingSyncError('No workspace selected', 'NO_WORKSPACE');
     }
-    
+
     try {
       const response = await fetch('/api/v1/onboarding/reset-step', {
         method: 'POST',
@@ -330,14 +330,14 @@ export const useOnboardingSync = () => {
           workspace_id: workspace.id,
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      
+
       // Refresh state
       await fetchState();
-      
+
       return await response.json();
     } catch (err) {
       throw new OnboardingSyncError(
@@ -346,24 +346,24 @@ export const useOnboardingSync = () => {
       );
     }
   }, [workspace?.id, user, fetchState]);
-  
+
   // Check sync status
   const checkSync = useCallback(async () => {
     if (!workspace?.id) {
       throw new OnboardingSyncError('No workspace selected', 'NO_WORKSPACE');
     }
-    
+
     try {
       const response = await fetch(`/api/v1/onboarding/sync-check?workspace_id=${workspace.id}`, {
         headers: {
           'Authorization': `Bearer ${await user?.getIdToken()}`,
         },
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (err) {
       throw new OnboardingSyncError(
@@ -372,14 +372,14 @@ export const useOnboardingSync = () => {
       );
     }
   }, [workspace?.id, user]);
-  
+
   // Initialize connection and fetch state
   useEffect(() => {
     if (workspace?.id && user) {
       fetchState();
       connectWebSocket();
     }
-    
+
     return () => {
       // Cleanup
       if (websocketRef.current) {
@@ -393,14 +393,14 @@ export const useOnboardingSync = () => {
       }
     };
   }, [workspace?.id, user, fetchState, connectWebSocket]);
-  
+
   return {
     // State
     state,
     loading,
     error,
     isConnected,
-    
+
     // Actions
     executeStep,
     resumeOnboarding,
@@ -409,7 +409,7 @@ export const useOnboardingSync = () => {
     resetStep,
     checkSync,
     fetchState,
-    
+
     // Utilities
     clearError: () => setError(null),
     reconnect: () => connectWebSocket(),

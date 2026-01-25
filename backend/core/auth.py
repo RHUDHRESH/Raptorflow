@@ -3,16 +3,19 @@ Authentication functions for FastAPI
 Handles JWT extraction, user authentication, and workspace resolution
 """
 
+import logging
 from typing import Optional
 
 from fastapi import Depends, Header, HTTPException, Request
 
-from .jwt import JWTValidator, get_jwt_validator
+from .jwt import get_jwt_validator
 from .supabase_mgr import get_supabase_client
+
+logger = logging.getLogger(__name__)
 
 # Import models with fallback to avoid circular imports
 try:
-    from .models import AuthContext, JWTPayload, User, Workspace
+    from .models import AuthContext, User, Workspace
     from .workspace import get_workspace_for_user
 except ImportError:
     # Fallback definitions
@@ -265,19 +268,36 @@ async def get_workspace_id(
 
 
 async def user_owns_workspace(user_id: str, workspace_id: str) -> bool:
-    """Check if user owns the workspace"""
+    """Check if user owns or has access to the workspace"""
     try:
         supabase = get_supabase_client()
-        result = (
+
+        # Check if user is the owner (backend migration schema uses owner_id)
+        owner_result = (
             supabase.table("workspaces")
             .select("id")
             .eq("id", workspace_id)
-            .eq("user_id", user_id)
-            .single()
+            .eq("owner_id", user_id)
             .execute()
         )
-        return result.data is not None
-    except Exception:
+
+        if owner_result.data:
+            return True
+
+        # Check if user is a workspace member with active status
+        member_result = (
+            supabase.table("workspace_members")
+            .select("id, role, is_active")
+            .eq("workspace_id", workspace_id)
+            .eq("user_id", user_id)
+            .eq("is_active", True)
+            .execute()
+        )
+
+        return member_result.data is not None and len(member_result.data) > 0
+
+    except Exception as e:
+        logger.error(f"Error checking workspace access: {e}")
         return False
 
 
@@ -294,39 +314,6 @@ async def get_default_workspace_id(user_id: str) -> Optional[str]:
             .execute()
         )
         return result.data.get("id") if result.data else None
-    except Exception:
-        return None
-
-
-async def get_workspace_for_user(
-    workspace_id: str, user_id: str
-) -> Optional[Workspace]:
-    """Get workspace details for user"""
-    try:
-        supabase = get_supabase_client()
-        result = (
-            supabase.table("workspaces")
-            .select("*")
-            .eq("id", workspace_id)
-            .eq("user_id", user_id)
-            .single()
-            .execute()
-        )
-
-        if not result.data:
-            return None
-
-        workspace_data = result.data
-        return Workspace(
-            id=workspace_data["id"],
-            user_id=workspace_data["user_id"],
-            name=workspace_data["name"],
-            slug=workspace_data.get("slug"),
-            settings=workspace_data.get("settings", {}),
-            created_at=workspace_data.get("created_at"),
-            updated_at=workspace_data.get("updated_at"),
-        )
-
     except Exception:
         return None
 

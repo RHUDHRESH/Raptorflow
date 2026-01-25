@@ -25,6 +25,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   session: Session | null;
   isLoading: boolean;
+  login: (email: string, password: string) => Promise<any>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -81,18 +82,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
+    // 3. Token Refresh Interval - Check every 4 minutes
+    const tokenRefreshInterval = setInterval(async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+        if (currentSession) {
+          const expiresAt = currentSession.expires_at;
+          if (expiresAt) {
+            const expiresAtTimestamp = expiresAt * 1000;
+            const now = Date.now();
+            const timeUntilExpiry = expiresAtTimestamp - now;
+
+            // Refresh if less than 5 minutes until expiry
+            if (timeUntilExpiry < 5 * 60 * 1000) {
+              console.log("🔐 [Auth] Token refresh triggered");
+              await supabase.auth.refreshSession();
+            }
+          }
+        }
+      } catch (error) {
+        console.error("🔐 [Auth] Token refresh error:", error);
+      }
+    }, 4 * 60 * 1000); // Check every 4 minutes
+
     return () => {
       subscription.unsubscribe();
+      clearInterval(tokenRefreshInterval);
     };
   }, []);
 
-  // Fetch User Profile from 'public.profiles'
+  // Fetch User Profile from 'public.users'
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('users')
         .select('*')
-        .eq('id', userId)
+        .eq('auth_user_id', userId)
         .single();
 
       if (error) {
@@ -105,6 +131,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err) {
       console.error("🔐 [Auth] Profile fetch error:", err);
+    }
+  };
+
+  /**
+   * Login with Email and Password
+   */
+  const login = async (email: string, password: string) => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        // Distinguish different error types
+        if (error.message.includes("Invalid login credentials")) {
+          throw new Error("Invalid email or password. Please try again.");
+        } else if (error.message.includes("Email not confirmed")) {
+          throw new Error("Please verify your email address before logging in.");
+        } else if (error.message.includes("User not found")) {
+          throw new Error("No account found with this email address.");
+        } else if (error.message.includes("Too many requests")) {
+          throw new Error("Too many login attempts. Please try again later.");
+        } else {
+          throw new Error(error.message || "Login failed. Please try again.");
+        }
+      }
+
+      // Session will be set automatically by onAuthStateChange
+      return data;
+    } catch (error) {
+      setIsLoading(false);
+      throw error;
     }
   };
 
@@ -128,6 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("🔐 [Auth] Google Login Error:", error);
       setIsLoading(false);
+      throw error;
     }
   };
 
@@ -143,6 +204,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/login");
     } catch (error) {
       console.error("🔐 [Auth] Logout Error:", error);
+      throw error;
     }
   };
 
@@ -151,6 +213,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profile,
     session,
     isLoading,
+    login,
     loginWithGoogle,
     logout,
     isAuthenticated: !!user,

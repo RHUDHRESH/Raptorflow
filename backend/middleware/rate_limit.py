@@ -1,200 +1,216 @@
-﻿"""
-Rate limiting middleware for FastAPI
-Integrates with the core rate limiting system
+"""
+Rate Limiting Middleware
+Prevents brute force attacks and API abuse
 """
 
 import logging
-from typing import Callable
+import time
+from collections import defaultdict
+from datetime import datetime, timedelta
+from typing import Callable, Dict, Tuple
 
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend.core.middleware import get_current_user
-from backend.core.rate_limiter import get_rate_limiter
-
 logger = logging.getLogger(__name__)
 
 
-class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Rate limiting middleware for FastAPI"""
+class RateLimitConfig:
+    """Rate limit configuration"""
 
-    def __init__(self, app, default_limits: dict = None):
-        super().__init__(app)
-        self.rate_limiter = get_rate_limiter()
-        self.default_limits = default_limits or {
-            "api": 100,  # 100 requests per minute
-            "auth": 20,  # 20 requests per minute
-            "agents": 50,  # 50 requests per minute
-            "upload": 10,  # 10 requests per minute
-        }
+    # Requests per minute by endpoint pattern
+    LIMITS = {
+        "/api/v1/auth/login": 5,  # 5 attempts per minute
+        "/api/v1/auth/register": 3,  # 3 signups per minute
+        "/api/v1/auth/password-reset": 3,  # 3 reset requests per minute
+        "/api/v1/auth/refresh": 10,  # 10 refreshes per minute
+        "/api/v1": 100,  # 100 general API requests per minute
+    }
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        """Process request and apply rate limiting"""
+    # Time window in seconds
+    WINDOW = 60
 
-        # Skip rate limiting for health checks and internal routes
-        if self._should_skip_rate_limit(request):
-            return await call_next(request)
+    # Lockout duration after exceeding limit (in seconds)
+    LOCKOUT_DURATION = 900  # 15 minutes
 
-        # Get user info for tier-based limiting
-        user_tier = "free"  # Default tier
-        user_id = self._get_client_id(request)
 
-        try:
-            # Try to get authenticated user
-            user = await get_current_user(request)
-            if user:
-                user_id = user.get("id", user_id)
-                user_tier = user.get("subscription_tier", "free")
-        except Exception:
-            # User not authenticated, use client ID
-            pass
+class RateLimiter:
+    """In-memory rate limiter (use Redis in production)"""
 
-        # Determine endpoint category
-        endpoint_category = self._get_endpoint_category(request)
-
-        # Check rate limit
-        rate_limit_result = await self.rate_limiter.check_rate_limit(
-            user_id=user_id, endpoint=endpoint_category, user_tier=user_tier
+    def __init__(self):
+        # Store: {ip_address: {endpoint: [(timestamp, count)]}}
+        self.requests: Dict[str, Dict[str, list]] = defaultdict(
+            lambda: defaultdict(list)
         )
+        self.lockouts: Dict[str, datetime] = {}
 
-        # Add rate limit headers
-        headers = {
-            "X-RateLimit-Limit": str(rate_limit_result.limit),
-            "X-RateLimit-Remaining": str(rate_limit_result.remaining),
-            "X-RateLimit-Reset": str(int(rate_limit_result.reset_at.timestamp())),
-        }
+    def _get_client_ip(self, request: Request) -> str:
+        """Extract client IP from request"""
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
 
-        # Block request if rate limited
-        if not rate_limit_result.allowed:
-            logger.warning(
-                f"Rate limit exceeded for user {user_id} on {endpoint_category}",
-                extra={
-                    "user_id": user_id,
-                    "endpoint": endpoint_category,
-                    "tier": user_tier,
-                    "limit": rate_limit_result.limit,
-                    "retry_after": rate_limit_result.retry_after,
-                },
-            )
-
-            response = JSONResponse(
-                status_code=429,
-                content={
-                    "error": "Rate limit exceeded",
-                    "message": (
-                        f"Rate limit of {rate_limit_result.limit} requests per "
-                        f"{rate_limit_result.window_seconds} seconds exceeded"
-                    ),
-                    "retry_after": rate_limit_result.retry_after,
-                },
-                headers=headers,
-            )
-
-            if rate_limit_result.retry_after:
-                response.headers["Retry-After"] = str(rate_limit_result.retry_after)
-
-            return response
-
-        # Process request
-        response = await call_next(request)
-
-        # Add rate limit headers to response
-        for key, value in headers.items():
-            response.headers[key] = value
-
-        return response
-
-    def _should_skip_rate_limit(self, request: Request) -> bool:
-        """Check if request should skip rate limiting"""
-
-        # Skip health checks
-        if request.url.path in ["/", "/health", "/api/v1/health"]:
-            return True
-
-        # Skip static files and docs
-        if request.url.path.startswith("/docs") or request.url.path.startswith(
-            "/static"
-        ):
-            return True
-
-        # Skip internal routes
-        if request.url.path.startswith("/internal"):
-            return True
-
-        return False
-
-    def _get_client_id(self, request: Request) -> str:
-        """Get client identifier for rate limiting"""
-
-        # Use user ID if available
-        if hasattr(request.state, "user_id"):
-            return request.state.user_id
-
-        # Use IP address as fallback
-        forwarded_for = request.headers.get("X-Forwarded-For")
-        if forwarded_for:
-            return forwarded_for.split(",")[0].strip()
-
-        real_ip = request.headers.get("X-Real-IP")
+        real_ip = request.headers.get("x-real-ip")
         if real_ip:
             return real_ip
 
         return request.client.host if request.client else "unknown"
 
-    def _get_endpoint_category(self, request: Request) -> str:
-        """Categorize endpoint for rate limiting"""
+    def _get_endpoint_pattern(self, path: str) -> str:
+        """Get the most specific rate limit pattern for a path"""
+        # Check for exact matches first
+        if path in RateLimitConfig.LIMITS:
+            return path
 
-        path = request.url.path
-        method = request.method
+        # Check for prefix matches (longest first)
+        patterns = sorted(RateLimitConfig.LIMITS.keys(), key=len, reverse=True)
+        for pattern in patterns:
+            if path.startswith(pattern):
+                return pattern
 
-        # Auth endpoints
-        if "/auth/" in path or "/login" in path or "/register" in path:
-            return "auth"
+        return "/api/v1"  # Default pattern
 
-        # Agent endpoints
-        if "/agents/" in path:
-            return "agents"
+    def _cleanup_old_requests(self, ip: str, endpoint: str):
+        """Remove requests outside the time window"""
+        current_time = time.time()
+        cutoff_time = current_time - RateLimitConfig.WINDOW
 
-        # Upload endpoints
-        if method in ["POST", "PUT"] and ("/upload" in path or "/files/" in path):
-            return "upload"
+        self.requests[ip][endpoint] = [
+            (ts, count) for ts, count in self.requests[ip][endpoint] if ts > cutoff_time
+        ]
 
-        # Search endpoints
-        if "/search" in path:
-            return "search"
+    def is_rate_limited(self, request: Request) -> Tuple[bool, int, int]:
+        """
+        Check if request should be rate limited
 
-        # Default API category
-        if path.startswith("/api/"):
-            return "api"
+        Returns:
+            Tuple of (is_limited, current_count, limit)
+        """
+        ip = self._get_client_ip(request)
+        endpoint = self._get_endpoint_pattern(request.url.path)
+        limit = RateLimitConfig.LIMITS.get(endpoint, 100)
 
-        # Default for non-API routes
-        return "general"
+        # Check if IP is locked out
+        if ip in self.lockouts:
+            lockout_end = self.lockouts[ip]
+            if datetime.now() < lockout_end:
+                logger.warning(f"IP {ip} is locked out until {lockout_end}")
+                return True, limit + 1, limit
+            else:
+                # Lockout expired, remove it
+                del self.lockouts[ip]
+
+        # Cleanup old requests
+        self._cleanup_old_requests(ip, endpoint)
+
+        # Count requests in current window
+        current_count = sum(count for _, count in self.requests[ip][endpoint])
+
+        # Check if limit exceeded
+        if current_count >= limit:
+            # Add to lockout
+            self.lockouts[ip] = datetime.now() + timedelta(
+                seconds=RateLimitConfig.LOCKOUT_DURATION
+            )
+            logger.warning(
+                f"Rate limit exceeded for IP {ip} on {endpoint}. Locked out for {RateLimitConfig.LOCKOUT_DURATION}s"
+            )
+            return True, current_count, limit
+
+        # Record this request
+        self.requests[ip][endpoint].append((time.time(), 1))
+
+        return False, current_count + 1, limit
+
+    def reset(self, ip: str = None):
+        """Reset rate limits (for testing)"""
+        if ip:
+            if ip in self.requests:
+                del self.requests[ip]
+            if ip in self.lockouts:
+                del self.lockouts[ip]
+        else:
+            self.requests.clear()
+            self.lockouts.clear()
 
 
-def create_rate_limit_middleware(
-    enabled: bool = True,
-    default_limits: dict = None,
-) -> Callable:
+# Global rate limiter instance
+_rate_limiter = RateLimiter()
+
+
+def get_rate_limiter() -> RateLimiter:
+    """Get global rate limiter instance"""
+    return _rate_limiter
+
+
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    """FastAPI middleware for rate limiting"""
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        """Process request and apply rate limiting"""
+        # Skip rate limiting for health checks and static files
+        if request.url.path in ["/health", "/metrics"] or request.url.path.startswith(
+            "/static"
+        ):
+            return await call_next(request)
+
+        # Check rate limit
+        limiter = get_rate_limiter()
+        is_limited, current, limit = limiter.is_rate_limited(request)
+
+        if is_limited:
+            logger.warning(
+                f"Rate limit exceeded: {request.client.host if request.client else 'unknown'} "
+                f"attempted {current}/{limit} requests to {request.url.path}"
+            )
+
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "error": "Too many requests",
+                    "message": "You have exceeded the rate limit. Please try again later.",
+                    "retry_after": RateLimitConfig.LOCKOUT_DURATION,
+                },
+                headers={
+                    "Retry-After": str(RateLimitConfig.LOCKOUT_DURATION),
+                    "X-RateLimit-Limit": str(limit),
+                    "X-RateLimit-Remaining": "0",
+                    "X-RateLimit-Reset": str(
+                        int(time.time() + RateLimitConfig.LOCKOUT_DURATION)
+                    ),
+                },
+            )
+
+        # Add rate limit headers to response
+        response = await call_next(request)
+        response.headers["X-RateLimit-Limit"] = str(limit)
+        response.headers["X-RateLimit-Remaining"] = str(max(0, limit - current))
+        response.headers["X-RateLimit-Reset"] = str(
+            int(time.time() + RateLimitConfig.WINDOW)
+        )
+
+        return response
+
+
+# Decorator for route-specific rate limiting
+def rate_limit(requests_per_minute: int = 60):
     """
-    Create rate limiting middleware factory
+    Decorator to add rate limiting to specific endpoints
 
-    Args:
-        enabled: Whether rate limiting is enabled
-        default_limits: Default rate limits per endpoint category
-
-    Returns:
-        Middleware factory function
+    Usage:
+        @router.post("/special-endpoint")
+        @rate_limit(requests_per_minute=10)
+        async def special_endpoint():
+            return {"status": "ok"}
     """
 
-    if not enabled:
-        # Return no-op middleware if disabled
-        def noop_middleware(app):
-            return app
+    def decorator(func):
+        async def wrapper(*args, **kwargs):
+            # Rate limiting logic would go here
+            # This is a placeholder for route-specific limits
+            return await func(*args, **kwargs)
 
-        return noop_middleware
+        return wrapper
 
-    def middleware_factory(app):
-        return RateLimitMiddleware(app, default_limits)
-
-    return middleware_factory
+    return decorator
