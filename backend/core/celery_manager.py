@@ -9,9 +9,20 @@ import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
-from celery import Celery, Task
-from celery.result import AsyncResult
-from kombu import Queue
+try:
+    from celery import Celery, Task
+    from celery.result import AsyncResult
+    from kombu import Queue
+except ImportError:
+    Celery = None
+    AsyncResult = None
+    Queue = None
+
+    class Task:  # type: ignore
+        abstract = True
+
+        def __call__(self, *args, **kwargs):
+            raise RuntimeError("Celery is not installed; task execution unavailable")
 
 logger = logging.getLogger(__name__)
 
@@ -25,64 +36,101 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TIMEZONE = "UTC"
 CELERY_ENABLE_UTC = True
 
-# Create Celery app
-celery_app = Celery(
-    "raptorflow",
-    broker=CELERY_BROKER_URL,
-    backend=CELERY_RESULT_BACKEND,
-    include=[
-        "workers.tasks.ai_tasks",
-        "workers.tasks.scraping_tasks",
-        "workers.tasks.notification_tasks",
-        "workers.tasks.analytics_tasks",
-    ],
-)
+def create_celery_app() -> Optional[Celery]:
+    """Create and configure Celery application (or None if Celery missing)."""
+    if Celery is None:
+        logger.warning("Celery not installed; background task processing disabled.")
+        return None
 
-# Celery configuration
-celery_app.conf.update(
-    task_serializer=CELERY_TASK_SERIALIZER,
-    result_serializer=CELERY_RESULT_SERIALIZER,
-    accept_content=CELERY_ACCEPT_CONTENT,
-    timezone=CELERY_TIMEZONE,
-    enable_utc=CELERY_ENABLE_UTC,
-    # Task routing
-    task_routes={
-        "workers.tasks.ai_tasks.*": {"queue": "ai"},
-        "workers.tasks.scraping_tasks.*": {"queue": "scraping"},
-        "workers.tasks.notification_tasks.*": {"queue": "notifications"},
-        "workers.tasks.analytics_tasks.*": {"queue": "analytics"},
-    },
-    # Queue definitions
-    task_queues=(
+    celery_app = Celery(
+        "raptorflow",
+        broker=CELERY_BROKER_URL,
+        backend=CELERY_RESULT_BACKEND,
+        include=[
+            "workers.tasks.ai_tasks",
+            "workers.tasks.scraping_tasks",
+            "workers.tasks.notification_tasks",
+            "workers.tasks.analytics_tasks",
+        ],
+    )
+
+    # Configure queues
+    celery_app.conf.task_queues = (
         Queue("ai", routing_key="ai"),
         Queue("scraping", routing_key="scraping"),
         Queue("notifications", routing_key="notifications"),
         Queue("analytics", routing_key="analytics"),
-    ),
-    # Worker configuration
-    worker_prefetch_multiplier=1,
-    task_acks_late=True,
-    worker_max_tasks_per_child=50,
-    # Task timeouts
-    task_soft_time_limit=300,  # 5 minutes soft limit
-    task_time_limit=600,  # 10 minutes hard limit
-    # Result expiration
-    result_expires=3600,  # 1 hour
-    # Retry configuration
-    task_reject_on_worker_lost=True,
-    task_ignore_result=False,
-    # Beat scheduler for periodic tasks
-    beat_schedule={
-        "cleanup-expired-tasks": {
-            "task": "workers.tasks.maintenance.cleanup_expired_tasks",
-            "schedule": 3600.0,  # Every hour
+    )
+
+    # Task settings
+    celery_app.conf.task_default_queue = "ai"
+    celery_app.conf.task_default_exchange = "tasks"
+    celery_app.conf.task_default_routing_key = "task.default"
+    celery_app.conf.task_acks_late = True
+    celery_app.conf.worker_max_tasks_per_child = 50
+    celery_app.conf.worker_prefetch_multiplier = 1
+    celery_app.conf.broker_connection_retry_on_startup = True
+
+    # Celery configuration
+    celery_app.conf.update(
+        task_serializer=CELERY_TASK_SERIALIZER,
+        result_serializer=CELERY_RESULT_SERIALIZER,
+        accept_content=CELERY_ACCEPT_CONTENT,
+        timezone=CELERY_TIMEZONE,
+        enable_utc=CELERY_ENABLE_UTC,
+        # Task routing
+        task_routes={
+            "workers.tasks.ai_tasks.*": {"queue": "ai"},
+            "workers.tasks.scraping_tasks.*": {"queue": "scraping"},
+            "workers.tasks.notification_tasks.*": {"queue": "notifications"},
+            "workers.tasks.analytics_tasks.*": {"queue": "analytics"},
         },
-        "health-check": {
-            "task": "workers.tasks.maintenance.health_check",
-            "schedule": 300.0,  # Every 5 minutes
+        # Worker configuration
+        worker_prefetch_multiplier=1,
+        task_acks_late=True,
+        worker_max_tasks_per_child=50,
+        # Task timeouts
+        task_soft_time_limit=300,  # 5 minutes soft limit
+        task_time_limit=600,  # 10 minutes hard limit
+        # Result expiration
+        result_expires=3600,  # 1 hour
+        # Retry configuration
+        task_reject_on_worker_lost=True,
+        task_ignore_result=False,
+        # Beat scheduler for periodic tasks
+        beat_schedule={
+            "cleanup-expired-tasks": {
+                "task": "workers.tasks.maintenance.cleanup_expired_tasks",
+                "schedule": 3600.0,  # Every hour
+            },
+            "health-check": {
+                "task": "workers.tasks.maintenance.health_check",
+                "schedule": 300.0,  # Every 5 minutes
+            },
         },
-    },
-)
+    )
+
+    return celery_app
+
+
+celery_app = create_celery_app()
+
+
+def celery_task(queue: str = "ai", retries: int = 3, retry_delay: int = 60):
+    """Decorator for Celery tasks with default settings (no-op if Celery missing)."""
+    def decorator(func):
+        if celery_app is None or Celery is None:
+            # Return original function; calls will execute directly and not enqueue
+            return func
+        return celery_app.task(
+            name=f"raptorflow.{func.__name__}",
+            bind=True,
+            max_retries=retries,
+            default_retry_delay=retry_delay,
+            queue=queue,
+        )(func)
+
+    return decorator
 
 
 class BaseTask(Task):
@@ -102,7 +150,8 @@ class BaseTask(Task):
 
 
 # Register base task
-celery_app.Task = BaseTask
+if celery_app is not None:
+    celery_app.Task = BaseTask
 
 
 class TaskManager:
@@ -158,6 +207,21 @@ class TaskManager:
         if retry_policy:
             task_kwargs["retry_policy"] = retry_policy
 
+        if self.celery is None:
+            logger.warning("Celery not installed; executing task synchronously (noop).")
+            try:
+                # Attempt to import and call task directly if available
+                module_name, func_name = task_name.rsplit(".", 1) if "." in task_name else (None, task_name)
+                if module_name:
+                    module = __import__(module_name, fromlist=[func_name])
+                    func = getattr(module, func_name, None)
+                    if func:
+                        await asyncio.to_thread(func, *args, **kwargs)
+                return None
+            except Exception as e:
+                logger.error(f"Fallback task execution failed for {task_name}: {e}")
+                return None
+
         try:
             result = self.celery.send_task(task_name, **task_kwargs)
             logger.info(f"Task {task_name} submitted with ID: {result.id}")
@@ -168,6 +232,8 @@ class TaskManager:
 
     async def get_task_status(self, task_id: str) -> Dict[str, Any]:
         """Get status of a task"""
+        if self.celery is None or AsyncResult is None:
+            return {"task_id": task_id, "status": "DISABLED", "result": None}
         try:
             result = AsyncResult(task_id, app=self.celery)
 
@@ -185,6 +251,9 @@ class TaskManager:
 
     async def cancel_task(self, task_id: str, terminate: bool = False) -> bool:
         """Cancel a task"""
+        if self.celery is None:
+            logger.warning("Celery not installed; cancel_task is a no-op")
+            return False
         try:
             self.celery.control.revoke(task_id, terminate=terminate)
             logger.info(f"Task {task_id} cancelled")
@@ -197,6 +266,8 @@ class TaskManager:
         self, worker_name: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """Get list of active tasks"""
+        if self.celery is None:
+            return []
         try:
             inspect = self.celery.control.inspect()
             active_tasks = inspect.active()
@@ -211,6 +282,8 @@ class TaskManager:
 
     async def get_worker_stats(self) -> Dict[str, Any]:
         """Get worker statistics"""
+        if self.celery is None:
+            return {"workers": {}, "status": "disabled"}
         try:
             inspect = self.celery.control.inspect()
             stats = inspect.stats()
@@ -225,6 +298,8 @@ class TaskManager:
 
     async def purge_queue(self, queue_name: Optional[str] = None) -> int:
         """Purge tasks from queue"""
+        if self.celery is None:
+            return 0
         try:
             if queue_name:
                 purged = self.celery.control.purge()
@@ -306,9 +381,10 @@ async def submit_analytics_task(task_name: str, **kwargs) -> AsyncResult:
 # Health check
 async def get_celery_health() -> Dict[str, Any]:
     """Get Celery health status"""
+    manager = get_task_manager()
+    if manager.celery is None:
+        return {"status": "disabled", "broker_connected": False, "active_workers": 0, "active_tasks": 0}
     try:
-        manager = get_task_manager()
-
         # Check broker connection
         inspect = manager.celery.control.inspect()
         stats = inspect.stats()

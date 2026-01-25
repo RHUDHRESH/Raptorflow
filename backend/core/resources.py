@@ -7,7 +7,22 @@ import asyncio
 import gc
 import logging
 import psutil
-import resource
+try:
+    import resource
+except ImportError:
+    class _DummyResource:
+        RUSAGE_SELF = 0
+
+        @staticmethod
+        def getrusage(_):
+            # Provide zeroed fields similar to resource.struct_rusage
+            return type(
+                "RUsage",
+                (),
+                {"ru_maxrss": 0, "ru_utime": 0, "ru_stime": 0, "ru_ixrss": 0, "ru_idrss": 0, "ru_isrss": 0},
+            )()
+
+    resource = _DummyResource()
 import threading
 import time
 import weakref

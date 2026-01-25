@@ -449,6 +449,9 @@ class UpstashClient:
 # Global instance
 upstash_client = UpstashClient()
 
+# Backward compatibility alias
+upstash_redis = upstash_client
+
 
 def get_upstash_client() -> UpstashClient:
     """Get Upstash Redis client instance"""

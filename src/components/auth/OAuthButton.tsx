@@ -8,7 +8,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { clientAuth } from '@/lib/auth-service';
 import { Loader2 } from 'lucide-react';
 
 interface OAuthButtonProps {
@@ -81,36 +81,22 @@ export function OAuthButton({
             setIsLoading(true);
             setError(null);
 
-            // 🛠️ MOCK LOGIN FOR DEVELOPMENT
-            if (provider === 'google' && process.env.NEXT_PUBLIC_MOCK_GOOGLE_LOGIN === 'true') {
-                console.log('🔹 Using Mock Google Login');
-                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-
-                const { error } = await supabase.auth.signInWithPassword({
-                    email: 'test@raptorflow.local',
-                    password: 'test123456'
-                });
-
-                if (error) throw error;
-
-                // Redirect manually since signInWithPassword doesn't auto-redirect like OAuth
-                window.location.href = redirectTo;
-                return;
+            // Ensure we're on client side
+            if (typeof window === 'undefined') {
+                throw new Error('OAuth login must be initiated from client side');
             }
 
-            const { error: authError } = await supabase.auth.signInWithOAuth({
-                provider: provider,
-                options: {
-                    redirectTo: `${window.location.origin}${redirectTo}`,
-                    queryParams: {
-                        access_type: 'offline',
-                        prompt: 'consent',
-                    },
+            // Use the centralized auth service
+            const result = await clientAuth.signInWithOAuth(provider, {
+                redirectTo: `${window.location.origin}/auth/callback`,
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent',
                 },
             });
 
-            if (authError) {
-                throw authError;
+            if (!result.success) {
+                throw new Error(result.error || 'OAuth failed');
             }
 
             // OAuth will redirect, so we don't need to do anything here

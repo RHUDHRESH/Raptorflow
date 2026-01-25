@@ -25,7 +25,7 @@ def get_config():
 
 def get_rate_limiter():
     """Get rate limiter instance (backward compatibility)."""
-    from backend.core.rate_limiter import get_rate_limiter as get_core_rate_limiter
+    from core.rate_limiter import get_rate_limiter as get_core_rate_limiter
 
     return get_core_rate_limiter()
 

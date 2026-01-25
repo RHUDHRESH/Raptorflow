@@ -41,7 +41,7 @@ from backend.db.repositories.onboarding import OnboardingRepository
 # Core system imports
 from backend.services.ocr_service import OCRService
 from backend.services.search.orchestrator import SOTASearchOrchestrator as NativeSearch
-from backend.services.storage import enhanced_storage_service
+from backend.services.storage import get_enhanced_storage_service
 from backend.services.vertex_ai_service import vertex_ai_service
 
 # Configure logging
@@ -1136,8 +1136,8 @@ async def upload_file(
         if not session or session.get("workspace_id") != workspace_id:
             raise HTTPException(status_code=403, detail="Access denied")
 
-        # Use enhanced storage service
-        result = await enhanced_storage_service.upload_file(
+        # Use enhanced storage service (lazy getter)
+        result = await get_enhanced_storage_service().upload_file(
             file_content=file_content,
             filename=file.filename,
             workspace_id=workspace_id,

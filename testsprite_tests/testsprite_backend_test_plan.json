@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "user registration with valid email and password",
+    "description": "Test the user registration endpoint to ensure it accepts valid email and password inputs, enforces password security compliance, and creates a new user account successfully."
+  },
+  {
+    "id": "TC002",
+    "title": "email verification before full access",
+    "description": "Verify that the email verification process is mandatory before granting full access to the system, ensuring unverified users cannot access protected resources."
+  },
+  {
+    "id": "TC003",
+    "title": "oauth login account linking",
+    "description": "Test OAuth login flows (e.g., Google OAuth) to confirm that OAuth logins properly link to existing user accounts and handle new account creation if necessary."
+  },
+  {
+    "id": "TC004",
+    "title": "session token validation and auto refresh",
+    "description": "Validate that session tokens are correctly validated on each request, support auto-refresh mechanisms, and that logout properly cleans up sessions."
+  },
+  {
+    "id": "TC005",
+    "title": "free tier icp creation limit enforcement",
+    "description": "Ensure that users on the Free subscription tier are limited to creating a maximum of 3 Ideal Customer Profiles (ICPs), and that attempts to exceed this limit are rejected."
+  },
+  {
+    "id": "TC006",
+    "title": "payment failure handling and retry",
+    "description": "Test the payment processing endpoint to verify that payment failures are handled gracefully with retry mechanisms and that subscription changes take effect immediately upon successful payment."
+  },
+  {
+    "id": "TC007",
+    "title": "csrf token validation and rate limiting",
+    "description": "Verify that all authentication endpoints enforce CSRF token validation and implement rate limiting to prevent brute-force attacks."
+  },
+  {
+    "id": "TC008",
+    "title": "session persistence and multi tab synchronization",
+    "description": "Test that user sessions persist across devices and browser tabs, and that session state is synchronized correctly across multiple tabs."
+  },
+  {
+    "id": "TC009",
+    "title": "role based access control enforcement",
+    "description": "Verify that role-based access control is enforced correctly for admin, standard, and enterprise user roles, restricting access to features and admin dashboard accordingly."
+  },
+  {
+    "id": "TC010",
+    "title": "secure password hashing and https enforcement",
+    "description": "Ensure that all authentication endpoints use HTTPS and that passwords are securely hashed using bcrypt or equivalent algorithms."
+  }
+]

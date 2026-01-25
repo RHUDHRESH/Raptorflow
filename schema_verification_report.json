@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-01-23T04:55:41.945Z",
+  "tables": {
+    "profiles": {
+      "exists": true,
+      "columns": [
+        "id",
+        "email",
+        "full_name",
+        "avatar_url",
+        "role",
+        "workspace_id",
+        "subscription_plan",
+        "subscription_status",
+        "onboarding_status",
+        "is_active",
+        "is_banned",
+        "ban_reason",
+        "created_at",
+        "updated_at"
+      ],
+      "sampleData": {
+        "id": "c6e7ee99-c772-43a2-8beb-99e863b1b1a2",
+        "email": "rhudhreshr@gmail.com",
+        "full_name": "RHUDHRESH",
+        "avatar_url": null,
+        "role": "user",
+        "workspace_id": null,
+        "subscription_plan": "free",
+        "subscription_status": "none",
+        "onboarding_status": "active",
+        "is_active": true,
+        "is_banned": false,
+        "ban_reason": null,
+        "created_at": "2026-01-20T11:39:52.229517+00:00",
+        "updated_at": "2026-01-20T13:07:43.474538+00:00"
+      }
+    },
+    "workspaces": {
+      "exists": true,
+      "columns": [],
+      "sampleData": null
+    },
+    "subscriptions": {
+      "exists": true,
+      "columns": [],
+      "sampleData": null
+    },
+    "payments": {
+      "exists": true,
+      "error": "Could not find the table 'public.payments' in the schema cache"
+    },
+    "email_logs": {
+      "exists": true,
+      "error": "Could not find the table 'public.email_logs' in the schema cache"
+    }
+  },
+  "issues": [
+    "Table 'profiles' has incorrect columns: workspace_id",
+    "Table 'workspaces' missing required columns: id, owner_id, name",
+    "Table 'subscriptions' missing required columns: id, user_id, plan_id, status",
+    "Error accessing table 'payments': Could not find the table 'public.payments' in the schema cache",
+    "Error accessing table 'email_logs': Could not find the table 'public.email_logs' in the schema cache"
+  ],
+  "fixes": [
+    "Remove profiles.workspace_id column (not part of schema)"
+  ]
+}

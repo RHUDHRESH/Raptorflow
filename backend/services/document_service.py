@@ -306,32 +306,29 @@ class DocumentValidator:
         }
 
 
-class GCPStorageManager:
-    """Google Cloud Storage integration for document management."""
+class SupabaseStorageManager:
+    """Supabase Storage integration for document management."""
     
     def __init__(self):
-        self.client = storage.Client()
-        self.bucket_name = settings.ASSETS_BUCKET
-        self.project_id = settings.GCP_PROJECT_ID
+        from ..services.supabase_storage_client import get_supabase_storage_client
+        self.client = get_supabase_storage_client()
         
-        # Initialize GCS client
+        # Initialize Supabase client
         try:
-            self.storage_client = storage.Client(project=self.project_id)
-            self.bucket = self.storage_client.bucket(self.bucket_name)
-            # Test connection
-            self.bucket.reload()
-            logger.info(f"GCS client initialized for bucket: {self.bucket_name}")
-        except GoogleCloudError as e:
-            logger.error(f"Failed to initialize GCS client: {e}")
+            # Test connection by listing a bucket
+            self.client.list_files('workspace-uploads', '')
+            logger.info("Supabase storage client initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize Supabase storage client: {e}")
             raise
     
-    async def upload_file(self, file: UploadFile, gcs_key: str) -> bool:
+    async def upload_file(self, file: UploadFile, storage_path: str) -> bool:
         """
-        Upload file to GCS.
+        Upload file to Supabase Storage.
         
         Args:
             file: File to upload
-            gcs_key: GCS key for file
+            storage_path: Storage path for file
             
         Returns:
             True if upload successful
@@ -340,94 +337,110 @@ class GCPStorageManager:
             # Reset file pointer
             await file.seek(0)
             
-            # Create blob
-            blob = self.bucket.blob(gcs_key)
+            # Read file content
+            file_content = await file.read()
             
-            # Set metadata
-            blob.content_type = file.content_type or 'application/octet-stream'
-            blob.metadata = {
-                'original_filename': file.filename or '',
-                'upload_timestamp': datetime.now(UTC).isoformat()
-            }
+            # Extract bucket and path from storage_path
+            path_parts = storage_path.split('/', 1)
+            bucket = path_parts[0] if len(path_parts) > 1 else 'workspace-uploads'
+            path = path_parts[1] if len(path_parts) > 1 else storage_path
             
-            # Upload to GCS
-            await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: blob.upload_from_file(file)
+            # Upload to Supabase
+            result = self.client.upload_file(
+                bucket=bucket,
+                path=path,
+                file_content=file_content,
+                content_type=file.content_type or 'application/octet-stream',
+                metadata={
+                    'original_filename': file.filename or '',
+                    'upload_timestamp': datetime.now(UTC).isoformat()
+                }
             )
             
-            logger.info(f"Successfully uploaded file to GCS: {gcs_key}")
-            return True
+            if result.get('success'):
+                logger.info(f"Successfully uploaded file to Supabase: {storage_path}")
+                return True
+            else:
+                logger.error(f"Supabase upload failed: {result}")
+                return False
             
         except Exception as e:
-            logger.error(f"GCS upload failed: {e}")
+            logger.error(f"Supabase upload failed: {e}")
             return False
     
-    async def download_file(self, gcs_key: str) -> bytes:
+    async def download_file(self, storage_path: str) -> bytes:
         """
-        Download file from GCS.
+        Download file from Supabase Storage.
         
         Args:
-            gcs_key: GCS key of file
+            storage_path: Storage path of file
             
         Returns:
             File content as bytes
         """
         try:
-            blob = self.bucket.blob(gcs_key)
-            return await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: blob.download_as_bytes()
-            )
+            # Extract bucket and path from storage_path
+            path_parts = storage_path.split('/', 1)
+            bucket = path_parts[0] if len(path_parts) > 1 else 'workspace-uploads'
+            path = path_parts[1] if len(path_parts) > 1 else storage_path
+            
+            # Download from Supabase
+            content = self.client.download_file(bucket, path)
+            return content
             
         except Exception as e:
-            logger.error(f"GCS download failed: {e}")
+            logger.error(f"Supabase download failed: {e}")
             raise HTTPException(status_code=404, detail="File not found or access denied")
     
-    async def delete_file(self, gcs_key: str) -> bool:
+    async def delete_file(self, storage_path: str) -> bool:
         """
-        Delete file from GCS.
+        Delete file from Supabase Storage.
         
         Args:
-            gcs_key: GCS key of file
+            storage_path: Storage path of file
             
         Returns:
             True if deletion successful
         """
         try:
-            blob = self.bucket.blob(gcs_key)
-            await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: blob.delete()
-            )
-            logger.info(f"Successfully deleted file from GCS: {gcs_key}")
+            # Extract bucket and path from storage_path
+            path_parts = storage_path.split('/', 1)
+            bucket = path_parts[0] if len(path_parts) > 1 else 'workspace-uploads'
+            path = path_parts[1] if len(path_parts) > 1 else storage_path
+            
+            # Delete from Supabase
+            self.client.delete_file(bucket, path)
+            logger.info(f"Successfully deleted file from Supabase: {storage_path}")
             return True
             
         except Exception as e:
-            logger.error(f"GCS deletion failed: {e}")
+            logger.error(f"Supabase deletion failed: {e}")
             return False
     
-    def generate_signed_url(self, gcs_key: str, expiration: int = 3600) -> str:
+    def generate_signed_url(self, storage_path: str, expiration: int = 3600) -> str:
         """
         Generate signed URL for file access.
         
         Args:
-            gcs_key: GCS key of file
+            storage_path: Storage path of file
             expiration: URL expiration time in seconds
             
         Returns:
             Signed URL
         """
         try:
-            blob = self.bucket.blob(gcs_key)
-            return blob.generate_signed_url(
-                version="v4",
-                expiration=datetime.now(UTC) + timedelta(seconds=expiration),
-                method="GET"
-            )
-        except GoogleCloudError as e:
+            # Extract bucket and path from storage_path
+            path_parts = storage_path.split('/', 1)
+            bucket = path_parts[0] if len(path_parts) > 1 else 'workspace-uploads'
+            path = path_parts[1] if len(path_parts) > 1 else storage_path
+            
+            # Generate signed URL from Supabase
+            result = self.client.create_signed_url(bucket, path, expiration)
+            return result.get('signedUrl', '')
+            
+        except Exception as e:
             logger.error(f"Failed to generate signed URL: {e}")
-            raise
+            return ''
 
 
 class DocumentService:
@@ -436,7 +449,7 @@ class DocumentService:
     def __init__(self):
         self.validator = DocumentValidator()
         self.virus_scanner = VirusScanner()
-        self.storage_manager = GCPStorageManager()
+        self.storage_manager = SupabaseStorageManager()
         
     async def upload_document(self, file: UploadFile, workspace_id: str, user_id: str) -> DocumentMetadata:
         """
@@ -480,12 +493,12 @@ class DocumentService:
                     }
                 )
             
-            # Generate unique GCS key
+            # Generate unique storage path
             document_id = str(uuid.uuid4())
-            gcs_key = f"{workspace_id}/{user_id}/{document_id}/{file.filename}"
+            storage_path = f"workspace-uploads/{workspace_id}/{user_id}/{document_id}/{file.filename}"
             
-            # Upload to GCS
-            upload_success = await self.storage_manager.upload_file(file, gcs_key)
+            # Upload to Supabase
+            upload_success = await self.storage_manager.upload_file(file, storage_path)
             if not upload_success:
                 raise HTTPException(
                     status_code=500,
@@ -499,7 +512,7 @@ class DocumentService:
             document_metadata = DocumentMetadata(
                 id=document_id,
                 filename=file.filename or "unknown",
-                s3_key=gcs_key,
+                s3_key=storage_path,
                 size=validation_result.file_info.get('size', 0),
                 content_type=validation_result.file_info.get('content_type', 'application/octet-stream'),
                 workspace_id=workspace_id,
@@ -554,14 +567,14 @@ class DocumentService:
             if not doc_metadata:
                 return False
             
-            # Delete from GCS
-            gcs_deleted = await self.storage_manager.delete_file(doc_metadata.s3_key)
+            # Delete from Supabase
+            storage_deleted = await self.storage_manager.delete_file(doc_metadata.s3_key)
             
             # Delete from database
             # Implementation would delete from database
             
             logger.info(f"Document deleted successfully: {document_id}")
-            return gcs_deleted
+            return storage_deleted
             
         except Exception as e:
             logger.error(f"Document deletion failed: {e}")
@@ -615,5 +628,5 @@ class SecurityError(Exception):
 
 
 class StorageError(Exception):
-    """Storage error for GCS operations."""
+    """Storage error for Supabase operations."""
     pass

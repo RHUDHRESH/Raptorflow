@@ -6,6 +6,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { supabase } from "@/lib/supabaseClient";
 
 // --- Types ---
 
@@ -33,6 +34,16 @@ export interface Campaign {
     moves: CampaignMove[];
 }
 
+export interface CampaignCreateInput {
+    name: string;
+    goal: string;
+    objective: string;
+    duration: string;
+    intensity: string;
+    icp: string;
+    channels: string[];
+}
+
 export interface CampaignStore {
     campaigns: Campaign[];
     activeCampaignId: string | null;
@@ -45,6 +56,7 @@ export interface CampaignStore {
     setView: (view: "LIST" | "DETAIL" | "WIZARD") => void;
     fetchCampaigns: (workspaceId: string) => Promise<void>;
     addCampaign: (campaign: Campaign) => void;
+    createCampaign: (payload: CampaignCreateInput, workspaceId: string) => Promise<Campaign | null>;
     updateCampaignMoveStatus: (campaignId: string, moveId: string, newStatus: MoveStatus) => void;
 
     // Getters
@@ -69,6 +81,25 @@ const INITIAL_CAMPAIGNS: Campaign[] = [
     }
 ];
 
+const mapCampaign = (c: any): Campaign => ({
+    id: c.id,
+    name: c.name,
+    status: c.status === "planning" ? "Planned" : c.status === "active" ? "Active" : c.status === "completed" ? "Completed" : "Paused",
+    progress: c.progress || 0,
+    goal: c.description || "Goal not defined",
+    moves: (c.moves || []).map((m: any) => ({
+        id: m.id,
+        title: m.name,
+        type: m.category || "General",
+        status: m.status === "completed" ? "Completed" : m.status === "active" ? "Active" : "Planned",
+        start: m.start_date || "TBD",
+        end: m.end_date || "TBD",
+        items_done: 0,
+        items_total: (m.execution || []).length,
+        desc: m.description || ""
+    }))
+});
+
 export const useCampaignStore = create<CampaignStore>()(
     persist(
         (set, get) => ({
@@ -85,30 +116,20 @@ export const useCampaignStore = create<CampaignStore>()(
             fetchCampaigns: async (workspaceId) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/campaigns/?workspace_id=${workspaceId}`);
+                    const { data: { session } } = await supabase.auth.getSession();
+                    const headers: Record<string, string> = {
+                        "Content-Type": "application/json",
+                        "x-workspace-id": workspaceId,
+                    };
+                    if (session?.access_token) {
+                        headers.Authorization = `Bearer ${session.access_token}`;
+                    }
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/campaigns`, { headers });
                     if (!response.ok) throw new Error("Failed to fetch campaigns");
 
                     const data = await response.json();
 
-                    // Map backend data to frontend interface
-                    const mappedCampaigns: Campaign[] = data.campaigns.map((c: any) => ({
-                        id: c.id,
-                        name: c.name,
-                        status: c.status === "planning" ? "Planned" : c.status === "active" ? "Active" : c.status === "completed" ? "Completed" : "Paused",
-                        progress: c.progress || 0, // Backend might calculate this
-                        goal: c.description || "Goal not defined", // Mapping description to goal if goal missing
-                        moves: (c.moves || []).map((m: any) => ({
-                            id: m.id,
-                            title: m.name,
-                            type: m.category || "General",
-                            status: m.status === "completed" ? "Completed" : m.status === "active" ? "Active" : "Planned",
-                            start: m.start_date || "TBD",
-                            end: m.end_date || "TBD",
-                            items_done: 0,
-                            items_total: (m.execution || []).length,
-                            desc: m.description || ""
-                        }))
-                    }));
+                    const mappedCampaigns: Campaign[] = (data.campaigns || []).map(mapCampaign);
 
                     set({ campaigns: mappedCampaigns, isLoading: false });
                 } catch (e: any) {
@@ -121,6 +142,48 @@ export const useCampaignStore = create<CampaignStore>()(
             addCampaign: (campaign) => set((state) => ({
                 campaigns: [...state.campaigns, campaign]
             })),
+
+            createCampaign: async (payload, workspaceId) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    const headers: Record<string, string> = {
+                        "Content-Type": "application/json",
+                        "x-workspace-id": workspaceId,
+                    };
+                    if (session?.access_token) {
+                        headers.Authorization = `Bearer ${session.access_token}`;
+                    }
+                    const descriptionParts = [
+                        `Goal: ${payload.goal}`,
+                        `Objective: ${payload.objective}`,
+                        `Duration: ${payload.duration}`,
+                        `Intensity: ${payload.intensity}`,
+                        `ICP: ${payload.icp}`,
+                        `Channels: ${payload.channels.join(", ")}`
+                    ];
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/campaigns`, {
+                        method: "POST",
+                        headers,
+                        body: JSON.stringify({
+                            name: payload.name,
+                            description: descriptionParts.join(" | "),
+                        })
+                    });
+                    if (!response.ok) throw new Error("Failed to create campaign");
+                    const data = await response.json();
+                    const mapped = mapCampaign(data);
+                    set((state) => ({
+                        campaigns: [...state.campaigns, mapped],
+                        isLoading: false
+                    }));
+                    return mapped;
+                } catch (e: any) {
+                    console.error("Error creating campaign:", e);
+                    set({ error: e.message, isLoading: false });
+                    return null;
+                }
+            },
 
             updateCampaignMoveStatus: (campaignId, moveId, newStatus) => {
                 set((state) => ({

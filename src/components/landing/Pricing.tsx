@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { CheckmarkCircle02Icon } from "hugeicons-react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { Check } from "lucide-react";
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuthenticatedApi } from '@/hooks/useAuthenticatedApi';
 
 const PLANS = [
     {
@@ -18,7 +19,7 @@ const PLANS = [
             "Matrix analytics dashboard",
             "Email support"
         ],
-        cta: "Start Free Trial",
+        cta: "Start Now",
         highlighted: false
     },
     {
@@ -34,7 +35,7 @@ const PLANS = [
             "Priority support",
             "Blackbox learnings vault"
         ],
-        cta: "Start Free Trial",
+        cta: "Start Now",
         highlighted: true
     },
     {
@@ -59,44 +60,43 @@ export function Pricing() {
     const [isAnnual, setIsAnnual] = useState(true);
     const router = useRouter();
     const { user } = useAuth();
+    const { authenticatedFetch } = useAuthenticatedApi();
     const [isLoading, setIsLoading] = useState(false);
 
     const handlePlanSelection = async (planName: string, billingCycle: string) => {
-      // If user is not authenticated, redirect to login first
+      // If user is not authenticated, redirect to signup first
       if (!user) {
-        router.push('/login');
+        router.push('/signup');
         return;
       }
 
       setIsLoading(true);
       
       try {
-        // Create payment order
-        const response = await fetch('/api/payments/create-order', {
+        // Use authenticated fetch for plan selection
+        const selectionResponse = await authenticatedFetch('/api/onboarding/select-plan', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
           body: JSON.stringify({
-            planSlug: planName,
-            billingCycle: billingCycle,
-            userEmail: user.email,
-            userId: user.userId
+            planId: planName.toLowerCase(), // Convert to plan ID format
+            billingCycle: billingCycle
           })
         });
 
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          // Redirect to PhonePe payment page
-          window.location.href = data.checkoutUrl;
+        if (selectionResponse.ok) {
+          // Redirect to payment page
+          router.push('/onboarding/payment');
         } else {
-          console.error('Payment order creation failed:', data.error);
-          alert('Failed to create payment order. Please try again.');
+          const errorData = await selectionResponse.json();
+          console.error('Plan selection failed:', errorData);
+          alert(`Failed to select plan: ${errorData.error || 'Unknown error'}`);
         }
       } catch (error) {
-        console.error('Payment error:', error);
-        alert('Payment processing failed. Please try again.');
+        console.error('Plan selection error:', error);
+        // Error is already handled by useAuthenticatedApi hook
+        // No need to show alert for auth errors
+        if (!(error instanceof Error && error.message.includes('authenticated'))) {
+          alert('Plan selection failed. Please try again.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -132,7 +132,7 @@ export function Pricing() {
                         transition={{ delay: 0.15 }}
                         className="text-lg text-[var(--secondary)] max-w-2xl mx-auto"
                     >
-                        Start free for 14 days. No credit card required. Cancel anytime.
+                        Start Now. No credit card required. Cancel anytime.
                     </motion.p>
                 </div>
 
@@ -197,7 +197,7 @@ export function Pricing() {
                             <ul className="space-y-3 mb-8">
                                 {plan.features.map((feature, j) => (
                                     <li key={j} className="flex items-start gap-2 text-sm text-[var(--secondary)]">
-                                        {React.createElement(CheckmarkCircle02Icon as any, { className: "w-4 h-4 text-[var(--accent)] flex-shrink-0 mt-0.5" })}
+                                        <Check className="w-4 h-4 text-[var(--accent)] flex-shrink-0 mt-0.5" />
                                         <span>{feature}</span>
                                     </li>
                                 ))}

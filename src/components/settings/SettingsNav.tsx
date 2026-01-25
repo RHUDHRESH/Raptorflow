@@ -4,13 +4,13 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
-    UserIcon,
-    Settings03Icon,
-    PaintBoardIcon,
-    Notification03Icon,
-    SecurityCheckIcon,
-    CreditCardIcon,
-} from "hugeicons-react";
+    User,
+    Settings,
+    Palette,
+    Bell,
+    Shield,
+    CreditCard,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ═══════════════════════════════════════════════════════════════
@@ -25,12 +25,12 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-    { id: "profile", label: "Profile", href: "/settings", icon: UserIcon },
-    { id: "workspace", label: "Workspace", href: "/settings/workspace", icon: Settings03Icon },
-    { id: "appearance", label: "Appearance", href: "/settings/appearance", icon: PaintBoardIcon },
-    { id: "notifications", label: "Notifications", href: "/settings/notifications", icon: Notification03Icon },
-    { id: "security", label: "Security", href: "/settings/security", icon: SecurityCheckIcon },
-    { id: "billing", label: "Billing", href: "/settings/billing", icon: CreditCardIcon },
+    { id: "profile", label: "Profile", href: "/settings", icon: User },
+    { id: "workspace", label: "Workspace", href: "/settings/workspace", icon: Settings },
+    { id: "appearance", label: "Appearance", href: "/settings/appearance", icon: Palette },
+    { id: "notifications", label: "Notifications", href: "/settings/notifications", icon: Bell },
+    { id: "security", label: "Security", href: "/settings/security", icon: Shield },
+    { id: "billing", label: "Billing", href: "/settings/billing", icon: CreditCard },
 ];
 
 export function SettingsNav() {

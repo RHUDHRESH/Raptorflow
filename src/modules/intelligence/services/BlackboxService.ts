@@ -11,7 +11,7 @@ export class BlackboxService {
     
     // In a real implementation, this would call Vertex AI
     // For now, we simulate the database persistence of a generated strategy
-    const supabase = createClient();
+    const supabase = await createClient();
     
     const { data, error } = await supabase
       .from('strategies')

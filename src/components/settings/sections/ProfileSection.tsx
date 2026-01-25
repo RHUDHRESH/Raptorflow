@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Camera02Icon } from "hugeicons-react";
+import { Camera } from "lucide-react";
 import { SettingsGroup, SettingsRow } from "../SettingsRow";
 import { SettingsInput, SettingsTextarea } from "../SettingsInput";
 
@@ -58,7 +58,7 @@ export function ProfileSection({
                     {/* Upload Actions */}
                     <div>
                         <button className="flex items-center gap-2 px-4 py-2 bg-[var(--canvas)] border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--ink)] hover:border-[var(--ink)] transition-colors">
-                            {React.createElement(Camera02Icon as any, { className: "w-4 h-4" })}
+                            <Camera className="w-4 h-4" />
                             Change photo
                         </button>
                         <p className="text-xs text-[var(--muted)] mt-2">

@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, status
-from infrastructure.secrets import get_secrets_manager
+from backend.infrastructure.secrets import get_secrets_manager
 
 from backend.core.celery_manager import get_celery_health
 from backend.core.circuit_breaker import get_resilient_client

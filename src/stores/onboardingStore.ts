@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { ONBOARDING_STEPS, type StepStatus, type StepState } from "@/lib/onboarding-tokens";
 import { supabase } from "@/lib/supabaseClient";
-import { useContextStore } from './contextStore'
+import { useContextStore } from "./contextStore";
 
 // --- Types ---
 export interface OnboardingSession {
@@ -156,29 +156,28 @@ export const useOnboardingStore = create<OnboardingState>()(
             },
 
             completeStep: async (stepId: number) => {
-                set({ saveStatus: "saving" })
+                set({ saveStatus: "saving" });
                 try {
                     const { session } = get();
                     if (!session?.sessionId) {
-                        // No session yet (or local demo), just finish
                         set({ saveStatus: "saved", lastSyncedAt: new Date() });
                         return;
                     }
 
-                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-                    const response = await fetch(`${apiUrl}/api/v1/onboarding/${session.sessionId}/steps/${stepId}/complete`, {
-                        method: "POST",
-                    });
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                    const response = await fetch(
+                        `${apiUrl}/api/v1/onboarding/${session.sessionId}/steps/${stepId}/complete`,
+                        {
+                            method: "POST",
+                        }
+                    );
 
                     if (!response.ok) {
                         throw new Error(`Backend sync failed: ${response.statusText}`);
                     }
 
-                    // Trigger BCM rebuild after step completion
-                    const context = useContextStore()
-                    await context.triggerRebuild(session.sessionId)
+                    await useContextStore.getState().triggerRebuild(session.sessionId);
 
-                    // Success
                     set({ saveStatus: "saved", lastSyncedAt: new Date() });
                 } catch (error) {
                     console.error("Failed to sync step to backend:", error);
@@ -186,31 +185,28 @@ export const useOnboardingStore = create<OnboardingState>()(
                 }
             },
 
-            updateStep: async (stepId: number, data: any) => {
-                set({ saveStatus: "saving" })
+            updateStep: async (stepId: number, data: Record<string, unknown>) => {
+                set({ saveStatus: "saving" });
                 try {
                     const { session } = get();
                     if (!session?.sessionId) {
-                        // No session yet (or local demo), just finish
                         set({ saveStatus: "saved", lastSyncedAt: new Date() });
                         return;
                     }
 
-                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
                     const response = await fetch(`${apiUrl}/api/v1/onboarding/${session.sessionId}/steps/${stepId}`, {
                         method: "PATCH",
                         body: JSON.stringify(data),
+                        headers: { "Content-Type": "application/json" },
                     });
 
                     if (!response.ok) {
                         throw new Error(`Backend sync failed: ${response.statusText}`);
                     }
 
-                    // Trigger BCM rebuild after step update
-                    const context = useContextStore()
-                    await context.triggerRebuild(session.sessionId)
+                    await useContextStore.getState().triggerRebuild(session.sessionId);
 
-                    // Success
                     set({ saveStatus: "saved", lastSyncedAt: new Date() });
                 } catch (error) {
                     console.error("Failed to sync step to backend:", error);

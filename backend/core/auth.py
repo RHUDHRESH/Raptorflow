@@ -1,363 +1,181 @@
-﻿"""
-Authentication functions for FastAPI
-Handles JWT extraction, user authentication, and workspace resolution
-"""
-
+from dataclasses import dataclass
 from typing import Optional
 
-from fastapi import Depends, Header, HTTPException, Request
+from fastapi import Depends, Header, HTTPException, Request, status
 
-from .jwt import JWTValidator, get_jwt_validator
-from .supabase_mgr import get_supabase_client
+from backend.core.jwt import get_jwt_validator
+from backend.core.models import AuthContext, User
+from backend.core.supabase_mgr import get_supabase_client
+from backend.core.workspace import (
+    get_user_workspaces,
+    get_workspace_for_user,
+    validate_workspace_access,
+)
 
-# Import models with fallback to avoid circular imports
-try:
-    from .models import AuthContext, JWTPayload, User, Workspace
-    from .workspace import get_workspace_for_user
-except ImportError:
-    # Fallback definitions
-    from dataclasses import dataclass
-    from datetime import datetime
-    from typing import Any, Dict
 
-    @dataclass
-    class User:
-        id: str
-        email: str
-        full_name: Optional[str] = None
-        avatar_url: Optional[str] = None
-        subscription_tier: str = "free"
-        budget_limit_monthly: float = 1.0
-        onboarding_completed_at: Optional[datetime] = None
-        preferences: Dict[str, Any] = None
-        created_at: Optional[datetime] = None
-        updated_at: Optional[datetime] = None
+@dataclass
+class AuthenticatedUser:
+    user: User
+    token: Optional[str] = None
 
-        def __post_init__(self):
-            if self.preferences is None:
-                self.preferences = {}
 
-    @dataclass
-    class Workspace:
-        id: str
-        user_id: str
-        name: str
-        slug: Optional[str] = None
-        settings: Dict[str, Any] = None
-        created_at: Optional[datetime] = None
-        updated_at: Optional[datetime] = None
+class AuthService:
+    async def handle_supabase_login(self, auth_data: dict) -> None:
+        return None
 
-        def __post_init__(self):
-            if self.settings is None:
-                self.settings = {
-                    "timezone": "Asia/Kolkata",
-                    "currency": "INR",
-                    "language": "en",
-                }
-
-    @dataclass
-    class AuthContext:
-        user: User
-        workspace_id: str
-        workspace: Optional[Workspace] = None
-        permissions: Dict[str, bool] = None
-
-        def __post_init__(self):
-            if self.permissions is None:
-                self.permissions = {
-                    "read": True,
-                    "write": True,
-                    "delete": True,
-                    "admin": False,
-                }
-
-    async def get_workspace_for_user(
-        workspace_id: str, user_id: str
-    ) -> Optional[Workspace]:
-        """Fallback implementation"""
+    async def handle_supabase_logout(self, auth_data: dict) -> None:
         return None
 
 
-# Type alias for authenticated user
-AuthenticatedUser = User
+_auth_service: Optional[AuthService] = None
 
 
-async def get_current_user(request: Request, authorization: str = Header(None)) -> User:
-    """
-    Extract and validate JWT token from Authorization header
-    Returns authenticated user or raises 401
-    """
-    from .audit import get_audit_logger
+def get_auth_service() -> AuthService:
+    global _auth_service
+    if _auth_service is None:
+        _auth_service = AuthService()
+    return _auth_service
 
-    # Get client info for audit logging
-    client_ip = (
-        request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-        or request.headers.get("x-real-ip")
-        or (request.client.host if request.client else "unknown")
-    )
-    user_agent = request.headers.get("user-agent")
 
-    if not authorization:
-        # Log failed auth attempt
-        audit_logger = get_audit_logger()
-        await audit_logger.log_authentication(
-            user_id=None,
-            action="missing_token",
-            ip_address=client_ip,
-            user_agent=user_agent,
-            success=False,
-            error_message="Authorization header required",
+def _fetch_user_record(supabase, user_id: str) -> Optional[dict]:
+    try:
+        result = (
+            supabase.table("profiles").select("*").eq("id", user_id).single().execute()
         )
-
-        raise HTTPException(
-            status_code=401,
-            detail="Authorization header required",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # Extract token from header
-    validator = get_jwt_validator()
-    token = validator.extract_token(authorization)
-
-    if not token:
-        # Log failed auth attempt
-        audit_logger = get_audit_logger()
-        await audit_logger.log_authentication(
-            user_id=None,
-            action="invalid_header_format",
-            ip_address=client_ip,
-            user_agent=user_agent,
-            success=False,
-            error_message="Invalid authorization header format",
-        )
-
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authorization header format",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # Verify token
-    jwt_payload = validator.verify_token(token)
-
-    if not jwt_payload:
-        # Log failed auth attempt
-        audit_logger = get_audit_logger()
-        await audit_logger.log_authentication(
-            user_id=None,
-            action="token_verification_failed",
-            ip_address=client_ip,
-            user_agent=user_agent,
-            success=False,
-            error_message="Invalid or expired token",
-        )
-
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # Get user from database using auth_user_id (JWT sub is Supabase auth user ID)
-    supabase = get_supabase_client()
+        if result.data:
+            return result.data
+    except Exception:
+        pass
+    try:
+        result = supabase.table("users").select("*").eq("id", user_id).single().execute()
+        if result.data:
+            return result.data
+    except Exception:
+        pass
     try:
         result = (
             supabase.table("users")
             .select("*")
-            .eq("auth_user_id", jwt_payload.sub)
+            .eq("auth_user_id", user_id)
             .single()
             .execute()
         )
+        if result.data:
+            return result.data
+    except Exception:
+        pass
+    return None
 
-        if not result.data:
-            # Log failed auth attempt
-            audit_logger = get_audit_logger()
-            await audit_logger.log_authentication(
-                user_id=jwt_payload.sub,
-                action="user_not_found",
-                ip_address=client_ip,
-                user_agent=user_agent,
-                success=False,
-                error_message="User not found",
-            )
 
-            raise HTTPException(status_code=401, detail="User not found")
-
-        # Convert to User model
-        user_data = result.data
-        user = User(
-            id=user_data["id"],
-            email=user_data["email"],
-            full_name=user_data.get("full_name"),
-            avatar_url=user_data.get("avatar_url"),
-            subscription_tier=user_data.get("subscription_tier", "free"),
-            budget_limit_monthly=float(user_data.get("budget_limit_monthly", 1.0)),
-            onboarding_completed_at=user_data.get("onboarding_completed_at"),
-            preferences=user_data.get("preferences", {}),
-            created_at=user_data.get("created_at"),
-            updated_at=user_data.get("updated_at"),
+def _map_user_from_record(user_data: dict, fallback_email: Optional[str]) -> User:
+    subscription_tier = user_data.get("subscription_tier") or user_data.get(
+        "subscription_plan"
+    )
+    if not subscription_tier:
+        subscription_tier = "free"
+    preferences = user_data.get("preferences")
+    if preferences is None:
+        preferences = user_data.get("workspace_preferences", {})
+    budget_limit = user_data.get("budget_limit_monthly", 1.0)
+    try:
+        budget_limit = float(budget_limit)
+    except (TypeError, ValueError):
+        budget_limit = 1.0
+    email = user_data.get("email") or fallback_email
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User email missing"
         )
+    return User(
+        id=user_data["id"],
+        email=email,
+        full_name=user_data.get("full_name"),
+        avatar_url=user_data.get("avatar_url"),
+        subscription_tier=subscription_tier,
+        budget_limit_monthly=budget_limit,
+        onboarding_completed_at=user_data.get("onboarding_completed_at"),
+        preferences=preferences,
+        created_at=user_data.get("created_at"),
+        updated_at=user_data.get("updated_at"),
+    )
 
-        # Attach to request state for middleware
-        request.state.user = user
-        request.state.jwt_payload = jwt_payload
 
-        return user
-
-    except Exception as e:
-        if "No rows found" in str(e):
-            # Log failed auth attempt
-            audit_logger = get_audit_logger()
-            await audit_logger.log_authentication(
-                user_id=jwt_payload.sub,
-                action="database_error",
-                ip_address=client_ip,
-                user_agent=user_agent,
-                success=False,
-                error_message="User not found",
-            )
-
-            raise HTTPException(status_code=401, detail="User not found")
-
-        # Log database error
-        audit_logger = get_audit_logger()
-        await audit_logger.log_authentication(
-            user_id=jwt_payload.sub if jwt_payload else None,
-            action="database_error",
-            ip_address=client_ip,
-            user_agent=user_agent,
-            success=False,
-            error_message="Database error",
+async def get_current_user(request: Request) -> User:
+    if hasattr(request.state, "user") and request.state.user:
+        if isinstance(request.state.user, User):
+            return request.state.user
+        if isinstance(request.state.user, dict):
+            return _map_user_from_record(request.state.user, None)
+    authorization = request.headers.get("authorization")
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required"
         )
+    validator = get_jwt_validator()
+    token = validator.extract_token(authorization)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
+    payload = validator.verify_token(token)
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
+    supabase = get_supabase_client()
+    user_record = _fetch_user_record(supabase, payload.sub)
+    if not user_record:
+        user_record = {"id": payload.sub, "email": payload.email}
+    user = _map_user_from_record(user_record, payload.email)
+    request.state.user = user
+    return user
 
-        raise HTTPException(status_code=500, detail="Database error")
+
+async def _resolve_workspace_id(
+    current_user: User,
+    request: Request,
+    header_workspace_id: Optional[str],
+) -> str:
+    workspace_id = getattr(request.state, "workspace_id", None) or header_workspace_id
+    if workspace_id:
+        has_access = await validate_workspace_access(workspace_id, current_user.id)
+        if not has_access:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Workspace access denied",
+            )
+        return workspace_id
+    workspaces = await get_user_workspaces(current_user.id)
+    if not workspaces:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No workspace found for user"
+        )
+    return workspaces[0].id
 
 
 async def get_workspace_id(
     request: Request,
-    user: User = Depends(get_current_user),
-    x_workspace_id: str = Header(None),
+    current_user: User = Depends(get_current_user),
+    workspace_header: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> str:
-    """
-    Get workspace ID from header or user's default workspace
-    Validates workspace ownership
-    """
-    # If workspace ID provided in header, validate it
-    if x_workspace_id:
-        workspace_id = x_workspace_id
-
-        # Validate user owns this workspace
-        if not await user_owns_workspace(user.id, workspace_id):
-            raise HTTPException(
-                status_code=403, detail="Access denied: Invalid workspace"
-            )
-    else:
-        # Get user's default workspace
-        workspace_id = await get_default_workspace_id(user.id)
-
-        if not workspace_id:
-            raise HTTPException(status_code=404, detail="No workspace found for user")
-
-    # Attach to request state
-    request.state.workspace_id = workspace_id
-
-    return workspace_id
-
-
-async def user_owns_workspace(user_id: str, workspace_id: str) -> bool:
-    """Check if user owns the workspace"""
-    try:
-        supabase = get_supabase_client()
-        result = (
-            supabase.table("workspaces")
-            .select("id")
-            .eq("id", workspace_id)
-            .eq("user_id", user_id)
-            .single()
-            .execute()
-        )
-        return result.data is not None
-    except Exception:
-        return False
-
-
-async def get_default_workspace_id(user_id: str) -> Optional[str]:
-    """Get user's default workspace ID"""
-    try:
-        supabase = get_supabase_client()
-        result = (
-            supabase.table("workspaces")
-            .select("id")
-            .eq("user_id", user_id)
-            .limit(1)
-            .single()
-            .execute()
-        )
-        return result.data.get("id") if result.data else None
-    except Exception:
-        return None
-
-
-async def get_workspace_for_user(
-    workspace_id: str, user_id: str
-) -> Optional[Workspace]:
-    """Get workspace details for user"""
-    try:
-        supabase = get_supabase_client()
-        result = (
-            supabase.table("workspaces")
-            .select("*")
-            .eq("id", workspace_id)
-            .eq("user_id", user_id)
-            .single()
-            .execute()
-        )
-
-        if not result.data:
-            return None
-
-        workspace_data = result.data
-        return Workspace(
-            id=workspace_data["id"],
-            user_id=workspace_data["user_id"],
-            name=workspace_data["name"],
-            slug=workspace_data.get("slug"),
-            settings=workspace_data.get("settings", {}),
-            created_at=workspace_data.get("created_at"),
-            updated_at=workspace_data.get("updated_at"),
-        )
-
-    except Exception:
-        return None
+    return await _resolve_workspace_id(current_user, request, workspace_header)
 
 
 async def get_auth_context(
     request: Request,
-    user: User = Depends(get_current_user),
-    workspace_id: str = Depends(get_workspace_id),
+    current_user: User = Depends(get_current_user),
+    workspace_header: Optional[str] = Header(None, alias="x-workspace-id"),
 ) -> AuthContext:
-    """
-    Get complete auth context with user, workspace, and permissions
-    """
-    # Get workspace details
-    workspace = await get_workspace_for_user(workspace_id, user.id)
-
-    # Determine permissions based on subscription tier
-    permissions = {
-        "read": True,
-        "write": True,
-        "delete": True,
-        "admin": user.subscription_tier in ["growth", "enterprise"],
-    }
-
-    auth_context = AuthContext(
-        user=user,
+    workspace_id = await _resolve_workspace_id(current_user, request, workspace_header)
+    workspace = await get_workspace_for_user(workspace_id, current_user.id)
+    if not workspace:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workspace not found or access denied",
+        )
+    return AuthContext(
+        user=current_user,
         workspace_id=workspace_id,
         workspace=workspace,
-        permissions=permissions,
+        permissions={"read": True, "write": True, "delete": True, "admin": False},
     )
-
-    # Attach to request state
-    request.state.auth_context = auth_context
-
-    return auth_context

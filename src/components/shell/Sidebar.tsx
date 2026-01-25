@@ -154,7 +154,6 @@ export function Sidebar() {
                 {/* Avatar */}
                 {user?.id && profile?.avatar_url ? (
                     <div className="w-8 h-8 rounded-md bg-[var(--ink)] overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                     </div>
                 ) : (

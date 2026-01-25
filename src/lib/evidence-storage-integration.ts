@@ -187,7 +187,7 @@ async function getEvidenceReference(itemId: string, sessionId?: string): Promise
 /**
  * Remove evidence reference from localStorage
  */
-async function removeEvidenceReference(itemId: string, sessionId?: string): Promise<void> {
+async function removeEvidenceReference(itemId: string, _sessionId?: string): Promise<void> {
   try {
     const references = getEvidenceReferences();
     delete references[itemId];
@@ -227,7 +227,7 @@ export async function migrateEvidenceToUnifiedStorage(sessionId?: string): Promi
   try {
     const references = getEvidenceReferences();
     let migrated = 0;
-    let failed = 0;
+    const failed = 0;
     
     for (const [itemId, reference] of Object.entries(references)) {
       if (reference.provider === 'local' || reference.provider === 'backend') {
@@ -266,7 +266,7 @@ export async function getEvidenceStorageUsage(sessionId?: string): Promise<{
       : Object.values(references);
     
     const filesByProvider: Record<string, number> = {};
-    let totalSize = 0;
+    const totalSize = 0;
     
     for (const ref of sessionReferences) {
       filesByProvider[ref.provider] = (filesByProvider[ref.provider] || 0) + 1;

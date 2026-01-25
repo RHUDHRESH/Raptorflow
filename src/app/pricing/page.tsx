@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { Check, Compass, ArrowRight } from "lucide-react";
@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic';
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { BlueprintBadge } from "@/components/ui/BlueprintBadge";
 import { getEnvironmentSummary } from "@/lib/env-validation";
+import { getSupabaseClient } from '@/lib/supabase-auth';
 
 const BlueprintButton = dynamic(() => import("@/components/ui/BlueprintButton").then(mod => ({ default: mod.BlueprintButton })), { ssr: false });
 const SecondaryButton = dynamic(() => import("@/components/ui/BlueprintButton").then(mod => ({ default: mod.SecondaryButton })), { ssr: false });
@@ -44,8 +45,42 @@ const PLANS = [
 export default function PricingPage() {
   const router = useRouter();
   const pageRef = useRef<HTMLDivElement>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Check authentication status and load user data
+    const checkAuth = async () => {
+      try {
+        const supabase = getSupabaseClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          setIsAuthenticated(true);
+          setUserEmail(session.user.email || null);
+          
+          // Load user profile data
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, onboarding_status')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (profile) {
+            setUserName(profile.full_name || session.user.email?.split('@')[0] || 'User');
+          }
+        }
+      } catch (error) {
+        console.log('Auth check failed:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuth();
+
     // Debug environment
     console.log('🔍 Pricing Page Environment Debug:');
     console.log(getEnvironmentSummary());
@@ -58,6 +93,16 @@ export default function PricingPage() {
     tl.fromTo("[data-anim-card]", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.1 }, "-=0.3");
   }, []);
 
+  const handlePlanSelect = (planName: string) => {
+    if (isAuthenticated) {
+      // User is authenticated, go to dashboard
+      router.push('/dashboard');
+    } else {
+      // User not authenticated, go to signup
+      router.push('/signup');
+    }
+  };
+
   return (
     <div ref={pageRef} className="min-h-screen bg-[var(--canvas)] relative overflow-hidden">
       <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundImage: "url('/textures/paper-grain.png')", opacity: 0.05, mixBlendMode: "multiply" }} />
@@ -69,8 +114,19 @@ export default function PricingPage() {
           <Compass size={24} /> <span className="font-serif font-bold text-lg">RaptorFlow</span>
         </div>
         <div className="flex gap-4">
-          <button onClick={() => router.push('/login')} className="text-sm font-technical text-[var(--muted)] hover:text-[var(--ink)]">LOG IN</button>
-          <BlueprintButton size="sm" onClick={() => router.push('/login')}>GET STARTED</BlueprintButton>
+          {isLoading ? (
+            <span className="text-sm font-technical text-[var(--muted)]">Loading...</span>
+          ) : isAuthenticated ? (
+            <>
+              <span className="text-sm font-technical text-[var(--muted)]">Welcome, {userName}</span>
+              <BlueprintButton size="sm" onClick={() => router.push('/dashboard')}>DASHBOARD</BlueprintButton>
+            </>
+          ) : (
+            <>
+              <button onClick={() => router.push('/login')} className="text-sm font-technical text-[var(--muted)] hover:text-[var(--ink)]">LOG IN</button>
+              <BlueprintButton size="sm" onClick={() => router.push('/signup')}>START NOW</BlueprintButton>
+            </>
+          )}
         </div>
       </div>
 
@@ -80,6 +136,11 @@ export default function PricingPage() {
           <p className="text-xl text-[var(--secondary)] max-w-2xl mx-auto font-light">
             Simple, transparent pricing for serious founders. No hidden fees. Cancel anytime.
           </p>
+          {isAuthenticated && (
+            <p className="text-sm text-[var(--blueprint)] mt-4">
+              ✅ You're authenticated! Choose a plan to get started.
+            </p>
+          )}
         </div>
 
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -105,11 +166,11 @@ export default function PricingPage() {
                 <p className="text-sm text-[var(--secondary)] mb-8 min-h-[40px]">{plan.desc}</p>
 
                 <BlueprintButton
-                  variant={plan.popular ? "primary" : "secondary"}
+                  variant={plan.popular ? "blueprint" : "default"}
                   className="w-full mb-8"
-                  onClick={() => router.push('/login')}
+                  onClick={() => handlePlanSelect(plan.name)}
                 >
-                  Choose {plan.name}
+                  {isAuthenticated ? `Continue with ${plan.name}` : `Start Now with ${plan.name}`}
                 </BlueprintButton>
 
                 <div className="space-y-3">

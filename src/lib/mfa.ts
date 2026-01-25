@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/auth-client'
+import { authenticator } from 'otplib'
 
 // MFA types
 export interface MFASetup {
@@ -243,9 +244,6 @@ export class TOTPUtils {
     // This is a simplified implementation
     // In production, use a proper TOTP library like 'otplib'
     try {
-      // Import otplib dynamically for client-side usage
-      const { authenticator } = require('otplib')
-      
       return authenticator.verify({
         token,
         secret,
@@ -260,7 +258,6 @@ export class TOTPUtils {
   // Generate current TOTP code
   static generateTOTP(secret: string): string {
     try {
-      const { authenticator } = require('otplib')
       return authenticator.generate(secret)
     } catch (error) {
       console.error('TOTP generation error:', error)

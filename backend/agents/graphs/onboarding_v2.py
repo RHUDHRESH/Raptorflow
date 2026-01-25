@@ -11,7 +11,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
 from ...infrastructure.storage import delete_file
-from ...services.titan.orchestrator import TitanOrchestrator
+from backend.services.titan.orchestrator import TitanOrchestrator
 from ..specialists.brand_audit_agent import BrandAuditEngine
 from ..specialists.buying_process_agent import BuyingProcessArchitect
 from ..specialists.capability_rating_agent import CapabilityRatingEngine

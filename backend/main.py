@@ -27,7 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # GCP Imports
 from google.cloud import aiplatform, bigquery, storage
-from jobs import file_cleanup
+# from jobs import file_cleanup  # Temporarily disabled due to import issues
 
 # Import API routers
 from backend.api.v1 import (  # episodes,
@@ -50,6 +50,7 @@ from backend.api.v1 import (  # episodes,
     evolution,
     foundation,
     graph,
+    health_comprehensive,
     health_simple,
     icps,
     memory,
@@ -112,7 +113,7 @@ from backend.services.payment_status_service import PaymentStatusService
 from backend.shutdown import cleanup_app
 
 # Import startup/shutdown
-from backend.startup import initialize_app
+from backend.startup import initialize
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -125,7 +126,7 @@ async def lifespan(app: FastAPI):
     logger.info("≡ƒÜÇ Starting RaptorFlow Backend...")
 
     # Startup sequence
-    startup_report = await initialize_app()
+    startup_report = await initialize()
     if not startup_report.success:
         logger.error("Γ¥î Startup failed")
         raise RuntimeError("Application startup failed")
@@ -412,6 +413,10 @@ app.include_router(evolution.router, prefix="/api/v1/evolution", tags=["evolutio
 app.include_router(ocr.router, prefix="/api/v1", tags=["ocr"])
 app.include_router(search.router, prefix="/api/v1/search", tags=["search"])
 app.include_router(titan.router, prefix="/api/v1/titan", tags=["titan"])
+# Add missing system routers
+app.include_router(campaigns.router, prefix="/api/v1/campaigns", tags=["campaigns"])
+app.include_router(daily_wins.router, prefix="/api/v1/daily_wins", tags=["daily_wins"])
+app.include_router(blackbox.router, prefix="/api/v1/blackbox", tags=["blackbox"])
 
 
 # Root health endpoint
@@ -446,7 +451,7 @@ async def health_check():
         redis_status = "connected" if redis_client else "disconnected"
 
         # Check Redis services
-        from redis_services_activation import health_check_redis_services
+        from backend.redis_services_activation import health_check_redis_services
 
         redis_services_health = await health_check_redis_services()
 
@@ -471,7 +476,7 @@ async def health_check():
 @app.on_event("startup")
 async def startup_event():
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(file_cleanup.delete_expired_originals, "cron", hour=3)
+    # scheduler.add_job(file_cleanup.delete_expired_originals, "cron", hour=3)  # Temporarily disabled
 
     # Schedule BCM Semantic Sweep (Daily at 4 AM)
     sweeper = BCMSweeper()

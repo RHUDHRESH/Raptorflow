@@ -475,11 +475,10 @@ class GoogleProvider(BaseLLMProvider):
 
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        import google.generativeai as genai
+        from google import genai
 
         self.api_key = config.get("api_key")
-        genai.configure(api_key=self.api_key)
-        self.client = genai
+        self.client = genai.Client(api_key=self.api_key)
 
     async def generate(self, request: LLMRequest) -> LLMResponse:
         """Generate response using Gemini API."""
@@ -487,21 +486,21 @@ class GoogleProvider(BaseLLMProvider):
 
         try:
             model_name = request.model or "gemini-1.5-flash"
-            model = self.client.GenerativeModel(model_name)
-
+            
             # Convert messages
             contents = []
             for msg in request.messages:
                 role = "user" if msg.role in [LLMRole.USER, LLMRole.SYSTEM] else "model"
                 contents.append({"role": role, "parts": [msg.content]})
-
-            response = await model.generate_content_async(
-                contents,
-                generation_config={
+            
+            response = self.client.models.generate_content(
+                model=model_name,
+                contents=contents,
+                config={
                     "temperature": request.temperature,
                     "max_output_tokens": request.max_tokens,
                     "top_p": request.top_p,
-                },
+                }
             )
 
             content = response.text

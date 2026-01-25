@@ -3,7 +3,7 @@
 import React, { useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Link from "next/link";
-import { CheckmarkCircle02Icon } from "hugeicons-react";
+import { CheckCircle } from "lucide-react";
 
 interface PricingPlan {
     tier: string;
@@ -139,9 +139,7 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
                             transition={{ delay: 0.3 + i * 0.05 }}
                             className="flex items-start gap-2 text-sm"
                         >
-                            {React.createElement(CheckmarkCircle02Icon as any, {
-                                className: `w-4 h-4 flex-shrink-0 mt-0.5 transition-colors duration-300 ${isHovered ? "text-[var(--rf-coral)]" : "text-[var(--accent)]"}`
-                            })}
+                            <CheckCircle className={`w-4 h-4 flex-shrink-0 mt-0.5 transition-colors duration-300 ${isHovered ? "text-[var(--rf-coral)]" : "text-[var(--accent)]"}`} />
                             <span>{feature}</span>
                         </motion.li>
                     ))}

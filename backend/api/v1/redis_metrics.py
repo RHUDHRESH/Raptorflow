@@ -9,7 +9,7 @@ from typing import Dict, Any, Optional
 
 from fastapi import APIRouter, HTTPException
 
-from redis_core.client import get_redis
+from backend.redis_core.client import get_redis
 from backend.redis_services_activation import get_session_service, get_cache_service, get_rate_limit_service, get_usage_tracker, get_queue_service
 
 logger = logging.getLogger(__name__)

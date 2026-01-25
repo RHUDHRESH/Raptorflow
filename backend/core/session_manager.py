@@ -38,10 +38,10 @@ class SessionType(Enum):
 class SessionData:
     """Data stored in a session."""
     
-    agent_id: Optional[str] = None
     workspace_id: str
+    agent_id: Optional[str] = None
     user_id: Optional[str] = None
-    session_type: SessionType
+    session_type: SessionType = SessionType.CHAT
     context: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)

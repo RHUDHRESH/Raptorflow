@@ -60,7 +60,8 @@ export default function VerifyEmailPage() {
           setMessage('Email verified successfully! Redirecting to login...')
           
           // Update user's email verification status
-          const { data: { session } } = await supabase.auth.getSession()
+          const { data } = await supabase.auth.getSession()
+          const session = data?.session
           if (session?.user) {
             await supabase
               .from('users')

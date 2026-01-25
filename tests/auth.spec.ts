@@ -21,7 +21,7 @@ test.describe('Authentication & Onboarding', () => {
     await page.click('text=Log in')
     
     // Step 3: Login with Gmail
-    await page.click('button:has-text("CONTINUE WITH GOOGLE")')
+    await page.click('button:has-text("Continue with Google")')
     
     // Step 4: Wait for redirect to onboarding (Mock Login auto-redirects)
     await page.waitForURL('**/onboarding')
@@ -69,7 +69,7 @@ test.describe('Authentication & Onboarding', () => {
     
     // Login again
     await page.goto('/login')
-    await page.click('button:has-text("CONTINUE WITH GOOGLE")')
+    await page.click('button:has-text("Continue with Google")')
     
     // Should redirect to dashboard
     await page.waitForURL('**/dashboard')
@@ -80,7 +80,7 @@ test.describe('Authentication & Onboarding', () => {
     // Start onboarding
     await page.goto('/')
     await page.click('text=Log in')
-    await page.click('button:has-text("CONTINUE WITH GOOGLE")')
+    await page.click('button:has-text("Continue with Google")')
     
     // Complete workspace step
     await page.fill('input#workspace-name', 'Persistent Test')
@@ -122,7 +122,7 @@ async function createTestUser(page: any) {
   // Helper to create a test user with completed onboarding
   await page.goto('/')
   await page.click('text=Log in')
-  await page.click('button:has-text("CONTINUE WITH GOOGLE")')
+  await page.click('button:has-text("Continue with Google")')
   
   // Complete all onboarding steps
   await page.fill('input#workspace-name', `Test ${Date.now()}`)

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CheckmarkCircle02Icon } from "hugeicons-react";
+import { CheckCircle } from "lucide-react";
 import { SettingsGroup } from "../SettingsRow";
 import { cn } from "@/lib/utils";
 
@@ -72,9 +72,7 @@ export function AppearanceSection({ data, onChange }: AppearanceSectionProps) {
                                     style={{ backgroundColor: color.value }}
                                 >
                                     {isSelected && (
-                                        React.createElement(CheckmarkCircle02Icon as any, {
-                                            className: "w-4 h-4 text-white",
-                                        })
+                                        <CheckCircle className="w-4 h-4 text-white" />
                                     )}
                                 </div>
                                 <span className="text-xs text-[var(--muted)]">{color.name}</span>

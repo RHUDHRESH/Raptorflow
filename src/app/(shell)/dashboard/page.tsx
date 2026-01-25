@@ -8,7 +8,7 @@ import { DashboardFocus } from "@/components/dashboard/DashboardFocus";
 import { DashboardActivity, ActivityItem } from "@/components/dashboard/DashboardActivity";
 import { useMovesStore } from "@/stores/movesStore";
 import { useCampaignStore } from "@/stores/campaignStore";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/contexts/AuthContext";
 import { Activity, Target, Users, Zap } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -19,16 +19,18 @@ import { Activity, Target, Users, Zap } from "lucide-react";
 export default function DashboardPage() {
   const pageRef = useRef<HTMLDivElement>(null);
   const { moves, fetchMoves } = useMovesStore();
-  const { campaigns } = useCampaignStore();
+  const { campaigns, fetchCampaigns } = useCampaignStore();
   const { user, profile } = useAuth();
 
   // Fetch data on mount
   useEffect(() => {
     if (user?.id) {
       fetchMoves(user.id);
-      // fetchCampaigns(user.id); // TODO: Refactor CampaignStore
     }
-  }, [user?.id, fetchMoves]);
+    if (profile?.workspace_id) {
+      fetchCampaigns(profile.workspace_id);
+    }
+  }, [user?.id, profile?.workspace_id, fetchMoves, fetchCampaigns]);
 
   // Calculate active items
   const activeMoves = moves.filter(

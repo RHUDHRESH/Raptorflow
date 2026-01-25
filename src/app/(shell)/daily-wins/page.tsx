@@ -20,7 +20,7 @@ import {
 import { BlueprintCard } from "@/components/ui/BlueprintCard";
 import { cn } from "@/lib/utils";
 import { openPlatform } from "@/lib/external-links";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/contexts/AuthContext";
 
 /* ══════════════════════════════════════════════════════════════════════════════
    DAILY WINS — Quick Content Wins
@@ -115,7 +115,7 @@ export default function DailyWinsPage() {
         gsap.fromTo(pageRef.current, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" });
     }, [mounted]);
 
-    const { user, profile } = useAuth();
+    const { user, profile, session } = useAuth();
 
     const generateWin = async (surprise: boolean = false) => {
         setIsGenerating(true);
@@ -127,11 +127,19 @@ export default function DailyWinsPage() {
                 throw new Error("No workspace ID");
             }
 
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            };
+            if (session?.access_token) {
+                headers.Authorization = `Bearer ${session.access_token}`;
+            }
+            if (workspaceId) {
+                headers["x-workspace-id"] = workspaceId;
+            }
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/daily_wins/generate`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers,
                 body: JSON.stringify({
                     workspace_id: workspaceId,
                     user_id: user?.id,

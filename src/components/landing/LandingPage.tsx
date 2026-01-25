@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight01Icon, CheckmarkCircle02Icon } from "hugeicons-react";
+import { ArrowRight, CheckCircle } from "lucide-react";
 import { RaptorLogo } from "@/components/ui/CompassLogo";
 
 // Interactive Installations
@@ -82,7 +82,7 @@ export default function LandingPage() {
                         <Link href="#pricing" className="text-sm text-[var(--secondary)] hover:text-[var(--ink)] micro-nav-link">Pricing</Link>
                         <Link href="/login" className="text-sm text-[var(--ink)] micro-nav-link">Log in</Link>
                         <Link href="/signup" className="text-sm px-5 py-2.5 bg-[var(--ink)] text-[var(--canvas)] rounded-lg font-medium micro-button-press">
-                            Start free
+                            Start Now
                         </Link>
                     </nav>
                 </div>
@@ -140,7 +140,7 @@ export default function LandingPage() {
                             className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--ink)] text-[var(--canvas)] text-lg font-medium rounded-xl micro-button-press micro-arrow-slide"
                         >
                             Get Started
-                            {React.createElement(ArrowRight01Icon as any, { className: "w-5 h-5 arrow" })}
+                            <ArrowRight className="w-5 h-5 arrow" />
                         </Link>
                         <Link
                             href="#how"
@@ -397,7 +397,7 @@ export default function LandingPage() {
                             className="inline-flex items-center gap-2 px-10 py-5 bg-[var(--canvas)] text-[var(--ink)] text-lg font-semibold rounded-xl micro-button-press micro-arrow-slide"
                         >
                             Get Started
-                            {React.createElement(ArrowRight01Icon as any, { className: "w-5 h-5 arrow" })}
+                            <ArrowRight className="w-5 h-5 arrow" />
                         </Link>
                     </motion.div>
                 </div>

@@ -103,6 +103,21 @@ async def verify_redis_connection() -> bool:
         return False
 
 
+async def initialize_agent_dispatcher() -> bool:
+    """Initialize the agent dispatcher system."""
+    try:
+        from backend.agents.dispatcher import AgentDispatcher
+        
+        # Create dispatcher instance
+        dispatcher = AgentDispatcher()
+        # Dispatcher auto-registers agents on initialization
+        return dispatcher is not None
+
+    except Exception as e:
+        logger.error(f"Agent dispatcher initialization failed: {e}")
+        return False
+
+
 async def verify_vertex_ai_credentials() -> bool:
     """Verify Vertex AI credentials and model access."""
     try:
@@ -197,17 +212,6 @@ async def run_database_migrations() -> bool:
         return False
 
 
-async def initialize_agent_dispatcher() -> bool:
-    """Initialize agent dispatcher."""
-    try:
-        dispatcher = AgentDispatcher()
-        return dispatcher is not None
-
-    except Exception as e:
-        logger.error(f"Agent dispatcher initialization failed: {e}")
-        return False
-
-
 async def check_environment_variables() -> Dict[str, Any]:
     """Check required environment variables."""
     required_vars = {
@@ -287,14 +291,7 @@ async def initialize() -> StartupReport:
         # Initialize services in dependency order
         services = [
             ("supabase", verify_supabase_connection),
-            ("database_migrations", run_database_migrations),
             ("redis", verify_redis_connection),
-            ("vertex_ai", verify_vertex_ai_credentials),
-            ("embedding_models", warm_up_embedding_models),
-            ("tool_registry", initialize_tool_registry),
-            ("langgraph_workflows", compile_langgraph_workflows),
-            ("memory_controller", initialize_memory_controller),
-            ("cognitive_engine", initialize_cognitive_engine),
             ("agent_dispatcher", initialize_agent_dispatcher),
         ]
 

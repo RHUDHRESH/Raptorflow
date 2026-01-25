@@ -1,0 +1,16 @@
+{
+  "status": "init",
+  "scope": "codebase",
+  "type": "backend",
+  "localEndpoint": "http://localhost:8000/",
+  "serverPort": 55026,
+  "executionArgs": {
+    "projectName": "Raptorflow",
+    "projectPath": "c:\\Users\\hp\\OneDrive\\Desktop\\Raptorflow",
+    "testIds": [],
+    "additionalInstruction": "Test the complete backend API including authentication, payment processing, AI inference, database operations, and all API endpoints",
+    "envs": {
+      "API_KEY": "sk-user-6UpMhTQ34vmoB_WhpZfgULSUkZaQsdQGW9tPxhto4UraK69lT8G2W_sRBv5odoFpEU7eVaks69zAK93gNmO7b89q7xnR2N8ZIhJH-CPZB6v4vwaiJxmqBRL-FRO2VuttLp8 "
+    }
+  }
+}

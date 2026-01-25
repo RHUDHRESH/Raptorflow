@@ -19,7 +19,7 @@ from backend.agents.specialists.contradiction_detector import ContradictionDetec
 
 # Import OCR and search services
 from backend.services.ocr_service import OCRService
-from backend.services.storage import enhanced_storage_service
+from backend.services.storage import get_enhanced_storage_service
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +112,7 @@ class EvidenceVaultService:
         
         # Initialize services
         self.ocr_service = OCRService()
-        self.storage_service = enhanced_storage_service
+        self.storage_service = get_enhanced_storage_service()
         
         # Evidence storage
         self.evidence_items: Dict[str, EvidenceItem] = {}

@@ -4,7 +4,12 @@ from datetime import datetime, timedelta, UTC
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
 
-from backend.services.vertex_ai_service import vertex_ai_service
+# Import Vertex AI client
+try:
+    from backend.services.vertex_ai_client import get_vertex_ai_client
+    vertex_ai_client = get_vertex_ai_client()
+except ImportError:
+    vertex_ai_client = None
 from backend.core.auth import get_current_user
 
 router = APIRouter(prefix="/api/v1/usage", tags=["usage"])

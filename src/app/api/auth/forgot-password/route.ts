@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     await storeToken(token, email, expires);
 
     // Create reset link
-    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/reset-password?token=${token}`;
+    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/auth/reset-password?token=${token}`;
 
     // Email configuration
     const primaryEmail = 'rhudhresh3697@gmail.com'; // Verified email

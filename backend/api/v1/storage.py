@@ -12,9 +12,9 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from ..middleware import get_current_user
-from ..services.storage import enhanced_storage_service
-from ..infrastructure.storage import get_cloud_storage, FileCategory
+from backend.core.auth import get_current_user
+from backend.services.storage import get_enhanced_storage_service
+from backend.infrastructure.storage import get_cloud_storage, FileCategory
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -300,7 +300,7 @@ async def cleanup_storage_files(
                 detail="Admin access required for storage cleanup"
             )
         
-        result = await enhanced_storage_service.cleanup_old_files(days_old)
+        result = await get_enhanced_storage_service().cleanup_old_files(days_old)
         return result
         
     except HTTPException:
@@ -328,7 +328,7 @@ async def delete_storage_file(
                 detail="Access denied: Invalid file path"
             )
         
-        result = enhanced_storage_service.delete_file(storage_path)
+        result = get_enhanced_storage_service().delete_file(storage_path)
         
         if result["status"] != "success":
             raise HTTPException(
@@ -362,7 +362,7 @@ async def get_workspace_storage_usage(
                 detail="Access denied"
             )
         
-        usage = enhanced_storage_service.get_workspace_usage(workspace_id)
+        usage = get_enhanced_storage_service().get_workspace_usage(workspace_id)
         
         if "error" in usage:
             raise HTTPException(
@@ -392,9 +392,9 @@ async def storage_health_check():
             "services": {
                 "enhanced_storage": "operational",
                 "cloud_storage": "operational",
-                "cdn_configured": bool(enhanced_storage_service.cdn_base_url),
-                "security_scanning": enhanced_storage_service.enable_security_scanning,
-                "image_processing": enhanced_storage_service.enable_image_processing
+                "cdn_configured": bool(get_enhanced_storage_service().cdn_base_url),
+                "security_scanning": get_enhanced_storage_service().enable_security_scanning,
+                "image_processing": get_enhanced_storage_service().enable_image_processing
             }
         }
         

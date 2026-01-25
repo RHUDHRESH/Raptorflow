@@ -3,12 +3,12 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import {
-    Target01Icon,
-    Mic01Icon,
-    Calendar03Icon,
-    ChartLineData02Icon,
-    Archive02Icon
-} from "hugeicons-react";
+    Target,
+    Mic,
+    Calendar,
+    TrendingUp,
+    Archive
+} from "lucide-react";
 
 interface FeatureCard {
     title: string;
@@ -21,31 +21,31 @@ const CARDS: FeatureCard[] = [
     {
         title: "Foundation",
         description: "Define your ICP, positioning, and voice in 20 minutes. The strategic bedrock everything else builds on.",
-        Icon: Target01Icon,
+        Icon: Target,
         gradient: "from-[var(--rf-coral)] to-orange-400"
     },
     {
         title: "Muse AI",
         description: "Train the AI on your voice. It learns how you write, what you care about, and generates content that sounds like you.",
-        Icon: Mic01Icon,
+        Icon: Mic,
         gradient: "from-[var(--rf-ocean)] to-blue-400"
     },
     {
         title: "Weekly Moves",
         description: "Get ready-to-ship content packets every Monday. LinkedIn posts, tweets, emails—all aligned to your strategy.",
-        Icon: Calendar03Icon,
+        Icon: Calendar,
         gradient: "from-[var(--rf-mint)] to-green-400"
     },
     {
         title: "Matrix Analytics",
         description: "See what's working. Track impressions, engagement, and pipeline impact across all your channels.",
-        Icon: ChartLineData02Icon,
+        Icon: TrendingUp,
         gradient: "from-[var(--rf-violet)] to-purple-400"
     },
     {
         title: "Blackbox Vault",
         description: "Your institutional memory. Every Move, insight, and winning hook stored and searchable forever.",
-        Icon: Archive02Icon,
+        Icon: Archive,
         gradient: "from-[var(--rf-sage)] to-yellow-400"
     }
 ];

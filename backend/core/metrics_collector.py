@@ -15,6 +15,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Callable, Union
 import statistics
 import psutil
+from backend.core.resource_analytics import OptimizationRecommendation
 
 logger = logging.getLogger(__name__)
 

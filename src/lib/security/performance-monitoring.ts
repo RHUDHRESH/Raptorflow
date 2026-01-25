@@ -176,26 +176,24 @@ class PerformanceMonitor {
   ): Promise<{ result: T; metrics: PerformanceMetrics }> {
     const startTime = performance.now();
     let statusCode = 200;
+    let result: T | null = null;
     let error: Error | null = null;
-    
+
     try {
-      const result = await fn();
+      result = await fn();
       return { result, metrics: this.createMetric(endpoint, method, 200, startTime) };
     } catch (err) {
       error = err as Error;
       statusCode = 500;
-      throw err;
-    } finally {
-      const endTime = performance.now();
-      const responseTime = endTime - startTime;
-      const metrics = this.createMetric(endpoint, method, statusCode, startTime);
-      
-      if (error) {
-        throw error;
-      }
-      
-      return { result, metrics };
     }
+
+    const metrics = this.createMetric(endpoint, method, statusCode, startTime);
+
+    if (error) {
+      throw error;
+    }
+
+    return { result: result as T, metrics };
   }
   
   private static createMetric(
@@ -233,7 +231,7 @@ export function withPerformanceMonitoring(
     target[propertyNameKey] = async function (...args: any[]) {
       const startTime = performance.now();
       let statusCode = 200;
-      let error: Error | null = null;
+        let error: Error | null = null;
       
       try {
         const result = await originalMethod.apply(this, args);
@@ -241,21 +239,19 @@ export function withPerformanceMonitoring(
       } catch (err) {
         error = err as Error;
         statusCode = 500;
-        throw err;
-      } finally {
+        }
+
         const endTime = performance.now();
         const responseTime = endTime - startTime;
-        
-        // Extract endpoint and method from request if available
+
         const request = args[0];
         const endpoint = request?.url || 'unknown';
         const method = request?.method || 'GET';
-        
+
         performanceMonitor.recordRequest(endpoint, method, statusCode, responseTime);
-        
+
         if (error) {
           throw error;
-        }
       }
     };
   }

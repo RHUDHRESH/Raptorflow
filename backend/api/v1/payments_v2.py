@@ -4,6 +4,7 @@ Clean, simple API endpoints for real payments
 """
 
 import logging
+import os
 import uuid
 from datetime import datetime
 from typing import Any, Dict, Optional
@@ -11,7 +12,11 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from pydantic import BaseModel, EmailStr
 
-from backend.services.phonepe_sdk_gateway import phonepe_sdk_gateway, PaymentRequest as SDKPaymentRequest, RefundRequestData
+from backend.services.phonepe_sdk_gateway_fixed import (
+    phonepe_sdk_gateway_fixed,
+    PaymentRequest as SDKPaymentRequest,
+    RefundRequestData,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +52,21 @@ class StatusResponse(BaseModel):
     error: Optional[str] = None
 
 
+class RefundRequest(BaseModel):
+    original_merchant_order_id: str
+    refund_amount: int
+    merchant_refund_id: Optional[str] = None
+    refund_reason: Optional[str] = None
+
+
+class RefundResponse(BaseModel):
+    success: bool
+    refund_id: Optional[str] = None
+    state: Optional[str] = None
+    amount: Optional[int] = None
+    error: Optional[str] = None
+
+
 @router.post("/initiate", response_model=InitiatePaymentResponse)
 async def initiate_payment(request: InitiatePaymentRequest):
     """
@@ -68,7 +88,7 @@ async def initiate_payment(request: InitiatePaymentRequest):
         logger.info(f"Initiating payment via SDK: {merchant_order_id}, Amount: ₹{request.amount/100}")
         
         # Call the SDK gateway (REAL PhonePe API)
-        result = await phonepe_sdk_gateway.initiate_payment(
+        result = await phonepe_sdk_gateway_fixed.initiate_payment(
             SDKPaymentRequest(
                 amount=request.amount,
                 merchant_order_id=merchant_order_id,
@@ -115,7 +135,7 @@ async def get_payment_status(merchant_order_id: str):
     try:
         logger.info(f"Checking payment status via SDK: {merchant_order_id}")
         
-        result = await phonepe_sdk_gateway.check_payment_status(merchant_order_id)
+        result = await phonepe_sdk_gateway_fixed.check_payment_status(merchant_order_id)
         
         if result.success:
             return StatusResponse(
@@ -154,7 +174,7 @@ async def handle_webhook(request: Request, background_tasks: BackgroundTasks):
         logger.info("Received PhonePe webhook")
         
         # Validate using SDK
-        result = await phonepe_sdk_gateway.validate_webhook(authorization, body_str)
+        result = await phonepe_sdk_gateway_fixed.validate_webhook(authorization, body_str)
         
         if result.get("valid"):
             callback_data = result.get("callback")
@@ -195,10 +215,10 @@ async def process_refund(request: RefundRequest):
     try:
         logger.info(f"Processing refund via SDK: {request.original_merchant_order_id}")
         
-        result = phonepe_sdk_gateway.process_refund(
+        result = await phonepe_sdk_gateway_fixed.process_refund(
             original_merchant_order_id=request.original_merchant_order_id,
             refund_amount=request.refund_amount,
-            merchant_refund_id=request.merchant_refund_id
+            merchant_refund_id=request.merchant_refund_id,
         )
         
         if result.get("success"):
@@ -274,7 +294,7 @@ async def health_check():
     """
     Check PhonePe SDK gateway health
     """
-    return phonepe_sdk_gateway.health_check()
+    return phonepe_sdk_gateway_fixed.health_check()
 
 
 # Background tasks

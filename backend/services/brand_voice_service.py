@@ -8,7 +8,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from services.vertex_ai_service import vertex_ai_service
+from backend.services.vertex_ai_service import vertex_ai_service
 from backend.core.supabase_mgr import get_supabase_client
 
 logger = logging.getLogger(__name__)

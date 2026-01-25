@@ -5,6 +5,9 @@ export async function POST(request: Request) {
   try {
     const { amount = 30000 } = await request.json()
 
+    // Get current frontend URL from request headers or use default
+    const baseUrl = request.headers.get('origin') || 'http://localhost:3001';
+
     // Generate transaction ID (same format as direct payment)
     const transactionId = `TX${Date.now()}${Math.random().toString(36).substr(2, 6).toUpperCase()}`
 
@@ -13,9 +16,9 @@ export async function POST(request: Request) {
       merchantId: 'PGTESTPAYUAT',
       merchantTransactionId: transactionId,
       amount: amount,
-      redirectUrl: `http://localhost:3000/test-3k-payment?status=success&transactionId=${transactionId}`,
+      redirectUrl: `${baseUrl}/test-3k-payment?status=success&transactionId=${transactionId}`,
       redirectMode: 'REDIRECT',
-      callbackUrl: `http://localhost:3000/api/payments/webhook`,
+      callbackUrl: `${baseUrl}/api/payments/webhook`,
       paymentInstrument: {
         type: 'PAY_PAGE'
       }

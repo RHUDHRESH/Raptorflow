@@ -6,9 +6,9 @@ Updated with 28 comprehensive security enhancements for maximum protection
 import logging
 import uuid
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
-from db.repositories.payment import PaymentRepository
+from backend.db.repositories.payment import PaymentRepository
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 

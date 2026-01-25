@@ -8,6 +8,7 @@ import logging
 import os
 import time
 from datetime import datetime
+from typing import Optional
 
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
@@ -30,15 +31,8 @@ class PrometheusMetrics:
     def __init__(self, app: FastAPI):
         self.app = app
         self.registry = CollectorRegistry()
-
-        # Initialize metrics
         self._initialize_metrics()
-
-        # Add metrics endpoint
         self._add_metrics_endpoint()
-
-        # Start background collection
-        self._start_background_collection()
 
     def _initialize_metrics(self) -> None:
         """Initialize all Prometheus metrics"""

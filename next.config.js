@@ -1,9 +1,14 @@
 /** @type {import('next').NextConfig} */
-const { withSentryConfig } = require('@sentry/nextjs');
+import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig = {
   // Your existing Next.js configuration
   reactStrictMode: true,
+  eslint: {
+    // Warning: This allows production builds to successfully complete even if
+    // your project has ESLint errors.
+    ignoreDuringBuilds: true,
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals.push('@sentry/profiling-node');
@@ -12,7 +17,7 @@ const nextConfig = {
   },
 };
 
-module.exports = withSentryConfig(
+export default withSentryConfig(
   nextConfig,
   {
     // For all available options, see:

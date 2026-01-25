@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { ValidationError, createDatabaseError } from '@/lib/security/error-handler';
 import { validateUuid, sanitizeInput } from '@/lib/security/input-validation';
+import { serviceAuth } from '@/lib/auth-service';
 
 export async function POST(request: Request) {
   try {
@@ -18,11 +18,8 @@ export async function POST(request: Request) {
       throw new ValidationError('Invalid token format');
     }
     
-    // Initialize Supabase client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Get service auth client for admin operations
+    const supabase = serviceAuth.getSupabaseClient();
     
     // Find verification token
     const { data: tokenData, error: tokenError } = await supabase
@@ -111,11 +108,8 @@ export async function GET(request: Request) {
       throw new ValidationError('Invalid token format');
     }
     
-    // Initialize Supabase client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Get service auth client for admin operations
+    const supabase = serviceAuth.getSupabaseClient();
     
     // Check if token is valid
     const { data: tokenData, error: tokenError } = await supabase

@@ -11,7 +11,7 @@ class EnvironmentConfig(BaseModel):
     
     supabase_url: str
     supabase_service_key: str
-    gcs_bucket_name: str
+    supabase_storage_bucket: str
     vertex_ai_project_id: str
     
     @validator('supabase_url')
@@ -20,10 +20,10 @@ class EnvironmentConfig(BaseModel):
             raise ValueError('SUPABASE_URL must be a valid URL')
         return v
     
-    @validator('gcs_bucket_name')
+    @validator('supabase_storage_bucket')
     def validate_bucket_name(cls, v):
         if not v or len(v) < 3:
-            raise ValueError('GCS_BUCKET_NAME must be at least 3 characters')
+            raise ValueError('SUPABASE_STORAGE_BUCKET must be at least 3 characters')
         return v
     
     @validator('vertex_ai_project_id')
@@ -38,7 +38,7 @@ def validate_environment() -> Dict[str, Any]:
     required_vars = [
         'SUPABASE_URL',
         'SUPABASE_SERVICE_KEY', 
-        'GCS_BUCKET_NAME',
+        'SUPABASE_STORAGE_BUCKET',
         'VERTEX_AI_PROJECT_ID'
     ]
     
@@ -51,7 +51,7 @@ def validate_environment() -> Dict[str, Any]:
         return EnvironmentConfig(
             supabase_url=os.getenv('SUPABASE_URL'),
             supabase_service_key=os.getenv('SUPABASE_SERVICE_KEY'),
-            gcs_bucket_name=os.getenv('GCS_BUCKET_NAME'),
+            supabase_storage_bucket=os.getenv('SUPABASE_STORAGE_BUCKET'),
             vertex_ai_project_id=os.getenv('VERTEX_AI_PROJECT_ID')
         )
     except Exception as e:

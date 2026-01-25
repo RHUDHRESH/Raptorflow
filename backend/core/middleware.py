@@ -55,6 +55,64 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def _map_user_from_record(user_data: dict) -> User:
+    subscription_tier = user_data.get("subscription_tier") or user_data.get(
+        "subscription_plan"
+    )
+    if not subscription_tier:
+        subscription_tier = "free"
+    preferences = user_data.get("preferences")
+    if preferences is None:
+        preferences = user_data.get("workspace_preferences", {})
+    budget_limit = user_data.get("budget_limit_monthly", 1.0)
+    try:
+        budget_limit = float(budget_limit)
+    except (TypeError, ValueError):
+        budget_limit = 1.0
+    return User(
+        id=user_data["id"],
+        email=user_data["email"],
+        full_name=user_data.get("full_name"),
+        avatar_url=user_data.get("avatar_url"),
+        subscription_tier=subscription_tier,
+        budget_limit_monthly=budget_limit,
+        onboarding_completed_at=user_data.get("onboarding_completed_at"),
+        preferences=preferences,
+        created_at=user_data.get("created_at"),
+        updated_at=user_data.get("updated_at"),
+    )
+
+
+def _fetch_user_record(supabase, user_id: str) -> dict | None:
+    try:
+        result = (
+            supabase.table("profiles").select("*").eq("id", user_id).single().execute()
+        )
+        if result.data:
+            return result.data
+    except Exception:
+        pass
+    try:
+        result = supabase.table("users").select("*").eq("id", user_id).single().execute()
+        if result.data:
+            return result.data
+    except Exception:
+        pass
+    try:
+        result = (
+            supabase.table("users")
+            .select("*")
+            .eq("auth_user_id", user_id)
+            .single()
+            .execute()
+        )
+        if result.data:
+            return result.data
+    except Exception:
+        pass
+    return None
+
+
 class AuthMiddleware(BaseHTTPMiddleware):
     """Authentication middleware for FastAPI with audit logging and rate limiting"""
 
@@ -235,33 +293,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
             if not jwt_payload:
                 return None
 
-            # Get user from database
             supabase = get_supabase_client()
-            result = (
-                supabase.table("users")
-                .select("*")
-                .eq("id", jwt_payload.sub)
-                .single()
-                .execute()
-            )
-
-            if not result.data:
+            user_data = _fetch_user_record(supabase, jwt_payload.sub)
+            if not user_data:
                 return None
 
-            # Convert to User model
-            user_data = result.data
-            user = User(
-                id=user_data["id"],
-                email=user_data["email"],
-                full_name=user_data.get("full_name"),
-                avatar_url=user_data.get("avatar_url"),
-                subscription_tier=user_data.get("subscription_tier", "free"),
-                budget_limit_monthly=float(user_data.get("budget_limit_monthly", 1.0)),
-                onboarding_completed_at=user_data.get("onboarding_completed_at"),
-                preferences=user_data.get("preferences", {}),
-                created_at=user_data.get("created_at"),
-                updated_at=user_data.get("updated_at"),
-            )
+            user = _map_user_from_record(user_data)
 
             return user
 

@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/auth-server'
+import { createServerSupabaseClient, getProfileByAuthUserId } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
 
 // PhonePe 2026 API Configuration
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   try {
     const { planId, billingCycle } = await request.json()
 
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
 
     // Get current user
     const { data: { session } } = await supabase.auth.getSession()
@@ -24,19 +24,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, email, onboarding_status')
-      .eq('auth_user_id', session.user.id)
-      .single()
+    const { profile } = await getProfileByAuthUserId(supabase, session.user.id)
+    const onboardingStatus = profile?.onboarding_status
 
-    if (!user || user.onboarding_status !== 'pending_payment') {
+    if (!profile || (onboardingStatus && onboardingStatus !== 'pending_payment')) {
       return NextResponse.json(
-        { error: 'Invalid state for payment' },
+        { error: 'Invalid state for payment. Please select a plan first.' },
         { status: 400 }
       )
     }
+
 
     // Get plan
     const { data: plan } = await supabase
@@ -55,13 +52,13 @@ export async function POST(request: Request) {
       : plan.price_yearly_paise
 
     // Generate unique transaction ID
-    const transactionId = `TXN_${user.id.slice(0, 8)}_${Date.now()}`
+    const transactionId = `TXN_${profile.id.slice(0, 8)}_${Date.now()}`
 
     // Store pending subscription
     await supabase
       .from('subscriptions')
       .upsert({
-        user_id: user.id,
+        user_id: profile.id,
         plan_id: plan.id,
         plan_name: plan.name,
         price_monthly_paise: plan.price_monthly_paise,
@@ -75,7 +72,7 @@ export async function POST(request: Request) {
     await supabase
       .from('payment_transactions')
       .insert({
-        user_id: user.id,
+        user_id: profile.id,
         transaction_id: transactionId,
         amount_paise: amount,
         status: 'initiated',
@@ -112,7 +109,7 @@ export async function POST(request: Request) {
     const payload = {
       merchantId: PHONEPE_MERCHANT_ID,
       merchantTransactionId: transactionId,
-      merchantUserId: user.id,
+      merchantUserId: profile.id,
       amount: amount, // In paise
       redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding/payment?status=pending&transactionId=${transactionId}`,
       redirectMode: 'REDIRECT',

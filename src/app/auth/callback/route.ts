@@ -1,51 +1,141 @@
-import { createClient } from '@/lib/supabaseServer';
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { getProfileByAuthUserId, upsertProfileForAuthUser } from '@/lib/auth-server';
 
 export async function GET(request: Request) {
-  // The `/auth/callback` route is required for the server-side auth flow to work properly.
-  // The Auth helpers package automatically creates a server-side client for us.
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const next = requestUrl.searchParams.get('next') ?? '/dashboard';
+
+  console.log('🔍 Auth callback started', {
+    code: !!code,
+    url: request.url,
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'NOT_SET',
+    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT_SET',
+    anonKeyLength: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length || 0,
+    anonKeyPreview: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 20) + '...',
+    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'NOT_SET'
+  });
 
   if (code) {
-    const supabase = createClient();
-    const { data: { session } } = await supabase.auth.exchangeCodeForSession(code);
+    try {
+      const cookieStore = await cookies();
 
-    if (session?.user) {
-      // Check profile and workspace to ensure session metadata is synced
-      const [{ data: profile }, { data: workspace }] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('ucid, onboarding_status, role')
-          .eq('id', session.user.id)
-          .single(),
-        supabase
-          .from('workspaces')
-          .select('id')
-          .or(`owner_id.eq.${session.user.id},user_id.eq.${session.user.id}`)
-          .limit(1)
-          .maybeSingle()
-      ]);
+      // Create Supabase client with proper cookie handling
+      // For code exchange, use anon key (service role key may not work for OAuth)
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            get(name: string) {
+              return cookieStore.get(name)?.value
+            },
+            set(name: string, value: string, options: any) {
+              try {
+                cookieStore.set({ name, value, ...options })
+              } catch {
+                // Ignore cookie setting errors in callback
+              }
+            },
+            remove(name: string, options: any) {
+              try {
+                cookieStore.set({ name, value: '', ...options })
+              } catch {
+                // Ignore cookie deletion errors in callback
+              }
+            },
+          },
+        }
+      );
 
-      // Sync workspace_id and role to metadata for middleware
-      if (workspace?.id || profile?.role) {
-        await supabase.auth.updateUser({
-          data: {
-            workspace_id: workspace?.id || session.user.user_metadata?.workspace_id,
-            role: profile?.role || session.user.user_metadata?.role || 'user',
-            onboarding_status: profile?.onboarding_status || 'pending'
-          }
+      console.log('🔐 Exchanging code for session...');
+      const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        console.error('❌ Auth callback error:', {
+          message: error.message,
+          status: error.status,
+          code: error.code,
+          details: error
         });
+        return NextResponse.redirect(`${requestUrl.origin}/login?error=auth_failed&reason=${encodeURIComponent(error.message)}`);
       }
 
-      // If no profile yet, or no UCID, or pending onboarding -> go to onboarding
-      if (!profile || !profile.ucid || profile.onboarding_status === 'pending') {
-        return NextResponse.redirect(`${requestUrl.origin}/onboarding`);
+      if (session?.user) {
+        console.log('✅ Auth successful for user:', session.user.email);
+
+        // Wait for database trigger to create profile with polling instead of blocking setTimeout
+        let attempts = 0;
+        const maxAttempts = 15; // 15 attempts with 200ms delay = 3 seconds max
+        let profile = null;
+        let profileSource = null;
+
+        while (attempts < maxAttempts) {
+          const result = await getProfileByAuthUserId(supabase, session.user.id)
+          profile = result.profile
+          profileSource = result.source
+
+          if (profile) {
+            break
+          }
+
+          // Wait before next attempt
+          await new Promise(resolve => setTimeout(resolve, 200));
+          attempts++;
+        }
+
+        console.log('📊 Profile query result:', { profile, profileSource, attempts });
+
+        // Handle profile creation if it doesn't exist
+        if (!profile) {
+          console.log('📝 Profile not found, creating...');
+          const created = await upsertProfileForAuthUser(supabase, session.user)
+
+          if (!created.profile) {
+            console.error('❌ Profile creation error')
+          }
+
+          // New users go to plans page first (payment required before onboarding)
+          console.log('✅ Redirecting new user to /onboarding/plans (payment required)');
+          return NextResponse.redirect(`${requestUrl.origin}/onboarding/plans`);
+        }
+
+        // Determine redirect based on subscription and onboarding status
+        const subscriptionStatus = profile?.subscription_status;
+        const onboardingStatus = profile?.onboarding_status;
+        const subscriptionPlan = profile?.subscription_plan;
+
+        console.log('📊 User status:', { subscriptionStatus, onboardingStatus, subscriptionPlan });
+
+        // ROUTING LOGIC (Payment Required First):
+        // 1. No active subscription → Plans page (PhonePe payment required)
+        // 2. Active subscription but onboarding not complete → Onboarding Step 1
+        // 3. Active subscription + onboarding complete → Dashboard
+
+        // If no active subscription, user MUST pay via PhonePe first
+        if (subscriptionStatus !== 'active' || !subscriptionPlan) {
+          console.log('✅ Redirecting to /onboarding/plans (payment required before onboarding)');
+          return NextResponse.redirect(`${requestUrl.origin}/onboarding/plans`);
+        }
+
+        // User paid but hasn't completed onboarding - now they can access onboarding
+        if (onboardingStatus !== 'active') {
+          console.log('✅ Redirecting to /onboarding/session/step/1 (payment confirmed, starting onboarding)');
+          return NextResponse.redirect(`${requestUrl.origin}/onboarding/session/step/1`);
+        }
+
+        // Fully onboarded user with active subscription
+        console.log('✅ Redirecting to /dashboard (fully onboarded)');
+        return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
       }
+    } catch (error) {
+      console.error('❌ Auth callback error:', error);
+      return NextResponse.redirect(`${requestUrl.origin}/login?error=auth_failed&reason=callback_error`);
     }
   }
 
-  // URL to redirect to after sign in process completes
-  return NextResponse.redirect(`${requestUrl.origin}${next}`);
+  // If no code, redirect to login
+  console.log('❌ No auth code found, redirecting to login');
+  return NextResponse.redirect(`${requestUrl.origin}/login`);
 }

@@ -10,7 +10,7 @@ export class TitanService {
    */
   async startResearch(request: TitanResearchRequest): Promise<string> {
     const settings = TitanDomain.getResearchSettings(request.mode);
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Log the research initiation
     const { data, error } = await supabase
@@ -32,7 +32,7 @@ export class TitanService {
   }
 
   async getResearchResult(id: string): Promise<TitanResearchResult | null> {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('intelligence_results')
       .select('*')

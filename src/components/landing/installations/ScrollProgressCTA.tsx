@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight01Icon } from "hugeicons-react";
+import { ArrowRight } from "lucide-react";
 
 export default function ScrollProgressCTA() {
     const [isVisible, setIsVisible] = useState(false);
@@ -111,9 +111,7 @@ export default function ScrollProgressCTA() {
                             className="group flex items-center gap-2 px-5 py-2.5 bg-[var(--canvas)] text-[var(--ink)] rounded-full font-semibold text-sm hover:bg-white transition-colors"
                         >
                             <span>Get Started</span>
-                            {React.createElement(ArrowRight01Icon as any, {
-                                className: "w-4 h-4 group-hover:translate-x-1 transition-transform"
-                            })}
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
 
                         {/* Close button */}

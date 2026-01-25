@@ -1,7 +1,15 @@
-// SECURE Authentication utilities for Raptorflow
-// Replaces the insecure bypass implementation with proper Supabase auth
+/**
+ * @deprecated This file is deprecated. Use '@/lib/auth-service' instead.
+ * 
+ * This file is kept for backward compatibility but all new code should
+ * import from auth-service.ts which is the single source of truth.
+ * 
+ * Migration guide:
+ * - import { clientAuth } from '@/lib/auth-service'
+ * - Use clientAuth.getSession(), clientAuth.getCurrentUser(), etc.
+ */
 
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient } from '@/lib/supabase/client';
 
 export interface User {
   id: string;
@@ -21,11 +29,28 @@ export interface Session {
   expires_at?: string;
 }
 
-// Create Supabase client
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Use shared Supabase client singleton instead of creating a new instance
+const getSupabase = () => {
+  if (typeof window === 'undefined') {
+    console.warn('auth.ts should only be used on client-side. Use auth-service.ts for server-side auth.');
+    return null;
+  }
+  return createClient();
+};
+
+// Lazy initialization to avoid issues during SSR
+let _supabase: ReturnType<typeof createClient> | null = null;
+const supabase = new Proxy({} as ReturnType<typeof createClient>, {
+  get(_, prop) {
+    if (!_supabase) {
+      _supabase = getSupabase();
+    }
+    if (!_supabase) {
+      throw new Error('Supabase client not available');
+    }
+    return (_supabase as any)[prop];
+  }
+});
 
 // Check if user is authenticated - SECURE IMPLEMENTATION
 export async function isAuthenticated(): Promise<boolean> {
@@ -58,36 +83,70 @@ export async function getCurrentUser(): Promise<User | null> {
       return null;
     }
 
-    // Get user profile from database
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (profileError) {
-      console.error('Get profile error:', profileError);
-      // Return basic user info if profile not found
+    if (profile) {
       return {
         id: user.id,
         email: user.email!,
-        fullName: user.user_metadata?.full_name || user.email!,
-        subscriptionPlan: 'free',
-        subscriptionStatus: 'none',
-        createdAt: user.created_at,
-        role: 'user'
+        fullName: profile.full_name || user.user_metadata?.full_name || user.email!,
+        subscriptionPlan: profile.subscription_plan || 'free',
+        subscriptionStatus: profile.subscription_status || 'none',
+        createdAt: profile.created_at || user.created_at,
+        role: profile.role || 'user',
+        workspaceId: profile.workspace_id
+      };
+    }
+
+    const { data: userProfile } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (userProfile) {
+      return {
+        id: user.id,
+        email: user.email!,
+        fullName: userProfile.full_name || user.user_metadata?.full_name || user.email!,
+        subscriptionPlan: userProfile.subscription_plan || 'free',
+        subscriptionStatus: userProfile.subscription_status || 'none',
+        createdAt: userProfile.created_at || user.created_at,
+        role: 'user',
+      };
+    }
+
+    const { data: usersRecord } = await supabase
+      .from('users')
+      .select('id, auth_user_id, email, full_name, role, subscription_plan, subscription_tier, subscription_status, workspace_id, created_at')
+      .eq('auth_user_id', user.id)
+      .maybeSingle();
+
+    if (usersRecord) {
+      return {
+        id: usersRecord.id || user.id,
+        email: usersRecord.email || user.email!,
+        fullName: usersRecord.full_name || user.user_metadata?.full_name || user.email!,
+        subscriptionPlan: usersRecord.subscription_plan || usersRecord.subscription_tier || 'free',
+        subscriptionStatus: usersRecord.subscription_status || 'none',
+        createdAt: usersRecord.created_at || user.created_at,
+        role: usersRecord.role || 'user',
+        workspaceId: usersRecord.workspace_id
       };
     }
 
     return {
       id: user.id,
       email: user.email!,
-      fullName: profile.full_name || user.user_metadata?.full_name || user.email!,
-      subscriptionPlan: profile.subscription_plan || 'free',
-      subscriptionStatus: profile.subscription_status || 'none',
-      createdAt: profile.created_at || user.created_at,
-      role: profile.role || 'user',
-      workspaceId: profile.workspace_id
+      fullName: user.user_metadata?.full_name || user.email!,
+      subscriptionPlan: 'free',
+      subscriptionStatus: 'none',
+      createdAt: user.created_at,
+      role: 'user'
     };
   } catch (error) {
     console.error('Get current user error:', error);
@@ -164,11 +223,16 @@ export async function getSession(): Promise<Session | null> {
       return null;
     }
 
+    // expires_at from Supabase is a unix timestamp in seconds
+    const expiresAtMs = session.expires_at 
+      ? (typeof session.expires_at === 'number' ? session.expires_at * 1000 : new Date(session.expires_at).getTime())
+      : undefined;
+
     return {
       access_token: session.access_token,
       refresh_token: session.refresh_token,
       user,
-      expires_at: session.expires_at ? new Date(session.expires_at).toISOString() : undefined,
+      expires_at: expiresAtMs ? new Date(expiresAtMs).toISOString() : undefined,
     };
   } catch (error) {
     console.error('Get session error:', error);
@@ -181,11 +245,15 @@ export function onAuthStateChange(callback: (event: string, session: Session | n
   return supabase.auth.onAuthStateChange(async (event, session) => {
     if (session) {
       const user = await getCurrentUser();
+      // expires_at from Supabase is a unix timestamp in seconds
+      const expiresAtMs = session.expires_at 
+        ? (typeof session.expires_at === 'number' ? session.expires_at * 1000 : new Date(session.expires_at).getTime())
+        : undefined;
       callback(event, user ? {
         access_token: session.access_token,
         refresh_token: session.refresh_token,
         user,
-        expires_at: session.expires_at ? new Date(session.expires_at * 1000).toISOString() : undefined,
+        expires_at: expiresAtMs ? new Date(expiresAtMs).toISOString() : undefined,
       } : null);
     } else {
       callback(event, null);

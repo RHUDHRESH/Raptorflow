@@ -1,4 +1,4 @@
-# GCP Deployment Guide for SOTA OCR System
+auth# GCP Deployment Guide for SOTA OCR System
 # Complete step-by-step instructions for deploying to Google Cloud Platform
 
 ## 🚀 Quick Start

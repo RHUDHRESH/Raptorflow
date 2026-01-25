@@ -1230,3 +1230,8 @@ def get_request_metrics_summary(
     """Get request metrics summary (convenience function)."""
     collector = get_request_metrics_collector()
     return collector.get_metrics_summary(hours, agent_name, user_id, workspace_id)
+
+
+def get_analytics_manager():
+    """Get analytics manager instance (backward compatibility)."""
+    return get_request_metrics_collector()

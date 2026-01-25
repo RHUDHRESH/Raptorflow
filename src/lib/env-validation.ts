@@ -3,6 +3,8 @@
  * Validates required environment variables at startup
  */
 
+import { getBaseUrl } from './env-utils'
+
 interface ValidationResult {
   isValid: boolean
   missing: string[]
@@ -159,17 +161,14 @@ export function getEnvironmentSummary(): Record<string, string> {
     baseUrl: getBaseUrl(),
     vercelUrl: process.env.VERCEL_URL || 'not set',
     vercelEnv: process.env.VERCEL_ENV || 'not set',
-    hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL ? 'yes' : 'no',
-    hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'yes' : 'no',
-    hasGoogleOAuth: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) ? 'yes' : 'no',
-    hasSentry: !!(process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN) ? 'yes' : 'no',
-    hasResend: !!process.env.RESEND_API_KEY ? 'yes' : 'no',
-    hasRedis: !!(process.env.UPSTASH_REDIS_URL || process.env.NEXT_PUBLIC_UPSTASH_REDIS_URL) ? 'yes' : 'no',
+    hasSupabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'yes' : 'no',
+    hasSupabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'yes' : 'no',
+    hasGoogleOAuth: process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? 'yes' : 'no',
+    hasSentry: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN ? 'yes' : 'no',
+    hasResend: process.env.RESEND_API_KEY ? 'yes' : 'no',
+    hasRedis: process.env.UPSTASH_REDIS_URL || process.env.NEXT_PUBLIC_UPSTASH_REDIS_URL ? 'yes' : 'no',
     isVercelPreview: process.env.VERCEL_ENV === 'preview' ? 'yes' : 'no',
     isDevelopment: process.env.NODE_ENV === 'development' ? 'yes' : 'no',
     isProduction: process.env.NODE_ENV === 'production' ? 'yes' : 'no'
   }
 }
-
-// Import getBaseUrl for environment summary
-import { getBaseUrl } from './env-utils'

@@ -29,7 +29,12 @@ from functools import wraps
 from typing import Any, Callable, Dict, Generic, List, Optional, Set, TypeVar, Union
 
 # External imports
-import redis.asyncio as redis
+try:
+    import redis.asyncio as redis_client
+except ImportError:
+    # Fallback for older redis versions
+    import redis
+    redis_client = redis
 import structlog
 from pydantic import BaseModel, ValidationError
 
@@ -305,14 +310,14 @@ class RedisStateStorage(StateStorage):
         import os
 
         self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/0")
-        self.redis_client: Optional[redis.Redis] = None
+        self.redis_client: Optional[redis_client.Redis] = None
         self._connected = False
 
     async def connect(self):
         """Connect to Redis."""
         if not self._connected:
             try:
-                self.redis_client = redis.from_url(self.redis_url)
+                self.redis_client = redis_client.from_url(self.redis_url)
                 await self.redis_client.ping()
                 self._connected = True
                 logger.info("Connected to Redis state storage")

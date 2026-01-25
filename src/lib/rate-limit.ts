@@ -67,7 +67,7 @@ export async function rateLimit(
       .single()
     
     let currentCount = 0
-    let resetTime = windowEnd.getTime()
+    const resetTime = windowEnd.getTime()
     
     if (existing) {
       currentCount = existing.request_count

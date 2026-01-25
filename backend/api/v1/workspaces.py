@@ -4,7 +4,7 @@ Workspaces API endpoints
 
 from typing import Any, Dict, List, Optional
 
-from db.repositories import WorkspaceRepository
+from backend.core.workspace import get_workspace_for_user
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 

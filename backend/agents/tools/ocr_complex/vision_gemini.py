@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Union
 
-import google.generativeai as genai
+from google import genai
 from PIL import Image
 
 from .base_processor import BaseProcessor, ProcessingResult, ProcessingStatus
@@ -29,8 +29,7 @@ class GeminiVisionProcessor(BaseProcessor):
         self.timeout = config.get("timeout", 40)
         self.prompt = config.get("prompt", self._default_prompt())
 
-        genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel(self.model_name)
+        self.client = genai.Client(api_key=self.api_key)
 
     def _default_prompt(self) -> str:
         return """
@@ -127,12 +126,15 @@ class GeminiVisionProcessor(BaseProcessor):
         last_error = None
         for attempt in range(self.max_retries + 1):
             try:
-                response = self.model.generate_content(
-                    [self.prompt, {"mime_type": "image/png", "data": img_bytes}],
-                    safety_settings={
-                        "HARASSMENT": "block_none",
-                        "VIOLENCE": "block_none",
-                    },
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=[self.prompt, {"mime_type": "image/png", "data": img_bytes}],
+                    config={
+                        "safety_settings": {
+                            "HARASSMENT": "block_none",
+                            "VIOLENCE": "block_none",
+                        }
+                    }
                 )
                 text = (response.text or "").strip()
                 if "NO_TEXT_FOUND" in text or not text:

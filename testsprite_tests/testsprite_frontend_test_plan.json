@@ -1,0 +1,562 @@
+[
+  {
+    "id": "TC001",
+    "title": "User Registration with Valid Email and Secure Password",
+    "description": "Verify that a new user can successfully register with a valid email and a password meeting security requirements.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the registration page"
+      },
+      {
+        "type": "action",
+        "description": "Enter a valid email address"
+      },
+      {
+        "type": "action",
+        "description": "Enter a password that meets security criteria (e.g. minimum length, complexity)"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify registration is accepted and user is prompted for email verification"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "User Registration with Invalid Email Format",
+    "description": "Verify that the registration is blocked when an invalid email format is entered.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the registration page"
+      },
+      {
+        "type": "action",
+        "description": "Input an invalid email format (e.g., missing '@' or domain)"
+      },
+      {
+        "type": "action",
+        "description": "Enter a valid password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an appropriate error message is displayed and registration is prevented"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "User Registration with Weak Password",
+    "description": "Verify that the registration is rejected if the password does not meet security requirements.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the registration page"
+      },
+      {
+        "type": "action",
+        "description": "Enter a valid email"
+      },
+      {
+        "type": "action",
+        "description": "Input a password that does not meet complexity (e.g., too short or lacks uppercase)"
+      },
+      {
+        "type": "action",
+        "description": "Submit registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Check error highlighting password weakness and registration prevented"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Email Verification Process",
+    "description": "Confirm that the user cannot access the dashboard without completing email verification.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Register a new user with valid credentials"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to login before email verification"
+      },
+      {
+        "type": "assertion",
+        "description": "User access is restricted with message prompting email verification"
+      },
+      {
+        "type": "action",
+        "description": "Complete email verification via link"
+      },
+      {
+        "type": "action",
+        "description": "Login with verified credentials"
+      },
+      {
+        "type": "assertion",
+        "description": "User is successfully redirected to dashboard"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Login with Supabase Auth",
+    "description": "Verify login flow with Supabase Auth using valid credentials.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to login page"
+      },
+      {
+        "type": "action",
+        "description": "Select Supabase Auth method"
+      },
+      {
+        "type": "action",
+        "description": "Input valid username/email and password"
+      },
+      {
+        "type": "action",
+        "description": "Submit login form"
+      },
+      {
+        "type": "assertion",
+        "description": "User is authenticated and redirected to dashboard"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Login with Incorrect Password",
+    "description": "Verify that login fails with an incorrect password and shows an appropriate error.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to login page"
+      },
+      {
+        "type": "action",
+        "description": "Select Supabase Auth login"
+      },
+      {
+        "type": "action",
+        "description": "Enter valid username/email with incorrect password"
+      },
+      {
+        "type": "action",
+        "description": "Submit login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Display error indicating invalid credentials; do not allow login"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Role-Based Access Control Enforcement for Admin",
+    "description": "Validate that a user with admin role can access the admin dashboard and perform user management operations.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as user with admin role"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to admin dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is granted to admin dashboard features"
+      },
+      {
+        "type": "action",
+        "description": "Perform user management actions (assign roles, delete accounts)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify actions are successfully completed and reflected"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Role-Based Access Denial for Standard User on Admin Dashboard",
+    "description": "Ensure standard and enterprise tier users cannot access admin dashboard functionalities.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as standard tier user"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access admin dashboard URL"
+      },
+      {
+        "type": "assertion",
+        "description": "Access is denied with appropriate unauthorized message or redirect"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Session Persistence Across Browser Tabs",
+    "description": "Verify that a logged-in session stays active and consistent across multiple tabs in the same browser.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login successfully in one browser tab"
+      },
+      {
+        "type": "action",
+        "description": "Open a new tab in the same browser and navigate to dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "User remains logged in and session state is consistent"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "JWT Token Auto Refresh and Logout Cleanup",
+    "description": "Validate that JWT tokens refresh automatically before expiry and logout properly cleans session both client and server side.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login to application and monitor JWT expiry time"
+      },
+      {
+        "type": "action",
+        "description": "Remain active until token refresh occurs automatically"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify new token is issued and session remains valid"
+      },
+      {
+        "type": "action",
+        "description": "Perform logout action"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm all session tokens are invalidated and access is revoked"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Subscription Payment Success and Feature Unlock for Pro Plan",
+    "description": "Verify that payment through PhonePe for Pro subscription processes correctly and unlocks Pro features immediately.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as free tier user"
+      },
+      {
+        "type": "action",
+        "description": "Choose to upgrade to Pro plan"
+      },
+      {
+        "type": "action",
+        "description": "Complete payment successfully via PhonePe"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify subscription status updates to Pro and features associated with Pro tier are unlocked immediately"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Subscription Payment Failure Handling and Retry",
+    "description": "Ensure payment failures during subscription upgrade trigger retry mechanisms and show appropriate user error messages.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as free tier user"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to upgrade plan and simulate payment failure via PhonePe"
+      },
+      {
+        "type": "assertion",
+        "description": "System displays payment failure message with retry option"
+      },
+      {
+        "type": "action",
+        "description": "Retry the payment process and complete successfully"
+      },
+      {
+        "type": "assertion",
+        "description": "Subscription status updates and features are enabled accordingly"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "ICP Management Limit Enforcement by Subscription Tier",
+    "description": "Validate that free tier users can create a maximum of 3 ICPs, Pro tier unlimited, and Enterprise tier full feature support with priority.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as free tier user"
+      },
+      {
+        "type": "action",
+        "description": "Create and save 3 ICP profiles"
+      },
+      {
+        "type": "assertion",
+        "description": "All 3 ICPs are created successfully"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to create a 4th ICP"
+      },
+      {
+        "type": "assertion",
+        "description": "System prevents creation with message indicating plan limit"
+      },
+      {
+        "type": "action",
+        "description": "Login as Pro tier user"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to create more than 10 ICPs"
+      },
+      {
+        "type": "assertion",
+        "description": "System allows creation with no limit error"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Onboarding Flow Including Cohort and ICP Creation",
+    "description": "Verify that new users complete onboarding process including foundation data, cohort creation, and ICP setup prior to dashboard access.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Register new user and complete email verification"
+      },
+      {
+        "type": "action",
+        "description": "Begin onboarding flow - enter foundation data as required"
+      },
+      {
+        "type": "action",
+        "description": "Create initial cohort and ICP during onboarding"
+      },
+      {
+        "type": "action",
+        "description": "Complete onboarding and be redirected to dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all onboarding data saved and dashboard loads successfully"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "CSRF Token Validation on Authentication and Payment Endpoints",
+    "description": "Ensure that CSRF tokens are required and validated on all auth and payment related requests.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send authentication request without CSRF token"
+      },
+      {
+        "type": "assertion",
+        "description": "Request is rejected with CSRF error"
+      },
+      {
+        "type": "action",
+        "description": "Send authentication request with valid CSRF token"
+      },
+      {
+        "type": "assertion",
+        "description": "Request is processed successfully"
+      },
+      {
+        "type": "action",
+        "description": "Send payment request without CSRF token"
+      },
+      {
+        "type": "assertion",
+        "description": "Request is rejected with CSRF error"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Rate Limiting on Authentication Endpoints to Prevent Brute Force",
+    "description": "Verify rate limiting activates and blocks excessive authentication attempts to prevent brute-force attacks.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt login with invalid credentials repeatedly exceeding rate-limit threshold"
+      },
+      {
+        "type": "assertion",
+        "description": "System blocks login attempts and returns rate limit exceeded message"
+      },
+      {
+        "type": "action",
+        "description": "Attempt login again after cooldown period"
+      },
+      {
+        "type": "assertion",
+        "description": "Login attempts are accepted again"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Password Hashing Verification with bcrypt",
+    "description": "Confirm passwords are securely hashed with bcrypt and stored appropriately.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Register a new user with plaintext password"
+      },
+      {
+        "type": "action",
+        "description": "Retrieve stored password info from database"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify password storage uses bcrypt hashed format, not plaintext"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Environment-Based Security Configuration",
+    "description": "Verify relaxed security settings are applied in development environment and full security in production environment.",
+    "category": "security",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Set environment to development"
+      },
+      {
+        "type": "action",
+        "description": "Access authentication with development security policies"
+      },
+      {
+        "type": "assertion",
+        "description": "Relaxed security measures are active (e.g. local dev accounts available)"
+      },
+      {
+        "type": "action",
+        "description": "Switch environment to production"
+      },
+      {
+        "type": "assertion",
+        "description": "All production level security policies and constraints are strictly enforced"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Session Timeout and Auto Logout After Inactivity",
+    "description": "Verify that user sessions timeout after defined inactivity period and automatically log the user out.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login and remain inactive for session timeout duration"
+      },
+      {
+        "type": "assertion",
+        "description": "User is automatically logged out upon timeout"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to perform authenticated action post timeout"
+      },
+      {
+        "type": "assertion",
+        "description": "Action is blocked and user is redirected to login"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Verify GDPR Compliance: User Data Deletion and Consent",
+    "description": "Ensure users can delete their accounts and personal data as per GDPR compliance and appropriate consent screens are shown.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as a user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to account deletion section"
+      },
+      {
+        "type": "action",
+        "description": "Request account deletion consent, confirm and submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify account and all personal data are removed or anonymized"
+      }
+    ]
+  }
+]

@@ -67,7 +67,7 @@ export function StatCard({
       )}
     </div>
   );
-};
+}
 
 /* ══════════════════════════════════════════════════════════════════════════════
    STAT CARD ROW — Grid of stat cards

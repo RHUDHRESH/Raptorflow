@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ...config import CognitiveConfig
+from backend.config import CognitiveConfig
 from .correction_planner import CorrectionPlanner
 from .critic import SelfCritic
 from .executor import ImprovementExecutor

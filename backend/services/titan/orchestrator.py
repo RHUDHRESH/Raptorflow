@@ -10,8 +10,9 @@ from backend.services.search.orchestrator import SOTASearchOrchestrator
 from backend.services.titan.multiplexer import SearchMultiplexer, SemanticRanker
 from backend.services.titan.scraper import PlaywrightStealthPool, IntelligentMarkdown
 from backend.tools.web_scraper import WebScraperTool, ScrapingMethod, ContentType
-from backend.services.storage import enhanced_storage_service
+from backend.services.storage import get_enhanced_storage_service
 from backend.core.supabase_mgr import get_supabase_client
+from backend.llm import LLMManager
 
 logger = logging.getLogger("raptorflow.services.titan.orchestrator")
 
@@ -187,18 +188,20 @@ class TitanOrchestrator:
 
     async def _store_intelligence(self, query: str, result: Dict[str, Any], workspace_id: str = "default"):
         """
-        Stores result in GCS Evidence Vault and pgvector.
+        Stores result in Supabase Storage and pgvector.
         """
         logger.info(f"Persisting intelligence for query: {query}")
         
-        # 1. Store raw JSON in GCS Evidence Vault
+        # 1. Store raw JSON in Supabase Storage
         filename = f"titan_intel_{hashlib.md5(query.encode()).hexdigest()[:10]}.json"
         try:
             # Prepare content
             json_content = json.dumps(result, indent=2).encode('utf-8')
             
-            # Use enhanced storage service
-            upload_res = await enhanced_storage_service.upload_file(
+            # Use enhanced storage service (lazy getter)
+            from backend.services.storage import get_enhanced_storage_service
+
+            upload_res = await get_enhanced_storage_service().upload_file(
                 file_content=json_content,
                 filename=filename,
                 workspace_id=workspace_id,
@@ -207,11 +210,11 @@ class TitanOrchestrator:
             )
             
             if upload_res["status"] == "success":
-                logger.info(f"Titan intelligence saved to GCS: {upload_res['storage_path']}")
+                logger.info(f"Titan intelligence saved to Supabase: {upload_res['storage_path']}")
             else:
-                logger.warning(f"Failed to save Titan intelligence to GCS: {upload_res.get('error')}")
+                logger.warning(f"Failed to save Titan intelligence to Supabase: {upload_res.get('error')}")
         except Exception as e:
-            logger.error(f"GCS storage failed for Titan result: {e}")
+            logger.error(f"Supabase storage failed for Titan result: {e}")
 
         # 2. Inject chunks into pgvector (Supabase)
         intelligence = result.get("intelligence_map", {})

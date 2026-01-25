@@ -11,7 +11,7 @@ import logging
 
 # Local imports
 from ...infrastructure.storage import upload_file, FileCategory
-from ...agents.graphs.onboarding_v2 import OnboardingGraphV2, OnboardingStateV2
+from backend.agents.graphs.onboarding_v2 import OnboardingGraphV2, OnboardingStateV2
 from ...utils.ucid import UCIDGenerator
 
 router = APIRouter(prefix="/onboarding/v2", tags=["onboarding-v2"])

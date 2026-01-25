@@ -29,6 +29,55 @@ export async function POST() {
         public: false,
         fileSizeLimit: 100 * 1024 * 1024, // 100MB
         description: 'Workspace file storage'
+      },
+      // GCS-mapped buckets
+      {
+        name: 'workspace-uploads',
+        public: false,
+        fileSizeLimit: 100 * 1024 * 1024, // 100MB
+        description: 'Workspace uploads (replaces GCS uploads)'
+      },
+      {
+        name: 'workspace-exports',
+        public: false,
+        fileSizeLimit: 200 * 1024 * 1024, // 200MB
+        description: 'Workspace exports (replaces GCS exports)'
+      },
+      {
+        name: 'workspace-backups',
+        public: false,
+        fileSizeLimit: 500 * 1024 * 1024, // 500MB
+        description: 'Workspace backups (replaces GCS backups)'
+      },
+      {
+        name: 'workspace-assets',
+        public: true,
+        fileSizeLimit: 50 * 1024 * 1024, // 50MB
+        description: 'Workspace assets (replaces GCS assets)'
+      },
+      {
+        name: 'workspace-temp',
+        public: false,
+        fileSizeLimit: 100 * 1024 * 1024, // 100MB
+        description: 'Workspace temporary files (replaces GCS temp)'
+      },
+      {
+        name: 'workspace-logs',
+        public: false,
+        fileSizeLimit: 50 * 1024 * 1024, // 50MB
+        description: 'Workspace logs (replaces GCS logs)'
+      },
+      {
+        name: 'intelligence-vault',
+        public: false,
+        fileSizeLimit: 10 * 1024 * 1024, // 10MB
+        description: 'AI intelligence outputs (replaces GCS evidence vault)'
+      },
+      {
+        name: 'user-data',
+        public: false,
+        fileSizeLimit: 100 * 1024 * 1024, // 100MB
+        description: 'User data exports (GDPR compliance)'
       }
     ]
 
@@ -56,22 +105,66 @@ export async function POST() {
         } else {
           results.steps.push(`✅ Created ${bucket.name} bucket`)
 
-          // Create storage policies
+          // Create storage policies based on bucket type
           const policyName = bucket.name.replace('-', '_')
 
-          // Policy for users to access their own folder
-          const { error: policyError } = await supabase.rpc('exec_sql', {
-            sql: `
-              CREATE POLICY "Users can manage their ${bucket.name}" ON storage.objects
-                FOR ALL USING (
-                  bucket_id = '${bucket.name}' AND
-                  auth.uid()::text = (storage.foldername(name))[1]
-                );
-            `
-          })
+          if (bucket.public) {
+            // Public buckets - allow read access to all, write access only to authenticated users
+            const { error: publicReadError } = await supabase.rpc('exec_sql', {
+              sql: `
+                CREATE POLICY "Public read access for ${bucket.name}" ON storage.objects
+                  FOR SELECT USING (bucket_id = '${bucket.name}');
+              `
+            })
 
-          if (!policyError) {
-            results.steps.push(`✅ Created policy for ${bucket.name}`)
+            const { error: userWriteError } = await supabase.rpc('exec_sql', {
+              sql: `
+                CREATE POLICY "Users can write to ${bucket.name}" ON storage.objects
+                  FOR INSERT WITH CHECK (
+                    bucket_id = '${bucket.name}' AND 
+                    auth.role() = 'authenticated'
+                  );
+              `
+            })
+
+            const { error: userUpdateError } = await supabase.rpc('exec_sql', {
+              sql: `
+                CREATE POLICY "Users can update their own files in ${bucket.name}" ON storage.objects
+                  FOR UPDATE USING (
+                    bucket_id = '${bucket.name}' AND 
+                    auth.uid()::text = (storage.foldername(name))[1]
+                  );
+              `
+            })
+
+            const { error: userDeleteError } = await supabase.rpc('exec_sql', {
+              sql: `
+                CREATE POLICY "Users can delete their own files in ${bucket.name}" ON storage.objects
+                  FOR DELETE USING (
+                    bucket_id = '${bucket.name}' AND 
+                    auth.uid()::text = (storage.foldername(name))[1]
+                  );
+              `
+            })
+
+            if (!publicReadError && !userWriteError && !userUpdateError && !userDeleteError) {
+              results.steps.push(`✅ Created public policies for ${bucket.name}`)
+            }
+          } else {
+            // Private buckets - users can only access their own folder
+            const { error: privatePolicyError } = await supabase.rpc('exec_sql', {
+              sql: `
+                CREATE POLICY "Users can manage their own ${bucket.name}" ON storage.objects
+                  FOR ALL USING (
+                    bucket_id = '${bucket.name}' AND
+                    auth.uid()::text = (storage.foldername(name))[1]
+                  );
+              `
+            })
+
+            if (!privatePolicyError) {
+              results.steps.push(`✅ Created private policies for ${bucket.name}`)
+            }
           }
         }
       } catch (e: any) {

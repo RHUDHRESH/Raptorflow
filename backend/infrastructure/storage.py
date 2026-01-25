@@ -48,10 +48,9 @@ class FileCategory(Enum):
 
 @dataclass
 class StorageConfig:
-    """Storage configuration."""
+    """Supabase Storage configuration."""
 
-    bucket_name: str
-    default_storage_class: StorageClass = StorageClass.STANDARD
+    default_bucket: str
     enable_versioning: bool = True
     enable_lifecycle: bool = True
     retention_days: int = 30
@@ -71,23 +70,19 @@ class StorageConfig:
     def from_env(cls) -> "StorageConfig":
         """Create configuration from environment variables."""
         return cls(
-            bucket_name=os.getenv("GCP_STORAGE_BUCKET")
-            or os.getenv("GCS_BUCKET_NAME", ""),
-            default_storage_class=StorageClass(
-                os.getenv("GCP_STORAGE_CLASS", "STANDARD")
-            ),
-            enable_versioning=os.getenv("GCP_STORAGE_VERSIONING", "true").lower()
+            default_bucket=os.getenv("SUPABASE_STORAGE_BUCKET", "workspace-uploads"),
+            enable_versioning=os.getenv("SUPABASE_STORAGE_VERSIONING", "true").lower()
             == "true",
-            enable_lifecycle=os.getenv("GCP_STORAGE_LIFECYCLE", "true").lower()
+            enable_lifecycle=os.getenv("SUPABASE_STORAGE_LIFECYCLE", "true").lower()
             == "true",
-            retention_days=int(os.getenv("GCP_STORAGE_RETENTION_DAYS", "30")),
-            chunk_size=int(os.getenv("GCP_STORAGE_CHUNK_SIZE", str(8 * 1024 * 1024))),
+            retention_days=int(os.getenv("SUPABASE_STORAGE_RETENTION_DAYS", "30")),
+            chunk_size=int(os.getenv("SUPABASE_STORAGE_CHUNK_SIZE", str(8 * 1024 * 1024))),
             max_file_size=int(
-                os.getenv("GCP_STORAGE_MAX_FILE_SIZE", str(5 * 1024 * 1024 * 1024))
+                os.getenv("SUPABASE_STORAGE_MAX_FILE_SIZE", str(5 * 1024 * 1024 * 1024))
             ),
-            upload_timeout=int(os.getenv("GCP_STORAGE_UPLOAD_TIMEOUT", "300")),
-            download_timeout=int(os.getenv("GCP_STORAGE_DOWNLOAD_TIMEOUT", "300")),
-            require_authentication=os.getenv("GCP_STORAGE_REQUIRE_AUTH", "true").lower()
+            upload_timeout=int(os.getenv("SUPABASE_STORAGE_UPLOAD_TIMEOUT", "300")),
+            download_timeout=int(os.getenv("SUPABASE_STORAGE_DOWNLOAD_TIMEOUT", "300")),
+            require_authentication=os.getenv("SUPABASE_STORAGE_REQUIRE_AUTH", "true").lower()
             == "true",
         )
 
@@ -106,53 +101,19 @@ class FileMetadata:
 
     # Storage details
     bucket_name: str
-    object_name: str
-    storage_class: StorageClass
-    generation: Optional[str] = None
-
-    # Timestamps
+    object_path: str
+    is_public: bool = False
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
     expires_at: Optional[datetime] = None
 
-    # Security
-    checksum: Optional[str] = None
-    is_public: bool = False
-    download_url: Optional[str] = None
-
     # Additional metadata
+    checksum: Optional[str] = None
+    download_url: Optional[str] = None
     custom_metadata: Dict[str, str] = field(default_factory=dict)
 
-    def __post_init__(self):
-        """Post-initialization processing."""
-        if isinstance(self.storage_class, str):
-            self.storage_class = StorageClass(self.storage_class)
-        if isinstance(self.category, str):
-            self.category = FileCategory(self.category)
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
-        return {
-            "file_id": self.file_id,
-            "filename": self.filename,
-            "content_type": self.content_type,
-            "size_bytes": self.size_bytes,
-            "workspace_id": self.workspace_id,
-            "user_id": self.user_id,
-            "category": self.category.value,
-            "bucket_name": self.bucket_name,
-            "object_name": self.object_name,
-            "storage_class": self.storage_class.value,
-            "generation": self.generation,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
-            "expires_at": self.expires_at.isoformat() if self.expires_at else None,
-            "checksum": self.checksum,
-            "is_public": self.is_public,
-            "download_url": self.download_url,
-            "custom_metadata": self.custom_metadata,
-        }
-
+# Result classes
 
 @dataclass
 class UploadResult:
@@ -160,11 +121,10 @@ class UploadResult:
 
     success: bool
     file_id: Optional[str] = None
-    object_name: Optional[str] = None
-    size_bytes: int = 0
+    object_path: Optional[str] = None
     download_url: Optional[str] = None
     error_message: Optional[str] = None
-    metadata: Optional[FileMetadata] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 
 @dataclass
@@ -175,9 +135,9 @@ class DownloadResult:
     content: Optional[bytes] = None
     filename: Optional[str] = None
     content_type: Optional[str] = None
-    size_bytes: int = 0
+    size_bytes: Optional[int] = None
+    metadata: Optional[Dict[str, Any]] = None
     error_message: Optional[str] = None
-    metadata: Optional[FileMetadata] = None
 
 
 class CloudStorage:

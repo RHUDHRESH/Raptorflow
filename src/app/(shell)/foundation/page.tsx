@@ -18,7 +18,7 @@ import { BlueprintProgress } from "@/components/ui/BlueprintProgress";
 import { BlueprintButton, SecondaryButton } from "@/components/ui/BlueprintButton";
 import { FoundationSkeleton } from "@/components/ui/DashboardSkeletons";
 import { useFoundationStore } from "@/stores/foundationStore";
-import { useAuth } from "@/components/auth/AuthProvider"; // IMPORT AUTH
+import { useAuth } from "@/contexts/AuthContext"; // IMPORT AUTH
 import { RICPDetailModal } from "@/components/foundation/RICPDetailModal";
 import { MessagingDetailModal } from "@/components/foundation/MessagingDetailModal";
 import { GlossaryTerm } from "@/components/foundation/StrategicGlossary";

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated as checkIsAuthenticated, getCurrentUser } from '@/lib/auth';
+import { createClient } from '@/lib/auth-client';
 import { BlueprintLoader } from '@/components/ui/BlueprintLoader';
 
 interface AuthGuardProps {
@@ -17,11 +17,24 @@ export function AuthGuard({ children, redirectTo = '/login' }: AuthGuardProps) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const authenticated = await checkIsAuthenticated();
-      setIsUserAuthenticated(authenticated);
+      const supabase = createClient()
+      if (!supabase) {
+        setIsLoading(false)
+        return
+      }
 
-      if (!authenticated) {
-        router.push(redirectTo);
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const authenticated = !!session
+        setIsUserAuthenticated(authenticated)
+
+        if (!authenticated) {
+          router.push(redirectTo);
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error)
+        setIsUserAuthenticated(false)
+        router.push(redirectTo)
       }
 
       setIsLoading(false);
@@ -32,15 +45,22 @@ export function AuthGuard({ children, redirectTo = '/login' }: AuthGuardProps) {
 
   useEffect(() => {
     const handleStorageChange = async () => {
-      const authenticated = await checkIsAuthenticated();
-      setIsUserAuthenticated(authenticated);
+      const supabase = createClient()
+      if (!supabase) return
 
-      if (!authenticated) {
-        router.push(redirectTo);
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const authenticated = !!session
+        setIsUserAuthenticated(authenticated)
+
+        if (!authenticated) {
+          router.push(redirectTo);
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error)
       }
     };
 
-    // Listen for storage changes (for logout)
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
@@ -74,11 +94,24 @@ export function AuthenticatedContent({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     const checkAuth = async () => {
-      const authenticated = await checkIsAuthenticated();
-      setIsUserAuthenticated(authenticated);
+      const supabase = createClient()
+      if (!supabase) {
+        setIsLoading(false)
+        return
+      }
 
-      if (!authenticated) {
-        router.push('/login');
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const authenticated = !!session
+        setIsUserAuthenticated(authenticated);
+
+        if (!authenticated) {
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error)
+        setIsUserAuthenticated(false)
+        router.push('/login')
       }
       setIsLoading(false);
     };

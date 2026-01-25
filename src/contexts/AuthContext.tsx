@@ -1,9 +1,9 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { User as SupabaseUser, Session } from '@supabase/supabase-js'
-import { createClient } from '@/lib/supabase/client'
+import { Session } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/auth-client'
 
 // =============================================================================
 // TYPES
@@ -52,62 +52,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClient()
-
-  // =============================================================================
-  // HELPERS
-  // =============================================================================
-
-  function mapSupabaseUser(supabaseUser: SupabaseUser): User {
-    const subscriptionStatus = supabaseUser.user_metadata?.subscription_status || 'none'
-    const subscriptionPlan = supabaseUser.user_metadata?.subscription_plan || null
-    const hasCompletedOnboarding = supabaseUser.user_metadata?.has_completed_onboarding === true
-
-    return {
-      id: supabaseUser.id,
-      email: supabaseUser.email || '',
-      fullName: supabaseUser.user_metadata?.full_name || supabaseUser.email?.split('@')[0] || 'User',
-      subscriptionPlan,
-      subscriptionStatus,
-      hasCompletedOnboarding,
-      createdAt: supabaseUser.created_at,
-      workspaceId: supabaseUser.user_metadata?.workspace_id,
-      role: supabaseUser.user_metadata?.role,
-      onboardingStatus: supabaseUser.user_metadata?.onboarding_status,
-    }
-  }
-
-  async function loadUserData(supabaseUser: SupabaseUser) {
-    try {
-      // Load user data from database
-      if (!supabase) {
-        console.error('Supabase client not available')
-        return mapSupabaseUser(supabaseUser)
-      }
-
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('auth_user_id', supabaseUser.id)
-        .single()
-
-      if (userData && !error) {
-        return {
-          ...mapSupabaseUser(supabaseUser),
-          subscriptionPlan: userData.subscription_plan || supabaseUser.user_metadata?.subscription_plan,
-          subscriptionStatus: userData.subscription_status || supabaseUser.user_metadata?.subscription_status || 'none',
-          hasCompletedOnboarding: userData.onboarding_status === 'active',
-          onboardingStatus: userData.onboarding_status,
-          workspaceId: userData.workspace_id,
-          role: userData.role,
-        }
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error)
-    }
-
-    return mapSupabaseUser(supabaseUser)
-  }
 
   // =============================================================================
   // EFFECTS
@@ -120,54 +64,113 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return
     }
 
-    // Don't run if supabase is not available
-    if (!supabase) {
-      console.error('Supabase client not available')
-      setIsLoading(false)
-      return
-    }
+    let mounted = true
 
-    // Get initial session
-    const getInitialSession = async () => {
+    const initializeAuth = async () => {
       try {
-        console.log('Getting initial session...')
+        const supabase = createClient()
+        if (!supabase) {
+          console.error('Supabase client not available')
+          setIsLoading(false)
+          return
+        }
+
         const { data: { session } } = await supabase.auth.getSession()
-        console.log('Session retrieved:', session ? 'found' : 'none')
         
-        if (session?.user) {
-          const userData = await loadUserData(session.user)
-          setUser(userData)
+        if (session && mounted) {
           setSession(session)
+          const userData = await getCurrentUser(supabase)
+          if (userData && mounted) {
+            setUser(userData)
+          }
         }
       } catch (error) {
-        console.error('Error getting initial session:', error)
+        console.error('Error initializing auth:', error)
       } finally {
-        setIsLoading(false)
+        if (mounted) {
+          setIsLoading(false)
+        }
       }
     }
 
-    getInitialSession()
+    initializeAuth()
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email)
+    return () => {
+      mounted = false
+    }
+  }, [])
 
-        if (session?.user) {
-          const userData = await loadUserData(session.user)
-          setUser(userData)
-          setSession(session)
-        } else {
-          setUser(null)
-          setSession(null)
+  const getCurrentUser = async (supabase: any): Promise<User | null> => {
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (!authUser) return null
+
+      // Try to get user profile from various tables
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .maybeSingle()
+
+      if (profile) {
+        return {
+          id: authUser.id,
+          email: authUser.email || '',
+          fullName: profile.full_name || authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
+          subscriptionPlan: profile.subscription_plan || null,
+          subscriptionStatus: profile.subscription_status || 'none',
+          hasCompletedOnboarding: profile.onboarding_status === 'active',
+          createdAt: authUser.created_at,
+          workspaceId: profile.workspace_id,
+          role: profile.role,
+          onboardingStatus: profile.onboarding_status || 'pending',
         }
-
-        setIsLoading(false)
       }
-    )
 
-    return () => subscription.unsubscribe()
-  }, [supabase])
+      // Fallback to basic user info
+      return {
+        id: authUser.id,
+        email: authUser.email || '',
+        fullName: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
+        subscriptionPlan: authUser.user_metadata?.subscription_plan || null,
+        subscriptionStatus: authUser.user_metadata?.subscription_status || 'none',
+        hasCompletedOnboarding: authUser.user_metadata?.has_completed_onboarding === true,
+        createdAt: authUser.created_at,
+        workspaceId: authUser.user_metadata?.workspace_id,
+        role: authUser.user_metadata?.role,
+        onboardingStatus: authUser.user_metadata?.onboarding_status || 'pending',
+      }
+    } catch (error) {
+      console.error('Error getting current user:', error)
+      return null
+    }
+  }
+
+  // Periodic session refresh
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const interval = setInterval(async () => {
+      if (session) {
+        try {
+          const supabase = createClient()
+          if (supabase) {
+            const { data: { user: authUser } } = await supabase.auth.getUser()
+            if (authUser) {
+              const userData = await getCurrentUser(supabase)
+              if (userData) {
+                setUser(userData)
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error refreshing user:', error)
+        }
+      }
+    }, 5 * 60 * 1000)
+
+    return () => clearInterval(interval)
+  }, [session])
 
   // =============================================================================
   // ACTIONS
@@ -175,21 +178,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut()
+      const supabase = createClient()
+      if (supabase) {
+        await supabase.auth.signOut()
+      }
       setUser(null)
       setSession(null)
       router.push('/login')
     } catch (error) {
       console.error('Error signing out:', error)
+      // Force redirect even if sign out fails
+      setUser(null)
+      setSession(null)
+      router.push('/login')
     }
   }
 
   const refreshUser = async () => {
-    if (!session?.user) return
-
     try {
-      const userData = await loadUserData(session.user)
-      setUser(userData)
+      const supabase = createClient()
+      if (supabase) {
+        const userData = await getCurrentUser(supabase)
+        if (userData) {
+          setUser(userData)
+        }
+      }
     } catch (error) {
       console.error('Error refreshing user:', error)
     }
@@ -200,8 +213,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // =============================================================================
 
   const isAuthenticated = !!user
-  const hasActiveSubscription = user?.subscriptionStatus === 'active'
-  const hasCompletedOnboarding = user?.onboardingStatus === 'active'
+  const hasActiveSubscription = user?.subscriptionStatus === 'active' || user?.subscriptionStatus === 'trial'
+  const hasCompletedOnboarding = user?.hasCompletedOnboarding === true || user?.onboardingStatus === 'active'
 
   // =============================================================================
   // CONTEXT VALUE

@@ -1,5 +1,5 @@
 ﻿"""
-Enhanced Google Cloud Storage Service
+Enhanced Supabase Storage Service
 Handles file uploads, validation, CDN, security scanning, and image processing
 """
 
@@ -23,13 +23,10 @@ except ImportError:
     PIL_AVAILABLE = False
     logging.warning("PIL not available - image processing disabled")
 
-from google.cloud import storage
-from google.cloud.storage import Blob
-
-from ..infrastructure.storage import FileCategory, StorageConfig, get_cloud_storage
+from ..infrastructure.supabase_storage import get_supabase_storage, FileCategory
 
 # No longer importing from .storage to avoid circular dependency
-# basic_storage_service will be initialized using get_cloud_storage()
+# basic_storage_service will be initialized using get_supabase_storage()
 
 logger = logging.getLogger(__name__)
 
@@ -62,15 +59,15 @@ class FileMetadata:
 
 
 class EnhancedStorageService:
-    """Enhanced GCS storage with validation, security scanning, and image processing"""
+    """Enhanced Supabase storage with validation, security scanning, and image processing"""
 
     def __init__(self):
         # Use existing storage service as base
-        self.basic_storage = get_cloud_storage()
-        self.cloud_storage = get_cloud_storage()
+        self.basic_storage = get_supabase_storage()
+        self.supabase_storage = get_supabase_storage()
 
-        # CDN configuration
-        self.cdn_base_url = os.getenv("GCS_CDN_URL")
+        # CDN configuration (Supabase doesn't have CDN by default, but we can use public URLs)
+        self.cdn_base_url = os.getenv("SUPABASE_CDN_URL")
 
         # File limits and validation
         self.max_file_size = (
@@ -361,8 +358,8 @@ class EnhancedStorageService:
             if self.enable_security_scanning:
                 security_result = self._security_scan(processed_content)
 
-            # Use enhanced cloud storage service
-            upload_result = await self.cloud_storage.upload_file(
+            # Use enhanced Supabase storage service
+            upload_result = await self.supabase_storage.upload_file(
                 content=processed_content,
                 filename=filename,
                 workspace_id=workspace_id,
@@ -462,10 +459,10 @@ class EnhancedStorageService:
             # Extract file_id from storage path
             file_id = storage_path.split("/")[-1].split(".")[0]
 
-            # Use cloud storage to delete
+            # Use Supabase storage to delete
             import asyncio
 
-            success = asyncio.run(self.cloud_storage.delete_file(file_id))
+            success = asyncio.run(self.supabase_storage.delete_file(file_id))
 
             if success:
                 logger.info(f"File deleted: {storage_path}")
@@ -483,8 +480,8 @@ class EnhancedStorageService:
     async def cleanup_old_files(self, days_old: int = 30) -> Dict[str, Any]:
         """Clean up files older than specified days"""
         try:
-            # Use cloud storage cleanup
-            cleaned_count = await self.cloud_storage.cleanup_expired_files()
+            # Use Supabase storage cleanup
+            cleaned_count = await self.supabase_storage.cleanup_expired_files()
 
             logger.info(f"Cleanup completed: {cleaned_count} files")
 
@@ -503,7 +500,7 @@ class EnhancedStorageService:
         try:
             import asyncio
 
-            usage = asyncio.run(self.cloud_storage.get_workspace_usage(workspace_id))
+            usage = asyncio.run(self.supabase_storage.get_workspace_usage(workspace_id))
 
             return usage
 
@@ -512,8 +509,22 @@ class EnhancedStorageService:
             return {"status": "error", "error": str(e)}
 
 
-# Enhanced service instance
-enhanced_storage_service = EnhancedStorageService()
+# Enhanced service instance - lazy initialization
+enhanced_storage_service = None
+
+def get_enhanced_storage_service():
+    """Get enhanced storage service instance with lazy initialization."""
+    global enhanced_storage_service
+    if enhanced_storage_service is None:
+        enhanced_storage_service = EnhancedStorageService()
+    return enhanced_storage_service
 
 # Keep backward compatibility
-storage_service = get_cloud_storage()
+storage_service = None
+
+def get_storage_service():
+    """Get storage service instance with lazy initialization."""
+    global storage_service
+    if storage_service is None:
+        storage_service = get_supabase_storage()
+    return storage_service

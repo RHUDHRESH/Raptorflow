@@ -10,7 +10,7 @@ const PASSWORD_REGEX = {
   hasUpperCase: /[A-Z]/,
   hasLowerCase: /[a-z]/,
   hasNumber: /\d/,
-  hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
+  hasSpecialChar: /[[\]!@#$%^&*()_+\-=\\{};':"\\|,.<>/?]/,
   noSpaces: /^\S+$/
 };
 
@@ -126,7 +126,7 @@ export const validatePhone = (phone: string): boolean => {
   if (!phone || typeof phone !== 'string') return false;
   
   // Basic phone validation (10 digits, optional country code)
-  const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
+  const phoneRegex = /^\+?[\d\s\-()]{10,}$/;
   return phoneRegex.test(phone.replace(/\D/g, ''));
 };
 

@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from backend.agents.universal.agent import UniversalAgent
-from db.repositories.onboarding import OnboardingRepository
+from backend.db.repositories.onboarding import OnboardingRepository
 
 logger = logging.getLogger(__name__)
 

@@ -73,11 +73,10 @@ class EnvironmentConfig(BaseModel):
     VERTEX_AI_MODEL: str = "gemini-2.0-flash-exp"
     VERTEX_AI_CREDENTIALS_PATH: Optional[str] = None
     
-    # Google Cloud Storage
-    GCS_INGEST_BUCKET: str
-    GCS_GOLD_BUCKET: str
-    GCS_MODEL_BUCKET: str
-    GCS_LOG_BUCKET: str
+    # Supabase Storage
+    SUPABASE_URL: str
+    SUPABASE_SERVICE_KEY: str
+    SUPABASE_STORAGE_BUCKET: str = "workspace-uploads"
     
     # Monitoring
     SENTRY_DSN: Optional[str] = None
@@ -303,16 +302,24 @@ class EnvironmentManager:
             'credentials_path': self.get_env_var('VERTEX_AI_CREDENTIALS_PATH')
         }
     
-    def get_google_cloud_config(self) -> Dict[str, Any]:
-        """Get Google Cloud configuration"""
+    def get_supabase_storage_config(self) -> Dict[str, Any]:
+        """Get Supabase storage configuration"""
         return {
-            'project_id': self.get_env_var('GOOGLE_PROJECT_ID'),
-            'location': self.get_env_var('GOOGLE_LOCATION'),
-            'credentials_path': self.get_env_var('GOOGLE_APPLICATION_CREDENTIALS'),
-            'ingest_bucket': self.get_env_var('GCS_INGEST_BUCKET'),
-            'gold_bucket': self.get_env_var('GCS_GOLD_BUCKET'),
-            'model_bucket': self.get_env_var('GCS_MODEL_BUCKET'),
-            'log_bucket': self.get_env_var('GCS_LOG_BUCKET')
+            'url': self.get_env_var('SUPABASE_URL'),
+            'service_key': self.get_env_var('SUPABASE_SERVICE_KEY'),
+            'default_bucket': self.get_env_var('SUPABASE_STORAGE_BUCKET'),
+            'buckets': {
+                'uploads': 'workspace-uploads',
+                'exports': 'workspace-exports',
+                'backups': 'workspace-backups',
+                'assets': 'workspace-assets',
+                'temp': 'workspace-temp',
+                'logs': 'workspace-logs',
+                'intelligence': 'intelligence-vault',
+                'avatars': 'user-avatars',
+                'documents': 'user-documents',
+                'user_data': 'user-data'
+            }
         }
     
     def get_email_config(self) -> Dict[str, Any]:

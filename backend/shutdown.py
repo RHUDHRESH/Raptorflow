@@ -308,6 +308,11 @@ signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
 
+def cleanup_app():
+    """Cleanup app function for FastAPI shutdown."""
+    return asyncio.run(cleanup())
+
+
 if __name__ == "__main__":
     # Run shutdown when script is executed directly
     asyncio.run(run_shutdown())

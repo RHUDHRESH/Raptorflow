@@ -1,10 +1,18 @@
-import { createServerSupabaseClient } from '@/lib/auth-server'
+import { createServerSupabaseClient, getProfileByAnyId, updateProfileRecord } from '@/lib/auth-server'
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { sendWelcomeEmail, sendPaymentConfirmationEmail } from '@/lib/email'
 
 // PhonePe 2026 Webhook Configuration
 const PHONEPE_WEBHOOK_USERNAME = process.env.PHONEPE_WEBHOOK_USERNAME
 const PHONEPE_WEBHOOK_PASSWORD = process.env.PHONEPE_WEBHOOK_PASSWORD
+
+// Plan name mapping
+const PLAN_NAMES: Record<string, string> = {
+  'ascent': 'Ascent',
+  'glide': 'Glide',
+  'soar': 'Soar'
+}
 
 export async function POST(request: Request) {
   try {
@@ -41,7 +49,7 @@ export async function POST(request: Request) {
       state: webhookData.data?.state,
     })
 
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
 
     // Handle different webhook types
     const webhookType = webhookData.type
@@ -67,7 +75,7 @@ export async function POST(request: Request) {
   }
 }
 
-async function handlePaymentSuccess(webhookData: any, supabase: any) {
+async function handlePaymentSuccess(webhookData: any, supabaseClient: any) {
   const data = webhookData.data
   const transactionId = data.transactionId
   const merchantTransactionId = data.merchantTransactionId
@@ -77,8 +85,15 @@ async function handlePaymentSuccess(webhookData: any, supabase: any) {
   console.log(`Payment successful: ${transactionId}`)
 
   try {
+    // Check if we've already processed this transaction (idempotency)
+    const { data: existingPayment } = await supabaseClient
+      .from('payments')
+      .select('id, welcome_email_sent_at, invoice_email_sent_at')
+      .eq('transaction_id', merchantTransactionId)
+      .single()
+
     // Update payment transaction
-    await supabase
+    await supabaseClient
       .from('payment_transactions')
       .update({
         status: 'completed',
@@ -90,15 +105,15 @@ async function handlePaymentSuccess(webhookData: any, supabase: any) {
       .eq('transaction_id', merchantTransactionId)
 
     // Get transaction details to activate subscription
-    const { data: transaction } = await supabase
+    const { data: transaction } = await supabaseClient
       .from('payment_transactions')
-      .select('user_id, plan_id, billing_cycle')
+      .select('user_id, plan_id, billing_cycle, amount')
       .eq('transaction_id', merchantTransactionId)
       .single()
 
     if (transaction) {
-      // Activate subscription
-      await supabase
+      // Activate subscription in subscriptions table
+      await supabaseClient
         .from('subscriptions')
         .upsert({
           user_id: transaction.user_id,
@@ -112,17 +127,73 @@ async function handlePaymentSuccess(webhookData: any, supabase: any) {
           onConflict: 'user_id'
         })
 
-      // Update user onboarding status
-      await supabase
-        .from('users')
-        .update({
-          onboarding_status: 'completed',
-          subscription_tier: transaction.plan_id,
+      // Update profile with subscription status (PRIMARY source for routing)
+      await updateProfileRecord(
+        supabaseClient,
+        { profileId: transaction.user_id },
+        {
+          subscription_plan: transaction.plan_id,
+          subscription_status: 'active',
+          onboarding_status: 'pending',
           updated_at: new Date().toISOString(),
-        })
-        .eq('id', transaction.user_id)
+        }
+      )
 
       console.log(`Subscription activated for user: ${transaction.user_id}`)
+
+      // Get user profile for email
+      const { profile } = await getProfileByAnyId(supabaseClient, transaction.user_id)
+
+      if (profile) {
+        const userEmail = profile.email || ''
+        const userName = profile.full_name || userEmail.split('@')[0] || 'User'
+        const planName = PLAN_NAMES[transaction.plan_id] || transaction.plan_id
+        const amountInRupees = `₹${((transaction.amount || amount) / 100).toLocaleString('en-IN')}`
+        const date = new Date().toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        })
+
+        // Send welcome email (idempotent)
+        if (!existingPayment?.welcome_email_sent_at) {
+          console.log(`Sending welcome email to: ${userEmail}`)
+          const welcomeResult = await sendWelcomeEmail(userEmail, userName)
+          
+          if (welcomeResult.success) {
+            await supabaseClient
+              .from('payments')
+              .update({ welcome_email_sent_at: new Date().toISOString() })
+              .eq('transaction_id', merchantTransactionId)
+            console.log('Welcome email sent successfully')
+          } else {
+            console.error('Failed to send welcome email:', welcomeResult.error)
+          }
+        }
+
+        // Send payment confirmation email (idempotent)
+        if (!existingPayment?.invoice_email_sent_at) {
+          console.log(`Sending payment confirmation email to: ${userEmail}`)
+          const invoiceResult = await sendPaymentConfirmationEmail({
+            email: userEmail,
+            name: userName,
+            planName: planName,
+            amount: amountInRupees,
+            transactionId: merchantTransactionId,
+            date: date
+          })
+          
+          if (invoiceResult.success) {
+            await supabaseClient
+              .from('payments')
+              .update({ invoice_email_sent_at: new Date().toISOString() })
+              .eq('transaction_id', merchantTransactionId)
+            console.log('Payment confirmation email sent successfully')
+          } else {
+            console.error('Failed to send payment confirmation email:', invoiceResult.error)
+          }
+        }
+      }
     }
 
   } catch (error) {
@@ -130,7 +201,7 @@ async function handlePaymentSuccess(webhookData: any, supabase: any) {
   }
 }
 
-async function handlePaymentFailure(webhookData: any, supabase: any) {
+async function handlePaymentFailure(webhookData: any, supabaseClient: any) {
   const data = webhookData.data
   const merchantTransactionId = data.merchantTransactionId
   const responseCode = data.responseCode
@@ -139,7 +210,7 @@ async function handlePaymentFailure(webhookData: any, supabase: any) {
 
   try {
     // Update payment transaction
-    await supabase
+    await supabaseClient
       .from('payment_transactions')
       .update({
         status: 'failed',
@@ -154,7 +225,7 @@ async function handlePaymentFailure(webhookData: any, supabase: any) {
   }
 }
 
-async function handleRefundSuccess(webhookData: any, supabase: any) {
+async function handleRefundSuccess(webhookData: any, supabaseClient: any) {
   const data = webhookData.data
   const refundTransactionId = data.refundTransactionId
   const originalTransactionId = data.originalTransactionId
@@ -163,7 +234,7 @@ async function handleRefundSuccess(webhookData: any, supabase: any) {
 
   try {
     // Log refund event
-    await supabase
+    await supabaseClient
       .from('refund_events')
       .insert({
         refund_transaction_id: refundTransactionId,

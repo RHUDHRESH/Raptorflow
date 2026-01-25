@@ -14,7 +14,7 @@ import re
 from collections import defaultdict, Counter
 
 # Import AI services
-from services.vertex_ai_service import vertex_ai_service
+from backend.services.vertex_ai_service import vertex_ai_service
 from backend.services.search.reddit_native import RedditNativeScraper
 
 logger = logging.getLogger(__name__)

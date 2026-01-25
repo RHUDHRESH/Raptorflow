@@ -160,7 +160,7 @@ async function fetchAllUserData(supabase: any, userId: string) {
     securityEvents
   ] = await Promise.all([
     supabase.from('users').select('*').eq('id', userId).single(),
-    supabase.from('workspaces').select('*').eq('user_id', userId),
+    supabase.from('workspaces').select('*').eq('owner_id', userId),
     supabase.from('subscriptions').select('*').eq('user_id', userId),
     supabase.from('payment_transactions').select('*').eq('user_id', userId),
     supabase.from('user_sessions').select('created_at, last_accessed_at, ip_address, user_agent').eq('user_id', userId),

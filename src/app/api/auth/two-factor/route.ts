@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { ValidationError, AuthenticationError, createDatabaseError } from '@/lib/security/error-handler';
 import { validateEmail, sanitizeInput } from '@/lib/security/input-validation';
+import { serviceAuth } from '@/lib/auth-service';
 import crypto from 'crypto';
 
 export async function POST(request: Request) {
@@ -25,11 +25,8 @@ export async function POST(request: Request) {
     
     const sanitizedAction = sanitizeInput(action);
     
-    // Initialize Supabase client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Get service auth client for admin operations
+    const supabase = serviceAuth.getSupabaseClient();
     
     switch (sanitizedAction) {
       case 'enable':
@@ -205,7 +202,7 @@ async function generateBackupCodes(supabase: any, email: string) {
   // Update backup codes
   const { error: updateError } = await supabase
     .from('two_factor_settings')
-    .update({ backup_codes })
+    .update({ backup_codes: backupCodes })
     .eq('user_id', user.id);
   
   if (updateError) {

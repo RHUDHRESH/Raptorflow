@@ -121,7 +121,7 @@ export function userExists(username: string): boolean {
   try {
     if (typeof window !== 'undefined') {
       const users = JSON.parse(localStorage.getItem('users') || '{}');
-      return users.hasOwnProperty(username);
+      return Object.prototype.hasOwnProperty.call(users, username);
     }
     return false;
   } catch (error) {

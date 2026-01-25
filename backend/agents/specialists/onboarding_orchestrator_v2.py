@@ -144,7 +144,7 @@ class OnboardingOrchestratorV2(BaseAgent):
         
         # Recalculate BCM in real-time
         try:
-            from ...services.bcm_service import BCMService
+            from backend.services.bcm_service import BCMService
             bcm = BCMService.sync_context_to_bcm(state["business_context"])
             state["bcm_state"] = bcm
         except Exception as e:

@@ -471,7 +471,7 @@ class PhonePeWebhookHandler:
         """Update payment status in database."""
         logger.info(f"Updating payment status: {transaction_id} -> {status}")
         try:
-            from db.repositories.payment import PaymentRepository
+            from backend.db.repositories.payment import PaymentRepository
 
             repo = PaymentRepository()
             await repo.update_status(
